@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Mail, Trophy, Music, LogOut, ChevronRight, Heart } from 'lucide-react';
+import { X, User, Mail, Trophy, Music, LogOut, ChevronRight, Heart, Camera, Upload } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
@@ -16,6 +16,7 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
     const { user, isLoggedIn, login, logout, loginSocial } = useUser();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
+    const [avatar, setAvatar] = useState<string | null>(null);
     const [isSocialLoading, setIsSocialLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
 
@@ -81,11 +82,26 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
         }, 500);
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatar(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleAuth = (e: React.FormEvent) => {
         e.preventDefault();
-        // Simple mock auth for now
         if (username && email) {
-            login(username, email);
+            loginSocial({
+                username,
+                email,
+                avatar: avatar || undefined,
+                provider: 'email'
+            });
         }
     };
 
@@ -141,10 +157,13 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
 
                             {isLoggedIn ? (
                                 <div className="space-y-6">
-                                    {/* User Info Card */}
                                     <div className="flex items-center gap-6 p-6 bg-white/5 border border-white/10 rounded-3xl">
-                                        <div className="w-16 h-16 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30">
-                                            <User className="w-8 h-8 text-neon-red" />
+                                        <div className="w-16 h-16 bg-neon-red/10 border-2 border-neon-red/30 rounded-2xl overflow-hidden flex items-center justify-center">
+                                            {user?.avatar ? (
+                                                <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <User className="w-8 h-8 text-neon-red" />
+                                            )}
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic">{user?.username}</h3>
@@ -244,8 +263,32 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
 
                                     <form onSubmit={handleAuth} className="space-y-6">
                                     <div className="space-y-4">
+                                        {/* Avatar Upload */}
+                                        <div className="flex flex-col items-center gap-4 mb-2">
+                                            <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
+                                                <div className="w-24 h-24 rounded-full bg-white/5 border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden transition-all group-hover:border-neon-red/50">
+                                                    {avatar ? (
+                                                        <img src={avatar} alt="Preview" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <Camera className="w-8 h-8 text-gray-600 group-hover:text-neon-red transition-all" />
+                                                    )}
+                                                </div>
+                                                <div className="absolute -bottom-1 -right-1 bg-neon-red p-2 rounded-full shadow-lg">
+                                                    <Upload className="w-3 h-3 text-white" />
+                                                </div>
+                                                <input
+                                                    id="avatar-upload"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={handleFileChange}
+                                                />
+                                            </div>
+                                            <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest italic">Photo de Profil (Optionnel)</p>
+                                        </div>
+
                                         <div className="group">
-                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">Nom d'utilisateur</label>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1 italic">Pseudo <span className="text-neon-red">*</span></label>
                                             <div className="relative">
                                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
                                                 <input
@@ -253,8 +296,8 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                                     required
                                                     value={username}
                                                     onChange={(e) => setUsername(e.target.value)}
-                                                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm focus:outline-none focus:border-neon-red/50 transition-all"
-                                                    placeholder="AlexFR"
+                                                    className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm focus:outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                    placeholder="Ton Pseudo Dropsiders"
                                                 />
                                             </div>
                                         </div>
