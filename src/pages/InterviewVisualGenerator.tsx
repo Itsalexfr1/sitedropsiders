@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Upload, Download, Image, Youtube, Instagram, Trash2, RefreshCw, Eye, Scissors, Check, X } from 'lucide-react';
+import { ChevronLeft, Upload, Download, Image, Youtube, Instagram, Trash2, RefreshCw, Eye, Scissors, Check, X, AlertCircle } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { isSuperAdmin } from '../utils/auth';
 
@@ -36,6 +36,7 @@ export function InterviewVisualGenerator() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [dropsidersLogo, setDropsidersLogo] = useState<HTMLImageElement | null>(null);
     const [visualMode, setVisualMode]     = useState<'interview' | 'recap'>('interview');
+    const [error, setError] = useState<string | null>(null);
 
     // Photo position controls
     const [photoOffsetX, setPhotoOffsetX] = useState(0);   // -100 to +100
@@ -69,16 +70,28 @@ export function InterviewVisualGenerator() {
     }, []);
 
     /* ─── Image File Handling ─── */
-    const handleFile = (file: File, setter: (url: string | null) => void, shouldCrop = false) => {
+    const handleFile = (file: File, setter: (val: string | null) => void, isArtistPhoto = false) => {
         if (!file.type.startsWith('image/')) return;
         const reader = new FileReader();
         reader.onload = (e) => {
-            const url = e.target?.result as string;
-            if (shouldCrop) {
-                setImageToCrop(url);
-                setShowCropper(true);
+            const dataUrl = e.target?.result as string;
+            
+            if (isArtistPhoto) {
+                const img = new window.Image();
+                img.onload = () => {
+                    if (img.width < 1200) {
+                        setError("La photo est trop petite (min. 1200px de large) pour un rendu premium.");
+                        setArtistPhoto(null);
+                    } else {
+                        setError(null);
+                        setter(dataUrl);
+                        setImageToCrop(dataUrl);
+                        setShowCropper(true);
+                    }
+                };
+                img.src = dataUrl;
             } else {
-                setter(url);
+                setter(dataUrl);
             }
         };
         reader.readAsDataURL(file);
@@ -173,30 +186,39 @@ export function InterviewVisualGenerator() {
         try {
             const photoImg = await loadImage(artistPhoto);
             ctx.save();
-            const scaleFactor = photoScale / 100;
+            // Scaling logic: normalize base height to 1200 for BOTH formats for coherence
+            const BASE_H = 1200;
+            const ph = BASE_H * (photoScale / 100);
+            const pw = ph * (photoImg.width / photoImg.height);
+            
             if (fmt === 'youtube') {
-                const ph = h * scaleFactor;
-                const pw = ph * (photoImg.width / photoImg.height);
-                // Base position: right side. offsetX shifts left/right, offsetY shifts up/down
-                const px = (w - pw * 0.75) + (photoOffsetX / 100) * w * 0.4;
+                // For YouTube, the photo is on the right. 
+                // offsetX moves it horizontally. Normalize offset relative to height.
+                const px = (w - pw * 0.8) + (photoOffsetX / 100) * h;
                 const py = (h - ph) / 2 + (photoOffsetY / 100) * h * 0.5;
+                
                 ctx.beginPath();
                 ctx.rect(w * 0.35, 0, w * 0.65, h);
                 ctx.clip();
                 ctx.drawImage(photoImg, px, py, pw, ph);
-                const fadeGrad = ctx.createLinearGradient(w * 0.35, 0, w * 0.55, 0);
-                fadeGrad.addColorStop(0, '#050505');
-                fadeGrad.addColorStop(1, 'transparent');
+                
+                // --- PREMIUM FADE LEFT ---
+                // Wider and smoother gradient to blend into the black text area
+                const fadeWidth = w * 0.4;
+                const fadeGrad = ctx.createLinearGradient(w * 0.35, 0, w * 0.35 + fadeWidth, 0);
+                fadeGrad.addColorStop(0,   '#050505');
+                fadeGrad.addColorStop(0.2, 'rgba(5,5,5,0.95)');
+                fadeGrad.addColorStop(0.5, 'rgba(5,5,5,0.4)');
+                fadeGrad.addColorStop(1,   'transparent');
                 ctx.fillStyle = fadeGrad;
-                ctx.fillRect(w * 0.35, 0, w * 0.2, h);
+                ctx.fillRect(w * 0.35, 0, fadeWidth, h);
             } else {
-                const ph = h * 0.8 * scaleFactor;
-                const pw = ph * (photoImg.width / photoImg.height);
-                // Base position: bottom-center. offsets shift the photo
+                // Instagram: Bottom-center, large
                 const basePx = (w - pw) / 2;
-                const basePy = h - ph + h * 0.02;
-                const px = basePx + (photoOffsetX / 100) * w * 0.4;
+                const basePy = h - ph + h * 0.05;
+                const px = basePx + (photoOffsetX / 100) * h;
                 const py = basePy + (photoOffsetY / 100) * h * 0.4;
+                
                 ctx.beginPath();
                 ctx.rect(0, 0, w, h);
                 ctx.clip();
@@ -214,13 +236,14 @@ export function InterviewVisualGenerator() {
                 ctx.fillStyle = fadeT;
                 ctx.fillRect(0, 0, w, h);
 
-                // Fade left & right
-                const fadeL = ctx.createLinearGradient(0, 0, w * 0.2, 0);
+                // Fade left & right - Premium style
+                const fadeL = ctx.createLinearGradient(0, 0, w * 0.35, 0);
                 fadeL.addColorStop(0, '#050505');
                 fadeL.addColorStop(1, 'transparent');
                 ctx.fillStyle = fadeL;
                 ctx.fillRect(0, 0, w, h);
-                const fadeR = ctx.createLinearGradient(w * 0.8, 0, w, 0);
+                
+                const fadeR = ctx.createLinearGradient(w * 0.65, 0, w, 0);
                 fadeR.addColorStop(0, 'transparent');
                 fadeR.addColorStop(1, '#050505');
                 ctx.fillStyle = fadeR;
@@ -614,6 +637,13 @@ export function InterviewVisualGenerator() {
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-4">
                                 {visualMode === 'interview' ? "Photo de l'artiste" : "Photo de couverture"} <span className="text-neon-red">*</span>
                             </label>
+
+                            {error && (
+                                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+                                    <AlertCircle className="w-4 h-4 text-red-500" />
+                                    <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{error}</p>
+                                </div>
+                            )}
                             
                             <input
                                 ref={photoInputRef}
@@ -728,7 +758,7 @@ export function InterviewVisualGenerator() {
                                 disabled={!artistPhoto || (!artistName.trim() && !artistLogo) || isGenerating}
                                 className="flex items-center justify-center gap-2 py-5 bg-neon-red text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red/80 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)] disabled:opacity-40"
                             >
-                                <Download className="w-4 h-4" /> Télécharger
+                                <Download className="w-4 h-4" /> Télécharger {activeFormat === 'youtube' ? 'YouTube' : 'Instagram'}
                             </button>
                         </div>
                     </div>
