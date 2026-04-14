@@ -27,7 +27,7 @@ const DEFAULT_TABS: { key: TabKey; label: string; activeClass: string; inactiveC
 export function News() {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
-    const [newsData, setNewsData] = useState<any[]>(newsFallback || []);
+    const [newsData, setNewsData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
