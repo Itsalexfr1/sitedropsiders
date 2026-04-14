@@ -3020,7 +3020,7 @@ export function AdminDashboard() {
                                                                     const isStory = H === 1920;
                                                                     const rank = artIdx + 1;
                                                                     const label = cat === 'clubs' ? 'CLUBS' : cat === 'festivals' ? 'FESTIVALS' : 'DJS';
-                                                                    const C_RED = '#ff1272', C_DARK = '#080b10', C_MID = '#0f1620', C_STRIPE = '#1a0a10';
+                                                                    const C_RED = '#ff0033', C_DARK = '#080b10', C_MID = '#0f1620', C_STRIPE = '#1a0a10';
                                                                     const C_GOLD = '#ffd700', C_SILVER = '#c0c0c0', C_BRONZE = '#cd7f32';
                                                                     const mainColor = rank === 1 ? C_GOLD : rank === 2 ? C_SILVER : rank === 3 ? C_BRONZE : C_RED;
 
@@ -3041,7 +3041,7 @@ export function AdminDashboard() {
                                                                     ctx.restore();
                                                                     const radH = isStory ? H * 0.8 : H * 0.7;
                                                                     const radG = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, radH);
-                                                                    radG.addColorStop(0, rank === 1 ? 'rgba(255,215,0,0.08)' : rank === 2 ? 'rgba(192,192,192,0.08)' : rank === 3 ? 'rgba(205,127,50,0.08)' : 'rgba(255,18,114,0.08)'); radG.addColorStop(1, 'rgba(0,0,0,0.6)');
+                                                                    radG.addColorStop(0, rank === 1 ? 'rgba(255,215,0,0.08)' : rank === 2 ? 'rgba(192,192,192,0.08)' : rank === 3 ? 'rgba(205,127,50,0.08)' : 'rgba(255,0,51,0.08)'); radG.addColorStop(1, 'rgba(0,0,0,0.6)');
                                                                     ctx.fillStyle = radG; ctx.fillRect(0, 0, W, H);
                                                                     ctx.fillStyle = mainColor; ctx.fillRect(0, 0, 8, H); ctx.fillRect(W - 8, 0, 8, H);
 
@@ -3105,7 +3105,7 @@ export function AdminDashboard() {
                                                                     const rankStr = `${rank}`, rkW = ctx.measureText(rankStr).width;
                                                                     ctx.fillText(rankStr, padX+12, footerY+footerH/2+6); ctx.restore();
                                                                     const sepX = padX+12+rkW+(isStory?30:20);
-                                                                    ctx.fillStyle = rank === 1 ? 'rgba(255,215,0,0.3)' : rank === 2 ? 'rgba(192,192,192,0.3)' : rank === 3 ? 'rgba(205,127,50,0.3)' : 'rgba(255,18,114,0.3)'; ctx.fillRect(sepX, footerY+20, 2, footerH-40);
+                                                                    ctx.fillStyle = rank === 1 ? 'rgba(255,215,0,0.3)' : rank === 2 ? 'rgba(192,192,192,0.3)' : rank === 3 ? 'rgba(205,127,50,0.3)' : 'rgba(255,0,51,0.3)'; ctx.fillRect(sepX, footerY+20, 2, footerH-40);
 
                                                                     // Footer Text & Logo
                                                                     const logoW = isStory ? 180 : 150;
