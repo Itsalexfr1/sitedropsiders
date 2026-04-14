@@ -37,12 +37,22 @@ export function InterviewVisualGenerator() {
     const [dropsidersLogo, setDropsidersLogo] = useState<HTMLImageElement | null>(null);
     const [visualMode, setVisualMode]     = useState<'interview' | 'recap'>('interview');
 
+    // Photo position controls
+    const [photoOffsetX, setPhotoOffsetX] = useState(0);   // -100 to +100
+    const [photoOffsetY, setPhotoOffsetY] = useState(0);   // -100 to +100
+    const [photoScale, setPhotoScale]     = useState(100); // 50 to 200 (%)
+
     // Cropping state
     const [showCropper, setShowCropper] = useState(false);
     const [imageToCrop, setImageToCrop] = useState<string | null>(null);
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
+    // Drag state for photo positioning
+    const [isDragging, setIsDragging] = useState(false);
+    const dragStartRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+    const previewRef = useRef<HTMLDivElement>(null);
 
     const photoInputRef = useRef<HTMLInputElement>(null);
     const logoInputRef  = useRef<HTMLInputElement>(null);
@@ -163,42 +173,41 @@ export function InterviewVisualGenerator() {
         try {
             const photoImg = await loadImage(artistPhoto);
             ctx.save();
+            const scaleFactor = photoScale / 100;
             if (fmt === 'youtube') {
-                // Right side half
-                const ph = h;
+                const ph = h * scaleFactor;
                 const pw = ph * (photoImg.width / photoImg.height);
-                const px = w - pw * 0.75;
-                const py = 0;
-                // Clip to right portion
+                // Base position: right side. offsetX shifts left/right, offsetY shifts up/down
+                const px = (w - pw * 0.75) + (photoOffsetX / 100) * w * 0.4;
+                const py = (h - ph) / 2 + (photoOffsetY / 100) * h * 0.5;
                 ctx.beginPath();
                 ctx.rect(w * 0.35, 0, w * 0.65, h);
                 ctx.clip();
                 ctx.drawImage(photoImg, px, py, pw, ph);
-                // Fade left edge of photo
                 const fadeGrad = ctx.createLinearGradient(w * 0.35, 0, w * 0.55, 0);
                 fadeGrad.addColorStop(0, '#050505');
                 fadeGrad.addColorStop(1, 'transparent');
                 ctx.fillStyle = fadeGrad;
                 ctx.fillRect(w * 0.35, 0, w * 0.2, h);
             } else {
-                // Instagram Portrait: bottom-center, large, faded at bottom
-                const ph = h * 0.8;
+                const ph = h * 0.8 * scaleFactor;
                 const pw = ph * (photoImg.width / photoImg.height);
-                const px = (w - pw) / 2;
-                const py = h - ph + h * 0.02;
+                // Base position: bottom-center. offsets shift the photo
+                const basePx = (w - pw) / 2;
+                const basePy = h - ph + h * 0.02;
+                const px = basePx + (photoOffsetX / 100) * w * 0.4;
+                const py = basePy + (photoOffsetY / 100) * h * 0.4;
                 ctx.beginPath();
                 ctx.rect(0, 0, w, h);
                 ctx.clip();
                 ctx.drawImage(photoImg, px, py, pw, ph);
                 
-                // Fade bottom - more aggressive for portrait
                 const fadeB = ctx.createLinearGradient(0, h * 0.6, 0, h);
                 fadeB.addColorStop(0, 'transparent');
                 fadeB.addColorStop(1, '#050505');
                 ctx.fillStyle = fadeB;
                 ctx.fillRect(0, 0, w, h);
                 
-                // Fade top slightly
                 const fadeT = ctx.createLinearGradient(0, 0, 0, h * 0.3);
                 fadeT.addColorStop(0, '#050505');
                 fadeT.addColorStop(1, 'transparent');
@@ -412,7 +421,7 @@ export function InterviewVisualGenerator() {
         setPreviewUrl(url);
         setIsGenerating(false);
         return url;
-    }, [artistPhoto, artistName, artistLogo, dropsidersLogo, festivalName, festivalLogo, visualMode]);
+    }, [artistPhoto, artistName, artistLogo, dropsidersLogo, festivalName, festivalLogo, visualMode, photoOffsetX, photoOffsetY, photoScale]);
 
     const handleGenerate = () => { generate(activeFormat); };
 
@@ -432,7 +441,7 @@ export function InterviewVisualGenerator() {
             const t = setTimeout(() => generate(activeFormat), 300);
             return () => clearTimeout(t);
         }
-    }, [activeFormat, artistName, artistPhoto, artistLogo, generate]);
+    }, [activeFormat, artistName, artistPhoto, artistLogo, generate, photoOffsetX, photoOffsetY, photoScale]);
 
     if (!isAuthorized) {
         return (
@@ -643,7 +652,36 @@ export function InterviewVisualGenerator() {
                             )}
                         </div>
 
-                        {/* Festival */}
+                        {/* Photo Position Controls – zoom only, drag on preview for X/Y */}
+                        {artistPhoto && (
+                            <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md space-y-5">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em]">Zoom photo</label>
+                                    <button
+                                        onClick={() => { setPhotoOffsetX(0); setPhotoOffsetY(0); setPhotoScale(100); }}
+                                        className="text-[9px] font-black text-gray-600 hover:text-neon-red uppercase tracking-widest transition-colors"
+                                    >
+                                        Réinitialiser
+                                    </button>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">⊞ Taille</span>
+                                        <span className="text-[10px] font-black text-white tabular-nums">{photoScale}%</span>
+                                    </div>
+                                    <input
+                                        type="range" min={50} max={200} step={1}
+                                        value={photoScale}
+                                        onChange={(e) => setPhotoScale(Number(e.target.value))}
+                                        className="w-full h-1.5 bg-white/10 rounded-full appearance-none accent-neon-red cursor-pointer"
+                                    />
+                                </div>
+                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center pt-1">
+                                    ✦ Glisse directement sur l'aperçu pour repositionner
+                                </p>
+                            </div>
+                        )}
+
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-4">Festival / Événement</label>
                             <input
@@ -713,8 +751,42 @@ export function InterviewVisualGenerator() {
                         </div>
 
                         <div
-                            className={`w-full bg-black/40 border border-white/10 rounded-[40px] overflow-hidden flex items-center justify-center relative shadow-2xl ${isGenerating ? 'opacity-60' : ''}`}
+                            ref={previewRef}
+                            className={`w-full bg-black/40 border border-white/10 rounded-[40px] overflow-hidden flex items-center justify-center relative shadow-2xl select-none ${
+                                isGenerating ? 'opacity-60' : ''
+                            } ${artistPhoto && previewUrl ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
                             style={{ aspectRatio: fmt.w / fmt.h }}
+                            onMouseDown={(e) => {
+                                if (!artistPhoto || !previewUrl) return;
+                                setIsDragging(true);
+                                dragStartRef.current = { x: e.clientX, y: e.clientY, ox: photoOffsetX, oy: photoOffsetY };
+                            }}
+                            onMouseMove={(e) => {
+                                if (!isDragging || !dragStartRef.current || !previewRef.current) return;
+                                const rect = previewRef.current.getBoundingClientRect();
+                                const dx = ((e.clientX - dragStartRef.current.x) / rect.width) * 100;
+                                const dy = ((e.clientY - dragStartRef.current.y) / rect.height) * 100;
+                                setPhotoOffsetX(Math.max(-100, Math.min(100, dragStartRef.current.ox + dx * 1.5)));
+                                setPhotoOffsetY(Math.max(-100, Math.min(100, dragStartRef.current.oy + dy * 1.5)));
+                            }}
+                            onMouseUp={() => setIsDragging(false)}
+                            onMouseLeave={() => setIsDragging(false)}
+                            onTouchStart={(e) => {
+                                if (!artistPhoto || !previewUrl) return;
+                                const t = e.touches[0];
+                                setIsDragging(true);
+                                dragStartRef.current = { x: t.clientX, y: t.clientY, ox: photoOffsetX, oy: photoOffsetY };
+                            }}
+                            onTouchMove={(e) => {
+                                if (!isDragging || !dragStartRef.current || !previewRef.current) return;
+                                const rect = previewRef.current.getBoundingClientRect();
+                                const t = e.touches[0];
+                                const dx = ((t.clientX - dragStartRef.current.x) / rect.width) * 100;
+                                const dy = ((t.clientY - dragStartRef.current.y) / rect.height) * 100;
+                                setPhotoOffsetX(Math.max(-100, Math.min(100, dragStartRef.current.ox + dx * 1.5)));
+                                setPhotoOffsetY(Math.max(-100, Math.min(100, dragStartRef.current.oy + dy * 1.5)));
+                            }}
+                            onTouchEnd={() => setIsDragging(false)}
                         >
                             {isGenerating && (
                                 <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-sm">
@@ -722,13 +794,19 @@ export function InterviewVisualGenerator() {
                                 </div>
                             )}
                             {previewUrl ? (
-                                <img src={previewUrl} alt="Preview" className="w-full h-full object-contain" />
+                                <img src={previewUrl} alt="Preview" className="w-full h-full object-contain pointer-events-none" />
                             ) : (
                                 <div className="flex flex-col items-center gap-6 text-gray-700">
                                     <Image className="w-16 h-16 opacity-20" />
                                     <p className="text-[11px] font-black uppercase tracking-[0.3em] text-center max-w-xs leading-relaxed">
                                         {!artistPhoto ? 'Importe une photo pour commencer' : 'Génère l\'aperçu pour voir le résultat'}
                                     </p>
+                                </div>
+                            )}
+                            {/* Drag hint overlay */}
+                            {artistPhoto && previewUrl && !isDragging && (
+                                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-black/60 backdrop-blur-sm rounded-full pointer-events-none">
+                                    <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.2em]">✦ Glisse pour repositionner</span>
                                 </div>
                             )}
                         </div>
