@@ -59,7 +59,7 @@ const Community = lazyRetry(() => import('./pages/Community').then(m => m.Commun
 const QrCodePage = lazyRetry(() => import('./pages/QrCodePage').then(m => m.QrCodePage));
 const InterviewVisualGenerator = lazyRetry(() => import('./pages/InterviewVisualGenerator').then(m => m.InterviewVisualGenerator));
 const VideoStudioGenerator = lazyRetry(() => import('./pages/AftermovieGenerator').then(m => m.VideoStudioGenerator));
-const TopDropsiders = lazyRetry(() => import('./pages/TopDropsiders'));
+const TopDropsiders = lazyRetry(() => import('./pages/TopDropsiders').then(m => m.TopDropsiders));
 
 function ErrorFallback() {
   return (

@@ -2,7 +2,7 @@ import { WikiWidget } from '../components/widgets/WikiWidget';
 import { SEO } from '../components/utils/SEO';
 import { motion } from 'framer-motion';
 
-export default function TopDropsiders() {
+export function TopDropsiders() {
     return (
         <div className="min-h-screen bg-dark-bg pt-28 pb-20 overflow-hidden">
             <SEO 
