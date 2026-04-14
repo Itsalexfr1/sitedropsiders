@@ -216,7 +216,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                 setTheme('TRACKLIST');
             }
         } else {
-            setTheme('NEWS');
+            if (theme === 'TRACKLIST' || theme === 'INTRO' || theme.startsWith('TOP 5')) {
+                setTheme('NEWS');
+            }
         }
         setThemeColor(null);
     }, [activeTab]);

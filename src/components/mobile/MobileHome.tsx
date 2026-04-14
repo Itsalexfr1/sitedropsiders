@@ -30,7 +30,7 @@ export function MobileHome() {
                 if (newsRes.ok) combinedNews = await newsRes.json();
                 if (interviewsRes.ok) {
                     const intDatas = await interviewsRes.json();
-                    combinedNews = [...combinedNews, ...intDatas.map(i => ({...i, category: 'INTERVIEW'}))];
+                    combinedNews = [...combinedNews, ...intDatas.map((i: any) => ({...i, category: 'INTERVIEW'}))];
                 }
                 setNewsData(combinedNews);
                 if (agendaRes.ok) setAgendaData(await agendaRes.json());
