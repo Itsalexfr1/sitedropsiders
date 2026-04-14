@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff
+    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch, isSuperAdmin } from '../utils/auth';
@@ -2805,10 +2805,23 @@ export function AdminDashboard() {
                                     const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());
                                     const clubVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_clubs') || '[]'); } catch { return []; } })());
                                     const festVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_festivals') || '[]'); } catch { return []; } })());
-                                    const djR = [...(wikiDjs as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (djVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                                    const clubR = [...(wikiClubs as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                                    const festR = [...(wikiFestivals as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                                    const djR = [...(wikiDjs as any[])].map(d => ({ ...d, tv: Number(d.votes || d.rating || 0) + (djVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                                    const clubR = [...(wikiClubs as any[])].map(d => ({ ...d, tv: Number(d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                                    const festR = [...(wikiFestivals as any[])].map(d => ({ ...d, tv: Number(d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
                                     const allRanked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
+                                    
+                                    if (wikiDjs.length === 0 && wikiClubs.length === 0 && wikiFestivals.length === 0) {
+                                        return (
+                                            <div className="flex flex-col items-center justify-center p-20 bg-white/[0.02] shadow-xl rounded-2xl border border-white/10">
+                                                <Database className="w-12 h-12 text-gray-600 mb-4 animate-pulse" />
+                                                <p className="text-gray-400 font-bold uppercase tracking-widest text-sm text-center">
+                                                    Aucune donnée synchronisée.<br/>
+                                                    <button onClick={() => window.location.reload()} className="mt-4 text-neon-red hover:underline underline-offset-4">Recharger la page</button>
+                                                </p>
+                                            </div>
+                                        );
+                                    }
+
                                     const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
 
                                     const medals = ['🥇', '🥈', '🥉'];

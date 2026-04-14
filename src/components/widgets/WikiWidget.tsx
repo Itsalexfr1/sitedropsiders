@@ -12,6 +12,7 @@ interface WikiWidgetProps {
 
 export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResults = false }: WikiWidgetProps) {
     const [activeTab, setActiveTab] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
+    const [sortMode, setSortMode] = useState<'alpha' | 'votes'>('alpha');
 
     const tabs = [
         { id: 'DJS', label: 'Wiki DJs', icon: Disc },
@@ -33,29 +34,52 @@ export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResul
                 </p>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex bg-white/5 border border-white/10 rounded-full p-1.5 mb-8 backdrop-blur-md relative z-10 mx-auto overflow-x-auto max-w-full">
-                {tabs.map(tab => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
+            {/* Navigation Tabs & Sort Controls */}
+            <div className="flex flex-col md:flex-row items-center gap-6 mb-8 relative z-10 mx-auto w-full max-w-4xl">
+                <div className="flex bg-white/5 border border-white/10 rounded-full p-1.5 backdrop-blur-md overflow-x-auto max-w-full">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={twMerge(
+                                "flex items-center gap-2 px-6 py-3 rounded-full font-black uppercase tracking-widest text-[10px] transition-all relative",
+                                activeTab === tab.id ? "text-black" : "text-white/40 hover:text-white"
+                            )}
+                        >
+                            {activeTab === tab.id && (
+                                <motion.div
+                                    layoutId="wiki-widget-tab"
+                                    className="absolute inset-0 bg-white shadow-lg"
+                                    style={{ borderRadius: '9999px', boxShadow: `0 0 20px ${resolvedColor}40` }}
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                            <tab.icon className={twMerge("w-4 h-4 relative z-10")} />
+                            <span className="relative z-10">{tab.label}</span>
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flex items-center gap-4 bg-black/40 border border-white/10 rounded-2xl p-1.5 ml-auto">
+                    <button 
+                        onClick={() => setSortMode('alpha')}
                         className={twMerge(
-                            "flex items-center gap-2 px-6 py-3 rounded-full font-black uppercase tracking-widest text-[10px] transition-all relative",
-                            activeTab === tab.id ? "text-black" : "text-white/40 hover:text-white"
+                            "px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[8px] transition-all",
+                            sortMode === 'alpha' ? "bg-white/10 text-white" : "text-gray-500 hover:text-gray-300"
                         )}
                     >
-                        {activeTab === tab.id && (
-                            <motion.div
-                                layoutId="wiki-widget-tab"
-                                className="absolute inset-0 bg-white shadow-lg"
-                                style={{ borderRadius: '9999px', boxShadow: `0 0 20px ${resolvedColor}40` }}
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                            />
-                        )}
-                        <tab.icon className={twMerge("w-4 h-4 relative z-10", activeTab === tab.id ? "" : "")} />
-                        <span className="relative z-10">{tab.label}</span>
+                        Alphabétique
                     </button>
-                ))}
+                    <button 
+                        onClick={() => setSortMode('votes')}
+                        className={twMerge(
+                            "px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[8px] transition-all",
+                            sortMode === 'votes' ? "bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "text-gray-500 hover:text-gray-300"
+                        )}
+                    >
+                        Trier par Votes
+                    </button>
+                </div>
             </div>
 
             {/* Content Area */}
@@ -72,9 +96,9 @@ export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResul
                         transition={{ duration: 0.3 }}
                         className="relative z-10"
                     >
-                        {activeTab === 'DJS' && <WikiDropsiders showResults={showResults} />}
-                        {activeTab === 'CLUBS' && <WikiVenues initialMode="clubs" showResults={showResults} />}
-                        {activeTab === 'FESTIVALS' && <WikiVenues initialMode="festivals" showResults={showResults} />}
+                        {activeTab === 'DJS' && <WikiDropsiders showResults={showResults} sortMode={sortMode} />}
+                        {activeTab === 'CLUBS' && <WikiVenues initialMode="clubs" showResults={showResults} sortMode={sortMode} />}
+                        {activeTab === 'FESTIVALS' && <WikiVenues initialMode="festivals" showResults={showResults} sortMode={sortMode} />}
                     </motion.div>
                 </AnimatePresence>
             </div>

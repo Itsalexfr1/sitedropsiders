@@ -33,7 +33,13 @@ function groupByLetter(data: DjEntry[]): Record<string, DjEntry[]> {
     }, {} as Record<string, DjEntry[]>);
 }
 
-export function WikiDropsiders({ showResults = false }: { showResults?: boolean }) {
+export function WikiDropsiders({ 
+    showResults = false,
+    sortMode = 'alpha'
+}: { 
+    showResults?: boolean;
+    sortMode?: 'alpha' | 'votes';
+}) {
     const { t, language } = useLanguage();
     const [search, setSearch] = useState('');
     const [djData, setDjData] = useState<DjEntry[]>([]);
@@ -80,10 +86,27 @@ export function WikiDropsiders({ showResults = false }: { showResults?: boolean 
         }
     };
 
-    const filtered = (search ? djData.filter(dj => dj.name.toLowerCase().includes(search.toLowerCase())) : djData)
+    const sortedData = [...djData].sort((a, b) => {
+        if (sortMode === 'votes') {
+            const vA = (a as any).votes || Number(a.rating || 0);
+            const vB = (b as any).votes || Number(b.rating || 0);
+            if (vB !== vA) return vB - vA;
+            return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
+        }
+        return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
+    });
+
+    const filtered = (search ? sortedData.filter(dj => dj.name.toLowerCase().includes(search.toLowerCase())) : sortedData)
         .filter(dj => !brokenImages.has(dj.id));
-    const grouped = groupByLetter(filtered);
-    const sortedLetters = Object.keys(grouped).sort();
+
+    const grouped: Record<string, DjEntry[]> = sortMode === 'votes' 
+        ? (filtered.length > 0 ? { 'TOP DROPSIDERS': filtered } : {})
+        : groupByLetter(filtered);
+
+    const sortedLetters = Object.keys(grouped).sort((a, b) => {
+        if (sortMode === 'votes') return 0;
+        return a.localeCompare(b);
+    });
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
     const toggleVote = (id: string, e?: React.MouseEvent) => {
@@ -224,12 +247,18 @@ export function WikiDropsiders({ showResults = false }: { showResults?: boolean 
                                                     {/* Name on gradient */}
                                                     <div className="absolute bottom-0 left-0 right-0 p-2.5">
                                                         <div className="text-[9px] font-black text-white uppercase tracking-widest leading-tight line-clamp-1">{dj.name}</div>
+                                                        {showResults && (
+                                                            <div className="mt-1 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 w-fit">
+                                                                <Heart className="w-2.5 h-2.5 text-red-500 fill-red-500" />
+                                                                <span className="text-[10px] font-black text-white">{(dj as any).votes || Number(dj.rating || 0)}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     {/* Rating */}
                                                     {showResults && (
-                                                        <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5">
-                                                            <Star className="w-2.5 h-2.5 text-neon-red fill-current" />
-                                                            <span className="text-[8px] font-black text-white">{dj.rating}</span>
+                                                        <div className="mt-1 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 w-fit absolute top-2 right-2">
+                                                            <Heart className="w-2.5 h-2.5 text-red-500 fill-red-500" />
+                                                            <span className="text-[10px] font-black text-white">{(dj as any).votes || Number(dj.rating || 0)}</span>
                                                         </div>
                                                     )}
                                                 </div>

@@ -50,7 +50,15 @@ function groupByLetter(data: Venue[]): Record<string, Venue[]> {
     }, {} as Record<string, Venue[]>);
 }
 
-export function WikiVenues({ initialMode = 'clubs', showResults = false }: { initialMode?: Mode; showResults?: boolean }) {
+export function WikiVenues({ 
+    initialMode = 'clubs', 
+    showResults = false,
+    sortMode = 'alpha'
+}: { 
+    initialMode?: Mode; 
+    showResults?: boolean;
+    sortMode?: 'alpha' | 'votes';
+}) {
     const { t, language } = useLanguage();
     const [mode] = useState<Mode>(initialMode);
     const [search, setSearch] = useState('');
@@ -105,11 +113,18 @@ export function WikiVenues({ initialMode = 'clubs', showResults = false }: { ini
     const baseData = liveBaseData.length > 0 ? liveBaseData : (mode === 'clubs' ? (CLUBS_RAW as any[]) : (FESTIVALS_RAW as any[])).filter(v => v.status !== 'waiting');
     const customData = mode === 'clubs' ? customClubs : customFests;
 
-    // Sort alphabetically and merge
+    // Sort logic
     const allVenues = useMemo(() => {
         const combined = [...baseData, ...customData];
-        return combined.sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
-    }, [baseData, customData]);
+        return combined.sort((a, b) => {
+            if (sortMode === 'votes') {
+                const countA = (a.votes || 0) + (votes.has(a.id) ? 1 : 0);
+                const countB = (b.votes || 0) + (votes.has(b.id) ? 1 : 0);
+                if (countB !== countA) return countB - countA;
+            }
+            return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
+        });
+    }, [baseData, customData, sortMode, votes]);
 
     const filtered = allVenues.filter(v =>
         (v.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -117,8 +132,14 @@ export function WikiVenues({ initialMode = 'clubs', showResults = false }: { ini
         !brokenImages.has(v.id)
     );
 
-    const grouped = groupByLetter(filtered);
-    const sortedLetters = Object.keys(grouped).sort();
+    const grouped: Record<string, Venue[]> = sortMode === 'votes'
+        ? (filtered.length > 0 ? { 'TOP VOTES': filtered } : {})
+        : groupByLetter(filtered);
+
+    const sortedLetters = Object.keys(grouped).sort((a, b) => {
+        if (sortMode === 'votes') return 0;
+        return a.localeCompare(b);
+    });
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
     const toggleVote = (id: string) => {
