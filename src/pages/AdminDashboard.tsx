@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database
+    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database, Smartphone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch, isSuperAdmin } from '../utils/auth';
@@ -474,6 +474,7 @@ export function AdminDashboard() {
     const [editingWikiEntry, setEditingWikiEntry] = useState<any>(null);
     const [isSavingWiki, setIsSavingWiki] = useState(false);
     const [top100DataToVisual, setTop100DataToVisual] = useState<any[] | null>(null);
+    const [top100InitialTab, setTop100InitialTab] = useState<'PUBLICATION' | 'REEL'>('PUBLICATION');
 
     interface TakeoverState {
         enabled: boolean;
@@ -2873,12 +2874,23 @@ export function AdminDashboard() {
                                                         </div>
                                                         <button 
                                                             onClick={() => {
+                                                                setTop100InitialTab('PUBLICATION');
                                                                 setTop100DataToVisual([{ name: item.name, votes: item.tv, rank: idx + 1, image: item.image, category: wikiTab }]);
                                                             }}
-                                                            className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition-all group/btn"
-                                                            title="Générer Post Individuel"
+                                                            className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all group/btn"
+                                                            title="Générer Post (1080×1350)"
                                                         >
-                                                            <ImageIcon className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                                                            <ImageIcon className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => {
+                                                                setTop100InitialTab('REEL');
+                                                                setTop100DataToVisual([{ name: item.name, votes: item.tv, rank: idx + 1, image: item.image, category: wikiTab }]);
+                                                            }}
+                                                            className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-[#c8ff00] transition-all group/btn"
+                                                            title="Générer Story (1080×1920)"
+                                                        >
+                                                            <Smartphone className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
                                                         </button>
                                                     </div>
                                                 ))}
@@ -4126,7 +4138,8 @@ export function AdminDashboard() {
                         <SocialSuite
                             title={top100DataToVisual ? (wikiTab === 'djs' ? 'TOP 100 DJS' : wikiTab === 'clubs' ? 'TOP 100 CLUBS' : 'TOP 100 FESTIVALS') : (selectedSocialArticle?.title || '')}
                             imageUrl={selectedSocialArticle?.image || ''}
-                            initialTheme={top100DataToVisual ? 'TOP 100' : (selectedSocialTheme as any)}
+                            initialTheme={top100DataToVisual ? (top100DataToVisual.length === 1 ? 'TOP 1 ARTIST' : 'TOP 100') : (selectedSocialTheme as any)}
+                            initialTab={top100DataToVisual ? top100InitialTab : undefined}
                             onClose={() => {
                                 setSelectedSocialArticle(null);
                                 setSelectedSocialTheme(undefined);

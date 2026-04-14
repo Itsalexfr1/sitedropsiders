@@ -42,6 +42,7 @@ interface SocialSuiteProps {
     imageUrl: string;
     onClose: () => void;
     initialTheme?: ThemeType;
+    initialTab?: TabType;
     top100Data?: {name: string, votes: number, rank?: number, image?: string, category?: string}[];
 }
 
@@ -69,8 +70,8 @@ const STYLE_PRESETS = [
     { name: 'DRUM N BASS', grad: '150, 0, 255', color: '#9600ff' }
 ];
 
-export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data }: SocialSuiteProps) {
-    const [activeTab, setActiveTab] = useState<TabType>('PUBLICATION');
+export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab, top100Data }: SocialSuiteProps) {
+    const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
     const [theme, setTheme] = useState<ThemeType>(top100Data ? (top100Data.length === 1 ? 'TOP 1 ARTIST' : 'TOP 100') : (initialTheme || 'NEWS'));
     const [showSwipe, setShowSwipe] = useState(false);
     const [showArticleLink, setShowArticleLink] = useState(false);
