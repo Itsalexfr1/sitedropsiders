@@ -2827,38 +2827,7 @@ export function AdminDashboard() {
 
                                 return (
                                     <div className="space-y-12">
-                                        {/* EXPORT PANEL AT TOP */}
-                                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 w-64 h-64 bg-neon-yellow/5 blur-[100px] pointer-events-none" />
-                                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                                                <div className="flex items-center gap-6">
-                                                    <div className="p-4 bg-neon-yellow/10 rounded-[1.5rem] border border-neon-yellow/20">
-                                                        <Sparkles className="w-10 h-10 text-neon-yellow" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">Générer Classement Complet</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Format Story (2x50) ou Post (4x25)</p>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => {
-                                                        const data = allRanked.map((x: any, idx: number) => ({ name: x.name, votes: x.tv, rank: idx + 1 }));
-                                                        setTop100DataToVisual(data);
-                                                    }}
-                                                    className="px-12 py-5 bg-neon-yellow text-black rounded-2xl text-[12px] font-black uppercase hover:scale-105 transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(255,230,0,0.3)] group"
-                                                >
-                                                    <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                                                    Exporter Top 100 Social
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* WIKI WIDGET (EXPLORER) */}
-                                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-4">
-                                            <WikiWidget showResults={true} hideTitle={true} />
-                                        </div>
-
-                                        {/* DETAILED RANKING SUMMARY */}
+                                        {/* RANKING SUMMARY (TOP) */}
                                         <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10">
                                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
                                                 <div>
@@ -2913,6 +2882,37 @@ export function AdminDashboard() {
                                                         </button>
                                                     </div>
                                                 ))}
+                                            </div>
+                                        </div>
+
+                                        {/* WIKI WIDGET (EXPLORER) */}
+                                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-4">
+                                            <WikiWidget showResults={true} hideTitle={true} />
+                                        </div>
+
+                                        {/* EXPORT PANEL AT BOTTOM */}
+                                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-64 h-64 bg-neon-yellow/5 blur-[100px] pointer-events-none" />
+                                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                                                <div className="flex items-center gap-6">
+                                                    <div className="p-4 bg-neon-yellow/10 rounded-[1.5rem] border border-neon-yellow/20">
+                                                        <Sparkles className="w-10 h-10 text-neon-yellow" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">Générer Classement Complet</h3>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Format Story (2x50) ou Post (4x25)</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        const data = allRanked.map((x: any, idx: number) => ({ name: x.name, votes: x.tv, rank: idx + 1 }));
+                                                        setTop100DataToVisual(data);
+                                                    }}
+                                                    className="px-12 py-5 bg-neon-yellow text-black rounded-2xl text-[12px] font-black uppercase hover:scale-105 transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(255,230,0,0.3)] group"
+                                                >
+                                                    <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                                                    Exporter Top 100 Social
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

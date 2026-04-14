@@ -2517,7 +2517,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
 
                     {/* Preview */}
                     <div className="flex-1 bg-[#020202] flex flex-col items-center justify-center relative overflow-hidden h-full border-l border-white/10">
-                        <div className="aspect-auto w-full max-w-[450px] relative">
+                        <div className={`relative ${activeTab === 'REEL' ? 'w-full max-w-[280px]' : 'w-full max-w-[450px]'} transition-all duration-300`} style={{ aspectRatio: activeTab === 'REEL' ? '9/16' : '4/5' }}>
                             <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
                                 <canvas 
                                     ref={canvasRef} 
