@@ -186,8 +186,8 @@ export function InterviewVisualGenerator() {
         try {
             const photoImg = await loadImage(artistPhoto);
             ctx.save();
-            // Scaling logic: normalize base height to 1200 for BOTH formats for coherence
-            const BASE_H = 1200;
+            // Scaling logic: normalize base height to 1050 for coherence (less zoomed than before)
+            const BASE_H = 1050;
             const ph = BASE_H * (photoScale / 100);
             const pw = ph * (photoImg.width / photoImg.height);
             
@@ -215,7 +215,7 @@ export function InterviewVisualGenerator() {
             } else {
                 // Instagram: Bottom-center, large
                 const basePx = (w - pw) / 2;
-                const basePy = h - ph + h * 0.05;
+                const basePy = h - ph + h * 0.08;
                 const px = basePx + (photoOffsetX / 100) * h;
                 const py = basePy + (photoOffsetY / 100) * h * 0.4;
                 
@@ -837,27 +837,38 @@ export function InterviewVisualGenerator() {
                             )}
                         </div>
 
-                        {/* Batch Export */}
+                        {/* Selective Export Buttons */}
                         {previewUrl && (
-                            <button
-                                onClick={async () => {
-                                    for (const fmt of Object.keys(FORMATS) as Format[]) {
-                                        setActiveFormat(fmt);
-                                        await new Promise(r => setTimeout(r, 600));
-                                        const url = await generate(fmt);
-                                        if (!url) continue;
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    onClick={async () => {
+                                        const url = activeFormat === 'youtube' ? previewUrl : await generate('youtube');
+                                        if (!url) return;
                                         const name = artistName ? artistName.replace(/\s+/g, '_').toLowerCase() : 'dropsiders';
                                         const a = document.createElement('a');
                                         a.href = url;
-                                        a.download = `dropsiders_${visualMode}_${name}_${fmt}.png`;
+                                        a.download = `dropsiders_${visualMode}_${name}_youtube.png`;
                                         a.click();
-                                        await new Promise(r => setTimeout(r, 300));
-                                    }
-                                }}
-                                className="w-full py-5 bg-white text-black rounded-[24px] text-[11px] font-black uppercase tracking-[0.2em] hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-xl"
-                            >
-                                <Download className="w-5 h-5" /> Télécharger TOUS LES FORMATS (PNG HD)
-                            </button>
+                                    }}
+                                    className="flex-1 py-5 bg-white text-black rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-xl"
+                                >
+                                    <Download className="w-4 h-4" /> YouTube (16:9)
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        const url = activeFormat === 'instagram' ? previewUrl : await generate('instagram');
+                                        if (!url) return;
+                                        const name = artistName ? artistName.replace(/\s+/g, '_').toLowerCase() : 'dropsiders';
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `dropsiders_${visualMode}_${name}_instagram.png`;
+                                        a.click();
+                                    }}
+                                    className="flex-1 py-5 bg-white text-black rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-xl"
+                                >
+                                    <Download className="w-4 h-4" /> Instagram (4:5)
+                                </button>
+                            </div>
                         )}
 
                         {/* Tips */}
