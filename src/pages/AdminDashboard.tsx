@@ -5241,19 +5241,6 @@ export function AdminDashboard() {
                                         )}
                                     </button>
 
-                                    {/* Wiki DJs, Clubs, Festivals */}
-                                    <button
-                                        onClick={() => { setIsCommunauteModalOpen(false); setDashboardTab('WIKI'); }}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
-                                    >
-                                        <div className="w-14 h-14 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                                            <Globe className="w-7 h-7 text-neon-cyan" />
-                                        </div>
-                                        <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Wiki</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">DJs · Clubs · Festivals</p>
-                                        </div>
-                                    </button>
 
                                     {/* Modération Photos Visiteurs */}
                                     <button
