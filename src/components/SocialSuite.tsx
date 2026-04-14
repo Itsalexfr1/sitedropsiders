@@ -4,8 +4,7 @@ import {
     X, Download, Upload, PlusCircle, Plus, Eraser,
     Video, Layout, Smartphone, Image as ImageIcon,
     Home, Link as LinkIcon, Palette, Type, Film,
-    Check, Layers, Sparkles, Wand2, RotateCcw,
-    Heart, Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, Youtube, LayoutGrid, List
+    Check, Layers, Sparkles, Wand2, RotateCcw
 } from 'lucide-react';
 import { resolveImageUrl } from '../utils/image';
 import { fixEncoding } from '../utils/standardizer';
