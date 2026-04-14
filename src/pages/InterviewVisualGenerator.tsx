@@ -42,6 +42,8 @@ export function InterviewVisualGenerator() {
     const [photoOffsetX, setPhotoOffsetX] = useState(0);   // -100 to +100
     const [photoOffsetY, setPhotoOffsetY] = useState(0);   // -100 to +100
     const [photoScale, setPhotoScale]     = useState(100); // 50 to 200 (%)
+    const [invertArtistLogo, setInvertArtistLogo] = useState(false);
+    const [invertFestivalLogo, setInvertFestivalLogo] = useState(false);
 
     // Cropping state
     const [showCropper, setShowCropper] = useState(false);
@@ -280,7 +282,9 @@ export function InterviewVisualGenerator() {
                     const lh = lw * (logoImg.height / logoImg.width);
                     const finalH = Math.min(lh, h * 0.35); 
                     const finalW = finalH * (logoImg.width / logoImg.height);
+                    if (invertArtistLogo) ctx.filter = 'invert(1) brightness(10)';
                     ctx.drawImage(logoImg, blockX, nameY, finalW, finalH);
+                    ctx.filter = 'none';
                     ctx.fillStyle = '#ff0033';
                     ctx.fillRect(blockX, nameY + finalH + 15, finalW * 0.35, 6);
                 } catch (_) { /* fallback */ }
@@ -334,7 +338,9 @@ export function InterviewVisualGenerator() {
                         const fLogo = await loadImage(festivalLogo);
                         const flh = h * 0.08;
                         const flw = flh * (fLogo.width / fLogo.height);
+                        if (invertFestivalLogo) ctx.filter = 'invert(1) brightness(10)';
                         ctx.drawImage(fLogo, festX - flw, festY, flw, flh);
+                        ctx.filter = 'none';
                         if (festivalName) {
                             ctx.font = `900 ${h * 0.02}px Arial, sans-serif`;
                             ctx.fillStyle = 'rgba(255,255,255,0.6)';
@@ -379,7 +385,9 @@ export function InterviewVisualGenerator() {
                     const lh = lw * (logoImg.height / logoImg.width);
                     const finalH = Math.min(lh, h * 0.10); 
                     const finalW = finalH * (logoImg.width / logoImg.height);
+                    if (invertArtistLogo) ctx.filter = 'invert(1) brightness(10)';
                     ctx.drawImage(logoImg, cx - finalW / 2, nameY, finalW, finalH);
+                    ctx.filter = 'none';
                     ctx.fillStyle = '#ff0033';
                     ctx.fillRect(cx - 50, nameY + finalH + 12, 100, 5);
                 } catch (_) { /* fallback */ }
@@ -421,7 +429,9 @@ export function InterviewVisualGenerator() {
                         const fLogo = await loadImage(festivalLogo);
                         const flh = h * 0.05;
                         const flw = flh * (fLogo.width / fLogo.height);
+                        if (invertFestivalLogo) ctx.filter = 'invert(1) brightness(10)';
                         ctx.drawImage(fLogo, festX, festY, flw, flh);
+                        ctx.filter = 'none';
                     } catch(_) {}
                 } else {
                     ctx.font = `900 ${h * 0.018}px Arial, sans-serif`;
@@ -615,12 +625,21 @@ export function InterviewVisualGenerator() {
                                 onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], setArtistLogo)}
                             />
                             {artistLogo ? (
-                                <div className="flex items-center gap-4 p-4 bg-black/30 rounded-2xl border border-white/5 group">
-                                    <div className="w-10 h-10 bg-white/5 rounded-lg p-1 flex items-center justify-center">
-                                        <img src={artistLogo} alt="Logo" className="w-full h-full object-contain" />
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-4 p-4 bg-black/30 rounded-2xl border border-white/5 group">
+                                        <div className="w-10 h-10 bg-white/5 rounded-lg p-1 flex items-center justify-center">
+                                            <img src={artistLogo} alt="Logo" className={`w-full h-full object-contain ${invertArtistLogo ? 'invert brightness-200' : ''}`} />
+                                        </div>
+                                        <p className="text-[10px] font-black uppercase text-gray-400 flex-1">Logo Artiste</p>
+                                        <button onClick={() => setArtistLogo(null)} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-all text-red-500"><Trash2 className="w-3 h-3" /></button>
                                     </div>
-                                    <p className="text-[10px] font-black uppercase text-gray-400 flex-1">Logo Artiste</p>
-                                    <button onClick={() => setArtistLogo(null)} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-all text-red-500"><Trash2 className="w-3 h-3" /></button>
+                                    <button
+                                        onClick={() => setInvertArtistLogo(!invertArtistLogo)}
+                                        className={`w-full py-2 rounded-xl border flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest transition-all ${invertArtistLogo ? 'bg-white border-white text-black' : 'border-white/10 text-gray-500 hover:border-white/20'}`}
+                                    >
+                                        <RefreshCw className={`w-3 h-3 ${invertArtistLogo ? 'animate-spin-slow' : ''}`} />
+                                        Mode Négatif (Blanc) : {invertArtistLogo ? 'ON' : 'OFF'}
+                                    </button>
                                 </div>
                             ) : (
                                 <button
@@ -729,10 +748,19 @@ export function InterviewVisualGenerator() {
                                 onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], setFestivalLogo)}
                             />
                             {festivalLogo ? (
-                                <div className="flex items-center gap-4 p-4 bg-black/30 rounded-2xl border border-white/5">
-                                    <img src={festivalLogo} alt="Logo" className="h-10 w-10 object-contain" />
-                                    <p className="text-[9px] font-black uppercase text-gray-400 flex-1">Logo Festival</p>
-                                    <button onClick={() => setFestivalLogo(null)} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-all"><Trash2 className="w-3 h-3 text-red-500" /></button>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-4 p-4 bg-black/30 rounded-2xl border border-white/5">
+                                        <img src={festivalLogo} alt="Logo" className={`h-10 w-10 object-contain ${invertFestivalLogo ? 'invert brightness-200' : ''}`} />
+                                        <p className="text-[9px] font-black uppercase text-gray-400 flex-1">Logo Festival</p>
+                                        <button onClick={() => setFestivalLogo(null)} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-all"><Trash2 className="w-3 h-3 text-red-500" /></button>
+                                    </div>
+                                    <button
+                                        onClick={() => setInvertFestivalLogo(!invertFestivalLogo)}
+                                        className={`w-full py-2 rounded-xl border flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-widest transition-all ${invertFestivalLogo ? 'bg-white border-white text-black' : 'border-white/10 text-gray-500 hover:border-white/20'}`}
+                                    >
+                                        <RefreshCw className={`w-3 h-3 ${invertFestivalLogo ? 'animate-spin-slow' : ''}`} />
+                                        Mode Négatif (Blanc) : {invertFestivalLogo ? 'ON' : 'OFF'}
+                                    </button>
                                 </div>
                             ) : (
                                 <button
