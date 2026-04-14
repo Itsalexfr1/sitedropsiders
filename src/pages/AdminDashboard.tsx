@@ -469,6 +469,7 @@ export function AdminDashboard() {
     const [wikiSearch, setWikiSearch] = useState('');
     const [isWikiLoading, setIsWikiLoading] = useState(false);
     const [wikiFilter, setWikiFilter] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
+    const [wikiSortMode, setWikiSortMode] = useState<'alpha' | 'votes'>('alpha');
     const [isEditWikiModalOpen, setIsEditWikiModalOpen] = useState(false);
     const [editingWikiEntry, setEditingWikiEntry] = useState<any>(null);
     const [isSavingWiki, setIsSavingWiki] = useState(false);
@@ -2380,16 +2381,29 @@ export function AdminDashboard() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex bg-black/40 border border-white/5 rounded-xl p-1 gap-1">
-                                    {(['DJS', 'CLUBS', 'FESTIVALS'] as const).map(type => (
-                                        <button
-                                            key={type}
-                                            onClick={() => setWikiFilter(type)}
-                                            className={`px-4 py-2 rounded-lg text-[10px] font-black tracking-widest uppercase transition-all ${wikiFilter === type ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
-                                        >
-                                            {type}
-                                        </button>
-                                    ))}
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <div className="flex bg-black/40 border border-white/5 rounded-xl p-1 gap-1">
+                                        {(['DJS', 'CLUBS', 'FESTIVALS'] as const).map(type => (
+                                            <button
+                                                key={type}
+                                                onClick={() => setWikiFilter(type)}
+                                                className={`px-4 py-2 rounded-lg text-[10px] font-black tracking-widest uppercase transition-all ${wikiFilter === type ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="flex bg-black/40 border border-white/5 rounded-xl p-1 gap-1">
+                                        {(['alpha', 'votes'] as const).map(mode => (
+                                            <button
+                                                key={mode}
+                                                onClick={() => setWikiSortMode(mode)}
+                                                className={`px-4 py-2 rounded-lg text-[10px] font-black tracking-widest uppercase transition-all ${wikiSortMode === mode ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                                            >
+                                                {mode === 'alpha' ? 'A-Z' : 'VOTES'}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
@@ -2413,6 +2427,14 @@ export function AdminDashboard() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                     {wikiEntries
                                         .filter(entry => !wikiSearch || entry.name.toLowerCase().includes(wikiSearch.toLowerCase()))
+                                        .sort((a, b) => {
+                                            if (wikiSortMode === 'votes') {
+                                                const vA = (a as any).votes || Number(a.rating || 0);
+                                                const vB = (b as any).votes || Number(b.rating || 0);
+                                                if (vB !== vA) return vB - vA;
+                                            }
+                                            return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
+                                        })
                                         .map((entry) => (
                                             <motion.div
                                                 key={entry.id}
@@ -2428,8 +2450,8 @@ export function AdminDashboard() {
                                                     <div className="flex justify-between items-start mb-2">
                                                         <h3 className="font-bold text-white uppercase italic tracking-tight truncate flex-1">{entry.name}</h3>
                                                         <div className="flex items-center gap-1 bg-neon-cyan/10 px-2 py-0.5 rounded border border-neon-cyan/20 shrink-0 ml-2">
-                                                            <Star className="w-3 h-3 text-neon-cyan fill-neon-cyan" />
-                                                            <span className="text-[10px] font-black text-neon-cyan">{entry.rating}</span>
+                                                            <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+                                                            <span className="text-[10px] font-black text-neon-cyan">{(entry as any).votes || Number(entry.rating || 0)}</span>
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-all">
