@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { Client, Databases, ID, Query } from 'appwrite';
 import { useUser } from './UserContext';
-import { showNotification } from '../utils/notifications';
+const showNotification = (msg: string, type: 'success' | 'error' | 'info') => console.log(`[${type.toUpperCase()}] ${msg}`);
 
 // --- Interfaces ---
 export interface LineupItem {
@@ -165,7 +165,7 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
     const storedPseudo = localStorage.getItem('chat_pseudo');
     
     const isSpecialAdmin = useMemo(() => {
-        return storedPseudo && ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr'].includes(storedPseudo.toLowerCase());
+        return !!(storedPseudo && ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr'].includes(storedPseudo.toLowerCase()));
     }, [storedPseudo]);
 
     const userRole: 'admin' | 'mod' | 'user' = (localIsAdmin || isSpecialAdmin) ? 'admin' : 'user';

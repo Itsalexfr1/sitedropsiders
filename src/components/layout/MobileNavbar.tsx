@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Video, Calendar, X, Users, ShoppingBag, Shield, Info, MoreHorizontal, Home, User, Plane, Newspaper } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';

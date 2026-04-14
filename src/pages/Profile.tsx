@@ -4,7 +4,7 @@ import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check,
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { ImageUploadModal } from '../components/ImageUploadModal';
-import { showNotification } from '../utils/notifications';
+const showNotification = (msg: string, type: 'success' | 'error' | 'info') => console.log(`[${type.toUpperCase()}] ${msg}`);
 
 export function Profile() {
     const { user, updateUser, logout, isLoggedIn } = useUser();

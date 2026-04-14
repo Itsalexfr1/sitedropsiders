@@ -6,7 +6,8 @@ import {
     ChevronRight, Calendar
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTakeover, StreamItem, LineupItem } from '../../context/TakeoverContext';
+import { useTakeover } from '../../context/TakeoverContext';
+import type { StreamItem, LineupItem } from '../../context/TakeoverContext';
 import { resolveImageUrl } from '../../utils/image';
 import { PlanningTab } from './PlanningTab';
 

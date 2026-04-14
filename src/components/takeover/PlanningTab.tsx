@@ -5,7 +5,8 @@ import {
     Image as ImageIcon, Search, Zap, Check,
     Music, Home, MapPin
 } from 'lucide-react';
-import { useTakeover, LineupItem } from '../../context/TakeoverContext';
+import { useTakeover } from '../../context/TakeoverContext';
+import type { LineupItem } from '../../context/TakeoverContext';
 import { resolveImageUrl } from '../../utils/image';
 
 export function PlanningTab() {

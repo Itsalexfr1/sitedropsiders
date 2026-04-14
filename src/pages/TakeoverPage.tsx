@@ -28,6 +28,8 @@ interface LineupItem {
     endTime: string;
     artist: string;
     stage: string;
+    wikiId?: string;
+    wikiType?: 'DJS' | 'CLUBS' | 'FESTIVALS';
     instagram: string;
     instagram2?: string;
     instagram3?: string;
@@ -1087,53 +1089,6 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: '' });
         setEditingLineupId(null);
         showNotification(editingLineupId ? 'Session modifiée' : 'Session ajoutée', 'success');
-    };
-
-    const handleGlobalSave = async () => {
-        setIsSaving(true);
-        try {
-            const updated = {
-                ...settings,
-                title: editTitle,
-                streams: editStreams,
-                activeStreamId: editActiveStreamId,
-                tickerText: editAnnText,
-                showTickerBanner: editAnnEnabled,
-                status: editStatus,
-                startDate: editStartDate,
-                endDate: editEndDate,
-                tickerBgColor: editTickerBg,
-                tickerTextColor: editTickerTextC,
-                instagramLink: editInsta,
-                tiktokLink: editTiktok,
-                youtubeLink: editYoutube,
-                twitterLink: editTwitter,
-                sponsorText: editSponsorText,
-                sponsorLink: editSponsorLink,
-                showSponsorBanner: editShowSponsorBanner,
-                bannedWords: editBannedWords,
-                dropsAmount: editDropsAmount,
-                dropsInterval: editDropsInterval,
-                lots: dropsLots,
-                botCommands: botCommands,
-                festivalLogo: editFestivalLogo,
-                lineup: JSON.stringify(lineupItems),
-                tracklist: JSON.stringify(tracklist),
-                moderators,
-                bannedPseudos
-            };
-            await fetch('/api/takeover-settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updated)
-            });
-            setSettings(updated);
-            showNotification('Configuration enregistrée !', 'success');
-        } catch (e) {
-            showNotification('Erreur lors de la sauvegarde', 'error');
-        } finally {
-            setIsSaving(false);
-        }
     };
 
     useEffect(() => {
