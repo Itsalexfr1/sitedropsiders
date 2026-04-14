@@ -13,6 +13,7 @@ import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { resolveImageUrl } from '../utils/image';
 import { Plus, FileText } from 'lucide-react';
+import { fetchWithFallback } from '../utils/fetcher';
 
 type TabKey = 'all' | 'news' | 'musique' | 'focus';
 
@@ -26,7 +27,8 @@ const DEFAULT_TABS: { key: TabKey; label: string; activeClass: string; inactiveC
 export function News() {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
-    const [newsData, setNewsData] = useState<any[]>([]);
+    const [newsData, setNewsData] = useState<any[]>(newsFallback || []);
+    const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -40,27 +42,26 @@ export function News() {
 
         const fetchNews = async () => {
             try {
-                const res = await fetch('/api/news');
-                if (res.ok) {
-                    setNewsData(await res.json());
+                const data = await fetchWithFallback('/api/news');
+                if (data) {
+                    setNewsData(data);
                 }
             } catch (e) {
                 console.error('Error fetching news:', e);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchNews();
 
         const fetchSettings = async () => {
             try {
-                const res = await fetch('/api/settings');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.news_tabs) {
-                        setTabs(prev => prev.map(tab => ({
-                            ...tab,
-                            label: data.news_tabs[tab.key] || tab.label
-                        })));
-                    }
+                const data = await fetchWithFallback('/api/settings');
+                if (data && data.news_tabs) {
+                    setTabs(prev => prev.map(tab => ({
+                        ...tab,
+                        label: data.news_tabs[tab.key] || tab.label
+                    })));
                 }
             } catch (e) {
                 console.error('Error fetching settings:', e);
@@ -70,9 +71,8 @@ export function News() {
 
         const fetchAgenda = async () => {
             try {
-                const res = await fetch('/api/agenda');
-                if (res.ok) {
-                    const data = await res.json();
+                const data = await fetchWithFallback('/api/agenda');
+                if (data) {
                     const now = new Date();
                     const upcoming = (Array.isArray(data) ? data : [])
                         .filter((e: any) => e.startDate && new Date(e.startDate) >= now)
@@ -86,9 +86,8 @@ export function News() {
 
         const fetchRecaps = async () => {
             try {
-                const res = await fetch('/api/recaps');
-                if (res.ok) {
-                    const data = await res.json();
+                const data = await fetchWithFallback('/api/recaps');
+                if (data) {
                     setRecapsData((Array.isArray(data) ? data : []).slice(0, 3));
                 }
             } catch (e) { /* silent */ }
@@ -625,12 +624,21 @@ export function News() {
                                     ))
                                 ) : (
                                     <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md gap-4">
-                                        <span className={`text-4xl`}>
-                                            {activeTab === 'focus' ? '⭐' : activeTab === 'musique' ? '🎵' : '📰'}
-                                        </span>
-                                        <p className="text-gray-400 font-display uppercase tracking-widest text-lg">
-                                            {activeTab === 'all' ? t('news.no_news') : `Aucun article dans cette catégorie`}
-                                        </p>
+                                        {isLoading ? (
+                                            <div className="flex flex-col items-center">
+                                                <Loader2 className="w-12 h-12 text-neon-red animate-spin mb-4" />
+                                                <p className="text-white/60 font-medium">Chargement des actualités...</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <span className={`text-4xl`}>
+                                                    {activeTab === 'focus' ? '⭐' : activeTab === 'musique' ? '🎵' : '📰'}
+                                                </span>
+                                                <p className="text-gray-400 font-display uppercase tracking-widest text-lg">
+                                                    {activeTab === 'all' ? t('news.no_news') : `Aucun article dans cette catégorie`}
+                                                </p>
+                                            </>
+                                        )}
                                     </div>
                                 )}
                             </motion.div>

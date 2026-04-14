@@ -221,6 +221,8 @@ const RED_KEYWORDS = [
 export function standardizeContent(html: string): string {
     if (!html) return html;
 
+    try {
+
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
 
@@ -412,5 +414,9 @@ export function standardizeContent(html: string): string {
         }
     });
 
-    return tempDiv.innerHTML;
+        return tempDiv.innerHTML;
+    } catch (e) {
+        console.error("Standardize Error:", e);
+        return html;
+    }
 }

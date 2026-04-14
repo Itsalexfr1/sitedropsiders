@@ -979,7 +979,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const extractYoutubeId = (url: string) => {
         if (!url) return '';
-        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]{11})/);
+        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/);
         return match ? match[1] : url.trim();
     };
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
@@ -2627,7 +2627,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 return activeYtId ? (
                                     <iframe 
                                         className="w-full h-full border-none" 
-                                        src={`https://www.youtube.com/embed/${extractYoutubeId(activeYtId)}?autoplay=1&mute=0&rel=0&modestbranding=1&origin=${window.location.origin}`} 
+                                        src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(activeYtId)}?autoplay=1&mute=0&rel=0&modestbranding=1`} 
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                         allowFullScreen 
                                     />
@@ -2668,7 +2668,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <>
                                                         <iframe
                                                             className="w-full h-full border-none"
-                                                            src={`https://www.youtube.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1&origin=${window.location.origin}`}
+                                                            src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
                                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             allowFullScreen
                                                         />

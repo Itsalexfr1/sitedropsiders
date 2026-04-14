@@ -12,6 +12,12 @@ import { ArticleReader } from '../components/widgets/ArticleReader';
 import settings from '../data/settings.json';
 import '../styles/article-premium.css';
 
+const extractId = (url: string) => {
+    if (!url) return '';
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/);
+    return match ? match[1] : url.trim();
+};
+
 // Custom Icons for Official Brands
 const TikTokIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -258,7 +264,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         // OR if they are from a trusted source (YouTube, Spotify, Beatport)
         doc.querySelectorAll('iframe').forEach(iframe => {
             const src = iframe.src || '';
-            const isYouTube = src.includes('youtube.com') || src.includes('youtu.be');
+            const isYouTube = src.includes('youtube.com') || src.includes('youtu.be') || src.includes('youtube-nocookie.com');
 
             // On laisse les vidéos YouTube dans le contenu si l'utilisateur en a ajouté
             // Elles cohabiteront avec la vidéo principale de l'article.
@@ -812,7 +818,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             </h3>
                                             <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
                                                 <iframe
-                                                    src={`https://www.youtube.com/embed/${article.youtubeId}`}
+                                                    src={`https://www.youtube-nocookie.com/embed/${extractId(article.youtubeId)}`}
                                                     className="absolute top-0 left-0 w-full h-full"
                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                     allowFullScreen

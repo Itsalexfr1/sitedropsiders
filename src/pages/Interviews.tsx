@@ -11,6 +11,7 @@ import { translateText } from '../utils/translate';
 import { standardizeContent } from '../utils/standardizer';
 import { SEO } from '../components/utils/SEO';
 import { resolveImageUrl } from '../utils/image';
+import { fetchWithFallback } from '../utils/fetcher';
 
 type TabKey = 'all' | 'written' | 'video' | 'fast-quizz' | 'playlist' | 'drop-talk';
 
@@ -26,7 +27,8 @@ const TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: st
 export function Interviews() {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
-    const [newsData, setNewsData] = useState<any[]>([]);
+    const [newsData, setNewsData] = useState<any[]>([]); // Initialized to empty, fetcher will provide fallback if needed
+    const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -38,12 +40,14 @@ export function Interviews() {
         
         const fetchNews = async () => {
             try {
-                const res = await fetch('/api/news');
-                if (res.ok) {
-                    setNewsData(await res.json());
+                const data = await fetchWithFallback('/api/news');
+                if (data) {
+                    setNewsData(data);
                 }
             } catch (e) {
                 console.error('Error fetching news:', e);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchNews();
@@ -373,11 +377,20 @@ export function Interviews() {
                                     ))
                                 ) : (
                                     <div className="col-span-full py-32 flex flex-col items-center justify-center border border-white/5 rounded-[40px] bg-white/[0.02] backdrop-blur-3xl">
-                                        <div className="w-20 h-20 rounded-full bg-neon-red/10 flex items-center justify-center mb-6">
-                                            <Calendar className="w-10 h-10 text-neon-red opacity-50" />
-                                        </div>
-                                        <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">{t('interviews.no_interviews')}</h3>
-                                        <p className="text-gray-500 font-medium">{t('interviews.no_interviews_subtitle')}</p>
+                                        {isLoading ? (
+                                            <div className="flex flex-col items-center">
+                                                <Loader2 className="w-12 h-12 text-neon-red animate-spin mb-4" />
+                                                <p className="text-white/60 font-medium">Chargement des interviews...</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="w-20 h-20 rounded-full bg-neon-red/10 flex items-center justify-center mb-6">
+                                                    <Calendar className="w-10 h-10 text-neon-red opacity-50" />
+                                                </div>
+                                                <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">{t('interviews.no_interviews')}</h3>
+                                                <p className="text-gray-500 font-medium">{t('interviews.no_interviews_subtitle')}</p>
+                                            </>
+                                        )}
                                     </div>
                                 )}
                             </motion.div>

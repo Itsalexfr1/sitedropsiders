@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 import { resolveImageUrl } from '../../utils/image';
+import { fetchWithFallback } from '../../utils/fetcher';
 
 export function InterviewWidget({ accentColor = 'purple', resolvedColor, featuredInterviews }: { accentColor?: string, resolvedColor?: string, featuredInterviews?: string[] }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
@@ -14,8 +15,8 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor, feature
     useEffect(() => {
         const fetchNews = async () => {
             try {
-                const res = await fetch('/api/news');
-                if (res.ok) setNewsData(await res.json());
+                const data = await fetchWithFallback('/api/news');
+                if (data) setNewsData(data);
             } catch (err) {
                 console.error('Failed to fetch news for interview widget:', err);
             }

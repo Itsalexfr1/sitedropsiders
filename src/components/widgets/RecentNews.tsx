@@ -7,6 +7,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { getArticleLink } from '../../utils/slugify';
 import { translateText } from '../../utils/translate';
 import { resolveImageUrl } from '../../utils/image';
+import { fetchWithFallback } from '../../utils/fetcher';
 
 export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
@@ -17,34 +18,26 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [newsRes, recapsRes] = await Promise.all([
-                    fetch('/api/news'),
-                    fetch('/api/recaps')
+                const [news, recaps] = await Promise.all([
+                    fetchWithFallback('/api/news'),
+                    fetchWithFallback('/api/recaps')
                 ]);
 
                 let combinedData: any[] = [];
 
-                if (newsRes.ok) {
-                    const news = await newsRes.json();
-                    if (Array.isArray(news)) combinedData = [...combinedData, ...news];
-                }
-
-                if (recapsRes.ok) {
-                    const recaps = await recapsRes.json();
-                    if (Array.isArray(recaps)) {
-                        // Filter "written" recaps only
-                        const writtenRecaps = recaps
-                            .filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10))
-                            .map(r => {
-                                let title = r.title || "";
-                                // Check if it already has the prefix
-                                if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
-                                    title = `Récap : ${title}`;
-                                }
-                                return { ...r, title: title.toUpperCase() };
-                            });
-                        combinedData = [...combinedData, ...writtenRecaps];
-                    }
+                if (Array.isArray(news)) combinedData = [...combinedData, ...news];
+                if (Array.isArray(recaps)) {
+                    // Filter "written" recaps only
+                    const writtenRecaps = recaps
+                        .filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10))
+                        .map(r => {
+                            let title = r.title || "";
+                            if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                                title = `Récap : ${title}`;
+                            }
+                            return { ...r, title: title.toUpperCase() };
+                        });
+                    combinedData = [...combinedData, ...writtenRecaps];
                 }
 
                 setNewsData(combinedData);

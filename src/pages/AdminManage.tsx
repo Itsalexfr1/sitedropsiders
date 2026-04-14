@@ -9,6 +9,7 @@ import { resolveImageUrl } from '../utils/image';
 import { getAuthHeaders } from '../utils/auth';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { AgendaModal } from '../components/AgendaModal';
+import { fetchWithFallback } from '../utils/fetcher';
 
 // Composant thumbnail robuste avec fallback SVG inline (évite les blocages SW/CORS)
 function AdminThumbnail({ src }: { src?: string | null }) {
@@ -81,10 +82,8 @@ const getAuthorTextStyle = (username: string) => {
 async function fetchJson(file: string): Promise<any[]> {
     try {
         const endpoint = `/api/${file.replace('.json', '')}`;
-        const response = await fetch(endpoint);
-        if (response.ok) {
-            return await response.json();
-        }
+        const data = await fetchWithFallback(endpoint);
+        if (data) return Array.isArray(data) ? data : [];
     } catch (error: any) {
         console.error(`API fetch failed for ${file}:`, error);
     }
@@ -136,8 +135,8 @@ export function AdminManage() {
     useEffect(() => {
         const fetchTeam = async () => {
             try {
-                const res = await fetch('/api/team');
-                if (res.ok) setTeam(await res.json());
+                const data = await fetchWithFallback('/api/team');
+                if (data) setTeam(Array.isArray(data) ? data : []);
             } catch (e: any) {
                 console.error("Error fetching team:", e);
             }
