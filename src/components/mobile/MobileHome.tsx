@@ -6,7 +6,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { translateText } from '../../utils/translate';
 import { standardizeContent } from '../../utils/standardizer';
 import { useMemo, useState, useEffect } from 'react';
-import { WikiWidget } from '../widgets/WikiWidget';
+
 
 export function MobileHome() {
     const { t, language } = useLanguage();
