@@ -2887,6 +2887,12 @@ export function AdminDashboard() {
                                                                     const label = cat === 'clubs' ? 'CLUBS' : cat === 'festivals' ? 'FESTIVALS' : 'DJS';
                                                                     const C_LIME = '#c8ff00', C_DARK = '#080b10', C_MID = '#0f1620', C_STRIPE = '#1a2435';
 
+                                                                    // Load Logo
+                                                                    const logoImg = await new Promise<HTMLImageElement | null>(res => {
+                                                                        const img = new Image(); img.crossOrigin = 'anonymous'; img.src = '/Logo.png';
+                                                                        img.onload = () => res(img); img.onerror = () => res(null);
+                                                                    });
+
                                                                     // BG
                                                                     ctx.fillStyle = C_DARK; ctx.fillRect(0, 0, W, H);
                                                                     ctx.save();
@@ -2931,7 +2937,7 @@ export function AdminDashboard() {
                                                                         ctx.beginPath(); ctx.moveTo(cx+sx*cL,cy); ctx.lineTo(cx,cy); ctx.lineTo(cx,cy+sy*cL); ctx.stroke();
                                                                     }); ctx.restore();
 
-                                                                    // Name bar
+                                                                    // Name bar (No more top logo text, just name)
                                                                     ctx.fillStyle = C_MID; ctx.fillRect(0, 0, W, nameBarH);
                                                                     ctx.fillStyle = C_LIME; ctx.fillRect(0, nameBarH - 4, W, 4);
                                                                     ctx.save(); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
@@ -2963,9 +2969,20 @@ export function AdminDashboard() {
                                                                     const tx = sepX+(isStory?26:18);
                                                                     ctx.save(); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
                                                                     ctx.font = `900 ${isStory?42:32}px "Orbitron", sans-serif`; ctx.fillStyle = '#fff'; ctx.letterSpacing = '3px';
-                                                                    ctx.fillText(`TOP 100 ${label}`, tx, footerY+footerH/2-(isStory?28:22));
-                                                                    ctx.font = `700 ${isStory?28:22}px "Montserrat", sans-serif`; ctx.fillStyle = C_LIME; ctx.letterSpacing = '10px';
-                                                                    ctx.fillText('DROPSIDERS', tx, footerY+footerH/2+(isStory?28:22)); ctx.restore();
+                                                                    ctx.fillText(`TOP 100 ${label}`, tx, footerY+footerH/2); ctx.restore();
+
+                                                                    // Actual Logo Drawing
+                                                                    if (logoImg) {
+                                                                        const lw = isStory ? 220 : 180;
+                                                                        const lh = (logoImg.height * lw) / logoImg.width;
+                                                                        if (isStory) {
+                                                                            // Story: Bottom Right
+                                                                            ctx.drawImage(logoImg, W - lw - padX, H - lh - 40, lw, lh);
+                                                                        } else {
+                                                                            // Post: Center Right in footer
+                                                                            ctx.drawImage(logoImg, W - lw - padX, footerY + (footerH - lh) / 2, lw, lh);
+                                                                        }
+                                                                    }
 
                                                                     return canvas.toDataURL('image/png');
                                                                 };
@@ -2984,6 +3001,51 @@ export function AdminDashboard() {
                                                     </div>
                                                 ))}
                                             </div>
+
+                                            {/* ARTIST PREVIEW MODAL */}
+                                            {artistPreview && (
+                                                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setArtistPreview(null)}>
+                                                    <div className="bg-[#0f1620] border border-[#c8ff00]/20 rounded-3xl p-8 max-w-2xl w-full mx-4 relative" onClick={e => e.stopPropagation()}>
+                                                        <button onClick={() => setArtistPreview(null)} className="absolute top-4 right-4 text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
+                                                        <div className="flex items-center gap-3 mb-6">
+                                                            <div className="w-3 h-3 rounded-full bg-[#c8ff00]" />
+                                                            <h3 className="text-white font-black uppercase tracking-widest text-sm">{artistPreview.item.name}</h3>
+                                                            <span className="text-gray-600 text-xs">#{artistPreview.idx + 1}</span>
+                                                        </div>
+
+                                                        {artistPreview.loading ? (
+                                                            <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                                                <Loader2 className="w-10 h-10 text-[#c8ff00] animate-spin" />
+                                                                <p className="text-gray-500 text-xs uppercase tracking-widest font-bold">Génération en cours...</p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="space-y-6">
+                                                                {/* Preview image (POST) */}
+                                                                <div className="rounded-2xl overflow-hidden border border-white/10">
+                                                                    <img src={artistPreview.postUrl} alt="Preview POST" className="w-full object-contain" />
+                                                                </div>
+                                                                {/* Download buttons */}
+                                                                <div className="flex gap-4">
+                                                                    <a
+                                                                        href={artistPreview.postUrl}
+                                                                        download={`dropsiders-${artistPreview.item.name.toLowerCase().replace(/\s+/g, '-')}-post.png`}
+                                                                        className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#c8ff00] text-black rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all"
+                                                                    >
+                                                                        <Download className="w-4 h-4" /> POST (1080×1350)
+                                                                    </a>
+                                                                    <a
+                                                                        href={artistPreview.storyUrl}
+                                                                        download={`dropsiders-${artistPreview.item.name.toLowerCase().replace(/\s+/g, '-')}-story.png`}
+                                                                        className="flex-1 flex items-center justify-center gap-2 py-4 bg-white/10 border border-[#c8ff00]/40 text-[#c8ff00] rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all"
+                                                                    >
+                                                                        <Smartphone className="w-4 h-4" /> STORY (1080×1920)
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* WIKI WIDGET (EXPLORER) */}

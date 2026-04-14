@@ -1,12 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
-import {
-    X, Download, Upload, PlusCircle, Plus, Eraser,
-    Video, Layout, Smartphone, Image as ImageIcon,
-    Home, Link as LinkIcon, Palette, Type, Film,
-    Check, Layers, Sparkles, Wand2, RotateCcw
+import { 
+    X, 
+    Download, 
+    Share2, 
+    RefreshCw, 
+    ImageIcon, 
+    Film, 
+    Clock, 
+    Check, 
+    Copy, 
+    Sparkles, 
+    Type, 
+    Layout, 
+    Palette, 
+    MessageSquare,
+    Link as LinkIcon,
+    AlertCircle,
+    Loader2
 } from 'lucide-react';
-import { resolveImageUrl } from '../utils/image';
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import recapsData from '../data/recaps.json';
@@ -1182,7 +1194,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // --- FINAL OVERLAYS (Logo & Swipe) ---
-            if (logoRef.current && theme !== 'TRACKLIST' && theme !== 'TOP 1 ARTIST' && theme !== 'TOP 100') {
+            if (logoRef.current && theme !== 'TRACKLIST') {
                 const logo = logoRef.current;
                 const w = 320;
                 // Move left and down for video backgrounds to avoid cropping and match requested safety margins
