@@ -2828,6 +2828,139 @@ export function AdminDashboard() {
 
                                 return (
                                     <div className="space-y-12">
+                                        {/* INLINE TOP 100 GENERATOR (MOVED TO TOP) */}
+                                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
+                                            <div className="relative z-10">
+                                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="p-4 bg-neon-red/10 rounded-[1.5rem] border border-neon-red/30">
+                                                            <Sparkles className="w-10 h-10 text-neon-red" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">Générer Top 100</h3>
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                                                                {wikiTab === 'djs' ? '🎧 DJs' : wikiTab === 'clubs' ? '🏛️ Clubs' : '🎪 Festivals'} — {allRanked.length} entrées
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-4 flex-wrap">
+                                                        <button
+                                                            onClick={async () => {
+                                                                const canvas = document.createElement('canvas');
+                                                                canvas.width = 1080; canvas.height = 1350;
+                                                                const ctx = canvas.getContext('2d')!;
+                                                                const label = wikiTab === 'clubs' ? 'CLUBS' : wikiTab === 'festivals' ? 'FESTIVALS' : 'DJS';
+                                                                // BG
+                                                                ctx.fillStyle = '#080b10'; ctx.fillRect(0, 0, 1080, 1350);
+                                                                const bg = ctx.createLinearGradient(0, 0, 1080, 1350);
+                                                                bg.addColorStop(0, 'rgba(40,10,20,0.9)'); bg.addColorStop(1, 'rgba(10,5,15,0.9)');
+                                                                ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1350);
+                                                                // Title
+                                                                ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
+                                                                ctx.font = '900 italic 80px "Orbitron", sans-serif';
+                                                                ctx.shadowColor = '#ff1272'; ctx.shadowBlur = 20;
+                                                                ctx.fillText('DROPSIDERS', 540, 90);
+                                                                ctx.font = '900 italic 55px "Montserrat", sans-serif';
+                                                                const grad = ctx.createLinearGradient(300, 130, 700, 130);
+                                                                grad.addColorStop(0, '#ffd700'); grad.addColorStop(0.5, '#fff1a8'); grad.addColorStop(1, '#ffd700');
+                                                                ctx.fillStyle = grad; ctx.shadowBlur = 10;
+                                                                ctx.fillText(`TOP 100 ${label}`, 540, 160);
+                                                                ctx.shadowBlur = 0;
+                                                                // List — 4 cols x 25 rows
+                                                                const cols = 4, rows = 25, colW = 240, rowH = 43;
+                                                                const startX = 540 - (colW * cols) / 2;
+                                                                const listTop = 210;
+                                                                ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                                                                allRanked.slice(0, 100).forEach((item: any, i: number) => {
+                                                                    const col = Math.floor(i / rows), row = i % rows;
+                                                                    const x = startX + col * colW, y = listTop + row * rowH;
+                                                                    ctx.fillStyle = i < 3 ? '#ffd700' : '#ff1272'; ctx.font = '900 16px "Montserrat", sans-serif';
+                                                                    ctx.fillText(`#${i + 1}`, x, y);
+                                                                    ctx.fillStyle = '#ffffff'; ctx.font = '600 15px "Montserrat", sans-serif';
+                                                                    let name = (item.name || '').toUpperCase();
+                                                                    while (ctx.measureText(name).width > 185 && name.length > 3) name = name.slice(0, -1);
+                                                                    if (name !== (item.name || '').toUpperCase()) name += '…';
+                                                                    ctx.fillText(name, x + 42, y);
+                                                                });
+                                                                // Footer
+                                                                ctx.fillStyle = '#ff1272'; ctx.fillRect(0, 1310, 1080, 3);
+                                                                ctx.fillStyle = 'rgba(15,22,32,0.95)'; ctx.fillRect(0, 1313, 1080, 37);
+                                                                ctx.fillStyle = '#ffffff'; ctx.font = '700 18px "Orbitron", sans-serif';
+                                                                ctx.textAlign = 'center'; ctx.letterSpacing = '6px';
+                                                                ctx.fillText('DROPSIDERS.FR', 540, 1335);
+                                                                // Download
+                                                                const a = document.createElement('a');
+                                                                a.href = canvas.toDataURL('image/png');
+                                                                a.download = `dropsiders-top100-${label.toLowerCase()}-post.png`;
+                                                                a.click();
+                                                            }}
+                                                            className="px-8 py-4 bg-neon-red text-white rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,18,114,0.3)]"
+                                                        >
+                                                            <ImageIcon className="w-4 h-4" />
+                                                            ⬇ POST (1080×1350)
+                                                        </button>
+                                                        <button
+                                                            onClick={async () => {
+                                                                const canvas = document.createElement('canvas');
+                                                                canvas.width = 1080; canvas.height = 1920;
+                                                                const ctx = canvas.getContext('2d')!;
+                                                                const label = wikiTab === 'clubs' ? 'CLUBS' : wikiTab === 'festivals' ? 'FESTIVALS' : 'DJS';
+                                                                // BG
+                                                                ctx.fillStyle = '#080b10'; ctx.fillRect(0, 0, 1080, 1920);
+                                                                const bg = ctx.createLinearGradient(0, 0, 1080, 1920);
+                                                                bg.addColorStop(0, 'rgba(40,10,20,0.9)'); bg.addColorStop(1, 'rgba(10,5,15,0.9)');
+                                                                ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1920);
+                                                                // Title
+                                                                ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
+                                                                ctx.font = '900 italic 100px "Orbitron", sans-serif';
+                                                                ctx.shadowColor = '#ff1272'; ctx.shadowBlur = 25;
+                                                                ctx.fillText('DROPSIDERS', 540, 120);
+                                                                ctx.font = '900 italic 70px "Montserrat", sans-serif';
+                                                                const grad = ctx.createLinearGradient(300, 180, 700, 180);
+                                                                grad.addColorStop(0, '#ffd700'); grad.addColorStop(0.5, '#fff1a8'); grad.addColorStop(1, '#ffd700');
+                                                                ctx.fillStyle = grad; ctx.shadowBlur = 12;
+                                                                ctx.fillText(`TOP 100 ${label}`, 540, 210);
+                                                                ctx.shadowBlur = 0;
+                                                                // List
+                                                                const cols = 2, rows = 50, colW = 490, rowH = 33, listTop = 270;
+                                                                const startX = 540 - (colW * cols) / 2;
+                                                                ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                                                                allRanked.slice(0, 100).forEach((item: any, i: number) => {
+                                                                    const col = Math.floor(i / rows), row = i % rows;
+                                                                    const x = startX + col * colW, y = listTop + row * rowH;
+                                                                    ctx.fillStyle = i < 3 ? '#ffd700' : '#ff1272'; ctx.font = '900 15px "Montserrat", sans-serif';
+                                                                    ctx.fillText(`#${i + 1}`, x + 4, y);
+                                                                    ctx.fillStyle = '#ffffff'; ctx.font = '600 14px "Montserrat", sans-serif';
+                                                                    let name = (item.name || '').toUpperCase();
+                                                                    while (ctx.measureText(name).width > 380 && name.length > 3) name = name.slice(0, -1);
+                                                                    if (name !== (item.name || '').toUpperCase()) name += '…';
+                                                                    ctx.fillText(name, x + 46, y);
+                                                                });
+                                                                // Footer
+                                                                ctx.fillStyle = '#ff1272'; ctx.fillRect(0, 1870, 1080, 3);
+                                                                ctx.fillStyle = 'rgba(15,22,32,0.95)'; ctx.fillRect(0, 1873, 1080, 47);
+                                                                ctx.fillStyle = '#ffffff'; ctx.font = '700 22px "Orbitron", sans-serif';
+                                                                ctx.textAlign = 'center'; ctx.letterSpacing = '6px';
+                                                                ctx.fillText('DROPSIDERS.FR', 540, 1900);
+                                                                const a = document.createElement('a');
+                                                                a.href = canvas.toDataURL('image/png');
+                                                                a.download = `dropsiders-top100-${label.toLowerCase()}-story.png`;
+                                                                a.click();
+                                                            }}
+                                                            className="px-8 py-4 bg-white/10 border border-neon-red/40 text-neon-red rounded-2xl text-[11px] font-black uppercase hover:scale-105 hover:bg-neon-red/10 transition-all flex items-center gap-2"
+                                                        >
+                                                            <Smartphone className="w-4 h-4" />
+                                                            ⬇ STORY (1080×1920)
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <p className="text-[10px] text-gray-600 uppercase tracking-widest">
+                                                    ⚡ Génération directe en PNG — sans Social Studio — basé sur le classement actif ({wikiTab === 'djs' ? 'DJs' : wikiTab === 'clubs' ? 'Clubs' : 'Festivals'})
+                                                </p>
+                                            </div>
+                                        </div>
+
                                         {/* RANKING SUMMARY (TOP) */}
                                         <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10">
                                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
@@ -2886,7 +3019,9 @@ export function AdminDashboard() {
                                                                     const isStory = H === 1920;
                                                                     const rank = artIdx + 1;
                                                                     const label = cat === 'clubs' ? 'CLUBS' : cat === 'festivals' ? 'FESTIVALS' : 'DJS';
-                                                                    const C_LIME = '#c8ff00', C_DARK = '#080b10', C_MID = '#0f1620', C_STRIPE = '#1a2435';
+                                                                    const C_RED = '#ff1272', C_DARK = '#080b10', C_MID = '#0f1620', C_STRIPE = '#1a0a10';
+                                                                    const C_GOLD = '#ffd700', C_SILVER = '#c0c0c0';
+                                                                    const mainColor = rank === 1 ? C_GOLD : rank <= 3 ? C_SILVER : C_RED;
 
                                                                     // Load Logo
                                                                     const logoImg = await new Promise<HTMLImageElement | null>(res => {
@@ -2903,10 +3038,11 @@ export function AdminDashboard() {
                                                                         ctx.lineTo(i + 14 + H, H); ctx.lineTo(i + H, H); ctx.closePath(); ctx.fill();
                                                                     }
                                                                     ctx.restore();
-                                                                    const radG = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, H*0.7);
-                                                                    radG.addColorStop(0, 'rgba(200,255,0,0.06)'); radG.addColorStop(1, 'rgba(0,0,0,0.5)');
+                                                                    const radH = isStory ? H * 0.8 : H * 0.7;
+                                                                    const radG = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, radH);
+                                                                    radG.addColorStop(0, rank <= 3 ? 'rgba(255,215,0,0.08)' : 'rgba(255,18,114,0.08)'); radG.addColorStop(1, 'rgba(0,0,0,0.6)');
                                                                     ctx.fillStyle = radG; ctx.fillRect(0, 0, W, H);
-                                                                    ctx.fillStyle = C_LIME; ctx.fillRect(0, 0, 8, H); ctx.fillRect(W - 8, 0, 8, H);
+                                                                    ctx.fillStyle = mainColor; ctx.fillRect(0, 0, 8, H); ctx.fillRect(W - 8, 0, 8, H);
 
                                                                     const padX = 30, nameBarH = isStory ? 200 : 160, footerH = isStory ? 170 : 140;
                                                                     const photoY = nameBarH, photoH = H - nameBarH - footerH, photoW = W - padX * 2;
@@ -2932,7 +3068,7 @@ export function AdminDashboard() {
                                                                     } else { ctx.fillStyle = C_MID; ctx.fillRect(padX, photoY, photoW, photoH); }
 
                                                                     // Photo border
-                                                                    ctx.save(); ctx.strokeStyle = C_LIME; ctx.lineWidth = 3; ctx.shadowColor = C_LIME; ctx.shadowBlur = 15;
+                                                                    ctx.save(); ctx.strokeStyle = mainColor; ctx.lineWidth = 3; ctx.shadowColor = mainColor; ctx.shadowBlur = 15;
                                                                     ctx.strokeRect(padX, photoY, photoW, photoH);
                                                                     const cL = 40; ctx.lineWidth = 6; ctx.lineCap = 'square';
                                                                     [[padX, photoY], [padX+photoW, photoY], [padX, photoY+photoH], [padX+photoW, photoY+photoH]].forEach(([cx, cy], ci) => {
@@ -2942,7 +3078,7 @@ export function AdminDashboard() {
 
                                                                     // Name bar (No more top logo text, just name)
                                                                     ctx.fillStyle = C_MID; ctx.fillRect(0, 0, W, nameBarH);
-                                                                    ctx.fillStyle = C_LIME; ctx.fillRect(0, nameBarH - 4, W, 4);
+                                                                    ctx.fillStyle = mainColor; ctx.fillRect(0, nameBarH - 4, W, 4);
                                                                     ctx.save(); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
                                                                     let fs = isStory ? 115 : 90;
                                                                     ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
@@ -2952,7 +3088,7 @@ export function AdminDashboard() {
 
                                                                     // Rank badge
                                                                     const bp = 16, bh = nameBarH-bp*2, bw = bh*1.1, bx = W-padX-bw-8, by = bp;
-                                                                    ctx.save(); ctx.fillStyle = C_LIME; ctx.shadowColor = C_LIME; ctx.shadowBlur = 25;
+                                                                    ctx.save(); ctx.fillStyle = mainColor; ctx.shadowColor = mainColor; ctx.shadowBlur = 25;
                                                                     ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,10); ctx.fill();
                                                                     ctx.fillStyle = C_DARK; ctx.font = `900 italic ${bh*0.6}px "Montserrat", sans-serif`;
                                                                     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.shadowBlur = 0;
@@ -2961,14 +3097,14 @@ export function AdminDashboard() {
                                                                     // Footer
                                                                     const footerY = H - footerH;
                                                                     ctx.fillStyle = C_MID; ctx.fillRect(0, footerY, W, footerH);
-                                                                    ctx.fillStyle = C_LIME; ctx.fillRect(0, footerY, W, 4);
+                                                                    ctx.fillStyle = mainColor; ctx.fillRect(0, footerY, W, 4);
                                                                     const bigFs = isStory ? 140 : 110;
                                                                     ctx.save(); ctx.font = `900 italic ${bigFs}px "Montserrat", sans-serif`;
-                                                                    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = C_LIME; ctx.shadowColor = C_LIME; ctx.shadowBlur = 30;
+                                                                    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = mainColor; ctx.shadowColor = mainColor; ctx.shadowBlur = 30;
                                                                     const rankStr = `${rank}`, rkW = ctx.measureText(rankStr).width;
                                                                     ctx.fillText(rankStr, padX+12, footerY+footerH/2+6); ctx.restore();
                                                                     const sepX = padX+12+rkW+(isStory?30:20);
-                                                                    ctx.fillStyle = 'rgba(200,255,0,0.3)'; ctx.fillRect(sepX, footerY+20, 2, footerH-40);
+                                                                    ctx.fillStyle = rank <= 3 ? 'rgba(255,215,0,0.3)' : 'rgba(255,18,114,0.3)'; ctx.fillRect(sepX, footerY+20, 2, footerH-40);
                                                                     const tx = sepX+(isStory?26:18);
                                                                     ctx.save(); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
                                                                     ctx.font = `900 ${isStory?42:32}px "Orbitron", sans-serif`; ctx.fillStyle = '#fff'; ctx.letterSpacing = '3px';
@@ -2985,6 +3121,11 @@ export function AdminDashboard() {
                                                                             // Post: Center Right in footer
                                                                             ctx.drawImage(logoImg, W - lw - padX, footerY + (footerH - lh) / 2, lw, lh);
                                                                         }
+                                                                        
+                                                                        // Add dropsiders.fr text beside logo if space
+                                                                        ctx.font = `700 ${isStory?18:14}px "Montserrat", sans-serif`;
+                                                                        ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'right';
+                                                                        ctx.fillText('DROPSIDERS.FR', W - padX, H - (isStory?20:15));
                                                                     }
 
                                                                     return canvas.toDataURL('image/png');
@@ -3000,52 +3141,76 @@ export function AdminDashboard() {
                                                             title="Prévisualiser le post"
                                                         >
                                                             <Eye className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
+                                                                                   {artistPreview && (() => {
+                                                const [previewMode, setPreviewMode] = useState<'POST' | 'STORY'>('POST');
+                                                return (
+                                                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md" onClick={() => setArtistPreview(null)}>
+                                                        <div className="bg-[#080b10] border border-white/10 rounded-[2.5rem] p-0 max-w-4xl w-full mx-4 relative overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-auto" onClick={e => e.stopPropagation()}>
+                                                            <button onClick={() => setArtistPreview(null)} className="absolute top-6 right-6 z-50 p-2 bg-black/50 rounded-full text-gray-400 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+                                                            
+                                                            {/* Sidebar / Info */}
+                                                            <div className="w-full md:w-80 bg-white/[0.02] border-r border-white/5 p-8 flex flex-col">
+                                                                <div className="flex items-center gap-3 mb-8">
+                                                                    <div className={`w-3 h-3 rounded-full ${artistPreview.idx < 1 ? 'bg-[#ffd700]' : 'bg-[#ff1272]'}`} />
+                                                                    <h3 className="text-white font-black uppercase tracking-widest text-sm">{artistPreview.item.name}</h3>
+                                                                </div>
 
-                                            {/* ARTIST PREVIEW MODAL */}
-                                            {artistPreview && (
-                                                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={() => setArtistPreview(null)}>
-                                                    <div className="bg-[#0f1620] border border-[#c8ff00]/20 rounded-3xl p-8 max-w-2xl w-full mx-4 relative" onClick={e => e.stopPropagation()}>
-                                                        <button onClick={() => setArtistPreview(null)} className="absolute top-4 right-4 text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
-                                                        <div className="flex items-center gap-3 mb-6">
-                                                            <div className="w-3 h-3 rounded-full bg-[#c8ff00]" />
-                                                            <h3 className="text-white font-black uppercase tracking-widest text-sm">{artistPreview.item.name}</h3>
-                                                            <span className="text-gray-600 text-xs">#{artistPreview.idx + 1}</span>
+                                                                <div className="space-y-1 mb-8">
+                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Classement actuel</p>
+                                                                    <p className="text-2xl font-display font-black text-white italic">#{artistPreview.idx + 1}</p>
+                                                                </div>
+
+                                                                <div className="flex flex-col gap-2 mb-auto">
+                                                                    <button 
+                                                                        onClick={() => setPreviewMode('POST')}
+                                                                        className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${previewMode === 'POST' ? 'bg-neon-red/10 border-neon-red/40 text-white' : 'border-white/5 text-gray-500 hover:bg-white/5'}`}
+                                                                    >
+                                                                        <ImageIcon className="w-4 h-4" />
+                                                                        <div className="text-left"><p className="text-[10px] font-black uppercase tracking-widest">Format POST</p><p className="text-[9px] opacity-50">1080 × 1350 (4:5)</p></div>
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => setPreviewMode('STORY')}
+                                                                        className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${previewMode === 'STORY' ? 'bg-neon-red/10 border-neon-red/40 text-white' : 'border-white/5 text-gray-500 hover:bg-white/5'}`}
+                                                                    >
+                                                                        <Smartphone className="w-4 h-4" />
+                                                                        <div className="text-left"><p className="text-[10px] font-black uppercase tracking-widest">Format STORY</p><p className="text-[9px] opacity-50">1080 × 1920 (9:16)</p></div>
+                                                                    </button>
+                                                                </div>
+
+                                                                <div className="mt-8">
+                                                                    <a
+                                                                        href={previewMode === 'POST' ? artistPreview.postUrl : artistPreview.storyUrl}
+                                                                        download={`dropsiders-${artistPreview.item.name.toLowerCase().replace(/\s+/g, '-')}-${previewMode.toLowerCase()}.png`}
+                                                                        className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-neon-red to-[#ff3b8d] text-white rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-neon-red/20"
+                                                                    >
+                                                                        <Download className="w-4 h-4" /> Télécharger PNG
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Preview Stage */}
+                                                            <div className="flex-1 bg-black/40 p-8 flex items-center justify-center overflow-hidden">
+                                                                {artistPreview.loading ? (
+                                                                    <div className="flex flex-col items-center gap-4">
+                                                                        <Loader2 className="w-12 h-12 text-neon-red animate-spin" />
+                                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Génération des visuels...</p>
+                                                                    </div>
+                                                                ) : (
+                                                                    <motion.div 
+                                                                        key={previewMode}
+                                                                        initial={{ opacity: 0, scale: 0.95 }}
+                                                                        animate={{ opacity: 1, scale: 1 }}
+                                                                        className={`relative shadow-2xl rounded-lg overflow-hidden border border-white/10 ${previewMode === 'POST' ? 'aspect-[4/5] h-full max-h-[600px]' : 'aspect-[9/16] h-full max-h-[650px]'}`}
+                                                                    >
+                                                                        <img src={previewMode === 'POST' ? artistPreview.postUrl : artistPreview.storyUrl} alt="Preview" className="w-full h-full object-contain bg-black" />
+                                                                    </motion.div>
+                                                                )}
+                                                            </div>
                                                         </div>
-
-                                                        {artistPreview.loading ? (
-                                                            <div className="flex flex-col items-center justify-center py-20 gap-4">
-                                                                <Loader2 className="w-10 h-10 text-[#c8ff00] animate-spin" />
-                                                                <p className="text-gray-500 text-xs uppercase tracking-widest font-bold">Génération en cours...</p>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="space-y-6">
-                                                                {/* Preview image (POST) */}
-                                                                <div className="rounded-2xl overflow-hidden border border-white/10">
-                                                                    <img src={artistPreview.postUrl} alt="Preview POST" className="w-full object-contain" />
-                                                                </div>
-                                                                {/* Download buttons */}
-                                                                <div className="flex gap-4">
-                                                                    <a
-                                                                        href={artistPreview.postUrl}
-                                                                        download={`dropsiders-${artistPreview.item.name.toLowerCase().replace(/\s+/g, '-')}-post.png`}
-                                                                        className="flex-1 flex items-center justify-center gap-2 py-4 bg-[#c8ff00] text-black rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all"
-                                                                    >
-                                                                        <Download className="w-4 h-4" /> POST (1080×1350)
-                                                                    </a>
-                                                                    <a
-                                                                        href={artistPreview.storyUrl}
-                                                                        download={`dropsiders-${artistPreview.item.name.toLowerCase().replace(/\s+/g, '-')}-story.png`}
-                                                                        className="flex-1 flex items-center justify-center gap-2 py-4 bg-white/10 border border-[#c8ff00]/40 text-[#c8ff00] rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all"
-                                                                    >
-                                                                        <Smartphone className="w-4 h-4" /> STORY (1080×1920)
-                                                                    </a>
-                                                                </div>
-                                                            </div>
-                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
+                               )}
                                                     </div>
                                                 </div>
                                             )}
@@ -3056,146 +3221,6 @@ export function AdminDashboard() {
                                             <WikiWidget showResults={true} hideTitle={true} />
                                         </div>
 
-                                        {/* INLINE TOP 100 GENERATOR */}
-                                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 w-64 h-64 bg-[#c8ff00]/5 blur-[100px] pointer-events-none" />
-                                            <div className="relative z-10">
-                                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
-                                                    <div className="flex items-center gap-6">
-                                                        <div className="p-4 bg-[#c8ff00]/10 rounded-[1.5rem] border border-[#c8ff00]/30">
-                                                            <Sparkles className="w-10 h-10 text-[#c8ff00]" />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">Générer Top 100</h3>
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-                                                                {wikiTab === 'djs' ? '🎧 DJs' : wikiTab === 'clubs' ? '🏛️ Clubs' : '🎪 Festivals'} — {allRanked.length} entrées
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-4 flex-wrap">
-                                                        <button
-                                                            onClick={async () => {
-                                                                const canvas = document.createElement('canvas');
-                                                                canvas.width = 1080; canvas.height = 1350;
-                                                                const ctx = canvas.getContext('2d')!;
-                                                                const label = wikiTab === 'clubs' ? 'CLUBS' : wikiTab === 'festivals' ? 'FESTIVALS' : 'DJS';
-                                                                // BG
-                                                                ctx.fillStyle = '#080b10'; ctx.fillRect(0, 0, 1080, 1350);
-                                                                const bg = ctx.createLinearGradient(0, 0, 1080, 1350);
-                                                                bg.addColorStop(0, 'rgba(20,30,10,0.9)'); bg.addColorStop(1, 'rgba(5,10,20,0.9)');
-                                                                ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1350);
-                                                                // Title
-                                                                ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-                                                                ctx.font = '900 italic 80px "Orbitron", sans-serif';
-                                                                ctx.shadowColor = '#c8ff00'; ctx.shadowBlur = 20;
-                                                                ctx.fillText('DROPSIDERS', 540, 90);
-                                                                ctx.font = '900 italic 55px "Montserrat", sans-serif';
-                                                                ctx.fillStyle = '#c8ff00'; ctx.shadowBlur = 10;
-                                                                ctx.fillText(`TOP 100 ${label}`, 540, 160);
-                                                                ctx.shadowBlur = 0;
-                                                                // List — 4 cols x 25 rows
-                                                                const cols = 4, rows = 25, colW = 240, rowH = 43;
-                                                                const startX = 540 - (colW * cols) / 2;
-                                                                const listTop = 210;
-                                                                ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-                                                                allRanked.slice(0, 100).forEach((item: any, i: number) => {
-                                                                    const col = Math.floor(i / rows), row = i % rows;
-                                                                    const x = startX + col * colW, y = listTop + row * rowH;
-                                                                    ctx.fillStyle = '#c8ff00'; ctx.font = '900 16px "Montserrat", sans-serif';
-                                                                    ctx.fillText(`#${i + 1}`, x, y);
-                                                                    ctx.fillStyle = '#ffffff'; ctx.font = '600 15px "Montserrat", sans-serif';
-                                                                    let name = (item.name || '').toUpperCase();
-                                                                    while (ctx.measureText(name).width > 185 && name.length > 3) name = name.slice(0, -1);
-                                                                    if (name !== (item.name || '').toUpperCase()) name += '…';
-                                                                    ctx.fillText(name, x + 42, y);
-                                                                });
-                                                                // Separator lines
-                                                                ctx.strokeStyle = 'rgba(200,255,0,0.15)'; ctx.lineWidth = 1;
-                                                                for (let c = 1; c < cols; c++) {
-                                                                    ctx.beginPath(); ctx.moveTo(startX + c * colW - 10, listTop - 10); ctx.lineTo(startX + c * colW - 10, listTop + rows * rowH + 10); ctx.stroke();
-                                                                }
-                                                                // Footer
-                                                                ctx.fillStyle = '#c8ff00'; ctx.fillRect(0, 1310, 1080, 3);
-                                                                ctx.fillStyle = 'rgba(15,22,32,0.95)'; ctx.fillRect(0, 1313, 1080, 37);
-                                                                ctx.fillStyle = '#ffffff'; ctx.font = '700 18px "Orbitron", sans-serif';
-                                                                ctx.textAlign = 'center'; ctx.letterSpacing = '6px';
-                                                                ctx.fillText('DROPSIDERS.EU', 540, 1335);
-                                                                // Download
-                                                                const a = document.createElement('a');
-                                                                a.href = canvas.toDataURL('image/png');
-                                                                a.download = `dropsiders-top100-${label.toLowerCase()}-post.png`;
-                                                                a.click();
-                                                            }}
-                                                            className="px-8 py-4 bg-[#c8ff00] text-black rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(200,255,0,0.3)]"
-                                                        >
-                                                            <ImageIcon className="w-4 h-4" />
-                                                            ⬇ POST (1080×1350)
-                                                        </button>
-                                                        <button
-                                                            onClick={async () => {
-                                                                const canvas = document.createElement('canvas');
-                                                                canvas.width = 1080; canvas.height = 1920;
-                                                                const ctx = canvas.getContext('2d')!;
-                                                                const label = wikiTab === 'clubs' ? 'CLUBS' : wikiTab === 'festivals' ? 'FESTIVALS' : 'DJS';
-                                                                // BG
-                                                                ctx.fillStyle = '#080b10'; ctx.fillRect(0, 0, 1080, 1920);
-                                                                const bg = ctx.createLinearGradient(0, 0, 1080, 1920);
-                                                                bg.addColorStop(0, 'rgba(20,30,10,0.9)'); bg.addColorStop(1, 'rgba(5,10,20,0.9)');
-                                                                ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1920);
-                                                                // Title
-                                                                ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-                                                                ctx.font = '900 italic 100px "Orbitron", sans-serif';
-                                                                ctx.shadowColor = '#c8ff00'; ctx.shadowBlur = 25;
-                                                                ctx.fillText('DROPSIDERS', 540, 120);
-                                                                ctx.font = '900 italic 70px "Montserrat", sans-serif';
-                                                                ctx.fillStyle = '#c8ff00'; ctx.shadowBlur = 12;
-                                                                ctx.fillText(`TOP 100 ${label}`, 540, 210);
-                                                                ctx.shadowBlur = 0;
-                                                                // List — 2 cols x 50 rows
-                                                                const cols = 2, rows = 50, colW = 490, rowH = 33;
-                                                                const startX = 540 - (colW * cols) / 2;
-                                                                const listTop = 270;
-                                                                ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-                                                                allRanked.slice(0, 100).forEach((item: any, i: number) => {
-                                                                    const col = Math.floor(i / rows), row = i % rows;
-                                                                    const x = startX + col * colW, y = listTop + row * rowH;
-                                                                    // Alternate row bg
-                                                                    if (row % 2 === 0) { ctx.fillStyle = 'rgba(200,255,0,0.03)'; ctx.fillRect(x - 5, y - rowH/2, colW - 10, rowH); }
-                                                                    ctx.fillStyle = '#c8ff00'; ctx.font = '900 15px "Montserrat", sans-serif';
-                                                                    ctx.fillText(`#${i + 1}`, x + 4, y);
-                                                                    ctx.fillStyle = '#ffffff'; ctx.font = '600 14px "Montserrat", sans-serif';
-                                                                    let name = (item.name || '').toUpperCase();
-                                                                    while (ctx.measureText(name).width > 380 && name.length > 3) name = name.slice(0, -1);
-                                                                    if (name !== (item.name || '').toUpperCase()) name += '…';
-                                                                    ctx.fillText(name, x + 46, y);
-                                                                });
-                                                                // Center separator
-                                                                ctx.strokeStyle = 'rgba(200,255,0,0.2)'; ctx.lineWidth = 1;
-                                                                ctx.beginPath(); ctx.moveTo(540, listTop - 10); ctx.lineTo(540, listTop + rows * rowH + 10); ctx.stroke();
-                                                                // Footer
-                                                                ctx.fillStyle = '#c8ff00'; ctx.fillRect(0, 1870, 1080, 3);
-                                                                ctx.fillStyle = 'rgba(15,22,32,0.95)'; ctx.fillRect(0, 1873, 1080, 47);
-                                                                ctx.fillStyle = '#ffffff'; ctx.font = '700 22px "Orbitron", sans-serif';
-                                                                ctx.textAlign = 'center'; ctx.letterSpacing = '6px';
-                                                                ctx.fillText('DROPSIDERS.EU', 540, 1900);
-                                                                // Download
-                                                                const a = document.createElement('a');
-                                                                a.href = canvas.toDataURL('image/png');
-                                                                a.download = `dropsiders-top100-${label.toLowerCase()}-story.png`;
-                                                                a.click();
-                                                            }}
-                                                            className="px-8 py-4 bg-white/10 border border-[#c8ff00]/40 text-[#c8ff00] rounded-2xl text-[11px] font-black uppercase hover:scale-105 hover:bg-[#c8ff00]/10 transition-all flex items-center gap-2"
-                                                        >
-                                                            <Smartphone className="w-4 h-4" />
-                                                            ⬇ STORY (1080×1920)
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <p className="text-[10px] text-gray-600 uppercase tracking-widest">
-                                                    ⚡ Génération directe en PNG — sans Social Studio — basé sur le classement actif ({wikiTab === 'djs' ? 'DJs' : wikiTab === 'clubs' ? 'Clubs' : 'Festivals'})
-                                                </p>
-                                            </div>
-                                        </div>
                                     </div>
                                 );
                             })()}
