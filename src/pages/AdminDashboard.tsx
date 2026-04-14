@@ -475,6 +475,7 @@ export function AdminDashboard() {
     const [isSavingWiki, setIsSavingWiki] = useState(false);
     const [top100DataToVisual, setTop100DataToVisual] = useState<any[] | null>(null);
     const [top100InitialTab, setTop100InitialTab] = useState<'PUBLICATION' | 'REEL'>('PUBLICATION');
+    const [artistPreview, setArtistPreview] = useState<{ item: any, idx: number, category: string, loading: boolean, postUrl?: string, storyUrl?: string } | null>(null);
 
     interface TakeoverState {
         enabled: boolean;
@@ -2873,24 +2874,114 @@ export function AdminDashboard() {
                                                             </div>
                                                         </div>
                                                         <button 
-                                                            onClick={() => {
-                                                                setTop100InitialTab('PUBLICATION');
-                                                                setTop100DataToVisual([{ name: item.name, votes: item.tv, rank: idx + 1, image: item.image, category: wikiTab }]);
-                                                            }}
-                                                            className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all group/btn"
-                                                            title="Générer Post (1080×1350)"
-                                                        >
-                                                            <ImageIcon className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => {
-                                                                setTop100InitialTab('REEL');
-                                                                setTop100DataToVisual([{ name: item.name, votes: item.tv, rank: idx + 1, image: item.image, category: wikiTab }]);
+                                                            onClick={async () => {
+                                                                const artItem = item;
+                                                                const artIdx = idx;
+                                                                const cat = wikiTab;
+                                                                setArtistPreview({ item: artItem, idx: artIdx, category: cat, loading: true });
+
+                                                                const generateCard = async (W: number, H: number): Promise<string> => {
+                                                                    const canvas = document.createElement('canvas');
+                                                                    canvas.width = W; canvas.height = H;
+                                                                    const ctx = canvas.getContext('2d')!;
+                                                                    const isStory = H === 1920;
+                                                                    const rank = artIdx + 1;
+                                                                    const label = cat === 'clubs' ? 'CLUBS' : cat === 'festivals' ? 'FESTIVALS' : 'DJS';
+                                                                    const C_LIME = '#c8ff00', C_DARK = '#080b10', C_MID = '#0f1620', C_STRIPE = '#1a2435';
+
+                                                                    // BG
+                                                                    ctx.fillStyle = C_DARK; ctx.fillRect(0, 0, W, H);
+                                                                    ctx.save();
+                                                                    for (let i = -H; i < W + H; i += 28) {
+                                                                        ctx.fillStyle = C_STRIPE;
+                                                                        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 14, 0);
+                                                                        ctx.lineTo(i + 14 + H, H); ctx.lineTo(i + H, H); ctx.closePath(); ctx.fill();
+                                                                    }
+                                                                    ctx.restore();
+                                                                    const radG = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, H*0.7);
+                                                                    radG.addColorStop(0, 'rgba(200,255,0,0.06)'); radG.addColorStop(1, 'rgba(0,0,0,0.5)');
+                                                                    ctx.fillStyle = radG; ctx.fillRect(0, 0, W, H);
+                                                                    ctx.fillStyle = C_LIME; ctx.fillRect(0, 0, 8, H); ctx.fillRect(W - 8, 0, 8, H);
+
+                                                                    const padX = 30, nameBarH = isStory ? 200 : 160, footerH = isStory ? 170 : 140;
+                                                                    const photoY = nameBarH, photoH = H - nameBarH - footerH, photoW = W - padX * 2;
+
+                                                                    // Try to load photo
+                                                                    if (artItem.image) {
+                                                                        await new Promise<void>(res => {
+                                                                            const img = new Image(); img.crossOrigin = 'anonymous';
+                                                                            img.src = artItem.image;
+                                                                            img.onload = () => {
+                                                                                ctx.save(); ctx.beginPath(); ctx.rect(padX, photoY, photoW, photoH); ctx.clip();
+                                                                                const s = Math.max(photoW / img.width, photoH / img.height);
+                                                                                ctx.drawImage(img, padX + (photoW - img.width * s) / 2, photoY + (photoH - img.height * s) / 2, img.width * s, img.height * s);
+                                                                                const fade = ctx.createLinearGradient(0, photoY + photoH * 0.6, 0, photoY + photoH);
+                                                                                fade.addColorStop(0, 'transparent'); fade.addColorStop(1, 'rgba(8,11,16,0.85)');
+                                                                                ctx.fillStyle = fade; ctx.fillRect(padX, photoY, photoW, photoH); ctx.restore(); res();
+                                                                            };
+                                                                            img.onerror = () => { ctx.fillStyle = C_MID; ctx.fillRect(padX, photoY, photoW, photoH); res(); };
+                                                                            setTimeout(res, 3000);
+                                                                        });
+                                                                    } else { ctx.fillStyle = C_MID; ctx.fillRect(padX, photoY, photoW, photoH); }
+
+                                                                    // Photo border
+                                                                    ctx.save(); ctx.strokeStyle = C_LIME; ctx.lineWidth = 3; ctx.shadowColor = C_LIME; ctx.shadowBlur = 15;
+                                                                    ctx.strokeRect(padX, photoY, photoW, photoH);
+                                                                    const cL = 40; ctx.lineWidth = 6; ctx.lineCap = 'square';
+                                                                    [[padX, photoY], [padX+photoW, photoY], [padX, photoY+photoH], [padX+photoW, photoY+photoH]].forEach(([cx, cy], ci) => {
+                                                                        const sx = ci%2===0?1:-1, sy = ci<2?1:-1;
+                                                                        ctx.beginPath(); ctx.moveTo(cx+sx*cL,cy); ctx.lineTo(cx,cy); ctx.lineTo(cx,cy+sy*cL); ctx.stroke();
+                                                                    }); ctx.restore();
+
+                                                                    // Name bar
+                                                                    ctx.fillStyle = C_MID; ctx.fillRect(0, 0, W, nameBarH);
+                                                                    ctx.fillStyle = C_LIME; ctx.fillRect(0, nameBarH - 4, W, 4);
+                                                                    ctx.save(); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                                                                    let fs = isStory ? 115 : 90;
+                                                                    ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                                                                    while (ctx.measureText(artItem.name.toUpperCase()).width > W - (padX*2+180) && fs > 50) { fs -= 4; ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`; }
+                                                                    ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 15;
+                                                                    ctx.fillText(artItem.name.toUpperCase(), padX + 12, nameBarH / 2); ctx.restore();
+
+                                                                    // Rank badge
+                                                                    const bp = 16, bh = nameBarH-bp*2, bw = bh*1.1, bx = W-padX-bw-8, by = bp;
+                                                                    ctx.save(); ctx.fillStyle = C_LIME; ctx.shadowColor = C_LIME; ctx.shadowBlur = 25;
+                                                                    ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,10); ctx.fill();
+                                                                    ctx.fillStyle = C_DARK; ctx.font = `900 italic ${bh*0.6}px "Montserrat", sans-serif`;
+                                                                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.shadowBlur = 0;
+                                                                    ctx.fillText(`${rank}`, bx+bw/2, by+bh/2+4); ctx.restore();
+
+                                                                    // Footer
+                                                                    const footerY = H - footerH;
+                                                                    ctx.fillStyle = C_MID; ctx.fillRect(0, footerY, W, footerH);
+                                                                    ctx.fillStyle = C_LIME; ctx.fillRect(0, footerY, W, 4);
+                                                                    const bigFs = isStory ? 140 : 110;
+                                                                    ctx.save(); ctx.font = `900 italic ${bigFs}px "Montserrat", sans-serif`;
+                                                                    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = C_LIME; ctx.shadowColor = C_LIME; ctx.shadowBlur = 30;
+                                                                    const rankStr = `${rank}`, rkW = ctx.measureText(rankStr).width;
+                                                                    ctx.fillText(rankStr, padX+12, footerY+footerH/2+6); ctx.restore();
+                                                                    const sepX = padX+12+rkW+(isStory?30:20);
+                                                                    ctx.fillStyle = 'rgba(200,255,0,0.3)'; ctx.fillRect(sepX, footerY+20, 2, footerH-40);
+                                                                    const tx = sepX+(isStory?26:18);
+                                                                    ctx.save(); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                                                                    ctx.font = `900 ${isStory?42:32}px "Orbitron", sans-serif`; ctx.fillStyle = '#fff'; ctx.letterSpacing = '3px';
+                                                                    ctx.fillText(`TOP 100 ${label}`, tx, footerY+footerH/2-(isStory?28:22));
+                                                                    ctx.font = `700 ${isStory?28:22}px "Montserrat", sans-serif`; ctx.fillStyle = C_LIME; ctx.letterSpacing = '10px';
+                                                                    ctx.fillText('DROPSIDERS', tx, footerY+footerH/2+(isStory?28:22)); ctx.restore();
+
+                                                                    return canvas.toDataURL('image/png');
+                                                                };
+
+                                                                const [postUrl, storyUrl] = await Promise.all([
+                                                                    generateCard(1080, 1350),
+                                                                    generateCard(1080, 1920),
+                                                                ]);
+                                                                setArtistPreview({ item: artItem, idx: artIdx, category: cat, loading: false, postUrl, storyUrl });
                                                             }}
                                                             className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-[#c8ff00] transition-all group/btn"
-                                                            title="Générer Story (1080×1920)"
+                                                            title="Prévisualiser le post"
                                                         >
-                                                            <Smartphone className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
+                                                            <Eye className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
                                                         </button>
                                                     </div>
                                                 ))}
