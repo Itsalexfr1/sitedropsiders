@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Newspaper, Video, Calendar, X, Users, ShoppingBag, Shield, Info, MoreHorizontal, Home, User, Plane } from 'lucide-react';
+import { Trophy, Video, Calendar, X, Users, ShoppingBag, Shield, Info, MoreHorizontal, Home, User, Plane, Newspaper } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
@@ -43,7 +43,7 @@ export function MobileNavbar() {
 
     const mainItems = [
         { icon: Home, label: navLabels.accueil || 'Accueil', path: '/' },
-        { icon: Newspaper, label: navLabels.news || 'News', path: '/news' },
+        { icon: Trophy, label: 'Top 100', path: '/top-dropsiders' },
         {
             icon: isLiveActive ? Video : Users,
             label: isLiveActive ? 'LIVE' : (navLabels.communaute || 'Communaute'),
@@ -62,6 +62,7 @@ export function MobileNavbar() {
 
     const menuItems = [
         // Live moved to center if active
+        { icon: Newspaper, label: navLabels.news || 'News', path: '/news', color: 'text-neon-cyan' },
         { icon: Plane, label: navLabels.voyage || t('nav.voyage'), path: '/voyage', color: 'text-neon-green' },
         { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
         { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
