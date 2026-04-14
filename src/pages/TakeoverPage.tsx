@@ -9,8 +9,10 @@ import {
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
     Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Camera, Check, Coins, Shield,
-    Scan, Wand2, Globe, Volume2, VolumeX
+    Scan, Wand2, Globe, Volume2, VolumeX, Vote
 } from 'lucide-react';
+import { useUser } from '../context/UserContext';
+import { UserAuthModal } from '../components/auth/UserAuthModal';
 import Tesseract from 'tesseract.js';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -351,7 +353,47 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
     }, [isAdmin]);
 
-    // âœ¨ New State Features
+    // ✨ New State Features
+    const { isLoggedIn, user: authUser } = useUser();
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [hasVotedToday, setHasVotedToday] = useState<Set<string>>(new Set());
+
+    const activeLiveItem = useMemo(() => {
+        const now = new Date();
+        return lineupItems.find(item => {
+            const [h, m] = (item.startTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
+            const [eh, em] = (item.endTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
+            const dateParts = item.day.split('-');
+            const start = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), h, m, 0);
+            const end = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), eh, em, 0);
+            if (eh < h) end.setDate(end.getDate() + 1);
+            return now >= start && now <= end;
+        });
+    }, [lineupItems, currentTime]);
+
+    const handleVoteFromLive = async (targetId: string, type: 'DJS' | 'FESTIVALS' | 'CLUBS', label: string) => {
+        if (!isLoggedIn) {
+            setIsAuthModalOpen(true);
+            return;
+        }
+        if (hasVotedToday.has(targetId)) return;
+
+        try {
+            const res = await fetch('/api/wiki/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ artistId: targetId, userId: authUser?.id, type })
+            });
+            if (res.ok) {
+                setHasVotedToday(prev => new Set([...prev, targetId]));
+                showNotification(`VOTE ENREGISTRÉ POUR ${label} ! ❤️`, 'success');
+                triggerConfetti();
+            }
+        } catch (e) {
+            console.error("Vote failed", e);
+        }
+    };
+
     const [userInstagram, setUserInstagram] = useState(localStorage.getItem('user_instagram') || '');
     const [timeOnSite, setTimeOnSite] = useState(() => parseInt(localStorage.getItem('time_on_site') || '0'));
     const [showAchievementPopup, setShowAchievementPopup] = useState<string | null>(null);
@@ -5348,6 +5390,53 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     </motion.div>
                 )}
             </AnimatePresence>
+            {/* VOTE PROMPT FLOATING */}
+            <AnimatePresence>
+                {activeLiveItem && !hasVotedToday.has(activeLiveItem.id) && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="fixed bottom-24 right-6 z-[100] max-w-[280px] w-full"
+                    >
+                        <div className="bg-black/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-5 shadow-2xl relative overflow-hidden group">
+                            {/* Animated Background Glow */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#ff0033]/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity" />
+                            
+                            <div className="relative z-10 flex flex-col gap-4">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-[#ff0033]/20 rounded-xl flex items-center justify-center border border-[#ff0033]/30 animate-pulse">
+                                            <Heart className="w-5 h-5 text-[#ff0033] fill-[#ff0033]" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[8px] font-black text-[#ff0033] uppercase tracking-[0.2em]">Soutenez l'artiste</p>
+                                            <h4 className="text-xs font-black text-white uppercase italic">{activeLiveItem.artist}</h4>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setHasVotedToday(prev => new Set([...prev, activeLiveItem.id]))} className="text-gray-500 hover:text-white transition-colors">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                <p className="text-[9px] text-gray-400 font-bold leading-relaxed">
+                                    Vous kiffez le set ? Votez pour <span className="text-white">{activeLiveItem.artist}</span> dans le <span className="text-neon-cyan">TOP 100</span> ! 🚀
+                                </p>
+
+                                <button
+                                    onClick={() => handleVoteFromLive(activeLiveItem.id, 'DJS', activeLiveItem.artist)}
+                                    className="w-full py-3 bg-[#ff0033] text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#ff0033]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Vote className="w-3.5 h-3.5" /> Voter maintenant
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Auth Modal integration */}
+            <UserAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </div>
     );
 };
