@@ -1627,39 +1627,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
     
-    const downloadBoth = async () => {
+    const downloadFormat = async (format: TabType) => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
         try {
-            // 1. STORY
-            await generateImage('REEL');
-            const storyData = canvasRef.current!.toDataURL('image/png');
+            await generateImage(format);
+            const dataUrl = canvasRef.current!.toDataURL('image/png');
             const a = document.createElement('a');
-            a.href = storyData;
-            a.download = `STORY-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
+            a.href = dataUrl;
+            a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-
-            // Small delay to ensure browser handles dual download
-            await new Promise(r => setTimeout(r, 600));
-
-            // 2. POST
-            await generateImage('PUBLICATION');
-            const postData = canvasRef.current!.toDataURL('image/png');
-            const b = document.createElement('a');
-            b.href = postData;
-            b.download = `POST-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
-            document.body.appendChild(b);
-            b.click();
-            document.body.removeChild(b);
         } catch (e) {
             console.error(e);
         } finally {
             setTimeout(() => {
                 setIsDownloading(false);
                 generateImage();
-            }, 1000);
+            }, 500);
         }
     };
 
@@ -2122,18 +2108,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const exportButtons = (
         <div className="space-y-2">
+            <button onClick={addVisualToList} className="w-full py-2.5 bg-white/5 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter à la liste</button>
             <div className="grid grid-cols-2 gap-2">
-                <button onClick={addVisualToList} className="py-2.5 bg-white/5 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
-                <button onClick={downloadSingle} disabled={isDownloading} className="py-2.5 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all">
-                    <Download className="w-3.5 h-3.5" /> {activeTab === 'REEL' ? 'PNG (Frame)' : 'Télécharger PNG'}
+                <button onClick={() => downloadFormat('PUBLICATION')} disabled={isDownloading} className="py-2.5 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all">
+                    <Download className="w-3.5 h-3.5" /> PNG POST
+                </button>
+                <button onClick={() => downloadFormat('REEL')} disabled={isDownloading} className="py-2.5 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-purple/20 transition-all">
+                    <Download className="w-3.5 h-3.5" /> PNG STORY
                 </button>
             </div>
             <button onClick={startVideoRecording} disabled={isVideoRecording}
                 className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
                 <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo (${theme})`}
-            </button>
-            <button onClick={downloadBoth} disabled={isDownloading} className="w-full py-2.5 bg-white text-black rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan transition-all shadow-lg active:scale-95 group">
-                <Layers className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" /> PACK COMPLET ( <span className="text-neon-red">POST</span> + <span className="text-neon-cyan">STORY</span> )
             </button>
         </div>
     );
