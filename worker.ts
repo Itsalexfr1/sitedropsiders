@@ -991,7 +991,8 @@ ${urls.map(u => `  <url>
             path === '/api/admin/clean-encoding' ||
             path === '/api/quiz/reset-blind-test' ||
             path === '/api/r2/delete' ||
-            path === '/api/r2/list'
+            path === '/api/r2/list' ||
+            path === '/api/admin/auto-fix-photos'
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---

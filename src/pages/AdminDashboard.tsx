@@ -1212,30 +1212,37 @@ export function AdminDashboard() {
 
     const [isAutoFixing, setIsAutoFixing] = useState(false);
 
-    const handleAutoFixPhotos = async () => {
-        if (!window.confirm("Lancer l'auto-réparation cherchera chaque image dans R2 et remplacera automatiquement le lien si elle est trouvée. Continuer ?")) return;
-        
-        setIsAutoFixing(true);
-        try {
-            const res = await apiFetch('/api/admin/auto-fix-photos', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ brokenImages })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                setGlobalAlert({ title: "AUTO-FIX TERMINE", message: `${data.fixedCount} photos ont été retrouvées et corrigées automatiquement ! Veuillez re-scanner pour voir la différence.`, type: 'info' });
-                if (data.fixedCount > 0) {
-                    fetchBrokenImages(); // Re-scan pour actualiser la liste
+    const handleAutoFixPhotos = () => {
+        setConfirmModal({
+            isOpen: true,
+            title: "Auto-Réparation R2",
+            message: "Lancer l'auto-réparation cherchera chaque image dans R2 et remplacera automatiquement le lien si elle est trouvée. C'est du lourd, ça va scanner tout le bucket pour tout matcher proprement.",
+            type: 'info',
+            confirmText: "LANCER LA RÉPARATION",
+            onConfirm: async () => {
+                setIsAutoFixing(true);
+                try {
+                    const res = await apiFetch('/api/admin/auto-fix-photos', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ brokenImages })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        setGlobalAlert({ title: "AUTO-FIX TERMINE", message: `${data.fixedCount} photos ont été retrouvées et corrigées automatiquement ! Veuillez re-scanner pour voir la différence.`, type: 'info' });
+                        if (data.fixedCount > 0) {
+                            fetchBrokenImages(); // Re-scan pour actualiser la liste
+                        }
+                    } else {
+                        setGlobalAlert({ message: "Erreur : " + data.error, type: 'danger' });
+                    }
+                } catch (e) {
+                    setGlobalAlert({ message: "Erreur réseau lors de la recherche automatique", type: 'danger' });
+                } finally {
+                    setIsAutoFixing(false);
                 }
-            } else {
-                setGlobalAlert({ message: "Erreur : " + data.error, type: 'danger' });
             }
-        } catch (e) {
-            setGlobalAlert({ message: "Erreur réseau lors de la recherche automatique", type: 'danger' });
-        } finally {
-            setIsAutoFixing(false);
-        }
+        });
     };
 
     const handleBulkValidatePhotos = async () => {
