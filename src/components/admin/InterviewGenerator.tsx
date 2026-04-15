@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, 
@@ -197,9 +197,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
             // Logo
             if (logo) {
-                const lh = 32, lw = (logo.naturalWidth / logo.naturalHeight) * lh;
+                const lh = 40, lw = (logo.naturalWidth / logo.naturalHeight) * lh;
                 drawLogoWhite(logo, (W - lw) / 2, y, lh);
-                y += lh + 18;
+                y += lh + 24;
             }
 
             // Divider
@@ -792,7 +792,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 {festivalLogo && (
                                                     <div style={{ marginTop: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
                                                         <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>Official Coverage at</span>
-                                                        <img src={festivalLogo} alt="Festival" style={{ height: '192px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+                                                        <img src={festivalLogo} alt="Festival" style={{ height: "160px", objectFit: "contain" }} />
                                                     </div>
                                                 )}
                                             </div>
@@ -969,5 +969,6 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         </div>
     );
 }
+
 
 
