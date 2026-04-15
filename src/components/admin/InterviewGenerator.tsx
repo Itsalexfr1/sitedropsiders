@@ -46,17 +46,18 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const parseQuestions = () => {
         if (!inputText.trim()) return;
 
-        const lines = inputText.split('\n').map(l => l.trim()).filter(l => l !== '');
+        // More robust splitting for different OS line endings
+        const lines = inputText.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '');
         const parsed: InterviewQuestion[] = [];
         
         let current: Partial<InterviewQuestion> = {};
 
         lines.forEach((line) => {
-            // Check if line starts with a number (e.g. "1 ", "1.", "1-")
-            const numMatch = line.match(/^(\d+)[\.\-\s]+(.*)/);
+            // Permissive regex for numbered lines: digit followed by space, dot, dash, etc.
+            const numMatch = line.match(/^(\d+)(?:\.|\-|\s)+(.*)/);
             
             if (numMatch) {
-                // If we were working on a question, push it before starting a new one
+                // If we already have a previous question with at least FR, push it
                 if (current.number && current.fr) {
                     parsed.push({
                         id: Math.random().toString(36).substr(2, 9),
@@ -67,12 +68,11 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                     current = {};
                 }
                 current.number = numMatch[1];
-                current.fr = numMatch[2];
+                current.fr = numMatch[2].trim();
             } else {
-                // It's likely the EN translation of the previous FR question
-                current.en = line;
-                // Once we have EN, we can consider the block complete
+                // Not a numbered line, must be the translation for current question
                 if (current.number && current.fr) {
+                    current.en = line;
                     parsed.push({
                         id: Math.random().toString(36).substr(2, 9),
                         number: current.number!,
@@ -84,7 +84,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             }
         });
 
-        // Final push if something remains
+        // Final push if something remains (e.g. last question having only FR)
         if (current.number && current.fr) {
             parsed.push({
                 id: Math.random().toString(36).substr(2, 9),
@@ -370,7 +370,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                                 <h3 className="text-[15px] font-bold text-black uppercase leading-tight mb-0.5">
                                                                     {q.fr}
                                                                 </h3>
-                                                                <p className={`text-[12px] font-medium italic ${theme === 'red' ? 'text-red-700/60' : theme === 'cyan' ? 'text-blue-700/60' : 'text-purple-700/60'} leading-snug`}>
+                                                                <p className={`text-[13px] font-medium italic ${theme === 'red' ? 'text-red-500' : theme === 'cyan' ? 'text-blue-600' : 'text-purple-600'} leading-snug`}>
                                                                     {q.en}
                                                                 </p>
                                                             </div>
