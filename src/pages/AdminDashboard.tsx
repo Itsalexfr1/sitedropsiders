@@ -1208,8 +1208,6 @@ export function AdminDashboard() {
             console.error(e);
             setGlobalAlert({ message: "Erreur réseau lors de la validation.", type: 'danger' });
         }
-                setGlobalAlert({ message: "Erreur réseau lors de la validation.", type: 'danger' });
-        }
     };
 
     const [isAutoFixing, setIsAutoFixing] = useState(false);
