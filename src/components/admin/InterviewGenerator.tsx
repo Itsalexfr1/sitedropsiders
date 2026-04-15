@@ -119,8 +119,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     };
     const questionChunks = chunkQuestions(questions, questionsPerPage);
 
-    // ─── PURE CANVAS RENDER ENGINE ────────────────────────────────────────────
-    // Draws cards directly with Canvas 2D API — no html2canvas, no CSS, no iframe.
+    // â”€â”€â”€ PURE CANVAS RENDER ENGINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Draws cards directly with Canvas 2D API â€” no html2canvas, no CSS, no iframe.
     // Text is drawn with ctx.fillText(), images with ctx.drawImage(). Bulletproof.
 
     const loadImg = (src: string): Promise<HTMLImageElement | null> =>
@@ -526,7 +526,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             <textarea
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
-                                placeholder="1. PrÃ©sente-toi...\nIntroduce yourself...\n2. Si tu devais..."
+                                placeholder="1. PrÃƒÂ©sente-toi...\nIntroduce yourself...\n2. Si tu devais..."
                                 className="w-full h-96 bg-black/40 border border-white/10 rounded-[2rem] p-6 text-sm text-white focus:border-neon-red outline-none transition-all resize-none custom-scrollbar font-medium leading-relaxed"
                             />
                         </div>
@@ -546,7 +546,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 onClick={parseQuestions}
                                 className="w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                             >
-                                <RotateCcw className="w-5 h-5" /> Générer Aperçu
+                                <RotateCcw className="w-5 h-5" /> GÃ©nÃ©rer AperÃ§u
                             </button>
                         </div>
 
@@ -607,7 +607,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 {/* Watermark Opacity */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                        <span>Opacité Watermark</span>
+                                        <span>OpacitÃ© Watermark</span>
                                         <span className="text-white">{watermarkOpacity}%</span>
                                     </div>
                                     <input 
@@ -621,7 +621,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 {/* Header Logo Size */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                        <span>Taille Logo En-tête</span>
+                                        <span>Taille Logo En-tÃªte</span>
                                         <span className="text-white">{headerLogoSize}</span>
                                     </div>
                                     <input 
@@ -636,7 +636,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                         {questions.length > 0 && (
                             <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
-                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Résumé : {questions.length} Questions</h4>
+                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">RÃ©sumÃ© : {questions.length} Questions</h4>
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
@@ -676,7 +676,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     </button>
                                 </div>
                                 <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">
-                                    Export Premium A5 · {questionChunks.length + 1} pages
+                                    Export Premium A5 Â· {questionChunks.length + 1} pages
                                 </p>
                             </div>
                         )}
@@ -756,10 +756,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 <div style={{ width: '64px', height: '4px', backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: '999px' }} />
                                                 
                                                 <div style={{ textAlign: 'center' }}>
-                                                    <h1 style={{ fontSize: '60px', fontFamily: '"Arial Black", sans-serif', fontWeight: 900, color: '#ffffff', fontStyle: 'italic', letterSpacing: '-0.05em', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>
-                                                        Interview<br /><span style={{ color: 'rgba(255,255,255,0.5)' }}>Questions</span>
-                                                    </h1>
-                                                    <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em', marginTop: '16px', margin: 0 }}>Live Report 2026</p>
+                                                    <div style={{ fontSize: '56px', fontFamily: 'Georgia, serif', fontWeight: 900, color: '#ffffff', fontStyle: 'italic', letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: '0.95' }}>Interview</div>
+                                                    <div style={{ fontSize: '56px', fontFamily: 'Georgia, serif', fontWeight: 900, color: 'rgba(255,255,255,0.42)', fontStyle: 'italic', letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: '0.95' }}>Questions</div>
+                                                    <div style={{ fontSize: '11px', fontFamily: 'sans-serif', color: 'rgba(255,255,255,0.55)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5em', marginTop: '14px' }}>Live Report 2026</div>
                                                 </div>
 
                                                 {festivalLogo && (
@@ -872,8 +871,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 </div>
                                                 
                                                 <div style={{ position: 'relative', zIndex: 10 }}>
-                                                    <h2 style={{ fontSize: '20px', fontFamily: '"Arial Black", sans-serif', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.05em', lineHeight: 1, margin: 0 }}>
-                                                        Interviews <span style={{ opacity: 0.6, fontSize: '12px', verticalAlign: 'top', marginLeft: '4px' }}>#2026</span>
+                                                    <h2 style={{ fontSize: '14px', fontFamily: 'Georgia, serif', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.02em', lineHeight: 1, margin: 0 }}>
+                                                        Interviews <span style={{ opacity: 0.6, fontSize: '8px', verticalAlign: 'top', marginLeft: '2px' }}>#2026</span>
                                                     </h2>
                                                 </div>
                                                 
@@ -892,17 +891,17 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                                     {chunk.map((q) => (
                                                         <div key={q.id} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px' }}>
-                                                            <span style={{ fontSize: '16px', fontFamily: '"Arial Black", sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '24px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe' }}>
+                                                            <span style={{ fontSize: '11px', fontFamily: 'Georgia, serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '22px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe', marginTop: '1px' }}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
-                                                            <div style={{ flex: 1 }}>
-                                                                <h3 style={{ fontSize: '13px', fontWeight: 900, color: '#000000', textTransform: 'uppercase', lineHeight: '1.2', marginBottom: '4px', margin: 0, fontFamily: 'sans-serif' }}>
+                                                         <div style={{ flex: 1 }}>
+                                                                <div style={{ fontSize: '11px', fontWeight: 700, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '3px', fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
                                                                     {q.fr}
-                                                                </h3>
+                                                                </div>
                                                                 {q.en && (
-                                                                    <p style={{ fontSize: '13px', fontWeight: 700, lineHeight: '1.2', margin: 0, color: theme === 'red' ? '#dc2626' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'sans-serif' }}>
+                                                                    <div style={{ fontSize: '10px', fontWeight: 500, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
                                                                         {q.en}
-                                                                    </p>
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         </div>
