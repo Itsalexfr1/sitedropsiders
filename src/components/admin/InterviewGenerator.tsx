@@ -13,7 +13,11 @@ import {
     Trash2,
     Save,
     Layout,
-    Columns
+    Columns,
+    Languages,
+    Eye,
+    Settings,
+    Image as ImageIcon
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
@@ -119,8 +123,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     };
     const questionChunks = chunkQuestions(questions, questionsPerPage);
 
-    // â”€â”€â”€ PURE CANVAS RENDER ENGINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // Draws cards directly with Canvas 2D API â€” no html2canvas, no CSS, no iframe.
+    // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ PURE CANVAS RENDER ENGINE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // Draws cards directly with Canvas 2D API Ã¢â‚¬â€ no html2canvas, no CSS, no iframe.
     // Text is drawn with ctx.fillText(), images with ctx.drawImage(). Bulletproof.
 
     const loadImg = (src: string): Promise<HTMLImageElement | null> =>
@@ -204,32 +208,33 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
             // "INTERVIEW"
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'italic bold 50px Georgia, serif';
+            ctx.font = 'italic 900 52px Orbitron, sans-serif';
             ctx.textAlign = 'center'; ctx.textBaseline = 'top';
             ctx.fillText('INTERVIEW', W / 2, y);
-            y += 54;
+            y += 52;
 
             // "QUESTIONS"
-            ctx.fillStyle = 'rgba(255,255,255,0.42)';
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.font = 'italic 900 52px Orbitron, sans-serif';
             ctx.fillText('QUESTIONS', W / 2, y);
-            y += 58;
+            y += 62;
 
             // "LIVE REPORT 2026"
             ctx.fillStyle = 'rgba(255,255,255,0.5)';
-            ctx.font = '700 11px Arial, sans-serif';
+            ctx.font = '800 11px Montserrat, sans-serif';
             ctx.letterSpacing = '4px';
-            ctx.fillText('LIVE  REPORT  2026', W / 2, y);
+            ctx.fillText('LIVE REPORT 2026', W / 2, y);
             ctx.letterSpacing = '0px';
-            y += 36;
+            y += 40;
 
             // Festival logo
             if (festivalLogo) {
                 const fest = await loadImg(festivalLogo);
                 if (fest) {
                     ctx.fillStyle = 'rgba(255,255,255,0.35)';
-                    ctx.font = '600 8px Arial, sans-serif';
+                    ctx.font = '700 8px Montserrat, sans-serif';
                     ctx.fillText('OFFICIAL COVERAGE AT', W / 2, y);
-                    y += 16;
+                    y += 20;
                     const maxH = 120, maxW = 280;
                     let fw = fest.naturalWidth, fh = fest.naturalHeight;
                     const ratio = fw / fh;
@@ -241,7 +246,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
             // Footer
             ctx.fillStyle = 'rgba(255,255,255,0.22)';
-            ctx.font = '600 7px Arial, sans-serif';
+            ctx.font = '700 7px Montserrat, sans-serif';
             ctx.letterSpacing = '4px';
             ctx.fillText('DROPSIDERS EXCLUSIVE', W / 2, H - 36);
             ctx.letterSpacing = '0px';
@@ -282,11 +287,11 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
             // Header title
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'italic bold 14px Georgia, serif';
+            ctx.font = 'italic 900 14px Orbitron, sans-serif';
             ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
             ctx.fillText('INTERVIEWS', 28, 30);
-            ctx.font = '500 7.5px Helvetica Neue, Arial, sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.55)';
+            ctx.font = '700 7.5px Montserrat, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
             ctx.fillText('#2026', 28, 46);
 
             // Header logo
@@ -294,8 +299,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 const lh = headerLogoSize * 4;
                 const lw = (logo.naturalWidth / logo.naturalHeight) * lh;
                 drawLogoWhite(logo, W - 28 - lw, (68 - lh) / 2, lh);
-                ctx.fillStyle = 'rgba(255,255,255,0.38)';
-                ctx.font = '600 6px Arial, sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                ctx.font = '700 6px Montserrat, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText(`Page ${(chunkIdx ?? 0) + 1}`, W - 28 - lw / 2, 62);
             }
@@ -309,13 +314,13 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             for (const q of (chunk || [])) {
                 // Number
                 ctx.fillStyle = accent;
-                ctx.font = 'italic bold 11px Georgia, serif';
+                ctx.font = 'italic 900 12px Orbitron, sans-serif';
                 ctx.textAlign = 'left'; ctx.textBaseline = 'top';
                 ctx.fillText(q.number.padStart(2, '0'), PAD_L, qY + 1);
 
                 // FR text
                 ctx.fillStyle = '#111111';
-                ctx.font = 'bold 10px Helvetica Neue, Arial, sans-serif';
+                ctx.font = '800 10.5px Montserrat, sans-serif';
                 const frLines = wrapText(ctx, q.fr.toUpperCase(), TEXT_W);
                 for (const line of frLines) {
                     ctx.fillText(line, TEXT_X, qY);
@@ -325,7 +330,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 // EN text
                 if (q.en) {
                     ctx.fillStyle = enCol;
-                    ctx.font = '500 9.5px Helvetica Neue, Arial, sans-serif';
+                    ctx.font = '600 10px Montserrat, sans-serif';
                     const enLines = wrapText(ctx, q.en, TEXT_W);
                     for (const line of enLines) {
                         ctx.fillText(line, TEXT_X, qY);
@@ -347,11 +352,11 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
             // Footer
             ctx.fillStyle = 'rgba(0,0,0,0.18)';
-            ctx.font = '500 6px Helvetica Neue, Arial, sans-serif';
+            ctx.font = '700 6px Montserrat, sans-serif';
             ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-            ctx.fillText('EXCLUSIVE CONTENT', PAD_L, H - 18);
+            ctx.fillText('EXCLUSIVE CONTENT', PAD_L, H - 20);
             ctx.textAlign = 'right';
-            ctx.fillText('DROPSIDERS.FR', W - PAD_L, H - 18);
+            ctx.fillText('DROPSIDERS.FR', W - PAD_L, H - 20);
         }
 
         return canvas;
@@ -490,9 +495,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         </div>
                         <div>
                             <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
-                                Interview <span className={colors.main}>Card Gen</span>
+                                Interview <span className={colors.main}>Generator</span>
                             </h2>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Format A5 Premium - Multi-Questions</p>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Format A5 Premium · Export Multi-Pages</p>
                         </div>
                     </div>
                     
@@ -526,7 +531,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             <textarea
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
-                                placeholder="1. PrÃƒÂ©sente-toi...\nIntroduce yourself...\n2. Si tu devais..."
+                                placeholder="1. Présente-toi...\nIntroduce yourself...\n2. Si tu devais..."
                                 className="w-full h-96 bg-black/40 border border-white/10 rounded-[2rem] p-6 text-sm text-white focus:border-neon-red outline-none transition-all resize-none custom-scrollbar font-medium leading-relaxed"
                             />
                         </div>
@@ -539,20 +544,19 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             >
                                 {isGenerating ? (
                                     <div className="w-5 h-5 border-2 border-neon-red/20 border-t-neon-red rounded-full animate-spin" />
-                                ) : <Plus className="w-5 h-5" />}
+                                ) : <Languages className="w-5 h-5" />}
                                 Traduire en Anglais (IA)
                             </button>
                             <button
                                 onClick={parseQuestions}
                                 className="w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                             >
-                                <RotateCcw className="w-5 h-5" /> GÃ©nÃ©rer AperÃ§u
+                                <Eye className="w-5 h-5" /> Générer Aperçu
                             </button>
                         </div>
 
-                        <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                <Plus className="w-3.5 h-3.5" /> Logo du Festival (Optionnel)
+                                <ImageIcon className="w-3.5 h-3.5" /> Logo du Festival (Optionnel)
                             </label>
                             <input
                                 type="file"
@@ -583,10 +587,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 </div>
                             )}
                         </div>
-                        
                         <div className="space-y-4 pt-4 border-t border-white/5">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                <Plus className="w-3.5 h-3.5" /> Configuration Visuelle
+                                <Settings className="w-3.5 h-3.5" /> Configuration Visuelle
                             </label>
                             
                             <div className="space-y-6 bg-white/5 rounded-3xl p-6">
@@ -607,7 +610,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 {/* Watermark Opacity */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                        <span>OpacitÃ© Watermark</span>
+                                        <span>OpacitÃƒÂ© Watermark</span>
                                         <span className="text-white">{watermarkOpacity}%</span>
                                     </div>
                                     <input 
@@ -621,7 +624,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 {/* Header Logo Size */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                        <span>Taille Logo En-tÃªte</span>
+                                        <span>Taille Logo En-tÃƒÂªte</span>
                                         <span className="text-white">{headerLogoSize}</span>
                                     </div>
                                     <input 
@@ -636,7 +639,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                         {questions.length > 0 && (
                             <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
-                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">RÃ©sumÃ© : {questions.length} Questions</h4>
+                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">RÃƒÂ©sumÃƒÂ© : {questions.length} Questions</h4>
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
@@ -676,7 +679,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     </button>
                                 </div>
                                 <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">
-                                    Export Premium A5 Â· {questionChunks.length + 1} pages
+                                    Export Premium A5 Ã‚Â· {questionChunks.length + 1} pages
                                 </p>
                             </div>
                         )}
@@ -756,9 +759,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 <div style={{ width: '64px', height: '4px', backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: '999px' }} />
                                                 
                                                 <div style={{ textAlign: 'center' }}>
-                                                    <div style={{ fontSize: '56px', fontFamily: 'Georgia, serif', fontWeight: 900, color: '#ffffff', fontStyle: 'italic', letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: '0.95' }}>Interview</div>
-                                                    <div style={{ fontSize: '56px', fontFamily: 'Georgia, serif', fontWeight: 900, color: 'rgba(255,255,255,0.42)', fontStyle: 'italic', letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: '0.95' }}>Questions</div>
-                                                    <div style={{ fontSize: '11px', fontFamily: 'sans-serif', color: 'rgba(255,255,255,0.55)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5em', marginTop: '14px' }}>Live Report 2026</div>
+                                                    <div style={{ fontSize: '56px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#ffffff', fontStyle: 'italic', letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: '0.95' }}>Interview</div>
+                                                    <div style={{ fontSize: '56px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: 'rgba(255,255,255,0.42)', fontStyle: 'italic', letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: '0.95' }}>Questions</div>
+                                                    <div style={{ fontSize: '11px', fontFamily: 'Montserrat, sans-serif', color: 'rgba(255,255,255,0.55)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5em', marginTop: '14px' }}>Live Report 2026</div>
                                                 </div>
 
                                                 {festivalLogo && (
@@ -871,7 +874,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 </div>
                                                 
                                                 <div style={{ position: 'relative', zIndex: 10 }}>
-                                                    <h2 style={{ fontSize: '14px', fontFamily: 'Georgia, serif', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.02em', lineHeight: 1, margin: 0 }}>
+                                                    <h2 style={{ fontSize: '14px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.02em', lineHeight: 1, margin: 0 }}>
                                                         Interviews <span style={{ opacity: 0.6, fontSize: '8px', verticalAlign: 'top', marginLeft: '2px' }}>#2026</span>
                                                     </h2>
                                                 </div>
@@ -891,15 +894,15 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                                     {chunk.map((q) => (
                                                         <div key={q.id} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px' }}>
-                                                            <span style={{ fontSize: '11px', fontFamily: 'Georgia, serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '22px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe', marginTop: '1px' }}>
+                                                            <span style={{ fontSize: '11px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '22px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe', marginTop: '1px' }}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
                                                          <div style={{ flex: 1 }}>
-                                                                <div style={{ fontSize: '11px', fontWeight: 700, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '3px', fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
+                                                                <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '2px', fontFamily: 'Montserrat, sans-serif' }}>
                                                                     {q.fr}
                                                                 </div>
                                                                 {q.en && (
-                                                                    <div style={{ fontSize: '10px', fontWeight: 500, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
+                                                                    <div style={{ fontSize: '10px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif' }}>
                                                                         {q.en}
                                                                     </div>
                                                                 )}
@@ -926,3 +929,4 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         </div>
     );
 }
+
