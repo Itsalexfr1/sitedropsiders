@@ -51,7 +51,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         
         let current: { number: string; fr: string; en: string[] } | null = null;
 
-        lines.forEach((line) => {
+        for (const line of lines) {
             const numMatch = line.match(/^(\d+)(?:\.|\-|\s)+(.*)/);
             
             if (numMatch) {
@@ -71,7 +71,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             } else if (current) {
                 current.en.push(line);
             }
-        });
+        }
 
         if (current) {
             parsed.push({
