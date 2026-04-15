@@ -140,9 +140,11 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         removeContainer: true,
                         onclone: (clonedDoc) => {
                             const styles = clonedDoc.getElementsByTagName('style');
-                            for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
-                            const links = clonedDoc.getElementsByTagName('link');
-                            for (let i = links.length - 1; i >= 0; i--) if (links[i].rel === 'stylesheet') links[i].remove();
+                            for (let j = 0; j < styles.length; j++) {
+                                styles[j].innerHTML = styles[j].innerHTML
+                                    .replace(/oklch\([^)]+\)/g, '#000000')
+                                    .replace(/oklab\([^)]+\)/g, '#000000');
+                            }
                         }
                     });
                     
@@ -199,9 +201,11 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         allowTaint: true,
                         onclone: (clonedDoc) => {
                             const styles = clonedDoc.getElementsByTagName('style');
-                            for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
-                            const links = clonedDoc.getElementsByTagName('link');
-                            for (let i = links.length - 1; i >= 0; i--) if (links[i].rel === 'stylesheet') links[i].remove();
+                            for (let j = 0; j < styles.length; j++) {
+                                styles[j].innerHTML = styles[j].innerHTML
+                                    .replace(/oklch\([^)]+\)/g, '#000000')
+                                    .replace(/oklab\([^)]+\)/g, '#000000');
+                            }
                         }
                     });
                     
@@ -240,14 +244,12 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 useCORS: true,
                 allowTaint: true,
                 onclone: (clonedDoc) => {
-                    // Critical: Remove all global styles that might contain oklab/oklch
                     const styles = clonedDoc.getElementsByTagName('style');
-                    for (let i = styles.length - 1; i >= 0; i--) {
-                        styles[i].remove();
-                    }
-                    const links = clonedDoc.getElementsByTagName('link');
-                    for (let i = links.length - 1; i >= 0; i--) {
-                        if (links[i].rel === 'stylesheet') links[i].remove();
+                    for (let i = 0; i < styles.length; i++) {
+                        // Replace oklch/oklab functions with neutral colors to prevent parser crash
+                        styles[i].innerHTML = styles[i].innerHTML
+                            .replace(/oklch\([^)]+\)/g, '#000000')
+                            .replace(/oklab\([^)]+\)/g, '#000000');
                     }
                 },
                 ignoreElements: (element) => element.classList.contains('capture-btn')
