@@ -122,41 +122,24 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 setGenProgress({ current: i + 1, total: cards.length });
                 const card = cards[i] as HTMLElement;
                 
-                // PERFORMANCE: Temporarily remove complex shadows/styling for export
-                const originalShadow = card.style.boxShadow;
-                card.style.boxShadow = 'none';
-                card.classList.remove('shadow-2xl');
-
-                await new Promise(r => setTimeout(r, 100)); // More generous breathing time
+                await new Promise(r => setTimeout(r, 100));
 
                 try {
                     const canvas = await html2canvas(card, {
-                        scale: 1, // Speed is priority now
+                        scale: 2, // High quality
                         backgroundColor: '#ffffff',
-                        logging: true,
+                        logging: false,
                         useCORS: true,
-                        allowTaint: true,
-                        imageTimeout: 10000,
-                        onclone: (doc) => {
-                            // Ensure the cloned element also has no shadows/heavy filters
-                            const clonedCard = doc.querySelector('.interview-card') as HTMLElement;
-                            if (clonedCard) {
-                                clonedCard.style.boxShadow = 'none';
-                                clonedCard.style.filter = 'none';
-                            }
-                        }
+                        allowTaint: true
                     });
                     
-                    const dataUrl = canvas.toDataURL('image/png', 0.8);
+                    const dataUrl = canvas.toDataURL('image/png');
                     const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
                     
                     const filename = i === 0 ? '00_Interview_Recto.png' : `Page_${String(i).padStart(2, '0')}.png`;
                     zip.file(filename, base64Data, { base64: true });
                 } catch (err) {
                     console.error(`Error rendering card ${i}:`, err);
-                } finally {
-                    card.style.boxShadow = originalShadow;
-                    card.classList.add('shadow-2xl');
                 }
             }
 
@@ -185,31 +168,22 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 setGenProgress({ current: i + 1, total: cards.length });
                 const card = cards[i] as HTMLElement;
                 
-                // Remove heavy styling
-                const originalShadow = card.style.boxShadow;
-                card.style.boxShadow = 'none';
-                card.classList.remove('shadow-2xl');
-
                 await new Promise(r => setTimeout(r, 100));
                 
                 try {
                     const canvas = await html2canvas(card, {
-                        scale: 1, 
+                        scale: 2, // High quality for print
                         backgroundColor: '#ffffff',
                         logging: false,
                         useCORS: true,
-                        allowTaint: true,
-                        imageTimeout: 10000
+                        allowTaint: true
                     });
                     
-                    const imgData = canvas.toDataURL('image/jpeg', 0.82);
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     if (i > 0) pdf.addPage();
                     pdf.addImage(imgData, 'JPEG', 0, 0, 148, 210);
                 } catch (err) {
                     console.error(`Error rendering page ${i}:`, err);
-                } finally {
-                    card.style.boxShadow = originalShadow;
-                    card.classList.add('shadow-2xl');
                 }
             }
 
