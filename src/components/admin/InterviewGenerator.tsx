@@ -398,7 +398,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 }
