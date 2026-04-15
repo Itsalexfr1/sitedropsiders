@@ -115,7 +115,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         for (let i = 0; i < cards.length; i++) {
             const card = cards[i] as HTMLElement;
             const canvas = await html2canvas(card, {
-                scale: 2, // Optimized scale
+                scale: 1.5, // Faster scale
                 backgroundColor: '#ffffff',
                 logging: false,
                 useCORS: true
@@ -126,8 +126,6 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             
             const filename = i === 0 ? '00_Interview_Recto.png' : `Page_${String(i).padStart(2, '0')}.png`;
             zip.file(filename, base64Data, { base64: true });
-            
-            await new Promise(r => setTimeout(r, 50));
         }
 
         const content = await zip.generateAsync({ type: "blob" });
@@ -149,18 +147,16 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         for (let i = 0; i < cards.length; i++) {
             const card = cards[i] as HTMLElement;
             const canvas = await html2canvas(card, {
-                scale: 2, // High enough for PDF but much faster
+                scale: 1.5, // Balanced scale/speed
                 backgroundColor: '#ffffff',
                 logging: false,
                 useCORS: true
             });
             
-            const imgData = canvas.toDataURL('image/jpeg', 0.9);
+            const imgData = canvas.toDataURL('image/jpeg', 0.85); // More compression
             
             if (i > 0) pdf.addPage();
             pdf.addImage(imgData, 'JPEG', 0, 0, 148, 210);
-            
-            await new Promise(r => setTimeout(r, 50));
         }
 
         pdf.save("Interview_Cards_Dropsiders.pdf");
@@ -196,13 +192,11 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             } else {
                 translatedLines.push(line);
             }
-            
-            await new Promise(r => setTimeout(r, 300));
         }
 
         setInputText(translatedLines.join('\n'));
         setIsGenerating(false);
-        setTimeout(parseQuestions, 100);
+        setTimeout(parseQuestions, 50);
     };
 
     const getThemeColors = () => {
@@ -469,11 +463,11 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 </div>
                                             </div>
 
-                                            {/* Content Wrapper - REDUCED PADDING & SPACING */}
-                                            <div className="relative z-10 flex-1 flex flex-col p-8 pt-6 overflow-hidden">
-                                                <div className="space-y-4">
+                                            {/* Content Wrapper - TIGHTENED */}
+                                            <div className="relative z-10 flex-1 flex flex-col p-8 pt-5 overflow-hidden">
+                                                <div className="space-y-3">
                                                     {chunk.map((q) => (
-                                                        <div key={q.id} className="flex gap-4 items-start border-b border-black/5 pb-4 last:border-0">
+                                                        <div key={q.id} className="flex gap-4 items-start border-b border-black/5 pb-3 last:border-0">
                                                             <span className={`text-sm font-display font-black italic shrink-0 w-5 ${theme === 'red' ? 'text-neon-red' : theme === 'cyan' ? 'text-black' : 'text-neon-purple'}`}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
