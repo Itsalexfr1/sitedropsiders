@@ -122,18 +122,21 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 setGenProgress({ current: i + 1, total: cards.length });
                 const card = cards[i] as HTMLElement;
                 
-                await new Promise(r => setTimeout(r, 100));
+                // Safety delay
+                await new Promise(r => setTimeout(r, 200));
 
                 try {
                     const canvas = await html2canvas(card, {
-                        scale: 2, // High quality
+                        scale: 2,
                         backgroundColor: '#ffffff',
-                        logging: false,
                         useCORS: true,
-                        allowTaint: true
+                        allowTaint: true,
+                        logging: false,
+                        width: card.offsetWidth,
+                        height: card.offsetHeight
                     });
                     
-                    const dataUrl = canvas.toDataURL('image/png');
+                    const dataUrl = canvas.toDataURL('image/png', 1.0);
                     const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
                     
                     const filename = i === 0 ? '00_Interview_Recto.png' : `Page_${String(i).padStart(2, '0')}.png`;
@@ -168,20 +171,22 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 setGenProgress({ current: i + 1, total: cards.length });
                 const card = cards[i] as HTMLElement;
                 
-                await new Promise(r => setTimeout(r, 100));
+                await new Promise(r => setTimeout(r, 200));
                 
                 try {
                     const canvas = await html2canvas(card, {
-                        scale: 2, // High quality for print
+                        scale: 2,
                         backgroundColor: '#ffffff',
-                        logging: false,
                         useCORS: true,
-                        allowTaint: true
+                        allowTaint: true,
+                        logging: false,
+                        width: card.offsetWidth,
+                        height: card.offsetHeight
                     });
                     
-                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const imgData = canvas.toDataURL('image/png', 1.0);
                     if (i > 0) pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, 0, 148, 210);
+                    pdf.addImage(imgData, 'PNG', 0, 0, 148, 210, undefined, 'FAST');
                 } catch (err) {
                     console.error(`Error rendering page ${i}:`, err);
                 }
