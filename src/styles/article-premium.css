@@ -359,8 +359,11 @@
     transition: color 0.2s;
 }
 
-.article-premium-wrapper a:hover {
-    color: white;
+.article-premium-wrapper a:hover,
+.article-body-premium a:hover {
+    color: #ffffff !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    text-decoration-color: #ffffff;
 }
 
 

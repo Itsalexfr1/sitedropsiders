@@ -380,10 +380,16 @@ body {
   }
 
   .premium-link {
-    @apply text-neon-red font-black transition-colors hover:text-white uppercase;
+    @apply text-neon-red font-black transition-colors uppercase;
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 4px;
+  }
+
+  .premium-link:hover {
+    color: #ffffff !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+    text-decoration-color: #ffffff;
   }
 
   /* Finition des Images - SEULE SUR SA LIGNE avec espace - SANS BORDURES */
