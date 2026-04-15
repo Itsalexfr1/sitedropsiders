@@ -289,10 +289,14 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             ctx.fillStyle = '#ffffff';
             ctx.font = 'italic 900 14px Orbitron, sans-serif';
             ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 6;
             ctx.fillText('INTERVIEWS', 28, 30);
+            
             ctx.font = '700 7.5px Montserrat, sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.5)';
             ctx.fillText('#2026', 28, 46);
+            ctx.shadowBlur = 0;
 
             // Header logo
             if (logo) {
@@ -897,7 +901,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 </div>
                                                 
                                                 <div style={{ position: 'relative', zIndex: 10 }}>
-                                                    <h2 style={{ fontSize: '14px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.02em', lineHeight: 1, margin: 0 }}>
+                                                    <h2 style={{ fontSize: '14px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.02em', lineHeight: 1, margin: 0, textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
                                                         Interviews <span style={{ opacity: 0.6, fontSize: '8px', verticalAlign: 'top', marginLeft: '2px' }}>#2026</span>
                                                     </h2>
                                                 </div>
