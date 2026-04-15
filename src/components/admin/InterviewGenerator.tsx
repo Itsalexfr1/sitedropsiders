@@ -356,8 +356,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                     </h2>
                                                 </div>
                                                 
-                                                <div className="relative z-10 flex flex-col items-end">
-                                                    <img src="/Logo.png" alt="Dropsiders" className="h-3.5 brightness-0 invert mb-1.5" />
+                                                <div className="relative z-10 flex flex-col items-center">
+                                                    <img src="/Logo.png" alt="Dropsiders" className="h-6 brightness-0 invert mb-1.5" />
                                                     <span className="text-[7px] text-white/40 font-black uppercase tracking-[0.3em]">Page {chunkIdx + 1}</span>
                                                 </div>
                                             </div>
