@@ -140,11 +140,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         removeContainer: true,
                         onclone: (clonedDoc) => {
                             const styles = clonedDoc.getElementsByTagName('style');
-                            for (let j = 0; j < styles.length; j++) {
-                                styles[j].innerHTML = styles[j].innerHTML
-                                    .replace(/oklch\([^)]+\)/g, '#000000')
-                                    .replace(/oklab\([^)]+\)/g, '#000000');
-                            }
+                            for (let k = styles.length - 1; k >= 0; k--) styles[k].remove();
+                            const links = clonedDoc.getElementsByTagName('link');
+                            for (let k = links.length - 1; k >= 0; k--) links[k].remove();
                         }
                     });
                     
@@ -201,11 +199,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         allowTaint: true,
                         onclone: (clonedDoc) => {
                             const styles = clonedDoc.getElementsByTagName('style');
-                            for (let j = 0; j < styles.length; j++) {
-                                styles[j].innerHTML = styles[j].innerHTML
-                                    .replace(/oklch\([^)]+\)/g, '#000000')
-                                    .replace(/oklab\([^)]+\)/g, '#000000');
-                            }
+                            for (let k = styles.length - 1; k >= 0; k--) styles[k].remove();
+                            const links = clonedDoc.getElementsByTagName('link');
+                            for (let k = links.length - 1; k >= 0; k--) links[k].remove();
                         }
                     });
                     
@@ -244,13 +240,11 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 useCORS: true,
                 allowTaint: true,
                 onclone: (clonedDoc) => {
+                    // NUCLEAR CLEANUP: Remove everything that could crash the capture
                     const styles = clonedDoc.getElementsByTagName('style');
-                    for (let i = 0; i < styles.length; i++) {
-                        // Replace oklch/oklab functions with neutral colors to prevent parser crash
-                        styles[i].innerHTML = styles[i].innerHTML
-                            .replace(/oklch\([^)]+\)/g, '#000000')
-                            .replace(/oklab\([^)]+\)/g, '#000000');
-                    }
+                    for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
+                    const links = clonedDoc.getElementsByTagName('link');
+                    for (let i = links.length - 1; i >= 0; i--) links[i].remove();
                 },
                 ignoreElements: (element) => element.classList.contains('capture-btn')
             });
@@ -649,8 +643,17 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             )}
 
                                             {/* Header */}
-                                            <div className="w-full h-20 flex items-center justify-between px-10 relative overflow-hidden shrink-0"
+                                            <div className="interview-header"
                                                 style={{ 
+                                                    width: '100%',
+                                                    height: '80px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    padding: '0 40px',
+                                                    position: 'relative',
+                                                    overflow: 'hidden',
+                                                    flexShrink: 0,
                                                     background: theme === 'red' 
                                                         ? 'linear-gradient(to right, #ff0000, #ff3355, #000000)' 
                                                         : theme === 'cyan' 
@@ -658,47 +661,40 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                         : 'linear-gradient(to right, #bc13fe, #ff00ff, #000000)'
                                                 }}
                                             >
-                                                <div className="absolute inset-0 opacity-20 pointer-events-none">
-                                                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 blur-[60px] rounded-full translate-x-1/2 -translate-y-1/2" />
+                                                <div style={{ position: 'absolute', inset: 0, opacity: 0.2, pointerEvents: 'none' }}>
+                                                    <div style={{ position: 'absolute', top: 0, right: 0, width: '256px', height: '256px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '50%', filter: 'blur(60px)', transform: 'translate(50%, -50%)' }} />
                                                 </div>
                                                 
-                                                <div className="relative z-10">
-                                                    <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                                        Interviews <span className="opacity-60 text-xs align-top ml-1">#2026</span>
+                                                <div style={{ position: 'relative', zIndex: 10 }}>
+                                                    <h2 style={{ fontSize: '20px', fontFamily: 'Montserrat, sans-serif', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.05em', lineHeight: 1 }}>
+                                                        Interviews <span style={{ opacity: 0.6, fontSize: '12px', verticalAlign: 'top', marginLeft: '4px' }}>#2026</span>
                                                     </h2>
                                                 </div>
                                                 
-                                                <div className="relative z-10 flex flex-col items-center">
+                                                <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                                     <img 
                                                         src="/Logo.png" 
                                                         alt="Dropsiders" 
-                                                        className="brightness-0 invert mb-1.5" 
-                                                        style={{ height: `${headerLogoSize * 4}px` }}
+                                                        style={{ height: `${headerLogoSize * 4}px`, filter: 'brightness(0) invert(1)', marginBottom: '6px' }}
                                                     />
-                                                    <span className="text-[7px] text-white/40 font-black uppercase tracking-[0.3em]">Page {chunkIdx + 1}</span>
+                                                    <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.4)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em' }}>Page {chunkIdx + 1}</span>
                                                 </div>
                                             </div>
 
                                             {/* Content */}
-                                            <div className="relative z-10 flex-1 flex flex-col p-8 pt-5 overflow-hidden">
-                                                <div className="space-y-3">
+                                            <div style={{ position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 32px', overflow: 'hidden' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                                     {chunk.map((q) => (
-                                                        <div key={q.id} className="flex gap-4 items-start border-b border-black/5 pb-3 last:border-0">
-                                                            <span className="text-sm font-display font-black italic shrink-0 w-5"
-                                                                style={{ color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe' }}
-                                                            >
+                                                        <div key={q.id} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '12px' }}>
+                                                            <span style={{ fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '20px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe' }}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
-                                                            <div className="flex-1">
-                                                                <h3 className="text-[12px] font-bold uppercase leading-[1.2] mb-1"
-                                                                    style={{ color: '#000000' }}
-                                                                >
+                                                            <div style={{ flex: 1 }}>
+                                                                <h3 style={{ fontSize: '12px', fontWeight: 700, color: '#000000', textTransform: 'uppercase', lineHeight: '1.2', marginBottom: '4px', margin: 0 }}>
                                                                     {q.fr}
                                                                 </h3>
                                                                 {q.en && (
-                                                                    <p className="text-[12px] font-bold leading-[1.2]"
-                                                                        style={{ color: theme === 'red' ? '#dc2626' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce' }}
-                                                                    >
+                                                                    <p style={{ fontSize: '12px', fontWeight: 700, lineHeight: '1.2', margin: 0, color: theme === 'red' ? '#dc2626' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce' }}>
                                                                         {q.en}
                                                                     </p>
                                                                 )}
@@ -709,9 +705,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             </div>
 
                                             {/* Footer */}
-                                            <div className="p-5 pt-0 flex items-center justify-between opacity-30 shrink-0">
-                                                <span className="text-[7px] text-black font-black uppercase tracking-[0.5em]">EXCLUSIVE CONTENT</span>
-                                                <span className="text-[7px] text-black font-black uppercase tracking-[0.5em]">DROPSIDERS.FR</span>
+                                            <div style={{ padding: '20px', paddingTop: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', opacity: 0.3, flexShrink: 0 }}>
+                                                <span style={{ fontSize: '7px', color: '#000000', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em' }}>EXCLUSIVE CONTENT</span>
+                                                <span style={{ fontSize: '7px', color: '#000000', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em' }}>DROPSIDERS.FR</span>
                                             </div>
                                         </div>
                                     ))}
