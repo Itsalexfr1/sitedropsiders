@@ -1245,6 +1245,38 @@ export function AdminDashboard() {
         });
     };
 
+    const handleRemovePhoto = async (img: any) => {
+        setConfirmModal({
+            isOpen: true,
+            title: "Supprimer l'image ?",
+            message: "Voulez-vous supprimer définitivement l'image de cet article (News/Agenda/etc.) ? Elle apparaîtra comme vide sur le site. Cette action modifiera le fichier source sur GitHub.",
+            type: 'danger',
+            confirmText: "SUPPRIMER L'IMAGE",
+            onConfirm: async () => {
+                try {
+                    const res = await apiFetch('/api/admin/remove-broken-image', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ 
+                            location: img.location,
+                            entityId: img.entityId
+                        })
+                    });
+                    if (res.ok) {
+                        setBrokenImages((prev: any[]) => prev.filter(i => !(i.location === img.location && i.entityId === img.entityId)));
+                        setSelectedBrokenImages((prev: any[]) => prev.filter(i => !(i.location === img.location && i.entityId === img.entityId)));
+                        setGlobalAlert({ message: "L'image a été supprimée de l'article avec succès.", type: 'info' });
+                    } else {
+                        const data = await res.json();
+                        setGlobalAlert({ message: "Erreur lors de la suppression : " + (data.error || "Inconnue"), type: 'danger' });
+                    }
+                } catch (e) {
+                    setGlobalAlert({ message: "Erreur réseau lors de la suppression.", type: 'danger' });
+                }
+            }
+        });
+    };
+
     const handleBulkValidatePhotos = async () => {
         if (selectedBrokenImages.length === 0) return;
         
@@ -8386,21 +8418,28 @@ export function AdminDashboard() {
                                                             </div>
                                                         </div>
 
-                                                        <div className="flex gap-2 w-full">
+                                                        <div className="grid grid-cols-4 gap-2 w-full">
                                                             <button
                                                                 onClick={() => {
                                                                     setCurrentBrokenImageToFix(img);
                                                                     setIsBrokenImageUploadOpen(true);
                                                                 }}
-                                                                className="flex-1 py-2.5 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan rounded-xl hover:bg-neon-cyan/30 transition-all flex items-center justify-center gap-2 group/upload"
+                                                                className="col-span-2 py-2.5 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan rounded-xl hover:bg-neon-cyan/30 transition-all flex items-center justify-center gap-2 group/upload"
                                                             >
                                                                 <Upload className="w-3.5 h-3.5 group-hover/upload:-translate-y-1 transition-transform" />
-                                                                <span className="text-[9px] font-black uppercase tracking-widest">Uploader la photo</span>
+                                                                <span className="text-[9px] font-black uppercase tracking-widest leading-none">Uploader</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleRemovePhoto(img)}
+                                                                className="col-span-1 py-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl hover:bg-red-500/30 transition-all flex items-center justify-center group/del"
+                                                                title="Supprimer l'image de l'article"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5 group-hover/del:scale-110 transition-transform" />
                                                             </button>
                                                             <button
                                                                 onClick={() => handleValidatePhoto(img)}
-                                                                className="flex-[0.5] py-2.5 bg-neon-green/5 border border-neon-green/10 text-neon-green rounded-xl hover:bg-neon-green/20 transition-all flex items-center justify-center group/val"
-                                                                title="Ignorer & Valider manuellement"
+                                                                className="col-span-1 py-2.5 bg-neon-green/5 border border-neon-green/10 text-neon-green rounded-xl hover:bg-neon-green/20 transition-all flex items-center justify-center group/val"
+                                                                title="Valider sans image (Ignorer)"
                                                             >
                                                                 <CheckCircle2 className="w-4 h-4 group-hover/val:scale-110 transition-transform" />
                                                             </button>

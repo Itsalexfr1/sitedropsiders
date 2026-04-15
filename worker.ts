@@ -992,7 +992,8 @@ ${urls.map(u => `  <url>
             path === '/api/quiz/reset-blind-test' ||
             path === '/api/r2/delete' ||
             path === '/api/r2/list' ||
-            path === '/api/admin/auto-fix-photos'
+            path === '/api/admin/auto-fix-photos' ||
+            path === '/api/admin/remove-broken-image'
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
@@ -4016,6 +4017,42 @@ ${urls.map(u => `  <url>
                     usedOnSiteCount: usedInR2.size,
                     unusedCount: unused.length
                 }), { status: 200, headers: { ...headers, 'Cache-Control': 'no-cache' } });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/admin/remove-broken-image' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { location, entityId } = await request.json();
+                if (!location || entityId === undefined) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+
+                const filePath = `src/data/${location}`;
+                const file = await fetchGitHubFile(filePath, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                const items = Array.isArray(file.content) ? file.content : [file.content];
+                const index = items.findIndex((item: any, idx: number) => (item.id !== undefined ? String(item.id) === String(entityId) : idx === entityId));
+
+                if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+
+                if (Array.isArray(file.content)) {
+                    if (file.content[index].image !== undefined) file.content[index].image = "";
+                    if (file.content[index].cover !== undefined) file.content[index].cover = "";
+                    if (file.content[index].photo !== undefined) file.content[index].photo = "";
+                    file.content[index].photo_verified = true;
+                } else {
+                    if (file.content.image !== undefined) file.content.image = "";
+                    if (file.content.cover !== undefined) file.content.cover = "";
+                    if (file.content.photo !== undefined) file.content.photo = "";
+                    file.content.photo_verified = true;
+                }
+
+                const saved = await saveGitHubFile(filePath, file.content, `Remove broken photo for ${location} ID ${entityId}`, file.sha, gitConfig);
+                if (!saved.ok) return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
