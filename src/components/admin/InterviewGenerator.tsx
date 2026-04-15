@@ -122,6 +122,18 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         }
     };
 
+    const questionsPerPage = 10;
+
+    const chunkQuestions = (arr: InterviewQuestion[], size: number) => {
+        const chunks = [];
+        for (let i = 0; i < arr.length; i += size) {
+            chunks.push(arr.slice(i, i + size));
+        }
+        return chunks;
+    };
+
+    const questionChunks = chunkQuestions(questions, questionsPerPage);
+
     const colors = getThemeColors();
 
     return (
@@ -140,7 +152,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 className="relative w-full max-w-7xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col h-[90vh]"
             >
-                {/* Header */}
+                {/* Header Admin */}
                 <div className="p-8 md:p-10 border-b border-white/5 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
                         <div className={`p-4 rounded-2xl bg-black/40 border ${colors.border}`}>
@@ -150,7 +162,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
                                 Interview <span className={colors.main}>Card Gen</span>
                             </h2>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Format A5 Premium (148x210mm)</p>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Format A5 Premium - Multi-Questions</p>
                         </div>
                     </div>
                     
@@ -177,7 +189,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                 <div className="flex-1 flex min-h-0">
                     {/* Left Panel: Input */}
-                    <div className="w-1/3 p-8 border-r border-white/5 flex flex-col gap-6 overflow-y-auto custom-scrollbar">
+                    <div className="w-1/3 p-8 border-r border-white/5 flex flex-col gap-6 overflow-y-auto custom-scrollbar text-white">
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                 <FileText className="w-3.5 h-3.5" /> Coller les questions ici
@@ -197,12 +209,6 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             >
                                 <RotateCcw className="w-5 h-5" /> Générer Aperçu
                             </button>
-                            <button
-                                onClick={() => setInputText('')}
-                                className="w-full py-4 bg-white/5 border border-white/10 text-gray-400 font-bold uppercase tracking-widest rounded-2xl hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-500 transition-all text-[11px]"
-                            >
-                                <Trash2 className="w-4 h-4 inline-block mr-2" /> Vider
-                            </button>
                         </div>
                         
                         {questions.length > 0 && (
@@ -218,7 +224,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     ) : (
                                         <>
                                             <Download className="w-6 h-6" />
-                                            Tout Télécharger (PNG)
+                                            Télécharger {questionChunks.length} Fiches
                                         </>
                                     )}
                                 </button>
@@ -229,75 +235,76 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                     {/* Right Panel: Preview Area */}
                     <div className="flex-1 bg-black/20 p-12 overflow-y-auto custom-scrollbar flex flex-col items-center gap-12">
                         <div ref={cardsRef} className="flex flex-col gap-16 items-center w-full max-w-[500px]">
-                            {questions.length > 0 ? (
-                                questions.map((q) => (
+                            {questionChunks.length > 0 ? (
+                                questionChunks.map((chunk, chunkIdx) => (
                                     <div 
-                                        key={q.id}
-                                        id={`card-${q.number}`}
-                                        className="interview-card relative bg-[#050505] overflow-hidden flex flex-col shadow-2xl border border-white/5"
+                                        key={chunkIdx}
+                                        className="interview-card relative bg-white overflow-hidden flex flex-col shadow-2xl border border-black/5"
                                         style={{ 
                                             width: '148mm', 
                                             height: '210mm',
-                                            minWidth: '420px', // Scaling prevention for preview
+                                            minWidth: '420px', 
                                             minHeight: '595px'
                                         }}
                                     >
-                                        {/* Background Elements */}
-                                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-neon-red via-white to-neon-red opacity-50" />
-                                        <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-neon-red/5 blur-[120px] rounded-full" />
-                                        <div className="absolute -top-20 -left-20 w-80 h-80 bg-neon-red/5 blur-[120px] rounded-full" />
-                                        
-                                        {/* Large Number Background */}
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-                                            <span className="text-[25rem] font-display font-black text-white/[0.02] italic tracking-tighter leading-none transform -rotate-12">
-                                                {q.number.padStart(2, '0')}
-                                            </span>
+                                        {/* Colorful Header */}
+                                        <div className={`w-full h-32 bg-gradient-to-r ${theme === 'red' ? 'from-neon-red via-[#ff3355]' : theme === 'cyan' ? 'from-neon-cyan via-blue-500' : 'from-neon-purple via-pink-500'} to-[#000] flex items-center justify-between px-10 relative overflow-hidden shrink-0`}>
+                                            <div className="absolute inset-0 opacity-20 pointer-events-none">
+                                                <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 blur-[60px] rounded-full translate-x-1/2 -translate-y-1/2" />
+                                            </div>
+                                            
+                                            <div className="relative z-10">
+                                                <div className="flex items-center gap-3 opacity-60 mb-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                                    <span className="text-[8px] text-white font-black uppercase tracking-[0.4em]">LIVE REPORT</span>
+                                                </div>
+                                                <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                                    Interviews <span className="opacity-60 text-sm align-top ml-1">#EDC2026</span>
+                                                </h2>
+                                            </div>
+                                            
+                                            <div className="relative z-10 flex flex-col items-end">
+                                                <img src="/Logo.png" alt="Dropsiders" className="h-4 brightness-0 invert mb-2" />
+                                                <span className="text-[7px] text-white/40 font-black uppercase tracking-[0.3em]">Fiche {chunkIdx + 1}</span>
+                                            </div>
                                         </div>
 
                                         {/* Content Wrapper */}
-                                        <div className="relative z-10 h-full flex flex-col p-16">
-                                            {/* Header */}
-                                            <div className="flex items-center justify-between mb-20">
-                                                <img src="/Logo.png" alt="Dropsiders" className="h-4 opacity-40 brightness-0 invert" />
-                                                <div className="flex flex-col items-end">
-                                                    <span className={`text-[10px] font-black uppercase tracking-[0.4em] ${colors.main}`}>EDC LAS VEGAS 2026</span>
-                                                    <span className="text-[8px] text-gray-500 font-black uppercase tracking-widest mt-1 italic">Interview Initiale</span>
-                                                </div>
-                                            </div>
-
-                                            {/* Question Block */}
-                                            <div className="flex-1 flex flex-col justify-center gap-10">
-                                                <div className="flex gap-6 items-start">
-                                                    <div className={`mt-2 w-2 h-12 bg-gradient-to-b from-white to-white/10 rounded-full shrink-0`} />
-                                                    <div className="space-y-6">
-                                                        <h3 className="text-4xl font-display font-black text-white uppercase italic leading-[1.15] tracking-tight">
-                                                            {q.fr}
-                                                        </h3>
-                                                        <p className={`text-xl font-medium italic ${theme === 'red' ? 'text-neon-cyan' : theme === 'cyan' ? 'text-neon-red' : 'text-neon-cyan'} opacity-80 leading-relaxed max-w-[90%]`}>
-                                                            {q.en}
-                                                        </p>
+                                        <div className="relative z-10 flex-1 flex flex-col p-10 pt-8">
+                                            <div className="space-y-4">
+                                                {chunk.map((q) => (
+                                                    <div key={q.id} className="flex gap-4 items-start border-b border-black/5 pb-3 last:border-0">
+                                                        <span className={`text-base font-display font-black italic shrink-0 w-6 ${theme === 'red' ? 'text-neon-red' : theme === 'cyan' ? 'text-black' : 'text-neon-purple'}`}>
+                                                            {q.number.padStart(2, '0')}
+                                                        </span>
+                                                        <div className="flex-1">
+                                                            <h3 className="text-[15px] font-bold text-black uppercase leading-tight mb-0.5">
+                                                                {q.fr}
+                                                            </h3>
+                                                            <p className={`text-[12px] font-medium italic ${theme === 'red' ? 'text-red-700/60' : theme === 'cyan' ? 'text-blue-700/60' : 'text-purple-700/60'} leading-snug`}>
+                                                                {q.en}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                ))}
                                             </div>
 
-                                            {/* Footer */}
-                                            <div className="pt-12 border-t border-white/5 flex items-center justify-between">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Question</span>
-                                                    <span className={`text-3xl font-display font-black ${colors.main} italic`}>{q.number.padStart(2, '0')}</span>
-                                                </div>
-                                                <span className="text-[10px] text-gray-700 font-black uppercase tracking-[0.6em]">DROPSIDERS.FR</span>
+                                            {/* Watermark in background */}
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] select-none">
+                                                 <span className="text-[12rem] font-display font-black text-black italic -rotate-12">EDC</span>
                                             </div>
                                         </div>
-                                        
-                                        {/* Side Lines */}
-                                        <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-transparent via-white/5 to-transparent" />
-                                        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-transparent via-white/5 to-transparent" />
+
+                                        {/* Footer */}
+                                        <div className="p-6 pt-0 flex items-center justify-between opacity-30 shrink-0">
+                                            <span className="text-[7px] text-black font-black uppercase tracking-[0.5em]">EXCLUSIVE CONTENT</span>
+                                            <span className="text-[7px] text-black font-black uppercase tracking-[0.5em]">DROPSIDERS.FR</span>
+                                        </div>
                                     </div>
                                 ))
                             ) : (
                                 <div className="mt-40 p-12 text-center space-y-4">
-                                    <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mx-auto border border-white/10">
+                                    <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mx-auto border border-white/10 text-white">
                                         <Columns className="w-10 h-10 text-gray-700" />
                                     </div>
                                     <p className="text-gray-600 font-bold uppercase tracking-widest text-xs">Veuillez coller des questions à gauche pour générer les visuels</p>
@@ -306,7 +313,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         </div>
                     </div>
                 </div>
-            </motion.div>
+            </div>
         </div>
     );
 }
