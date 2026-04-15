@@ -441,7 +441,7 @@ export function NewsletterComposer() {
                         className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 text-[10px] md:text-xs font-black uppercase tracking-wide transition-all
                             ${sending
                                 ? 'bg-gray-800 text-gray-500 cursor-wait'
-                                : 'bg-gradient-to-r from-neon-red to-neon-pink text-white hover:shadow-[0_0_20px_rgba(255,0,51,0.4)] hover:scale-105 active:scale-95'
+                                : 'bg-gradient-to-r from-neon-red to-neon-red text-white hover:shadow-[0_0_20px_rgba(255,0,51,0.4)] hover:scale-105 active:scale-95'
                             }
                         `}
                     >
@@ -843,7 +843,7 @@ export function NewsletterComposer() {
                                         setShowSubscribersModal(false);
                                         setAlertModal({ isOpen: true, isError: false, message: `✅ ${selectedSubscribers.length} destinataire(s) sélectionné(s) pour l'envoi.` });
                                     }}
-                                    className="w-full py-4 bg-gradient-to-r from-neon-red to-neon-pink text-white font-black uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(255,0,51,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
+                                    className="w-full py-4 bg-gradient-to-r from-neon-red to-neon-red text-white font-black uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(255,0,51,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
                                 >
                                     <Send size={16} />
                                     Valider la sélection ({selectedSubscribers.length} dest.)

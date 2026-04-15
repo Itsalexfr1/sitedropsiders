@@ -473,6 +473,8 @@ export function AdminDashboard() {
     const [wikiFilter, setWikiFilter] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
     const [wikiSortMode, setWikiSortMode] = useState<'alpha' | 'votes'>('alpha');
     const [isEditWikiModalOpen, setIsEditWikiModalOpen] = useState(false);
+    const [isNewWikiModalOpen, setIsNewWikiModalOpen] = useState(false);
+    const [newWikiEntry, setNewWikiEntry] = useState<any>({ name: '', bio: '', country: '', image: '', rating: '4.5', spotify: '', instagram: '', beatport: '', youtube: '', city: '' });
     const [editingWikiEntry, setEditingWikiEntry] = useState<any>(null);
     const [isSavingWiki, setIsSavingWiki] = useState(false);
     const [artistPreview, setArtistPreview] = useState<{ item: any, idx: number, category: string, loading: boolean, postUrl?: string, storyUrl?: string } | null>(null);
@@ -610,6 +612,36 @@ export function AdminDashboard() {
             console.error("Error fetching wiki:", e);
         } finally {
             setIsWikiLoading(false);
+        }
+    };
+
+    const handleAddWikiEntry = async () => {
+        if (!newWikiEntry.name || !newWikiEntry.image) {
+            setGlobalAlert({ message: "Le nom et l'image sont obligatoires.", type: 'danger' });
+            return;
+        }
+        setIsSavingWiki(true);
+        try {
+            const res = await apiFetch('/api/wiki/add', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    type: wikiFilter,
+                    entry: newWikiEntry
+                })
+            });
+            if (res.ok) {
+                setGlobalAlert({ message: "Entrée ajoutée avec succès au Wiki !", type: 'info' });
+                setIsNewWikiModalOpen(false);
+                fetchWiki();
+            } else {
+                const data = await res.json();
+                setGlobalAlert({ message: "Erreur lors de l'ajout : " + (data.error || "Inconnue"), type: 'danger' });
+            }
+        } catch (e) {
+            setGlobalAlert({ message: "Erreur réseau lors de l'ajout.", type: 'danger' });
+        } finally {
+            setIsSavingWiki(false);
         }
     };
 
@@ -1591,10 +1623,10 @@ export function AdminDashboard() {
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
         { title: "Studio Création", description: "Générateurs Rapides", icon: "Sparkles", category: "STUDIO", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "news", baseColor: "orange", columns: 2 },
-        { title: "Social Studio", description: "Générateur de Visuels", icon: "Paintbrush", category: "SOCIAL_STUDIO", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "all", baseColor: "pink", columns: 2 },
+        { title: "Social Studio", description: "Générateur de Visuels", icon: "Paintbrush", category: "SOCIAL_STUDIO", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "pink", columns: 2 },
 
         // SHOP & CONTACT
-        { title: "Boutique", description: "Ventes & Produits", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 2 },
+        { title: "Boutique", description: "Ventes & Produits", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "shop", baseColor: "pink", columns: 2 },
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "push_newsletter", baseColor: "green", columns: 1 },
         { title: "Messagerie", description: "Emails & Contact", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages_contact", baseColor: "orange", columns: 1 },
 
@@ -2475,6 +2507,17 @@ export function AdminDashboard() {
                                             </button>
                                         ))}
                                     </div>
+
+                                    <button
+                                        onClick={() => {
+                                            setNewWikiEntry({ name: '', bio: '', country: '', image: '', rating: '4.5', spotify: '', instagram: '', beatport: '', youtube: '', city: '' });
+                                            setIsNewWikiModalOpen(true);
+                                        }}
+                                        className="px-6 py-2.5 bg-neon-cyan text-black rounded-xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-all shadow-lg shadow-neon-cyan/20 flex items-center gap-2"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Ajouter {wikiFilter === 'DJS' ? 'un DJ' : wikiFilter === 'CLUBS' ? 'un Club' : 'un Festival'}
+                                    </button>
                                 </div>
                             </div>
 
@@ -2600,8 +2643,8 @@ export function AdminDashboard() {
                                     {/* SHOPPING QUICK ACCESS */}
                                     <div className="space-y-6">
                                         <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-3 px-2">
-                                            <ShoppingBag className="w-5 h-5 text-neon-pink" />
-                                            Gestion <span className="text-neon-pink">Boutique</span>
+                                            <ShoppingBag className="w-5 h-5 text-neon-red" />
+                                            Gestion <span className="text-neon-red">Boutique</span>
                                         </h3>
                                         <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6">
                                             <div className="flex items-center justify-between mb-6">
@@ -2609,13 +2652,13 @@ export function AdminDashboard() {
                                                     <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Shop Officiel</p>
                                                     <p className="text-[9px] text-gray-400">Stocks, Commandes & Produits</p>
                                                 </div>
-                                                <div className="p-3 bg-neon-pink/10 rounded-xl font-black text-neon-pink text-xs">
+                                                <div className="p-3 bg-neon-red/10 rounded-xl font-black text-neon-red text-xs">
                                                     SHOP
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => setIsShopModalOpen(true)}
-                                                className="w-full py-5 bg-neon-pink/10 hover:bg-neon-pink border border-neon-pink/30 text-neon-pink hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-neon-pink/5"
+                                                className="w-full py-5 bg-neon-red/10 hover:bg-neon-red border border-neon-red/30 text-neon-red hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-neon-red/5"
                                             >
                                                 <ShoppingBag className="w-5 h-5" />
                                                 OUVRIR LA BOUTIQUE
@@ -2647,7 +2690,7 @@ export function AdminDashboard() {
                                         <div className="w-px h-8 bg-white/10" />
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Participation Instagram</span>
-                                            <span className="text-2xl font-display font-black text-neon-pink italic">{instagramParticipants.length}</span>
+                                            <span className="text-2xl font-display font-black text-neon-red italic">{instagramParticipants.length}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -2681,7 +2724,7 @@ export function AdminDashboard() {
                                         <div className="flex items-center gap-2">
                                             <button
                                                 onClick={() => setIsInstagramContestModalOpen(true)}
-                                                className="px-4 py-2 bg-neon-pink/10 border border-neon-pink/20 rounded-xl text-[9px] font-black uppercase text-neon-pink hover:bg-neon-pink hover:text-white transition-all flex items-center gap-2"
+                                                className="px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-xl text-[9px] font-black uppercase text-neon-red hover:bg-neon-red hover:text-white transition-all flex items-center gap-2"
                                             >
                                                 <Instagram className="w-3 h-3" />
                                                 CONCOURS INSTA
@@ -2769,8 +2812,8 @@ export function AdminDashboard() {
                                     <div className="space-y-6">
                                         <div className="flex justify-between items-center group">
                                             <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-2">
-                                                <Music className="w-5 h-5 text-neon-pink" />
-                                                Quizz & <span className="text-neon-pink">Blindtest</span>
+                                                <Music className="w-5 h-5 text-neon-red" />
+                                                Quizz & <span className="text-neon-red">Blindtest</span>
                                             </h3>
                                             <button onClick={() => setIsQuizModalOpen(true)} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-all">
                                                 <Settings className="w-4 h-4" />
@@ -2782,7 +2825,7 @@ export function AdminDashboard() {
                                                 <div className="flex flex-col gap-2">
                                                     <button
                                                         onClick={() => document.getElementById('blindtest-upload')?.click()}
-                                                        className="w-full h-14 bg-neon-pink/10 hover:bg-neon-pink border border-neon-pink/30 text-neon-pink hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
+                                                        className="w-full h-14 bg-neon-red/10 hover:bg-neon-red border border-neon-red/30 text-neon-red hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
                                                     >
                                                         <Upload className="w-5 h-5" />
                                                         Uploader MP3
@@ -2824,10 +2867,10 @@ export function AdminDashboard() {
                                                     fetchInstagramParticipants();
                                                     setIsInstagramContestModalOpen(true);
                                                 }}
-                                                className="w-full p-6 bg-white/5 border border-white/10 rounded-[2rem] hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all text-left flex items-center gap-6 group"
+                                                className="w-full p-6 bg-white/5 border border-white/10 rounded-[2rem] hover:bg-neon-red/10 hover:border-neon-red/50 transition-all text-left flex items-center gap-6 group"
                                             >
-                                                <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform">
-                                                    <Instagram className="w-6 h-6 text-neon-pink" />
+                                                <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                                                    <Instagram className="w-6 h-6 text-neon-red" />
                                                 </div>
                                                 <div>
                                                     <h4 className="font-bold text-white uppercase italic">Concours Insta</h4>
@@ -3298,19 +3341,19 @@ export function AdminDashboard() {
                         <div className="space-y-12">
                             {dashboardTab === 'SHOP' && (
                                 <motion.div 
-                                    className="flex flex-col md:flex-row items-center gap-8 mb-12 p-8 md:p-12 bg-white/[0.03] border border-neon-pink/20 rounded-[3rem] relative overflow-hidden group transition-all hover:bg-white/[0.05]"
+                                    className="flex flex-col md:flex-row items-center gap-8 mb-12 p-8 md:p-12 bg-white/[0.03] border border-neon-red/20 rounded-[3rem] relative overflow-hidden group transition-all hover:bg-white/[0.05]"
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                 >
                                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none">
                                         <ShoppingBag className="w-48 h-48 text-white rotate-12" />
                                     </div>
-                                    <div className="relative z-10 w-24 h-24 bg-neon-pink/20 rounded-[2.5rem] border border-neon-pink/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_50px_rgba(255,18,114,0.2)]">
-                                        <ShoppingBag className="w-10 h-10 text-neon-pink" />
+                                    <div className="relative z-10 w-24 h-24 bg-neon-red/20 rounded-[2.5rem] border border-neon-red/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_50px_rgba(255,18,114,0.2)]">
+                                        <ShoppingBag className="w-10 h-10 text-neon-red" />
                                     </div>
                                     <div className="relative z-10 text-center md:text-left">
                                         <h2 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic leading-none mb-3 tracking-tighter">
-                                            Espace <span className="text-neon-pink">Boutique</span>
+                                            Espace <span className="text-neon-red">Boutique</span>
                                         </h2>
                                         <p className="text-gray-400 font-medium max-w-xl text-xs md:text-sm leading-relaxed uppercase tracking-widest opacity-70">
                                             Pilotage du shop officiel, gestion des stocks et suivi des ventes en temps réel.
@@ -3319,7 +3362,7 @@ export function AdminDashboard() {
                                     <div className="relative z-10 ml-auto flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-6 md:mt-0">
                                         <button 
                                             onClick={() => setIsShopModalOpen(true)}
-                                            className="px-10 py-5 bg-neon-pink text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-pink/80 transition-all shadow-[0_15px_45px_rgba(255,18,114,0.4)] hover:scale-[1.05] active:scale-95 flex items-center justify-center gap-3 group/btn"
+                                            className="px-10 py-5 bg-neon-red text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-[0_15px_45px_rgba(255,18,114,0.4)] hover:scale-[1.05] active:scale-95 flex items-center justify-center gap-3 group/btn"
                                         >
                                             <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" /> 
                                             Menu Boutique
@@ -3630,12 +3673,12 @@ export function AdminDashboard() {
                                             <div className="p-8 md:p-10 flex flex-col h-full">
                                                 <div className="flex items-center justify-between mb-8 shrink-0">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="p-3 bg-neon-pink/10 rounded-2xl border border-neon-pink/20">
-                                                            <Instagram className="w-6 h-6 text-neon-pink" />
+                                                        <div className="p-3 bg-neon-red/10 rounded-2xl border border-neon-red/20">
+                                                            <Instagram className="w-6 h-6 text-neon-red" />
                                                         </div>
                                                         <div>
                                                             <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
-                                                                Participants <span className="text-neon-pink">Instagram</span>
+                                                                Participants <span className="text-neon-red">Instagram</span>
                                                             </h2>
                                                             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Concours de partage réseaux</p>
                                                         </div>
@@ -3695,7 +3738,7 @@ export function AdminDashboard() {
                                                                                 </td>
                                                                                 <td className="px-6 py-4">
                                                                                     <div className="flex items-center gap-2">
-                                                                                        <span className="text-neon-pink font-black uppercase text-xs">@{res.handle}</span>
+                                                                                        <span className="text-neon-red font-black uppercase text-xs">@{res.handle}</span>
                                                                                         <a
                                                                                             href={`https://instagram.com/${res.handle.replace('@', '')}`}
                                                                                             target="_blank"
@@ -4282,12 +4325,12 @@ export function AdminDashboard() {
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                                 className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
                             >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-pink via-[#ee2a7b] to-[#f9ce34]" />
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-[#ee2a7b] to-[#f9ce34]" />
 
                                 <div className="flex justify-between items-start mb-10">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Social <span className="text-neon-pink">Studio</span>
+                                            Social <span className="text-neon-red">Studio</span>
                                         </h2>
                                         <p className="text-gray-400 font-medium">Générez des visuels pour vos réseaux</p>
                                     </div>
@@ -4340,7 +4383,7 @@ export function AdminDashboard() {
 
                                         {isLoadingSocial ? (
                                             <div className="py-10 flex justify-center">
-                                                <Loader2 className="w-8 h-8 animate-spin text-neon-pink" />
+                                                <Loader2 className="w-8 h-8 animate-spin text-neon-red" />
                                             </div>
                                         ) : socialRecentArticles.length > 0 ? (
                                             socialRecentArticles.map(article => (
@@ -4360,7 +4403,7 @@ export function AdminDashboard() {
                                                         <h3 className="font-bold text-white uppercase italic truncate text-sm">{article.title}</h3>
                                                         <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">{article.date || article.pubDate}</p>
                                                     </div>
-                                                    <Instagram className="w-5 h-5 text-gray-600 group-hover:text-neon-pink transition-colors" />
+                                                    <Instagram className="w-5 h-5 text-gray-600 group-hover:text-neon-red transition-colors" />
                                                 </button>
                                             ))
                                         ) : (
@@ -4492,12 +4535,12 @@ export function AdminDashboard() {
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                                 className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-lg w-full shadow-2xl relative overflow-hidden"
                             >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-pink via-neon-purple to-neon-pink" />
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-red" />
 
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-pink">Communauté</span>
+                                            Gestion <span className="text-neon-red">Communauté</span>
                                         </h2>
                                         <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
                                     </div>
@@ -4513,10 +4556,10 @@ export function AdminDashboard() {
                                     <Link
                                         to="/galerie/create"
                                         onClick={() => setIsGalerieModalOpen(false)}
-                                        className="w-full p-8 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
+                                        className="w-full p-8 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
                                     >
-                                        <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform flex-shrink-0">
-                                            <Plus className="w-6 h-6 text-neon-pink" />
+                                        <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                            <Plus className="w-6 h-6 text-neon-red" />
                                         </div>
                                         <div className="text-left">
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel album</h3>
@@ -4731,7 +4774,7 @@ export function AdminDashboard() {
 
                                     <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-6">
                                         <div className="flex items-center gap-3 mb-2">
-                                            <Instagram className="w-5 h-5 text-neon-pink" />
+                                            <Instagram className="w-5 h-5 text-neon-red" />
                                             <h3 className="text-lg font-bold text-white uppercase italic">Liens Sociaux</h3>
                                         </div>
                                         
@@ -4742,7 +4785,7 @@ export function AdminDashboard() {
                                                     type="text" 
                                                     value={socialLinks.instagram}
                                                     onChange={e => setSocialLinks({ ...socialLinks, instagram: e.target.value })}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-neon-pink transition-all"
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-neon-red transition-all"
                                                     placeholder="dropsiders.eu"
                                                 />
                                             </div>
@@ -5259,7 +5302,7 @@ export function AdminDashboard() {
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                                 className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
                             >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-pink via-white to-neon-pink" />
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
 
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
@@ -5280,10 +5323,10 @@ export function AdminDashboard() {
                                     {/* Concours Instagram */}
                                     <button
                                         onClick={() => { setIsCommunauteModalOpen(false); setDashboardTab('COMMUNAUTÉ'); }}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group relative"
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
                                     >
-                                        <div className="w-14 h-14 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform">
-                                            <Instagram className="w-7 h-7 text-neon-pink" />
+                                        <div className="w-14 h-14 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                                            <Instagram className="w-7 h-7 text-neon-red" />
                                         </div>
                                         <div className="text-center">
                                             <h3 className="text-lg font-bold text-white uppercase italic">Concours Insta</h3>
@@ -7628,6 +7671,157 @@ export function AdminDashboard() {
                                         ) : (
                                             'ENREGISTRER LES MODIFICATIONS'
                                         )}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+
+                    {/* Modal AJOUT Wiki */}
+                    {isNewWikiModalOpen && (
+                        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-[#0A0A0A] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
+
+                                <div className="flex justify-between items-start mb-8 shrink-0">
+                                    <div>
+                                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
+                                            Ajouter <span className="text-neon-cyan">{wikiFilter === 'DJS' ? 'un DJ' : wikiFilter === 'CLUBS' ? 'un Club' : 'un Festival'}</span>
+                                        </h2>
+                                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Nouvelle entrée Wiki • {wikiFilter}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsNewWikiModalOpen(false)}
+                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar pb-6">
+                                    {/* Name */}
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Nom *</label>
+                                        <input
+                                            type="text"
+                                            value={newWikiEntry.name}
+                                            onChange={(e) => setNewWikiEntry({ ...newWikiEntry, name: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                            placeholder="Ex: David Guetta, Amnesia, Coachella"
+                                        />
+                                    </div>
+
+                                    {/* Location */}
+                                    {wikiFilter !== 'DJS' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Ville</label>
+                                                <input
+                                                    type="text"
+                                                    value={newWikiEntry.city || ''}
+                                                    onChange={(e) => setNewWikiEntry({ ...newWikiEntry, city: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Pays (Code ISO)</label>
+                                                <input
+                                                    type="text"
+                                                    value={newWikiEntry.country || ''}
+                                                    onChange={(e) => setNewWikiEntry({ ...newWikiEntry, country: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                                    placeholder="Ex: FR, GB, US..."
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {wikiFilter === 'DJS' && (
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Pays (Nom ou Flag)</label>
+                                            <input
+                                                type="text"
+                                                value={newWikiEntry.country || ''}
+                                                onChange={(e) => setNewWikiEntry({ ...newWikiEntry, country: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                                placeholder="Ex: France, USA, 🇫🇷..."
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Image URL */}
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">URL Image (ou Upload) *</label>
+                                        <div className="flex gap-4">
+                                            <input
+                                                type="text"
+                                                value={newWikiEntry.image}
+                                                onChange={(e) => setNewWikiEntry({ ...newWikiEntry, image: e.target.value })}
+                                                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                            />
+                                            {newWikiEntry.image && (
+                                                <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 shrink-0">
+                                                    <img src={newWikiEntry.image} alt="Preview" className="w-full h-full object-cover" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Links */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block font-mono">Instagram</label>
+                                            <input
+                                                type="text"
+                                                value={newWikiEntry.instagram || ''}
+                                                onChange={(e) => setNewWikiEntry({ ...newWikiEntry, instagram: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                                placeholder="Lien Instagram"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Spotify / Website</label>
+                                            <input
+                                                type="text"
+                                                value={newWikiEntry.spotify || newWikiEntry.website || ''}
+                                                onChange={(e) => setNewWikiEntry({ ...newWikiEntry, spotify: e.target.value, website: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                                placeholder="Lien Spotify ou Site Web"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Bio / Description */}
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Biographie / Description</label>
+                                        <textarea
+                                            value={newWikiEntry.bio || ''}
+                                            onChange={(e) => setNewWikiEntry({ ...newWikiEntry, bio: e.target.value })}
+                                            rows={4}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all resize-none"
+                                            placeholder="Texte de présentation..."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-8 border-t border-white/5 shrink-0 flex gap-4">
+                                    <button
+                                        onClick={() => setIsNewWikiModalOpen(false)}
+                                        className="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black text-gray-400 uppercase tracking-widest transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        onClick={handleAddWikiEntry}
+                                        disabled={isSavingWiki}
+                                        className="flex-[2] py-4 bg-neon-cyan text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-neon-cyan/20 transition-all disabled:opacity-50"
+                                    >
+                                        {isSavingWiki ? 'AJOUT EN COURS...' : 'AJOUTER AU WIKI'}
                                     </button>
                                 </div>
                             </motion.div>

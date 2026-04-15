@@ -42,7 +42,7 @@ export function Profile() {
         { label: 'DROPS', value: user.scores?.drops || 0, icon: <Zap className="w-5 h-5 text-neon-cyan" />, color: 'from-neon-cyan/20 to-transparent' },
         { label: 'RANG', value: 'MEMBRE', icon: <Shield className="w-5 h-5 text-neon-purple" />, color: 'from-neon-purple/20 to-transparent' },
         { label: 'XP', value: user.scores?.xp || 0, icon: <Trophy className="w-5 h-5 text-amber-500" />, color: 'from-amber-500/20 to-transparent' },
-        { label: 'TITRES', value: user.trackIds?.length || 0, icon: <Music className="w-5 h-5 text-neon-pink" />, color: 'from-neon-pink/20 to-transparent' }
+        { label: 'TITRES', value: user.trackIds?.length || 0, icon: <Music className="w-5 h-5 text-neon-red" />, color: 'from-neon-red/20 to-transparent' }
     ];
 
     return (
@@ -189,12 +189,12 @@ export function Profile() {
 
                                 {activeTab === 'favorites' && (
                                     <div className="bg-white/5 border border-white/10 rounded-[40px] p-10 text-center">
-                                        <div className="w-20 h-20 bg-neon-pink/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <Music className="w-10 h-10 text-neon-pink" />
+                                        <div className="w-20 h-20 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <Music className="w-10 h-10 text-neon-red" />
                                         </div>
                                         <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter mb-4">Ta Playlist Dropsiders</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest max-w-sm mx-auto mb-8">Retrouve ici tous les titres que tu as likés pendant les Takeovers et lives.</p>
-                                        <button onClick={() => navigate('/live')} className="px-10 py-4 bg-neon-pink text-white rounded-2xl font-black uppercase italic tracking-widest shadow-lg shadow-neon-pink/20 hover:scale-105 transition-all">Rejoindre le Live</button>
+                                        <button onClick={() => navigate('/live')} className="px-10 py-4 bg-neon-red text-white rounded-2xl font-black uppercase italic tracking-widest shadow-lg shadow-neon-red/20 hover:scale-105 transition-all">Rejoindre le Live</button>
                                     </div>
                                 )}
 

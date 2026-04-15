@@ -39,8 +39,8 @@ export function SocialStudioPage() {
                     className="w-full max-w-md bg-white/5 border border-white/10 rounded-[2.5rem] p-10 backdrop-blur-3xl shadow-2xl"
                 >
                     <div className="flex justify-center mb-8">
-                        <div className="p-5 bg-neon-pink/10 rounded-3xl border border-neon-pink/20">
-                            <Instagram className="w-10 h-10 text-neon-pink" />
+                        <div className="p-5 bg-neon-red/10 rounded-3xl border border-neon-red/20">
+                            <Instagram className="w-10 h-10 text-neon-red" />
                         </div>
                     </div>
                     <h1 className="text-3xl font-black text-white text-center mb-2 uppercase italic tracking-tighter">Social Studio</h1>
@@ -57,10 +57,10 @@ export function SocialStudioPage() {
                             placeholder="CODE D'ACCÈS DE SECOURS"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white text-center font-black tracking-[0.5em] focus:outline-none focus:border-neon-pink transition-all"
+                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white text-center font-black tracking-[0.5em] focus:outline-none focus:border-neon-red transition-all"
                         />
                         {error && <p className="text-red-500 text-[10px] font-black text-center uppercase">{error}</p>}
-                        <button className="w-full py-5 bg-white text-black font-black rounded-2xl uppercase tracking-[0.2em] hover:bg-neon-pink hover:text-white transition-all shadow-xl">
+                        <button className="w-full py-5 bg-white text-black font-black rounded-2xl uppercase tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all shadow-xl">
                             Entrer dans le studio
                         </button>
                         <button 
@@ -81,7 +81,7 @@ export function SocialStudioPage() {
             <div className="flex fixed top-4 right-4 lg:top-8 lg:right-8 z-[210] items-center gap-6">
                 <button
                     onClick={() => navigate('/admin')}
-                    className="p-3 lg:p-4 bg-white/10 hover:bg-neon-pink/20 text-white rounded-2xl border border-white/20 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(255,0,255,0.1)]"
+                    className="p-3 lg:p-4 bg-white/10 hover:bg-neon-red/20 text-white rounded-2xl border border-white/20 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(255,0,255,0.1)]"
                 >
                     <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     TABLEAU ADMIN
@@ -98,7 +98,7 @@ export function SocialStudioPage() {
                     <span className="sm:hidden">RETOUR</span>
                 </button>
                 <div className="hidden lg:flex items-center gap-3 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                    <div className="w-2 h-2 bg-neon-pink rounded-full animate-pulse shadow-[0_0_10px_#ff00ff]" />
+                    <div className="w-2 h-2 bg-neon-red rounded-full animate-pulse shadow-[0_0_10px_#ff00ff]" />
                     <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">STUDIO MODE : ON</span>
                 </div>
             </div>

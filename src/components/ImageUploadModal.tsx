@@ -10,7 +10,7 @@ interface ImageUploadModalProps {
     onClose: () => void;
     onUploadSuccess?: (urls: string | string[]) => void;
     onClear?: () => void;
-    accentColor?: string; // e.g. 'neon-pink', 'neon-red', etc. (Tailwind class part)
+    accentColor?: string; // e.g. 'neon-red', 'neon-red', etc. (Tailwind class part)
     aspect?: number;
     initialImage?: string;
     allowMultiple?: boolean;
@@ -23,7 +23,7 @@ export function ImageUploadModal({
     onClose, 
     onUploadSuccess, 
     onClear, 
-    accentColor = 'neon-pink', 
+    accentColor = 'neon-red', 
     aspect, 
     initialImage,
     allowMultiple = false,
@@ -36,8 +36,8 @@ export function ImageUploadModal({
     const [uploadProgress, setUploadProgress] = useState(0);
 
     // Mapping accentColor to actual Tailwind classes
-    let bgClass = "bg-neon-pink/20";
-    let textClass = "text-neon-pink";
+    let bgClass = "bg-neon-red/20";
+    let textClass = "text-neon-red";
 
     if (accentColor === 'neon-red') {
         bgClass = "bg-neon-red/20";
@@ -453,9 +453,9 @@ export function ImageUploadModal({
                                         <div className="lg:col-span-4 space-y-4">
                                             <label className="block group cursor-pointer w-full">
                                                 <input type="file" accept="image/*,video/*" multiple={allowMultiple} className="hidden" onChange={handleFileChange} disabled={isUploading} />
-                                                <div className={`p-8 bg-white/5 border-2 border-dashed ${isUploading ? 'border-neon-cyan' : 'border-white/10 group-hover:border-neon-pink/50'} rounded-[32px] flex flex-col items-center gap-4 transition-all hover:bg-white/[0.08]`}>
+                                                <div className={`p-8 bg-white/5 border-2 border-dashed ${isUploading ? 'border-neon-cyan' : 'border-white/10 group-hover:border-neon-red/50'} rounded-[32px] flex flex-col items-center gap-4 transition-all hover:bg-white/[0.08]`}>
                                                     <div className="flex gap-4">
-                                                        <ImageIcon className="w-10 h-10 text-gray-700 group-hover:text-neon-pink transition-colors" />
+                                                        <ImageIcon className="w-10 h-10 text-gray-700 group-hover:text-neon-red transition-colors" />
                                                         {allowMultiple && <Film className="w-10 h-10 text-gray-700 group-hover:text-neon-blue transition-colors" />}
                                                     </div>
                                                     <div className="text-center">

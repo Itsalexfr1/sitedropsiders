@@ -49,7 +49,7 @@ export function CustomCursor() {
                     else if (colorAttr === 'neon-green') setHoverColor('#39FF14');
                     else if (colorAttr === 'neon-cyan') setHoverColor('#00FFFF');
                     else if (colorAttr === 'neon-purple') setHoverColor('#BF00FF');
-                    else if (colorAttr === 'neon-pink') setHoverColor('#FF0099');
+                    else if (colorAttr === 'neon-red') setHoverColor('#FF0099');
                     else if (colorAttr === 'neon-blue') setHoverColor('#00BFFF');
                     else if (colorAttr === 'neon-yellow') setHoverColor('#FFF01F');
                     else setHoverColor(colorAttr);

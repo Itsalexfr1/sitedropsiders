@@ -68,7 +68,7 @@ const EDITOR_COLORS = [
     '#FFF01F', // neon-yellow
     '#FF5E00', // neon-orange
     '#00BFFF', // neon-blue
-    '#FF0099', // neon-pink
+    '#FF0099', // neon-red
     '#00FF88', // neon-mint
     '#7B61FF', // neon-indigo
 ];

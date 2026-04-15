@@ -20,7 +20,7 @@ const TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: st
     { key: 'written', label: 'Écrites', activeClass: 'bg-neon-purple text-white shadow-[0_0_20px_rgba(189,0,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-purple/40 hover:text-neon-purple' },
     { key: 'video', label: 'Interviews', activeClass: 'bg-neon-blue text-white shadow-[0_0_20px_rgba(0,100,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-blue/40 hover:text-neon-blue' },
     { key: 'fast-quizz', label: 'Fast Quizz', activeClass: 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(0,240,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-cyan/40 hover:text-neon-cyan' },
-    { key: 'playlist', label: 'La Playlist', activeClass: 'bg-neon-pink text-white shadow-[0_0_20px_rgba(255,0,153,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-pink/40 hover:text-neon-pink' },
+    { key: 'playlist', label: 'La Playlist', activeClass: 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,153,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-red/40 hover:text-neon-red' },
     { key: 'drop-talk', label: 'Drop & Talk', activeClass: 'bg-neon-yellow text-black shadow-[0_0_20px_rgba(255,204,0,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-yellow/40 hover:text-neon-yellow' },
 ];
 
@@ -192,7 +192,7 @@ export function Interviews() {
             return { label: 'Fast Quizz', color: 'text-neon-cyan border-neon-cyan/30' };
         }
         if (cat.includes('la playlist') || cat.includes('playlist') || title.includes('la playlist')) {
-            return { label: 'La Playlist', color: 'text-neon-pink border-neon-pink/30' };
+            return { label: 'La Playlist', color: 'text-neon-red border-neon-red/30' };
         }
         if (cat.includes('drop & talk') || title.includes('drop & talk')) {
             return { label: 'Drop & Talk', color: 'text-neon-yellow border-neon-yellow/30' };
@@ -252,7 +252,7 @@ export function Interviews() {
                                         tab.key === 'written' ? 'neon-purple' :
                                             tab.key === 'video' ? 'neon-blue' :
                                                 tab.key === 'fast-quizz' ? 'neon-cyan' :
-                                                    tab.key === 'playlist' ? 'neon-pink' :
+                                                    tab.key === 'playlist' ? 'neon-red' :
                                                         tab.key === 'drop-talk' ? 'neon-yellow' : 'neon-red'
                                     }
                                     whileHover={{ scale: 1.04 }}

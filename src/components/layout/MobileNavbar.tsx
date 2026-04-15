@@ -49,7 +49,7 @@ export function MobileNavbar() {
             label: isLiveActive ? 'LIVE' : (navLabels.communaute || 'Communaute'),
             path: isLiveActive ? '/live' : '/communaute',
             isCenter: true,
-            color: isLiveActive ? 'neon-red' : 'neon-pink'
+            color: isLiveActive ? 'neon-red' : 'neon-red'
         },
         { icon: Calendar, label: navLabels.agenda || 'Agenda', path: '/agenda' },
         {
@@ -93,7 +93,7 @@ export function MobileNavbar() {
                     if (item.isCenter) {
                         const styleClasses = isLiveActive
                             ? "bg-neon-red/40 border-neon-red/50 shadow-[0_0_30px_rgba(255,0,51,0.4)]"
-                            : "bg-neon-pink/40 border-neon-pink/50 shadow-[0_0_30px_rgba(255,105,180,0.4)]";
+                            : "bg-neon-red/40 border-neon-red/50 shadow-[0_0_30px_rgba(255,105,180,0.4)]";
 
                         return (
                             <Link

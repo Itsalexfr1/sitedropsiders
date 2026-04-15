@@ -137,12 +137,12 @@ export function ContestValidationModal({ isOpen, onClose, score, total, pseudo }
                                 <div className="p-8 md:p-10">
                                     <div className="flex items-center justify-between mb-8">
                                         <div className="flex items-center gap-4">
-                                            <div className="p-3 bg-neon-pink/10 rounded-2xl border border-neon-pink/20">
-                                                <Instagram className="w-8 h-8 text-neon-pink" />
+                                            <div className="p-3 bg-neon-red/10 rounded-2xl border border-neon-red/20">
+                                                <Instagram className="w-8 h-8 text-neon-red" />
                                             </div>
                                             <div>
                                                 <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
-                                                    Valider ma <span className="text-neon-pink">Participation</span>
+                                                    Valider ma <span className="text-neon-red">Participation</span>
                                                 </h2>
                                                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Étape finale du concours</p>
                                             </div>
@@ -178,15 +178,15 @@ export function ContestValidationModal({ isOpen, onClose, score, total, pseudo }
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-2">
-                                                    <span className="text-neon-pink font-black italic text-lg opacity-50">01.</span>
+                                                    <span className="text-neon-red font-black italic text-lg opacity-50">01.</span>
                                                     <p className="text-[9px] font-bold text-gray-400 uppercase leading-relaxed">
                                                         Prends une capture d'écran de ton score ou partage une affiche du festival.
                                                     </p>
                                                 </div>
-                                                <div className="p-4 bg-neon-pink/10 border border-neon-pink/20 rounded-2xl space-y-2">
-                                                    <span className="text-neon-pink font-black italic text-lg">02.</span>
+                                                <div className="p-4 bg-neon-red/10 border border-neon-red/20 rounded-2xl space-y-2">
+                                                    <span className="text-neon-red font-black italic text-lg">02.</span>
                                                     <p className="text-[9px] font-black text-white uppercase leading-relaxed">
-                                                        Publie en Story Instagram en identifiant <span className="text-neon-pink">@dropsiders.fr</span> et <span className="text-neon-cyan">{festivalHandle}</span> (Compte <b>Public</b> requis).
+                                                        Publie en Story Instagram en identifiant <span className="text-neon-red">@dropsiders.fr</span> et <span className="text-neon-cyan">{festivalHandle}</span> (Compte <b>Public</b> requis).
                                                     </p>
                                                 </div>
                                             </div>
@@ -203,7 +203,7 @@ export function ContestValidationModal({ isOpen, onClose, score, total, pseudo }
                                                         value={handle}
                                                         onChange={(e) => setHandle(e.target.value)}
                                                         placeholder="@TON_PSEUDO"
-                                                        className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 pl-14 pr-6 text-xl font-black italic uppercase focus:border-neon-pink outline-none transition-all placeholder:text-white/10 text-white"
+                                                        className="w-full bg-black/40 border border-white/10 rounded-2xl py-6 pl-14 pr-6 text-xl font-black italic uppercase focus:border-neon-red outline-none transition-all placeholder:text-white/10 text-white"
                                                      />
                                                 </div>
                                             </div>
@@ -214,7 +214,7 @@ export function ContestValidationModal({ isOpen, onClose, score, total, pseudo }
                                                     id="check-consent"
                                                     checked={hasConsented}
                                                     onChange={e => setHasConsented(e.target.checked)}
-                                                    className="w-4 h-4 mt-1 accent-neon-pink"
+                                                    className="w-4 h-4 mt-1 accent-neon-red"
                                                 />
                                                 <label htmlFor="check-consent" className="text-[9px] font-bold text-gray-500 uppercase leading-relaxed cursor-pointer">
                                                     Je confirme avoir partagé mon score en identifiant les deux comptes. Mon compte est <b>PUBLIC</b> et ma story restera visible 24h.
@@ -239,7 +239,7 @@ export function ContestValidationModal({ isOpen, onClose, score, total, pseudo }
                                                 <button
                                                     type="submit"
                                                     disabled={status === 'loading'}
-                                                    className="flex-1 py-6 bg-neon-pink text-white rounded-3xl font-black text-xs uppercase tracking-[0.3em] shadow-xl shadow-neon-pink/20 hover:bg-white hover:text-black transition-all flex items-center justify-center gap-4"
+                                                    className="flex-1 py-6 bg-neon-red text-white rounded-3xl font-black text-xs uppercase tracking-[0.3em] shadow-xl shadow-neon-red/20 hover:bg-white hover:text-black transition-all flex items-center justify-center gap-4"
                                                 >
                                                     {status === 'loading' ? (
                                                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

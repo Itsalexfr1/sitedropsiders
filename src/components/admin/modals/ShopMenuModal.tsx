@@ -18,15 +18,15 @@ export function ShopMenuModal({ isOpen, onClose }: ShopMenuModalProps) {
                         exit={{ opacity: 0, scale: 0.95, y: 30 }}
                         className="bg-[#050505] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-[0_0_100px_rgba(255,18,114,0.15)] relative overflow-hidden"
                     >
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-pink via-white to-neon-pink" />
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
                         
                         {/* Background subtle glow */}
-                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-pink/10 blur-[100px] rounded-full" />
+                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 blur-[100px] rounded-full" />
 
                         <div className="flex justify-between items-start mb-12 relative z-10">
                             <div>
                                 <h2 className="text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                    GESTION <span className="text-neon-pink">BOUTIQUE</span>
+                                    GESTION <span className="text-neon-red">BOUTIQUE</span>
                                 </h2>
                                 <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Pilotage de l'E-Commerce Dropsiders</p>
                             </div>
@@ -43,10 +43,10 @@ export function ShopMenuModal({ isOpen, onClose }: ShopMenuModalProps) {
                                 to="/shop"
                                 target="_blank"
                                 onClick={onClose}
-                                className="p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-5 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
+                                className="p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-5 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
                             >
-                                <div className="w-14 h-14 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform flex-shrink-0">
-                                    <ShoppingBag className="w-7 h-7 text-neon-pink shadow-neon-pink" />
+                                <div className="w-14 h-14 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                    <ShoppingBag className="w-7 h-7 text-neon-red shadow-neon-red" />
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-black text-white uppercase italic leading-none mb-1">Voir le Shop</h3>
@@ -114,14 +114,14 @@ export function ShopMenuModal({ isOpen, onClose }: ShopMenuModalProps) {
                                 href="https://fourthwall.com/dashboard"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-6 bg-neon-pink/5 border border-neon-pink/20 rounded-3xl flex items-center gap-5 hover:bg-neon-pink/20 hover:border-neon-pink/50 transition-all group"
+                                className="p-6 bg-neon-red/5 border border-neon-red/20 rounded-3xl flex items-center gap-5 hover:bg-neon-red/20 hover:border-neon-red/50 transition-all group"
                             >
-                                <div className="w-14 h-14 bg-neon-pink/10 rounded-2xl flex items-center justify-center border border-neon-pink/20 group-hover:scale-110 transition-transform flex-shrink-0">
-                                    <ExternalLink className="w-7 h-7 text-neon-pink" />
+                                <div className="w-14 h-14 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/20 group-hover:scale-110 transition-transform flex-shrink-0">
+                                    <ExternalLink className="w-7 h-7 text-neon-red" />
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-black text-white uppercase italic leading-none mb-1">Fourthwall</h3>
-                                    <p className="text-[10px] text-neon-pink font-bold uppercase tracking-widest">Dashboard Externe</p>
+                                    <p className="text-[10px] text-neon-red font-bold uppercase tracking-widest">Dashboard Externe</p>
                                 </div>
                             </a>
                         </div>

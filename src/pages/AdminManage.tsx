@@ -41,7 +41,7 @@ const EDITOR_COLORS = [
     '#FFF01F', // neon-yellow
     '#FF5E00', // neon-orange
     '#00BFFF', // neon-blue
-    '#FF0099', // neon-pink
+    '#FF0099', // neon-red
     '#00FF88', // neon-mint
     '#7B61FF', // neon-indigo
     '#FFFFFF', // blanc
@@ -593,7 +593,7 @@ export function AdminManage() {
         { type: 'Interviews', icon: <Mic className="w-4 h-4" />, color: 'text-neon-purple' },
         { type: 'Focus', icon: <Star className="w-4 h-4" />, color: 'text-neon-yellow' },
         { type: 'Agenda', icon: <Calendar className="w-4 h-4" />, color: 'text-neon-yellow' },
-        { type: 'Communauté', icon: <ImageIcon className="w-4 h-4" />, color: 'text-neon-pink' },
+        { type: 'Communauté', icon: <ImageIcon className="w-4 h-4" />, color: 'text-neon-red' },
     ];
 
     return (
@@ -693,7 +693,7 @@ export function AdminManage() {
                     {activeTab === 'Communauté' && categories.length > 2 && (
                         <div className="flex flex-wrap gap-2 p-2 bg-white/5 rounded-2xl border border-white/10">
                             {categories.map((cat: string) => (
-                                <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-neon-pink text-white shadow-lg shadow-neon-pink/20' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{cat}</button>
+                                <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{cat}</button>
                             ))}
                         </div>
                     )}
@@ -954,7 +954,7 @@ export function AdminManage() {
                                                             if (cat.includes('fast quizz') || title.includes('fast quizz')) {
                                                                 label = 'Fast Quizz'; color = 'text-neon-cyan border-neon-cyan/40 bg-neon-cyan/10';
                                                             } else if (cat.includes('la playlist') || cat.includes('playlist') || title.includes('la playlist')) {
-                                                                label = 'La Playlist'; color = 'text-neon-pink border-neon-pink/40 bg-neon-pink/10';
+                                                                label = 'La Playlist'; color = 'text-neon-red border-neon-red/40 bg-neon-red/10';
                                                             } else if (cat.includes('drop & talk') || title.includes('drop & talk')) {
                                                                 label = 'Drop & Talk'; color = 'text-neon-yellow border-neon-yellow/40 bg-neon-yellow/10';
                                                             } else if (cat.includes('interview video')) {
@@ -1055,7 +1055,7 @@ export function AdminManage() {
                                                                     setActivePhotoId(item.id);
                                                                     setIsImageModalOpen(true);
                                                                 }}
-                                                                className={`p-3 text-gray-500 hover:bg-opacity-10 rounded-xl transition-all ${activeTab === 'Agenda' ? 'hover:text-neon-yellow hover:bg-neon-yellow/10' : 'hover:text-neon-pink hover:bg-neon-pink/10'}`}
+                                                                className={`p-3 text-gray-500 hover:bg-opacity-10 rounded-xl transition-all ${activeTab === 'Agenda' ? 'hover:text-neon-yellow hover:bg-neon-yellow/10' : 'hover:text-neon-red hover:bg-neon-red/10'}`}
                                                                 title="Changer uniquement la photo"
                                                             >
                                                                 <Camera className="w-5 h-5" />
@@ -1193,7 +1193,7 @@ export function AdminManage() {
                 isOpen={isImageModalOpen}
                 onClose={() => setIsImageModalOpen(false)}
                 onUploadSuccess={handleUpdatePhoto}
-                accentColor="neon-pink"
+                accentColor="neon-red"
                 aspect={4 / 3}
             />
 

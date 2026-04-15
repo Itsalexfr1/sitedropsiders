@@ -65,7 +65,7 @@ const EDITOR_COLORS = [
     '#FFF01F', // neon-yellow
     '#FF5E00', // neon-orange
     '#00BFFF', // neon-blue
-    '#FF0099', // neon-pink
+    '#FF0099', // neon-red
     '#00FF88', // neon-mint
     '#7B61FF', // neon-indigo
     '#FFFFFF', // blanc
@@ -2231,7 +2231,7 @@ ${generateSocialsHtml()}
                                     <button
                                         type="button"
                                         onClick={() => setMediaModal({ show: true, type: 'gallery', url: '', urls: '' })}
-                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-pink/10 border border-neon-pink/30 text-neon-pink rounded-full hover:bg-neon-pink/20 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-full hover:bg-neon-red/20 transition-all font-bold uppercase tracking-widest text-[9px]"
                                     >
                                         <Plus className="w-3 h-3" /> Galerie
                                     </button>

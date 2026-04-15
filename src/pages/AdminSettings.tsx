@@ -415,8 +415,8 @@ export function AdminSettings() {
                         className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-10 backdrop-blur-xl"
                     >
                         <div className="flex items-center gap-4 mb-8">
-                            <div className="p-3 bg-neon-pink/10 rounded-2xl">
-                                <Share2 className="w-6 h-6 text-neon-pink" />
+                            <div className="p-3 bg-neon-red/10 rounded-2xl">
+                                <Share2 className="w-6 h-6 text-neon-red" />
                             </div>
                             <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Réseaux Sociaux</h2>
                         </div>
@@ -442,7 +442,7 @@ export function AdminSettings() {
                                             type="text"
                                             value={(socials as any)[social.id] || ''}
                                             onChange={(e) => setSocials(prev => ({ ...prev, [social.id]: e.target.value }))}
-                                            className="w-full bg-black/40 border border-white/5 rounded-xl pl-12 pr-4 py-4 text-white font-bold text-xs focus:outline-none focus:border-neon-pink transition-all"
+                                            className="w-full bg-black/40 border border-white/5 rounded-xl pl-12 pr-4 py-4 text-white font-bold text-xs focus:outline-none focus:border-neon-red transition-all"
                                             placeholder={`Ex: ${social.placeholder}`}
                                         />
                                     </div>
@@ -535,12 +535,12 @@ export function AdminSettings() {
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="mt-8 md:mt-12 bg-gradient-to-br from-neon-pink/10 to-transparent border border-neon-pink/20 rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-neon-pink/5"
+                    className="mt-8 md:mt-12 bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-neon-red/5"
                 >
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         <div className="flex items-center gap-6">
-                            <div className="p-5 bg-neon-pink/20 rounded-[2rem] shadow-xl shadow-neon-pink/10 border border-neon-pink/30">
-                                <Bell className="w-8 h-8 text-neon-pink" />
+                            <div className="p-5 bg-neon-red/20 rounded-[2rem] shadow-xl shadow-neon-red/10 border border-neon-red/30">
+                                <Bell className="w-8 h-8 text-neon-red" />
                             </div>
                             <div>
                                 <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter mb-2 text-glow-pink">Notification Center</h2>
@@ -558,7 +558,7 @@ export function AdminSettings() {
                             <button
                                 onClick={handleTestPush}
                                 disabled={isTestingPush}
-                                className="flex items-center gap-3 px-8 py-5 bg-neon-pink text-white rounded-[2rem] font-black uppercase text-[10px] tracking-[0.2em] hover:bg-white hover:text-black transition-all active:scale-95 disabled:opacity-50 group shadow-lg shadow-neon-pink/20"
+                                className="flex items-center gap-3 px-8 py-5 bg-neon-red text-white rounded-[2rem] font-black uppercase text-[10px] tracking-[0.2em] hover:bg-white hover:text-black transition-all active:scale-95 disabled:opacity-50 group shadow-lg shadow-neon-red/20"
                             >
                                 <Send className={`w-4 h-4 transition-transform ${isTestingPush ? 'animate-bounce' : 'group-hover:translate-x-1 group-hover:-translate-y-1'}`} />
                                 {isTestingPush ? 'Envoi...' : 'Tester le Broadcast'}

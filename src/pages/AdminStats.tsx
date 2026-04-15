@@ -318,7 +318,7 @@ export function AdminStats() {
         { label: language === 'fr' ? 'Interviews' : 'Interviews', value: stats.content.interviews, color: 'bg-neon-purple', hex: '#8b5cf6' },
         { label: language === 'fr' ? 'Récaps' : 'Recaps', value: stats.content.recaps, color: 'bg-neon-red', hex: '#ff0033' },
         { label: language === 'fr' ? 'Agenda' : 'Agenda', value: stats.content.agenda, color: 'bg-yellow-400', hex: '#facc15' },
-        { label: language === 'fr' ? 'Communauté' : 'Community', value: stats.content.communaute, color: 'bg-neon-pink', hex: '#ec4899' },
+        { label: language === 'fr' ? 'Communauté' : 'Community', value: stats.content.communaute, color: 'bg-neon-red', hex: '#ec4899' },
     ];
 
     const visitData = visitPeriod === 'day' ? stats.visits.day : visitPeriod === 'month' ? stats.visits.month : stats.visits.year;
@@ -389,7 +389,7 @@ export function AdminStats() {
                                                 <div className="flex-1 min-w-0">
                                                     <h4 className="text-lg font-bold text-white truncate pr-4 group-hover:text-neon-red transition-colors">{item.title}</h4>
                                                     <div className="flex items-center gap-3 mt-1">
-                                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest text-white shadow-sm ${item.type === 'News' ? 'bg-neon-blue' : item.type === 'Recap' ? 'bg-neon-red' : item.type === 'Agenda' ? 'bg-neon-yellow !text-black' : item.type === 'Galerie' ? 'bg-neon-pink' : 'bg-neon-purple'}`}>{item.type}</span>
+                                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest text-white shadow-sm ${item.type === 'News' ? 'bg-neon-blue' : item.type === 'Recap' ? 'bg-neon-red' : item.type === 'Agenda' ? 'bg-neon-yellow !text-black' : item.type === 'Galerie' ? 'bg-neon-red' : 'bg-neon-purple'}`}>{item.type}</span>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">

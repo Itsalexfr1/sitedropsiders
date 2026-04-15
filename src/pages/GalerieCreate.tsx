@@ -15,7 +15,7 @@ const EDITOR_COLORS = [
     '#FFF01F', // neon-yellow
     '#FF5E00', // neon-orange
     '#00BFFF', // neon-blue
-    '#FF0099', // neon-pink
+    '#FF0099', // neon-red
     '#00FF88', // neon-mint
     '#7B61FF', // neon-indigo
     '#FFFFFF', // blanc
@@ -302,7 +302,7 @@ export function GalerieCreate() {
                                 </div>
                             </div>
                             <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                Studio <span className="text-neon-pink">Gallery</span>
+                                Studio <span className="text-neon-red">Gallery</span>
                             </h1>
                         </div>
                     </div>
@@ -327,7 +327,7 @@ export function GalerieCreate() {
                             disabled={status === 'loading'}
                             className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
                                 ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                : 'bg-neon-pink hover:scale-105 active:scale-95 text-black shadow-[0_0_20px_rgba(255,0,149,0.4)]'
+                                : 'bg-neon-red hover:scale-105 active:scale-95 text-black shadow-[0_0_20px_rgba(255,0,149,0.4)]'
                                 }`}
                         >
                             <Calendar className="w-4 h-4" />
@@ -341,7 +341,7 @@ export function GalerieCreate() {
                         {/* Author Selector */}
                         <div data-section="editor-selection" className="space-y-6 pb-8 border-b border-white/10 mb-8">
                             <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                <User className="w-3 h-3 text-neon-pink" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
+                                <User className="w-3 h-3 text-neon-red" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
                             </label>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -392,7 +392,7 @@ export function GalerieCreate() {
 
                             <div
                                 className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
-                                    ? 'bg-neon-pink/5 border-neon-pink/30'
+                                    ? 'bg-neon-red/5 border-neon-red/30'
                                     : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
                                     }`}
                                 onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
@@ -400,7 +400,7 @@ export function GalerieCreate() {
                                 <button
                                     type="button"
                                     className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
-                                        ? 'bg-neon-pink border-neon-pink shadow-[0_0_10px_rgba(255,18,65,0.3)]'
+                                        ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.3)]'
                                         : 'bg-black/40 border-white/20'
                                         }`}
                                 >
@@ -420,13 +420,13 @@ export function GalerieCreate() {
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre de l'Album <span className="text-neon-red">*</span></label>
                             <div className="relative group">
-                                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-pink transition-colors" />
+                                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-red transition-colors" />
                                 <input
                                     type="text"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     placeholder="Ex: TOMORROWLAND 2024"
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all"
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red focus:ring-1 focus:ring-neon-red transition-all"
                                     required
                                 />
                             </div>
@@ -438,11 +438,11 @@ export function GalerieCreate() {
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Catégorie</label>
                                 <div className="relative group">
-                                    <Grid className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-pink transition-colors" />
+                                    <Grid className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-red transition-colors" />
                                     <select
                                         value={category}
                                         onChange={(e) => setCategory(e.target.value)}
-                                        className="w-full bg-gray-900 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all appearance-none"
+                                        className="w-full bg-gray-900 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red focus:ring-1 focus:ring-neon-red transition-all appearance-none"
                                     >
                                         <option value="Festivals">Festivals</option>
                                         <option value="Clubs & Events">Clubs & Events</option>
@@ -457,13 +457,13 @@ export function GalerieCreate() {
                             <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Image de couverture (Optionnel)</label>
                             <div className="flex gap-2">
                                 <div className="relative group flex-1">
-                                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-pink transition-colors" />
+                                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-red transition-colors" />
                                     <input
                                         type="text"
                                         value={coverUrl}
                                         onChange={(e) => setCoverUrl(e.target.value)}
                                         placeholder="Laisser vide pour la 1ère image ou uploadez"
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-10 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-10 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red focus:ring-1 focus:ring-neon-red transition-all"
                                     />
                                     {coverUrl && (
                                         <button
@@ -482,7 +482,7 @@ export function GalerieCreate() {
                                         setUploadTarget('cover');
                                         setShowUploadModal(true);
                                     }}
-                                    className="px-6 py-4 bg-neon-pink/20 border border-neon-pink/50 text-neon-pink rounded-xl font-bold uppercase tracking-wider hover:bg-neon-pink/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
+                                    className="px-6 py-4 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-xl font-bold uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
                                 >
                                     Upload
                                 </button>
@@ -545,7 +545,7 @@ export function GalerieCreate() {
                                             setUploadTarget('gallery');
                                             setShowUploadModal(true);
                                         }}
-                                        className="px-4 py-2 bg-neon-pink/20 border border-neon-pink/50 text-neon-pink rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-neon-pink/30 transition-all cursor-pointer flex items-center gap-2"
+                                        className="px-4 py-2 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex items-center gap-2"
                                     >
                                         📥 Ajouter des photos
                                     </button>
@@ -557,7 +557,7 @@ export function GalerieCreate() {
                                     value={imageUrls}
                                     onChange={(e) => setImageUrls(e.target.value)}
                                     placeholder="https://site.com/image1.jpg&#10;https://site.com/image2.jpg"
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-4 px-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all h-48 font-mono text-sm"
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-4 px-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red focus:ring-1 focus:ring-neon-red transition-all h-48 font-mono text-sm"
                                 />
                             )}
 
@@ -568,7 +568,7 @@ export function GalerieCreate() {
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                                     {imageUrls.split('\n').filter(u => u.trim()).map((url, idx) => (
-                                        <div key={idx} className="aspect-square relative rounded-2xl overflow-hidden border-2 border-white/5 bg-black/40 group hover:border-neon-pink transition-all">
+                                        <div key={idx} className="aspect-square relative rounded-2xl overflow-hidden border-2 border-white/5 bg-black/40 group hover:border-neon-red transition-all">
                                             <img
                                                 src={url.trim()}
                                                 alt={`Preview ${idx}`}
@@ -645,9 +645,9 @@ export function GalerieCreate() {
                                             setUploadTarget('gallery');
                                             setShowUploadModal(true);
                                         }}
-                                        className="aspect-square border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-neon-pink/50 transition-all group"
+                                        className="aspect-square border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-neon-red/50 transition-all group"
                                     >
-                                        <Plus className="w-8 h-8 text-gray-700 group-hover:text-neon-pink transition-colors" />
+                                        <Plus className="w-8 h-8 text-gray-700 group-hover:text-neon-red transition-colors" />
                                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ajouter</span>
                                     </button>
                                 </div>
@@ -674,7 +674,7 @@ export function GalerieCreate() {
                                 disabled={status === 'loading'}
                                 className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${status === 'loading'
                                     ? 'bg-gray-600 cursor-not-allowed'
-                                    : 'bg-neon-pink text-black hover:shadow-[0_0_20px_rgba(255,0,149,0.4)] hover:scale-[1.02]'
+                                    : 'bg-neon-red text-black hover:shadow-[0_0_20px_rgba(255,0,149,0.4)] hover:scale-[1.02]'
                                     }`}
                             >
                                 <Calendar className="w-5 h-5" />
@@ -740,7 +740,7 @@ export function GalerieCreate() {
                     }
                     setShowUploadModal(false);
                 }}
-                accentColor="neon-pink"
+                accentColor="neon-red"
             />
 
             {/* Schedule Modal (Year Selection) */}
@@ -767,8 +767,8 @@ export function GalerieCreate() {
                                 <X className="w-5 h-5" />
                             </button>
 
-                            <div className="w-12 h-12 bg-neon-pink/10 rounded-2xl flex items-center justify-center border border-neon-pink/30 mb-6">
-                                <Calendar className="w-6 h-6 text-neon-pink" />
+                            <div className="w-12 h-12 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/30 mb-6">
+                                <Calendar className="w-6 h-6 text-neon-red" />
                             </div>
 
                             <h3 className="text-xl font-display font-black text-white uppercase italic mb-2">
@@ -791,13 +791,13 @@ export function GalerieCreate() {
                                         </button>
                                     </div>
                                     <div className="relative group">
-                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-neon-pink transition-colors" />
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-neon-red transition-colors" />
                                         <input
                                             type="number"
                                             value={date}
                                             onChange={(e) => setDate(e.target.value)}
                                             placeholder="2024"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:border-neon-pink outline-none transition-all"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:border-neon-red outline-none transition-all"
                                         />
                                     </div>
                                 </div>
@@ -808,7 +808,7 @@ export function GalerieCreate() {
                                             setShowScheduleModal(false);
                                             handleSubmit(e, false);
                                         }}
-                                        className="w-full py-4 bg-neon-pink text-black rounded-xl font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,149,0.3)]"
+                                        className="w-full py-4 bg-neon-red text-black rounded-xl font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,149,0.3)]"
                                     >
                                         Confirmer & Publier
                                     </button>

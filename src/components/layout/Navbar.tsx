@@ -97,7 +97,7 @@ export function Navbar() {
         { name: navLabels.vols || t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
         { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
-        { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-pink' },
+        { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-red' },
         { name: 'TOP', path: '/top-dropsiders', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
         { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-yellow' },
@@ -384,7 +384,7 @@ export function Navbar() {
                                             <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
                                                 {[
                                                     { name: 'Techno', color: 'text-neon-red border-neon-red/20 hover:bg-neon-red/10' },
-                                                    { name: 'House', color: 'text-neon-pink border-neon-pink/20 hover:bg-neon-pink/10' },
+                                                    { name: 'House', color: 'text-neon-red border-neon-red/20 hover:bg-neon-red/10' },
                                                     { name: 'Tech House', color: 'text-neon-green border-neon-green/20 hover:bg-neon-green/10' },
                                                     { name: 'Progressive', color: 'text-neon-cyan border-neon-cyan/20 hover:bg-neon-cyan/10' },
                                                     { name: 'Trance', color: 'text-neon-blue border-neon-blue/20 hover:bg-neon-blue/10' },
@@ -553,7 +553,7 @@ const getThemeColor = (colorClass: string) => {
         case 'neon-green': return 'rgba(57, 255, 20, 0.15)';
         case 'neon-purple': return 'rgba(191, 0, 255, 0.15)';
         case 'neon-cyan': return 'rgba(34, 211, 238, 0.15)';
-        case 'neon-pink': return 'rgba(255, 0, 153, 0.15)';
+        case 'neon-red': return 'rgba(255, 0, 153, 0.15)';
         case 'neon-blue': return 'rgba(0, 191, 255, 0.15)';
         case 'neon-yellow': return 'rgba(255, 240, 31, 0.15)';
         default: return 'rgba(255, 255, 255, 0.1)';
@@ -566,7 +566,7 @@ const getThemeBorder = (colorClass: string) => {
         case 'neon-green': return 'rgba(57, 255, 20, 0.3)';
         case 'neon-purple': return 'rgba(191, 0, 255, 0.3)';
         case 'neon-cyan': return 'rgba(34, 211, 238, 0.3)';
-        case 'neon-pink': return 'rgba(255, 0, 153, 0.3)';
+        case 'neon-red': return 'rgba(255, 0, 153, 0.3)';
         case 'neon-blue': return 'rgba(0, 191, 255, 0.3)';
         case 'neon-yellow': return 'rgba(255, 240, 31, 0.3)';
         default: return 'rgba(255, 255, 255, 0.2)';
@@ -602,7 +602,7 @@ function NavItem({ item, isActive }: NavItemProps) {
                         ? (item.color === 'neon-green' ? "text-neon-green drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]" :
                             item.color === 'neon-purple' ? "text-neon-purple drop-shadow-[0_0_8px_rgba(191,0,255,0.5)]" :
                                 item.color === 'neon-cyan' ? "text-neon-cyan drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]" :
-                                    item.color === 'neon-pink' ? "text-neon-pink drop-shadow-[0_0_8px_rgba(255,0,153,0.5)]" :
+                                    item.color === 'neon-red' ? "text-neon-red drop-shadow-[0_0_8px_rgba(255,0,153,0.5)]" :
                                         item.color === 'neon-blue' ? "text-neon-blue drop-shadow-[0_0_8px_rgba(0,191,255,0.5)]" :
                                             item.color === 'neon-yellow' ? "text-neon-yellow drop-shadow-[0_0_8px_rgba(255,240,31,0.5)]" :
                                                 "text-neon-red drop-shadow-[0_0_8px_rgba(255,18,65,0.5)]")
@@ -641,7 +641,8 @@ function NavItem({ item, isActive }: NavItemProps) {
                         </span>
                     )}
                 </span>
-                {/* Sliding Glass Background - Hover & Active */}
+
+                {/* Sliding Glass Background - Hover & Active */}
                 {(isHovered || isActive) && (
                     <motion.div
                         layoutId="nav-sliding-glass"
@@ -672,7 +673,7 @@ function NavItem({ item, isActive }: NavItemProps) {
                             item.color === 'neon-green' ? "bg-neon-green shadow-[0_0_15px_rgba(57,255,20,0.8)]" :
                             item.color === 'neon-purple' ? "bg-neon-purple shadow-[0_0_15px_rgba(191,0,255,0.8)]" :
                             item.color === 'neon-cyan' ? "bg-neon-cyan shadow-[0_0_15px_rgba(34,211,238,0.8)]" :
-                            item.color === 'neon-pink' ? "bg-neon-pink shadow-[0_0_15px_rgba(255,0,153,0.8)]" :
+                            item.color === 'neon-red' ? "bg-neon-red shadow-[0_0_15px_rgba(255,0,153,0.8)]" :
                             item.color === 'neon-blue' ? "bg-neon-blue shadow-[0_0_15px_rgba(0,191,255,0.8)]" :
                             item.color === 'neon-yellow' ? "bg-neon-yellow shadow-[0_0_15px_rgba(255,240,31,0.8)]" :
                             "bg-neon-red shadow-[0_0_15px_rgba(255,18,65,0.8)]"

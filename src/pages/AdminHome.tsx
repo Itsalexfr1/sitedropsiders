@@ -186,7 +186,7 @@ function ReorderableItem({ item, updateItem, getColorValue, socials, updateSocia
 
                             {item.id === 'social_grid' && (
                                 <div className="w-full mt-4 p-4 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                    <h4 className="text-[10px] font-black uppercase text-neon-pink tracking-[0.2em] mb-2 flex items-center gap-2">
+                                    <h4 className="text-[10px] font-black uppercase text-neon-red tracking-[0.2em] mb-2 flex items-center gap-2">
                                         <Share2 className="w-3 h-3" />
                                         Configuration des réseaux
                                     </h4>

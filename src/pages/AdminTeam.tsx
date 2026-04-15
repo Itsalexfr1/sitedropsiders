@@ -325,7 +325,7 @@ export function AdminTeam() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">
-                                                <Instagram className="w-3 h-3 text-neon-pink" /> Instagram
+                                                <Instagram className="w-3 h-3 text-neon-red" /> Instagram
                                             </label>
                                             <input
                                                 type="text"

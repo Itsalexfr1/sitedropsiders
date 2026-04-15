@@ -841,7 +841,7 @@ export function QuizSection() {
                                         {isContestModeActive && (
                                             <button
                                                 onClick={() => setIsContestValidationOpen(true)}
-                                                className="px-12 py-4 bg-neon-pink text-white rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white hover:text-black transition-all shadow-xl shadow-neon-pink/20 flex items-center gap-3"
+                                                className="px-12 py-4 bg-neon-red text-white rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white hover:text-black transition-all shadow-xl shadow-neon-red/20 flex items-center gap-3"
                                             >
                                                 <Instagram className="w-4 h-4" />
                                                 VALIDER MA PARTICIPATION AU CONCOURS

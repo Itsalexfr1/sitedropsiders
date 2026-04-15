@@ -458,7 +458,7 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                                         {onOpenSocialStudio && (
                                             <button
                                                 onClick={() => onOpenSocialStudio(editedTexts[selectedPlatform] || sourceText, imageUrl)}
-                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-neon-pink/10 to-purple-500/10 border border-neon-pink/20 rounded-xl text-neon-pink text-[10px] font-black uppercase tracking-widest hover:from-neon-pink/20 hover:to-purple-500/20 transition-all"
+                                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-neon-red/10 to-purple-500/10 border border-neon-red/20 rounded-xl text-neon-red text-[10px] font-black uppercase tracking-widest hover:from-neon-red/20 hover:to-purple-500/20 transition-all"
                                             >
                                                 <Layout className="w-3.5 h-3.5" />
                                                 Ouvrir dans Social Studio
