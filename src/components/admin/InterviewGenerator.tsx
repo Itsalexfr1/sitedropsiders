@@ -115,7 +115,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         for (let i = 0; i < cards.length; i++) {
             const card = cards[i] as HTMLElement;
             const canvas = await html2canvas(card, {
-                scale: 3, 
+                scale: 2, // Optimized scale
                 backgroundColor: '#ffffff',
                 logging: false,
                 useCORS: true
@@ -127,7 +127,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             const filename = i === 0 ? '00_Interview_Recto.png' : `Page_${String(i).padStart(2, '0')}.png`;
             zip.file(filename, base64Data, { base64: true });
             
-            await new Promise(r => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, 50));
         }
 
         const content = await zip.generateAsync({ type: "blob" });
@@ -149,19 +149,18 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         for (let i = 0; i < cards.length; i++) {
             const card = cards[i] as HTMLElement;
             const canvas = await html2canvas(card, {
-                scale: 3,
+                scale: 2, // High enough for PDF but much faster
                 backgroundColor: '#ffffff',
                 logging: false,
                 useCORS: true
             });
             
-            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const imgData = canvas.toDataURL('image/jpeg', 0.9);
             
             if (i > 0) pdf.addPage();
-            // A5 is 148 x 210 mm
             pdf.addImage(imgData, 'JPEG', 0, 0, 148, 210);
             
-            await new Promise(r => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, 50));
         }
 
         pdf.save("Interview_Cards_Dropsiders.pdf");
