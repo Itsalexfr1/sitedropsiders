@@ -4023,7 +4023,7 @@ ${urls.map(u => `  <url>
         if (path === '/api/admin/validate-photo' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
-                const { location, entityId } = await request.json();
+                const { location, entityId, newUrl } = await request.json();
                 if (!location || entityId === undefined) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
 
                 const filePath = `src/data/${location}`;
@@ -4038,12 +4038,21 @@ ${urls.map(u => `  <url>
                 // Mark as verified
                 if (Array.isArray(file.content)) {
                     file.content[index].photo_verified = true;
-                    // If it's a wiki entry, also set status to verified
+                    if (newUrl) {
+                        if (file.content[index].image !== undefined) file.content[index].image = newUrl;
+                        else if (file.content[index].cover !== undefined) file.content[index].cover = newUrl;
+                        else if (file.content[index].photo !== undefined) file.content[index].photo = newUrl;
+                    }
                     if (location.includes('wiki_')) {
                         file.content[index].status = 'verified';
                     }
                 } else {
                     file.content.photo_verified = true;
+                    if (newUrl) {
+                        if (file.content.image !== undefined) file.content.image = newUrl;
+                        else if (file.content.cover !== undefined) file.content.cover = newUrl;
+                        else if (file.content.photo !== undefined) file.content.photo = newUrl;
+                    }
                     if (location.includes('wiki_')) {
                         file.content.status = 'verified';
                     }
@@ -4053,6 +4062,98 @@ ${urls.map(u => `  <url>
                 if (!saved.ok) return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/admin/auto-fix-photos' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { brokenImages } = await request.json(); 
+                if (!Array.isArray(brokenImages)) return new Response(JSON.stringify({ error: 'Missing array' }), { status: 400, headers });
+
+                // 1. Fetch all R2 objects once to create a quick lookup map
+                const allR2Keys: string[] = [];
+                let cursor;
+                do {
+                    const listResult = await env.R2.list({ cursor, prefix: 'uploads/' });
+                    if (listResult.objects) {
+                        listResult.objects.forEach(o => allR2Keys.push(o.key));
+                    }
+                    cursor = listResult.truncated ? listResult.cursor : null;
+                } while (cursor);
+
+                let rootCursor;
+                do {
+                    const listResult = await env.R2.list({ cursor: rootCursor });
+                    if (listResult.objects) {
+                        listResult.objects.forEach(o => {
+                            if (!o.key.startsWith('uploads/')) allR2Keys.push(o.key);
+                        });
+                    }
+                    rootCursor = listResult.truncated ? listResult.cursor : null;
+                } while (rootCursor);
+
+                // Create a map from FILENAME to R2 FULL KEY
+                const nameToKeyMap = new Map();
+                allR2Keys.forEach(k => {
+                    const filename = k.split('/').pop();
+                    if (filename && !nameToKeyMap.has(filename)) { 
+                        nameToKeyMap.set(filename, k);
+                    }
+                });
+
+                let fixedCount = 0;
+                const grouped: Record<string, any[]> = {};
+                for (const img of brokenImages) {
+                    const filename = img.key.split('/').pop();
+                    if (!filename) continue;
+
+                    const matchKey = nameToKeyMap.get(filename);
+                    if (matchKey) {
+                        // Found it! Map it to a new URL
+                        const newUrl = matchKey.startsWith('http') ? matchKey : `/uploads/${matchKey.replace('uploads/', '')}`;
+                        
+                        if (!grouped[img.location]) grouped[img.location] = [];
+                        grouped[img.location].push({ entityId: img.entityId, newUrl });
+                    }
+                }
+
+                // 3. Update the files
+                for (const [location, fixes] of Object.entries(grouped)) {
+                    const filePath = `src/data/${location}`;
+                    const file = await fetchGitHubFile(filePath, gitConfig);
+                    if (!file) continue;
+
+                    const items = Array.isArray(file.content) ? file.content : [file.content];
+                    let modified = false;
+
+                    for (const fix of fixes) {
+                        const index = items.findIndex((item: any, idx: number) => (item.id !== undefined ? String(item.id) === String(fix.entityId) : idx === fix.entityId));
+                        if (index !== -1) {
+                            if (Array.isArray(file.content)) {
+                                file.content[index].photo_verified = true;
+                                if (file.content[index].image !== undefined) file.content[index].image = fix.newUrl;
+                                else if (file.content[index].cover !== undefined) file.content[index].cover = fix.newUrl;
+                                else if (file.content[index].photo !== undefined) file.content[index].photo = fix.newUrl;
+                            } else {
+                                file.content.photo_verified = true;
+                                if (file.content.image !== undefined) file.content.image = fix.newUrl;
+                                else if (file.content.cover !== undefined) file.content.cover = fix.newUrl;
+                                else if (file.content.photo !== undefined) file.content.photo = fix.newUrl;
+                            }
+                            modified = true;
+                            fixedCount++;
+                        }
+                    }
+
+                    if (modified) {
+                        await saveGitHubFile(filePath, file.content, `Auto-fix ${fixes.length} broken photos in ${location}`, file.sha, gitConfig);
+                    }
+                }
+
+                return new Response(JSON.stringify({ success: true, fixedCount }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }

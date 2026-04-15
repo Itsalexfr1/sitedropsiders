@@ -1185,14 +1185,15 @@ export function AdminDashboard() {
         }
     };
 
-    const handleValidatePhoto = async (img: any) => {
+    const handleValidatePhoto = async (img: any, newUrl?: string) => {
         try {
             const res = await apiFetch('/api/admin/validate-photo', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
                     location: img.location,
-                    entityId: img.entityId
+                    entityId: img.entityId,
+                    newUrl: newUrl
                 })
             });
             if (res.ok) {
@@ -1206,6 +1207,36 @@ export function AdminDashboard() {
         } catch (e) {
             console.error(e);
             setGlobalAlert({ message: "Erreur réseau lors de la validation.", type: 'danger' });
+        }
+                setGlobalAlert({ message: "Erreur réseau lors de la validation.", type: 'danger' });
+        }
+    };
+
+    const [isAutoFixing, setIsAutoFixing] = useState(false);
+
+    const handleAutoFixPhotos = async () => {
+        if (!window.confirm("Lancer l'auto-réparation cherchera chaque image dans R2 et remplacera automatiquement le lien si elle est trouvée. Continuer ?")) return;
+        
+        setIsAutoFixing(true);
+        try {
+            const res = await apiFetch('/api/admin/auto-fix-photos', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ brokenImages })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setGlobalAlert({ title: "AUTO-FIX TERMINE", message: `${data.fixedCount} photos ont été retrouvées et corrigées automatiquement ! Veuillez re-scanner pour voir la différence.`, type: 'info' });
+                if (data.fixedCount > 0) {
+                    fetchBrokenImages(); // Re-scan pour actualiser la liste
+                }
+            } else {
+                setGlobalAlert({ message: "Erreur : " + data.error, type: 'danger' });
+            }
+        } catch (e) {
+            setGlobalAlert({ message: "Erreur réseau lors de la recherche automatique", type: 'danger' });
+        } finally {
+            setIsAutoFixing(false);
         }
     };
 
@@ -8083,9 +8114,10 @@ export function AdminDashboard() {
                         setCurrentBrokenImageToFix(null);
                     }}
                     forceFilename={currentBrokenImageToFix?.key?.split('/').pop()}
-                    onUploadSuccess={() => {
+                    onUploadSuccess={(urls) => {
+                        const uploadedUrl = Array.isArray(urls) ? urls[0] : urls;
                         if (currentBrokenImageToFix) {
-                            handleValidatePhoto(currentBrokenImageToFix);
+                            handleValidatePhoto(currentBrokenImageToFix, uploadedUrl);
                             setGlobalAlert({ message: "Photo uploadée et corrigée avec succès !", type: 'info' });
                         }
                     }}
@@ -8225,15 +8257,25 @@ export function AdminDashboard() {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         {brokenImages.length > 0 && (
-                                            <button
-                                                onClick={() => {
-                                                    if (selectedBrokenImages.length === brokenImages.length) setSelectedBrokenImages([]);
-                                                    else setSelectedBrokenImages([...brokenImages]);
-                                                }}
-                                                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-white/10 transition-all font-outfit"
-                                            >
-                                                {selectedBrokenImages.length === brokenImages.length ? "Tout désélectionner" : "Tout sélectionner"}
-                                            </button>
+                                            <>
+                                                <button
+                                                    onClick={handleAutoFixPhotos}
+                                                    disabled={isAutoFixing}
+                                                    className="px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/20 transition-all font-outfit disabled:opacity-50 flex items-center gap-2"
+                                                >
+                                                    {isAutoFixing ? <Loader2 className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
+                                                    Auto-Réparation R2
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        if (selectedBrokenImages.length === brokenImages.length) setSelectedBrokenImages([]);
+                                                        else setSelectedBrokenImages([...brokenImages]);
+                                                    }}
+                                                    className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-white/10 transition-all font-outfit"
+                                                >
+                                                    {selectedBrokenImages.length === brokenImages.length ? "Tout désélectionner" : "Tout sélectionner"}
+                                                </button>
+                                            </>
                                         )}
                                         <button
                                             onClick={() => {
