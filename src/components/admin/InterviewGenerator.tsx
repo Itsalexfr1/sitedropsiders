@@ -123,104 +123,119 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     // Builds card HTML with ONLY inline styles in an isolated iframe (no Tailwind!)
     // and captures it via html2canvas. This is immune to oklab/oklch CSS crashes.
 
-    const buildCardHTML = (type: 'cover' | 'questions', chunk?: InterviewQuestion[], chunkIdx?: number) => {
+    const loadImageAsBase64 = (src: string): Promise<string> => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth || 200;
+                canvas.height = img.naturalHeight || 60;
+                const ctx = canvas.getContext('2d')!;
+                ctx.drawImage(img, 0, 0);
+                resolve(canvas.toDataURL('image/png'));
+            };
+            img.onerror = () => resolve(''); // fail silently
+            img.src = src;
+        });
+    };
+
+    const buildCardHTML = (
+        type: 'cover' | 'questions',
+        chunk?: InterviewQuestion[],
+        chunkIdx?: number,
+        logoBase64?: string
+    ) => {
+        const logoSrc = logoBase64 || '/Logo.png';
         const gradientHeader = theme === 'red'
-            ? 'linear-gradient(to right, #ff0000, #ff3355, #000000)'
+            ? 'linear-gradient(to right, #ff0000, #cc0022, #000000)'
             : theme === 'cyan'
             ? 'linear-gradient(to right, #00f0ff, #0066ff, #000000)'
             : 'linear-gradient(to right, #bc13fe, #ff00ff, #000000)';
         const gradientCover = theme === 'red'
-            ? 'linear-gradient(to bottom, #ff0000, #dd1133, #000000)'
+            ? 'linear-gradient(160deg, #ff0000 0%, #cc0022 40%, #550011 70%, #000000 100%)'
             : theme === 'cyan'
-            ? 'linear-gradient(to bottom, #00f0ff, #0066ff, #000000)'
-            : 'linear-gradient(to bottom, #bc13fe, #dd00ff, #000000)';
-        const accentColor = theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe';
-        const textColor = theme === 'red' ? '#dc2626' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce';
-
+            ? 'linear-gradient(160deg, #00f0ff 0%, #0066ff 50%, #000000 100%)'
+            : 'linear-gradient(160deg, #bc13fe 0%, #dd00ff 50%, #000000 100%)';
+        const accentColor = theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000099' : '#bc13fe';
+        const textColor = theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce';
         const logoSizePx = headerLogoSize * 4;
 
         if (type === 'cover') {
             const festivalSection = festivalLogo ? `
-                <div style="margin-top:32px;display:flex;flex-direction:column;align-items:center;gap:12px;">
-                    <span style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:700;text-transform:uppercase;letter-spacing:0.4em;">Official Coverage at</span>
-                    <img src="${festivalLogo}" style="height:160px;object-fit:contain;filter:brightness(0) invert(1);" crossorigin="anonymous" />
+                <div style="margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:10px;">
+                    <span style="font-size:9px;color:rgba(255,255,255,0.4);font-weight:700;text-transform:uppercase;letter-spacing:0.4em;font-family:Arial,sans-serif;">Official Coverage at</span>
+                    <img src="${festivalLogo}" style="height:130px;object-fit:contain;filter:brightness(0) invert(1);" crossorigin="anonymous" />
                 </div>` : '';
-            return `
-                <div style="width:420px;height:595px;background:${gradientCover};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 48px;position:relative;overflow:hidden;box-sizing:border-box;">
-                    <div style="position:absolute;top:0;right:0;width:300px;height:300px;background:rgba(255,255,255,0.15);border-radius:50%;filter:blur(80px);transform:translate(40%,-40%);pointer-events:none;"></div>
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:28px;position:relative;z-index:10;">
-                        <img src="/Logo.png" style="height:36px;filter:brightness(0) invert(1);" crossorigin="anonymous" />
-                        <div style="width:60px;height:3px;background:rgba(255,255,255,0.4);border-radius:99px;"></div>
-                        <div style="text-align:center;">
-                            <div style="font-size:56px;font-family:Arial Black,sans-serif;font-weight:900;color:#ffffff;font-style:italic;text-transform:uppercase;line-height:1;letter-spacing:-2px;margin:0;">Interview</div>
-                            <div style="font-size:56px;font-family:Arial Black,sans-serif;font-weight:900;color:rgba(255,255,255,0.45);font-style:italic;text-transform:uppercase;line-height:1;letter-spacing:-2px;margin:0;">Questions</div>
-                            <p style="font-size:11px;color:rgba(255,255,255,0.55);font-weight:700;text-transform:uppercase;letter-spacing:0.5em;margin-top:16px;">Live Report 2026</p>
+
+            return `<div style="width:420px;height:595px;background:${gradientCover};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 48px;position:relative;overflow:hidden;box-sizing:border-box;">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:24px;position:relative;z-index:2;">
+                        <img src="${logoSrc}" style="height:34px;filter:brightness(0) invert(1);display:block;" crossorigin="anonymous" />
+                        <div style="width:56px;height:3px;background:rgba(255,255,255,0.45);border-radius:99px;"></div>
+                        <div style="text-align:center;line-height:1;">
+                            <div style="font-size:58px;font-family:Arial Black,Impact,sans-serif;font-weight:900;color:#ffffff;font-style:italic;text-transform:uppercase;line-height:0.95;letter-spacing:-2px;">Interview</div>
+                            <div style="font-size:58px;font-family:Arial Black,Impact,sans-serif;font-weight:900;color:rgba(255,255,255,0.4);font-style:italic;text-transform:uppercase;line-height:0.95;letter-spacing:-2px;">Questions</div>
+                            <div style="font-size:10px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.55em;margin-top:14px;font-family:Arial,sans-serif;">Live Report 2026</div>
                         </div>
                         ${festivalSection}
                     </div>
-                    <div style="position:absolute;bottom:40px;left:0;width:100%;text-align:center;opacity:0.3;">
-                        <span style="font-size:7px;color:#ffffff;font-weight:900;text-transform:uppercase;letter-spacing:0.8em;">DROPSIDERS EXCLUSIVE</span>
+                    <div style="position:absolute;bottom:38px;left:0;width:100%;text-align:center;opacity:0.25;">
+                        <span style="font-size:7px;color:#ffffff;font-weight:700;text-transform:uppercase;letter-spacing:0.8em;font-family:Arial,sans-serif;">DROPSIDERS EXCLUSIVE</span>
                     </div>
                 </div>`;
         }
 
         // Question page
         const watermarkHTML = festivalLogo ? `
-            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:rotate(12deg);opacity:${watermarkOpacity / 100};pointer-events:none;z-index:1;">
+            <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;transform:rotate(12deg);opacity:${watermarkOpacity / 100};pointer-events:none;z-index:1;">
                 <img src="${festivalLogo}" style="width:${watermarkScale}%;filter:brightness(0);" crossorigin="anonymous" />
             </div>` : '';
 
         const questionsHTML = (chunk || []).map(q => `
-            <div style="display:flex;gap:18px;align-items:flex-start;border-bottom:1px solid rgba(0,0,0,0.07);padding-bottom:14px;">
-                <span style="font-size:15px;font-family:Arial Black,sans-serif;font-weight:900;font-style:italic;flex-shrink:0;width:22px;color:${accentColor};line-height:1.2;">${q.number.padStart(2, '0')}</span>
+            <div style="display:flex;gap:16px;align-items:flex-start;border-bottom:1px solid rgba(0,0,0,0.08);padding-bottom:12px;">
+                <span style="font-size:14px;font-family:Arial Black,Impact,sans-serif;font-weight:900;font-style:italic;flex-shrink:0;width:20px;color:${accentColor};line-height:1.2;">${q.number.padStart(2, '0')}</span>
                 <div style="flex:1;">
-                    <div style="font-size:12px;font-weight:900;color:#000000;text-transform:uppercase;line-height:1.25;margin-bottom:3px;font-family:Arial,sans-serif;">${q.fr}</div>
-                    ${q.en ? `<div style="font-size:12px;font-weight:700;color:${textColor};line-height:1.25;font-family:Arial,sans-serif;">${q.en}</div>` : ''}
+                    <div style="font-size:12.5px;font-weight:900;color:#111111;text-transform:uppercase;line-height:1.25;margin-bottom:3px;font-family:Arial,sans-serif;">${q.fr}</div>
+                    ${q.en ? `<div style="font-size:12.5px;font-weight:700;color:${textColor};line-height:1.25;font-family:Arial,sans-serif;">${q.en}</div>` : ''}
                 </div>
             </div>`).join('');
 
-        return `
-            <div style="width:420px;height:595px;background:#ffffff;display:flex;flex-direction:column;position:relative;overflow:hidden;box-sizing:border-box;">
+        return `<div style="width:420px;height:595px;background:#ffffff;display:flex;flex-direction:column;position:relative;overflow:hidden;box-sizing:border-box;">
                 ${watermarkHTML}
-                <!-- Header -->
-                <div style="background:${gradientHeader};height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;flex-shrink:0;position:relative;z-index:10;overflow:hidden;">
-                    <div style="position:absolute;top:0;right:0;width:200px;height:200px;background:rgba(255,255,255,0.15);border-radius:50%;filter:blur(50px);transform:translate(40%,-40%);"></div>
-                    <div style="font-size:17px;font-family:Arial Black,sans-serif;font-weight:900;color:#fff;text-transform:uppercase;font-style:italic;letter-spacing:-1px;position:relative;z-index:2;">Interviews <span style="opacity:0.6;font-size:10px;vertical-align:top;margin-left:3px;">#2026</span></div>
-                    <div style="display:flex;flex-direction:column;align-items:center;position:relative;z-index:2;">
-                        <img src="/Logo.png" style="height:${logoSizePx}px;filter:brightness(0) invert(1);display:block;" crossorigin="anonymous" />
-                        <span style="font-size:6px;color:rgba(255,255,255,0.4);font-weight:700;text-transform:uppercase;letter-spacing:0.3em;margin-top:4px;">Page ${(chunkIdx ?? 0) + 1}</span>
+                <div style="background:${gradientHeader};height:70px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;flex-shrink:0;position:relative;z-index:10;overflow:hidden;">
+                    <div style="font-size:16px;font-family:Arial Black,Impact,sans-serif;font-weight:900;color:#ffffff;text-transform:uppercase;font-style:italic;letter-spacing:-0.5px;">Interviews <span style="opacity:0.55;font-size:9px;vertical-align:top;margin-left:2px;">#2026</span></div>
+                    <div style="display:flex;flex-direction:column;align-items:center;">
+                        <img src="${logoSrc}" style="height:${logoSizePx}px;filter:brightness(0) invert(1);display:block;" crossorigin="anonymous" />
+                        <span style="font-size:6px;color:rgba(255,255,255,0.4);font-weight:700;text-transform:uppercase;letter-spacing:0.3em;margin-top:3px;font-family:Arial,sans-serif;">Page ${(chunkIdx ?? 0) + 1}</span>
                     </div>
                 </div>
-                <!-- Content -->
-                <div style="flex:1;display:flex;flex-direction:column;padding:20px 32px;overflow:hidden;position:relative;z-index:10;">
-                    <div style="display:flex;flex-direction:column;gap:13px;">
+                <div style="flex:1;display:flex;flex-direction:column;padding:18px 30px;overflow:hidden;position:relative;z-index:10;">
+                    <div style="display:flex;flex-direction:column;gap:12px;">
                         ${questionsHTML}
                     </div>
                 </div>
-                <!-- Footer -->
-                <div style="padding:16px 32px;display:flex;align-items:center;justify-content:space-between;opacity:0.25;flex-shrink:0;z-index:10;">
-                    <span style="font-size:6px;color:#000;font-weight:900;text-transform:uppercase;letter-spacing:0.5em;">EXCLUSIVE CONTENT</span>
-                    <span style="font-size:6px;color:#000;font-weight:900;text-transform:uppercase;letter-spacing:0.5em;">DROPSIDERS.FR</span>
+                <div style="padding:14px 30px;display:flex;align-items:center;justify-content:space-between;opacity:0.22;flex-shrink:0;">
+                    <span style="font-size:6px;color:#000;font-weight:700;text-transform:uppercase;letter-spacing:0.5em;font-family:Arial,sans-serif;">EXCLUSIVE CONTENT</span>
+                    <span style="font-size:6px;color:#000;font-weight:700;text-transform:uppercase;letter-spacing:0.5em;font-family:Arial,sans-serif;">DROPSIDERS.FR</span>
                 </div>
             </div>`;
     };
 
     const captureHTML = (html: string): Promise<HTMLCanvasElement> => {
         return new Promise((resolve, reject) => {
-            // Create a fully isolated iframe with no stylesheets
             const iframe = document.createElement('iframe');
             iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:420px;height:595px;border:none;visibility:hidden;';
             document.body.appendChild(iframe);
 
             const iframeDoc = iframe.contentDocument!;
             iframeDoc.open();
-            // Bare HTML — zero external CSS
-            iframeDoc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box;}body{margin:0;}</style></head><body>${html}</body></html>`);
+            iframeDoc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box;}body{margin:0;width:420px;height:595px;overflow:hidden;}</style></head><body>${html}</body></html>`);
             iframeDoc.close();
 
-            // Wait for images to load, then capture
             const startCapture = () => {
-                html2canvas(iframeDoc.body.firstElementChild as HTMLElement, {
+                const el = iframeDoc.body.firstElementChild as HTMLElement;
+                if (!el) { document.body.removeChild(iframe); reject(new Error('No element')); return; }
+                html2canvas(el, {
                     scale: 2,
                     backgroundColor: null,
                     useCORS: true,
@@ -228,6 +243,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                     logging: false,
                     width: 420,
                     height: 595,
+                    windowWidth: 420,
+                    windowHeight: 595,
                 }).then(canvas => {
                     document.body.removeChild(iframe);
                     resolve(canvas);
@@ -237,8 +254,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 });
             };
 
-            // Give images 600ms to load
-            setTimeout(startCapture, 600);
+            setTimeout(startCapture, 800);
         });
     };
 
@@ -246,6 +262,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         setIsGenerating(true);
         setExportType('zip');
         try {
+            const logoBase64 = await loadImageAsBase64('/Logo.png');
             const allCards: Array<{ type: 'cover' | 'questions'; chunk?: InterviewQuestion[]; chunkIdx?: number }> = [
                 { type: 'cover' },
                 ...questionChunks.map((chunk, i) => ({ type: 'questions' as const, chunk, chunkIdx: i }))
@@ -256,7 +273,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             for (let i = 0; i < allCards.length; i++) {
                 setGenProgress({ current: i + 1, total: allCards.length });
                 const card = allCards[i];
-                const html = buildCardHTML(card.type, card.chunk, card.chunkIdx);
+                const html = buildCardHTML(card.type, card.chunk, card.chunkIdx, logoBase64);
                 const canvas = await captureHTML(html);
                 const dataUrl = canvas.toDataURL('image/png', 1.0);
                 const base64 = dataUrl.split(',')[1];
@@ -278,6 +295,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         setIsGenerating(true);
         setExportType('pdf');
         try {
+            const logoBase64 = await loadImageAsBase64('/Logo.png');
             const allCards: Array<{ type: 'cover' | 'questions'; chunk?: InterviewQuestion[]; chunkIdx?: number }> = [
                 { type: 'cover' },
                 ...questionChunks.map((chunk, i) => ({ type: 'questions' as const, chunk, chunkIdx: i }))
@@ -288,7 +306,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             for (let i = 0; i < allCards.length; i++) {
                 setGenProgress({ current: i + 1, total: allCards.length });
                 const card = allCards[i];
-                const html = buildCardHTML(card.type, card.chunk, card.chunkIdx);
+                const html = buildCardHTML(card.type, card.chunk, card.chunkIdx, logoBase64);
                 const canvas = await captureHTML(html);
                 const imgData = canvas.toDataURL('image/png', 1.0);
                 if (i > 0) pdf.addPage();
@@ -307,14 +325,14 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const captureSingleCard = async (e: React.MouseEvent, cardId: string, name: string) => {
         e.stopPropagation();
         try {
-            // Determine which card type this is
+            const logoBase64 = await loadImageAsBase64('/Logo.png');
             const isCover = cardId === 'card-cover';
             let html: string;
             if (isCover) {
-                html = buildCardHTML('cover');
+                html = buildCardHTML('cover', undefined, undefined, logoBase64);
             } else {
                 const pageNum = parseInt(cardId.replace('card-page-', ''), 10);
-                html = buildCardHTML('questions', questionChunks[pageNum], pageNum);
+                html = buildCardHTML('questions', questionChunks[pageNum], pageNum, logoBase64);
             }
             const canvas = await captureHTML(html);
             const link = document.createElement('a');
