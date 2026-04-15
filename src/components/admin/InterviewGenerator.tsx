@@ -113,32 +113,45 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         const container = cardsRef.current;
         if (!container) return;
 
-        const cards = container.querySelectorAll('.interview-card');
-        setGenProgress({ current: 0, total: cards.length });
-        const zip = new JSZip();
-        
-        for (let i = 0; i < cards.length; i++) {
-            setGenProgress({ current: i + 1, total: cards.length });
-            const card = cards[i] as HTMLElement;
-            const canvas = await html2canvas(card, {
-                scale: 1.5, 
-                backgroundColor: '#ffffff',
-                logging: false,
-                useCORS: true
-            });
+        try {
+            const cards = container.querySelectorAll('.interview-card');
+            setGenProgress({ current: 0, total: cards.length });
+            const zip = new JSZip();
             
-            const dataUrl = canvas.toDataURL('image/png');
-            const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
-            
-            const filename = i === 0 ? '00_Interview_Recto.png' : `Page_${String(i).padStart(2, '0')}.png`;
-            zip.file(filename, base64Data, { base64: true });
-        }
+            for (let i = 0; i < cards.length; i++) {
+                setGenProgress({ current: i + 1, total: cards.length });
+                const card = cards[i] as HTMLElement;
+                
+                await new Promise(r => setTimeout(r, 20));
 
-        const content = await zip.generateAsync({ type: "blob" });
-        saveAs(content, "Interview_Cards_Dropsiders.zip");
-        
-        setIsGenerating(false);
-        setExportType(null);
+                try {
+                    const canvas = await html2canvas(card, {
+                        scale: 1.5, 
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        useCORS: true,
+                        allowTaint: true,
+                        imageTimeout: 5000
+                    });
+                    
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
+                    
+                    const filename = i === 0 ? '00_Interview_Recto.png' : `Page_${String(i).padStart(2, '0')}.png`;
+                    zip.file(filename, base64Data, { base64: true });
+                } catch (err) {
+                    console.error(`Error rendering card ${i}:`, err);
+                }
+            }
+
+            const content = await zip.generateAsync({ type: "blob" });
+            saveAs(content, "Interview_Cards_Dropsiders.zip");
+        } catch (error) {
+            console.error("ZIP Generation error:", error);
+        } finally {
+            setIsGenerating(false);
+            setExportType(null);
+        }
     };
 
     const downloadPDF = async () => {
@@ -147,30 +160,43 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         const container = cardsRef.current;
         if (!container) return;
 
-        const cards = container.querySelectorAll('.interview-card');
-        setGenProgress({ current: 0, total: cards.length });
-        const pdf = new jsPDF('p', 'mm', 'a5');
-        
-        for (let i = 0; i < cards.length; i++) {
-            setGenProgress({ current: i + 1, total: cards.length });
-            const card = cards[i] as HTMLElement;
-            const canvas = await html2canvas(card, {
-                scale: 1, // Max speed for PDF
-                backgroundColor: '#ffffff',
-                logging: false,
-                useCORS: true
-            });
+        try {
+            const cards = container.querySelectorAll('.interview-card');
+            setGenProgress({ current: 0, total: cards.length });
+            const pdf = new jsPDF('p', 'mm', 'a5');
             
-            const imgData = canvas.toDataURL('image/jpeg', 0.82);
-            
-            if (i > 0) pdf.addPage();
-            pdf.addImage(imgData, 'JPEG', 0, 0, 148, 210);
-        }
+            for (let i = 0; i < cards.length; i++) {
+                setGenProgress({ current: i + 1, total: cards.length });
+                const card = cards[i] as HTMLElement;
+                
+                // Small delay to allow UI to update and main thread to breathe
+                await new Promise(r => setTimeout(r, 30));
+                
+                try {
+                    const canvas = await html2canvas(card, {
+                        scale: 1, 
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        useCORS: true,
+                        allowTaint: true,
+                        imageTimeout: 5000 // Prevents hanging on broken images
+                    });
+                    
+                    const imgData = canvas.toDataURL('image/jpeg', 0.82);
+                    if (i > 0) pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 148, 210);
+                } catch (err) {
+                    console.error(`Error rendering page ${i}:`, err);
+                }
+            }
 
-        pdf.save("Interview_Cards_Dropsiders.pdf");
-        
-        setIsGenerating(false);
-        setExportType(null);
+            pdf.save("Interview_Cards_Dropsiders.pdf");
+        } catch (error) {
+            console.error("PDF Generation error:", error);
+        } finally {
+            setIsGenerating(false);
+            setExportType(null);
+        }
     };
 
     const translateToEnglish = async () => {
