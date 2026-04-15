@@ -371,11 +371,11 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
                                                             <div className="flex-1">
-                                                                <h3 className="text-[13px] font-bold text-black uppercase leading-[1.3] mb-0.5">
+                                                                <h3 className="text-[12px] font-bold text-black uppercase leading-[1.2] mb-1">
                                                                     {q.fr}
                                                                 </h3>
                                                                 {q.en && (
-                                                                    <p className={`text-[11px] font-semibold italic ${theme === 'red' ? 'text-red-600' : theme === 'cyan' ? 'text-blue-700' : 'text-purple-700'} leading-snug mt-1`}>
+                                                                    <p className={`text-[12px] font-bold ${theme === 'red' ? 'text-red-600' : theme === 'cyan' ? 'text-blue-700' : 'text-purple-700'} leading-[1.2]`}>
                                                                         {q.en}
                                                                     </p>
                                                                 )}
