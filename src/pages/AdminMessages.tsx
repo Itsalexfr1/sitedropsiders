@@ -189,11 +189,11 @@ export function AdminMessages() {
         const validFiles: { name: string; type: string; content: string; size: number }[] = [];
         
         let currentTotalSize = attachments.reduce((sum, a) => sum + a.size, 0);
-        const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+        const MAX_SIZE = 20 * 1024 * 1024; // 20MB
 
         for (const file of files) {
             if (currentTotalSize + file.size > MAX_SIZE) {
-                setReplyError("La taille totale dépasse 50 Mo.");
+                setReplyError("La taille totale dépasse 20 Mo.");
                 setReplyStatus('error');
                 setTimeout(() => setReplyStatus('idle'), 5000);
                 break;
@@ -1257,11 +1257,10 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                         </div>
                                     </div>
                                     
-                                    {/* Attachments UI Add */}
                                     <div className="space-y-2 mt-4 bg-[#111] border border-white/5 p-4 rounded-xl">
                                         <div className="flex items-center justify-between px-1 mb-2">
                                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                                <Paperclip className="w-3 h-3 text-neon-orange" /> Fichiers joints au message (Max 50Mo)
+                                                <Paperclip className="w-3 h-3 text-neon-orange" /> Fichiers joints au message (Max 20Mo)
                                             </label>
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
