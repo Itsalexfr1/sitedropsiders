@@ -5,7 +5,7 @@ import {
     Underline as UnderlineIcon, Check, Wand2, MapPin, Calendar, Globe, Youtube, 
     Columns, List, Trash2, ArrowLeft, User, CheckCircle2, Send, Star, FileText,
     Music, AlertCircle, Edit2, CaseUpper, Upload, Clock, Facebook, Instagram,
-    ChevronUp, ChevronDown, Link2, Palette, X, Eye,
+    ChevronUp, ChevronDown, Link2, Palette, X, Eye, Quote,
 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
@@ -404,7 +404,7 @@ export function NewsCreate() {
     const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: true }]);
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,
-        type: 'image' | 'gallery' | 'video',
+        type: 'image' | 'gallery' | 'video' | 'spotify' | 'beatport',
         url: string,
         urls: string,
         aspectRatio?: string,
@@ -963,13 +963,25 @@ export function NewsCreate() {
         }));
     };
 
-    const applyFormat = (command: string) => {
+    const applyFormat = (command: string, value?: string) => {
+        // Try to get the last known focused visual editor element
         const activeEl = document.activeElement;
         const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
         const isTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
 
         if (isVisualEditor && activeEl) {
-            document.execCommand(command, false);
+            // Save selection before click steals focus
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+                const range = sel.getRangeAt(0);
+                // Re-focus then restore selection to make execCommand work reliably
+                (activeEl as HTMLElement).focus();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            } else {
+                (activeEl as HTMLElement).focus();
+            }
+            document.execCommand(command, false, value);
             const event = new Event('input', { bubbles: true });
             activeEl.dispatchEvent(event);
             return;
@@ -984,11 +996,13 @@ export function NewsCreate() {
 
             let formatted = selectedText;
             if (command === 'bold') {
-                formatted = `** ${selectedText}** `;
+                formatted = `<strong>${selectedText}</strong>`;
             } else if (command === 'italic') {
-                formatted = `* ${selectedText}* `;
+                formatted = `<em>${selectedText}</em>`;
             } else if (command === 'underline') {
                 formatted = `<u>${selectedText}</u>`;
+            } else if (command === 'formatBlock' && value === 'blockquote') {
+                formatted = `<blockquote>${selectedText}</blockquote>`;
             }
 
             const before = val.substring(0, start);
@@ -2279,28 +2293,17 @@ ${generateSocialsHtml()}
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            const val = prompt('URL ou ID du morceau Spotify :');
-                                            if (!val) return;
-                                            let id = val;
-                                            let type = 'track';
-                                            if (val.includes('spotify.com/track/')) {
-                                                id = val.split('/track/')[1].split('?')[0];
-                                                type = 'track';
-                                            } else if (val.includes('spotify.com/album/')) {
-                                                id = val.split('/album/')[1].split('?')[0];
-                                                type = 'album';
-                                            } else if (val.includes('spotify.com/playlist/')) {
-                                                id = val.split('/playlist/')[1].split('?')[0];
-                                                type = 'playlist';
-                                            }
-                                            
-                                            const spotifyWidget = `<div class="spotify-compact-widget article-section my-8 px-4 py-2 bg-[#191414]/40 border border-[#1DB954]/20 rounded-2xl overflow-hidden shadow-2xl">\n  <iframe src="https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>\n</div>`;
-                                            setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: spotifyWidget }]);
-                                        }}
+                                        onClick={() => setMediaModal({ show: true, type: 'spotify', url: '', urls: '' })}
                                         className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#1DB954]/20 border border-[#1DB954]/30 text-[#1DB954] rounded-full hover:bg-[#1DB954]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
                                     >
                                         <Music className="w-3 h-3" /> Spotify
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'beatport', url: '', urls: '' })}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#02FF95]/20 border border-[#02FF95]/30 text-[#02FF95] rounded-full hover:bg-[#02FF95]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <Music className="w-3 h-3" /> Beatport
                                     </button>
                                 </div>
                             </div>
@@ -2489,6 +2492,15 @@ ${generateSocialsHtml()}
                                                                     title="Souligner"
                                                                 >
                                                                     <UnderlineIcon className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onMouseDown={e => e.preventDefault()}
+                                                                    onClick={() => applyFormat('formatBlock', 'blockquote')}
+                                                                    className="p-1.5 text-gray-500 hover:text-white"
+                                                                    title="Citation"
+                                                                >
+                                                                    <Quote className="w-4 h-4" />
                                                                 </button>
                                                             </div>
 
@@ -3611,7 +3623,7 @@ ${generateSocialsHtml()}
                             </button>
 
                             <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">
-                                {mediaModal.type === 'image' ? 'Ajouter une photo' : mediaModal.type === 'video' ? 'Ajouter une vidéo' : 'Ajouter une galerie'}
+                                {mediaModal.type === 'image' ? 'Ajouter une photo' : mediaModal.type === 'video' ? 'Ajouter une vidéo' : mediaModal.type === 'gallery' ? 'Ajouter une galerie' : mediaModal.type === 'spotify' ? '🎵 Lecteur Spotify' : '🎶 Lecteur Beatport'}
                             </h3>
 
                             <div className="space-y-4">
@@ -3640,6 +3652,75 @@ ${generateSocialsHtml()}
                                                 ))}
                                             </div>
                                         </div>
+                                    </div>
+                                ) : mediaModal.type === 'spotify' ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-[#1DB954] uppercase tracking-widest mb-2">URL Spotify (Morceau, Album, Playlist)</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={mediaModal.url}
+                                                    onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
+                                                    className="w-full bg-black/40 border border-[#1DB954]/30 rounded-xl p-3 pr-10 text-white outline-none focus:border-[#1DB954] transition-all text-xs"
+                                                    placeholder="https://open.spotify.com/track/..."
+                                                    autoFocus
+                                                />
+                                                {mediaModal.url && (
+                                                    <button type="button" onClick={() => setMediaModal({ ...mediaModal, url: '' })} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {mediaModal.url && (() => {
+                                            const v = mediaModal.url;
+                                            const tm = v.match(/track[/:]([a-zA-Z0-9]+)/); const am = v.match(/album[/:]([a-zA-Z0-9]+)/); const pm = v.match(/playlist[/:]([a-zA-Z0-9]+)/);
+                                            let spId = tm ? tm[1] : am ? am[1] : pm ? pm[1] : v;
+                                            let spType = tm ? 'track' : am ? 'album' : pm ? 'playlist' : 'track';
+                                            return (
+                                                <div className="bg-black/40 rounded-2xl p-3 border border-[#1DB954]/20">
+                                                    <p className="text-[9px] text-[#1DB954] font-black uppercase tracking-widest mb-2">Aperçu • {spType}</p>
+                                                    <iframe src={`https://open.spotify.com/embed/${spType}/${spId}?utm_source=generator&theme=0`} width="100%" height={spType === 'track' ? 80 : 152} frameBorder={0} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" className="rounded-xl" />
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                ) : mediaModal.type === 'beatport' ? (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-[#02FF95] uppercase tracking-widest mb-2">URL Beatport (Track, Release, Chart)</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={mediaModal.url}
+                                                    onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
+                                                    className="w-full bg-black/40 border border-[#02FF95]/30 rounded-xl p-3 pr-10 text-white outline-none focus:border-[#02FF95] transition-all text-xs"
+                                                    placeholder="https://www.beatport.com/track/name/12345"
+                                                    autoFocus
+                                                />
+                                                {mediaModal.url && (
+                                                    <button type="button" onClick={() => setMediaModal({ ...mediaModal, url: '' })} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500">
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {mediaModal.url && (() => {
+                                            const bpUrl = mediaModal.url;
+                                            const trackIdMatch = bpUrl.match(/\/track\/[^/]+\/(\d+)/);
+                                            const releaseIdMatch = bpUrl.match(/\/release\/[^/]+\/(\d+)/);
+                                            const chartIdMatch = bpUrl.match(/\/chart\/[^/]+\/(\d+)/);
+                                            let bpId = trackIdMatch ? trackIdMatch[1] : releaseIdMatch ? releaseIdMatch[1] : chartIdMatch ? chartIdMatch[1] : '';
+                                            let bpType = trackIdMatch ? 'track' : releaseIdMatch ? 'release' : chartIdMatch ? 'chart' : 'track';
+                                            if (!bpId) return null;
+                                            return (
+                                                <div className="bg-black/40 rounded-2xl p-3 border border-[#02FF95]/20">
+                                                    <p className="text-[9px] text-[#02FF95] font-black uppercase tracking-widest mb-2">Aperçu Beatport • {bpType} #{bpId}</p>
+                                                    <iframe src={`https://embed.beatport.com/?id=${bpId}&type=${bpType}`} width="100%" height="162" frameBorder={0} scrolling="no" className="rounded-xl" />
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 ) : (
                                     <div>
@@ -3735,24 +3816,48 @@ ${generateSocialsHtml()}
                                 )}
 
                                 <div className="flex gap-4">
-                                    <button
-                                        onClick={() => {
-                                            setUploadTarget({
-                                                type: mediaModal.widgetId ? 'widget-edit' : 'widget',
-                                                widgetId: mediaModal.widgetId,
-                                                initialImage: mediaModal.url,
-                                                allowMultiple: mediaModal.type === 'gallery'
-                                            });
-                                            setShowUploadModal(true);
-                                        }}
-                                        className="flex-1 flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
-                                    >
-                                        <Upload className="w-5 h-5 text-neon-red group-hover:scale-110 transition-transform" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-white">Upload</span>
-                                    </button>
+                                    {(mediaModal.type === 'image' || mediaModal.type === 'gallery' || mediaModal.type === 'video') && (
+                                        <button
+                                            onClick={() => {
+                                                setUploadTarget({
+                                                    type: mediaModal.widgetId ? 'widget-edit' : 'widget',
+                                                    widgetId: mediaModal.widgetId,
+                                                    initialImage: mediaModal.url,
+                                                    allowMultiple: mediaModal.type === 'gallery'
+                                                });
+                                                setShowUploadModal(true);
+                                            }}
+                                            className="flex-1 flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                                        >
+                                            <Upload className="w-5 h-5 text-neon-red group-hover:scale-110 transition-transform" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-white">Upload</span>
+                                        </button>
+                                    )}
 
                                     <button
-                                        onClick={() => handleMediaConfirm((mediaModal as any).widgetIndex)}
+                                        onClick={() => {
+                                            const v = mediaModal.url;
+                                            if (mediaModal.type === 'spotify' && v) {
+                                                const tm = v.match(/track[/:]([a-zA-Z0-9]+)/); const am = v.match(/album[/:]([a-zA-Z0-9]+)/); const pm = v.match(/playlist[/:]([a-zA-Z0-9]+)/);
+                                                let spId = tm ? tm[1] : am ? am[1] : pm ? pm[1] : v;
+                                                let spType = tm ? 'track' : am ? 'album' : pm ? 'playlist' : 'track';
+                                                const w = `<div class="spotify-compact-widget article-section my-12" data-spotify-id="${spId}" data-spotify-type="${spType}">\n  <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-[#1DB954]/20 bg-[#121212]">\n    <iframe src="https://open.spotify.com/embed/${spType}/${spId}?utm_source=generator&theme=0" width="100%" height="${spType === 'track' ? '80' : '152'}" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>\n  </div>\n</div>`;
+                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: w }]);
+                                                setMediaModal({ ...mediaModal, show: false, url: '' });
+                                            } else if (mediaModal.type === 'beatport' && v) {
+                                                const trackIdMatch = v.match(/\/track\/[^/]+\/(\d+)/);
+                                                const releaseIdMatch = v.match(/\/release\/[^/]+\/(\d+)/);
+                                                const chartIdMatch = v.match(/\/chart\/[^/]+\/(\d+)/);
+                                                let bpId = trackIdMatch ? trackIdMatch[1] : releaseIdMatch ? releaseIdMatch[1] : chartIdMatch ? chartIdMatch[1] : '';
+                                                let bpType = trackIdMatch ? 'track' : releaseIdMatch ? 'release' : chartIdMatch ? 'chart' : 'track';
+                                                if (!bpId) return;
+                                                const w = `<div class="beatport-compact-widget article-section my-12" data-beatport-id="${bpId}" data-beatport-type="${bpType}">\n  <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-[#02FF95]/20 bg-[#121212]">\n    <iframe src="https://embed.beatport.com/?id=${bpId}&type=${bpType}" width="100%" height="162" frameBorder="0" scrolling="no" style="border-radius:12px;"></iframe>\n  </div>\n</div>`;
+                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: w }]);
+                                                setMediaModal({ ...mediaModal, show: false, url: '' });
+                                            } else {
+                                                handleMediaConfirm((mediaModal as any).widgetIndex);
+                                            }
+                                        }}
                                         className="flex-1 flex flex-col items-center gap-2 p-4 bg-neon-red text-white border border-neon-red rounded-2xl hover:bg-neon-red/80 transition-all font-bold group"
                                     >
                                         <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
