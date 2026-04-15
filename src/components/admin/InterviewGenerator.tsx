@@ -495,7 +495,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 {festivalLogo && (
                                                     <div className="mt-8 flex flex-col items-center gap-4">
                                                         <span className="text-[10px] text-white/30 font-black uppercase tracking-[0.4em]">Official Coverage at</span>
-                                                        <img src={festivalLogo} alt="Festival" className="h-24 object-contain filter brightness-0 invert" />
+                                                        <img src={festivalLogo} alt="Festival" className="h-48 object-contain filter brightness-0 invert" />
                                                     </div>
                                                 )}
                                             </div>
@@ -614,7 +614,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     <h1 className="text-6xl font-display font-black text-white italic uppercase tracking-tighter leading-none">
                                         Interview<br /><span className="text-black/50">Questions</span>
                                     </h1>
-                                    {festivalLogo && <img src={festivalLogo} alt="Festival" className="h-24 object-contain filter brightness-0 invert" />}
+                                    {festivalLogo && <img src={festivalLogo} alt="Festival" className="h-48 object-contain filter brightness-0 invert" />}
                                 </div>
                             </div>
                         </div>
