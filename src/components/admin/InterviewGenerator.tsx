@@ -18,6 +18,7 @@ import {
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import { jsPDF } from 'jspdf';
 
 interface InterviewQuestion {
     id: string;
@@ -30,7 +31,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const [inputText, setInputText] = useState('');
     const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
-    const [copied, setCopied] = useState(false);
+    const [exportType, setExportType] = useState<'zip' | 'pdf' | null>(null);
     const [theme, setTheme] = useState<'red' | 'cyan' | 'purple'>('red');
     const [festivalLogo, setFestivalLogo] = useState<string | null>(null);
     const cardsRef = useRef<HTMLDivElement>(null);
@@ -60,11 +61,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 const num = numMatch[1];
                 const content = numMatch[2].trim();
 
-                // If same number, it's the EN version of the current question
                 if (current && current.number === num && current.en.length === 0) {
                     current.en.push(content);
                 } else {
-                    // It's a new question
                     if (current) {
                         parsed.push({
                             id: Math.random().toString(36).substring(2, 11),
@@ -80,7 +79,6 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                     };
                 }
             } else if (current) {
-                // Not starting with a number, must be the EN version
                 current.en.push(line);
             }
         }
@@ -97,8 +95,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         setQuestions(parsed);
     };
 
-    const downloadAll = async () => {
+    const downloadZip = async () => {
         setIsGenerating(true);
+        setExportType('zip');
         const container = cardsRef.current;
         if (!container) return;
 
@@ -127,6 +126,40 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         saveAs(content, "Interview_Cards_Dropsiders.zip");
         
         setIsGenerating(false);
+        setExportType(null);
+    };
+
+    const downloadPDF = async () => {
+        setIsGenerating(true);
+        setExportType('pdf');
+        const container = cardsRef.current;
+        if (!container) return;
+
+        const cards = container.querySelectorAll('.interview-card');
+        const pdf = new jsPDF('p', 'mm', 'a5');
+        
+        for (let i = 0; i < cards.length; i++) {
+            const card = cards[i] as HTMLElement;
+            const canvas = await html2canvas(card, {
+                scale: 3,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: true
+            });
+            
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            
+            if (i > 0) pdf.addPage();
+            // A5 is 148 x 210 mm
+            pdf.addImage(imgData, 'JPEG', 0, 0, 148, 210);
+            
+            await new Promise(r => setTimeout(r, 100));
+        }
+
+        pdf.save("Interview_Cards_Dropsiders.pdf");
+        
+        setIsGenerating(false);
+        setExportType(null);
     };
 
     const getThemeColors = () => {
@@ -263,20 +296,41 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         {questions.length > 0 && (
                             <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
                                 <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Résumé : {questions.length} Questions</h4>
-                                <button
-                                    onClick={downloadAll}
-                                    disabled={isGenerating}
-                                    className={`w-full py-6 rounded-2xl font-black uppercase tracking-[0.2em] flex items-center justify-center gap-4 shadow-2xl transition-all ${isGenerating ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-neon-red hover:bg-neon-red/80 text-white shadow-neon-red/20'}`}
-                                >
-                                    {isGenerating ? (
-                                        <div className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                        <>
-                                            <Download className="w-6 h-6" />
-                                            Télécharger {questionChunks.length + 1} Fiches
-                                        </>
-                                    )}
-                                </button>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={downloadZip}
+                                        disabled={isGenerating}
+                                        className={`py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-2xl transition-all ${isGenerating && exportType === 'zip' ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-white text-black hover:bg-white/90 shadow-white/5'}`}
+                                    >
+                                        {isGenerating && exportType === 'zip' ? (
+                                            <div className="w-4 h-4 border-2 border-gray-600 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <>
+                                                <Download className="w-4 h-4" />
+                                                Images (ZIP)
+                                            </>
+                                        )}
+                                    </button>
+
+                                    <button
+                                        onClick={downloadPDF}
+                                        disabled={isGenerating}
+                                        className={`py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-2xl transition-all ${isGenerating && exportType === 'pdf' ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-neon-red hover:bg-neon-red/80 text-white shadow-neon-red/20'}`}
+                                    >
+                                        {isGenerating && exportType === 'pdf' ? (
+                                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <>
+                                                <FileText className="w-4 h-4" />
+                                                Document (PDF)
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">
+                                    Export Premium A5 · {questionChunks.length + 1} pages
+                                </p>
                             </div>
                         )}
                     </div>
