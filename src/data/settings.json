@@ -5,10 +5,11 @@
   "shop_password_image": "",
   "takeover": {
     "enabled": true,
-    "youtubeId": "FLdsxiIQYhY",
-    "title": "coachella week 2",
-    "moderators": [],
-    "lineup": "[]",
+    "youtubeId": "",
+    "title": "LIVESTREAM",
+    "moderators": "",
+    "lineup": "",
+    "customCommands": "",
     "tickerType": "news",
     "tickerText": "",
     "tickerLink": "",
@@ -18,9 +19,8 @@
     "showTickerBanner": false,
     "showInNavbar": true,
     "forceHomepage": true,
-    "customCommands": "",
     "isSecret": false,
-    "password": "2024",
+    "password": "",
     "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
@@ -28,74 +28,7 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit",
-    "isOnline": false,
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
-    "streams": [
-      {
-        "id": "gtzq2mz48",
-        "name": "MAINSTAGE",
-        "youtubeId": "xIiSaqq10Yw"
-      },
-      {
-        "id": "in9xc7mg4",
-        "name": "YUMA",
-        "youtubeId": "s5A5Y93nmPI"
-      },
-      {
-        "id": "b79laywwl",
-        "name": "QUASAR",
-        "youtubeId": "iulgXa5S62A"
-      },
-      {
-        "id": "emiajerts",
-        "name": "SAHARA",
-        "youtubeId": "bkCTPTwU7ls"
-      },
-      {
-        "id": "h7hq8nvtu",
-        "name": "MOJAVE",
-        "youtubeId": "cYT79Dp0Wuk"
-      },
-      {
-        "id": "tke73skru",
-        "name": "GOBI",
-        "youtubeId": "OMImphySFJs"
-      },
-      {
-        "id": "0r1e8h5vo",
-        "name": "OUTDOOR THEATRE",
-        "youtubeId": "CzAJcgiywFo"
-      }
-    ],
-    "activeStreamId": "gtzq2mz48",
-    "instagramLink": "",
-    "tiktokLink": "",
-    "youtubeLink": "",
-    "twitterLink": "",
-    "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES !",
-    "sponsorLink": "https://dropsiders.fr",
-    "showSponsorBanner": false,
-    "bannedWords": "",
-    "dropsAmount": 10,
-    "dropsInterval": 5,
-    "lots": [],
-    "botCommands": [
-      {
-        "command": "!insta",
-        "response": "Suivez-nous sur @dropsiders.eu !"
-      },
-      {
-        "command": "!lineup",
-        "response": "La lineup est disponible dans l'onglet PLANNING."
-      }
-    ],
-    "festivalLogo": "",
-    "tracklist": "[]",
-    "bannedPseudos": [],
-    "mainFluxName": "MAIN STAGE",
-    "currentTrack": "ID - UNRELEASED",
-    "highlightPrice": 100
+    "status": "edit"
   },
   "socials": {
     "instagram": "dropsiders.eu",
