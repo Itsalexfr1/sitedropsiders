@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, 
@@ -42,6 +42,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const [watermarkScale, setWatermarkScale] = useState(150);
     const [watermarkOpacity, setWatermarkOpacity] = useState(3);
     const [headerLogoSize, setHeaderLogoSize] = useState(6);
+    const [swapLanguages, setSwapLanguages] = useState(false);
     const cardsRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,8 +124,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     };
     const questionChunks = chunkQuestions(questions, questionsPerPage);
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ PURE CANVAS RENDER ENGINE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-    // Draws cards directly with Canvas 2D API Ã¢â‚¬â€ no html2canvas, no CSS, no iframe.
+    // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ PURE CANVAS RENDER ENGINE ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+    // Draws cards directly with Canvas 2D API ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no html2canvas, no CSS, no iframe.
     // Text is drawn with ctx.fillText(), images with ctx.drawImage(). Bulletproof.
 
     const loadImg = (src: string): Promise<HTMLImageElement | null> =>
@@ -312,33 +313,39 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             const LINE_EN = 12;    // line height for EN text
 
             for (const q of (chunk || [])) {
+                // If swapped, T1 is EN, T2 is FR. Else T1 is FR, T2 is EN.
+                const t1 = swapLanguages ? q.en : (q.fr || '').toUpperCase();
+                const t2 = swapLanguages ? (q.fr || '').toUpperCase() : q.en;
+                const isT1Main = !swapLanguages; // FR is usually bold/uppercase
+
                 // Number
                 ctx.fillStyle = accent;
                 ctx.font = 'italic 900 12px Orbitron, sans-serif';
                 ctx.textAlign = 'left'; ctx.textBaseline = 'top';
                 ctx.fillText(q.number.padStart(2, '0'), PAD_L, qY + 1);
 
-                // FR text
-                ctx.fillStyle = '#111111';
-                ctx.font = '800 10.5px Montserrat, sans-serif';
-                const frLines = wrapText(ctx, q.fr.toUpperCase(), TEXT_W);
-                for (const line of frLines) {
-                    ctx.fillText(line, TEXT_X, qY);
-                    qY += LINE_FR;
-                }
-
-                // EN text
-                if (q.en) {
-                    ctx.fillStyle = enCol;
-                    ctx.font = '600 10px Montserrat, sans-serif';
-                    const enLines = wrapText(ctx, q.en, TEXT_W);
-                    for (const line of enLines) {
+                // T1 (Top line)
+                if (t1) {
+                    ctx.fillStyle = isT1Main ? '#111111' : enCol;
+                    ctx.font = isT1Main ? '800 10.5px Montserrat, sans-serif' : '600 10px Montserrat, sans-serif';
+                    const lines = wrapText(ctx, t1, TEXT_W);
+                    for (const line of lines) {
                         ctx.fillText(line, TEXT_X, qY);
-                        qY += LINE_EN;
+                        qY += isT1Main ? LINE_FR : LINE_EN;
                     }
                 }
 
-                // Separator
+                // T2 (Bottom line)
+                if (t2) {
+                    ctx.fillStyle = !isT1Main ? '#111111' : enCol;
+                    ctx.font = !isT1Main ? '800 10.5px Montserrat, sans-serif' : '600 10px Montserrat, sans-serif';
+                    const lines = wrapText(ctx, t2, TEXT_W);
+                    for (const line of lines) {
+                        ctx.fillText(line, TEXT_X, qY);
+                        qY += !isT1Main ? LINE_FR : LINE_EN;
+                    }
+                }
+                
                 qY += 4;
                 ctx.strokeStyle = 'rgba(0,0,0,0.08)';
                 ctx.lineWidth = 0.75;
@@ -497,7 +504,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
                                 Interview <span className={colors.main}>Generator</span>
                             </h2>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Format A5 Premium · Export Multi-Pages</p>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Format A5 Premium Â· Export Multi-Pages</p>
                         </div>
                     </div>
                     
@@ -531,7 +538,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             <textarea
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
-                                placeholder="1. Présente-toi...\nIntroduce yourself...\n2. Si tu devais..."
+                                placeholder="1. PrÃ©sente-toi...\nIntroduce yourself...\n2. Si tu devais..."
                                 className="w-full h-96 bg-black/40 border border-white/10 rounded-[2rem] p-6 text-sm text-white focus:border-neon-red outline-none transition-all resize-none custom-scrollbar font-medium leading-relaxed"
                             />
                         </div>
@@ -551,10 +558,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 onClick={parseQuestions}
                                 className="w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                             >
-                                <Eye className="w-5 h-5" /> Générer Aperçu
+                                <Eye className="w-5 h-5" /> GÃ©nÃ©rer AperÃ§u
                             </button>
                         </div>
-
+                        <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                 <ImageIcon className="w-3.5 h-3.5" /> Logo du Festival (Optionnel)
                             </label>
@@ -610,7 +617,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 {/* Watermark Opacity */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                        <span>OpacitÃƒÂ© Watermark</span>
+                                        <span>OpacitÃƒÆ’Ã‚Â© Watermark</span>
                                         <span className="text-white">{watermarkOpacity}%</span>
                                     </div>
                                     <input 
@@ -624,7 +631,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 {/* Header Logo Size */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                        <span>Taille Logo En-tÃƒÂªte</span>
+                                        <span>Taille Logo En-tÃƒÆ’Ã‚Âªte</span>
                                         <span className="text-white">{headerLogoSize}</span>
                                     </div>
                                     <input 
@@ -634,12 +641,30 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                         className="w-full accent-neon-red"
                                     />
                                 </div>
+
+                                {/* Language Order Toggle */}
+                                <div className="pt-4 border-t border-white/5">
+                                    <button 
+                                        onClick={() => setSwapLanguages(!swapLanguages)}
+                                        className={`w-full py-3 px-4 rounded-xl flex items-center justify-between transition-all ${swapLanguages ? 'bg-neon-red/20 border border-neon-red/30 text-neon-red shadow-lg shadow-neon-red/5' : 'bg-white/5 border border-white/10 text-gray-400'}`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Columns className="w-4 h-4" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">
+                                                {swapLanguages ? 'Ordre: EN -> FR' : 'Ordre: FR -> EN'}
+                                            </span>
+                                        </div>
+                                        <div className={`w-8 h-4 rounded-full relative transition-colors ${swapLanguages ? 'bg-neon-red' : 'bg-gray-700'}`}>
+                                            <div className={`absolute top-1 w-2 h-2 bg-white rounded-full transition-all ${swapLanguages ? 'right-1' : 'left-1'}`} />
+                                        </div>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         {questions.length > 0 && (
                             <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
-                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">RÃƒÂ©sumÃƒÂ© : {questions.length} Questions</h4>
+                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">RÃƒÆ’Ã‚Â©sumÃƒÆ’Ã‚Â© : {questions.length} Questions</h4>
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
@@ -679,7 +704,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     </button>
                                 </div>
                                 <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">
-                                    Export Premium A5 Ã‚Â· {questionChunks.length + 1} pages
+                                    Export Premium A5 Ãƒâ€š· {questionChunks.length + 1} pages
                                 </p>
                             </div>
                         )}
@@ -897,14 +922,29 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                             <span style={{ fontSize: '11px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '22px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe', marginTop: '1px' }}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
-                                                         <div style={{ flex: 1 }}>
-                                                                <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '2px', fontFamily: 'Montserrat, sans-serif' }}>
-                                                                    {q.fr}
-                                                                </div>
-                                                                {q.en && (
-                                                                    <div style={{ fontSize: '10px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif' }}>
-                                                                        {q.en}
-                                                                    </div>
+                                                          <div style={{ flex: 1 }}>
+                                                                {!swapLanguages ? (
+                                                                    <>
+                                                                        <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '2px', fontFamily: 'Montserrat, sans-serif' }}>
+                                                                            {q.fr}
+                                                                        </div>
+                                                                        {q.en && (
+                                                                            <div style={{ fontSize: '10px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif' }}>
+                                                                                {q.en}
+                                                                            </div>
+                                                                        )}
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        {q.en && (
+                                                                            <div style={{ fontSize: '10px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif', marginBottom: '2px' }}>
+                                                                                {q.en}
+                                                                            </div>
+                                                                        )}
+                                                                        <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, fontFamily: 'Montserrat, sans-serif' }}>
+                                                                            {q.fr}
+                                                                        </div>
+                                                                    </>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -929,4 +969,5 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         </div>
     );
 }
+
 
