@@ -401,7 +401,7 @@ export function NewsCreate() {
         (searchParams.get('tab') as 'News' | 'Musique' | 'Focus') ||
         (type === 'Musique' ? 'Musique' : 'News')
     );
-    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', canVote: false }]);
+    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: false }]);
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,
         type: 'image' | 'gallery' | 'video',
@@ -540,6 +540,7 @@ export function NewsCreate() {
                     media: el.getAttribute('data-media') || '',
                     imageUrl: el.querySelector('.vinyl-wrapper img')?.getAttribute('src') || '',
                     playerType: (el.getAttribute('data-player-type') || 'spotify') as any,
+                    description: el.querySelector('.music-item-description p')?.innerHTML || '',
                     canVote: !!el.querySelector('.music-vote-button')
                 })).filter(m => m.media);
                 if (domItems.length > 0) setMusicItems(domItems);
@@ -1044,7 +1045,7 @@ export function NewsCreate() {
     };
 
     const addMusicItem = () => {
-        setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', canVote: false }]);
+        setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: false }]);
     };
 
     const fetchMusicMetadata = async (id: string, url: string) => {
@@ -1137,7 +1138,7 @@ export function NewsCreate() {
         }
     };
 
-    const updateMusicItem = (id: string, field: 'title' | 'media' | 'imageUrl' | 'playerType' | 'canVote', value: any) => {
+    const updateMusicItem = (id: string, field: 'title' | 'media' | 'imageUrl' | 'playerType' | 'canVote' | 'description', value: any) => {
         setMusicItems(musicItems.map(item => {
             if (item.id === id) {
                 let newPlayerType = item.playerType;
@@ -1455,6 +1456,10 @@ ${generateSocialsHtml()}
   <div class="music-player-container rounded-[2rem] overflow-hidden border border-white/5 bg-black/20 shadow-2xl">
     ${renderMediaEmbed(item.media, item.playerType)}
   </div>
+  ${item.description ? `
+  <div class="music-item-description mt-6 px-4 py-3 bg-white/[0.03] border-l-2 border-neon-cyan rounded-r-xl">
+    <p class="text-gray-400 text-sm italic">${standardizeContent(item.description)}</p>
+  </div>` : ''}
   ${voteBtn}
 </div>`;
                 }).join('\n');
@@ -1539,7 +1544,7 @@ ${generateSocialsHtml()}
                     setImageUrl('');
                     setYoutubeId('');
                     setYear('');
-                    setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', canVote: false }]);
+                    setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: false }]);
                     setArtistNameLabel('');
                     setArtistSocials({
                         website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: ''
@@ -3086,6 +3091,15 @@ ${generateSocialsHtml()}
                                                 />
                                             </div>
                                         </div>
+                                        <div className="mt-6">
+                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Texte sous le morceau (Description / Avis)</label>
+                                            <textarea
+                                                value={item.description || ''}
+                                                onChange={(e) => updateMusicItem(item.id, 'description', e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-lg p-4 text-white focus:border-neon-cyan outline-none min-h-[100px] text-sm resize-none"
+                                                placeholder="Partage ton avis sur ce morceau ou donne plus d'infos..."
+                                            />
+                                        </div>
                                         <div className="flex items-center justify-between mt-4">
                                             <StyledCheckbox
                                                 checked={item.canVote || false}
@@ -3183,15 +3197,6 @@ ${generateSocialsHtml()}
                                     )}
 
                                     <div className="music-top-section pt-12 border-t border-white/10">
-                                        <div className="flex items-center gap-4 mb-12">
-                                            <div className="w-12 h-12 rounded-2xl bg-neon-cyan/10 flex items-center justify-center border border-neon-cyan/30">
-                                                <Music className="w-6 h-6 text-neon-cyan" />
-                                            </div>
-                                            <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                                LA LISTE <span className="text-neon-cyan">OFFICIELLE</span>
-                                            </h3>
-                                        </div>
-
                                         {musicItems.map((item) => (
                                             <div key={item.id} className="music-top-item-premium mb-16 last:mb-0 relative">
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-6">
@@ -3228,6 +3233,12 @@ ${generateSocialsHtml()}
                                                 <div className="rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/40 shadow-2xl relative z-10 backdrop-blur-xl transition-colors">
                                                     <div dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media, item.playerType) }} />
                                                 </div>
+
+                                                {item.description && (
+                                                    <div className="mt-8 px-6 py-4 bg-white/[0.02] border-l-4 border-neon-cyan rounded-r-2xl">
+                                                        <p className="text-gray-400 text-sm leading-relaxed italic" dangerouslySetInnerHTML={{ __html: standardizeContent(item.description) }} />
+                                                    </div>
+                                                )}
                                                 
                                                 {item.canVote && (
                                                     <div className="mt-8 flex justify-center">
