@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Send, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Mail, Send, CheckCircle, AlertCircle, Loader, Paperclip, X, File as FileIcon } from 'lucide-react';
 
 import { useLanguage } from '../context/LanguageContext';
 
@@ -14,12 +14,52 @@ export function Contact() {
     });
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState('');
+    const [attachments, setAttachments] = useState<{ name: string; type: string; content: string; size: number }[]>([]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData(prev => ({
             ...prev,
             [e.target.name]: e.target.value
         }));
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const validFiles: { name: string; type: string; content: string; size: number }[] = [];
+        
+        let currentTotalSize = attachments.reduce((sum, a) => sum + a.size, 0);
+        const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+
+        for (const file of files) {
+            if (currentTotalSize + file.size > MAX_SIZE) {
+                setErrorMessage("La taille totale des fichiers dépasse 50 Mo.");
+                setStatus('error');
+                setTimeout(() => setStatus('idle'), 5000);
+                break;
+            }
+
+            const reader = new FileReader();
+            const promise = new Promise<string>((resolve) => {
+                reader.onload = () => resolve(reader.result as string);
+            });
+            reader.readAsDataURL(file);
+            const content = await promise;
+
+            validFiles.push({
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                content: content.split(',')[1] // Get actual base64
+            });
+            currentTotalSize += file.size;
+        }
+
+        setAttachments(prev => [...prev, ...validFiles]);
+        if (e.target) e.target.value = ''; // Reset input
+    };
+
+    const removeAttachment = (index: number) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -41,15 +81,24 @@ export function Contact() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+                    attachments: attachments.map(a => ({
+                        name: a.name,
+                        type: a.type,
+                        content: a.content
+                    }))
+                }),
             });
 
             if (!response.ok) {
-                throw new Error(t('contact.error_send'));
+                const data = await response.json();
+                throw new Error(data.error || t('contact.error_send'));
             }
 
             setStatus('success');
             setFormData({ name: '', email: '', subject: '', message: '' });
+            setAttachments([]);
             setTimeout(() => setStatus('idle'), 5000);
         } catch (error: any) {
             setStatus('error');
@@ -142,7 +191,7 @@ export function Contact() {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">{t('contact.message')} <span className="text-neon-red">*</span></label>
                             <textarea
                                 required
@@ -153,6 +202,61 @@ export function Contact() {
                                 className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 outline-none focus:border-neon-red focus:bg-white/5 transition-all text-sm font-medium resize-none"
                                 placeholder={t('contact.message_placeholder')}
                             />
+                        </div>
+
+                        {/* Attachments Section */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between px-2">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                    <Paperclip className="w-3.5 h-3.5" /> Fichiers Joints (Max 50Mo)
+                                </label>
+                                <span className="text-[9px] font-bold text-gray-600">
+                                    {(attachments.reduce((sum, a) => sum + a.size, 0) / (1024 * 1024)).toFixed(1)} / 50 MB
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {attachments.map((file, idx) => (
+                                    <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="bg-white/5 border border-white/5 rounded-xl p-3 flex items-center justify-between group"
+                                    >
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                            <div className="p-2 bg-white/5 rounded-lg">
+                                                <FileIcon className="w-4 h-4 text-neon-red" />
+                                            </div>
+                                            <div className="overflow-hidden">
+                                                <p className="text-[11px] font-bold text-white truncate">{file.name}</p>
+                                                <p className="text-[9px] text-gray-500 font-medium">{(file.size / 1024).toFixed(0)} KB</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeAttachment(idx)}
+                                            className="p-1.5 hover:bg-red-500/20 text-gray-500 hover:text-red-500 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </motion.div>
+                                ))}
+                                
+                                <label className="relative cursor-pointer">
+                                    <input
+                                        type="file"
+                                        multiple
+                                        onChange={handleFileChange}
+                                        className="hidden"
+                                    />
+                                    <div className="border border-dashed border-white/10 hover:border-neon-red/50 hover:bg-neon-red/5 rounded-xl p-4 flex flex-col items-center justify-center gap-2 transition-all">
+                                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                                            <Paperclip className="w-4 h-4 text-gray-400" />
+                                        </div>
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ajouter des fichiers</span>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
 
                         <AnimatePresence mode="wait">

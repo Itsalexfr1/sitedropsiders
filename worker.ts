@@ -3098,22 +3098,52 @@ ${urls.map(u => `  <url>
         if (path === '/api/contact' && request.method === 'POST') {
             try {
                 const body = await request.json();
-                const { name, email, subject, message } = body;
+                const { name, email, subject, message, attachments } = body;
                 if (!name || !email || !subject || !message) {
                     return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
                 }
+
+                // --- HANDLE ATTACHMENTS ---
+                const processedAttachments: any[] = [];
+                const brevoAttachments: any[] = [];
+                
+                if (Array.isArray(attachments) && env.R2) {
+                    for (const file of attachments.slice(0, 5)) { // Max 5 files
+                        try {
+                            const b64 = file.content;
+                            const binaryStr = atob(b64);
+                            const bytes = new Uint8Array(binaryStr.length);
+                            for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+                            
+                            const key = `contacts/${Date.now()}_${file.name}`;
+                            await env.R2.put(key, bytes, { httpMetadata: { contentType: file.type } });
+                            
+                            const r2Url = `https://dropsiders.fr/uploads/${key}`; // Assumes a public worker/endpoint for R2
+                            processedAttachments.push({ name: file.name, url: r2Url, size: bytes.length });
+                            brevoAttachments.push({ content: b64, name: file.name });
+                        } catch (e) { console.error('R2 upload skipped for file:', file.name, e); }
+                    }
+                } else if (Array.isArray(attachments)) {
+                    // Fallback if R2 not available, just names for record
+                    attachments.slice(0, 5).forEach((f: any) => {
+                        processedAttachments.push({ name: f.name, size: 0 });
+                        brevoAttachments.push({ content: f.content, name: f.name });
+                    });
+                }
+
                 const CONTACTS_PATH = 'src/data/contacts.json';
                 const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
                 const newMsg = {
                     id: Date.now().toString(),
                     name, email, subject, message,
+                    attachments: processedAttachments,
                     date: new Date().toISOString(),
                     read: false,
                     replied: false
                 };
                 contacts.push(newMsg);
-                await saveGitHubFile(CONTACTS_PATH, contacts, `New contact: ${name} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+                await saveGitHubFile(CONTACTS_PATH, contacts, `New contact: ${name} (with ${processedAttachments.length} attachments) [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
 
                 // --- SEND NOTIFICATION EMAIL TO ADMIN ---
                 const BREVO_KEY = env.BREVO_API_KEY;
@@ -3136,11 +3166,22 @@ ${urls.map(u => `  <url>
                                                 <p><strong>Sujet :</strong> ${subject}</p>
                                                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
                                                 <div style="white-space: pre-wrap; line-height: 1.6;">${message}</div>
+                                                
+                                                ${processedAttachments.length > 0 ? `
+                                                    <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
+                                                        <p style="margin-top: 0; font-weight: bold; font-size: 12px; color: #666;">PIÈCES JOINTES :</p>
+                                                        <ul style="margin: 0; padding-left: 20px; font-size: 13px;">
+                                                            ${processedAttachments.map((a: any) => `<li><a href="${a.url || '#'}">${a.name}</a> (${(a.size/1024).toFixed(0)} KB)</li>`).join('')}
+                                                        </ul>
+                                                    </div>
+                                                ` : ''}
+
                                                 <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
                                                 <a href="https://dropsiders.fr/admin" style="display: inline-block; background: #000; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; font-size: 14px;">Répondre via l'Admin</a>
                                             </div>
                                         </div>
-                                    `
+                                    `,
+                                    ...(brevoAttachments.length > 0 ? { attachment: brevoAttachments } : {})
                                 })
                             });
 

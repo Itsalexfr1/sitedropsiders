@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus, Archive, FileText, Video } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin } from '../utils/auth';
 import editorsData from '../data/editors.json';
 
@@ -31,6 +31,7 @@ interface ContactMessage {
     date: string;
     read: boolean;
     replied: boolean;
+    attachments?: { name: string; url?: string; size: number }[];
 }
 
 export function AdminMessages() {
@@ -795,6 +796,37 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                             <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6">
                                 <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-sm">{(selected || selectedArchived)?.message || selectedSent?.body}</p>
                             </div>
+
+                            {/* Attachments */}
+                            {((selected || selectedArchived)?.attachments?.length || 0) > 0 && (
+                                <div className="mt-6 space-y-3">
+                                    <h3 className="text-[10px] font-black uppercase text-gray-500 tracking-widest flex items-center gap-2">
+                                        <Paperclip className="w-3.5 h-3.5" /> Pièces Jointes
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {(selected || selectedArchived)?.attachments?.map((file, idx) => (
+                                            <a
+                                                key={idx}
+                                                href={file.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="bg-white/5 border border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-white/10 hover:border-neon-red/30 transition-all"
+                                            >
+                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                    <div className="p-2 bg-white/5 rounded-lg group-hover:bg-neon-red/10 transition-all">
+                                                        <FileText className="w-4 h-4 text-neon-red" />
+                                                    </div>
+                                                    <div className="overflow-hidden text-left">
+                                                        <p className="text-[11px] font-bold text-white truncate">{file.name}</p>
+                                                        <p className="text-[9px] text-gray-500 font-medium">{(file.size / 1024).toFixed(0)} KB</p>
+                                                    </div>
+                                                </div>
+                                                {file.url ? <ExternalLink className="w-3.5 h-3.5 text-gray-600 group-hover:text-neon-cyan" /> : null}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {(selected || selectedArchived)?.replied && (
                                 <div className="mt-4 flex items-center gap-2 text-neon-cyan/60 text-xs font-bold">

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, X, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Mail, X, CheckCircle, AlertCircle, Loader, Paperclip, File as FileIcon } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface TeamContactModalProps {
@@ -17,12 +17,52 @@ export function TeamContactModal({ isOpen, onClose }: TeamContactModalProps) {
     });
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState('');
+    const [attachments, setAttachments] = useState<{ name: string; type: string; content: string; size: number }[]>([]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData(prev => ({
             ...prev,
             [e.target.name]: e.target.value
         }));
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const validFiles: { name: string; type: string; content: string; size: number }[] = [];
+        
+        let currentTotalSize = attachments.reduce((sum, a) => sum + a.size, 0);
+        const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+
+        for (const file of files) {
+            if (currentTotalSize + file.size > MAX_SIZE) {
+                setErrorMessage("La taille totale dépasse 50 Mo.");
+                setStatus('error');
+                setTimeout(() => setStatus('idle'), 5000);
+                break;
+            }
+
+            const reader = new FileReader();
+            const promise = new Promise<string>((resolve) => {
+                reader.onload = () => resolve(reader.result as string);
+            });
+            reader.readAsDataURL(file);
+            const content = await promise;
+
+            validFiles.push({
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                content: content.split(',')[1]
+            });
+            currentTotalSize += file.size;
+        }
+
+        setAttachments(prev => [...prev, ...validFiles]);
+        if (e.target) e.target.value = '';
+    };
+
+    const removeAttachment = (index: number) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -46,9 +86,14 @@ export function TeamContactModal({ isOpen, onClose }: TeamContactModalProps) {
                 body: JSON.stringify({
                     name: formData.name,
                     email: formData.email,
-                    subject: 'Recrutement',
+                    subject: 'Recrutement / Team',
                     message: formData.message,
-                    category: 'Recruitment'
+                    category: 'Recruitment',
+                    attachments: attachments.map(a => ({
+                        name: a.name,
+                        type: a.type,
+                        content: a.content
+                    }))
                 }),
             });
 
@@ -58,6 +103,7 @@ export function TeamContactModal({ isOpen, onClose }: TeamContactModalProps) {
 
             setStatus('success');
             setFormData({ name: '', email: '', message: '' });
+            setAttachments([]);
             setTimeout(() => {
                 setStatus('idle');
                 onClose();
@@ -158,6 +204,37 @@ export function TeamContactModal({ isOpen, onClose }: TeamContactModalProps) {
                                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 outline-none focus:border-neon-red focus:bg-white/5 transition-all text-sm font-medium resize-none"
                                         placeholder="Décrivez vos compétences et pourquoi vous souhaitez nous rejoindre"
                                     />
+                                </div>
+
+                                {/* Attachments Area */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between px-1">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                            <Paperclip className="w-3 h-3" /> CV / Portfolio (Optionnel - Max 50Mo)
+                                        </label>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        {attachments.map((file, idx) => (
+                                            <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-2.5 flex items-center justify-between group">
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <FileIcon className="w-3.5 h-3.5 text-neon-red shrink-0" />
+                                                    <span className="text-[10px] font-bold text-white truncate">{file.name}</span>
+                                                </div>
+                                                <button type="button" onClick={() => removeAttachment(idx)} className="p-1 hover:text-neon-red transition-colors">
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        ))}
+
+                                        <label className="block">
+                                            <input type="file" multiple onChange={handleFileChange} className="hidden" />
+                                            <div className="border border-dashed border-white/10 hover:border-neon-red/50 hover:bg-neon-red/5 rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all group">
+                                                <Plus className="w-3.5 h-3.5 text-gray-500 group-hover:text-neon-red" />
+                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-300">Joindre un fichier</span>
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <motion.button
