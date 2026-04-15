@@ -53,6 +53,14 @@ export function resolveImageUrl(url: string | undefined | null): string {
         processedUrl = '/uploads/uploads/' + cleanPath;
     }
 
-    // Final cleanup of redundant slashes (but preserve the double ones in path)
-    return processedUrl.replace(/\/+/g, '/').replace(/^\/uploads\/uploads\//, '/uploads/uploads/');
+    // Final cleanup of redundant slashes
+    let finalPath = processedUrl.replace(/\/+/g, '/').replace(/^\/uploads\/uploads\//, '/uploads/uploads/');
+    
+    // Si c'est un chemin relatif vers les uploads, on force l'URL absolue de production
+    // pour que les images s'affichent correctement en dev (localhost) et en production.
+    if (finalPath.startsWith('/uploads/')) {
+        return 'https://dropsiders.fr' + finalPath;
+    }
+    
+    return finalPath;
 }
