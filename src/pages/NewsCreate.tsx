@@ -401,7 +401,7 @@ export function NewsCreate() {
         (searchParams.get('tab') as 'News' | 'Musique' | 'Focus') ||
         (type === 'Musique' ? 'Musique' : 'News')
     );
-    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify' }]);
+    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', canVote: false }]);
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,
         type: 'image' | 'gallery' | 'video',
@@ -1043,7 +1043,7 @@ export function NewsCreate() {
     };
 
     const addMusicItem = () => {
-        setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify' }]);
+        setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', canVote: false }]);
     };
 
     const fetchMusicMetadata = async (id: string, url: string) => {
@@ -1136,7 +1136,7 @@ export function NewsCreate() {
         }
     };
 
-    const updateMusicItem = (id: string, field: 'title' | 'media' | 'imageUrl' | 'playerType', value: string) => {
+    const updateMusicItem = (id: string, field: 'title' | 'media' | 'imageUrl' | 'playerType' | 'canVote', value: any) => {
         setMusicItems(musicItems.map(item => {
             if (item.id === id) {
                 let newPlayerType = item.playerType;
@@ -1433,16 +1433,44 @@ ${generateSocialsHtml()}
                 finalContent = widgetsHtml + "\n" + interviewHtml + (interviewHtml || widgetsHtml ? `\n<div class="article-section">${generateSocialsHtml(artistNameLabel || mainName, mainColor)}</div>` : '');
             } else if (activeTab === 'Musique') {
                 finalCategory = 'Musique';
-                const musicHtml = musicItems.map((item) => `
-<div class="music-top-item-premium mb-12 last:mb-0" data-media="${item.media}" data-player-type="${item.playerType || 'spotify'}">
-    <div class="flex items-center gap-6 mb-6">
-        <h3 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">${item.title}</h3>
+                const musicTopHtml = musicItems.map((item) => {
+                    const voteBtn = item.canVote ? `
+  <div class="music-vote-container mt-6 flex justify-center">
+    <button class="music-vote-button group flex items-center gap-3 px-8 py-4 bg-neon-cyan/10 border border-neon-cyan/30 rounded-full text-neon-cyan font-black uppercase tracking-widest text-[11px] hover:bg-neon-cyan/20 transition-all shadow-[0_0_20px_rgba(0,255,243,0.1)]" data-item-id="${item.id}" data-item-title="${item.title.replace(/"/g, '&quot;')}">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      VOTER POUR CE MORCEAU
+    </button>
+  </div>` : '';
+
+                    return `
+<div class="music-top-item-premium mb-16 last:mb-0" data-media="${item.media}" data-player-type="${item.playerType || 'spotify'}">
+  <div class="music-top-header flex items-center gap-6 mb-6">
+    <div class="vinyl-wrapper w-24 h-24 lg:w-32 lg:h-32 shrink-0">${item.imageUrl ? `<img src="${item.imageUrl}" class="w-full h-full object-cover rounded-full shadow-2xl ring-4 ring-white/5" />` : `<div class="w-full h-full bg-black/40 rounded-full border border-white/10 flex items-center justify-center"><span class="text-[8px] font-black text-gray-700">MUSIC</span></div>`}</div>
+    <div class="flex-1">
+      <h3 class="text-2xl lg:text-4xl font-display font-black text-white uppercase italic tracking-tighter leading-none">${item.title}</h3>
+      <div class="h-px w-24 bg-neon-red mt-3 opacity-50"></div>
     </div>
-    <div class="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
-        ${renderMediaEmbed(item.media, item.playerType)}
-    </div>
-</div>`).join('\n');
-                finalContent = `<div class="article-section music-top-section">\n\n${musicHtml}\n\n</div>`;
+  </div>
+  <div class="music-player-container rounded-[2rem] overflow-hidden border border-white/5 bg-black/20 shadow-2xl">
+    ${renderMediaEmbed(item.media, item.playerType)}
+  </div>
+  ${voteBtn}
+</div>`;
+                }).join('\n');
+
+                const widgetsHtml = widgets.map(w =>
+                    `<div class="article-section">${standardizeContent(w.content)}</div>`
+                ).join('\n');
+
+                finalContent = `
+<div class="musique-article-premium">
+  ${widgetsHtml}
+  <div class="music-top-section mt-12 pt-12 border-t border-white/10">
+    ${musicTopHtml}
+  </div>
+  ${youtubeId ? `<div class="article-section"><div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12"><iframe src="https://www.youtube.com/embed/${youtubeId}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe></div></div>` : ''}
+  ${generateSocialsHtml()}
+</div>`;
             } else {
                 if (type === 'Interview') finalCategory = 'Interview';
                 // Construct Final Content with HTML Wrappers for Automatic Styling
@@ -2177,7 +2205,7 @@ ${generateSocialsHtml()}
 
 
                     {/* WIDGET EDITOR SECTION (Always available to add flexibility) */}
-                    {((activeTab === 'News' || activeTab === 'Focus' || type === 'Interview')) && (
+                    {(activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Musique' || type === 'Interview') && (
                         <div className="pt-8 border-t border-white/10">
                             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${isMobileEditorActive ? 'hidden' : ''}`}>
                                 <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -3057,12 +3085,22 @@ ${generateSocialsHtml()}
                                                 />
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => removeMusicItem(item.id)}
-                                            className="absolute top-2 right-2 p-1.5 text-gray-600 hover:text-neon-red opacity-0 group-hover:opacity-100 transition-all"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex items-center justify-between mt-4">
+                                            <StyledCheckbox
+                                                checked={item.canVote || false}
+                                                onChange={(val) => updateMusicItem(item.id, 'canVote', val)}
+                                                label="Activer les votes"
+                                                sublabel="Ajouter un bouton de vote sur ce morceau"
+                                                icon={Star}
+                                                colorClass="neon-cyan"
+                                            />
+                                            <button
+                                                onClick={() => removeMusicItem(item.id)}
+                                                className="p-3 text-gray-600 hover:text-neon-red transition-all bg-white/5 border border-white/10 rounded-xl"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
 
                                         {item.media && (
                                             <div className="mt-4 pt-4 border-t border-white/5">
@@ -3126,85 +3164,96 @@ ${generateSocialsHtml()}
                                                 <Globe className="w-4 h-4 text-neon-cyan" /> {country}
                                             </span>
                                         )}
-                                    </div>
-                                )}
-                            </div>
-                            {activeTab === 'Musique' ? (
-                                <div className="music-top-section">
-                                    {musicItems.map((item) => (
-                                        <div key={item.id} className="music-top-item-premium mb-12 last:mb-0 relative">
-                                            <div className="flex items-center gap-8 mb-6">
-                                                {/* VINYL ANIMATION */}
-                                                <div className="relative group/vinyl">
-                                                    <motion.div
-                                                        animate={{ rotate: 360 }}
-                                                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                                                        className="w-32 h-32 lg:w-40 lg:h-40 rounded-full bg-[#111] border-[6px] lg:border-[8px] border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)] relative flex items-center justify-center overflow-hidden"
-                                                    >
-                                                        {item.imageUrl ? (
-                                                            <img src={item.imageUrl} className="w-full h-full object-cover rounded-full opacity-60 group-hover/vinyl:opacity-80 transition-opacity" alt="Vinyl" />
-                                                        ) : (
-                                                            <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black rounded-full opacity-40" />
-                                                        )}
-
-                                                        {/* Vinyl Grooves Effect */}
-                                                        <div className="absolute inset-0 rounded-full border-[20px] lg:border-[30px] border-black/20 opacity-40" />
-                                                        <div className="absolute inset-0 rounded-full border-[1px] border-white/5" />
-
-                                                        {/* Center Label */}
-                                                        <div className="absolute w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-black flex items-center justify-center border-2 border-white/20 z-10">
-                                                            <div className="w-2 h-2 lg:w-3 lg:h-3 rounded-full bg-white/40 ring-4 ring-black" />
-                                                        </div>
-
-                                                        {/* Highlights */}
-                                                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
-                                                    </motion.div>
-
-                                                    {/* Shadow underneath */}
-                                                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[80%] h-4 bg-black/60 blur-xl rounded-full" />
+                                                           <div className="musique-preview-container">
+                                    {/* Widgets first (if any) */}
+                                    {widgets.length > 0 && widgets[0].content && (
+                                        <div className="mb-12">
+                                            {widgets.map(w => (
+                                                <div key={w.id} className="article-section">
+                                                    <div dangerouslySetInnerHTML={{ __html: standardizeContent(w.content) }} />
                                                 </div>
-
-                                                <div className="flex-1">
-                                                    <h3 className="text-3xl lg:text-5xl font-display font-black text-white uppercase italic tracking-tight leading-none mb-4" dangerouslySetInnerHTML={{ __html: standardizeContent(item.title || 'Titre du morceau') }} />
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="h-px flex-1 bg-gradient-to-r from-neon-red to-transparent opacity-30" />
-                                                        <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em]">SÉLECTION OFFICIELLE</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/40 shadow-2xl relative z-10 backdrop-blur-xl group-hover:border-white/20 transition-colors">
-                                                <div dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media, item.playerType) }} />
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {youtubeId && (
-                                        <div className="mt-16 mb-16">
-                                            <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
-                                                <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
-                                                    <div className="w-6 h-6 text-neon-red fill-neon-red" style={{
-                                                        width: '0',
-                                                        height: '0',
-                                                        borderTop: '8px solid transparent',
-                                                        borderBottom: '8px solid transparent',
-                                                        borderLeft: '12px solid currentColor',
-                                                        marginLeft: '4px'
-                                                    }} />
-                                                </div>
-                                                <div className="flex flex-col text-left">
-                                                    <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1 italic">À NE PAS MANQUER</span>
-                                                    LA VIDÉO DE L'ARTICLE
-                                                </div>
-                                            </h3>
-                                            <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
-                                                <iframe
-                                                    src={`https://www.youtube.com/embed/${youtubeId}`}
-                                                    className="absolute top-0 left-0 w-full h-full"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
-                                                />
-                                            </div>
+                                            ))}
                                         </div>
                                     )}
+
+                                    <div className="music-top-section pt-12 border-t border-white/10">
+                                        <div className="flex items-center gap-4 mb-12">
+                                            <div className="w-12 h-12 rounded-2xl bg-neon-cyan/10 flex items-center justify-center border border-neon-cyan/30">
+                                                <Music className="w-6 h-6 text-neon-cyan" />
+                                            </div>
+                                            <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                                LA LISTE <span className="text-neon-cyan">OFFICIELLE</span>
+                                            </h3>
+                                        </div>
+
+                                        {musicItems.map((item) => (
+                                            <div key={item.id} className="music-top-item-premium mb-16 last:mb-0 relative">
+                                                <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-6">
+                                                    {/* VINYL ANIMATION */}
+                                                    <div className="relative group/vinyl flex justify-center">
+                                                        <motion.div
+                                                            animate={{ rotate: 360 }}
+                                                            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                                            className="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-[#111] border-[6px] lg:border-[8px] border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)] relative flex items-center justify-center overflow-hidden"
+                                                        >
+                                                            {item.imageUrl ? (
+                                                                <img src={item.imageUrl} className="w-full h-full object-cover rounded-full opacity-60 group-hover/vinyl:opacity-80 transition-opacity" alt="Vinyl" />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black rounded-full opacity-40" />
+                                                            )}
+                                                            <div className="absolute inset-0 rounded-full border-[20px] lg:border-[30px] border-black/20 opacity-40" />
+                                                            <div className="absolute inset-0 rounded-full border-[1px] border-white/5" />
+                                                            <div className="absolute w-8 h-8 lg:w-12 lg:h-12 rounded-full bg-black flex items-center justify-center border-2 border-white/20 z-10">
+                                                                <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-white/40 ring-4 ring-black" />
+                                                            </div>
+                                                            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
+                                                        </motion.div>
+                                                        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[80%] h-4 bg-black/60 blur-xl rounded-full" />
+                                                    </div>
+
+                                                    <div className="flex-1 text-center sm:text-left">
+                                                        <h3 className="text-2xl lg:text-4xl font-display font-black text-white uppercase italic tracking-tight leading-loose mb-2" dangerouslySetInnerHTML={{ __html: standardizeContent(item.title || 'Titre du morceau') }} />
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-px flex-1 bg-gradient-to-r from-neon-red to-transparent opacity-30" />
+                                                            <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.4em]">EXCLUSIVITÉ DROPSIDERS</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/40 shadow-2xl relative z-10 backdrop-blur-xl transition-colors">
+                                                    <div dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media, item.playerType) }} />
+                                                </div>
+                                                
+                                                {item.canVote && (
+                                                    <div className="mt-8 flex justify-center">
+                                                        <button className="flex items-center gap-3 px-10 py-4 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full text-neon-cyan font-black uppercase tracking-widest text-[10px] hover:bg-neon-cyan/20 hover:scale-105 transition-all shadow-[0_0_20px_rgba(0,255,243,0.1)] group">
+                                                            <Star className="w-4 h-4 group-hover:fill-neon-cyan transition-all" />
+                                                            VOTER POUR CE MORCEAU
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        {youtubeId && (
+                                            <div className="mt-20">
+                                                <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
+                                                    <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
+                                                        <Youtube className="w-6 h-6 text-neon-red" />
+                                                    </div>
+                                                    <div className="flex flex-col text-left">
+                                                        <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1 italic">DÉCOUVREZ</span>
+                                                        LA VIDÉO DE L'ARTICLE
+                                                    </div>
+                                                </h3>
+                                                <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
+                                                    <iframe
+                                                        src={`https://www.youtube.com/embed/${youtubeId}`}
+                                                        className="absolute top-0 left-0 w-full h-full"
+                                                        allowFullScreen
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                 </div>
                             ) : (
                                 <>
