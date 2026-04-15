@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { 
     X, 
@@ -2211,8 +2212,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </AnimatePresence>
     );
 
-    return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-3xl">
+    return createPortal(
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-3xl">
 
             {!isMobile ? (
                 /* ══════════════════════════════════════════════════════════
@@ -2895,7 +2896,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </motion.div>
                 )}
             </AnimatePresence>
-        </motion.div>
+        </motion.div>,
+        document.body
     );
 }
 
