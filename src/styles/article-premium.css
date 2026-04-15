@@ -223,8 +223,8 @@
 /* Hover effect on images */
 .article-premium-wrapper img:hover,
 .article-body-premium img:hover {
-    transform: scale(1.02);
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: scale(1.01);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 30px 60px -15px rgba(255, 0, 51, 0.2);
 }
 
@@ -280,7 +280,7 @@
 }
 
 .image-premium-wrapper:hover {
-    transform: translateY(-8px) scale(1.01) !important;
+    transform: translateY(-4px) scale(1.005) !important;
     box-shadow: 0 30px 60px -10px rgba(255, 0, 51, 0.2) !important;
     border-color: rgba(255, 0, 51, 0.4) !important;
     z-index: 10;
@@ -322,16 +322,18 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin: 4rem 0 2rem;
-    color: white;
+    color: var(--color-neon-red, #ff0033);
     font-size: 2rem;
     text-align: center;
+    text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
 }
 
 .article-premium-wrapper h3,
 .article-body-premium h3 {
+    font-family: var(--font-display, 'Orbitron', monospace);
     font-size: 1.5rem;
-    color: #e5e7eb;
-    /* gray-200 */
+    text-transform: uppercase;
+    color: var(--color-neon-red, #ff0033);
     text-align: center;
 }
 
