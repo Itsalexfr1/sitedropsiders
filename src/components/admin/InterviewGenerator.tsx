@@ -169,6 +169,42 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         setExportType(null);
     };
 
+    const translateToEnglish = async () => {
+        if (!inputText.trim()) return;
+        setIsGenerating(true);
+
+        const lines = inputText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        const translatedLines: string[] = [];
+
+        for (const line of lines) {
+            const numMatch = line.match(/^(\d+)[^a-zA-Z0-9]*(.*)$/);
+            
+            if (numMatch) {
+                const numStr = numMatch[1];
+                const frText = numMatch[2].trim();
+                translatedLines.push(`${numStr}. ${frText}`);
+                
+                try {
+                    const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(frText)}&langpair=fr|en`);
+                    const data = await response.json();
+                    if (data.responseData?.translatedText) {
+                        translatedLines.push(data.responseData.translatedText);
+                    }
+                } catch (error) {
+                    console.error("Translation error:", error);
+                }
+            } else {
+                translatedLines.push(line);
+            }
+            
+            await new Promise(r => setTimeout(r, 300));
+        }
+
+        setInputText(translatedLines.join('\n'));
+        setIsGenerating(false);
+        setTimeout(parseQuestions, 100);
+    };
+
     const getThemeColors = () => {
         switch (theme) {
             case 'cyan': return { main: 'text-neon-cyan', border: 'border-neon-cyan/20', glow: 'shadow-neon-cyan/20' };
@@ -257,7 +293,17 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             />
                         </div>
 
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={translateToEnglish}
+                                disabled={isGenerating}
+                                className={`w-full py-4 border font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl ${isGenerating ? 'border-white/5 text-gray-700 cursor-not-allowed' : 'border-neon-red/30 text-neon-red hover:bg-neon-red/10 animate-pulse'}`}
+                            >
+                                {isGenerating ? (
+                                    <div className="w-5 h-5 border-2 border-neon-red/20 border-t-neon-red rounded-full animate-spin" />
+                                ) : <Plus className="w-5 h-5" />}
+                                Traduire en Anglais (IA)
+                            </button>
                             <button
                                 onClick={parseQuestions}
                                 className="w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
