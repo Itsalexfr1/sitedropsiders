@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin } from '../utils/auth';
 import editorsData from '../data/editors.json';
 
@@ -54,6 +54,7 @@ export function AdminMessages() {
     const [loading, setLoading] = useState(true);
     const [replyModal, setReplyModal] = useState(false);
     const [replyBody, setReplyBody] = useState('');
+    const [attachments, setAttachments] = useState<{ name: string; type: string; content: string; size: number }[]>([]);
     const [replyStatus, setReplyStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [replyError, setReplyError] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -183,6 +184,45 @@ export function AdminMessages() {
         showNotif('success', 'Message restauré dans la boîte de réception.');
     };
 
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const validFiles: { name: string; type: string; content: string; size: number }[] = [];
+        
+        let currentTotalSize = attachments.reduce((sum, a) => sum + a.size, 0);
+        const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+
+        for (const file of files) {
+            if (currentTotalSize + file.size > MAX_SIZE) {
+                setReplyError("La taille totale dépasse 50 Mo.");
+                setReplyStatus('error');
+                setTimeout(() => setReplyStatus('idle'), 5000);
+                break;
+            }
+
+            const reader = new FileReader();
+            const promise = new Promise<string>((resolve) => {
+                reader.onload = () => resolve(reader.result as string);
+            });
+            reader.readAsDataURL(file);
+            const content = await promise;
+
+            validFiles.push({
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                content: content.split(',')[1]
+            });
+            currentTotalSize += file.size;
+        }
+
+        setAttachments(prev => [...prev, ...validFiles]);
+        if (e.target) e.target.value = '';
+    };
+
+    const removeAttachment = (index: number) => {
+        setAttachments(prev => prev.filter((_, i) => i !== index));
+    };
+
     const handleReply = async () => {
         const to = isNewMail ? destinationEmails.map(e => e.trim()).filter(Boolean).join(',') : selected?.email;
         if (!to || !replyBody.trim()) return;
@@ -198,7 +238,12 @@ export function AdminMessages() {
                     name: isNewMail ? 'Partenaire' : selected?.name,
                     subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
                     message: replyBody,
-                    lang: accreditationLang
+                    lang: accreditationLang,
+                    attachments: attachments.map(a => ({
+                        name: a.name,
+                        type: a.type,
+                        content: a.content
+                    }))
                 })
             });
 
@@ -220,6 +265,7 @@ export function AdminMessages() {
             if (res.ok) {
                 setReplyStatus('success');
                 setReplyBody('');
+                setAttachments([]);
                 // Archive in sent box
                 const sent = {
                     id: Date.now().toString(),
@@ -1210,7 +1256,37 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             </div>
                                         </div>
                                     </div>
-                                    {replyStatus === 'error' && <p className="text-neon-red text-xs font-bold text-center">⚠ {replyError}</p>}
+                                    
+                                    {/* Attachments UI Add */}
+                                    <div className="space-y-2 mt-4 bg-[#111] border border-white/5 p-4 rounded-xl">
+                                        <div className="flex items-center justify-between px-1 mb-2">
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                                <Paperclip className="w-3 h-3 text-neon-orange" /> Fichiers joints au message (Max 50Mo)
+                                            </label>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                            {attachments.map((file, idx) => (
+                                                <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-2.5 flex items-center justify-between group">
+                                                    <div className="flex items-center gap-2 overflow-hidden">
+                                                        <FileIcon className="w-3.5 h-3.5 text-neon-orange shrink-0" />
+                                                        <span className="text-[10px] font-bold text-white truncate">{file.name}</span>
+                                                    </div>
+                                                    <button type="button" onClick={() => removeAttachment(idx)} className="p-1 hover:text-neon-red transition-colors shrink-0">
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <label className="block w-full">
+                                                <input type="file" multiple onChange={handleFileChange} className="hidden" />
+                                                <div className="border border-dashed border-white/10 hover:border-neon-orange/50 hover:bg-neon-orange/5 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer transition-all group h-full h-10">
+                                                    <Plus className="w-3.5 h-3.5 text-gray-500 group-hover:text-neon-orange" />
+                                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-300">Ajouter</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    {replyStatus === 'error' && <p className="text-neon-red text-xs font-bold text-center mt-4">⚠ {replyError}</p>}
                                 </div>
                             </div>
 

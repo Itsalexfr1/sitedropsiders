@@ -3295,7 +3295,7 @@ ${urls.map(u => `  <url>
             if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
             try {
                 const body = await request.json().catch(() => ({}));
-                const { to, from, name, subject, message, lang } = body;
+                const { to, from, name, subject, message, lang, attachments } = body;
                 if (!to || !subject || !message) {
                     return new Response(JSON.stringify({ error: 'Missing required fields (to, subject, message)' }), { status: 400, headers });
                 }
@@ -3309,6 +3309,15 @@ ${urls.map(u => `  <url>
                 // Add admin as BCC/CC surrogate if not in list
                 if (!recipients.find((r: any) => r.email === 'contact@dropsiders.fr')) {
                     recipients.push({ email: 'contact@dropsiders.fr', name: 'Dropsiders Backup' });
+                }
+
+                let brevoAttachments: any[] = [];
+                if (Array.isArray(attachments)) {
+                    attachments.slice(0, 5).forEach((f: any) => {
+                        if (f.content && f.name) {
+                            brevoAttachments.push({ content: f.content, name: f.name });
+                        }
+                    });
                 }
 
                 const payload = {
@@ -3377,7 +3386,8 @@ ${urls.map(u => `  <url>
                             ? `${from.trim()}, contact@dropsiders.fr`
                             : 'contact@dropsiders.fr',
                         name: 'Support Dropsiders'
-                    }
+                    },
+                    ...(brevoAttachments.length > 0 ? { attachment: brevoAttachments } : {})
                 };
 
                 const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
