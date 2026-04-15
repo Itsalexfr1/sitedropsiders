@@ -137,7 +137,13 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         useCORS: true,
                         allowTaint: true,
                         logging: false,
-                        removeContainer: true
+                        removeContainer: true,
+                        onclone: (clonedDoc) => {
+                            const styles = clonedDoc.getElementsByTagName('style');
+                            for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
+                            const links = clonedDoc.getElementsByTagName('link');
+                            for (let i = links.length - 1; i >= 0; i--) if (links[i].rel === 'stylesheet') links[i].remove();
+                        }
                     });
                     
                     const dataUrl = canvas.toDataURL('image/png', 1.0);
@@ -190,7 +196,13 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         scale: 2,
                         backgroundColor: '#ffffff',
                         useCORS: true,
-                        allowTaint: true
+                        allowTaint: true,
+                        onclone: (clonedDoc) => {
+                            const styles = clonedDoc.getElementsByTagName('style');
+                            for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
+                            const links = clonedDoc.getElementsByTagName('link');
+                            for (let i = links.length - 1; i >= 0; i--) if (links[i].rel === 'stylesheet') links[i].remove();
+                        }
                     });
                     
                     const imgData = canvas.toDataURL('image/png', 1.0);
@@ -217,10 +229,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         try {
             e.stopPropagation();
             const card = document.getElementById(cardId);
-            if (!card) {
-                alert("Erreur: Carte introuvable (ID: " + cardId + ")");
-                return;
-            }
+            if (!card) return;
 
             const btn = e.currentTarget as HTMLElement;
             btn.style.visibility = 'hidden';
@@ -230,6 +239,17 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 backgroundColor: null,
                 useCORS: true,
                 allowTaint: true,
+                onclone: (clonedDoc) => {
+                    // Critical: Remove all global styles that might contain oklab/oklch
+                    const styles = clonedDoc.getElementsByTagName('style');
+                    for (let i = styles.length - 1; i >= 0; i--) {
+                        styles[i].remove();
+                    }
+                    const links = clonedDoc.getElementsByTagName('link');
+                    for (let i = links.length - 1; i >= 0; i--) {
+                        if (links[i].rel === 'stylesheet') links[i].remove();
+                    }
+                },
                 ignoreElements: (element) => element.classList.contains('capture-btn')
             });
             
@@ -241,7 +261,6 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             btn.style.visibility = 'visible';
         } catch (err) {
             alert("Erreur de capture: " + err);
-            console.error("Capture error:", err);
         }
     };
 
