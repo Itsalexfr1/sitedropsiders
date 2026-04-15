@@ -16,6 +16,8 @@ import {
     Columns
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
 
 interface InterviewQuestion {
     id: string;
@@ -55,27 +57,37 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             const numMatch = line.match(/^(\d+)(?:\.|\-|\s)+(.*)/);
             
             if (numMatch) {
-                if (current) {
-                    parsed.push({
-                        id: Math.random().toString(36).substr(2, 9),
-                        number: current.number,
-                        fr: current.fr,
-                        en: current.en.join(' ')
-                    });
+                const num = numMatch[1];
+                const content = numMatch[2].trim();
+
+                // If same number, it's the EN version of the current question
+                if (current && current.number === num && current.en.length === 0) {
+                    current.en.push(content);
+                } else {
+                    // It's a new question
+                    if (current) {
+                        parsed.push({
+                            id: Math.random().toString(36).substring(2, 11),
+                            number: current.number,
+                            fr: current.fr,
+                            en: current.en.join(' ')
+                        });
+                    }
+                    current = {
+                        number: num,
+                        fr: content,
+                        en: []
+                    };
                 }
-                current = {
-                    number: numMatch[1],
-                    fr: numMatch[2].trim(),
-                    en: []
-                };
             } else if (current) {
+                // Not starting with a number, must be the EN version
                 current.en.push(line);
             }
         }
 
         if (current) {
             parsed.push({
-                id: Math.random().toString(36).substr(2, 9),
+                id: Math.random().toString(36).substring(2, 11),
                 number: current.number,
                 fr: current.fr,
                 en: current.en.join(' ')
@@ -91,24 +103,28 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         if (!container) return;
 
         const cards = container.querySelectorAll('.interview-card');
+        const zip = new JSZip();
         
         for (let i = 0; i < cards.length; i++) {
             const card = cards[i] as HTMLElement;
             const canvas = await html2canvas(card, {
-                scale: 3, // High quality
-                backgroundColor: '#050505',
+                scale: 3, 
+                backgroundColor: '#ffffff',
                 logging: false,
                 useCORS: true
             });
             
-            const link = document.createElement('a');
-            link.download = i === 0 ? 'Interview_Recto.png' : `Interview_Page_${i}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            const dataUrl = canvas.toDataURL('image/png');
+            const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
             
-            // Wait a bit between downloads to not freeze UI
-            await new Promise(r => setTimeout(r, 200));
+            const filename = i === 0 ? '00_Interview_Recto.png' : `Page_${String(i).padStart(2, '0')}.png`;
+            zip.file(filename, base64Data, { base64: true });
+            
+            await new Promise(r => setTimeout(r, 100));
         }
+
+        const content = await zip.generateAsync({ type: "blob" });
+        saveAs(content, "Interview_Cards_Dropsiders.zip");
         
         setIsGenerating(false);
     };
@@ -359,7 +375,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                                     {q.fr}
                                                                 </h3>
                                                                 {q.en && (
-                                                                    <p className={`text-[11px] font-medium italic ${theme === 'red' ? 'text-red-500' : theme === 'cyan' ? 'text-blue-600' : 'text-purple-600'} leading-tight`}>
+                                                                    <p className={`text-[11px] font-semibold italic ${theme === 'red' ? 'text-red-600' : theme === 'cyan' ? 'text-blue-700' : 'text-purple-700'} leading-snug mt-1`}>
                                                                         {q.en}
                                                                     </p>
                                                                 )}
