@@ -535,7 +535,15 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             <Download className="w-3 h-3" /> PNG
                                         </button>
 
-                                        <div className={`w-full h-full bg-gradient-to-b ${theme === 'red' ? 'from-neon-red via-[#ff3355]' : theme === 'cyan' ? 'from-neon-cyan via-blue-500' : 'from-neon-purple via-pink-500'} to-[#000] flex flex-col items-center justify-center p-16 relative overflow-hidden shrink-0 text-center`}>
+                                        <div className="w-full h-full flex flex-col items-center justify-center p-16 relative overflow-hidden shrink-0 text-center"
+                                            style={{ 
+                                                background: theme === 'red' 
+                                                    ? 'linear-gradient(to bottom, #ff0000, #ff3355, #000000)' 
+                                                    : theme === 'cyan' 
+                                                    ? 'linear-gradient(to bottom, #00f0ff, #0066ff, #000000)'
+                                                    : 'linear-gradient(to bottom, #bc13fe, #ff00ff, #000000)'
+                                            }}
+                                        >
                                             <div className="absolute inset-0 opacity-20 pointer-events-none">
                                                 <div className="absolute top-0 right-0 w-96 h-96 bg-white/20 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3" />
                                             </div>
@@ -601,7 +609,15 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             )}
 
                                             {/* Header */}
-                                            <div className={`w-full h-20 bg-gradient-to-r ${theme === 'red' ? 'from-neon-red via-[#ff3355]' : theme === 'cyan' ? 'from-neon-cyan via-blue-500' : 'from-neon-purple via-pink-500'} to-[#000] flex items-center justify-between px-10 relative overflow-hidden shrink-0`}>
+                                            <div className="w-full h-20 flex items-center justify-between px-10 relative overflow-hidden shrink-0"
+                                                style={{ 
+                                                    background: theme === 'red' 
+                                                        ? 'linear-gradient(to right, #ff0000, #ff3355, #000000)' 
+                                                        : theme === 'cyan' 
+                                                        ? 'linear-gradient(to right, #00f0ff, #0066ff, #000000)'
+                                                        : 'linear-gradient(to right, #bc13fe, #ff00ff, #000000)'
+                                                }}
+                                            >
                                                 <div className="absolute inset-0 opacity-20 pointer-events-none">
                                                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 blur-[60px] rounded-full translate-x-1/2 -translate-y-1/2" />
                                                 </div>
@@ -628,7 +644,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 <div className="space-y-3">
                                                     {chunk.map((q) => (
                                                         <div key={q.id} className="flex gap-4 items-start border-b border-black/5 pb-3 last:border-0">
-                                                            <span className={`text-sm font-display font-black italic shrink-0 w-5 ${theme === 'red' ? 'text-neon-red' : theme === 'cyan' ? 'text-black' : 'text-neon-purple'}`}>
+                                                            <span className="text-sm font-display font-black italic shrink-0 w-5"
+                                                                style={{ color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe' }}
+                                                            >
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
                                                             <div className="flex-1">
@@ -636,7 +654,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                                     {q.fr}
                                                                 </h3>
                                                                 {q.en && (
-                                                                    <p className={`text-[12px] font-bold ${theme === 'red' ? 'text-red-600' : theme === 'cyan' ? 'text-blue-700' : 'text-purple-700'} leading-[1.2]`}>
+                                                                    <p className="text-[12px] font-bold leading-[1.2]"
+                                                                        style={{ color: theme === 'red' ? '#dc2626' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce' }}
+                                                                    >
                                                                         {q.en}
                                                                     </p>
                                                                 )}
