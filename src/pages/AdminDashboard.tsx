@@ -8113,7 +8113,11 @@ export function AdminDashboard() {
                         setIsBrokenImageUploadOpen(false);
                         setCurrentBrokenImageToFix(null);
                     }}
-                    forceFilename={currentBrokenImageToFix?.key?.split('/').pop()}
+                    forceFilename={currentBrokenImageToFix ? (
+                        currentBrokenImageToFix.entityName 
+                            ? currentBrokenImageToFix.entityName.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.jpg'
+                            : currentBrokenImageToFix.key?.split('/').pop()
+                    ) : undefined}
                     onUploadSuccess={(urls) => {
                         const uploadedUrl = Array.isArray(urls) ? urls[0] : urls;
                         if (currentBrokenImageToFix) {
