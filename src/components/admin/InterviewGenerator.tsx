@@ -143,6 +143,12 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             for (let k = styles.length - 1; k >= 0; k--) styles[k].remove();
                             const links = clonedDoc.getElementsByTagName('link');
                             for (let k = links.length - 1; k >= 0; k--) links[k].remove();
+                            
+                            // Inject safe font
+                            const fontLink = clonedDoc.createElement('link');
+                            fontLink.rel = 'stylesheet';
+                            fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap';
+                            clonedDoc.head.appendChild(fontLink);
                         }
                     });
                     
@@ -202,6 +208,12 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             for (let k = styles.length - 1; k >= 0; k--) styles[k].remove();
                             const links = clonedDoc.getElementsByTagName('link');
                             for (let k = links.length - 1; k >= 0; k--) links[k].remove();
+                            
+                            // Inject safe font
+                            const fontLink = clonedDoc.createElement('link');
+                            fontLink.rel = 'stylesheet';
+                            fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap';
+                            clonedDoc.head.appendChild(fontLink);
                         }
                     });
                     
@@ -245,6 +257,12 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                     for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
                     const links = clonedDoc.getElementsByTagName('link');
                     for (let i = links.length - 1; i >= 0; i--) links[i].remove();
+
+                    // Inject safe font
+                    const fontLink = clonedDoc.createElement('link');
+                    fontLink.rel = 'stylesheet';
+                    fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap';
+                    clonedDoc.head.appendChild(fontLink);
                 },
                 ignoreElements: (element) => element.classList.contains('capture-btn')
             });
@@ -564,39 +582,48 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                                         <div className="w-full h-full flex flex-col items-center justify-center p-16 relative overflow-hidden shrink-0 text-center"
                                             style={{ 
+                                                width: '100%',
+                                                height: '100%',
                                                 background: theme === 'red' 
                                                     ? 'linear-gradient(to bottom, #ff0000, #ff3355, #000000)' 
                                                     : theme === 'cyan' 
                                                     ? 'linear-gradient(to bottom, #00f0ff, #0066ff, #000000)'
-                                                    : 'linear-gradient(to bottom, #bc13fe, #ff00ff, #000000)'
+                                                    : 'linear-gradient(to bottom, #bc13fe, #ff00ff, #000000)',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                padding: '64px',
+                                                position: 'relative',
+                                                overflow: 'hidden'
                                             }}
                                         >
-                                            <div className="absolute inset-0 opacity-20 pointer-events-none">
-                                                <div className="absolute top-0 right-0 w-96 h-96 bg-white/20 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3" />
+                                            <div style={{ position: 'absolute', inset: 0, opacity: 0.2, pointerEvents: 'none' }}>
+                                                <div style={{ position: 'absolute', top: 0, right: 0, width: '384px', height: '384px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '50%', filter: 'blur(100px)', transform: 'translate(33%, -33%)' }} />
                                             </div>
 
-                                            <div className="relative z-10 flex flex-col items-center gap-8">
-                                                <img src="/Logo.png" alt="Dropsiders" className="h-10 brightness-0 invert" />
+                                            <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px' }}>
+                                                <img src="/Logo.png" alt="Dropsiders" style={{ height: '40px', filter: 'brightness(0) invert(1)' }} />
                                                 
-                                                <div className="w-16 h-1 bg-white opacity-40 rounded-full" />
+                                                <div style={{ width: '64px', height: '4px', backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: '999px' }} />
                                                 
-                                                <div className="space-y-4">
-                                                    <h1 className="text-6xl font-display font-black text-white italic tracking-tighter uppercase leading-none">
-                                                        Interview<br /><span className="text-black/50">Questions</span>
+                                                <div style={{ textAlign: 'center' }}>
+                                                    <h1 style={{ fontSize: '60px', fontFamily: 'Montserrat, sans-serif', fontWeight: 900, color: '#ffffff', fontStyle: 'italic', letterSpacing: '-0.05em', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>
+                                                        Interview<br /><span style={{ color: 'rgba(0,0,0,0.5)' }}>Questions</span>
                                                     </h1>
-                                                    <p className="text-sm text-white/60 font-black uppercase tracking-[0.5em]">Live Report 2026</p>
+                                                    <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em', marginTop: '16px', margin: 0 }}>Live Report 2026</p>
                                                 </div>
 
                                                 {festivalLogo && (
-                                                    <div className="mt-8 flex flex-col items-center gap-4">
-                                                        <span className="text-[10px] text-white/30 font-black uppercase tracking-[0.4em]">Official Coverage at</span>
-                                                        <img src={festivalLogo} alt="Festival" className="h-48 object-contain filter brightness-0 invert" />
+                                                    <div style={{ marginTop: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                                                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>Official Coverage at</span>
+                                                        <img src={festivalLogo} alt="Festival" style={{ height: '192px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
                                                     </div>
                                                 )}
                                             </div>
 
-                                            <div className="absolute bottom-12 left-0 w-full flex flex-col items-center opacity-30">
-                                                <span className="text-[8px] text-white font-black uppercase tracking-[0.8em]">DROPSIDERS EXCLUSIVE</span>
+                                            <div style={{ position: 'absolute', bottom: '48px', left: 0, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: 0.3 }}>
+                                                <span style={{ fontSize: '8px', color: '#ffffff', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.8em' }}>DROPSIDERS EXCLUSIVE</span>
                                             </div>
                                         </div>
                                     </div>
