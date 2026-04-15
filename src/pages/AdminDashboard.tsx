@@ -32,6 +32,8 @@ import { CreatorStudioMenuModal } from '../components/admin/modals/CreatorStudio
 import { Downloader } from './Downloader';
 import { WikiWidget } from '../components/widgets/WikiWidget';
 import { resolveImageUrl } from '../utils/image';
+import { InterviewGenerator } from '../components/admin/InterviewGenerator';
+
 
 
 
@@ -98,6 +100,8 @@ export function AdminDashboard() {
     const [selectedSocialArticle, setSelectedSocialArticle] = useState<any | null>(null);
     const [selectedSocialTheme, setSelectedSocialTheme] = useState<string | undefined>(undefined);
     const [isQuickWizardOpen, setIsQuickWizardOpen] = useState(false);
+    const [isInterviewGeneratorOpen, setIsInterviewGeneratorOpen] = useState(false);
+
     const [isLoadingSocial, setIsLoadingSocial] = useState(false);
     const [bannerState, setBannerState] = useState({
         enabled: false,
@@ -1644,6 +1648,8 @@ export function AdminDashboard() {
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
         { title: "Studio Création", description: "Générateurs Rapides", icon: "Sparkles", category: "STUDIO", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "news", baseColor: "orange", columns: 2 },
         { title: "Social Studio", description: "Générateur de Visuels", icon: "Paintbrush", category: "SOCIAL_STUDIO", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "pink", columns: 2 },
+        { title: "Générateur Fiches", description: "Interview Visual Cards", icon: "Columns", category: "SOCIAL_STUDIO", link: "interview-generator", permission: "news", baseColor: "red", columns: 1 },
+
 
         // SHOP & CONTACT
         { title: "Boutique", description: "Ventes & Produits", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "shop", baseColor: "pink", columns: 2 },
@@ -3541,6 +3547,10 @@ export function AdminDashboard() {
                                                     } else if (action.link === '/interview-visuals' || action.title === 'Visuels Interviews') {
                                                         e.preventDefault();
                                                         navigate('/interview-visuals');
+                                                    } else if (action.link === 'interview-generator' || action.title === 'Générateur Fiches') {
+                                                        e.preventDefault();
+                                                        setIsInterviewGeneratorOpen(true);
+
                                                     } else if (action.link === 'downloader' || action.title === 'Downloader') {
                                                         e.preventDefault();
                                                         setIsDownloaderOpen(true);
@@ -4117,6 +4127,25 @@ export function AdminDashboard() {
                                     </Link>
                                 </div>
 
+                                <button
+                                    onClick={() => {
+                                        setIsInterviewGeneratorOpen(true);
+                                        setIsInterviewModalOpen(false);
+                                    }}
+                                    className="w-full p-6 mb-4 bg-neon-red/5 border border-neon-red/20 rounded-3xl flex items-center justify-between hover:bg-neon-red/10 hover:border-neon-red/40 transition-all group"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-neon-red/20 rounded-xl border border-neon-red/30">
+                                            <Columns className="w-5 h-5 text-neon-red" />
+                                        </div>
+                                        <div className="text-left">
+                                            <h3 className="font-bold text-white uppercase italic tracking-tight">Générateur de Fiches Questions</h3>
+                                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Créer des visuels A5 pour réseaux sociaux</p>
+                                        </div>
+                                    </div>
+                                    <Plus className="w-5 h-5 text-neon-red group-hover:rotate-90 transition-transform" />
+                                </button>
+
                                 <Link
                                     to="/admin/manage?tab=Interviews"
                                     className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
@@ -4455,6 +4484,12 @@ export function AdminDashboard() {
                                 setSelectedSocialTheme(undefined);
                             }}
                         />
+                    )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                    {isInterviewGeneratorOpen && (
+                        <InterviewGenerator onClose={() => setIsInterviewGeneratorOpen(false)} />
                     )}
                 </AnimatePresence>
 
