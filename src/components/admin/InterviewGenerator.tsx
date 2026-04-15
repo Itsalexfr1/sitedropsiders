@@ -124,8 +124,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     };
     const questionChunks = chunkQuestions(questions, questionsPerPage);
 
-    // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ PURE CANVAS RENDER ENGINE ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
-    // Draws cards directly with Canvas 2D API ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â no html2canvas, no CSS, no iframe.
+    // ------------------------------------------------------------
+    // PURE CANVAS RENDER ENGINE
+    // ------------------------------------------------------------
+    // Draws cards directly with Canvas 2D API — no html2canvas, no CSS, no iframe.
     // Text is drawn with ctx.fillText(), images with ctx.drawImage(). Bulletproof.
 
     const loadImg = (src: string): Promise<HTMLImageElement | null> =>
@@ -313,10 +315,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             const LINE_EN = 12;    // line height for EN text
 
             for (const q of (chunk || [])) {
-                // If swapped, T1 is EN, T2 is FR. Else T1 is FR, T2 is EN.
-                const t1 = swapLanguages ? q.en : (q.fr || '').toUpperCase();
-                const t2 = swapLanguages ? (q.fr || '').toUpperCase() : q.en;
-                const isT1Main = !swapLanguages; // FR is usually bold/uppercase
+                // Top (t1) is always primary (Main), Bottom (t2) is always secondary (Sub)
+                const t1 = swapLanguages ? (q.en || '').toUpperCase() : (q.fr || '').toUpperCase();
+                const t2 = swapLanguages ? q.fr : q.en;
+                const isT1Main = true; // Position-based styling: Top is always main
 
                 // Number
                 ctx.fillStyle = accent;
@@ -504,7 +506,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
                                 Interview <span className={colors.main}>Generator</span>
                             </h2>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Format A5 Premium Â· Export Multi-Pages</p>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-1">Format A5 Premium • Export Multi-Pages</p>
                         </div>
                     </div>
                     
@@ -538,7 +540,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             <textarea
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
-                                placeholder="1. PrÃ©sente-toi...\nIntroduce yourself...\n2. Si tu devais..."
+                                placeholder="1. Présente-toi...\nIntroduce yourself...\n2. Si tu devais..."
                                 className="w-full h-96 bg-black/40 border border-white/10 rounded-[2rem] p-6 text-sm text-white focus:border-neon-red outline-none transition-all resize-none custom-scrollbar font-medium leading-relaxed"
                             />
                         </div>
@@ -558,7 +560,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 onClick={parseQuestions}
                                 className="w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                             >
-                                <Eye className="w-5 h-5" /> GÃ©nÃ©rer AperÃ§u
+                                <Eye className="w-5 h-5" /> Générer Aperçu
                             </button>
                         </div>
                         <div className="space-y-4">
@@ -617,7 +619,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 {/* Watermark Opacity */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                        <span>OpacitÃƒÆ’Ã‚Â© Watermark</span>
+                                        <span>Opacité Watermark</span>
                                         <span className="text-white">{watermarkOpacity}%</span>
                                     </div>
                                     <input 
@@ -631,7 +633,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 {/* Header Logo Size */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                        <span>Taille Logo En-tÃƒÆ’Ã‚Âªte</span>
+                                        <span>Taille Logo En-tête</span>
                                         <span className="text-white">{headerLogoSize}</span>
                                     </div>
                                     <input 
@@ -664,7 +666,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                         {questions.length > 0 && (
                             <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
-                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">RÃƒÆ’Ã‚Â©sumÃƒÆ’Ã‚Â© : {questions.length} Questions</h4>
+                                <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">RÉSUMÉ : {questions.length} Questions</h4>
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                     <button
@@ -704,7 +706,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     </button>
                                 </div>
                                 <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest text-center mt-2">
-                                    Export Premium A5 Ãƒâ€š· {questionChunks.length + 1} pages
+                                    Export Premium A5 • {questionChunks.length + 1} pages
                                 </p>
                             </div>
                         )}
@@ -922,29 +924,14 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                             <span style={{ fontSize: '11px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '22px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe', marginTop: '1px' }}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
-                                                          <div style={{ flex: 1 }}>
-                                                                {!swapLanguages ? (
-                                                                    <>
-                                                                        <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '2px', fontFamily: 'Montserrat, sans-serif' }}>
-                                                                            {q.fr}
-                                                                        </div>
-                                                                        {q.en && (
-                                                                            <div style={{ fontSize: '10px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif' }}>
-                                                                                {q.en}
-                                                                            </div>
-                                                                        )}
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        {q.en && (
-                                                                            <div style={{ fontSize: '10px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif', marginBottom: '2px' }}>
-                                                                                {q.en}
-                                                                            </div>
-                                                                        )}
-                                                                        <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, fontFamily: 'Montserrat, sans-serif' }}>
-                                                                            {q.fr}
-                                                                        </div>
-                                                                    </>
+                                                            <div style={{ flex: 1 }}>
+                                                                <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '2px', fontFamily: 'Montserrat, sans-serif' }}>
+                                                                    {swapLanguages ? q.en : q.fr}
+                                                                </div>
+                                                                {(swapLanguages ? q.fr : q.en) && (
+                                                                    <div style={{ fontSize: '10px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif' }}>
+                                                                        {swapLanguages ? q.fr : q.en}
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         </div>
