@@ -79,6 +79,9 @@ export function WikiDropsiders({
     const [editValues, setEditValues] = useState<Partial<DjEntry>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
+    const [showAdd, setShowAdd] = useState(false);
+    const [addForm, setAddForm] = useState({ name: '', bio: '', country: '', image: '', rating: '4.5', instagram: '', spotify: '' });
+    const [addSuccess, setAddSuccess] = useState(false);
     const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
     const [showImageModal, setShowImageModal] = useState(false);
 
@@ -117,6 +120,40 @@ export function WikiDropsiders({
         return a.localeCompare(b);
     });
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+    const handleAddDj = async () => {
+        if (!addForm.name || !addForm.image) {
+            setSaveMsg("Nom et image obligatoires");
+            return;
+        }
+        setIsSaving(true);
+        try {
+            const res = await apiFetch('/api/wiki/add', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    type: 'DJS',
+                    entry: addForm
+                })
+            });
+            if (res.ok) {
+                setAddSuccess(true);
+                setAddForm({ name: '', bio: '', country: '', image: '', rating: '4.5', instagram: '', spotify: '' });
+                fetchData();
+                setTimeout(() => {
+                    setAddSuccess(false);
+                    setShowAdd(false);
+                }, 2000);
+            } else {
+                const data = await res.json();
+                setSaveMsg(data.error || "Erreur lors de l'ajout");
+            }
+        } catch (e) {
+            setSaveMsg("Erreur réseau");
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const toggleVote = async (id: string, e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -224,15 +261,74 @@ export function WikiDropsiders({
                     </div>
                     {isAdmin && (
                         <button 
-                            onClick={() => window.location.href = '/admin?tab=WIKI&action=add'}
+                            onClick={() => setShowAdd(!showAdd)}
                             className="flex items-center gap-2 px-6 bg-neon-red text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all text-[10px] whitespace-nowrap shadow-lg shadow-neon-red/20"
                         >
-                            <Pencil className="w-4 h-4" />
+                            <Plus className="w-4 h-4" />
                             Ajouter
                         </button>
                     )}
                 </div>
             </div>
+
+            {/* Formulaire d'ajout intégré (Admin) */}
+            <AnimatePresence>
+                {showAdd && (
+                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                        className="bg-white/5 border border-neon-red/20 rounded-3xl p-8 mb-8">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">AJOUTER <span className="text-neon-red">UN DJ</span></h3>
+                            <button onClick={() => setShowAdd(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all">
+                                <X className="w-5 h-5 text-gray-500 hover:text-white" />
+                            </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div>
+                                <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2">Nom de l'artiste *</label>
+                                <input type="text" value={addForm.name} onChange={e => setAddForm({...addForm, name: e.target.value})} placeholder="David Guetta"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
+                            </div>
+                            <div>
+                                <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2">Pays / Flag</label>
+                                <input type="text" value={addForm.country} onChange={e => setAddForm({...addForm, country: e.target.value})} placeholder="🇫🇷 FR"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
+                            </div>
+                            <div>
+                                <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2">URL Image *</label>
+                                <input type="text" value={addForm.image} onChange={e => setAddForm({...addForm, image: e.target.value})} placeholder="https://..."
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
+                            </div>
+                            <div className="md:col-span-2 lg:col-span-3">
+                                <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2">Biographie / Infos</label>
+                                <textarea value={addForm.bio} onChange={e => setAddForm({...addForm, bio: e.target.value})} placeholder="Biographie de l'artiste..."
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-neon-red transition-all h-24 resize-none" />
+                            </div>
+                            <div>
+                                <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2">Lien Instagram</label>
+                                <input type="text" value={addForm.instagram} onChange={e => setAddForm({...addForm, instagram: e.target.value})} placeholder="https://instagram.com/..."
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
+                            </div>
+                            <div>
+                                <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2">Lien Spotify</label>
+                                <input type="text" value={addForm.spotify} onChange={e => setAddForm({...addForm, spotify: e.target.value})} placeholder="https://open.spotify.com/artist/..."
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
+                            </div>
+                            <div className="flex items-end">
+                                <button
+                                    onClick={handleAddDj}
+                                    disabled={isSaving}
+                                    className="w-full py-3 bg-neon-red text-white font-black uppercase text-[10px] tracking-widest rounded-xl hover:shadow-lg hover:shadow-neon-red/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isSaving ? "SAUVEGARDE..." : addSuccess ? "DJ AJOUTÉ !" : "ENREGISTRER AU WIKI"}
+                                </button>
+                            </div>
+                        </div>
+                        {saveMsg && <p className="mt-4 text-center text-xs text-neon-red font-black uppercase tracking-widest">{saveMsg}</p>}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
 
             {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-20">
