@@ -214,28 +214,34 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     };
 
     const captureSingleCard = async (e: React.MouseEvent, cardId: string, name: string) => {
-        e.stopPropagation();
-        const card = document.getElementById(cardId);
-        if (!card) return;
-
-        const btn = e.currentTarget as HTMLElement;
-        btn.style.display = 'none';
-
         try {
+            e.stopPropagation();
+            const card = document.getElementById(cardId);
+            if (!card) {
+                alert("Erreur: Carte introuvable (ID: " + cardId + ")");
+                return;
+            }
+
+            const btn = e.currentTarget as HTMLElement;
+            btn.style.visibility = 'hidden';
+
             const canvas = await html2canvas(card, {
-                scale: 3, // Super High Quality
+                scale: 2,
                 backgroundColor: null,
                 useCORS: true,
-                allowTaint: true
+                allowTaint: true,
+                ignoreElements: (element) => element.classList.contains('capture-btn')
             });
+            
             const link = document.createElement('a');
             link.download = `${name}.png`;
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
+            
+            btn.style.visibility = 'visible';
         } catch (err) {
+            alert("Erreur de capture: " + err);
             console.error("Capture error:", err);
-        } finally {
-            btn.style.display = 'flex';
         }
     };
 
