@@ -387,7 +387,7 @@ export function NewsCreate() {
 
     const [interviewQuestions, setInterviewQuestions] = useState<{
         id: string,
-        type: 'qa' | 'image' | 'video',
+        type: 'qa' | 'image' | 'video' | 'spotify',
         artistName?: string,
         artistColor?: string,
         question?: string,
@@ -1424,6 +1424,14 @@ ${generateSocialsHtml()}
   <iframe src="https://www.youtube.com/embed/${q.mediaUrl}?start=0&autoplay=0" class="absolute inset-0 w-full h-full" allowfullscreen allow="autoplay; encrypted-media"></iframe>
 </div>
 </div>`;
+                    } else if (q.type === 'spotify') {
+                        const id = q.mediaUrl || '';
+                        const type = id.includes('playlist') ? 'playlist' : id.includes('album') ? 'album' : 'track';
+                        return `<div class="article-section interview-spotify-block my-8" data-media-url="${id}">
+<div class="spotify-compact-widget bg-black/20 border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
+  <iframe src="https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>
+</div>
+</div>`;
                     }
                     return '';
                 }).join('\n');
@@ -2269,6 +2277,31 @@ ${generateSocialsHtml()}
                                     >
                                         <Plus className="w-3 h-3" /> Galerie
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const val = prompt('URL ou ID du morceau Spotify :');
+                                            if (!val) return;
+                                            let id = val;
+                                            let type = 'track';
+                                            if (val.includes('spotify.com/track/')) {
+                                                id = val.split('/track/')[1].split('?')[0];
+                                                type = 'track';
+                                            } else if (val.includes('spotify.com/album/')) {
+                                                id = val.split('/album/')[1].split('?')[0];
+                                                type = 'album';
+                                            } else if (val.includes('spotify.com/playlist/')) {
+                                                id = val.split('/playlist/')[1].split('?')[0];
+                                                type = 'playlist';
+                                            }
+                                            
+                                            const spotifyWidget = `<div class="spotify-compact-widget article-section my-8 px-4 py-2 bg-[#191414]/40 border border-[#1DB954]/20 rounded-2xl overflow-hidden shadow-2xl">\n  <iframe src="https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>\n</div>`;
+                                            setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: spotifyWidget }]);
+                                        }}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#1DB954]/20 border border-[#1DB954]/30 text-[#1DB954] rounded-full hover:bg-[#1DB954]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <Music className="w-3 h-3" /> Spotify
+                                    </button>
                                 </div>
                             </div>
 
@@ -2288,7 +2321,8 @@ ${generateSocialsHtml()}
                                                         {widget.content.startsWith('<h2') ? 'Titre' :
                                                             widget.content.includes('duo-photos-premium') ? 'Duo Photos' :
                                                                 widget.content.includes('image-premium-wrapper') ? 'Image' :
-                                                                    widget.content.includes('gallery-premium-grid') ? 'Galerie' : 'Texte'}
+                                                                    widget.content.includes('gallery-premium-grid') ? 'Galerie' : 
+                                                                        widget.content.includes('spotify-compact-widget') ? 'Spotify' : 'Texte'}
                                                     </span>
 
                                                     <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -2762,6 +2796,12 @@ ${generateSocialsHtml()}
                                     >
                                         <Youtube className="w-3.5 h-3.5" /> Vidéo
                                     </button>
+                                    <button
+                                        onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'spotify', mediaUrl: '' }])}
+                                        className="flex items-center gap-2 px-4 py-2 bg-[#1DB954]/10 border border-[#1DB954]/30 text-[#1DB954] rounded-full hover:bg-[#1DB954]/20 transition-all font-black uppercase tracking-widest text-[9px]"
+                                    >
+                                        <Music className="w-3.5 h-3.5" /> Spotify
+                                    </button>
                                 </div>
                             </div>
 
@@ -2770,11 +2810,11 @@ ${generateSocialsHtml()}
                                     <Fragment key={q.id}>
                                         <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 relative group">
                                             <div className="flex items-center gap-3 mb-6">
-                                                <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
+                                                <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : q.type === 'spotify' ? 'bg-[#1DB954]/10 border border-[#1DB954]/20 text-[#1DB954]' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
                                                     {idx + 1}
                                                 </span>
                                                 <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                                                    {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : 'Bloc Vidéo'}
+                                                    {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : q.type === 'spotify' ? 'Bloc Spotify' : 'Bloc Vidéo'}
                                                 </h4>
 
                                                 {/* Movement Arrows */}
@@ -2921,6 +2961,42 @@ ${generateSocialsHtml()}
                                                         {q.mediaUrl && (
                                                             <div className="w-20 h-20 rounded-xl overflow-hidden border border-white/10">
                                                                 <img src={q.mediaUrl} alt="Preview" className="w-full h-full object-cover" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : q.type === 'spotify' ? (
+                                                    <div className="space-y-4">
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-[#1DB954] uppercase tracking-widest ml-1">Lien ou ID Spotify</label>
+                                                            <input
+                                                                type="text"
+                                                                value={q.mediaUrl}
+                                                                onChange={(e) => {
+                                                                    let val = e.target.value;
+                                                                    let id = val;
+                                                                    if (val.includes('track/')) id = val.split('track/')[1].split('?')[0];
+                                                                    else if (val.includes('album/')) id = val.split('album/')[1].split('?')[0];
+                                                                    else if (val.includes('playlist/')) id = val.split('playlist/')[1].split('?')[0];
+                                                                    setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: id } : item));
+                                                                }}
+                                                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-[#1DB954] outline-none"
+                                                                placeholder="Lien ou ID Spotify (Track, Album, Playlist)..."
+                                                            />
+                                                        </div>
+                                                        {q.mediaUrl && (
+                                                            <div className="bg-black/40 rounded-2xl p-4 border border-white/5">
+                                                                <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Aperçu Compact Spotify</div>
+                                                                <iframe 
+                                                                    src={`https://open.spotify.com/embed/track/${q.mediaUrl}?utm_source=generator&theme=0`} 
+                                                                    width="100%" 
+                                                                    height="80" 
+                                                                    frameBorder="0" 
+                                                                    allowFullScreen 
+                                                                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                                                                    loading="lazy"
+                                                                    className="rounded-xl"
+                                                                ></iframe>
+                                                                <p className="mt-2 text-[9px] text-gray-500 italic">* Pour les albums/playlists, le type sera détecté automatiquement lors de la publication.</p>
                                                             </div>
                                                         )}
                                                     </div>
