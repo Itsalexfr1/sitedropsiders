@@ -466,11 +466,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 </p>
                             </div>
                         )}
-                    </div>
-
-                    {/* Right Panel: Preview Area */}
+                                      {/* Right Panel: Preview Area */}
                     <div className="flex-1 bg-black/20 p-12 overflow-y-auto custom-scrollbar flex flex-col items-center gap-12">
-                        <div ref={cardsRef} className="flex flex-col gap-16 items-center w-full max-w-[500px]">
+                        <div className="flex flex-col gap-16 items-center w-full max-w-[500px]">
                             {questionChunks.length > 0 && (
                                 <>
                                     {/* Cover Page (Recto) */}
@@ -508,7 +506,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                         </div>
                                     </div>
 
-                                    {/* Question Pages */}
+                                    {/* Question Pages Preview */}
                                     {questionChunks.map((chunk, chunkIdx) => (
                                         <div 
                                             key={chunkIdx}
@@ -535,17 +533,13 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 </div>
                                             )}
 
-                                            {/* Colorful Header - REDUCED HEIGHT */}
+                                            {/* Header */}
                                             <div className={`w-full h-20 bg-gradient-to-r ${theme === 'red' ? 'from-neon-red via-[#ff3355]' : theme === 'cyan' ? 'from-neon-cyan via-blue-500' : 'from-neon-purple via-pink-500'} to-[#000] flex items-center justify-between px-10 relative overflow-hidden shrink-0`}>
                                                 <div className="absolute inset-0 opacity-20 pointer-events-none">
                                                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 blur-[60px] rounded-full translate-x-1/2 -translate-y-1/2" />
                                                 </div>
                                                 
                                                 <div className="relative z-10">
-                                                    <div className="flex items-center gap-3 opacity-60 mb-1">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                                                        <span className="text-[8px] text-white font-black uppercase tracking-[0.4em]">LIVE REPORT</span>
-                                                    </div>
                                                     <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
                                                         Interviews <span className="opacity-60 text-xs align-top ml-1">#2026</span>
                                                     </h2>
@@ -562,7 +556,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 </div>
                                             </div>
 
-                                            {/* Content Wrapper - TIGHTENED */}
+                                            {/* Content */}
                                             <div className="relative z-10 flex-1 flex flex-col p-8 pt-5 overflow-hidden">
                                                 <div className="space-y-3">
                                                     {chunk.map((q) => (
@@ -574,27 +568,15 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                                 <h3 className="text-[12px] font-bold text-black uppercase leading-[1.2] mb-1">
                                                                     {q.fr}
                                                                 </h3>
-                                                                {q.en ? (
+                                                                {q.en && (
                                                                     <p className={`text-[12px] font-bold ${theme === 'red' ? 'text-red-600' : theme === 'cyan' ? 'text-blue-700' : 'text-purple-700'} leading-[1.2]`}>
                                                                         {q.en}
                                                                     </p>
-                                                                ) : (
-                                                                    <div className="bg-red-500/10 border border-red-500/20 rounded p-1 inline-flex items-center gap-2">
-                                                                        <X className="w-2.5 h-2.5 text-red-500" />
-                                                                        <span className="text-[8px] text-red-500 font-black uppercase">Traduction manquante</span>
-                                                                    </div>
                                                                 )}
                                                             </div>
                                                         </div>
                                                     ))}
                                                 </div>
-
-                                                {/* Generic Watermark in background */}
-                                                {!festivalLogo && (
-                                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] select-none">
-                                                         <span className="text-[12rem] font-display font-black text-black italic -rotate-12">EDC</span>
-                                                    </div>
-                                                )}
                                             </div>
 
                                             {/* Footer */}
@@ -619,30 +601,76 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             >
                 {questionChunks.length > 0 && (
                     <>
-                        {/* Recto (Cover) for Export */}
+                        {/* Recto Copy for Export */}
                         <div className="interview-card relative bg-white overflow-hidden flex flex-col"
                             style={{ width: '148mm', height: '210mm' }}
                         >
-                            <div className={`w-full h-full bg-gradient-to-b ${theme === 'red' ? 'from-neon-red via-[#ff3355]' : theme === 'cyan' ? 'from-neon-cyan via-blue-500' : 'from-neon-purple via-pink-500'} to-[#000] flex flex-col items-center justify-center p-16 relative overflow-hidden shrink-0 text-center`}>
+                            <div className={`w-full h-full bg-gradient-to-b ${theme === 'red' ? 'from-neon-red via-[#ff3355]' : theme === 'cyan' ? 'from-neon-cyan via-blue-500' : 'from-neon-purple via-pink-500'} to-[#000] flex flex-col items-center justify-center p-16 text-center`}>
                                 <div className="absolute inset-0 opacity-20">
                                     <div className="absolute top-0 right-0 w-96 h-96 bg-white/20 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3" />
                                 </div>
                                 <div className="relative z-10 flex flex-col items-center gap-8">
                                     <img src="/Logo.png" alt="Dropsiders" className="h-10 brightness-0 invert" />
-                                    <div className="w-16 h-1 bg-white opacity-40 rounded-full" />
-                                    <h1 className="text-6xl font-display font-black text-white italic tracking-tighter uppercase leading-none">
+                                    <h1 className="text-6xl font-display font-black text-white italic uppercase tracking-tighter leading-none">
                                         Interview<br /><span className="text-black/50">Questions</span>
                                     </h1>
-                                    <p className="text-sm text-white/60 font-black uppercase tracking-[0.5em]">Live Report 2026</p>
-                                    {festivalLogo && (
-                                        <div className="mt-8 flex flex-col items-center gap-4">
-                                            <img src={festivalLogo} alt="Festival" className="h-24 object-contain filter brightness-0 invert" />
-                                        </div>
-                                    )}
+                                    {festivalLogo && <img src={festivalLogo} alt="Festival" className="h-24 object-contain filter brightness-0 invert" />}
                                 </div>
                             </div>
                         </div>
 
+                        {/* Question Pages Copy for Export */}
+                        {questionChunks.map((chunk, chunkIdx) => (
+                            <div 
+                                key={chunkIdx}
+                                className="interview-card relative bg-white overflow-hidden flex flex-col"
+                                style={{ width: '148mm', height: '210mm' }}
+                            >
+                                {/* Watermark */}
+                                {festivalLogo && (
+                                    <div 
+                                        className="absolute inset-0 flex items-center justify-center rotate-12"
+                                        style={{ opacity: watermarkOpacity / 100 }}
+                                    >
+                                        <img src={festivalLogo} alt="Watermark" className="brightness-0" style={{ width: `${watermarkScale}%` }} />
+                                    </div>
+                                )}
+
+                                {/* Header */}
+                                <div className={`w-full h-20 bg-gradient-to-r ${theme === 'red' ? 'from-neon-red via-[#ff3355]' : theme === 'cyan' ? 'from-neon-cyan via-blue-500' : 'from-neon-purple via-pink-500'} to-[#000] flex items-center justify-between px-10 shrink-0`}>
+                                    <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">
+                                        Interviews <span className="opacity-60 text-xs align-top ml-1">#2026</span>
+                                    </h2>
+                                    <img src="/Logo.png" alt="Dropsiders" className="brightness-0 invert" style={{ height: `${headerLogoSize * 4}px` }} />
+                                </div>
+
+                                {/* Content */}
+                                <div className="relative z-10 flex-1 p-8 pt-5">
+                                    <div className="space-y-3">
+                                        {chunk.map((q) => (
+                                            <div key={q.id} className="flex gap-4 items-start border-b border-black/5 pb-3">
+                                                <span className={`text-sm font-display font-black italic shrink-0 w-5 ${theme === 'red' ? 'text-neon-red' : theme === 'cyan' ? 'text-black' : 'text-neon-purple'}`}>
+                                                    {q.number.padStart(2, '0')}
+                                                </span>
+                                                <div className="flex-1">
+                                                    <p className="text-[12px] font-bold text-black uppercase leading-[1.2] mb-1">{q.fr}</p>
+                                                    {q.en && <p className={`text-[12px] font-bold ${theme === 'red' ? 'text-red-600' : theme === 'cyan' ? 'text-blue-700' : 'text-purple-700'} leading-[1.2]`}>{q.en}</p>}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Footer */}
+                                <div className="p-5 pt-0 flex items-center justify-between opacity-30">
+                                    <span className="text-[7px] text-black font-black tracking-[0.5em]">EXCLUSIVE CONTENT</span>
+                                    <span className="text-[7px] text-black font-black tracking-[0.5em]">DROPSIDERS.FR</span>
+                                </div>
+                            </div>
+                        ))}
+                    </>
+                )}
+            </div>
         </div>
     );
 }
