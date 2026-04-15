@@ -401,7 +401,7 @@ export function NewsCreate() {
         (searchParams.get('tab') as 'News' | 'Musique' | 'Focus') ||
         (type === 'Musique' ? 'Musique' : 'News')
     );
-    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: false }]);
+    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: true }]);
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,
         type: 'image' | 'gallery' | 'video',
@@ -1045,7 +1045,7 @@ export function NewsCreate() {
     };
 
     const addMusicItem = () => {
-        setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: false }]);
+        setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: true }]);
     };
 
     const fetchMusicMetadata = async (id: string, url: string) => {
@@ -1552,7 +1552,7 @@ ${generateSocialsHtml()}
                     setImageUrl('');
                     setYoutubeId('');
                     setYear('');
-                    setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: false }]);
+                    setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: true }]);
                     setArtistNameLabel('');
                     setArtistSocials({
                         website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: ''
