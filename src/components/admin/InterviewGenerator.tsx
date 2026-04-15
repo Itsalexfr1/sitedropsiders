@@ -213,7 +213,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         }
     };
 
-    const questionsPerPage = 10;
+    const questionsPerPage = 8;
 
     const chunkQuestions = (arr: InterviewQuestion[], size: number) => {
         const chunks = [];
@@ -471,9 +471,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                                             {/* Content Wrapper - REDUCED PADDING & SPACING */}
                                             <div className="relative z-10 flex-1 flex flex-col p-8 pt-6 overflow-hidden">
-                                                <div className="space-y-2.5">
+                                                <div className="space-y-4">
                                                     {chunk.map((q) => (
-                                                        <div key={q.id} className="flex gap-4 items-start border-b border-black/5 pb-2.5 last:border-0">
+                                                        <div key={q.id} className="flex gap-4 items-start border-b border-black/5 pb-4 last:border-0">
                                                             <span className={`text-sm font-display font-black italic shrink-0 w-5 ${theme === 'red' ? 'text-neon-red' : theme === 'cyan' ? 'text-black' : 'text-neon-purple'}`}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
