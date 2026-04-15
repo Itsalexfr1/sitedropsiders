@@ -9,8 +9,9 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database, Smartphone
+    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database, Smartphone, Columns
 } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch, isSuperAdmin } from '../utils/auth';
 import { uploadFile } from '../utils/uploadService';
