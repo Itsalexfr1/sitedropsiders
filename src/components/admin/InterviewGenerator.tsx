@@ -219,7 +219,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             // "QUESTIONS"
             ctx.fillStyle = 'rgba(255,255,255,0.4)';
             ctx.font = 'italic 900 52px Orbitron, sans-serif';
+            ctx.shadowColor = 'rgba(0,0,0,0.35)';
+            ctx.shadowBlur = 12;
             ctx.fillText('QUESTIONS', W / 2, y);
+            ctx.shadowBlur = 0;
             y += 62;
 
             // "LIVE REPORT 2026"
@@ -236,7 +239,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 if (fest) {
                     ctx.fillStyle = 'rgba(255,255,255,0.35)';
                     ctx.font = '700 8px Montserrat, sans-serif';
+                    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                    ctx.shadowBlur = 8;
                     ctx.fillText('OFFICIAL COVERAGE AT', W / 2, y);
+                    ctx.shadowBlur = 0;
                     y += 20;
                     const maxH = 120, maxW = 280;
                     let fw = fest.naturalWidth, fh = fest.naturalHeight;
@@ -777,14 +783,14 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 <div style={{ width: '64px', height: '4px', backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: '999px' }} />
                                                 
                                                 <div style={{ textAlign: 'center' }}>
-                                                    <div style={{ fontSize: '56px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#ffffff', fontStyle: 'italic', letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: '0.95' }}>Interview</div>
-                                                    <div style={{ fontSize: '56px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: 'rgba(255,255,255,0.42)', fontStyle: 'italic', letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: '0.95' }}>Questions</div>
-                                                    <div style={{ fontSize: '11px', fontFamily: 'Montserrat, sans-serif', color: 'rgba(255,255,255,0.55)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5em', marginTop: '14px' }}>Live Report 2026</div>
+                                                    <div style={{ fontSize: '56px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#ffffff', fontStyle: 'italic', letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: '0.95', textShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>Interview</div>
+                                                    <div style={{ fontSize: '56px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: 'rgba(255,255,255,0.42)', fontStyle: 'italic', letterSpacing: '-0.04em', textTransform: 'uppercase', lineHeight: '0.95', textShadow: '0 4px 20px rgba(0,0,0,0.3)' }}>Questions</div>
+                                                    <div style={{ fontSize: '11px', fontFamily: 'Montserrat, sans-serif', color: 'rgba(255,255,255,0.55)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5em', marginTop: '14px', textShadow: '0 2px 10px rgba(0,0,0,0.2)' }}>Live Report 2026</div>
                                                 </div>
 
                                                 {festivalLogo && (
                                                     <div style={{ marginTop: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                                                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em' }}>Official Coverage at</span>
+                                                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.4em', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>Official Coverage at</span>
                                                         <img src={festivalLogo} alt="Festival" style={{ height: "160px", objectFit: "contain" }} />
                                                     </div>
                                                 )}
