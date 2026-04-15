@@ -107,68 +107,167 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         setQuestions(parsed);
     };
 
+
+    // Compute question chunks early so capture functions can use them
+    const questionsPerPage = 8;
+    const chunkQuestions = (arr: InterviewQuestion[], size: number) => {
+        const chunks = [];
+        for (let i = 0; i < arr.length; i += size) {
+            chunks.push(arr.slice(i, i + size));
+        }
+        return chunks;
+    };
+    const questionChunks = chunkQuestions(questions, questionsPerPage);
+
+    // ─── ISOLATED RENDER ENGINE ───────────────────────────────────────────────
+    // Builds card HTML with ONLY inline styles in an isolated iframe (no Tailwind!)
+    // and captures it via html2canvas. This is immune to oklab/oklch CSS crashes.
+
+    const buildCardHTML = (type: 'cover' | 'questions', chunk?: InterviewQuestion[], chunkIdx?: number) => {
+        const gradientHeader = theme === 'red'
+            ? 'linear-gradient(to right, #ff0000, #ff3355, #000000)'
+            : theme === 'cyan'
+            ? 'linear-gradient(to right, #00f0ff, #0066ff, #000000)'
+            : 'linear-gradient(to right, #bc13fe, #ff00ff, #000000)';
+        const gradientCover = theme === 'red'
+            ? 'linear-gradient(to bottom, #ff0000, #dd1133, #000000)'
+            : theme === 'cyan'
+            ? 'linear-gradient(to bottom, #00f0ff, #0066ff, #000000)'
+            : 'linear-gradient(to bottom, #bc13fe, #dd00ff, #000000)';
+        const accentColor = theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe';
+        const textColor = theme === 'red' ? '#dc2626' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce';
+
+        const logoSizePx = headerLogoSize * 4;
+
+        if (type === 'cover') {
+            const festivalSection = festivalLogo ? `
+                <div style="margin-top:32px;display:flex;flex-direction:column;align-items:center;gap:12px;">
+                    <span style="font-size:9px;color:rgba(255,255,255,0.35);font-weight:700;text-transform:uppercase;letter-spacing:0.4em;">Official Coverage at</span>
+                    <img src="${festivalLogo}" style="height:160px;object-fit:contain;filter:brightness(0) invert(1);" crossorigin="anonymous" />
+                </div>` : '';
+            return `
+                <div style="width:420px;height:595px;background:${gradientCover};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 48px;position:relative;overflow:hidden;box-sizing:border-box;">
+                    <div style="position:absolute;top:0;right:0;width:300px;height:300px;background:rgba(255,255,255,0.15);border-radius:50%;filter:blur(80px);transform:translate(40%,-40%);pointer-events:none;"></div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:28px;position:relative;z-index:10;">
+                        <img src="/Logo.png" style="height:36px;filter:brightness(0) invert(1);" crossorigin="anonymous" />
+                        <div style="width:60px;height:3px;background:rgba(255,255,255,0.4);border-radius:99px;"></div>
+                        <div style="text-align:center;">
+                            <div style="font-size:56px;font-family:Arial Black,sans-serif;font-weight:900;color:#ffffff;font-style:italic;text-transform:uppercase;line-height:1;letter-spacing:-2px;margin:0;">Interview</div>
+                            <div style="font-size:56px;font-family:Arial Black,sans-serif;font-weight:900;color:rgba(255,255,255,0.45);font-style:italic;text-transform:uppercase;line-height:1;letter-spacing:-2px;margin:0;">Questions</div>
+                            <p style="font-size:11px;color:rgba(255,255,255,0.55);font-weight:700;text-transform:uppercase;letter-spacing:0.5em;margin-top:16px;">Live Report 2026</p>
+                        </div>
+                        ${festivalSection}
+                    </div>
+                    <div style="position:absolute;bottom:40px;left:0;width:100%;text-align:center;opacity:0.3;">
+                        <span style="font-size:7px;color:#ffffff;font-weight:900;text-transform:uppercase;letter-spacing:0.8em;">DROPSIDERS EXCLUSIVE</span>
+                    </div>
+                </div>`;
+        }
+
+        // Question page
+        const watermarkHTML = festivalLogo ? `
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transform:rotate(12deg);opacity:${watermarkOpacity / 100};pointer-events:none;z-index:1;">
+                <img src="${festivalLogo}" style="width:${watermarkScale}%;filter:brightness(0);" crossorigin="anonymous" />
+            </div>` : '';
+
+        const questionsHTML = (chunk || []).map(q => `
+            <div style="display:flex;gap:18px;align-items:flex-start;border-bottom:1px solid rgba(0,0,0,0.07);padding-bottom:14px;">
+                <span style="font-size:15px;font-family:Arial Black,sans-serif;font-weight:900;font-style:italic;flex-shrink:0;width:22px;color:${accentColor};line-height:1.2;">${q.number.padStart(2, '0')}</span>
+                <div style="flex:1;">
+                    <div style="font-size:12px;font-weight:900;color:#000000;text-transform:uppercase;line-height:1.25;margin-bottom:3px;font-family:Arial,sans-serif;">${q.fr}</div>
+                    ${q.en ? `<div style="font-size:12px;font-weight:700;color:${textColor};line-height:1.25;font-family:Arial,sans-serif;">${q.en}</div>` : ''}
+                </div>
+            </div>`).join('');
+
+        return `
+            <div style="width:420px;height:595px;background:#ffffff;display:flex;flex-direction:column;position:relative;overflow:hidden;box-sizing:border-box;">
+                ${watermarkHTML}
+                <!-- Header -->
+                <div style="background:${gradientHeader};height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;flex-shrink:0;position:relative;z-index:10;overflow:hidden;">
+                    <div style="position:absolute;top:0;right:0;width:200px;height:200px;background:rgba(255,255,255,0.15);border-radius:50%;filter:blur(50px);transform:translate(40%,-40%);"></div>
+                    <div style="font-size:17px;font-family:Arial Black,sans-serif;font-weight:900;color:#fff;text-transform:uppercase;font-style:italic;letter-spacing:-1px;position:relative;z-index:2;">Interviews <span style="opacity:0.6;font-size:10px;vertical-align:top;margin-left:3px;">#2026</span></div>
+                    <div style="display:flex;flex-direction:column;align-items:center;position:relative;z-index:2;">
+                        <img src="/Logo.png" style="height:${logoSizePx}px;filter:brightness(0) invert(1);display:block;" crossorigin="anonymous" />
+                        <span style="font-size:6px;color:rgba(255,255,255,0.4);font-weight:700;text-transform:uppercase;letter-spacing:0.3em;margin-top:4px;">Page ${(chunkIdx ?? 0) + 1}</span>
+                    </div>
+                </div>
+                <!-- Content -->
+                <div style="flex:1;display:flex;flex-direction:column;padding:20px 32px;overflow:hidden;position:relative;z-index:10;">
+                    <div style="display:flex;flex-direction:column;gap:13px;">
+                        ${questionsHTML}
+                    </div>
+                </div>
+                <!-- Footer -->
+                <div style="padding:16px 32px;display:flex;align-items:center;justify-content:space-between;opacity:0.25;flex-shrink:0;z-index:10;">
+                    <span style="font-size:6px;color:#000;font-weight:900;text-transform:uppercase;letter-spacing:0.5em;">EXCLUSIVE CONTENT</span>
+                    <span style="font-size:6px;color:#000;font-weight:900;text-transform:uppercase;letter-spacing:0.5em;">DROPSIDERS.FR</span>
+                </div>
+            </div>`;
+    };
+
+    const captureHTML = (html: string): Promise<HTMLCanvasElement> => {
+        return new Promise((resolve, reject) => {
+            // Create a fully isolated iframe with no stylesheets
+            const iframe = document.createElement('iframe');
+            iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:420px;height:595px;border:none;visibility:hidden;';
+            document.body.appendChild(iframe);
+
+            const iframeDoc = iframe.contentDocument!;
+            iframeDoc.open();
+            // Bare HTML — zero external CSS
+            iframeDoc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box;}body{margin:0;}</style></head><body>${html}</body></html>`);
+            iframeDoc.close();
+
+            // Wait for images to load, then capture
+            const startCapture = () => {
+                html2canvas(iframeDoc.body.firstElementChild as HTMLElement, {
+                    scale: 2,
+                    backgroundColor: null,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                    width: 420,
+                    height: 595,
+                }).then(canvas => {
+                    document.body.removeChild(iframe);
+                    resolve(canvas);
+                }).catch(err => {
+                    document.body.removeChild(iframe);
+                    reject(err);
+                });
+            };
+
+            // Give images 600ms to load
+            setTimeout(startCapture, 600);
+        });
+    };
+
     const downloadZip = async () => {
         setIsGenerating(true);
         setExportType('zip');
-        const container = cardsRef.current;
-        if (!container) return;
-
         try {
-            const cards = Array.from(container.querySelectorAll('.interview-card'));
-            if (cards.length === 0) throw new Error("Aucune carte trouvée");
-            
-            setGenProgress({ current: 0, total: cards.length });
+            const allCards: Array<{ type: 'cover' | 'questions'; chunk?: InterviewQuestion[]; chunkIdx?: number }> = [
+                { type: 'cover' },
+                ...questionChunks.map((chunk, i) => ({ type: 'questions' as const, chunk, chunkIdx: i }))
+            ];
+            setGenProgress({ current: 0, total: allCards.length });
             const zip = new JSZip();
-            
-            for (let i = 0; i < cards.length; i++) {
-                setGenProgress({ current: i + 1, total: cards.length });
-                const card = cards[i] as HTMLElement;
-                
-                // Hide download buttons during capture
-                const buttons = card.querySelectorAll('.capture-btn');
-                buttons.forEach(b => (b as HTMLElement).style.display = 'none');
 
-                await new Promise(r => setTimeout(r, 300));
-
-                try {
-                    const canvas = await html2canvas(card, {
-                        scale: 2,
-                        backgroundColor: null,
-                        useCORS: true,
-                        allowTaint: true,
-                        logging: false,
-                        removeContainer: true,
-                        onclone: (clonedDoc) => {
-                            const styles = clonedDoc.getElementsByTagName('style');
-                            for (let k = styles.length - 1; k >= 0; k--) styles[k].remove();
-                            const links = clonedDoc.getElementsByTagName('link');
-                            for (let k = links.length - 1; k >= 0; k--) links[k].remove();
-                            
-                            // Inject safe font
-                            const fontLink = clonedDoc.createElement('link');
-                            fontLink.rel = 'stylesheet';
-                            fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap';
-                            clonedDoc.head.appendChild(fontLink);
-                        }
-                    });
-                    
-                    const dataUrl = canvas.toDataURL('image/png', 1.0);
-                    const base64Data = dataUrl.split(',')[1];
-                    
-                    const filename = i === 0 ? '00_Cover.png' : `Page_${String(i).padStart(2, '0')}.png`;
-                    zip.file(filename, base64Data, { base64: true });
-                } catch (err) {
-                    console.error(`Error rendering card ${i}:`, err);
-                } finally {
-                    buttons.forEach(b => (b as HTMLElement).style.display = 'flex');
-                }
+            for (let i = 0; i < allCards.length; i++) {
+                setGenProgress({ current: i + 1, total: allCards.length });
+                const card = allCards[i];
+                const html = buildCardHTML(card.type, card.chunk, card.chunkIdx);
+                const canvas = await captureHTML(html);
+                const dataUrl = canvas.toDataURL('image/png', 1.0);
+                const base64 = dataUrl.split(',')[1];
+                const filename = i === 0 ? '00_Cover.png' : `Page_${String(i).padStart(2, '0')}.png`;
+                zip.file(filename, base64, { base64: true });
             }
 
-            const content = await zip.generateAsync({ type: "blob" });
-            if (content.size < 100) throw new Error("Fichier ZIP corrompu");
-            saveAs(content, "Interview_Cards_Dropsiders.zip");
-        } catch (error) {
-            alert("Erreur lors de la génération du ZIP: " + error);
+            const content = await zip.generateAsync({ type: 'blob' });
+            saveAs(content, 'Interview_Cards_Dropsiders.zip');
+        } catch (err) {
+            alert('Erreur ZIP: ' + err);
         } finally {
             setIsGenerating(false);
             setExportType(null);
@@ -178,59 +277,27 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const downloadPDF = async () => {
         setIsGenerating(true);
         setExportType('pdf');
-        const container = cardsRef.current;
-        if (!container) return;
-
         try {
-            const cards = Array.from(container.querySelectorAll('.interview-card'));
-            if (cards.length === 0) throw new Error("Aucune carte trouvée");
-
-            setGenProgress({ current: 0, total: cards.length });
+            const allCards: Array<{ type: 'cover' | 'questions'; chunk?: InterviewQuestion[]; chunkIdx?: number }> = [
+                { type: 'cover' },
+                ...questionChunks.map((chunk, i) => ({ type: 'questions' as const, chunk, chunkIdx: i }))
+            ];
+            setGenProgress({ current: 0, total: allCards.length });
             const pdf = new jsPDF('p', 'mm', 'a5');
-            
-            for (let i = 0; i < cards.length; i++) {
-                setGenProgress({ current: i + 1, total: cards.length });
-                const card = cards[i] as HTMLElement;
-                
-                const buttons = card.querySelectorAll('.capture-btn');
-                buttons.forEach(b => (b as HTMLElement).style.display = 'none');
 
-                await new Promise(r => setTimeout(r, 400));
-                
-                try {
-                    const canvas = await html2canvas(card, {
-                        scale: 2,
-                        backgroundColor: '#ffffff',
-                        useCORS: true,
-                        allowTaint: true,
-                        onclone: (clonedDoc) => {
-                            const styles = clonedDoc.getElementsByTagName('style');
-                            for (let k = styles.length - 1; k >= 0; k--) styles[k].remove();
-                            const links = clonedDoc.getElementsByTagName('link');
-                            for (let k = links.length - 1; k >= 0; k--) links[k].remove();
-                            
-                            // Inject safe font
-                            const fontLink = clonedDoc.createElement('link');
-                            fontLink.rel = 'stylesheet';
-                            fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap';
-                            clonedDoc.head.appendChild(fontLink);
-                        }
-                    });
-                    
-                    const imgData = canvas.toDataURL('image/png', 1.0);
-                    if (i > 0) pdf.addPage();
-                    pdf.setPage(i + 1);
-                    pdf.addImage(imgData, 'PNG', 0, 0, 148, 210, undefined, 'FAST');
-                } catch (err) {
-                    console.error(`Error rendering page ${i}:`, err);
-                } finally {
-                    buttons.forEach(b => (b as HTMLElement).style.display = 'flex');
-                }
+            for (let i = 0; i < allCards.length; i++) {
+                setGenProgress({ current: i + 1, total: allCards.length });
+                const card = allCards[i];
+                const html = buildCardHTML(card.type, card.chunk, card.chunkIdx);
+                const canvas = await captureHTML(html);
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                if (i > 0) pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, 0, 148, 210, undefined, 'FAST');
             }
 
-            pdf.save("Interview_Cards_Dropsiders.pdf");
-        } catch (error) {
-            alert("Erreur lors de la génération du PDF: " + error);
+            pdf.save('Interview_Cards_Dropsiders.pdf');
+        } catch (err) {
+            alert('Erreur PDF: ' + err);
         } finally {
             setIsGenerating(false);
             setExportType(null);
@@ -238,43 +305,24 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     };
 
     const captureSingleCard = async (e: React.MouseEvent, cardId: string, name: string) => {
+        e.stopPropagation();
         try {
-            e.stopPropagation();
-            const card = document.getElementById(cardId);
-            if (!card) return;
-
-            const btn = e.currentTarget as HTMLElement;
-            btn.style.visibility = 'hidden';
-
-            const canvas = await html2canvas(card, {
-                scale: 2,
-                backgroundColor: null,
-                useCORS: true,
-                allowTaint: true,
-                onclone: (clonedDoc) => {
-                    // NUCLEAR CLEANUP: Remove everything that could crash the capture
-                    const styles = clonedDoc.getElementsByTagName('style');
-                    for (let i = styles.length - 1; i >= 0; i--) styles[i].remove();
-                    const links = clonedDoc.getElementsByTagName('link');
-                    for (let i = links.length - 1; i >= 0; i--) links[i].remove();
-
-                    // Inject safe font
-                    const fontLink = clonedDoc.createElement('link');
-                    fontLink.rel = 'stylesheet';
-                    fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap';
-                    clonedDoc.head.appendChild(fontLink);
-                },
-                ignoreElements: (element) => element.classList.contains('capture-btn')
-            });
-            
+            // Determine which card type this is
+            const isCover = cardId === 'card-cover';
+            let html: string;
+            if (isCover) {
+                html = buildCardHTML('cover');
+            } else {
+                const pageNum = parseInt(cardId.replace('card-page-', ''), 10);
+                html = buildCardHTML('questions', questionChunks[pageNum], pageNum);
+            }
+            const canvas = await captureHTML(html);
             const link = document.createElement('a');
             link.download = `${name}.png`;
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
-            
-            btn.style.visibility = 'visible';
         } catch (err) {
-            alert("Erreur de capture: " + err);
+            alert('Erreur de capture: ' + err);
         }
     };
 
@@ -319,18 +367,6 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             default: return { main: 'text-neon-red', border: 'border-neon-red/20', glow: 'shadow-neon-red/20' };
         }
     };
-
-    const questionsPerPage = 8;
-
-    const chunkQuestions = (arr: InterviewQuestion[], size: number) => {
-        const chunks = [];
-        for (let i = 0; i < arr.length; i += size) {
-            chunks.push(arr.slice(i, i + size));
-        }
-        return chunks;
-    };
-
-    const questionChunks = chunkQuestions(questions, questionsPerPage);
 
     const colors = getThemeColors();
 
