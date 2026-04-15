@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, X, CheckCircle, AlertCircle, Loader, Paperclip, File as FileIcon } from 'lucide-react';
+import { Mail, X, CheckCircle, AlertCircle, Loader, Paperclip, File as FileIcon, Plus } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
 interface TeamContactModalProps {
