@@ -538,8 +538,9 @@ export function NewsCreate() {
                     id: Math.random().toString(36).substr(2, 9),
                     title: el.querySelector('h3')?.textContent?.trim() || '',
                     media: el.getAttribute('data-media') || '',
-                    imageUrl: '',
-                    playerType: el.getAttribute('data-player-type') || 'spotify'
+                    imageUrl: el.querySelector('.vinyl-wrapper img')?.getAttribute('src') || '',
+                    playerType: (el.getAttribute('data-player-type') || 'spotify') as any,
+                    canVote: !!el.querySelector('.music-vote-button')
                 })).filter(m => m.media);
                 if (domItems.length > 0) setMusicItems(domItems);
             }
@@ -1538,7 +1539,7 @@ ${generateSocialsHtml()}
                     setImageUrl('');
                     setYoutubeId('');
                     setYear('');
-                    setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify' }]);
+                    setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', canVote: false }]);
                     setArtistNameLabel('');
                     setArtistSocials({
                         website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: ''
@@ -3164,7 +3165,12 @@ ${generateSocialsHtml()}
                                                 <Globe className="w-4 h-4 text-neon-cyan" /> {country}
                                             </span>
                                         )}
-                                                           <div className="musique-preview-container">
+                                    </div>
+                                )}
+                            </div>
+
+                            {activeTab === 'Musique' ? (
+                                <div className="musique-preview-container">
                                     {/* Widgets first (if any) */}
                                     {widgets.length > 0 && widgets[0].content && (
                                         <div className="mb-12">
@@ -3254,6 +3260,15 @@ ${generateSocialsHtml()}
                                                 </div>
                                             </div>
                                         )}
+                                        {/* Socials Preview for Musique */}
+                                        {Object.values(artistSocials).some(v => v) && (
+                                            <div className="article-section pt-12 border-t border-white/5 mt-12">
+                                                <div dangerouslySetInnerHTML={{
+                                                    __html: generateSocialsHtml(artistNameLabel)
+                                                }} />
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             ) : (
                                 <>
