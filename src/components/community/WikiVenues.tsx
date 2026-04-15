@@ -267,11 +267,22 @@ export function WikiVenues({
 
             {/* Controls */}
             <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                    <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-                        placeholder={t('venue_search_placeholder')}
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-all text-sm" />
+                <div className="relative flex-1 flex gap-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                        <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+                            placeholder={t('venue_search_placeholder')}
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-all text-sm" />
+                    </div>
+                    {isAdmin && (
+                        <button 
+                            onClick={() => window.location.href = `/admin?tab=WIKI&action=add&type=${mode === 'clubs' ? 'CLUBS' : 'FESTIVALS'}`}
+                            className="flex items-center gap-2 px-6 bg-neon-red text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all text-[10px] whitespace-nowrap shadow-lg shadow-neon-red/20"
+                        >
+                            <Pencil className="w-4 h-4" />
+                            Ajouter
+                        </button>
+                    )}
                 </div>
                 <button onClick={() => setShowAdd(!showAdd)}
                     className="flex items-center gap-2 px-5 py-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl text-neon-red font-black uppercase tracking-widest text-[10px] hover:bg-neon-red/20 transition-all shrink-0">

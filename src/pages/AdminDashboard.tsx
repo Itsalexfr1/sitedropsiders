@@ -554,7 +554,7 @@ export function AdminDashboard() {
         { id: 'NEWS', label: 'Actualités' },
         { id: 'COMMUNAUTÉ', label: 'Communauté' },
         { id: 'SOCIAL_STUDIO', label: 'Social Studio' },
-        { id: 'WIKI', label: 'Wiki' },
+        { id: 'WIKI', label: 'DJs / Clubs / Festivals' },
         { id: 'STUDIO', label: 'Studio' },
         { id: 'SHOP', label: 'Boutique' },
         { id: 'TEAM', label: 'Équipe' },
@@ -593,6 +593,26 @@ export function AdminDashboard() {
             fetchQuizzes();
         }
     }, [isQuizModalOpen]);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab');
+        const action = params.get('action');
+        const type = params.get('type');
+
+        if (tab === 'WIKI') {
+            setDashboardTab('WIKI');
+            if (type === 'DJS' || type === 'CLUBS' || type === 'FESTIVALS') {
+                setWikiFilter(type as any);
+            }
+            if (action === 'add') {
+                setIsNewWikiModalOpen(true);
+                // Clean URL to avoid re-opening on refresh
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (dashboardTab === 'WIKI') {
@@ -2472,7 +2492,7 @@ export function AdminDashboard() {
                                         <Globe className="w-6 h-6 text-neon-cyan" />
                                     </div>
                                     <div>
-                                        <h2 className="text-3xl font-display font-black text-white uppercase italic leading-none">Gestion <span className="text-neon-cyan">Wiki</span></h2>
+                                        <h2 className="text-3xl font-display font-black text-white uppercase italic leading-none">Encyclopédie <span className="text-neon-cyan">DJs / Lieux</span></h2>
                                         <div className="flex items-center gap-3 mt-1">
                                             <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Gérez les DJ, Clubs et Festivals</p>
                                             {pendingPhotosCount > 0 && (
@@ -2535,7 +2555,7 @@ export function AdminDashboard() {
                             {isWikiLoading ? (
                                 <div className="py-20 flex flex-col items-center justify-center gap-4">
                                     <Loader2 className="w-10 h-10 text-neon-cyan animate-spin" />
-                                    <p className="text-gray-500 text-xs font-black uppercase tracking-widest">Chargement du Wiki...</p>
+                                    <p className="text-gray-500 text-xs font-black uppercase tracking-widest">Chargement des données...</p>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
