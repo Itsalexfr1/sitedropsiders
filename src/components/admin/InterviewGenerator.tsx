@@ -119,230 +119,309 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     };
     const questionChunks = chunkQuestions(questions, questionsPerPage);
 
-    // ─── ISOLATED RENDER ENGINE ───────────────────────────────────────────────
-    // Builds card HTML with ONLY inline styles in an isolated iframe (no Tailwind!)
-    // and captures it via html2canvas. This is immune to oklab/oklch CSS crashes.
+    // ─── PURE CANVAS RENDER ENGINE ────────────────────────────────────────────
+    // Draws cards directly with Canvas 2D API — no html2canvas, no CSS, no iframe.
+    // Text is drawn with ctx.fillText(), images with ctx.drawImage(). Bulletproof.
 
-    const loadImageAsBase64 = (src: string): Promise<string> => {
-        return new Promise((resolve) => {
+    const loadImg = (src: string): Promise<HTMLImageElement | null> =>
+        new Promise(resolve => {
+            if (!src) return resolve(null);
             const img = new Image();
             img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.naturalWidth || 200;
-                canvas.height = img.naturalHeight || 60;
-                const ctx = canvas.getContext('2d')!;
-                ctx.drawImage(img, 0, 0);
-                resolve(canvas.toDataURL('image/png'));
-            };
-            img.onerror = () => resolve(''); // fail silently
+            img.onload = () => resolve(img);
+            img.onerror = () => resolve(null);
             img.src = src;
         });
+
+    const wrapText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
+        const words = text.split(' ');
+        const lines: string[] = [];
+        let line = '';
+        for (const word of words) {
+            const test = line ? `${line} ${word}` : word;
+            if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = word; }
+            else line = test;
+        }
+        if (line) lines.push(line);
+        return lines;
     };
 
-    const buildCardHTML = (
+    const renderCardToCanvas = async (
         type: 'cover' | 'questions',
         chunk?: InterviewQuestion[],
-        chunkIdx?: number,
-        logoBase64?: string
-    ) => {
-        const logoSrc = logoBase64 || '/Logo.png';
-        const gradientHeader = theme === 'red'
-            ? 'linear-gradient(to right, #ff0000, #cc0022, #000000)'
-            : theme === 'cyan'
-            ? 'linear-gradient(to right, #00f0ff, #0066ff, #000000)'
-            : 'linear-gradient(to right, #bc13fe, #ff00ff, #000000)';
-        const gradientCover = theme === 'red'
-            ? 'linear-gradient(160deg, #ff0000 0%, #cc0022 40%, #550011 70%, #000000 100%)'
-            : theme === 'cyan'
-            ? 'linear-gradient(160deg, #00f0ff 0%, #0066ff 50%, #000000 100%)'
-            : 'linear-gradient(160deg, #bc13fe 0%, #dd00ff 50%, #000000 100%)';
-        const accentColor = theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000099' : '#bc13fe';
-        const textColor = theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce';
-        const logoSizePx = headerLogoSize * 4;
+        chunkIdx?: number
+    ): Promise<HTMLCanvasElement> => {
+        const W = 420, H = 595, SCALE = 2;
+        const canvas = document.createElement('canvas');
+        canvas.width = W * SCALE;
+        canvas.height = H * SCALE;
+        const ctx = canvas.getContext('2d')!;
+        ctx.scale(SCALE, SCALE);
+
+        const c1 = theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#00ccff' : '#bc13fe';
+        const c2 = theme === 'red' ? '#990011' : theme === 'cyan' ? '#0044cc' : '#8800cc';
+        const accent = theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#0033cc' : '#bc13fe';
+        const enCol = theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce';
+
+        const logo = await loadImg('/Logo.png');
+
+        const drawLogoWhite = (img: HTMLImageElement, x: number, y: number, h: number) => {
+            const w = (img.naturalWidth / img.naturalHeight) * h;
+            // Draw on temp canvas to invert
+            const tmp = document.createElement('canvas');
+            tmp.width = img.naturalWidth; tmp.height = img.naturalHeight;
+            const tc = tmp.getContext('2d')!;
+            tc.drawImage(img, 0, 0);
+            const id = tc.getImageData(0, 0, tmp.width, tmp.height);
+            for (let i = 0; i < id.data.length; i += 4) {
+                const a = id.data[i + 3];
+                id.data[i] = 255; id.data[i + 1] = 255; id.data[i + 2] = 255;
+                id.data[i + 3] = a; // keep original alpha
+            }
+            tc.putImageData(id, 0, 0);
+            ctx.drawImage(tmp, x, y, w, h);
+        };
 
         if (type === 'cover') {
-            const festivalSection = festivalLogo ? `
-                <div style="margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:10px;">
-                    <span style="font-size:9px;color:rgba(255,255,255,0.4);font-weight:700;text-transform:uppercase;letter-spacing:0.4em;font-family:Arial,sans-serif;">Official Coverage at</span>
-                    <img src="${festivalLogo}" style="height:130px;object-fit:contain;filter:brightness(0) invert(1);" crossorigin="anonymous" />
-                </div>` : '';
+            // Background gradient
+            const g = ctx.createLinearGradient(0, 0, 0, H);
+            g.addColorStop(0, c1); g.addColorStop(0.5, c2); g.addColorStop(1, '#000000');
+            ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
-            return `<div style="width:420px;height:595px;background:${gradientCover};display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 48px;position:relative;overflow:hidden;box-sizing:border-box;">
-                    <div style="display:flex;flex-direction:column;align-items:center;gap:24px;position:relative;z-index:2;">
-                        <img src="${logoSrc}" style="height:34px;filter:brightness(0) invert(1);display:block;" crossorigin="anonymous" />
-                        <div style="width:56px;height:3px;background:rgba(255,255,255,0.45);border-radius:99px;"></div>
-                        <div style="text-align:center;line-height:1;">
-                            <div style="font-size:58px;font-family:Arial Black,Impact,sans-serif;font-weight:900;color:#ffffff;font-style:italic;text-transform:uppercase;line-height:0.95;letter-spacing:-2px;">Interview</div>
-                            <div style="font-size:58px;font-family:Arial Black,Impact,sans-serif;font-weight:900;color:rgba(255,255,255,0.4);font-style:italic;text-transform:uppercase;line-height:0.95;letter-spacing:-2px;">Questions</div>
-                            <div style="font-size:10px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:0.55em;margin-top:14px;font-family:Arial,sans-serif;">Live Report 2026</div>
-                        </div>
-                        ${festivalSection}
-                    </div>
-                    <div style="position:absolute;bottom:38px;left:0;width:100%;text-align:center;opacity:0.25;">
-                        <span style="font-size:7px;color:#ffffff;font-weight:700;text-transform:uppercase;letter-spacing:0.8em;font-family:Arial,sans-serif;">DROPSIDERS EXCLUSIVE</span>
-                    </div>
-                </div>`;
+            let y = 90;
+
+            // Logo
+            if (logo) {
+                const lh = 32, lw = (logo.naturalWidth / logo.naturalHeight) * lh;
+                drawLogoWhite(logo, (W - lw) / 2, y, lh);
+                y += lh + 18;
+            }
+
+            // Divider
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.fillRect((W - 52) / 2, y, 52, 3);
+            y += 22;
+
+            // "INTERVIEW"
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'italic 900 54px Impact, Arial, sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+            ctx.fillText('INTERVIEW', W / 2, y);
+            y += 60;
+
+            // "QUESTIONS"
+            ctx.fillStyle = 'rgba(255,255,255,0.42)';
+            ctx.fillText('QUESTIONS', W / 2, y);
+            y += 64;
+
+            // "LIVE REPORT 2026"
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.font = '700 11px Arial, sans-serif';
+            ctx.letterSpacing = '4px';
+            ctx.fillText('LIVE  REPORT  2026', W / 2, y);
+            ctx.letterSpacing = '0px';
+            y += 36;
+
+            // Festival logo
+            if (festivalLogo) {
+                const fest = await loadImg(festivalLogo);
+                if (fest) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+                    ctx.font = '600 8px Arial, sans-serif';
+                    ctx.fillText('OFFICIAL COVERAGE AT', W / 2, y);
+                    y += 16;
+                    const maxH = 120, maxW = 280;
+                    let fw = fest.naturalWidth, fh = fest.naturalHeight;
+                    const ratio = fw / fh;
+                    if (fh > maxH) { fh = maxH; fw = fh * ratio; }
+                    if (fw > maxW) { fw = maxW; fh = fw / ratio; }
+                    ctx.drawImage(fest, (W - fw) / 2, y, fw, fh);
+                }
+            }
+
+            // Footer
+            ctx.fillStyle = 'rgba(255,255,255,0.22)';
+            ctx.font = '600 7px Arial, sans-serif';
+            ctx.letterSpacing = '4px';
+            ctx.fillText('DROPSIDERS EXCLUSIVE', W / 2, H - 36);
+            ctx.letterSpacing = '0px';
+
+        } else {
+            // White background
+            ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+
+            // Watermark
+            if (festivalLogo) {
+                const wm = await loadImg(festivalLogo);
+                if (wm) {
+                    const wmW = W * watermarkScale / 100;
+                    const wmH = (wm.naturalHeight / wm.naturalWidth) * wmW;
+                    ctx.save();
+                    ctx.globalAlpha = watermarkOpacity / 100;
+                    ctx.translate(W / 2, H / 2);
+                    ctx.rotate(12 * Math.PI / 180);
+                    // Darken to black via pixel manipulation
+                    const tmp2 = document.createElement('canvas');
+                    tmp2.width = wm.naturalWidth; tmp2.height = wm.naturalHeight;
+                    const tc2 = tmp2.getContext('2d')!;
+                    tc2.drawImage(wm, 0, 0);
+                    const id2 = tc2.getImageData(0, 0, tmp2.width, tmp2.height);
+                    for (let i = 0; i < id2.data.length; i += 4) {
+                        id2.data[i] = 0; id2.data[i + 1] = 0; id2.data[i + 2] = 0;
+                    }
+                    tc2.putImageData(id2, 0, 0);
+                    ctx.drawImage(tmp2, -wmW / 2, -wmH / 2, wmW, wmH);
+                    ctx.restore();
+                }
+            }
+
+            // Header gradient
+            const hg = ctx.createLinearGradient(0, 0, W, 0);
+            hg.addColorStop(0, c1); hg.addColorStop(0.6, c2); hg.addColorStop(1, '#000000');
+            ctx.fillStyle = hg; ctx.fillRect(0, 0, W, 68);
+
+            // Header title
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'italic 900 15px Impact, Arial, sans-serif';
+            ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+            ctx.fillText('INTERVIEWS', 28, 30);
+            ctx.font = '700 8px Arial, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.55)';
+            ctx.fillText('#2026', 28, 46);
+
+            // Header logo
+            if (logo) {
+                const lh = headerLogoSize * 4;
+                const lw = (logo.naturalWidth / logo.naturalHeight) * lh;
+                drawLogoWhite(logo, W - 28 - lw, (68 - lh) / 2, lh);
+                ctx.fillStyle = 'rgba(255,255,255,0.38)';
+                ctx.font = '600 6px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Page ${(chunkIdx ?? 0) + 1}`, W - 28 - lw / 2, 62);
+            }
+
+            // Questions
+            let qY = 82;
+            const PAD_L = 30, TEXT_X = 56, TEXT_W = W - TEXT_X - 28;
+
+            for (const q of (chunk || [])) {
+                const startY = qY;
+
+                // Number
+                ctx.fillStyle = accent;
+                ctx.font = 'italic 900 13px Impact, Arial, sans-serif';
+                ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+                ctx.fillText(q.number.padStart(2, '0'), PAD_L, qY);
+
+                // FR text
+                ctx.fillStyle = '#111111';
+                ctx.font = '900 11.5px Arial, sans-serif';
+                const frLines = wrapText(ctx, q.fr.toUpperCase(), TEXT_W);
+                for (const line of frLines) {
+                    ctx.fillText(line, TEXT_X, qY);
+                    qY += 14;
+                }
+
+                // EN text
+                if (q.en) {
+                    ctx.fillStyle = enCol;
+                    ctx.font = '700 11.5px Arial, sans-serif';
+                    const enLines = wrapText(ctx, q.en, TEXT_W);
+                    for (const line of enLines) {
+                        ctx.fillText(line, TEXT_X, qY);
+                        qY += 14;
+                    }
+                }
+
+                // Separator
+                qY += 4;
+                ctx.strokeStyle = 'rgba(0,0,0,0.07)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(PAD_L, qY); ctx.lineTo(W - PAD_L, qY);
+                ctx.stroke();
+                qY += 10;
+
+                if (qY > H - 50) break;
+                void startY;
+            }
+
+            // Footer
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.font = '600 6px Arial, sans-serif';
+            ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+            ctx.fillText('EXCLUSIVE CONTENT', PAD_L, H - 20);
+            ctx.textAlign = 'right';
+            ctx.fillText('DROPSIDERS.FR', W - PAD_L, H - 20);
         }
 
-        // Question page
-        const watermarkHTML = festivalLogo ? `
-            <div style="position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;transform:rotate(12deg);opacity:${watermarkOpacity / 100};pointer-events:none;z-index:1;">
-                <img src="${festivalLogo}" style="width:${watermarkScale}%;filter:brightness(0);" crossorigin="anonymous" />
-            </div>` : '';
-
-        const questionsHTML = (chunk || []).map(q => `
-            <div style="display:flex;gap:16px;align-items:flex-start;border-bottom:1px solid rgba(0,0,0,0.08);padding-bottom:12px;">
-                <span style="font-size:14px;font-family:Arial Black,Impact,sans-serif;font-weight:900;font-style:italic;flex-shrink:0;width:20px;color:${accentColor};line-height:1.2;">${q.number.padStart(2, '0')}</span>
-                <div style="flex:1;">
-                    <div style="font-size:12.5px;font-weight:900;color:#111111;text-transform:uppercase;line-height:1.25;margin-bottom:3px;font-family:Arial,sans-serif;">${q.fr}</div>
-                    ${q.en ? `<div style="font-size:12.5px;font-weight:700;color:${textColor};line-height:1.25;font-family:Arial,sans-serif;">${q.en}</div>` : ''}
-                </div>
-            </div>`).join('');
-
-        return `<div style="width:420px;height:595px;background:#ffffff;display:flex;flex-direction:column;position:relative;overflow:hidden;box-sizing:border-box;">
-                ${watermarkHTML}
-                <div style="background:${gradientHeader};height:70px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;flex-shrink:0;position:relative;z-index:10;overflow:hidden;">
-                    <div style="font-size:16px;font-family:Arial Black,Impact,sans-serif;font-weight:900;color:#ffffff;text-transform:uppercase;font-style:italic;letter-spacing:-0.5px;">Interviews <span style="opacity:0.55;font-size:9px;vertical-align:top;margin-left:2px;">#2026</span></div>
-                    <div style="display:flex;flex-direction:column;align-items:center;">
-                        <img src="${logoSrc}" style="height:${logoSizePx}px;filter:brightness(0) invert(1);display:block;" crossorigin="anonymous" />
-                        <span style="font-size:6px;color:rgba(255,255,255,0.4);font-weight:700;text-transform:uppercase;letter-spacing:0.3em;margin-top:3px;font-family:Arial,sans-serif;">Page ${(chunkIdx ?? 0) + 1}</span>
-                    </div>
-                </div>
-                <div style="flex:1;display:flex;flex-direction:column;padding:18px 30px;overflow:hidden;position:relative;z-index:10;">
-                    <div style="display:flex;flex-direction:column;gap:12px;">
-                        ${questionsHTML}
-                    </div>
-                </div>
-                <div style="padding:14px 30px;display:flex;align-items:center;justify-content:space-between;opacity:0.22;flex-shrink:0;">
-                    <span style="font-size:6px;color:#000;font-weight:700;text-transform:uppercase;letter-spacing:0.5em;font-family:Arial,sans-serif;">EXCLUSIVE CONTENT</span>
-                    <span style="font-size:6px;color:#000;font-weight:700;text-transform:uppercase;letter-spacing:0.5em;font-family:Arial,sans-serif;">DROPSIDERS.FR</span>
-                </div>
-            </div>`;
-    };
-
-    const captureHTML = (html: string): Promise<HTMLCanvasElement> => {
-        return new Promise((resolve, reject) => {
-            const iframe = document.createElement('iframe');
-            iframe.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:420px;height:595px;border:none;visibility:hidden;';
-            document.body.appendChild(iframe);
-
-            const iframeDoc = iframe.contentDocument!;
-            iframeDoc.open();
-            iframeDoc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0;box-sizing:border-box;}body{margin:0;width:420px;height:595px;overflow:hidden;}</style></head><body>${html}</body></html>`);
-            iframeDoc.close();
-
-            const startCapture = () => {
-                const el = iframeDoc.body.firstElementChild as HTMLElement;
-                if (!el) { document.body.removeChild(iframe); reject(new Error('No element')); return; }
-                html2canvas(el, {
-                    scale: 2,
-                    backgroundColor: null,
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false,
-                    width: 420,
-                    height: 595,
-                    windowWidth: 420,
-                    windowHeight: 595,
-                }).then(canvas => {
-                    document.body.removeChild(iframe);
-                    resolve(canvas);
-                }).catch(err => {
-                    document.body.removeChild(iframe);
-                    reject(err);
-                });
-            };
-
-            setTimeout(startCapture, 800);
-        });
+        return canvas;
     };
 
     const downloadZip = async () => {
         setIsGenerating(true);
         setExportType('zip');
         try {
-            const logoBase64 = await loadImageAsBase64('/Logo.png');
-            const allCards: Array<{ type: 'cover' | 'questions'; chunk?: InterviewQuestion[]; chunkIdx?: number }> = [
-                { type: 'cover' },
+            const allCards = [
+                { type: 'cover' as const },
                 ...questionChunks.map((chunk, i) => ({ type: 'questions' as const, chunk, chunkIdx: i }))
             ];
             setGenProgress({ current: 0, total: allCards.length });
             const zip = new JSZip();
-
             for (let i = 0; i < allCards.length; i++) {
                 setGenProgress({ current: i + 1, total: allCards.length });
-                const card = allCards[i];
-                const html = buildCardHTML(card.type, card.chunk, card.chunkIdx, logoBase64);
-                const canvas = await captureHTML(html);
-                const dataUrl = canvas.toDataURL('image/png', 1.0);
-                const base64 = dataUrl.split(',')[1];
-                const filename = i === 0 ? '00_Cover.png' : `Page_${String(i).padStart(2, '0')}.png`;
-                zip.file(filename, base64, { base64: true });
+                const c = allCards[i];
+                const canvas = await renderCardToCanvas(c.type, (c as any).chunk, (c as any).chunkIdx);
+                const base64 = canvas.toDataURL('image/png', 1.0).split(',')[1];
+                zip.file(i === 0 ? '00_Cover.png' : `Page_${String(i).padStart(2, '0')}.png`, base64, { base64: true });
             }
-
             const content = await zip.generateAsync({ type: 'blob' });
             saveAs(content, 'Interview_Cards_Dropsiders.zip');
-        } catch (err) {
-            alert('Erreur ZIP: ' + err);
-        } finally {
-            setIsGenerating(false);
-            setExportType(null);
-        }
+        } catch (err) { alert('Erreur ZIP: ' + err); }
+        finally { setIsGenerating(false); setExportType(null); }
     };
 
     const downloadPDF = async () => {
         setIsGenerating(true);
         setExportType('pdf');
         try {
-            const logoBase64 = await loadImageAsBase64('/Logo.png');
-            const allCards: Array<{ type: 'cover' | 'questions'; chunk?: InterviewQuestion[]; chunkIdx?: number }> = [
-                { type: 'cover' },
+            const allCards = [
+                { type: 'cover' as const },
                 ...questionChunks.map((chunk, i) => ({ type: 'questions' as const, chunk, chunkIdx: i }))
             ];
             setGenProgress({ current: 0, total: allCards.length });
             const pdf = new jsPDF('p', 'mm', 'a5');
-
             for (let i = 0; i < allCards.length; i++) {
                 setGenProgress({ current: i + 1, total: allCards.length });
-                const card = allCards[i];
-                const html = buildCardHTML(card.type, card.chunk, card.chunkIdx, logoBase64);
-                const canvas = await captureHTML(html);
-                const imgData = canvas.toDataURL('image/png', 1.0);
+                const c = allCards[i];
+                const canvas = await renderCardToCanvas(c.type, (c as any).chunk, (c as any).chunkIdx);
                 if (i > 0) pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, 0, 148, 210, undefined, 'FAST');
+                pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', 0, 0, 148, 210, undefined, 'FAST');
             }
-
             pdf.save('Interview_Cards_Dropsiders.pdf');
-        } catch (err) {
-            alert('Erreur PDF: ' + err);
-        } finally {
-            setIsGenerating(false);
-            setExportType(null);
-        }
+        } catch (err) { alert('Erreur PDF: ' + err); }
+        finally { setIsGenerating(false); setExportType(null); }
     };
 
     const captureSingleCard = async (e: React.MouseEvent, cardId: string, name: string) => {
         e.stopPropagation();
         try {
-            const logoBase64 = await loadImageAsBase64('/Logo.png');
             const isCover = cardId === 'card-cover';
-            let html: string;
+            let canvas: HTMLCanvasElement;
             if (isCover) {
-                html = buildCardHTML('cover', undefined, undefined, logoBase64);
+                canvas = await renderCardToCanvas('cover');
             } else {
                 const pageNum = parseInt(cardId.replace('card-page-', ''), 10);
-                html = buildCardHTML('questions', questionChunks[pageNum], pageNum, logoBase64);
+                canvas = await renderCardToCanvas('questions', questionChunks[pageNum], pageNum);
             }
-            const canvas = await captureHTML(html);
             const link = document.createElement('a');
             link.download = `${name}.png`;
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
-        } catch (err) {
-            alert('Erreur de capture: ' + err);
-        }
+        } catch (err) { alert('Erreur: ' + err); }
     };
+
+
 
     const translateToEnglish = async () => {
         if (!inputText.trim()) return;
