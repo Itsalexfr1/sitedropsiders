@@ -46,52 +46,40 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const parseQuestions = () => {
         if (!inputText.trim()) return;
 
-        // More robust splitting for different OS line endings
         const lines = inputText.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '');
         const parsed: InterviewQuestion[] = [];
         
-        let current: Partial<InterviewQuestion> = {};
+        let current: { number: string; fr: string; en: string[] } | null = null;
 
         lines.forEach((line) => {
-            // Permissive regex for numbered lines: digit followed by space, dot, dash, etc.
             const numMatch = line.match(/^(\d+)(?:\.|\-|\s)+(.*)/);
             
             if (numMatch) {
-                // If we already have a previous question with at least FR, push it
-                if (current.number && current.fr) {
+                if (current) {
                     parsed.push({
                         id: Math.random().toString(36).substr(2, 9),
                         number: current.number,
                         fr: current.fr,
-                        en: current.en || ''
-                    } as InterviewQuestion);
-                    current = {};
+                        en: current.en.join(' ')
+                    });
                 }
-                current.number = numMatch[1];
-                current.fr = numMatch[2].trim();
-            } else {
-                // Not a numbered line, must be the translation for current question
-                if (current.number && current.fr) {
-                    current.en = line;
-                    parsed.push({
-                        id: Math.random().toString(36).substr(2, 9),
-                        number: current.number!,
-                        fr: current.fr!,
-                        en: current.en || ''
-                    } as InterviewQuestion);
-                    current = {};
-                }
+                current = {
+                    number: numMatch[1],
+                    fr: numMatch[2].trim(),
+                    en: []
+                };
+            } else if (current) {
+                current.en.push(line);
             }
         });
 
-        // Final push if something remains (e.g. last question having only FR)
-        if (current.number && current.fr) {
+        if (current) {
             parsed.push({
                 id: Math.random().toString(36).substr(2, 9),
                 number: current.number,
                 fr: current.fr,
-                en: current.en || ''
-            } as InterviewQuestion);
+                en: current.en.join(' ')
+            });
         }
 
         setQuestions(parsed);
@@ -321,7 +309,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     {questionChunks.map((chunk, chunkIdx) => (
                                         <div 
                                             key={chunkIdx}
-                                            className="interview-card relative bg-white overflow-hidden flex flex-col shadow-2xl border border-black/5"
+                                            className="interview-card relative bg-white overflow-hidden flex flex-col shadow-2xl border border-black/5 shrink-0"
                                             style={{ 
                                                 width: '148mm', 
                                                 height: '210mm',
@@ -336,43 +324,45 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 </div>
                                             )}
 
-                                            {/* Colorful Header */}
-                                            <div className={`w-full h-32 bg-gradient-to-r ${theme === 'red' ? 'from-neon-red via-[#ff3355]' : theme === 'cyan' ? 'from-neon-cyan via-blue-500' : 'from-neon-purple via-pink-500'} to-[#000] flex items-center justify-between px-10 relative overflow-hidden shrink-0`}>
+                                            {/* Colorful Header - REDUCED HEIGHT */}
+                                            <div className={`w-full h-20 bg-gradient-to-r ${theme === 'red' ? 'from-neon-red via-[#ff3355]' : theme === 'cyan' ? 'from-neon-cyan via-blue-500' : 'from-neon-purple via-pink-500'} to-[#000] flex items-center justify-between px-10 relative overflow-hidden shrink-0`}>
                                                 <div className="absolute inset-0 opacity-20 pointer-events-none">
                                                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 blur-[60px] rounded-full translate-x-1/2 -translate-y-1/2" />
                                                 </div>
                                                 
                                                 <div className="relative z-10">
-                                                    <div className="flex items-center gap-3 opacity-60 mb-2">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                                    <div className="flex items-center gap-3 opacity-60 mb-1">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
                                                         <span className="text-[8px] text-white font-black uppercase tracking-[0.4em]">LIVE REPORT</span>
                                                     </div>
-                                                    <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                                        Interviews <span className="opacity-60 text-sm align-top ml-1">#2026</span>
+                                                    <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                                        Interviews <span className="opacity-60 text-xs align-top ml-1">#2026</span>
                                                     </h2>
                                                 </div>
                                                 
                                                 <div className="relative z-10 flex flex-col items-end">
-                                                    <img src="/Logo.png" alt="Dropsiders" className="h-4 brightness-0 invert mb-2" />
+                                                    <img src="/Logo.png" alt="Dropsiders" className="h-3.5 brightness-0 invert mb-1.5" />
                                                     <span className="text-[7px] text-white/40 font-black uppercase tracking-[0.3em]">Page {chunkIdx + 1}</span>
                                                 </div>
                                             </div>
 
-                                            {/* Content Wrapper */}
-                                            <div className="relative z-10 flex-1 flex flex-col p-10 pt-8">
-                                                <div className="space-y-4">
+                                            {/* Content Wrapper - REDUCED PADDING & SPACING */}
+                                            <div className="relative z-10 flex-1 flex flex-col p-8 pt-6 overflow-hidden">
+                                                <div className="space-y-2.5">
                                                     {chunk.map((q) => (
-                                                        <div key={q.id} className="flex gap-4 items-start border-b border-black/5 pb-3 last:border-0">
-                                                            <span className={`text-base font-display font-black italic shrink-0 w-6 ${theme === 'red' ? 'text-neon-red' : theme === 'cyan' ? 'text-black' : 'text-neon-purple'}`}>
+                                                        <div key={q.id} className="flex gap-4 items-start border-b border-black/5 pb-2.5 last:border-0">
+                                                            <span className={`text-sm font-display font-black italic shrink-0 w-5 ${theme === 'red' ? 'text-neon-red' : theme === 'cyan' ? 'text-black' : 'text-neon-purple'}`}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
                                                             <div className="flex-1">
-                                                                <h3 className="text-[15px] font-bold text-black uppercase leading-tight mb-0.5">
+                                                                <h3 className="text-[13px] font-bold text-black uppercase leading-[1.3] mb-0.5">
                                                                     {q.fr}
                                                                 </h3>
-                                                                <p className={`text-[13px] font-medium italic ${theme === 'red' ? 'text-red-500' : theme === 'cyan' ? 'text-blue-600' : 'text-purple-600'} leading-snug`}>
-                                                                    {q.en}
-                                                                </p>
+                                                                {q.en && (
+                                                                    <p className={`text-[11px] font-medium italic ${theme === 'red' ? 'text-red-500' : theme === 'cyan' ? 'text-blue-600' : 'text-purple-600'} leading-tight`}>
+                                                                        {q.en}
+                                                                    </p>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     ))}
@@ -387,7 +377,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             </div>
 
                                             {/* Footer */}
-                                            <div className="p-6 pt-0 flex items-center justify-between opacity-30 shrink-0">
+                                            <div className="p-5 pt-0 flex items-center justify-between opacity-30 shrink-0">
                                                 <span className="text-[7px] text-black font-black uppercase tracking-[0.5em]">EXCLUSIVE CONTENT</span>
                                                 <span className="text-[7px] text-black font-black uppercase tracking-[0.5em]">DROPSIDERS.FR</span>
                                             </div>
