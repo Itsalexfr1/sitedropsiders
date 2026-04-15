@@ -35,6 +35,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const [exportType, setExportType] = useState<'zip' | 'pdf' | null>(null);
     const [theme, setTheme] = useState<'red' | 'cyan' | 'purple'>('red');
     const [festivalLogo, setFestivalLogo] = useState<string | null>(null);
+    const [watermarkScale, setWatermarkScale] = useState(150);
+    const [watermarkOpacity, setWatermarkOpacity] = useState(3);
+    const [headerLogoSize, setHeaderLogoSize] = useState(6);
     const cardsRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -345,6 +348,56 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             )}
                         </div>
                         
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <Plus className="w-3.5 h-3.5" /> Configuration Visuelle
+                            </label>
+                            
+                            <div className="space-y-6 bg-white/5 rounded-3xl p-6">
+                                {/* Watermark Scale */}
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                        <span>Taille Watermark</span>
+                                        <span className="text-white">{watermarkScale}%</span>
+                                    </div>
+                                    <input 
+                                        type="range" min="50" max="300" 
+                                        value={watermarkScale}
+                                        onChange={(e) => setWatermarkScale(parseInt(e.target.value))}
+                                        className="w-full accent-neon-red"
+                                    />
+                                </div>
+
+                                {/* Watermark Opacity */}
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                        <span>Opacité Watermark</span>
+                                        <span className="text-white">{watermarkOpacity}%</span>
+                                    </div>
+                                    <input 
+                                        type="range" min="0" max="20" 
+                                        value={watermarkOpacity}
+                                        onChange={(e) => setWatermarkOpacity(parseInt(e.target.value))}
+                                        className="w-full accent-neon-red"
+                                    />
+                                </div>
+
+                                {/* Header Logo Size */}
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
+                                        <span>Taille Logo En-tête</span>
+                                        <span className="text-white">{headerLogoSize}</span>
+                                    </div>
+                                    <input 
+                                        type="range" min="3" max="10" step="0.5"
+                                        value={headerLogoSize}
+                                        onChange={(e) => setHeaderLogoSize(parseFloat(e.target.value))}
+                                        className="w-full accent-neon-red"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         {questions.length > 0 && (
                             <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
                                 <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Résumé : {questions.length} Questions</h4>
@@ -447,8 +500,16 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                         >
                                             {/* Background Festival Watermark */}
                                             {festivalLogo && (
-                                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] select-none scale-150 rotate-12">
-                                                    <img src={festivalLogo} alt="Watermark" className="w-[80%] brightness-0" />
+                                                <div 
+                                                    className="absolute inset-0 flex items-center justify-center pointer-events-none select-none rotate-12"
+                                                    style={{ opacity: watermarkOpacity / 100 }}
+                                                >
+                                                    <img 
+                                                        src={festivalLogo} 
+                                                        alt="Watermark" 
+                                                        className="brightness-0" 
+                                                        style={{ width: `${watermarkScale}%` }}
+                                                    />
                                                 </div>
                                             )}
 
@@ -469,7 +530,12 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 </div>
                                                 
                                                 <div className="relative z-10 flex flex-col items-center">
-                                                    <img src="/Logo.png" alt="Dropsiders" className="h-6 brightness-0 invert mb-1.5" />
+                                                    <img 
+                                                        src="/Logo.png" 
+                                                        alt="Dropsiders" 
+                                                        className="brightness-0 invert mb-1.5" 
+                                                        style={{ height: `${headerLogoSize * 4}px` }}
+                                                    />
                                                     <span className="text-[7px] text-white/40 font-black uppercase tracking-[0.3em]">Page {chunkIdx + 1}</span>
                                                 </div>
                                             </div>
