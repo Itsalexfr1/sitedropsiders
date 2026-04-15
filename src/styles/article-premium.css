@@ -223,9 +223,9 @@
 /* Hover effect on images */
 .article-premium-wrapper img:hover,
 .article-body-premium img:hover {
-    transform: scale(1.01);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 30px 60px -15px rgba(255, 0, 51, 0.2);
+    transform: translateY(-2px);
+    transition: transform 0.4s ease-out;
+    box-shadow: 0 20px 40px -10px rgba(255, 0, 51, 0.3);
 }
 
 /* --- DUO PHOTOS & PREMIUM WRAPPERS --- */
@@ -280,8 +280,8 @@
 }
 
 .image-premium-wrapper:hover {
-    transform: translateY(-4px) scale(1.005) !important;
-    box-shadow: 0 30px 60px -10px rgba(255, 0, 51, 0.2) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 20px 40px -10px rgba(255, 0, 51, 0.25) !important;
     border-color: rgba(255, 0, 51, 0.4) !important;
     z-index: 10;
 }
