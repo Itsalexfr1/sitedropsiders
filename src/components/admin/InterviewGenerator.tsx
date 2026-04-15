@@ -31,6 +31,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const [inputText, setInputText] = useState('');
     const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [genProgress, setGenProgress] = useState({ current: 0, total: 0 });
     const [exportType, setExportType] = useState<'zip' | 'pdf' | null>(null);
     const [theme, setTheme] = useState<'red' | 'cyan' | 'purple'>('red');
     const [festivalLogo, setFestivalLogo] = useState<string | null>(null);
@@ -110,12 +111,14 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         if (!container) return;
 
         const cards = container.querySelectorAll('.interview-card');
+        setGenProgress({ current: 0, total: cards.length });
         const zip = new JSZip();
         
         for (let i = 0; i < cards.length; i++) {
+            setGenProgress({ current: i + 1, total: cards.length });
             const card = cards[i] as HTMLElement;
             const canvas = await html2canvas(card, {
-                scale: 1.5, // Faster scale
+                scale: 1.5, 
                 backgroundColor: '#ffffff',
                 logging: false,
                 useCORS: true
@@ -142,18 +145,20 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         if (!container) return;
 
         const cards = container.querySelectorAll('.interview-card');
+        setGenProgress({ current: 0, total: cards.length });
         const pdf = new jsPDF('p', 'mm', 'a5');
         
         for (let i = 0; i < cards.length; i++) {
+            setGenProgress({ current: i + 1, total: cards.length });
             const card = cards[i] as HTMLElement;
             const canvas = await html2canvas(card, {
-                scale: 1.5, // Balanced scale/speed
+                scale: 1, // Max speed for PDF
                 backgroundColor: '#ffffff',
                 logging: false,
                 useCORS: true
             });
             
-            const imgData = canvas.toDataURL('image/jpeg', 0.85); // More compression
+            const imgData = canvas.toDataURL('image/jpeg', 0.82);
             
             if (i > 0) pdf.addPage();
             pdf.addImage(imgData, 'JPEG', 0, 0, 148, 210);
@@ -348,10 +353,13 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     <button
                                         onClick={downloadZip}
                                         disabled={isGenerating}
-                                        className={`py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-2xl transition-all ${isGenerating && exportType === 'zip' ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-white text-black hover:bg-white/90 shadow-white/5'}`}
+                                        className={`py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-2xl transition-all ${isGenerating && exportType === 'zip' ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : 'bg-white text-black hover:bg-white/90 shadow-white/5'}`}
                                     >
                                         {isGenerating && exportType === 'zip' ? (
-                                            <div className="w-4 h-4 border-2 border-gray-600 border-t-white rounded-full animate-spin" />
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-3 h-3 border-2 border-gray-600 border-t-white rounded-full animate-spin" />
+                                                <span>PAGE {genProgress.current}/{genProgress.total}</span>
+                                            </div>
                                         ) : (
                                             <>
                                                 <Download className="w-4 h-4" />
@@ -366,7 +374,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                         className={`py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 shadow-2xl transition-all ${isGenerating && exportType === 'pdf' ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-neon-red hover:bg-neon-red/80 text-white shadow-neon-red/20'}`}
                                     >
                                         {isGenerating && exportType === 'pdf' ? (
-                                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                                <span>PAGE {genProgress.current}/{genProgress.total}</span>
+                                            </div>
                                         ) : (
                                             <>
                                                 <FileText className="w-4 h-4" />
