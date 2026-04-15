@@ -466,7 +466,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 </p>
                             </div>
                         )}
-                                      {/* Right Panel: Preview Area */}
+                    </div>
+
+                    {/* Right Panel: Preview Area */}
                     <div className="flex-1 bg-black/20 p-12 overflow-y-auto custom-scrollbar flex flex-col items-center gap-12">
                         <div className="flex flex-col gap-16 items-center w-full max-w-[500px]">
                             {questionChunks.length > 0 && (
@@ -674,4 +676,3 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         </div>
     );
 }
-
