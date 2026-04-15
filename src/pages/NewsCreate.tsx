@@ -1265,7 +1265,32 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
   </div>`).join('\n')
                 }
 </div>`;
+        } else if (type === 'spotify' && url) {
+            const tm = url.match(/track[/:]([a-zA-Z0-9]+)/);
+            const am = url.match(/album[/:]([a-zA-Z0-9]+)/);
+            const pm = url.match(/playlist[/:]([a-zA-Z0-9]+)/);
+            let spId = tm ? tm[1] : am ? am[1] : pm ? pm[1] : url;
+            let spType = tm ? 'track' : am ? 'album' : pm ? 'playlist' : 'track';
+            content = `<div class="spotify-compact-widget article-section my-12" data-spotify-id="${spId}" data-spotify-type="${spType}">
+  <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-[#1DB954]/20 bg-[#121212]">
+    <iframe src="https://open.spotify.com/embed/${spType}/${spId}?utm_source=generator&theme=0" width="100%" height="${spType === 'track' ? '80' : '152'}" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>
+  </div>
+</div>`;
+        } else if (type === 'beatport' && url) {
+            const trackIdMatch = url.match(/\/track\/[^/]+\/(\d+)/);
+            const releaseIdMatch = url.match(/\/release\/[^/]+\/(\d+)/);
+            const chartIdMatch = url.match(/\/chart\/[^/]+\/(\d+)/);
+            let bpId = trackIdMatch ? trackIdMatch[1] : releaseIdMatch ? releaseIdMatch[1] : chartIdMatch ? chartIdMatch[1] : '';
+            let bpType = trackIdMatch ? 'track' : releaseIdMatch ? 'release' : chartIdMatch ? 'chart' : 'track';
+            if (bpId) {
+                content = `<div class="beatport-compact-widget article-section my-12" data-beatport-id="${bpId}" data-beatport-type="${bpType}">
+  <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-[#02FF95]/20 bg-[#121212]">
+    <iframe src="https://embed.beatport.com/?id=${bpId}&type=${bpType}" width="100%" height="162" frameBorder="0" scrolling="no" style="border-radius:12px;"></iframe>
+  </div>
+</div>`;
+            }
         }
+
 
         if (content) {
             if (mediaModal.widgetId) {
@@ -2286,18 +2311,19 @@ ${generateSocialsHtml()}
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setMediaModal({ show: true, type: 'gallery', url: '', urls: '' })}
-                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-full hover:bg-neon-red/20 transition-all font-bold uppercase tracking-widest text-[9px]"
-                                    >
-                                        <Plus className="w-3 h-3" /> Galerie
-                                    </button>
-                                    <button
-                                        type="button"
                                         onClick={() => setMediaModal({ show: true, type: 'spotify', url: '', urls: '' })}
                                         className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#1DB954]/20 border border-[#1DB954]/30 text-[#1DB954] rounded-full hover:bg-[#1DB954]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
                                     >
-                                        <Music className="w-3 h-3" /> Spotify
+                                        <SpotifyIcon className="w-3.5 h-3.5" /> Spotify
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'beatport', url: '', urls: '' })}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#02FF95]/20 border border-[#02FF95]/30 text-[#02FF95] rounded-full hover:bg-[#02FF95]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <BeatportIcon className="w-3.5 h-3.5" /> Beatport
+                                    </button>
+
                                     <button
                                         type="button"
                                         onClick={() => setMediaModal({ show: true, type: 'beatport', url: '', urls: '' })}
@@ -2772,6 +2798,23 @@ ${generateSocialsHtml()}
                                                 >
                                                     <Columns className="w-4 h-4" />
                                                 </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ show: true, type: 'spotify', url: '', urls: '', widgetIndex: index } as any)}
+                                                    className="w-8 h-8 rounded-full bg-[#1DB954]/10 border border-[#1DB954]/30 text-[#1DB954] flex items-center justify-center hover:bg-[#1DB954]/20 transition-all"
+                                                    title="Ajouter Spotify ici"
+                                                >
+                                                    <SpotifyIcon className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ show: true, type: 'beatport', url: '', urls: '', widgetIndex: index } as any)}
+                                                    className="w-8 h-8 rounded-full bg-[#02FF95]/10 border border-[#02FF95]/30 text-[#02FF95] flex items-center justify-center hover:bg-[#02FF95]/20 transition-all"
+                                                    title="Ajouter Beatport ici"
+                                                >
+                                                    <BeatportIcon className="w-4 h-4" />
+                                                </button>
+
 
                                             </div>
                                         </div>
@@ -3835,34 +3878,13 @@ ${generateSocialsHtml()}
                                     )}
 
                                     <button
-                                        onClick={() => {
-                                            const v = mediaModal.url;
-                                            if (mediaModal.type === 'spotify' && v) {
-                                                const tm = v.match(/track[/:]([a-zA-Z0-9]+)/); const am = v.match(/album[/:]([a-zA-Z0-9]+)/); const pm = v.match(/playlist[/:]([a-zA-Z0-9]+)/);
-                                                let spId = tm ? tm[1] : am ? am[1] : pm ? pm[1] : v;
-                                                let spType = tm ? 'track' : am ? 'album' : pm ? 'playlist' : 'track';
-                                                const w = `<div class="spotify-compact-widget article-section my-12" data-spotify-id="${spId}" data-spotify-type="${spType}">\n  <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-[#1DB954]/20 bg-[#121212]">\n    <iframe src="https://open.spotify.com/embed/${spType}/${spId}?utm_source=generator&theme=0" width="100%" height="${spType === 'track' ? '80' : '152'}" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>\n  </div>\n</div>`;
-                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: w }]);
-                                                setMediaModal({ ...mediaModal, show: false, url: '' });
-                                            } else if (mediaModal.type === 'beatport' && v) {
-                                                const trackIdMatch = v.match(/\/track\/[^/]+\/(\d+)/);
-                                                const releaseIdMatch = v.match(/\/release\/[^/]+\/(\d+)/);
-                                                const chartIdMatch = v.match(/\/chart\/[^/]+\/(\d+)/);
-                                                let bpId = trackIdMatch ? trackIdMatch[1] : releaseIdMatch ? releaseIdMatch[1] : chartIdMatch ? chartIdMatch[1] : '';
-                                                let bpType = trackIdMatch ? 'track' : releaseIdMatch ? 'release' : chartIdMatch ? 'chart' : 'track';
-                                                if (!bpId) return;
-                                                const w = `<div class="beatport-compact-widget article-section my-12" data-beatport-id="${bpId}" data-beatport-type="${bpType}">\n  <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-[#02FF95]/20 bg-[#121212]">\n    <iframe src="https://embed.beatport.com/?id=${bpId}&type=${bpType}" width="100%" height="162" frameBorder="0" scrolling="no" style="border-radius:12px;"></iframe>\n  </div>\n</div>`;
-                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: w }]);
-                                                setMediaModal({ ...mediaModal, show: false, url: '' });
-                                            } else {
-                                                handleMediaConfirm((mediaModal as any).widgetIndex);
-                                            }
-                                        }}
+                                        onClick={() => handleMediaConfirm((mediaModal as any).widgetIndex)}
                                         className="flex-1 flex flex-col items-center gap-2 p-4 bg-neon-red text-white border border-neon-red rounded-2xl hover:bg-neon-red/80 transition-all font-bold group"
                                     >
                                         <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                         <span className="text-[10px] font-black uppercase tracking-widest">Confirmer</span>
                                     </button>
+
                                 </div>
                             </div>
                         </motion.div>
