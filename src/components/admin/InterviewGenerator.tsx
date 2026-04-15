@@ -558,46 +558,62 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     {/* Cover Page (Recto) */}
                                     <div 
                                         id="card-cover"
-                                        className="interview-card relative overflow-hidden flex flex-col group"
                                         style={{ 
+                                            position: 'relative',
                                             width: '148mm', 
                                             height: '210mm', 
                                             minWidth: '420px', 
                                             minHeight: '595px',
                                             backgroundColor: '#ffffff',
                                             boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-                                            border: '1px solid rgba(0,0,0,0.05)'
+                                            border: '1px solid rgba(0,0,0,0.05)',
+                                            overflow: 'hidden',
+                                            display: 'flex',
+                                            flexDirection: 'column'
                                         }}
                                     >
                                         <button 
                                             onClick={(e) => captureSingleCard(e, 'card-cover', 'Interview_Cover')}
-                                            className="capture-btn absolute top-6 right-6 z-50 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all shadow-2xl"
+                                            className="capture-btn"
                                             style={{ 
+                                                position: 'absolute',
+                                                top: '24px',
+                                                right: '24px',
+                                                zIndex: 50,
                                                 backgroundColor: 'rgba(0,0,0,0.8)',
-                                                border: '1px solid rgba(255,255,255,0.2)'
+                                                color: '#ffffff',
+                                                padding: '8px 16px',
+                                                borderRadius: '999px',
+                                                fontSize: '10px',
+                                                fontWeight: 900,
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.1em',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                border: '1px solid rgba(255,255,255,0.2)',
+                                                cursor: 'pointer'
                                             }}
                                         >
                                             <Download className="w-3 h-3" /> PNG
                                         </button>
 
-                                        <div className="w-full h-full flex flex-col items-center justify-center p-16 relative overflow-hidden shrink-0 text-center"
-                                            style={{ 
-                                                width: '100%',
-                                                height: '100%',
-                                                background: theme === 'red' 
-                                                    ? 'linear-gradient(to bottom, #ff0000, #ff3355, #000000)' 
-                                                    : theme === 'cyan' 
-                                                    ? 'linear-gradient(to bottom, #00f0ff, #0066ff, #000000)'
-                                                    : 'linear-gradient(to bottom, #bc13fe, #ff00ff, #000000)',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                padding: '64px',
-                                                position: 'relative',
-                                                overflow: 'hidden'
-                                            }}
-                                        >
+                                        <div style={{ 
+                                            width: '100%',
+                                            height: '100%',
+                                            background: theme === 'red' 
+                                                ? 'linear-gradient(to bottom, #ff0000, #ff3355, #000000)' 
+                                                : theme === 'cyan' 
+                                                ? 'linear-gradient(to bottom, #00f0ff, #0066ff, #000000)'
+                                                : 'linear-gradient(to bottom, #bc13fe, #ff00ff, #000000)',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '64px',
+                                            position: 'relative',
+                                            overflow: 'hidden'
+                                        }}>
                                             <div style={{ position: 'absolute', inset: 0, opacity: 0.2, pointerEvents: 'none' }}>
                                                 <div style={{ position: 'absolute', top: 0, right: 0, width: '384px', height: '384px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '50%', filter: 'blur(100px)', transform: 'translate(33%, -33%)' }} />
                                             </div>
@@ -608,8 +624,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 <div style={{ width: '64px', height: '4px', backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: '999px' }} />
                                                 
                                                 <div style={{ textAlign: 'center' }}>
-                                                    <h1 style={{ fontSize: '60px', fontFamily: 'Montserrat, sans-serif', fontWeight: 900, color: '#ffffff', fontStyle: 'italic', letterSpacing: '-0.05em', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>
-                                                        Interview<br /><span style={{ color: 'rgba(0,0,0,0.5)' }}>Questions</span>
+                                                    <h1 style={{ fontSize: '60px', fontFamily: '"Arial Black", sans-serif', fontWeight: 900, color: '#ffffff', fontStyle: 'italic', letterSpacing: '-0.05em', textTransform: 'uppercase', lineHeight: 1, margin: 0 }}>
+                                                        Interview<br /><span style={{ color: 'rgba(255,255,255,0.5)' }}>Questions</span>
                                                     </h1>
                                                     <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em', marginTop: '16px', margin: 0 }}>Live Report 2026</p>
                                                 </div>
@@ -633,67 +649,98 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                         <div 
                                             key={chunkIdx}
                                             id={`card-page-${chunkIdx}`}
-                                            className="interview-card relative overflow-hidden flex flex-col shrink-0 group"
                                             style={{ 
+                                                position: 'relative',
                                                 width: '148mm', 
                                                 height: '210mm',
                                                 minWidth: '420px', 
                                                 minHeight: '595px',
                                                 backgroundColor: '#ffffff',
                                                 boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
-                                                border: '1px solid rgba(0,0,0,0.05)'
+                                                border: '1px solid rgba(0,0,0,0.05)',
+                                                overflow: 'hidden',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                flexShrink: 0
                                             }}
                                         >
                                             <button 
                                                 onClick={(e) => captureSingleCard(e, `card-page-${chunkIdx}`, `Interview_Page_${chunkIdx + 1}`)}
-                                                className="capture-btn absolute top-6 right-6 z-50 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all shadow-2xl"
+                                                className="capture-btn"
                                                 style={{ 
+                                                    position: 'absolute',
+                                                    top: '24px',
+                                                    right: '24px',
+                                                    zIndex: 50,
                                                     backgroundColor: 'rgba(0,0,0,0.8)',
-                                                    border: '1px solid rgba(255,255,255,0.2)'
+                                                    color: '#ffffff',
+                                                    padding: '8px 16px',
+                                                    borderRadius: '999px',
+                                                    fontSize: '10px',
+                                                    fontWeight: 900,
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.1em',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px',
+                                                    border: '1px solid rgba(255,255,255,0.2)',
+                                                    cursor: 'pointer'
                                                 }}
                                             >
                                                 <Download className="w-3 h-3" /> PNG
                                             </button>
+                                            
                                             {/* Background Festival Watermark */}
                                             {festivalLogo && (
                                                 <div 
-                                                    className="absolute inset-0 flex items-center justify-center pointer-events-none select-none rotate-12"
-                                                    style={{ opacity: watermarkOpacity / 100 }}
+                                                    style={{ 
+                                                        position: 'absolute',
+                                                        inset: 0,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        pointerEvents: 'none',
+                                                        userSelect: 'none',
+                                                        transform: 'rotate(12deg)',
+                                                        opacity: watermarkOpacity / 100,
+                                                        zIndex: 1
+                                                    }}
                                                 >
                                                     <img 
                                                         src={festivalLogo} 
                                                         alt="Watermark" 
-                                                        className="brightness-0" 
-                                                        style={{ width: `${watermarkScale}%` }}
+                                                        style={{ 
+                                                            width: `${watermarkScale}%`,
+                                                            filter: 'brightness(0)'
+                                                        }}
                                                     />
                                                 </div>
                                             )}
 
                                             {/* Header */}
-                                            <div className="interview-header"
-                                                style={{ 
-                                                    width: '100%',
-                                                    height: '80px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'space-between',
-                                                    padding: '0 40px',
-                                                    position: 'relative',
-                                                    overflow: 'hidden',
-                                                    flexShrink: 0,
-                                                    background: theme === 'red' 
-                                                        ? 'linear-gradient(to right, #ff0000, #ff3355, #000000)' 
-                                                        : theme === 'cyan' 
-                                                        ? 'linear-gradient(to right, #00f0ff, #0066ff, #000000)'
-                                                        : 'linear-gradient(to right, #bc13fe, #ff00ff, #000000)'
-                                                }}
-                                            >
+                                            <div style={{ 
+                                                width: '100%',
+                                                height: '80px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'space-between',
+                                                padding: '0 40px',
+                                                position: 'relative',
+                                                overflow: 'hidden',
+                                                flexShrink: 0,
+                                                zIndex: 10,
+                                                background: theme === 'red' 
+                                                    ? 'linear-gradient(to right, #ff0000, #ff3355, #000000)' 
+                                                    : theme === 'cyan' 
+                                                    ? 'linear-gradient(to right, #00f0ff, #0066ff, #000000)'
+                                                    : 'linear-gradient(to right, #bc13fe, #ff00ff, #000000)'
+                                            }}>
                                                 <div style={{ position: 'absolute', inset: 0, opacity: 0.2, pointerEvents: 'none' }}>
                                                     <div style={{ position: 'absolute', top: 0, right: 0, width: '256px', height: '256px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '50%', filter: 'blur(60px)', transform: 'translate(50%, -50%)' }} />
                                                 </div>
                                                 
                                                 <div style={{ position: 'relative', zIndex: 10 }}>
-                                                    <h2 style={{ fontSize: '20px', fontFamily: 'Montserrat, sans-serif', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.05em', lineHeight: 1 }}>
+                                                    <h2 style={{ fontSize: '20px', fontFamily: '"Arial Black", sans-serif', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', fontStyle: 'italic', letterSpacing: '-0.05em', lineHeight: 1, margin: 0 }}>
                                                         Interviews <span style={{ opacity: 0.6, fontSize: '12px', verticalAlign: 'top', marginLeft: '4px' }}>#2026</span>
                                                     </h2>
                                                 </div>
@@ -709,19 +756,19 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             </div>
 
                                             {/* Content */}
-                                            <div style={{ position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column', padding: '20px 32px', overflow: 'hidden' }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            <div style={{ position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column', padding: '24px 40px', overflow: 'hidden' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                                     {chunk.map((q) => (
-                                                        <div key={q.id} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '12px' }}>
-                                                            <span style={{ fontSize: '14px', fontFamily: 'Montserrat, sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '20px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe' }}>
+                                                        <div key={q.id} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px' }}>
+                                                            <span style={{ fontSize: '16px', fontFamily: '"Arial Black", sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '24px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe' }}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
                                                             <div style={{ flex: 1 }}>
-                                                                <h3 style={{ fontSize: '12px', fontWeight: 700, color: '#000000', textTransform: 'uppercase', lineHeight: '1.2', marginBottom: '4px', margin: 0 }}>
+                                                                <h3 style={{ fontSize: '13px', fontWeight: 900, color: '#000000', textTransform: 'uppercase', lineHeight: '1.2', marginBottom: '4px', margin: 0, fontFamily: 'sans-serif' }}>
                                                                     {q.fr}
                                                                 </h3>
                                                                 {q.en && (
-                                                                    <p style={{ fontSize: '12px', fontWeight: 700, lineHeight: '1.2', margin: 0, color: theme === 'red' ? '#dc2626' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce' }}>
+                                                                    <p style={{ fontSize: '13px', fontWeight: 700, lineHeight: '1.2', margin: 0, color: theme === 'red' ? '#dc2626' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'sans-serif' }}>
                                                                         {q.en}
                                                                     </p>
                                                                 )}
@@ -732,7 +779,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             </div>
 
                                             {/* Footer */}
-                                            <div style={{ padding: '20px', paddingTop: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', opacity: 0.3, flexShrink: 0 }}>
+                                            <div style={{ padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', opacity: 0.3, flexShrink: 0, zIndex: 10 }}>
                                                 <span style={{ fontSize: '7px', color: '#000000', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em' }}>EXCLUSIVE CONTENT</span>
                                                 <span style={{ fontSize: '7px', color: '#000000', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5em' }}>DROPSIDERS.FR</span>
                                             </div>
