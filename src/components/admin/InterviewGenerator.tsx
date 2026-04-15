@@ -204,15 +204,15 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
             // "INTERVIEW"
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'italic 900 54px Impact, Arial, sans-serif';
+            ctx.font = 'italic bold 50px Georgia, serif';
             ctx.textAlign = 'center'; ctx.textBaseline = 'top';
             ctx.fillText('INTERVIEW', W / 2, y);
-            y += 60;
+            y += 54;
 
             // "QUESTIONS"
             ctx.fillStyle = 'rgba(255,255,255,0.42)';
             ctx.fillText('QUESTIONS', W / 2, y);
-            y += 64;
+            y += 58;
 
             // "LIVE REPORT 2026"
             ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -282,10 +282,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
             // Header title
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'italic 900 15px Impact, Arial, sans-serif';
+            ctx.font = 'italic bold 14px Georgia, serif';
             ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
             ctx.fillText('INTERVIEWS', 28, 30);
-            ctx.font = '700 8px Arial, sans-serif';
+            ctx.font = '500 7.5px Helvetica Neue, Arial, sans-serif';
             ctx.fillStyle = 'rgba(255,255,255,0.55)';
             ctx.fillText('#2026', 28, 46);
 
@@ -301,58 +301,57 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             }
 
             // Questions
-            let qY = 82;
-            const PAD_L = 30, TEXT_X = 56, TEXT_W = W - TEXT_X - 28;
+            let qY = 80;
+            const PAD_L = 28, TEXT_X = 52, TEXT_W = W - TEXT_X - 26;
+            const LINE_FR = 12.5;  // line height for FR text
+            const LINE_EN = 12;    // line height for EN text
 
             for (const q of (chunk || [])) {
-                const startY = qY;
-
                 // Number
                 ctx.fillStyle = accent;
-                ctx.font = 'italic 900 13px Impact, Arial, sans-serif';
+                ctx.font = 'italic bold 11px Georgia, serif';
                 ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-                ctx.fillText(q.number.padStart(2, '0'), PAD_L, qY);
+                ctx.fillText(q.number.padStart(2, '0'), PAD_L, qY + 1);
 
                 // FR text
                 ctx.fillStyle = '#111111';
-                ctx.font = '900 11.5px Arial, sans-serif';
+                ctx.font = 'bold 10px Helvetica Neue, Arial, sans-serif';
                 const frLines = wrapText(ctx, q.fr.toUpperCase(), TEXT_W);
                 for (const line of frLines) {
                     ctx.fillText(line, TEXT_X, qY);
-                    qY += 14;
+                    qY += LINE_FR;
                 }
 
                 // EN text
                 if (q.en) {
                     ctx.fillStyle = enCol;
-                    ctx.font = '700 11.5px Arial, sans-serif';
+                    ctx.font = '500 9.5px Helvetica Neue, Arial, sans-serif';
                     const enLines = wrapText(ctx, q.en, TEXT_W);
                     for (const line of enLines) {
                         ctx.fillText(line, TEXT_X, qY);
-                        qY += 14;
+                        qY += LINE_EN;
                     }
                 }
 
                 // Separator
                 qY += 4;
-                ctx.strokeStyle = 'rgba(0,0,0,0.07)';
-                ctx.lineWidth = 1;
+                ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+                ctx.lineWidth = 0.75;
                 ctx.beginPath();
                 ctx.moveTo(PAD_L, qY); ctx.lineTo(W - PAD_L, qY);
                 ctx.stroke();
-                qY += 10;
+                qY += 7;
 
-                if (qY > H - 50) break;
-                void startY;
+                if (qY > H - 44) break;
             }
 
             // Footer
-            ctx.fillStyle = 'rgba(0,0,0,0.2)';
-            ctx.font = '600 6px Arial, sans-serif';
+            ctx.fillStyle = 'rgba(0,0,0,0.18)';
+            ctx.font = '500 6px Helvetica Neue, Arial, sans-serif';
             ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-            ctx.fillText('EXCLUSIVE CONTENT', PAD_L, H - 20);
+            ctx.fillText('EXCLUSIVE CONTENT', PAD_L, H - 18);
             ctx.textAlign = 'right';
-            ctx.fillText('DROPSIDERS.FR', W - PAD_L, H - 20);
+            ctx.fillText('DROPSIDERS.FR', W - PAD_L, H - 18);
         }
 
         return canvas;
