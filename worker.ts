@@ -993,6 +993,7 @@ ${urls.map(u => `  <url>
             path === '/api/r2/delete' ||
             path === '/api/r2/list' ||
             path === '/api/admin/remove-broken-image' ||
+            path === '/api/admin/auto-fix-photos' ||
             path === '/api/wiki/add' ||
             path === '/api/wiki/update' ||
             path === '/api/wiki/delete'
