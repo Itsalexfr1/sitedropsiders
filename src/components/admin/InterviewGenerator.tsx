@@ -49,44 +49,52 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const parseQuestions = () => {
         if (!inputText.trim()) return;
 
-        const lines = inputText.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '');
+        // More robust line cleaning
+        const lines = inputText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
         const parsed: InterviewQuestion[] = [];
         
-        let current: { number: string; fr: string; en: string[] } | null = null;
+        let current: { number: string; originalNum: string; fr: string; en: string[] } | null = null;
 
         for (const line of lines) {
-            const numMatch = line.match(/^(\d+)(?:\.|\-|\s)+(.*)/);
+            // Match number at start (01. or 1. or 1 - or 1)
+            const numMatch = line.match(/^(\d+)[^a-zA-Z0-9]*(.*)$/);
             
             if (numMatch) {
-                const num = numMatch[1];
+                const rawNum = numMatch[1];
+                const normNum = parseInt(rawNum, 10).toString();
                 const content = numMatch[2].trim();
 
-                if (current && current.number === num && current.en.length === 0) {
-                    current.en.push(content);
+                // If we match the same number as current, it's the translation
+                if (current && current.number === normNum) {
+                    if (content) current.en.push(content);
                 } else {
+                    // Start new question, push old one
                     if (current) {
                         parsed.push({
                             id: Math.random().toString(36).substring(2, 11),
-                            number: current.number,
+                            number: current.originalNum,
                             fr: current.fr,
                             en: current.en.join(' ')
                         });
                     }
                     current = {
-                        number: num,
+                        number: normNum,
+                        originalNum: rawNum,
                         fr: content,
                         en: []
                     };
                 }
             } else if (current) {
+                // If it's a line without a number, it's definitely an EN translation for the current FR
                 current.en.push(line);
             }
         }
 
+        // Final push
         if (current) {
             parsed.push({
                 id: Math.random().toString(36).substring(2, 11),
-                number: current.number,
+                number: current.originalNum,
                 fr: current.fr,
                 en: current.en.join(' ')
             });
@@ -428,10 +436,15 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                                 <h3 className="text-[12px] font-bold text-black uppercase leading-[1.2] mb-1">
                                                                     {q.fr}
                                                                 </h3>
-                                                                {q.en && (
+                                                                {q.en ? (
                                                                     <p className={`text-[12px] font-bold ${theme === 'red' ? 'text-red-600' : theme === 'cyan' ? 'text-blue-700' : 'text-purple-700'} leading-[1.2]`}>
                                                                         {q.en}
                                                                     </p>
+                                                                ) : (
+                                                                    <div className="bg-red-500/10 border border-red-500/20 rounded p-1 inline-flex items-center gap-2">
+                                                                        <X className="w-2.5 h-2.5 text-red-500" />
+                                                                        <span className="text-[8px] text-red-500 font-black uppercase">Traduction manquante</span>
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         </div>
