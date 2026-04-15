@@ -525,12 +525,24 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     {/* Cover Page (Recto) */}
                                     <div 
                                         id="card-cover"
-                                        className="interview-card relative bg-white overflow-hidden flex flex-col shadow-2xl border border-black/5 group"
-                                        style={{ width: '148mm', height: '210mm', minWidth: '420px', minHeight: '595px' }}
+                                        className="interview-card relative overflow-hidden flex flex-col group"
+                                        style={{ 
+                                            width: '148mm', 
+                                            height: '210mm', 
+                                            minWidth: '420px', 
+                                            minHeight: '595px',
+                                            backgroundColor: '#ffffff',
+                                            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                                            border: '1px solid rgba(0,0,0,0.05)'
+                                        }}
                                     >
                                         <button 
                                             onClick={(e) => captureSingleCard(e, 'card-cover', 'Interview_Cover')}
-                                            className="capture-btn absolute top-6 right-6 z-50 bg-black/80 hover:bg-black text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all backdrop-blur-md border border-white/20 shadow-2xl"
+                                            className="capture-btn absolute top-6 right-6 z-50 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all shadow-2xl"
+                                            style={{ 
+                                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                                border: '1px solid rgba(255,255,255,0.2)'
+                                            }}
                                         >
                                             <Download className="w-3 h-3" /> PNG
                                         </button>
@@ -579,17 +591,24 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                         <div 
                                             key={chunkIdx}
                                             id={`card-page-${chunkIdx}`}
-                                            className="interview-card relative bg-white overflow-hidden flex flex-col shadow-2xl border border-black/5 shrink-0 group"
+                                            className="interview-card relative overflow-hidden flex flex-col shrink-0 group"
                                             style={{ 
                                                 width: '148mm', 
                                                 height: '210mm',
                                                 minWidth: '420px', 
-                                                minHeight: '595px'
+                                                minHeight: '595px',
+                                                backgroundColor: '#ffffff',
+                                                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                                                border: '1px solid rgba(0,0,0,0.05)'
                                             }}
                                         >
                                             <button 
                                                 onClick={(e) => captureSingleCard(e, `card-page-${chunkIdx}`, `Interview_Page_${chunkIdx + 1}`)}
-                                                className="capture-btn absolute top-6 right-6 z-50 bg-black/80 hover:bg-black text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all backdrop-blur-md border border-white/20 shadow-2xl"
+                                                className="capture-btn absolute top-6 right-6 z-50 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all shadow-2xl"
+                                                style={{ 
+                                                    backgroundColor: 'rgba(0,0,0,0.8)',
+                                                    border: '1px solid rgba(255,255,255,0.2)'
+                                                }}
                                             >
                                                 <Download className="w-3 h-3" /> PNG
                                             </button>
