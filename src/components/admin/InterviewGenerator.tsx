@@ -690,7 +690,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
                                                             <div className="flex-1">
-                                                                <h3 className="text-[12px] font-bold text-black uppercase leading-[1.2] mb-1">
+                                                                <h3 className="text-[12px] font-bold uppercase leading-[1.2] mb-1"
+                                                                    style={{ color: '#000000' }}
+                                                                >
                                                                     {q.fr}
                                                                 </h3>
                                                                 {q.en && (
