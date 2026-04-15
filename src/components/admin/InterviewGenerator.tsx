@@ -268,17 +268,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                     ctx.globalAlpha = watermarkOpacity / 100;
                     ctx.translate(W / 2, H / 2);
                     ctx.rotate(12 * Math.PI / 180);
-                    // Darken to black via pixel manipulation
-                    const tmp2 = document.createElement('canvas');
-                    tmp2.width = wm.naturalWidth; tmp2.height = wm.naturalHeight;
-                    const tc2 = tmp2.getContext('2d')!;
-                    tc2.drawImage(wm, 0, 0);
-                    const id2 = tc2.getImageData(0, 0, tmp2.width, tmp2.height);
-                    for (let i = 0; i < id2.data.length; i += 4) {
-                        id2.data[i] = 0; id2.data[i + 1] = 0; id2.data[i + 2] = 0;
-                    }
-                    tc2.putImageData(id2, 0, 0);
-                    ctx.drawImage(tmp2, -wmW / 2, -wmH / 2, wmW, wmH);
+                    // Draw original colors with globalAlpha
+                    ctx.drawImage(wm, -wmW / 2, -wmH / 2, wmW, wmH);
                     ctx.restore();
                 }
             }
@@ -871,8 +862,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                         src={festivalLogo} 
                                                         alt="Watermark" 
                                                         style={{ 
-                                                            width: `${watermarkScale}%`,
-                                                            filter: 'brightness(0)'
+                                                            width: `${watermarkScale}%`
                                                         }}
                                                     />
                                                 </div>
