@@ -114,7 +114,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         if (!container) return;
 
         try {
-            const cards = container.querySelectorAll('.interview-card');
+            const cards = Array.from(container.querySelectorAll('.interview-card'));
+            if (cards.length === 0) throw new Error("Aucune carte trouvée");
+            
             setGenProgress({ current: 0, total: cards.length });
             const zip = new JSZip();
             
@@ -122,34 +124,39 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 setGenProgress({ current: i + 1, total: cards.length });
                 const card = cards[i] as HTMLElement;
                 
-                // Safety delay
-                await new Promise(r => setTimeout(r, 200));
+                // Hide download buttons during capture
+                const buttons = card.querySelectorAll('.capture-btn');
+                buttons.forEach(b => (b as HTMLElement).style.display = 'none');
+
+                await new Promise(r => setTimeout(r, 300));
 
                 try {
                     const canvas = await html2canvas(card, {
                         scale: 2,
-                        backgroundColor: '#ffffff',
+                        backgroundColor: null,
                         useCORS: true,
                         allowTaint: true,
                         logging: false,
-                        width: card.offsetWidth,
-                        height: card.offsetHeight
+                        removeContainer: true
                     });
                     
                     const dataUrl = canvas.toDataURL('image/png', 1.0);
-                    const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
+                    const base64Data = dataUrl.split(',')[1];
                     
-                    const filename = i === 0 ? '00_Interview_Recto.png' : `Page_${String(i).padStart(2, '0')}.png`;
+                    const filename = i === 0 ? '00_Cover.png' : `Page_${String(i).padStart(2, '0')}.png`;
                     zip.file(filename, base64Data, { base64: true });
                 } catch (err) {
                     console.error(`Error rendering card ${i}:`, err);
+                } finally {
+                    buttons.forEach(b => (b as HTMLElement).style.display = 'flex');
                 }
             }
 
             const content = await zip.generateAsync({ type: "blob" });
+            if (content.size < 100) throw new Error("Fichier ZIP corrompu");
             saveAs(content, "Interview_Cards_Dropsiders.zip");
         } catch (error) {
-            console.error("ZIP Generation error:", error);
+            alert("Erreur lors de la génération du ZIP: " + error);
         } finally {
             setIsGenerating(false);
             setExportType(null);
@@ -163,7 +170,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         if (!container) return;
 
         try {
-            const cards = container.querySelectorAll('.interview-card');
+            const cards = Array.from(container.querySelectorAll('.interview-card'));
+            if (cards.length === 0) throw new Error("Aucune carte trouvée");
+
             setGenProgress({ current: 0, total: cards.length });
             const pdf = new jsPDF('p', 'mm', 'a5');
             
@@ -171,33 +180,62 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 setGenProgress({ current: i + 1, total: cards.length });
                 const card = cards[i] as HTMLElement;
                 
-                await new Promise(r => setTimeout(r, 200));
+                const buttons = card.querySelectorAll('.capture-btn');
+                buttons.forEach(b => (b as HTMLElement).style.display = 'none');
+
+                await new Promise(r => setTimeout(r, 400));
                 
                 try {
                     const canvas = await html2canvas(card, {
                         scale: 2,
                         backgroundColor: '#ffffff',
                         useCORS: true,
-                        allowTaint: true,
-                        logging: false,
-                        width: card.offsetWidth,
-                        height: card.offsetHeight
+                        allowTaint: true
                     });
                     
                     const imgData = canvas.toDataURL('image/png', 1.0);
                     if (i > 0) pdf.addPage();
+                    pdf.setPage(i + 1);
                     pdf.addImage(imgData, 'PNG', 0, 0, 148, 210, undefined, 'FAST');
                 } catch (err) {
                     console.error(`Error rendering page ${i}:`, err);
+                } finally {
+                    buttons.forEach(b => (b as HTMLElement).style.display = 'flex');
                 }
             }
 
             pdf.save("Interview_Cards_Dropsiders.pdf");
         } catch (error) {
-            console.error("PDF Generation error:", error);
+            alert("Erreur lors de la génération du PDF: " + error);
         } finally {
             setIsGenerating(false);
             setExportType(null);
+        }
+    };
+
+    const captureSingleCard = async (e: React.MouseEvent, cardId: string, name: string) => {
+        e.stopPropagation();
+        const card = document.getElementById(cardId);
+        if (!card) return;
+
+        const btn = e.currentTarget as HTMLElement;
+        btn.style.display = 'none';
+
+        try {
+            const canvas = await html2canvas(card, {
+                scale: 3, // Super High Quality
+                backgroundColor: null,
+                useCORS: true,
+                allowTaint: true
+            });
+            const link = document.createElement('a');
+            link.download = `${name}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        } catch (err) {
+            console.error("Capture error:", err);
+        } finally {
+            btn.style.display = 'flex';
         }
     };
 
@@ -479,9 +517,18 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             {questionChunks.length > 0 && (
                                 <>
                                     {/* Cover Page (Recto) */}
-                                    <div className="interview-card relative bg-white overflow-hidden flex flex-col shadow-2xl border border-black/5"
+                                    <div 
+                                        id="card-cover"
+                                        className="interview-card relative bg-white overflow-hidden flex flex-col shadow-2xl border border-black/5 group"
                                         style={{ width: '148mm', height: '210mm', minWidth: '420px', minHeight: '595px' }}
                                     >
+                                        <button 
+                                            onClick={(e) => captureSingleCard(e, 'card-cover', 'Interview_Cover')}
+                                            className="capture-btn absolute top-6 right-6 z-50 bg-black/80 hover:bg-black text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all backdrop-blur-md border border-white/20 shadow-2xl"
+                                        >
+                                            <Download className="w-3 h-3" /> PNG
+                                        </button>
+
                                         <div className={`w-full h-full bg-gradient-to-b ${theme === 'red' ? 'from-neon-red via-[#ff3355]' : theme === 'cyan' ? 'from-neon-cyan via-blue-500' : 'from-neon-purple via-pink-500'} to-[#000] flex flex-col items-center justify-center p-16 relative overflow-hidden shrink-0 text-center`}>
                                             <div className="absolute inset-0 opacity-20 pointer-events-none">
                                                 <div className="absolute top-0 right-0 w-96 h-96 bg-white/20 blur-[100px] rounded-full translate-x-1/3 -translate-y-1/3" />
@@ -517,7 +564,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     {questionChunks.map((chunk, chunkIdx) => (
                                         <div 
                                             key={chunkIdx}
-                                            className="interview-card relative bg-white overflow-hidden flex flex-col shadow-2xl border border-black/5 shrink-0"
+                                            id={`card-page-${chunkIdx}`}
+                                            className="interview-card relative bg-white overflow-hidden flex flex-col shadow-2xl border border-black/5 shrink-0 group"
                                             style={{ 
                                                 width: '148mm', 
                                                 height: '210mm',
@@ -525,6 +573,12 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 minHeight: '595px'
                                             }}
                                         >
+                                            <button 
+                                                onClick={(e) => captureSingleCard(e, `card-page-${chunkIdx}`, `Interview_Page_${chunkIdx + 1}`)}
+                                                className="capture-btn absolute top-6 right-6 z-50 bg-black/80 hover:bg-black text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all backdrop-blur-md border border-white/20 shadow-2xl"
+                                            >
+                                                <Download className="w-3 h-3" /> PNG
+                                            </button>
                                             {/* Background Festival Watermark */}
                                             {festivalLogo && (
                                                 <div 
