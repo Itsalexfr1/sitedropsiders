@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { 
     Plus, Trash2, Calendar, Clock, Instagram, 
-    Image as ImageIcon, Zap, Check,
+    Image as ImageIcon, Zap, Check, Star, Flame, Sun, Map as MapIcon,
     Music, Home, MapPin, Globe, RefreshCcw, Camera, Scan, ArrowRight
 } from 'lucide-react';
 import { useTakeover } from '../../context/TakeoverContext';
@@ -48,7 +48,7 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
         { id: 'ultra-miami', label: 'ULTRA MIAMI', offset: 6, color: 'text-red-400 border-red-500/30 bg-red-500/5 hover:bg-red-500/20', icon: <Flame className="w-3 h-3" /> },
         { id: 'day-trip', label: 'DAY TRIP LA', offset: 9, color: 'text-yellow-400 border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/20', icon: <Sun className="w-3 h-3" /> },
         { id: 'uk', label: 'UK (LONDRES)', offset: 1, color: 'text-sky-400 border-sky-500/30 bg-sky-500/5 hover:bg-sky-500/20', icon: <Plus className="w-3 h-3" /> },
-        { id: 'europe', label: 'EUROPE / AFRIQUE', offset: 0, color: 'text-green-400 border-green-500/30 bg-green-500/5 hover:bg-green-500/20', icon: <Map className="w-3 h-3" /> },
+        { id: 'europe', label: 'EUROPE / AFRIQUE', offset: 0, color: 'text-green-400 border-green-500/30 bg-green-500/5 hover:bg-green-500/20', icon: <MapIcon className="w-3 h-3" /> },
         { id: 'us-est', label: 'US-EAST', offset: 6, color: 'text-indigo-400 border-indigo-500/30 bg-indigo-500/5 hover:bg-indigo-500/20', icon: <Clock className="w-3 h-3" /> },
     ];
 
@@ -159,7 +159,7 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
     const getPreviewTime = (time: string) => {
         const preset = timezonePresets.find(p => p.id === selectedTimezoneId);
         if (!preset || preset.id === 'fr' || !time) return null;
-        const offset = calculateDynamicOffset(preset.tz);
+        const offset = preset.offset;
         let [h, m] = time.split(':').map(Number);
         if (isNaN(h)) return null;
         let newH = h + offset;
