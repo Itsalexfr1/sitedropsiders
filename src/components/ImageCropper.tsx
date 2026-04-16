@@ -92,7 +92,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
     };
 
     return (
-        <div className="fixed inset-0 z-[450] flex flex-col bg-black">
+        <div className="fixed inset-0 z-[30000] flex flex-col bg-black">
             <div className="relative flex-1">
                 <Cropper
                     image={image}

@@ -46,7 +46,7 @@ export function PlanningTab() {
         { id: 'fr', label: 'FR', tz: 'Europe/Paris', offset: 0 },
         { id: 'uk', label: 'UK', tz: 'Europe/London', offset: 1 },
         { id: 'us-east', label: 'US-EST', tz: 'America/New_York', offset: 6 },
-        { id: 'us-west', label: 'US-WEST', tz: 'America/Los_Angeles', offset: 9 },
+        { id: 'us-west', label: 'COACHELLA', tz: 'America/Los_Angeles', offset: 9 },
         { id: 'us-central', label: 'US-CENTRAL', tz: 'America/Chicago', offset: 7 },
     ];
 
@@ -449,12 +449,17 @@ export function PlanningTab() {
                                 </div>
 
                                 {/* Right Timeline Section - Keep for secondary view but slimmed down if needed */}
-                                <div className="flex items-center gap-6">
-                                    <div className="hidden xl:flex gap-4">
-                                        {getPreviewTime(item.startTime) && <span className="text-[8px] font-black text-cyan-400 italic self-center">FR {getPreviewTime(item.startTime)}</span>}
-                                        {getPreviewTime(item.endTime) && <span className="text-[8px] font-black text-red-400 italic self-center">/ FR {getPreviewTime(item.endTime)}</span>}
+                                 <div className="flex flex-col items-end gap-1">
+                                    <div className="flex items-center gap-4">
+                                        {getPreviewTime(item.startTime) && (
+                                            <div className="flex items-center gap-2 bg-neon-cyan/10 border border-neon-cyan/20 px-3 py-1.5 rounded-lg shadow-lg shadow-neon-cyan/5">
+                                                <Globe className="w-3 h-3 text-neon-cyan" />
+                                                <span className="text-[10px] font-black text-neon-cyan uppercase italic">FR: {getPreviewTime(item.startTime)}</span>
+                                            </div>
+                                        )}
+                                        <button onClick={() => removeLineupItem(item.id)} className="p-4 bg-red-500/10 text-red-500 hover:bg-neon-red hover:text-white rounded-2xl transition-all border border-red-500/10"><Trash2 className="w-5 h-5" /></button>
                                     </div>
-                                    <button onClick={() => removeLineupItem(item.id)} className="p-5 bg-red-500/10 text-red-500 hover:bg-neon-red hover:text-white rounded-[2rem] transition-all shadow-lg hover:shadow-neon-red/30"><Trash2 className="w-6 h-6" /></button>
+                                    <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest mr-2">Converti depuis {timezonePresets.find(p => p.id === selectedTimezoneId)?.label}</p>
                                 </div>
                             </div>
                         </motion.div>
