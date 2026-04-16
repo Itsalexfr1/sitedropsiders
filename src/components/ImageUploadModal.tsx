@@ -97,9 +97,22 @@ export function ImageUploadModal({
             setUploadProgress(0);
             setR2Photos([]);
             setR2Cursor(null);
+            setIsUploading(false); // Safety reset
         }
         return () => { document.body.style.overflow = 'unset'; };
     }, [isOpen, initialImage]);
+
+    // ESC Key listener for safety
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (isCropOpen) setIsCropOpen(false);
+                else if (isOpen) onClose();
+            }
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [isOpen, isCropOpen, onClose]);
 
     const fetchR2Photos = async (targetCursor?: string | null) => {
         setR2Loading(true);
@@ -217,6 +230,10 @@ export function ImageUploadModal({
         if (images.length > 0) {
             setSelectedImages(images);
             setStep('preview');
+            // Auto-open crop if aspect is provided (e.g. for card mode)
+            if (aspect && images.length === 1 && (!images[0].file || images[0].file.type.startsWith('image/'))) {
+                setIsCropOpen(true);
+            }
         }
     };
 
@@ -237,11 +254,18 @@ export function ImageUploadModal({
                 // Draw original image
                 ctx.drawImage(img, 0, 0);
 
+                // Safety timeout for logo loading
+                const timeout = setTimeout(() => {
+                    console.warn("Watermark timeout, proceeding without it.");
+                    resolve(dataUrl);
+                }, 3000);
+
                 // Add DROPSIDERS Logo
                 const logo = new Image();
                 logo.crossOrigin = "anonymous";
                 logo.src = '/Logo.png';
                 logo.onload = () => {
+                    clearTimeout(timeout);
                     const margin = canvas.width * 0.03;
                     const logoWidth = canvas.width * 0.2; // 20% of image width
                     const logoHeight = (logo.height / logo.width) * logoWidth;
@@ -253,11 +277,15 @@ export function ImageUploadModal({
                     resolve(canvas.toDataURL('image/jpeg', 0.9));
                 };
                 logo.onerror = () => {
+                    clearTimeout(timeout);
                     console.warn("Logo failed to load for watermarking, skipping...");
                     resolve(dataUrl);
                 };
             };
-            img.onerror = reject;
+            img.onerror = () => {
+                console.error("Image loading failed for processing");
+                reject(new Error("Impossible de charger l'image pour le traitement"));
+            };
         });
     };
 
