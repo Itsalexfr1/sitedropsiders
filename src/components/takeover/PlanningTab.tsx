@@ -4,7 +4,8 @@ import { createPortal } from 'react-dom';
 import { 
     Plus, Trash2, Calendar, Clock, Instagram, 
     Image as ImageIcon, Zap, Check, Star, Flame, Sun, Map as MapIcon,
-    Music, Home, MapPin, Globe, RefreshCcw, Camera, Scan, ArrowRight
+    Music, Home, MapPin, Globe, RefreshCcw, Camera, Scan, ArrowRight,
+    ChevronDown
 } from 'lucide-react';
 import { useTakeover } from '../../context/TakeoverContext';
 import type { LineupItem } from '../../context/TakeoverContext';
@@ -26,7 +27,7 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
 
 
     const [manualOffset, setManualOffset] = useState(8); 
-    const [selectedTimezoneId, setSelectedTimezoneId] = useState('fr');
+    const [selectedTimezoneId, setSelectedTimezoneId] = useState('europe');
     const [searchTerm, setSearchTerm] = useState('');
     const [bulkDate, setBulkDate] = useState('');
     const [showWikiResults, setShowWikiResults] = useState<string | null>(null);
@@ -322,33 +323,37 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                 </div>
 
                 {/* Row 2: TIMEZONES / FESTIVALS */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center min-h-[60px] overflow-hidden">
-                    <div className="px-4 py-3 md:py-0 border-b md:border-b-0 md:border-r border-white/10 flex items-center justify-between md:justify-start shrink-0">
+                <div className="bg-white/5 border border-white/10 rounded-2xl flex items-center min-h-[60px] px-6 gap-6 overflow-hidden">
+                    <div className="flex items-center gap-4 shrink-0 pr-6 border-r border-white/10">
+                        <Globe className="w-4 h-4 text-neon-cyan animate-pulse" />
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fuseau / Festival</span>
-                        <Globe className="w-3.5 h-3.5 text-gray-500 md:hidden" />
                     </div>
 
-                    <div className="flex-1 flex items-center gap-2 overflow-x-auto px-3 py-2 no-scrollbar scroll-smooth">
-                        {timezonePresets.map(preset => (
-                            <button
-                                key={preset.id}
-                                onClick={() => {
-                                    convertTimesByOffset(preset.offset);
-                                    setSelectedTimezoneId(preset.id);
+                    <div className="flex-1 flex items-center gap-4">
+                        <div className="relative group">
+                            <select 
+                                value={selectedTimezoneId}
+                                onChange={(e) => {
+                                    const id = e.target.value;
+                                    const preset = timezonePresets.find(p => p.id === id);
+                                    if (preset) {
+                                        convertTimesByOffset(preset.offset);
+                                        setSelectedTimezoneId(id);
+                                    }
                                 }}
-                                className={`px-5 py-2.5 rounded-xl text-[9px] lg:text-[10px] font-black uppercase transition-all flex items-center gap-2.5 border shrink-0 whitespace-nowrap ${
-                                    selectedTimezoneId === preset.id 
-                                    ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)] scale-105 z-10' 
-                                    : `border-transparent ${preset.color}`
-                                }`}
+                                className="bg-black/60 border border-white/10 rounded-xl px-12 py-2.5 text-[11px] font-black text-white outline-none focus:border-neon-cyan transition-all appearance-none cursor-pointer hover:bg-white/10 min-w-[300px] text-center"
                             >
-                                {preset.icon}
-                                {preset.label} ({preset.offset > 0 ? '+' : ''}{preset.offset}H)
-                            </button>
-                        ))}
+                                {timezonePresets.map(preset => (
+                                    <option key={preset.id} value={preset.id} className="bg-gray-950 text-white font-sans">
+                                        {preset.label} ({preset.offset > 0 ? '+' : ''}{preset.offset}H)
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none group-focus-within:text-neon-cyan" />
+                        </div>
                     </div>
 
-                    <div className="px-4 py-3 md:py-0 border-t md:border-t-0 md:border-l border-white/10 bg-white/5 md:bg-transparent flex items-center gap-4 shrink-0">
+                    <div className="flex items-center gap-4 shrink-0 border-l border-white/10 pl-6">
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Manuel</span>
                         <div className="flex items-center gap-1.5 bg-black/40 rounded-xl border border-white/10 p-1 focus-within:border-neon-cyan transition-all">
                             <input
