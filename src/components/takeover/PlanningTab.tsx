@@ -253,55 +253,50 @@ export function PlanningTab() {
     return (
         <div className="space-y-6">
             {/* Header Controls */}
-            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-4 flex flex-col xl:flex-row gap-4">
+            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-3 flex flex-row items-center gap-4 overflow-x-auto no-scrollbar">
                 {/* Stages Selection */}
-                <div className="flex items-center gap-3 bg-black/40 border border-white/5 p-2 rounded-3xl h-14">
-                    <div className="flex gap-1 bg-white/5 p-1 rounded-2xl">
-                        {(settings.streams && settings.streams.length > 0 ? settings.streams.map(s => s.name.toLowerCase()) : ['stage1']).map(s => (
-                            <button
-                                key={s}
-                                onClick={() => setActiveStage(s)}
-                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all ${activeStage === s ? 'bg-neon-cyan text-black shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'text-gray-500'}`}
-                            >
-                                {s}
-                            </button>
-                        ))}
-                    </div>
+                <div className="flex items-center gap-2 bg-black/40 border border-white/5 p-1.5 rounded-2xl shrink-0">
+                    {(settings.streams && settings.streams.length > 0 ? settings.streams.map(s => s.name.toUpperCase()) : ['STAGE 1']).map(s => (
+                        <button
+                            key={s}
+                            onClick={() => setActiveStage(s.toLowerCase())}
+                            className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${activeStage === s.toLowerCase() ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(34,211,238,0.4)]' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            {s}
+                        </button>
+                    ))}
                 </div>
 
+                <div className="h-6 w-px bg-white/10 shrink-0" />
+
                 {/* Fuseau Horaire & Date Group */}
-                <div className="flex-1 flex items-center gap-2 bg-white/5 p-2 rounded-3xl h-14 overflow-x-auto no-scrollbar">
-                    <div className="flex gap-1 px-1">
+                <div className="flex items-center gap-3 bg-white/5 p-1.5 rounded-2xl overflow-x-auto no-scrollbar shrink-0">
+                    <div className="flex gap-1">
                         {timezonePresets.map(tz => (
                             <button
                                 key={tz.id}
                                 onClick={() => setSelectedTimezoneId(tz.id)}
-                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all whitespace-nowrap ${selectedTimezoneId === tz.id ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(191,0,255,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all whitespace-nowrap ${selectedTimezoneId === tz.id ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.4)]' : 'text-gray-500 hover:text-white'}`}
                             >
                                 {tz.label}
                             </button>
                         ))}
                     </div>
                     
-                    <div className="h-4 w-px bg-white/10 flex-shrink-0 mx-1" />
-                    
                     <button 
                         onClick={convertTimesToFR}
                         disabled={selectedTimezoneId === 'fr'}
                         className={`p-2 rounded-xl transition-all ${selectedTimezoneId === 'fr' ? 'text-gray-700 opacity-20' : 'text-neon-purple hover:bg-neon-purple/10'}`}
-                        title="Convertir en heure FR"
                     >
                         <RefreshCcw className="w-4 h-4" />
                     </button>
 
-                    <div className="h-4 w-px bg-white/10 flex-shrink-0 mx-1" />
-
-                    <div className="flex items-center gap-2 pr-2">
+                    <div className="flex items-center gap-2 border-l border-white/10 pl-2">
                         <input 
                             type="date" 
                             value={bulkDate}
                             onChange={e => setBulkDate(e.target.value)}
-                            className="bg-transparent text-[9px] text-gray-400 font-black outline-none uppercase"
+                            className="bg-transparent text-[9px] text-gray-400 font-black outline-none uppercase min-w-[100px]"
                         />
                         <button onClick={applyBulkDate} className="p-2 text-white/20 hover:text-neon-cyan">
                             <Check className="w-4 h-4" />
@@ -309,25 +304,21 @@ export function PlanningTab() {
                     </div>
                 </div>
 
+                <div className="flex-1" />
+
                 {/* Primary Actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                     <button 
                         onClick={() => setShowBulkImport(!showBulkImport)}
-                        className={`h-14 px-6 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all ${showBulkImport ? 'bg-neon-purple border-neon-purple text-white' : 'bg-white/5 border-white/5 text-gray-500'}`}
+                        className={`h-11 px-6 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${showBulkImport ? 'bg-neon-purple border-neon-purple text-white' : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'}`}
                     >
                         IMPORT
                     </button>
                     <button 
                         onClick={addLineupItem}
-                        className="h-14 px-6 bg-neon-cyan text-black text-[9px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-neon-cyan/10"
+                        className="h-11 px-8 bg-neon-cyan text-black text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-neon-cyan/10 hover:scale-105 active:scale-95 transition-all"
                     >
                         AJOUTER
-                    </button>
-                    <button 
-                        onClick={handleSaveLineup}
-                        className="h-14 px-6 bg-white text-black text-[9px] font-black uppercase tracking-widest rounded-2xl transition-all"
-                    >
-                        SAUVEGARDER
                     </button>
                 </div>
             </div>
@@ -430,34 +421,33 @@ export function PlanningTab() {
                                             </AnimatePresence>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-6 text-white/60 text-[11px] font-black uppercase tracking-[0.2em] mt-2">
-                                        <div className="flex items-center gap-2 drop-shadow-lg"><MapPin className="w-4 h-4 text-red-500" />{activeStage}</div>
-                                        <div className="h-4 w-px bg-white/20" />
+                                    <div className="flex flex-wrap items-center gap-4 text-white/60 text-[10px] font-black uppercase tracking-wider mt-2">
+                                        <div className="flex items-center gap-2 drop-shadow-lg"><MapPin className="w-3 h-3 text-red-500" />{activeStage}</div>
+                                        <div className="h-3 w-px bg-white/20" />
                                         <div className="flex items-center gap-2 drop-shadow-lg p-1 hover:bg-white/5 rounded-lg transition-colors">
-                                            <Instagram className="w-4 h-4 text-pink-500" />
-                                            <input type="text" value={item.instagram} onChange={e => updateItem(item.id, { instagram: e.target.value })} className="bg-transparent text-[9px] font-black outline-none w-24" placeholder="@INSTA" />
+                                            <Instagram className="w-3 h-3 text-pink-500" />
+                                            <input type="text" value={item.instagram} onChange={e => updateItem(item.id, { instagram: e.target.value })} className="bg-transparent text-[9px] font-black outline-none w-20" placeholder="@INSTA" />
                                         </div>
-                                        <div className="h-4 w-px bg-white/20" />
-                                        <div className="flex items-center gap-2 drop-shadow-lg">
-                                            <Calendar className="w-4 h-4 text-amber-500" />
-                                            <input type="date" value={item.day} onChange={e => updateItem(item.id, { day: e.target.value })} className="bg-transparent outline-none border-none p-0 text-[10px]" style={{ colorScheme: 'dark' }} />
+                                        <div className="h-3 w-px bg-white/20" />
+                                        <div className="flex items-center gap-2 drop-shadow-lg p-1 hover:bg-white/5 rounded-lg transition-colors">
+                                            <Calendar className="w-3 h-3 text-amber-500" />
+                                            <input type="date" value={item.day} onChange={e => updateItem(item.id, { day: e.target.value })} className="bg-transparent outline-none border-none p-0 text-[10px] w-24" style={{ colorScheme: 'dark' }} />
+                                        </div>
+                                        <div className="h-3 w-px bg-white/20" />
+                                        <div className="flex items-center gap-2 drop-shadow-lg p-1 hover:bg-white/5 rounded-lg transition-colors">
+                                            <Clock className="w-3 h-3 text-neon-cyan" />
+                                            <input type="text" value={item.startTime} onChange={e => updateItem(item.id, { startTime: e.target.value })} className="bg-transparent text-[9px] font-black outline-none w-10 text-center" placeholder="00:00" />
+                                            <span className="text-[10px] text-white/30">-</span>
+                                            <input type="text" value={item.endTime} onChange={e => updateItem(item.id, { endTime: e.target.value })} className="bg-transparent text-[9px] font-black outline-none w-10 text-center" placeholder="00:00" />
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Right Timeline Section */}
-                                <div className="flex items-center gap-10">
-                                    <div className="flex gap-4">
-                                        <div className="flex flex-col items-center gap-1.5">
-                                            <span className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">DEBUT</span>
-                                            <input type="text" value={item.startTime} onChange={e => updateItem(item.id, { startTime: e.target.value })} className="w-20 bg-black/70 border border-white/10 rounded-2xl py-3 text-[14px] font-black text-white text-center outline-none backdrop-blur-xl hover:border-neon-cyan transition-colors" />
-                                            {getPreviewTime(item.startTime) && <span className="text-[8px] font-black text-cyan-400 italic">FR {getPreviewTime(item.startTime)}</span>}
-                                        </div>
-                                        <div className="flex flex-col items-center gap-1.5">
-                                            <span className="text-[9px] font-black text-neon-red uppercase tracking-widest">FIN</span>
-                                            <input type="text" value={item.endTime} onChange={e => updateItem(item.id, { endTime: e.target.value })} className="w-20 bg-black/70 border border-white/10 rounded-2xl py-3 text-[14px] font-black text-white text-center outline-none backdrop-blur-xl hover:border-red-500 transition-colors" />
-                                            {getPreviewTime(item.endTime) && <span className="text-[8px] font-black text-red-400 italic">FR {getPreviewTime(item.endTime)}</span>}
-                                        </div>
+                                {/* Right Timeline Section - Keep for secondary view but slimmed down if needed */}
+                                <div className="flex items-center gap-6">
+                                    <div className="hidden xl:flex gap-4">
+                                        {getPreviewTime(item.startTime) && <span className="text-[8px] font-black text-cyan-400 italic self-center">FR {getPreviewTime(item.startTime)}</span>}
+                                        {getPreviewTime(item.endTime) && <span className="text-[8px] font-black text-red-400 italic self-center">/ FR {getPreviewTime(item.endTime)}</span>}
                                     </div>
                                     <button onClick={() => removeLineupItem(item.id)} className="p-5 bg-red-500/10 text-red-500 hover:bg-neon-red hover:text-white rounded-[2rem] transition-all shadow-lg hover:shadow-neon-red/30"><Trash2 className="w-6 h-6" /></button>
                                 </div>

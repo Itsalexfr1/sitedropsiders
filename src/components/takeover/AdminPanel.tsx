@@ -127,7 +127,17 @@ export function AdminPanel() {
                             </button>
                         ))}
                     </div>
-                    <button onClick={() => setShowAdminPanel(false)} className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-500 border border-white/10 rounded-2xl transition-all" title="Fermer le panel"><X className="w-6 h-6" /></button>
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={onSave} 
+                            disabled={isSaving} 
+                            className={`h-11 px-8 ${isSaving ? 'bg-white/10 text-gray-400' : 'bg-white text-black hover:bg-neon-cyan shadow-xl shadow-white/5'} rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 hover:scale-105 active:scale-95`}
+                        >
+                            {isSaving ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            {isSaving ? '...' : 'SAUVEGARDER'}
+                        </button>
+                        <button onClick={() => setShowAdminPanel(false)} className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-500 border border-white/10 rounded-2xl transition-all" title="Fermer le panel"><X className="w-6 h-6" /></button>
+                    </div>
                 </div>
                 <div className="min-h-[400px]">
                     {adminActiveTab === 'config' && (
@@ -432,10 +442,9 @@ export function AdminPanel() {
                                 </div>
                             </div>
 
-                            <button onClick={onSave} disabled={isSaving} className="w-full py-6 bg-neon-cyan text-black font-black uppercase rounded-3xl transition-all shadow-2xl flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95">
-                                {isSaving ? <Timer className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
-                                {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER LES MODIFICATIONS'}
-                            </button>
+                            <div className="pt-6 border-t border-white/5">
+                                <p className="text-[9px] text-gray-500 font-bold uppercase text-center tracking-widest">Utilisez le bouton Sauvegarder en haut du panel pour appliquer les changements</p>
+                            </div>
                         </div>
                     )}
 
@@ -464,8 +473,31 @@ export function AdminPanel() {
                                         </div>
                                     </div>
                                 </div>
+                                 <div className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6">
+                                    <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Gestion de l'Équipe & Blacklist</h3>
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-500 uppercase">Modérateurs (Séparez par Virgule)</label>
+                                            <textarea 
+                                                value={(settings.moderators || []).join(', ')} 
+                                                onChange={e => setSettings({...settings, moderators: e.target.value.split(',').map(s => s.trim().toUpperCase()).filter(s => s)})}
+                                                className="w-full h-20 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-neon-blue font-black uppercase"
+                                                placeholder="ALEX, MOD_1, MOD_2..."
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase">Utilisateurs Bannis (Blacklist)</label>
+                                            <textarea 
+                                                value={(settings.bannedPseudos || []).join(', ')} 
+                                                onChange={e => setSettings({...settings, bannedPseudos: e.target.value.split(',').map(s => s.trim().toUpperCase()).filter(s => s)})}
+                                                className="w-full h-20 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-red-500 font-black uppercase"
+                                                placeholder="PSEUDO_PAS_COOL, TROLL_99..."
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                                 <div className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6">
-                                    <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Auto-Modération</h3>
+                                    <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Filtrage du Chat</h3>
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-gray-500 uppercase">Mots Bannis (séparés par virgule)</label>
                                         <textarea 
@@ -655,6 +687,68 @@ export function AdminPanel() {
                                             >LANCER</button>
                                         </div>
                                     </div>
+                                </div>
+                             </div>
+
+                             {/* Bot Commands Quick Edit */}
+                             <div className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6">
+                                <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                    <h3 className="text-sm font-black text-white uppercase tracking-widest italic flex items-center gap-3">
+                                        <Music className="w-4 h-4 text-neon-blue" />
+                                        Commandes Bot Personnalisées
+                                    </h3>
+                                    <button 
+                                        onClick={() => {
+                                            const updated = { ...settings, botCommands: [...(settings.botCommands || []), { command: '!', response: '' }] };
+                                            setSettings(updated);
+                                        }}
+                                        className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all border border-white/5"
+                                    >
+                                        + Nouvelle Commande
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {(settings.botCommands || []).map((cmd, idx) => (
+                                        <div key={idx} className="flex gap-4 p-4 bg-black/40 rounded-2xl border border-white/5 group">
+                                            <div className="w-1/4">
+                                                <input 
+                                                    type="text" 
+                                                    value={cmd.command} 
+                                                    onChange={e => {
+                                                        const nc = [...(settings.botCommands || [])];
+                                                        nc[idx].command = e.target.value.toLowerCase();
+                                                        setSettings({...settings, botCommands: nc});
+                                                    }}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-neon-blue font-black" 
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <input 
+                                                    type="text" 
+                                                    value={cmd.response} 
+                                                    onChange={e => {
+                                                        const nc = [...(settings.botCommands || [])];
+                                                        nc[idx].response = e.target.value;
+                                                        setSettings({...settings, botCommands: nc});
+                                                    }}
+                                                    placeholder="Réponse du bot..."
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white" 
+                                                />
+                                            </div>
+                                            <button 
+                                                onClick={() => {
+                                                    const nc = (settings.botCommands || []).filter((_, i) => i !== idx);
+                                                    setSettings({...settings, botCommands: nc});
+                                                }}
+                                                className="p-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {(settings.botCommands || []).length === 0 && (
+                                        <p className="text-center py-4 text-[9px] text-gray-600 font-bold uppercase tracking-widest">Aucune commande personnalisée</p>
+                                    )}
                                 </div>
                              </div>
                         </div>

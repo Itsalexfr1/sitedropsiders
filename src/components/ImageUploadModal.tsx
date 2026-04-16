@@ -518,7 +518,8 @@ export function ImageUploadModal({
                                                                             setSelectedImages(prev => [...prev, { file: null, preview: photo.url }]);
                                                                         }
                                                                     } else {
-                                                                        handleUpload([{ file: null, preview: photo.url }]);
+                                                                        setSelectedImages([{ file: null, preview: photo.url }]);
+                                                                        setStep('preview');
                                                                     }
                                                                 }}
                                                                 className={`relative w-full aspect-square min-h-[100px] md:min-h-[120px] bg-[#111] border-2 rounded-2xl md:rounded-[2rem] overflow-hidden cursor-pointer transition-all duration-300 group shadow-lg ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-4 ring-neon-blue/20 scale-[0.98]' : 'border-white/5 hover:border-white/10 hover:scale-[1.02]'}`}
