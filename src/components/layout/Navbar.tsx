@@ -31,7 +31,6 @@ export function Navbar() {
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
     const isMobile = window.innerWidth < 1024;
     const [isAdmin, setIsAdmin] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
     const { isLoggedIn, user, setIsAuthModalOpen } = useUser();
     const [newsData, setNewsData] = useState<any[]>([]);
     const [recapsData, setRecapsData] = useState<any[]>([]);

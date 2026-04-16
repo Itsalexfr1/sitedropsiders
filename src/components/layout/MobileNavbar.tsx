@@ -15,7 +15,6 @@ export function MobileNavbar() {
     const [takeoverStatus, setTakeoverStatus] = useState(settings.takeover?.status || 'off');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
     const { isLoggedIn, user, setIsAuthModalOpen } = useUser();
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
 

@@ -247,7 +247,6 @@ export function InterviewVisualGenerator() {
 
             let labelText = 'INTERVIEW';
             if (visualMode === 'recap') labelText = 'RÉCAP VIDÉO';
-            else if (visualMode === 'news') labelText = 'NEWS';
 
             ctx.fillStyle = '#ff0033';
             const textW = ctx.measureText(labelText).width;
@@ -354,7 +353,6 @@ export function InterviewVisualGenerator() {
             ctx.textAlign = 'center';
             let labelText = '— INTERVIEW —';
             if (visualMode === 'recap') labelText = '— RÉCAP VIDÉO —';
-            else if (visualMode === 'news') labelText = '— NEWS —';
 
             ctx.font = `900 ${h * 0.032}px 'Arial Black', Arial, sans-serif`;
             ctx.fillStyle = '#ff0033';
@@ -492,7 +490,7 @@ export function InterviewVisualGenerator() {
                         <span className="text-neon-red font-black uppercase tracking-widest text-[10px]">Visual Studio v2.0</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-3">
-                        {visualMode === 'recap' ? 'Récap' : 'Interview'} <span className={visualMode === 'recap' ? 'text-neon-cyan' : 'text-neon-red'}>Visuals</span>
+                        {visualMode === 'recap' ? 'Récap' : visualMode === 'top100' ? 'Top 100' : visualMode === 'news' ? 'News' : 'Interview'} <span className={visualMode === 'recap' ? 'text-neon-cyan' : visualMode === 'top100' ? 'text-neon-yellow' : visualMode === 'news' ? 'text-neon-red' : 'text-neon-red'}>Visuals</span>
                     </h1>
                 </motion.div>
 
