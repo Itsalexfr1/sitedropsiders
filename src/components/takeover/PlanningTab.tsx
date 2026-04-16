@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { 
     Plus, Trash2, Calendar, Clock, Instagram, 
     Image as ImageIcon, Zap, Check,
-    Music, Home, MapPin, Globe, RefreshCcw, Camera, Scan
+    Music, Home, MapPin, Globe, RefreshCcw, Camera, Scan, ArrowRight
 } from 'lucide-react';
 import { useTakeover } from '../../context/TakeoverContext';
 import type { LineupItem } from '../../context/TakeoverContext';
@@ -24,11 +25,10 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
     } = useTakeover();
 
 
-
-    const [searchTerm, setSearchTerm] = useState('');
+    const [manualOffset, setManualOffset] = useState(8); 
+    const [selectedTimezoneId, setSelectedTimezoneId] = useState('fr');
     const [bulkDate, setBulkDate] = useState('');
     const [showWikiResults, setShowWikiResults] = useState<string | null>(null);
-    const [selectedTimezoneId, setSelectedTimezoneId] = useState('fr');
     const [now, setNow] = React.useState(new Date());
 
     React.useEffect(() => {
@@ -63,16 +63,12 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
         }
     };
 
-    const convertTimesToFR = () => {
-        const preset = timezonePresets.find(p => p.id === selectedTimezoneId);
-        if (!preset || preset.id === 'fr') return;
-        const offset = calculateDynamicOffset(preset.tz);
-        
+    const convertTimesByOffset = (offset: number) => {
         setEditLineup(prev => prev.map(item => {
             if ((item.stage || 'stage1') !== activeStage) return item;
             const shiftTime = (t: string) => {
                 if (!t) return { time: '', dayShift: 0 };
-                let [h, m] = t.split(':').map(Number);
+                let [h, m] = t.replace('h', ':').replace('.', ':').split(':').map(Number);
                 let dayShift = 0;
                 let newH = h + offset;
                 while (newH >= 24) { newH -= 24; dayShift++; }
@@ -87,13 +83,18 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
             let newDay = item.day;
             if (start.dayShift !== 0 && item.day) {
                 const d = new Date(item.day);
-                d.setDate(d.getDate() + start.dayShift);
+                d.setUTCDate(d.getUTCDate() + start.dayShift);
                 newDay = d.toISOString().split('T')[0];
             }
             return { ...item, startTime: start.time, endTime: end.time, day: newDay };
         }));
+        showNotification(`Converti avec succès (${offset > 0 ? '+' : ''}${offset}h)`, 'success');
+    };
+
+    const convertTimesToFR = () => {
+        const offset = selectedTimezoneId === 'us-west' ? 8 : (selectedTimezoneId === 'uk' ? 1 : 0);
+        convertTimesByOffset(offset);
         setSelectedTimezoneId('fr');
-        showNotification(`Converti avec succès (+${offset}h)`, 'success');
     };
 
     const filteredLineup = useMemo(() => {
@@ -267,25 +268,29 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                 {/* Row 2: TIMEZONES ONLY */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
                     <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-3 border-r border-white/10 shrink-0">Fuseau / Festival</span>
-                    {timezonePresets.map(tz => (
-                        <button
-                            key={tz.id}
-                            onClick={() => setSelectedTimezoneId(tz.id)}
-                            className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase transition-all whitespace-nowrap flex items-center gap-2 ${selectedTimezoneId === tz.id ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                        >
-                            {tz.id === 'us-west' && <Scan className="w-3 h-3" />}
-                            {tz.label}
+                    <div className="flex bg-black/20 p-1 rounded-xl items-center gap-1">
+                        <button onClick={() => { setSelectedTimezoneId('us-west'); convertTimesByOffset(8); }} className="px-5 py-2.5 bg-neon-purple/20 border border-neon-purple/40 text-neon-purple rounded-lg text-[9px] font-black uppercase flex items-center gap-2 hover:bg-neon-purple hover:text-white transition-all">
+                            <Zap className="w-3 h-3" /> COACHELLA (+8H)
                         </button>
-                    ))}
-                    <div className="flex-1" />
-                    <button 
-                        onClick={convertTimesToFR}
-                        disabled={selectedTimezoneId === 'fr'}
-                        className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase flex items-center gap-2 transition-all ${selectedTimezoneId === 'fr' ? 'text-gray-700 opacity-20' : 'text-neon-purple hover:bg-neon-purple/10 border border-neon-purple/20'}`}
-                    >
-                        <RefreshCcw className="w-3.5 h-3.5" />
-                        Convertir tout en FR
-                    </button>
+                        <button onClick={() => { setSelectedTimezoneId('uk'); convertTimesByOffset(1); }} className="px-5 py-2.5 bg-neon-blue/20 border border-neon-blue/40 text-neon-blue rounded-lg text-[9px] font-black uppercase flex items-center gap-2 hover:bg-neon-blue hover:text-white transition-all">
+                            <Plus className="w-3 h-3" /> UK (+1H)
+                        </button>
+                    </div>
+                    
+                    <div className="h-4 w-px bg-white/10" />
+
+                    <div className="flex bg-white/5 p-1 rounded-xl items-center gap-2 border border-white/10">
+                        <span className="text-[8px] font-black text-gray-500 uppercase ml-2">Manuel</span>
+                        <input 
+                            type="number" 
+                            value={manualOffset}
+                            onChange={e => setManualOffset(Number(e.target.value))}
+                            className="w-10 bg-black border border-white/10 rounded-lg py-1 px-2 text-[10px] text-white font-black text-center outline-none"
+                        />
+                        <button onClick={() => convertTimesByOffset(manualOffset)} className="p-2 bg-white/10 hover:bg-white text-black rounded-lg transition-all">
+                            <ArrowRight className="w-3 h-3" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Row 3: DATE & ACTIONS */}

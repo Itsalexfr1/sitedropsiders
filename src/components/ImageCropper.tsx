@@ -49,50 +49,8 @@ export const getCroppedImg = (imageSrc: string, pixelCrop: Area): Promise<string
     });
 };
 
-export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialAspect }: ImageCropperProps) {
-    const [crop, setCrop] = useState({ x: 0, y: 0 });
-    const [zoom, setZoom] = useState(1);
-    const [aspect, setAspect] = useState<number | undefined>(initialAspect);
-    const [cropShape, setCropShape] = useState<'rect' | 'round'>('rect');
-    const [manualW, setManualW] = useState(1);
-    const [manualH, setManualH] = useState(1);
-    const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-    const onCropChange = (crop: { x: number; y: number }) => {
-        setCrop(crop);
-    };
-
-    const onZoomChange = (zoom: number) => {
-        setZoom(zoom);
-    };
-
-    const onCropCompleteCallback = useCallback(async (_croppedArea: Area, croppedAreaPixels: Area) => {
-        setCroppedAreaPixels(croppedAreaPixels);
-        try {
-            const preview = await getCroppedImg(image, croppedAreaPixels);
-            setPreviewUrl(preview);
-        } catch (e) {}
-    }, [image]);
-
-    const handleConfirm = async () => {
-        if (!croppedAreaPixels) return;
-        try {
-            const croppedImage = await getCroppedImg(image, croppedAreaPixels);
-            onCropComplete(croppedImage);
-        } catch (e: any) {
-            console.error(e);
-        }
-    };
-
-    const applyManualRatio = () => {
-        if (manualW > 0 && manualH > 0) {
-            setAspect(manualW / manualH);
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 z-[30000] flex flex-col bg-black">
+    const content = (
+        <div className="fixed inset-0 z-[100000] flex flex-col bg-black">
             <div className="relative flex-1">
                 <Cropper
                     image={image}
@@ -186,4 +144,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
             </div>
         </div>
     );
+
+    if (typeof document === 'undefined') return null;
+    return createPortal(content, document.body);
 }
