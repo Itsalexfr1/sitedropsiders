@@ -60,7 +60,7 @@ interface ArticlePremiumTemplateProps {
     isLoading?: boolean;
 }
 
-const getCategoryColor = (category: string) => {
+const getCategoryColor = (category: string): string => {
     const c = (category || '').toLowerCase().trim();
     if (c === 'musique' || c === 'music') return 'neon-green';
     if (c === 'festival' || c === 'festivals') return 'neon-red';
