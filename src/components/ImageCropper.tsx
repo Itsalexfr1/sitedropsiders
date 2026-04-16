@@ -4,11 +4,14 @@ import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
 import { X, Check } from 'lucide-react';
 
+import { resolveImageUrl } from '../utils/image';
+
 interface ImageCropperProps {
     image: string;
     onCropComplete: (croppedImage: string) => void;
     onCancel: () => void;
     aspect?: number;
+    artistName?: string; // Optional for preview
 }
 
 export const getCroppedImg = (imageSrc: string, pixelCrop: Area): Promise<string> => {
@@ -54,6 +57,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
     const [manualW, setManualW] = useState(1);
     const [manualH, setManualH] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     const onCropChange = (crop: { x: number; y: number }) => {
         setCrop(crop);
@@ -63,9 +67,13 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
         setZoom(zoom);
     };
 
-    const onCropCompleteCallback = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
+    const onCropCompleteCallback = useCallback(async (_croppedArea: Area, croppedAreaPixels: Area) => {
         setCroppedAreaPixels(croppedAreaPixels);
-    }, []);
+        try {
+            const preview = await getCroppedImg(image, croppedAreaPixels);
+            setPreviewUrl(preview);
+        } catch (e) {}
+    }, [image]);
 
     const handleConfirm = async () => {
         if (!croppedAreaPixels) return;
@@ -96,6 +104,31 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
                     onCropComplete={onCropCompleteCallback}
                     onZoomChange={onZoomChange}
                 />
+
+                {/* Floating Card Preview */}
+                <div className="absolute top-6 right-6 z-[460] w-72 md:w-96 pointer-events-none">
+                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 drop-shadow-lg">Aperçu de la carte :</p>
+                    <div className="bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/20 rounded-[2rem] flex items-center gap-4 overflow-hidden h-24 shadow-2xl">
+                         {/* Card Image Part */}
+                         <div className="w-24 h-full bg-black flex-shrink-0 relative">
+                            {previewUrl && (
+                                <img src={previewUrl} className="w-full h-full object-cover" alt="" />
+                            )}
+                            <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 bg-neon-cyan text-black rounded-lg">
+                                <div className="w-1.5 h-1.5 bg-black rounded-full animate-pulse" />
+                                <span className="text-[6px] font-black uppercase">LIVE</span>
+                            </div>
+                         </div>
+                         {/* Card Info Part */}
+                         <div className="flex-1 flex flex-col justify-center gap-0.5 pr-4">
+                            <div className="text-sm font-black text-white italic truncate uppercase tracking-tighter">ARTIST NAME</div>
+                            <div className="text-[7px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
+                                <span className="text-red-500">📍</span> STAGE NAME
+                            </div>
+                            <div className="mt-1 h-0.5 bg-neon-cyan/50 w-3/4 rounded-full" />
+                         </div>
+                    </div>
+                </div>
             </div>
             <div className="bg-[#0a0a0a] p-6 border-t border-white/10 flex flex-col gap-6">
                 <div className="flex flex-wrap items-center justify-center gap-6">
