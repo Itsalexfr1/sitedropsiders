@@ -40,10 +40,35 @@ export function Profile() {
 
     const stats = [
         { label: 'DROPS', value: user.scores?.drops || 0, icon: <Zap className="w-5 h-5 text-neon-cyan" />, color: 'from-neon-cyan/20 to-transparent' },
-        { label: 'RANG', value: 'MEMBRE', icon: <Shield className="w-5 h-5 text-neon-purple" />, color: 'from-neon-purple/20 to-transparent' },
+        { label: 'RANG', value: 'MEMBRE', icon: <Shield className="w-5 h-5 text-neon-red" />, color: 'from-neon-red/20 to-transparent' },
         { label: 'XP', value: user.scores?.xp || 0, icon: <Trophy className="w-5 h-5 text-amber-500" />, color: 'from-amber-500/20 to-transparent' },
-        { label: 'TITRES', value: user.trackIds?.length || 0, icon: <Music className="w-5 h-5 text-neon-red" />, color: 'from-neon-red/20 to-transparent' }
+        { label: 'FAVORIS', value: user.agendaFavorites?.length || 0, icon: <Calendar className="w-5 h-5 text-neon-cyan" />, color: 'from-neon-cyan/20 to-transparent' }
     ];
+
+    const [favoriteEvents, setFavoriteEvents] = useState<any[]>([]);
+    useEffect(() => {
+        if (user.agendaFavorites?.length > 0) {
+            fetch('/api/agenda')
+                .then(res => res.json())
+                .then(data => {
+                    const favs = data.filter((e: any) => user.agendaFavorites.includes(e.id));
+                    setFavoriteEvents(favs);
+                })
+                .catch(err => console.error(err));
+        }
+    }, [user.agendaFavorites]);
+
+    const getEventColor = (genre: string, type: string) => {
+        const g = (genre || '').toLowerCase().trim();
+        const t = (type || '').toLowerCase().trim();
+        if (g.includes('musique') || g.includes('music')) return 'neon-green';
+        if (t === 'festival' || g.includes('techno') || g.includes('hybride') || g.includes('hardcore')) return 'neon-red';
+        if (g.includes('house') || g.includes('tech house')) return 'neon-blue';
+        if (g.includes('melodic') || t === 'jeux concours') return 'neon-yellow';
+        if (g.includes('big room') || g.includes('drum') || g.includes('hardtechno')) return 'neon-purple';
+        if (g.includes('trance') || t === 'concert') return 'neon-cyan';
+        return 'neon-red';
+    };
 
     return (
         <div className="min-h-screen bg-[#050505] pt-32 pb-20 px-6 relative overflow-hidden">
@@ -59,7 +84,7 @@ export function Profile() {
                     {/* Left Sidebar: Hero Profile */}
                     <div className="lg:col-span-4 space-y-8">
                         <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 backdrop-blur-xl relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan" />
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]" />
                             
                             <div className="flex flex-col items-center text-center space-y-6">
                                 <div className="relative group/avatar">
@@ -172,18 +197,41 @@ export function Profile() {
                                             </div>
                                         </div>
 
-                                        <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 space-y-6">
-                                            <div className="flex items-center gap-4 border-b border-white/5 pb-4">
-                                                <div className="w-10 h-10 bg-neon-purple/20 rounded-xl flex items-center justify-center">
-                                                    <Calendar className="w-5 h-5 text-neon-purple" />
-                                                </div>
-                                                <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Mes Événements</h3>
-                                            </div>
-                                            <div className="text-center py-10">
-                                                <p className="text-xs text-gray-600 font-bold uppercase tracking-widest">Aucun événement enregistré</p>
-                                                <button onClick={() => navigate('/agenda')} className="mt-4 px-6 py-3 border border-neon-purple/30 rounded-xl text-neon-purple text-[10px] font-black uppercase tracking-widest hover:bg-neon-purple/10 transition-all">Consulter l'agenda</button>
-                                            </div>
-                                        </div>
+                                         <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 space-y-6">
+                                             <div className="flex items-center gap-4 border-b border-white/5 pb-4">
+                                                 <div className="w-10 h-10 bg-neon-red/20 rounded-xl flex items-center justify-center">
+                                                     <Calendar className="w-5 h-5 text-neon-red" />
+                                                 </div>
+                                                 <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Mes Événements</h3>
+                                             </div>
+                                             
+                                             <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                                                 {favoriteEvents.length > 0 ? (
+                                                     favoriteEvents.map((event, idx) => {
+                                                         const color = getEventColor(event.genre, event.type);
+                                                         return (
+                                                             <div key={idx} className={`p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between group cursor-pointer hover:bg-${color}/5 hover:border-${color}/30 transition-all`} onClick={() => navigate(`/agenda?event=${event.id}`)}>
+                                                                 <div className="flex items-center gap-3">
+                                                                     <div className={`w-10 h-10 rounded-lg overflow-hidden border border-${color}/20`}>
+                                                                         <img src={event.image} alt="" className="w-full h-full object-cover" />
+                                                                     </div>
+                                                                     <div>
+                                                                         <p className="text-[10px] text-white font-black uppercase truncate max-w-[120px]">{event.title}</p>
+                                                                         <p className="text-[8px] text-gray-500 font-bold uppercase">{new Date(event.startDate || event.date).toLocaleDateString('fr-FR')}</p>
+                                                                     </div>
+                                                                 </div>
+                                                                 <div className={`text-[9px] text-${color} font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity`}>Voir</div>
+                                                             </div>
+                                                         );
+                                                     })
+                                                 ) : (
+                                                     <div className="text-center py-6">
+                                                         <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Aucun événement enregistré</p>
+                                                         <button onClick={() => navigate('/agenda')} className="mt-4 px-6 py-2 border border-neon-red/30 rounded-xl text-neon-red text-[9px] font-black uppercase tracking-widest hover:bg-neon-red/10 transition-all">Consulter l'agenda</button>
+                                                     </div>
+                                                 )}
+                                             </div>
+                                         </div>
                                     </div>
                                 )}
 

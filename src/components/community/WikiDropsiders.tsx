@@ -84,6 +84,7 @@ export function WikiDropsiders({
     const [addSuccess, setAddSuccess] = useState(false);
     const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
     const [showImageModal, setShowImageModal] = useState(false);
+    const [showAddImageModal, setShowAddImageModal] = useState(false);
 
     const reportBrokenImage = async (id: string) => {
         try {
@@ -294,10 +295,17 @@ export function WikiDropsiders({
                                 <input type="text" value={addForm.country} onChange={e => setAddForm({...addForm, country: e.target.value})} placeholder="🇫🇷 FR"
                                     className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
                             </div>
-                            <div>
-                                <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2">URL Image *</label>
-                                <input type="text" value={addForm.image} onChange={e => setAddForm({...addForm, image: e.target.value})} placeholder="https://..."
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
+                            <div className="md:col-span-1 group">
+                                <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center justify-between">
+                                    <span>Image (Upload Cloud recommandé) *</span>
+                                </label>
+                                <div className="flex gap-2">
+                                    <input type="text" value={addForm.image} onChange={e => setAddForm({...addForm, image: e.target.value})} placeholder="https://..."
+                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-neon-red transition-all min-w-0" />
+                                    <button type="button" onClick={() => setShowAddImageModal(true)} className="px-3 bg-neon-red/20 border border-neon-red/30 text-neon-red hover:bg-neon-red hover:text-white rounded-xl transition-all text-xs font-black uppercase shrink-0">
+                                        Upload
+                                    </button>
+                                </div>
                             </div>
                             <div className="md:col-span-2 lg:col-span-3">
                                 <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2">Biographie / Infos</label>
@@ -619,6 +627,16 @@ export function WikiDropsiders({
                 isOpen={showImageModal}
                 onClose={() => setShowImageModal(false)}
                 onUploadSuccess={handleUpdatePhoto}
+                accentColor="neon-red"
+                aspect={4/5}
+            />
+            <ImageUploadModal 
+                isOpen={showAddImageModal}
+                onClose={() => setShowAddImageModal(false)}
+                onUploadSuccess={(url) => {
+                    setAddForm(prev => ({...prev, image: Array.isArray(url) ? url[0] : url}));
+                    setShowAddImageModal(false);
+                }}
                 accentColor="neon-red"
                 aspect={4/5}
             />

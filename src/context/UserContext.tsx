@@ -8,6 +8,7 @@ interface UserProfile {
     provider?: string;
     scores: Record<string, number>;
     trackIds: string[];
+    agendaFavorites: number[];
     createdAt: string;
 }
 
@@ -20,6 +21,7 @@ interface UserContextType {
     logout: () => void;
     updateScore: (gameId: string, score: number) => void;
     toggleTrackId: (trackId: string) => void;
+    toggleAgendaFavorite: (eventId: number) => void;
     updateUser: (updates: Partial<UserProfile>) => void;
 }
 
@@ -33,12 +35,32 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const savedUser = localStorage.getItem('dropsiders_user');
         if (savedUser) {
             try {
-                setUser(JSON.parse(savedUser));
+                const parsed = JSON.parse(savedUser);
+                if (!parsed.agendaFavorites) parsed.agendaFavorites = [];
+                setUser(parsed);
             } catch (e) {
                 console.error('Failed to parse user data', e);
             }
         }
     }, []);
+
+    // Sync with backend when email is available
+    useEffect(() => {
+        if (user?.email && user.email.includes('@')) {
+            const syncFavorites = async () => {
+                try {
+                    const res = await fetch(`/api/agenda/favorites?email=${encodeURIComponent(user.email)}`);
+                    if (res.ok) {
+                        const backendFavs = await res.json();
+                        if (Array.isArray(backendFavs) && JSON.stringify(backendFavs) !== JSON.stringify(user.agendaFavorites)) {
+                            setUser(prev => prev ? { ...prev, agendaFavorites: backendFavs } : null);
+                        }
+                    }
+                } catch (e) { console.error('Failed to sync favorites', e); }
+            };
+            syncFavorites();
+        }
+    }, [user?.email]);
 
     // Save to localStorage whenever user changes
     useEffect(() => {
@@ -72,6 +94,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             provider: 'email',
             scores: {},
             trackIds: [],
+            agendaFavorites: [],
             createdAt: new Date().toISOString()
         };
         setUser(newUser);
@@ -87,6 +110,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             provider: data.provider,
             scores: data.scores || {},
             trackIds: data.trackIds || [],
+            agendaFavorites: data.agendaFavorites || [],
             createdAt: data.createdAt || new Date().toISOString()
         };
         setUser(newUser);
@@ -118,6 +142,29 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setUser({ ...user, trackIds: newTrackIds });
     };
 
+    const toggleAgendaFavorite = async (eventId: number) => {
+        if (!user) return;
+        const exists = user.agendaFavorites.includes(eventId);
+        const newFavs = exists 
+            ? user.agendaFavorites.filter(id => id !== eventId)
+            : [...user.agendaFavorites, eventId];
+        
+        const updatedUser = { ...user, agendaFavorites: newFavs };
+        setUser(updatedUser);
+        saveToRegisteredUsers(updatedUser);
+
+        // Optional: Sync to backend immediately
+        if (user.email && user.email.includes('@')) {
+            try {
+                await fetch('/api/agenda/favorites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: user.email, favorites: newFavs })
+                });
+            } catch (e) { console.error('Failed to save favorites to backend', e); }
+        }
+    };
+
     const updateUser = (updates: Partial<UserProfile>) => {
         if (!user) return;
         const updatedUser = { ...user, ...updates };
@@ -134,10 +181,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             logout,
             updateScore,
             toggleTrackId,
+            toggleAgendaFavorite,
             updateUser
         }}>
             {children}
         </UserContext.Provider>
+    );
     );
 }
 

@@ -996,7 +996,9 @@ ${urls.map(u => `  <url>
             path === '/api/admin/auto-fix-photos' ||
             path === '/api/wiki/add' ||
             path === '/api/wiki/update' ||
-            path === '/api/wiki/delete'
+            path === '/api/wiki/delete' ||
+            path === '/api/admin/remove-broken-image-bulk' ||
+            path === '/api/agenda/favorites'
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
@@ -4295,6 +4297,64 @@ ${urls.map(u => `  <url>
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
+        }
+
+        if (path === '/api/admin/remove-broken-image-bulk' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { items: itemsToRemove } = await request.json(); 
+                if (!itemsToRemove || !Array.isArray(itemsToRemove)) return new Response(JSON.stringify({ error: 'Missing items array' }), { status: 400, headers });
+
+                const grouped = itemsToRemove.reduce((acc: any, curr: any) => {
+                    if (!acc[curr.location]) acc[curr.location] = [];
+                    acc[curr.location].push(curr.entityId);
+                    return acc;
+                }, {});
+
+                for (const [location, entityIds] of Object.entries(grouped)) {
+                    const filePath = `src/data/${location}`;
+                    const file = await fetchGitHubFile(filePath, gitConfig);
+                    if (!file) continue;
+
+                    const items = Array.isArray(file.content) ? file.content : [file.content];
+                    let modified = false;
+
+                    (entityIds as any[]).forEach(eid => {
+                        const index = items.findIndex((item: any, idx: number) => (item.id !== undefined ? String(item.id) === String(eid) : idx === eid));
+                        if (index !== -1) {
+                            const target = Array.isArray(file.content) ? file.content[index] : file.content;
+                            if (target.image !== undefined) target.image = "";
+                            if (target.cover !== undefined) target.cover = "";
+                            if (target.photo !== undefined) target.photo = "";
+                            target.photo_verified = true;
+                            modified = true;
+                        }
+                    });
+
+                    if (modified) {
+                        await saveGitHubFile(filePath, file.content, `Bulk remove ${entityIds.length} broken photos in ${location}`, file.sha, gitConfig);
+                    }
+                }
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/agenda/favorites' && request.method === 'GET') {
+            const email = url.searchParams.get('email');
+            if (!email) return new Response(JSON.stringify([]), { headers });
+            const key = `agenda_favorites_${email.toLowerCase().trim()}`;
+            const data = await env.CHAT_KV.get(key) || "[]";
+            return new Response(data, { headers });
+        }
+
+        if (path === '/api/agenda/favorites' && request.method === 'POST') {
+            const { email, favorites } = await request.json();
+            if (!email) return new Response(JSON.stringify({ error: 'Email required' }), { status: 400, headers });
+            const key = `agenda_favorites_${email.toLowerCase().trim()}`;
+            await env.CHAT_KV.put(key, JSON.stringify(favorites || []));
+            return new Response(JSON.stringify({ success: true }), { headers });
         }
 
         if (path === '/api/r2/duplicates' && request.method === 'GET') {

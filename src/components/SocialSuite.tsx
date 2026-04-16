@@ -62,7 +62,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -90,6 +90,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [theme, setTheme] = useState<ThemeType>(initialTheme || 'NEWS');
     const [showSwipe, setShowSwipe] = useState(false);
     const [showArticleLink, setShowArticleLink] = useState(false);
+    const [showVoteLink, setShowVoteLink] = useState(false);
     const [customText, setCustomText] = useState(title || '');
     const [bgImage, setBgImage] = useState<string>(imageUrl);
     const [bgVideo, setBgVideo] = useState<HTMLVideoElement | null>(null);
@@ -216,6 +217,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const baseThemeData: Record<ThemeType, { label: string; grad: string; color: string }> = {
         'TOP 5 ARTISTE': { label: 'TOP 5 ARTISTES', grad: '255, 230, 0', color: '#ffe600' }, // Unique Yellow/Gold
         'TOP 5 STYLES': { label: 'TOP 5 STYLES', grad: '0, 240, 255', color: '#00f0ff' },
+        'TOP 100 DROPSIDERS': { label: 'TOP 100 DROPSIDERS', grad: '255, 230, 0', color: '#ffe600' },
         'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
         'HIGHLIGHTS': { label: 'HIGHLIGHTS', grad: '0, 112, 255', color: '#0070ff' },
@@ -517,6 +519,110 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.font = '900 italic 117px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); // Descendu dans le dégradé
+
+            } else if (theme === 'TOP 100 DROPSIDERS') {
+                const item = top5Items[currentPreviewIndex];
+                const artist = item.main.toUpperCase();
+                // Default to input value (streams logic), or fallback to rank based on index. Can type "4" here.
+                const rank = item.value.trim() || `${100 - currentPreviewIndex}`;
+
+                // --- Background is already drawn ---
+
+                // Add nice red inner frame (DJ Mag style)
+                ctx.strokeStyle = '#ff0033';
+                ctx.lineWidth = 14;
+                ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+
+                // Add dark top overlay for text readability
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 400);
+                topGrad.addColorStop(0, 'rgba(0,0,0,0.85)');
+                topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = topGrad;
+                ctx.fillRect(0, 0, canvas.width, 400);
+
+                // Add dark bottom overlay
+                const botGradStart = canvas.height - 400;
+                const botGrad = ctx.createLinearGradient(0, botGradStart, 0, canvas.height);
+                botGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                botGrad.addColorStop(1, 'rgba(0,0,0,0.95)');
+                ctx.fillStyle = botGrad;
+                ctx.fillRect(0, botGradStart, canvas.width, canvas.height - botGradStart);
+
+                // Top Left: Artist Name
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,1)';
+                ctx.shadowBlur = 20;
+                
+                // Dynamic font size for long artist names
+                let artistFontSize = 90;
+                ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
+                while (ctx.measureText(artist).width > canvas.width - 350 && artistFontSize > 40) {
+                    artistFontSize -= 2;
+                    ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
+                }
+                ctx.fillText(artist, 70, 70);
+                ctx.restore();
+
+                // Top Right: Red Square + Rank Number
+                ctx.save();
+                const boxSize = 140;
+                ctx.fillStyle = '#ff0033';
+                ctx.shadowColor = 'rgba(255,0,51,0.4)';
+                ctx.shadowBlur = 15;
+                const boxX = canvas.width - boxSize - 30;
+                ctx.fillRect(boxX, 30, boxSize, boxSize);
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'transparent';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const rankFs = rank.length > 2 ? 65 : 85;
+                ctx.font = `900 italic ${rankFs}px "Montserrat", sans-serif`;
+                ctx.fillText(rank, boxX + (boxSize/2), 30 + (boxSize/2) + 5); 
+                ctx.restore();
+
+                // Bottom Left: BIG Rank + TOP 100 DROPSIDERS + Logo
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'bottom';
+                
+                // Adjust Y position if Reel versus Post to ensure safe area
+                const botY = effectiveTab === 'PUBLICATION' ? canvas.height - 120 : safeBottom - 50;
+                
+                // Red Rank Text
+                ctx.fillStyle = '#ff0033';
+                ctx.font = '900 italic 140px "Montserrat", sans-serif';
+                ctx.shadowColor = 'rgba(0,0,0,0.9)';
+                ctx.shadowBlur = 25;
+                ctx.fillText(rank, 70, botY);
+                
+                // Measure the big red rank number width
+                const rankW = ctx.measureText(rank).width;
+                
+                // White "TOP 100 DJS / DROPSIDERS" Text
+                const labelStr = 'TOP 100 DROPSIDERS';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 italic 55px "Montserrat", sans-serif';
+                ctx.shadowBlur = 15;
+                const labelX = 70 + rankW + 30; // Spacing after big rank num
+                ctx.fillText(labelStr, labelX, botY - 15);
+
+                // ALIGN THE LOGO: Exact alignment under the label
+                if (logoRef.current) {
+                    const logo = logoRef.current;
+                    const labelW = ctx.measureText(labelStr).width;
+                    
+                    // Logo takes the width of the label for neat alignment
+                    const logoW = labelW; 
+                    const logoH = (logo.height * logoW) / logo.width;
+                    
+                    // Center the logo under the text by using the same labelX
+                    ctx.drawImage(logo, labelX, botY + 15, logoW, logoH);
+                }
+                ctx.restore();
 
             } else if (theme === 'LIVESTREAM') {
                 const centerX = canvas.width / 2;
@@ -1235,6 +1341,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
+            if (showVoteLink) {
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'bottom';
+                ctx.font = '900 italic 24px "Montserrat", sans-serif';
+                ctx.fillStyle = theme === 'MUSIQUE' ? '#000000' : '#ffffff';
+                ctx.shadowColor = theme === 'MUSIQUE' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 10;
+                ctx.fillText('VOTER SUR DROPSIDERS.FR', 40, canvas.height - (showArticleLink ? 45 : 10));
+                ctx.restore();
+            }
+
         } catch (e) { console.error(e); }
     };
 
@@ -1306,7 +1424,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -1662,6 +1780,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => setTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
             <button onClick={() => setTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
             <button onClick={() => setTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
+            <button onClick={() => setTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
             
             {activeTab === 'REEL' && (
                 <>
@@ -2345,9 +2464,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <div className="space-y-4 mt-auto pb-8">
                             <div className="grid grid-cols-2 gap-2">
                                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
-                                    <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" /><span className="text-[9px] font-black text-white uppercase truncate">Lien</span></div>
+                                    <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Article</span></div>
                                     <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showArticleLink ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
                                         {showArticleLink && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
+                                    </div>
+                                </div>
+                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowVoteLink(!showVoteLink)}>
+                                    <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" /><span className="text-[9px] font-black text-white uppercase truncate">Lien Vote</span></div>
+                                    <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showVoteLink ? 'bg-neon-purple border-neon-purple shadow-[0_0_10px_rgba(189,0,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                        {showVoteLink && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
                                     </div>
                                 </div>
                                 <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
@@ -2356,8 +2481,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         {showSwipe && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
                                     </div>
                                 </div>
-                                <div className="col-span-2 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowText(!showText)}>
-                                    <div className="flex items-center gap-2"><Eraser className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" /><span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Gomme (Masquer le texte)</span></div>
+                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowText(!showText)}>
+                                    <div className="flex items-center gap-2"><Eraser className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" /><span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Masquer Texte</span></div>
                                     <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${!showText ? 'bg-yellow-500 border-yellow-500 shadow-[0_0_100px_rgba(234,179,8,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
                                         {!showText && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
                                     </div>
@@ -2690,7 +2815,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </button>
                             <button onClick={() => setShowArticleLink(!showArticleLink)}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${showArticleLink ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
-                                <LinkIcon className="w-3 h-3" /> Lien {showArticleLink ? 'ON' : 'OFF'}
+                                <LinkIcon className="w-3 h-3" /> Lien Article {showArticleLink ? 'ON' : 'OFF'}
+                            </button>
+                            <button onClick={() => setShowVoteLink(!showVoteLink)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${showVoteLink ? 'bg-neon-purple/20 border-neon-purple/50 text-neon-purple' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
+                                <LinkIcon className="w-3 h-3" /> Lien Vote {showVoteLink ? 'ON' : 'OFF'}
                             </button>
                         </div>
 

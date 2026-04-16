@@ -60,6 +60,16 @@ interface ArticlePremiumTemplateProps {
     isLoading?: boolean;
 }
 
+const getCategoryColor = (category: string) => {
+    const c = (category || '').toLowerCase().trim();
+    if (c === 'musique' || c === 'music') return 'neon-green';
+    if (c === 'festival' || c === 'festivals') return 'neon-red';
+    if (c === 'recap') return 'neon-cyan';
+    if (c === 'interview' || c === 'interviews') return 'neon-purple';
+    if (c.includes('jeux concours')) return 'neon-yellow';
+    return 'neon-red';
+};
+
 const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article, content, type, relatedArticles = [], previousArticle, nextArticle, isLoading }) => {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
@@ -487,15 +497,29 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
     // Article content processing utils
 
+    const themeColorName = getCategoryColor(article.category || (type === 'recap' ? 'Recap' : 'News'));
+    const themeColorHex = 
+        themeColorName === 'neon-blue' ? '#00BFFF' :
+        themeColorName === 'neon-yellow' ? '#FFF01F' :
+        themeColorName === 'neon-purple' ? '#BF00FF' :
+        themeColorName === 'neon-cyan' ? '#00FFFF' :
+        themeColorName === 'neon-green' ? '#39FF14' :
+        '#FF1241'; // neon-red default
+
     return (
-        <div className={`min-h-screen bg-dark-bg selection:bg-neon-red selection:text-white ${type === 'recap' ? 'article-type-recap' : isInterview ? 'article-type-interview' : isMusic ? 'article-type-music' : 'article-type-news'}`}>
+        <div 
+            className={`min-h-screen bg-dark-bg selection:bg-neon-red selection:text-white article-premium-wrapper ${type === 'recap' ? 'article-type-recap' : isInterview ? 'article-type-interview' : isMusic ? 'article-type-music' : 'article-type-news'}`}
+            style={{ '--theme-color': themeColorHex } as React.CSSProperties}
+        >
             {/* Reading Progress Bar (Neon) */}
             <div className="fixed top-0 left-0 right-0 h-1 z-[200] pointer-events-none mb-20 md:mb-0">
                 <motion.div
-                    className="h-full bg-neon-red shadow-[0_0_15px_rgba(255,0,51,0.8)]"
+                    className="h-full shadow-[0_0_15px_rgba(255,0,51,0.8)]"
                     style={{
                         scaleX: 0,
                         transformOrigin: "left",
+                        backgroundColor: themeColorHex,
+                        boxShadow: `0 0 15px ${themeColorHex}CC`
                     }}
                     id="reading-progress-bar"
                 />

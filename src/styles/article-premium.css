@@ -55,10 +55,10 @@
     display: block;
     width: 60px;
     height: 4px;
-    background-color: var(--color-neon-red, #ff0033);
+    background-color: var(--theme-color, #ff0033);
     margin: 1.5rem auto 0;
     border-radius: 2px;
-    box-shadow: 0 0 10px var(--color-neon-red, #ff0033);
+    box-shadow: 0 0 10px var(--theme-color, #ff0033);
 }
 
 /* --- META DATA (Date, Badges) --- */
@@ -86,7 +86,7 @@
 }
 
 .article-premium-wrapper .jw-news-page__meta span.meta-badge:hover {
-    border-color: var(--color-neon-red, #ff0033);
+    border-color: var(--theme-color, #ff0033);
     color: white;
 }
 
@@ -115,8 +115,8 @@
     line-height: 0.8;
     padding-right: 12px;
     padding-top: 8px;
-    color: #ff0033;
-    text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+    color: var(--theme-color, #ff0033);
+    text-shadow: 0 0 15px var(--theme-color, rgba(255, 0, 51, 0.4));
     margin-right: 4px;
 }
 
@@ -166,7 +166,7 @@
 
 .article-body-premium li::before {
     content: '•';
-    color: var(--color-neon-red, #ff0033);
+    color: var(--theme-color, #ff0033);
     margin-right: 12px;
     display: inline-block;
 }
@@ -322,10 +322,10 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin: 4rem 0 2rem;
-    color: var(--color-neon-red, #ff0033);
+    color: var(--theme-color, #ff0033);
     font-size: 2rem;
     text-align: center;
-    text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+    text-shadow: 0 0 15px var(--theme-color, rgba(255, 0, 51, 0.4));
 }
 
 .article-premium-wrapper h3,
@@ -333,15 +333,15 @@
     font-family: var(--font-display, 'Orbitron', monospace);
     font-size: 1.5rem;
     text-transform: uppercase;
-    color: var(--color-neon-red, #ff0033);
+    color: var(--theme-color, #ff0033);
     text-align: center;
 }
 
 .article-premium-wrapper .premium-section-title,
 .article-body-premium .premium-section-title,
 .premium-section-title {
-    color: var(--color-neon-red, #ff0033);
-    border-bottom: 2px solid rgba(255, 0, 51, 0.2);
+    color: var(--theme-color, #ff0033);
+    border-bottom: 2px solid var(--theme-color, rgba(255, 0, 51, 0.2));
     display: inline-block;
     padding-bottom: 0.5rem;
     margin-bottom: 2rem;
@@ -352,7 +352,7 @@
 /* --- LINKS --- */
 .article-premium-wrapper a,
 .article-body-premium a {
-    color: var(--color-neon-red, #ff0033);
+    color: var(--theme-color, #ff0033);
     text-decoration: underline;
     text-underline-offset: 4px;
     font-weight: 700;
@@ -376,7 +376,7 @@
 
 /* --- BLOCKQUOTE --- */
 .article-premium-wrapper blockquote {
-    border-left: 4px solid var(--color-neon-red, #ff0033);
+    border-left: 4px solid var(--theme-color, #ff0033);
     padding-left: 1.5rem;
     margin: 3rem 0;
     font-style: italic;
@@ -399,7 +399,7 @@
     border-radius: 16px;
     margin: 3rem auto;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 30px rgba(255, 0, 51, 0.1);
+    box-shadow: 0 0 30px var(--theme-color, rgba(255, 0, 51, 0.1));
     max-width: none;
 }
 
@@ -442,7 +442,7 @@
 
 .music-top-item-premium:hover {
     background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 0, 51, 0.2);
+    border-color: var(--theme-color, rgba(255, 0, 51, 0.2));
     transform: translateY(-5px);
 }
 
@@ -458,13 +458,13 @@
     text-align: center !important;
     color: white !important;
     text-shadow:
-        0 0 10px rgba(255, 0, 51, 0.8),
-        0 0 20px rgba(255, 0, 51, 0.4) !important;
+        0 0 10px var(--theme-color, rgba(255, 0, 51, 0.8)),
+        0 0 20px var(--theme-color, rgba(255, 0, 51, 0.4)) !important;
 }
 
 /* Numbers inside music top list (Rouge avec lueur blanche) */
 .music-top-item-premium .text-4xl {
-    color: var(--color-neon-red, #ff0033) !important;
+    color: var(--theme-color, #ff0033) !important;
     text-shadow:
         0 0 10px rgba(255, 255, 255, 0.8),
         0 0 20px rgba(255, 255, 255, 0.4) !important;
@@ -479,7 +479,7 @@
 
 /* --- MUSIC CATEGORY SPECIAL STYLING (General fallback for old formatting) --- */
 .article-type-music .music-number {
-    color: var(--color-neon-red, #ff0033) !important;
+    color: var(--theme-color, #ff0033) !important;
     text-shadow:
         0 0 10px rgba(255, 255, 255, 0.8),
         0 0 20px rgba(255, 255, 255, 0.4) !important;
@@ -490,10 +490,10 @@
 
 /* --- PREMIUM BULLETS --- */
 .premium-bullet {
-    color: var(--color-neon-red, #ff0033);
+    color: var(--theme-color, #ff0033);
     font-weight: 900;
     margin-right: 0.75rem;
-    text-shadow: 0 0 10px rgba(255, 0, 51, 0.6);
+    text-shadow: 0 0 10px var(--theme-color, rgba(255, 0, 51, 0.6));
     font-family: var(--font-display, 'Orbitron', monospace);
 }
 

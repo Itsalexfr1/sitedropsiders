@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, Link } from 'react-router-dom';
-import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar } from 'lucide-react';
+import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar, Heart } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
@@ -15,9 +15,11 @@ import { FlagIcon } from '../components/ui/FlagIcon';
 import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { resolveImageUrl } from '../utils/image';
+import { useUser } from '../context/UserContext';
 
 export function Agenda() {
     const { t, language } = useLanguage();
+    const { user, toggleAgendaFavorite, isLoggedIn } = useUser();
     const playHoverSound = useHoverSound();
     const [expandedEvent, setExpandedEvent] = useState<number | string | null>(null);
     const [activeCategory, setActiveCategory] = useState('ALL');
@@ -740,6 +742,18 @@ export function Agenda() {
                                                                     title="Rappel Calendrier"
                                                                 >
                                                                     <Calendar className="w-5 h-5 text-gray-500 group-hover/btn:text-neon-red" />
+                                                                </button>
+                                                            )}
+                                                            {isLoggedIn && (
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        toggleAgendaFavorite(event.id);
+                                                                    }}
+                                                                    className={`flex w-10 h-10 rounded-xl bg-white/5 border items-center justify-center transition-all group/heart ${user?.agendaFavorites.includes(event.id) ? `${styles.borderStrong} ${styles.bg}` : `border-white/10 ${styles.hoverBorder}`}`}
+                                                                    title="Ajouter aux favoris"
+                                                                >
+                                                                    <Heart className={`w-5 h-5 transition-colors ${user?.agendaFavorites.includes(event.id) ? `${styles.text} fill-current` : `text-gray-500 ${styles.groupHoverText}`}`} />
                                                                 </button>
                                                             )}
                                                             {event.type === 'Jeux Concours' ? (

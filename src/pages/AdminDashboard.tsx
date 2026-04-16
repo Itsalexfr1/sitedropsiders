@@ -1334,6 +1334,43 @@ export function AdminDashboard() {
         });
     };
 
+    const handleBulkRemovePhotos = async () => {
+        if (selectedBrokenImages.length === 0) return;
+        setConfirmModal({
+            isOpen: true,
+            title: `Supprimer ${selectedBrokenImages.length} images ?`,
+            message: `Attention : Les liens vers ces ${selectedBrokenImages.length} images seront supprimés des articles (News, Agenda, etc.) sur GitHub. Cette action est irréversible.`,
+            type: 'danger',
+            confirmText: 'SUPPRIMER TOUT',
+            onConfirm: async () => {
+                try {
+                    const res = await apiFetch('/api/admin/remove-broken-image-bulk', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({
+                            items: selectedBrokenImages.map(img => ({
+                                location: img.location,
+                                entityId: img.entityId
+                            }))
+                        })
+                    });
+                    
+                    if (res.ok) {
+                        const removedIds = selectedBrokenImages.map((img: any) => `${img.location}-${img.entityId}`);
+                        setBrokenImages((prev: any[]) => prev.filter((img: any) => !removedIds.includes(`${img.location}-${img.entityId}`)));
+                        setSelectedBrokenImages([]);
+                        setGlobalAlert({ message: `${removedIds.length} photos ont été supprimées des articles avec succès.`, type: 'info' });
+                    } else {
+                        const data: any = await res.json();
+                        setGlobalAlert({ message: "Erreur lors de la suppression groupée : " + (data.error || "Inconnue"), type: 'danger' });
+                    }
+                } catch (e) {
+                    setGlobalAlert({ message: "Erreur réseau lors de la suppression groupée.", type: 'danger' });
+                }
+            }
+        });
+    };
+
     const handleBulkValidatePhotos = async () => {
         if (selectedBrokenImages.length === 0) return;
         
@@ -1363,6 +1400,7 @@ export function AdminDashboard() {
             setGlobalAlert({ message: "Erreur réseau lors de la validation groupée.", type: 'danger' });
         }
     };
+
 
     const deleteR2Object = async (key: string) => {
         try {
@@ -8720,13 +8758,22 @@ export function AdminDashboard() {
                                     </div>
                                     
                                     {selectedBrokenImages.length > 0 && (
-                                        <button
-                                            onClick={handleBulkValidatePhotos}
-                                            className="px-8 py-3 bg-neon-green text-black font-black text-[11px] uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,255,102,0.3)] flex items-center gap-2 shrink-0 animate-in fade-in slide-in-from-bottom-2 font-outfit"
-                                        >
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            Valider la sélection ({selectedBrokenImages.length})
-                                        </button>
+                                        <div className="flex items-center gap-4 shrink-0">
+                                            <button
+                                                onClick={handleBulkRemovePhotos}
+                                                className="px-8 py-3 bg-red-500/10 border border-red-500/30 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white font-black text-[11px] uppercase tracking-widest transition-all flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 font-outfit"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                                Supprimer ({selectedBrokenImages.length})
+                                            </button>
+                                            <button
+                                                onClick={handleBulkValidatePhotos}
+                                                className="px-8 py-3 bg-neon-green text-black font-black text-[11px] uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,255,102,0.3)] flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 font-outfit"
+                                            >
+                                                <CheckCircle2 className="w-4 h-4" />
+                                                Valider ({selectedBrokenImages.length})
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </motion.div>

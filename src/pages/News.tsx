@@ -270,10 +270,10 @@ export function News() {
 
                 {/* ── Section : NEWS À LA UNE ── */}
                 <div className="px-4 mb-6">
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="w-1 h-5 bg-neon-red rounded-full" />
-                        <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em]">
-                            News à la une
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-2.5 h-2.5 bg-neon-red rounded-full shadow-[0_0_10px_rgba(255,0,51,0.8)] animate-pulse" />
+                        <span className="text-sm font-display font-black text-white uppercase tracking-widest">
+                            À la une
                         </span>
                     </div>
 
@@ -298,7 +298,15 @@ export function News() {
                                 </button>
                             )}
                             <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-                                <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border backdrop-blur-md mb-2 inline-block ${heroArticle.isFocus ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' : 'bg-neon-red/20 text-neon-red border-neon-red/30'}`}>
+                                <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border backdrop-blur-md mb-2 inline-block ${heroArticle.isFocus 
+                                    ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' 
+                                    : (heroArticle.category || '').toLowerCase().includes('musique')
+                                        ? 'bg-neon-green/20 text-neon-green border-neon-green/30'
+                                        : (heroArticle.category || '').toLowerCase().includes('recap')
+                                            ? 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/30'
+                                            : (heroArticle.category || '').toLowerCase().includes('interview')
+                                                ? 'bg-neon-purple/20 text-neon-purple border-neon-purple/30'
+                                                : 'bg-neon-red/20 text-neon-red border-neon-red/30'}`}>
                                     {heroArticle.isFocus ? '⭐ FOCUS' : heroArticle.category}
                                 </span>
                                 <h2
@@ -356,7 +364,12 @@ export function News() {
                                     </button>
                                 )}
                                 <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
-                                    <span className={`text-[8px] font-black px-2 py-0.5 rounded-md border backdrop-blur-md mb-1.5 inline-block ${(item.category || '').toLowerCase().includes('musique') ? 'bg-neon-green/20 text-neon-green border-neon-green/30' : 'bg-neon-red/20 text-neon-red border-neon-red/30'}`}>
+                                    <span className={`text-[8px] font-black px-2 py-0.5 rounded-md border backdrop-blur-md mb-1.5 inline-block ${
+                                        (item.category || '').toLowerCase().includes('musique') ? 'bg-neon-green/20 text-neon-green border-neon-green/30' : 
+                                        (item.category || '').toLowerCase().includes('recap') ? 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/30' : 
+                                        (item.category || '').toLowerCase().includes('interview') ? 'bg-neon-purple/20 text-neon-purple border-neon-purple/30' : 
+                                        'bg-neon-red/20 text-neon-red border-neon-red/30'
+                                    }`}>
                                         {item.category}
                                     </span>
                                     <h3
@@ -597,7 +610,11 @@ export function News() {
                                                                 ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
                                                                 : (item.category || '').toLowerCase() === 'musique'
                                                                     ? 'bg-neon-green/10 text-neon-green border-neon-green/20'
-                                                                    : 'bg-neon-red/10 text-neon-red border-neon-red/20'
+                                                                    : (item.category || '').toLowerCase().includes('recap')
+                                                                        ? 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/20'
+                                                                        : (item.category || '').toLowerCase().includes('interview')
+                                                                            ? 'bg-neon-purple/10 text-neon-purple border-neon-purple/20'
+                                                                            : 'bg-neon-red/10 text-neon-red border-neon-red/20'
                                                                 }`}>
                                                                 {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
                                                             </span>
