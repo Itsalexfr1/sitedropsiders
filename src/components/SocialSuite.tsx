@@ -869,12 +869,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
             } else if (theme === 'HIGHLIGHTS') {
-                // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
-                const lines = [highlightsArtists, highlightsFestival, highlightsLocation];
+                const centerX = canvas.width / 2;
+                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
+                const labelText = "HIGHLIGHTS";
                 const activeData = activeColor;
-
+                
+                // Draw Capsule HIGHLIGHTS
                 ctx.save();
                 ctx.textAlign = 'center';
+                ctx.font = `900 italic 42px "Montserrat", sans-serif`;
+                const labelW = ctx.measureText(labelText).width + 80;
+                ctx.globalAlpha = 0.9;
+                ctx.fillStyle = activeData.color;
+                const rectX = (canvas.width - labelW) / 2;
+                const rectY = labelY - 52;
+                const rectW = labelW;
+                const rectH = 80;
+                const radius = 20;
+                ctx.beginPath();
+                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
+                ctx.restore();
+
+                // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
+                const lines = [highlightsArtists, highlightsFestival, highlightsLocation];
+
                 
                 const maxWidth = 960;
                 const getFontSize = (text: string, base: number, font: string) => {
