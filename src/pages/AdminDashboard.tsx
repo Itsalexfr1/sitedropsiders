@@ -179,6 +179,8 @@ export function AdminDashboard() {
     const [bulkYearShift, setBulkYearShift] = useState({ oldYear: '2025', newYear: '2026', type: 'agenda' });
     const [sbCredits, setSbCredits] = useState<{ used: number; max: number; renewal: string } | null>(null);
     const [isCreatorStudioOpen, setIsCreatorStudioOpen] = useState(false);
+    const [isWikiUploadOpen, setIsWikiUploadOpen] = useState(false);
+    const [wikiUploadTarget, setWikiUploadTarget] = useState<'NEW' | 'EDIT'>('NEW');
 
     const toggleSelection = (key: string) => {
         setSelectedKeys(prev =>
@@ -7666,14 +7668,26 @@ export function AdminDashboard() {
 
                                     {/* Image URL */}
                                     <div>
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">URL Image</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">URL Image</label>
                                         <div className="flex gap-4">
-                                            <input
-                                                type="text"
-                                                value={editingWikiEntry.image}
-                                                onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, image: e.target.value })}
-                                                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
-                                            />
+                                            <div className="flex-1 relative group">
+                                                <input
+                                                    type="text"
+                                                    value={editingWikiEntry.image}
+                                                    onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, image: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all pr-20"
+                                                />
+                                                <button 
+                                                    onClick={() => {
+                                                        setWikiUploadTarget('EDIT');
+                                                        setIsWikiUploadOpen(true);
+                                                    }}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-neon-cyan/20 hover:bg-neon-cyan text-neon-cyan hover:text-black rounded-xl transition-all"
+                                                    title="Upload une photo"
+                                                >
+                                                    <Camera className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                             <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 shrink-0">
                                                 <img src={editingWikiEntry.image} alt="Preview" className="w-full h-full object-cover" />
                                             </div>
@@ -7850,14 +7864,25 @@ export function AdminDashboard() {
 
                                     {/* Image URL */}
                                     <div>
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">URL Image (ou Upload) *</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">URL Image (ou Upload) *</label>
                                         <div className="flex gap-4">
-                                            <input
-                                                type="text"
-                                                value={newWikiEntry.image}
-                                                onChange={(e) => setNewWikiEntry({ ...newWikiEntry, image: e.target.value })}
-                                                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
-                                            />
+                                            <div className="flex-1 relative group">
+                                                <input
+                                                    type="text"
+                                                    value={newWikiEntry.image}
+                                                    onChange={(e) => setNewWikiEntry({ ...newWikiEntry, image: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all pr-20"
+                                                />
+                                                <button 
+                                                    onClick={() => {
+                                                        setWikiUploadTarget('NEW');
+                                                        setIsWikiUploadOpen(true);
+                                                    }}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-neon-cyan/20 hover:bg-neon-cyan text-neon-cyan hover:text-black rounded-xl transition-all"
+                                                >
+                                                    <Upload className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                             {newWikiEntry.image && (
                                                 <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 shrink-0">
                                                     <img src={newWikiEntry.image} alt="Preview" className="w-full h-full object-cover" />
@@ -8449,6 +8474,26 @@ export function AdminDashboard() {
                             handleValidatePhoto(currentBrokenImageToFix, uploadedUrl);
                             setGlobalAlert({ message: "Photo uploadée et corrigée avec succès !", type: 'info' });
                         }
+                    }}
+                />
+
+                <ImageUploadModal 
+                    isOpen={isWikiUploadOpen}
+                    onClose={() => setIsWikiUploadOpen(false)}
+                    accentColor="neon-cyan"
+                    forceFilename={wikiUploadTarget === 'EDIT' ? (
+                        editingWikiEntry?.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.jpg'
+                    ) : (
+                        newWikiEntry.name ? newWikiEntry.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.jpg' : undefined
+                    )}
+                    onUploadSuccess={(urls) => {
+                        const url = Array.isArray(urls) ? urls[0] : urls;
+                        if (wikiUploadTarget === 'EDIT') {
+                            setEditingWikiEntry({ ...editingWikiEntry, image: url });
+                        } else {
+                            setNewWikiEntry({ ...newWikiEntry, image: url });
+                        }
+                        setIsWikiUploadOpen(false);
                     }}
                 />
 
