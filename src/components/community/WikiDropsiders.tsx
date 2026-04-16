@@ -79,12 +79,10 @@ export function WikiDropsiders({
     const [editValues, setEditValues] = useState<Partial<DjEntry>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
-    const [showAdd, setShowAdd] = useState(false);
     const [addForm, setAddForm] = useState({ name: '', bio: '', country: '', image: '', rating: '4.5', instagram: '', spotify: '' });
     const [addSuccess, setAddSuccess] = useState(false);
     const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
     const [showImageModal, setShowImageModal] = useState(false);
-    const [showAddImageModal, setShowAddImageModal] = useState(false);
 
     const reportBrokenImage = async (id: string) => {
         try {
@@ -122,39 +120,7 @@ export function WikiDropsiders({
     });
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-    const handleAddDj = async () => {
-        if (!addForm.name || !addForm.image) {
-            setSaveMsg("Nom et image obligatoires");
-            return;
-        }
-        setIsSaving(true);
-        try {
-            const res = await apiFetch('/api/wiki/add', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({
-                    type: 'DJS',
-                    entry: addForm
-                })
-            });
-            if (res.ok) {
-                setAddSuccess(true);
-                setAddForm({ name: '', bio: '', country: '', image: '', rating: '4.5', instagram: '', spotify: '' });
-                fetchData();
-                setTimeout(() => {
-                    setAddSuccess(false);
-                    setShowAdd(false);
-                }, 2000);
-            } else {
-                const data = await res.json();
-                setSaveMsg(data.error || "Erreur lors de l'ajout");
-            }
-        } catch (e) {
-            setSaveMsg("Erreur réseau");
-        } finally {
-            setIsSaving(false);
-        }
-    };
+    const handleAddDj = () => {}; // No-op, retired in favor of global modal
 
     const toggleVote = async (id: string, e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -254,21 +220,11 @@ export function WikiDropsiders({
                     <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">{t('wiki_djs_title')}</h2>
                     <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">{djData.length} {t('wiki_artist_count')} · A–Z · {t('wiki_vote_favs')}</p>
                 </div>
-                <div className="relative w-full md:w-80 flex gap-4">
                     <div className="relative flex-1">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                         <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_placeholder')}
                             className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-all text-sm" />
                     </div>
-                    {isAdmin && (
-                        <button 
-                            onClick={() => setShowAdd(!showAdd)}
-                            className="flex items-center gap-2 px-6 bg-neon-red text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all text-[10px] whitespace-nowrap shadow-lg shadow-neon-red/20"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Ajouter
-                        </button>
-                    )}
                 </div>
             </div>
 
@@ -663,15 +619,6 @@ export function WikiDropsiders({
                 accentColor="neon-red"
                 aspect={4/5}
             />
-            <ImageUploadModal 
-                isOpen={showAddImageModal}
-                onClose={() => setShowAddImageModal(false)}
-                onUploadSuccess={(url) => {
-                    setAddForm(prev => ({...prev, image: Array.isArray(url) ? url[0] : url}));
-                    setShowAddImageModal(false);
-                }}
-                accentColor="neon-red"
-                aspect={4/5}
             />
             {/* Auth Modal for voting */}
             <UserAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
