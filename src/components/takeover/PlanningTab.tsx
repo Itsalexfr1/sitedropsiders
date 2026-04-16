@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Plus, Trash2, Calendar, Clock, Instagram, 
     Image as ImageIcon, Search, Zap, Check,
-    Music, Home, MapPin, Globe, RefreshCcw, Camera
+    Music, Home, MapPin, Globe, RefreshCcw, Camera, Scan
 } from 'lucide-react';
 import { useTakeover } from '../../context/TakeoverContext';
 import type { LineupItem } from '../../context/TakeoverContext';
 import { resolveImageUrl } from '../../utils/image';
+import { ImageUploadModal } from '../ImageUploadModal';
 import { uploadFile } from '../../utils/uploadService';
 import { useUser } from '../../context/UserContext';
 
@@ -33,6 +34,8 @@ export function PlanningTab() {
     const [bulkText, setBulkText] = useState('');
     const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
     const [isSavingLineup, setIsSavingLineup] = useState(false);
+    const [showUploadModal, setShowUploadModal] = useState(false);
+    const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
 
     const timezonePresets = [
         { id: 'fr', label: 'Heure Française (pas de conversion)', tz: 'Europe/Paris', offset: 0 },
@@ -406,7 +409,10 @@ export function PlanningTab() {
                             <div className="absolute top-0 right-0 w-64 h-64 bg-neon-cyan/5 blur-[100px] -mr-32 -mt-32 pointer-events-none" />
 
                             {/* Image Section */}
-                            <div className="flex-shrink-0 relative group/img cursor-pointer" onClick={() => document.getElementById(`upload-${item.id}`)?.click()}>
+                            <div className="flex-shrink-0 relative group/img cursor-pointer" onClick={() => {
+                                setUploadTargetId(item.id);
+                                setShowUploadModal(true);
+                            }}>
                                 <div className="w-24 h-24 rounded-3xl bg-black border border-white/10 overflow-hidden shadow-2xl transition-all group-hover/img:scale-105 group-hover/img:border-neon-cyan/30">
                                     {item.image ? (
                                         <img src={resolveImageUrl(item.image)} className="w-full h-full object-cover" alt={item.artist} />
@@ -417,28 +423,11 @@ export function PlanningTab() {
                                     )}
                                 </div>
                                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center rounded-3xl backdrop-blur-sm">
-                                    <Camera className="w-6 h-6 text-white" />
+                                    <div className="flex flex-col items-center gap-1">
+                                        <Scan className="w-6 h-6 text-white" />
+                                        <span className="text-[7px] font-black text-white uppercase tracking-widest">Cadrage</span>
+                                    </div>
                                 </div>
-                                <input 
-                                    id={`upload-${item.id}`}
-                                    type="file" 
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={async (e) => {
-                                        const file = e.target.files?.[0];
-                                        if (!file) return;
-                                        setUploadingItemId(item.id);
-                                        try {
-                                            const url = await uploadFile(file, 'artists');
-                                            updateItem(item.id, { image: url });
-                                            showNotification('Image mise à jour !', 'success');
-                                        } catch (err: any) {
-                                            showNotification(err.message, 'error');
-                                        } finally {
-                                            setUploadingItemId(null);
-                                        }
-                                    }}
-                                />
                             </div>
 
                             {/* Info Section */}
@@ -597,6 +586,22 @@ export function PlanningTab() {
                     )}
                 </AnimatePresence>
             </div>
+
+            <ImageUploadModal 
+                isOpen={showUploadModal}
+                onClose={() => setShowUploadModal(false)}
+                onUploadSuccess={(url) => {
+                    const finalUrl = Array.isArray(url) ? url[0] : url;
+                    if (uploadTargetId && finalUrl) {
+                        updateItem(uploadTargetId, { image: finalUrl });
+                        showNotification('Photo mise à jour !', 'success');
+                    }
+                    setShowUploadModal(false);
+                    setUploadTargetId(null);
+                }}
+                accentColor="neon-cyan"
+                aspect={1}
+            />
         </div>
     );
 }
