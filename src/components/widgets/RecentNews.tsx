@@ -8,6 +8,7 @@ import { getArticleLink } from '../../utils/slugify';
 import { translateText } from '../../utils/translate';
 import { resolveImageUrl } from '../../utils/image';
 import { fetchWithFallback } from '../../utils/fetcher';
+import { getCategoryColor } from '../../utils/theme';
 
 export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
@@ -183,7 +184,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
 
                                 <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col justify-end">
                                     <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">
-                                        <span style={{ color: color }}>{item.category}</span>
+                                        <span style={{ color: `var(--color-${getCategoryColor(item.category)})` }}>{item.category}</span>
                                         <span>•</span>
                                         <span>{new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' })}</span>
                                     </div>
@@ -209,7 +210,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                                 />
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1">
-                                        <span style={{ color: color }}>{item.category}</span>
+                                        <span style={{ color: `var(--color-${getCategoryColor(item.category)})` }}>{item.category}</span>
                                         <span>{new Date(item.date).toLocaleDateString()}</span>
                                     </div>
                                     <h5 className="text-[11px] font-bold text-white line-clamp-4 leading-tight uppercase italic">{translatedTitles[item.id] || item.title}</h5>

@@ -5,6 +5,7 @@ import { resolveImageUrl } from '../../utils/image';
 import { useLanguage } from '../../context/LanguageContext';
 import { translateText } from '../../utils/translate';
 import { standardizeContent } from '../../utils/standardizer';
+import { getCategoryColor } from '../../utils/theme';
 import { useMemo, useState, useEffect } from 'react';
 
 
@@ -162,7 +163,7 @@ export function MobileHome() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
-                                <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
+                                <span className={`text-xs font-black uppercase tracking-[0.2em] text-${getCategoryColor(news.category)}`}>{news.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
@@ -204,7 +205,7 @@ export function MobileHome() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
-                                <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
+                                <span className={`text-xs font-black uppercase tracking-[0.2em] text-${getCategoryColor(news.category)}`}>{news.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
@@ -363,7 +364,7 @@ export function MobileHome() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
-                                <span className="text-xs font-black text-neon-blue uppercase tracking-[0.2em]">{interview.category}</span>
+                                <span className={`text-xs font-black uppercase tracking-[0.2em] text-${getCategoryColor(interview.category)}`}>{interview.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 

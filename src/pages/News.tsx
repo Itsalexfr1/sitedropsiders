@@ -12,6 +12,7 @@ import { getAuthHeaders } from '../utils/auth';
 import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { resolveImageUrl } from '../utils/image';
+import { getCategoryColor } from '../utils/theme';
 import { Plus, FileText } from 'lucide-react';
 import { fetchWithFallback } from '../utils/fetcher';
 
@@ -608,13 +609,7 @@ export function News() {
                                                         <div className="flex justify-between items-center mb-4">
                                                             <span className={`text-[9px] font-black px-3 py-1 rounded-full border shadow-sm ${item.isFocus
                                                                 ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
-                                                                : (item.category || '').toLowerCase() === 'musique'
-                                                                    ? 'bg-neon-green/10 text-neon-green border-neon-green/20'
-                                                                    : (item.category || '').toLowerCase().includes('recap')
-                                                                        ? 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/20'
-                                                                        : (item.category || '').toLowerCase().includes('interview')
-                                                                            ? 'bg-neon-purple/10 text-neon-purple border-neon-purple/20'
-                                                                            : 'bg-neon-red/10 text-neon-red border-neon-red/20'
+                                                                : `bg-${getCategoryColor(item.category)}/10 text-${getCategoryColor(item.category)} border-${getCategoryColor(item.category)}/20`
                                                                 }`}>
                                                                 {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
                                                             </span>

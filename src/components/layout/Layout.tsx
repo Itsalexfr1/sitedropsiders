@@ -4,6 +4,8 @@ import { MobileNavbar } from './MobileNavbar';
 import { MobileHeader } from './MobileHeader';
 import { MobileSearchOverlay } from '../mobile/MobileSearchOverlay';
 import { VinylCursor } from '../ui/VinylCursor';
+import { UserAuthModal } from '../auth/UserAuthModal';
+import { useUser } from '../../context/UserContext';
 
 import { Footer } from './Footer';
 import { useLocation } from 'react-router-dom';
@@ -18,6 +20,7 @@ export function Layout({ children }: LayoutProps) {
     const [bannerEnabled, setBannerEnabled] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const { isAuthModalOpen, setIsAuthModalOpen } = useUser();
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 1024);
@@ -94,6 +97,10 @@ export function Layout({ children }: LayoutProps) {
                 <div className="lg:hidden fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-black/95 to-transparent z-[90] pointer-events-none" />
             )}
             {!isHideLayout && <MobileNavbar />}
+            <UserAuthModal 
+                isOpen={isAuthModalOpen} 
+                onClose={() => setIsAuthModalOpen(false)} 
+            />
         </div>
     );
 }

@@ -31,8 +31,8 @@ export function Navbar() {
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
     const isMobile = window.innerWidth < 1024;
     const [isAdmin, setIsAdmin] = useState(false);
-    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-    const { isLoggedIn, user } = useUser();
+    const [isAdmin, setIsAdmin] = useState(false);
+    const { isLoggedIn, user, setIsAuthModalOpen } = useUser();
     const [newsData, setNewsData] = useState<any[]>([]);
     const [recapsData, setRecapsData] = useState<any[]>([]);
     const [agendaData, setAgendaData] = useState<any[]>([]);
@@ -289,7 +289,7 @@ export function Navbar() {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onMouseEnter={playHoverSound}
-                                onClick={() => isLoggedIn ? navigate('/profil') : setIsUserModalOpen(true)}
+                                onClick={() => isLoggedIn ? navigate('/profil') : setIsAuthModalOpen(true)}
                                 className={twMerge(
                                     "px-4 py-2.5 transition-all rounded-xl flex items-center gap-2 group",
                                     isLoggedIn ? "bg-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.3)]" : "text-gray-400 hover:text-white hover:bg-white/10"
@@ -524,9 +524,6 @@ export function Navbar() {
                     </motion.div>
                 )}
             </AnimatePresence>
-            <UserAuthModal
-                isOpen={isUserModalOpen}
-                onClose={() => setIsUserModalOpen(false)}
             />
         </nav >
     );

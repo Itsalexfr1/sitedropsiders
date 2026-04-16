@@ -35,7 +35,7 @@ export function InterviewVisualGenerator() {
     const [previewUrl, setPreviewUrl]     = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [dropsidersLogo, setDropsidersLogo] = useState<HTMLImageElement | null>(null);
-    const [visualMode, setVisualMode]     = useState<'interview' | 'recap'>('interview');
+    const [visualMode, setVisualMode]     = useState<'interview' | 'recap' | 'top100' | 'news'>('interview');
     const [error, setError] = useState<string | null>(null);
 
     // Photo position controls
@@ -145,7 +145,6 @@ export function InterviewVisualGenerator() {
        GENERATE CANVAS
     ───────────────────────────────────── */
     const generate = useCallback(async (fmt: Format) => {
-        // Updated logic: artistName is optional if artistLogo is present
         if (!artistPhoto || (!artistName.trim() && !artistLogo)) return;
         setIsGenerating(true);
 
@@ -155,310 +154,237 @@ export function InterviewVisualGenerator() {
         canvas.height = h;
         const ctx = canvas.getContext('2d')!;
 
-        // ── 1. Background : dark gradient ──
-        const bg = ctx.createLinearGradient(0, 0, w, h);
-        bg.addColorStop(0,   '#050505');
-        bg.addColorStop(0.6, '#0d0d0d');
-        bg.addColorStop(1,   '#1a0008');
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, w, h);
+        // ── Drawing Logic ──
+        const generateYouTube = async (ctx: CanvasRenderingContext2D, w: number, h: number) => {
+            const isMinimal = visualMode === 'top100' || visualMode === 'news';
 
-        // ── 2. Grid lines ──
-        ctx.save();
-        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-        ctx.lineWidth = 1;
-        const gridSize = w / 20;
-        for (let x = 0; x <= w; x += gridSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
-        for (let y = 0; y <= h; y += gridSize) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
-        ctx.restore();
-
-        // ── 3. Red glow top-left ──
-        const redGlow = ctx.createRadialGradient(0, 0, 0, 0, 0, w * 0.7);
-        redGlow.addColorStop(0,   'rgba(255,0,51,0.18)');
-        redGlow.addColorStop(1,   'rgba(255,0,51,0)');
-        ctx.fillStyle = redGlow;
-        ctx.fillRect(0, 0, w, h);
-
-        // ── 4. Cyan glow bottom-right ──
-        const cyanGlow = ctx.createRadialGradient(w, h, 0, w, h, w * 0.5);
-        cyanGlow.addColorStop(0,   'rgba(0,240,255,0.08)');
-        cyanGlow.addColorStop(1,   'rgba(0,240,255,0)');
-        ctx.fillStyle = cyanGlow;
-        ctx.fillRect(0, 0, w, h);
-
-        // ── 5. Artist photo ──
-        try {
-            const photoImg = await loadImage(artistPhoto);
-            ctx.save();
-            // Scaling logic: normalize base height to 1050 for coherence (less zoomed than before)
-            const BASE_H = 1050;
-            const ph = BASE_H * (photoScale / 100);
-            const pw = ph * (photoImg.width / photoImg.height);
-            
-            if (fmt === 'youtube') {
-                // For YouTube, the photo is on the right. 
-                // offsetX moves it horizontally. Normalize offset relative to height.
-                const px = (w - pw * 0.8) + (photoOffsetX / 100) * h;
-                const py = (h - ph) / 2 + (photoOffsetY / 100) * h * 0.5;
-                
-                ctx.beginPath();
-                ctx.rect(w * 0.35, 0, w * 0.65, h);
-                ctx.clip();
-                ctx.drawImage(photoImg, px, py, pw, ph);
-                
-                // --- PREMIUM FADE LEFT ---
-                // Wider and smoother gradient to blend into the black text area
-                const fadeWidth = w * 0.4;
-                const fadeGrad = ctx.createLinearGradient(w * 0.35, 0, w * 0.35 + fadeWidth, 0);
-                fadeGrad.addColorStop(0,   '#050505');
-                fadeGrad.addColorStop(0.2, 'rgba(5,5,5,0.95)');
-                fadeGrad.addColorStop(0.5, 'rgba(5,5,5,0.4)');
-                fadeGrad.addColorStop(1,   'transparent');
-                ctx.fillStyle = fadeGrad;
-                ctx.fillRect(w * 0.35, 0, fadeWidth, h);
+            // Background
+            if (isMinimal) {
+                const grad = ctx.createLinearGradient(0, 0, 0, h);
+                grad.addColorStop(0, '#0a0a0a');
+                grad.addColorStop(0.6, '#0a0a0a');
+                grad.addColorStop(1, '#ff0033');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
             } else {
-                // Instagram: Bottom-center, large
-                const basePx = (w - pw) / 2;
-                const basePy = h - ph + h * 0.02;
-                const px = basePx + (photoOffsetX / 100) * h;
-                const py = basePy + (photoOffsetY / 100) * h * 0.4;
-                
-                ctx.beginPath();
-                ctx.rect(0, 0, w, h);
-                ctx.clip();
-                ctx.drawImage(photoImg, px, py, pw, ph);
-                
-                const fadeB = ctx.createLinearGradient(0, h * 0.6, 0, h);
-                fadeB.addColorStop(0, 'transparent');
-                fadeB.addColorStop(1, '#050505');
-                ctx.fillStyle = fadeB;
-                ctx.fillRect(0, 0, w, h);
-                
-                const fadeT = ctx.createLinearGradient(0, 0, 0, h * 0.3);
-                fadeT.addColorStop(0, '#050505');
-                fadeT.addColorStop(1, 'transparent');
-                ctx.fillStyle = fadeT;
+                ctx.fillStyle = '#0a0a0a';
                 ctx.fillRect(0, 0, w, h);
 
-                // Fade left & right - Premium style
-                const fadeL = ctx.createLinearGradient(0, 0, w * 0.35, 0);
-                fadeL.addColorStop(0, '#050505');
-                fadeL.addColorStop(1, 'transparent');
-                ctx.fillStyle = fadeL;
-                ctx.fillRect(0, 0, w, h);
-                
-                const fadeR = ctx.createLinearGradient(w * 0.65, 0, w, 0);
-                fadeR.addColorStop(0, 'transparent');
-                fadeR.addColorStop(1, '#050505');
-                ctx.fillStyle = fadeR;
-                ctx.fillRect(0, 0, w, h);
+                if (artistPhoto) {
+                    const photoImg = await loadImage(artistPhoto);
+                    const BASE_H = 1050;
+                    const ph = BASE_H * (photoScale / 100);
+                    const pw = ph * (photoImg.width / photoImg.height);
+                    const px = (w - pw * 0.8) + (photoOffsetX / 100) * h;
+                    const py = (h - ph) / 2 + (photoOffsetY / 100) * h * 0.5;
+                    
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(w * 0.35, 0, w * 0.65, h);
+                    ctx.clip();
+                    ctx.drawImage(photoImg, px, py, pw, ph);
+                    
+                    const fadeWidth = w * 0.4;
+                    const fadeGrad = ctx.createLinearGradient(w * 0.35, 0, w * 0.35 + fadeWidth, 0);
+                    fadeGrad.addColorStop(0,   '#0a0a0a');
+                    fadeGrad.addColorStop(1,   'transparent');
+                    ctx.fillStyle = fadeGrad;
+                    ctx.fillRect(w * 0.35, 0, fadeWidth, h);
+                    ctx.restore();
+                }
             }
-            ctx.restore();
-        } catch (_) { /* skip photo if error */ }
 
-        // ── 6. content block ──
-        if (fmt === 'youtube') {
-            const blockX  = w * 0.05;
-            const blockY  = h * 0.08;
-            const blockW  = w * 0.52;
+            // Logo Dropsiders Top Right
+            if (dropsidersLogo) {
+                const logoW = w * 0.15;
+                const logoH = (dropsidersLogo.height / dropsidersLogo.width) * logoW;
+                ctx.drawImage(dropsidersLogo, w - logoW - 40, 40, logoW, logoH);
+            }
 
-            // "INTERVIEW" label
+            if (isMinimal) {
+                // Centered Label
+                let labelText = 'NEWS';
+                let labelBg = '#ff0033'; // Default Red
+                if (visualMode === 'top100') {
+                    labelText = 'TOP 100 DROPSIDERS';
+                    labelBg = '#fff01f'; // Gold/Yellow
+                }
+
+                const fontSize = h * 0.08;
+                ctx.font = `900 ${fontSize}px 'Arial Black', Arial, sans-serif`;
+                const textWidth = ctx.measureText(labelText).width;
+                const padX = 60;
+                const padY = 30;
+                const bx = (w - textWidth) / 2 - padX;
+                const by = (h - fontSize) / 2 - padY;
+
+                ctx.fillStyle = labelBg;
+                ctx.beginPath();
+                ctx.roundRect(bx, by, textWidth + padX * 2, fontSize + padY * 2, 25);
+                ctx.fill();
+
+                ctx.fillStyle = visualMode === 'top100' ? '#000000' : '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(labelText, w / 2, h / 2 + 5);
+
+                // FOOTER (Top 100 only)
+                if (visualMode === 'top100') {
+                    ctx.font = `900 italic ${h * 0.06}px 'Orbitron', sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText('VOTER SUR DROPSIDERS', w / 2, h - h * 0.12);
+                }
+                return;
+            }
+
+            // NORMAL YT TEMPLATE
+            const blockX = 80;
+            const blockY = 80;
             const labelFontSize = Math.round(h * 0.045);
             ctx.font = `900 ${labelFontSize}px 'Arial Black', Arial, sans-serif`;
             ctx.letterSpacing = '6px';
             ctx.textBaseline = 'alphabetic';
 
-            // Red rectangle before label
+            let labelText = 'INTERVIEW';
+            if (visualMode === 'recap') labelText = 'RÉCAP VIDÉO';
+            else if (visualMode === 'news') labelText = 'NEWS';
+
             ctx.fillStyle = '#ff0033';
-            ctx.fillRect(blockX, blockY, labelFontSize * 0.4, labelFontSize * 1.2);
+            const textW = ctx.measureText(labelText).width;
+            ctx.beginPath();
+            ctx.roundRect(blockX - 20, blockY - labelFontSize * 1.05, textW + 40, labelFontSize * 1.5, 10);
+            ctx.fill();
 
             ctx.fillStyle = '#ffffff';
-            ctx.fillText(visualMode === 'interview' ? 'INTERVIEW' : 'RÉCAP VIDÉO', blockX + labelFontSize * 0.7, blockY + labelFontSize);
-
-            const nameY = blockY + labelFontSize * 2.2;
-
-            if (artistLogo) {
-                try {
-                    const logoImg = await loadImage(artistLogo);
-                    const lw = blockW * 0.85 * (artistLogoScale / 100);
-                    const lh = lw * (logoImg.height / logoImg.width);
-                    const finalH = Math.min(lh, h * 0.45); 
-                    const finalW = finalH * (logoImg.width / logoImg.height);
-                    if (invertArtistLogo) ctx.filter = 'invert(1) brightness(10)';
-                    ctx.drawImage(logoImg, blockX, nameY, finalW, finalH);
-                    ctx.filter = 'none';
-                    ctx.fillStyle = '#ff0033';
-                    ctx.fillRect(blockX, nameY + finalH + 15, finalW * 0.35, 6);
-                } catch (_) { /* fallback */ }
-            } else {
-                const nameFontSize = Math.round(h * 0.13);
-                ctx.font = `900 italic ${nameFontSize}px 'Arial Black', Arial, sans-serif`;
-                ctx.textBaseline = 'top'; 
-                ctx.fillStyle = '#ffffff';
-                const nameUpper = artistName.toUpperCase();
-                const maxW = blockW;
-                const words = nameUpper.split(' ');
-                let line = '';
-                const lines: string[] = [];
-                for (const word of words) {
-                    const testLine = line + (line ? ' ' : '') + word;
-                    if (ctx.measureText(testLine).width > maxW && line) { lines.push(line); line = word; }
-                    else line = testLine;
-                }
-                lines.push(line);
-                const lineH = nameFontSize * 1.05;
-                lines.forEach((l, i) => ctx.fillText(l, blockX, nameY + i * lineH));
-                const textW = Math.min(ctx.measureText(lines[0]).width, maxW);
-                ctx.fillStyle = '#ff0033';
-                ctx.fillRect(blockX, nameY + lines.length * lineH + 10, textW * 0.35, 6);
-            }
-
-            // Dropsiders logo
-            let currentLogoW = 0;
-            if (dropsidersLogo) {
-                const logoH = h * 0.09;
-                currentLogoW = logoH * (dropsidersLogo.width / dropsidersLogo.height);
-                ctx.drawImage(dropsidersLogo, blockX, h - logoH - h * 0.07, currentLogoW, logoH);
-            }
-
-            // URL bottom
-            const tagFontSize = Math.round(h * 0.028);
-            ctx.font = `900 ${tagFontSize}px Arial, sans-serif`;
-            ctx.fillStyle = 'rgba(255,255,255,0.4)';
-            ctx.textAlign = 'center';
-            const logoCenterX = currentLogoW > 0 ? (blockX + currentLogoW / 2) : blockX;
-            ctx.fillText('dropsiders.fr', logoCenterX, h - h * 0.04);
             ctx.textAlign = 'left';
+            ctx.fillText(labelText, blockX, blockY);
 
-            // ── Festival Info (YouTube Top Right) ──
-            if (festivalName || festivalLogo) {
-                const festY = h * 0.08;
-                const festX = w - w * 0.05;
-                ctx.textAlign = 'right';
-                if (festivalLogo) {
-                    try {
-                        const fLogo = await loadImage(festivalLogo);
-                        const flh = h * 0.08 * (festivalLogoScale / 100);
-                        const flw = flh * (fLogo.width / fLogo.height);
-                        if (invertFestivalLogo) ctx.filter = 'invert(1) brightness(10)';
-                        ctx.drawImage(fLogo, festX - flw, festY, flw, flh);
-                        ctx.filter = 'none';
-                        if (festivalName) {
-                            ctx.font = `900 ${h * 0.02}px Arial, sans-serif`;
-                            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                            ctx.fillText(festivalName.toUpperCase(), festX, festY + flh + 15);
-                        }
-                    } catch(_) {}
-                } else {
-                    ctx.font = `900 ${h * 0.03}px 'Arial Black', Arial, sans-serif`;
-                    ctx.fillStyle = '#ff0033';
-                    ctx.fillText(festivalName.toUpperCase(), festX, festY);
+            const nameY = blockY + labelFontSize * 2.5;
+            if (artistLogo) {
+                const logoImg = await loadImage(artistLogo);
+                const lw = (w * 0.52) * 0.85 * (artistLogoScale / 100);
+                const lh = lw * (logoImg.height / logoImg.width);
+                const finalH = Math.min(lh, h * 0.45); 
+                const finalW = finalH * (logoImg.width / logoImg.height);
+                if (invertArtistLogo) ctx.filter = 'invert(1) brightness(10)';
+                ctx.drawImage(logoImg, blockX, nameY, finalW, finalH);
+                ctx.filter = 'none';
+            } else {
+                ctx.font = `900 italic ${h * 0.13}px 'Arial Black', Arial, sans-serif`;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(artistName.toUpperCase(), blockX, nameY + h * 0.1);
+            }
+        };
+
+        const generateInstagram = async (ctx: CanvasRenderingContext2D, w: number, h: number) => {
+            const isMinimal = visualMode === 'top100' || visualMode === 'news';
+
+            // Background
+            if (isMinimal) {
+                const grad = ctx.createLinearGradient(0, 0, 0, h);
+                grad.addColorStop(0, '#0a0a0a');
+                grad.addColorStop(0.6, '#0a0a0a');
+                grad.addColorStop(1, '#ff0033');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
+            } else {
+                ctx.fillStyle = '#0a0a0a';
+                ctx.fillRect(0, 0, w, h);
+                if (artistPhoto) {
+                    const photoImg = await loadImage(artistPhoto);
+                    const BASE_H = 1050;
+                    const ph = BASE_H * (photoScale / 100);
+                    const pw = ph * (photoImg.width / photoImg.height);
+                    const px = (w - pw) / 2 + (photoOffsetX / 100) * h;
+                    const py = (h - ph) / 2 + (photoOffsetY / 100) * h * 0.4;
+                    ctx.save();
+                    ctx.globalAlpha = 0.5;
+                    ctx.drawImage(photoImg, px, py, pw, ph);
+                    ctx.restore();
                 }
-                ctx.textAlign = 'left';
+                const grad = ctx.createLinearGradient(0, 0, 0, h);
+                grad.addColorStop(0, 'rgba(10,10,10,0)');
+                grad.addColorStop(1, '#0a0a0a');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, w, h);
             }
 
-        } else {
-            // ─── INSTAGRAM PORTRAIT layout ───
-            const cx   = w / 2;
-            const topY = h * 0.06;
-
-            // Dropsiders logo centered top
+            const cx = w / 2;
             if (dropsidersLogo) {
-                const logoH = h * 0.06;
-                const logoW = logoH * (dropsidersLogo.width / dropsidersLogo.height);
-                ctx.drawImage(dropsidersLogo, cx - logoW / 2, topY, logoW, logoH);
+                const lw = w * 0.25;
+                const lh = (dropsidersLogo.height / dropsidersLogo.width) * lw;
+                ctx.drawImage(dropsidersLogo, w - lw - 40, 40, lw, lh);
             }
 
-            // "INTERVIEW" label
-            const labelFontSize = Math.round(h * 0.032);
-            ctx.font = `900 ${labelFontSize}px 'Arial Black', Arial, sans-serif`;
-            ctx.fillStyle = '#ff0033';
+            if (isMinimal) {
+                let labelText = 'NEWS';
+                let labelBg = '#ff0033';
+                if (visualMode === 'top100') {
+                    labelText = 'TOP 100 DROPSIDERS';
+                    labelBg = '#fff01f';
+                }
+
+                const fontSize = h * 0.07;
+                ctx.font = `900 ${fontSize}px 'Arial Black', Arial, sans-serif`;
+                const textWidth = ctx.measureText(labelText).width;
+                const padX = 50;
+                const padY = 25;
+                const bx = (w - textWidth) / 2 - padX;
+                const by = (h - fontSize) / 2 - padY;
+
+                ctx.fillStyle = labelBg;
+                ctx.beginPath();
+                ctx.roundRect(bx, by, textWidth + padX * 2, fontSize + padY * 2, 20);
+                ctx.fill();
+
+                ctx.fillStyle = visualMode === 'top100' ? '#000000' : '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(labelText, cx, h / 2 + 5);
+
+                if (visualMode === 'top100') {
+                    ctx.font = `900 italic ${h * 0.052}px 'Orbitron', sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText('VOTER SUR DROPSIDERS', cx, h - h * 0.15);
+                }
+                return;
+            }
+
+            // NORMAL INSTA TEMPLATE
             ctx.textAlign = 'center';
-            ctx.textBaseline = 'top';
-            ctx.fillText(visualMode === 'interview' ? '— INTERVIEW —' : '— RÉCAP VIDÉO —', cx, topY + h * 0.07);
+            let labelText = '— INTERVIEW —';
+            if (visualMode === 'recap') labelText = '— RÉCAP VIDÉO —';
+            else if (visualMode === 'news') labelText = '— NEWS —';
+
+            ctx.font = `900 ${h * 0.032}px 'Arial Black', Arial, sans-serif`;
+            ctx.fillStyle = '#ff0033';
+            ctx.fillText(labelText, cx, h * 0.15);
 
             const nameY = h * 0.82;
-            ctx.fillStyle = '#ffffff';
-
             if (artistLogo) {
-                try {
-                    const logoImg = await loadImage(artistLogo);
-                    const lw = w * 0.60 * (artistLogoScale / 100);
-                    const lh = lw * (logoImg.height / logoImg.width);
-                    const finalH = Math.min(lh, h * 0.15); 
-                    const finalW = finalH * (logoImg.width / logoImg.height);
-                    if (invertArtistLogo) ctx.filter = 'invert(1) brightness(10)';
-                    ctx.drawImage(logoImg, cx - finalW / 2, nameY, finalW, finalH);
-                    ctx.filter = 'none';
-                    ctx.fillStyle = '#ff0033';
-                    ctx.fillRect(cx - 50, nameY + finalH + 12, 100, 5);
-                } catch (_) { /* fallback */ }
+                const logoImg = await loadImage(artistLogo);
+                const lw = w * 0.6 * (artistLogoScale / 100);
+                const lh = lw * (logoImg.height / logoImg.width);
+                const finalH = Math.min(lh, h * 0.15);
+                const finalW = finalH * (logoImg.width / logoImg.height);
+                if (invertArtistLogo) ctx.filter = 'invert(1) brightness(10)';
+                ctx.drawImage(logoImg, cx - finalW / 2, nameY, finalW, finalH);
+                ctx.filter = 'none';
             } else {
-                const nameFontSize = Math.round(h * 0.09);
-                ctx.font = `900 italic ${nameFontSize}px 'Arial Black', Arial, sans-serif`;
-                const nameUpper = artistName.toUpperCase();
-                const words = nameUpper.split(' ');
-                let line = '';
-                const lines: string[] = [];
-                const maxW = w * 0.86;
-                for (const word of words) {
-                    const testLine = line + (line ? ' ' : '') + word;
-                    if (ctx.measureText(testLine).width > maxW && line) { lines.push(line); line = word; }
-                    else line = testLine;
-                }
-                lines.push(line);
-                const lineH = nameFontSize * 1.05;
-                lines.forEach((l, i) => ctx.fillText(l, cx, nameY + i * lineH));
-                ctx.fillStyle = '#ff0033';
-                ctx.fillRect(cx - 50, nameY + lines.length * lineH + 15, 100, 5);
+                ctx.font = `900 italic ${h * 0.09}px 'Arial Black', Arial, sans-serif`;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(artistName.toUpperCase(), cx, nameY + h * 0.05);
             }
+        };
 
-            // URL bottom
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'alphabetic';
-            ctx.font = `900 ${Math.round(h * 0.022)}px Arial, sans-serif`;
-            ctx.fillStyle = 'rgba(255,255,255,0.6)'; // Brighter
-            ctx.letterSpacing = '2px';
-            ctx.fillText('dropsiders.fr', cx, h - h * 0.035);
-            ctx.textAlign = 'left';
-            ctx.letterSpacing = '0px';
-
-            // ── Festival Info (Instagram Top Left) ──
-            if (festivalName || festivalLogo) {
-                const festY = h * 0.04;
-                const festX = w * 0.05;
-                ctx.textAlign = 'left';
-                if (festivalLogo) {
-                    try {
-                        const fLogo = await loadImage(festivalLogo);
-                        const flh = h * 0.05 * (festivalLogoScale / 100);
-                        const flw = flh * (fLogo.width / fLogo.height);
-                        if (invertFestivalLogo) ctx.filter = 'invert(1) brightness(10)';
-                        ctx.drawImage(fLogo, festX, festY, flw, flh);
-                        ctx.filter = 'none';
-                    } catch(_) {}
-                } else {
-                    ctx.font = `900 ${h * 0.018}px Arial, sans-serif`;
-                    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                    ctx.fillText(festivalName.toUpperCase(), festX, festY + h * 0.02);
-                }
-            }
-        }
-
-        // ── 8. Corner accent ──
-        ctx.save();
-        ctx.fillStyle = '#ff0033';
-        const cs = Math.round(w * 0.025);
-        const cw = Math.round(w * 0.004);
-        ctx.fillRect(0, 0, cs, cw); ctx.fillRect(0, 0, cw, cs);
-        ctx.fillRect(w - cs, h - cw, cs, cw); ctx.fillRect(w - cw, h - cs, cw, cs);
-        ctx.restore();
+        if (fmt === 'youtube') await generateYouTube(ctx, w, h);
+        else await generateInstagram(ctx, w, h);
 
         const url = canvas.toDataURL('image/png', 1.0);
         setPreviewUrl(url);
         setIsGenerating(false);
         return url;
-    }, [artistPhoto, artistName, artistLogo, dropsidersLogo, festivalName, festivalLogo, visualMode, photoOffsetX, photoOffsetY, photoScale]);
+    }, [artistPhoto, artistName, artistLogo, dropsidersLogo, festivalName, festivalLogo, visualMode, photoOffsetX, photoOffsetY, photoScale, artistLogoScale, invertArtistLogo, activeFormat, invertFestivalLogo, festivalLogoScale]);
 
     const handleGenerate = () => { generate(activeFormat); };
 
@@ -575,10 +501,11 @@ export function InterviewVisualGenerator() {
                     <div className="space-y-6">
                         {/* Creation Type */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-4">Type de création</label>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                                 <button onClick={() => setVisualMode('interview')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'interview' ? 'bg-neon-red/15 border-neon-red/50 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Interview</button>
-                                <button onClick={() => setVisualMode('recap')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'recap' ? 'bg-neon-cyan/15 border-neon-cyan/50 text-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Récap Vidéo</button>
+                                <button onClick={() => setVisualMode('recap')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'recap' ? 'bg-neon-cyan/15 border-neon-cyan/50 text-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Récap</button>
+                                <button onClick={() => setVisualMode('top100')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'top100' ? 'bg-yellow-500/15 border-yellow-500/50 text-yellow-500 shadow-[0_0_20px_rgba(255,240,31,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Top 100</button>
+                                <button onClick={() => setVisualMode('news')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'news' ? 'bg-white/15 border-white/50 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>News</button>
                             </div>
                         </div>
 

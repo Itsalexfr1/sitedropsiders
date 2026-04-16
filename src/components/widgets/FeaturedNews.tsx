@@ -7,6 +7,7 @@ import { translateText } from '../../utils/translate';
 import { resolveImageUrl } from '../../utils/image';
 import { useState, useEffect, useMemo } from 'react';
 import { fetchWithFallback } from '../../utils/fetcher';
+import { getCategoryColor } from '../../utils/theme';
 
 export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
@@ -160,7 +161,7 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                         <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
                             <span
                                 className="font-black"
-                                style={{ color: color }}
+                                style={{ color: heroNews.isFocus ? color : `var(--color-${getCategoryColor(heroNews.category)})` }}
                             >
                                 {heroNews.isFocus ? t('article_detail.focus').toUpperCase() : heroNews.category}
                             </span>
@@ -176,9 +177,9 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                         <span
                             className="px-4 py-1.5 bg-dark-bg/60 backdrop-blur-md border text-[10px] font-black uppercase tracking-tighter rounded-full"
                             style={{
-                                borderColor: color,
-                                color: color,
-                                boxShadow: `0 0 15px ${color}4D`
+                                borderColor: heroNews.isFocus ? color : `var(--color-${getCategoryColor(heroNews.category)})`,
+                                color: heroNews.isFocus ? color : `var(--color-${getCategoryColor(heroNews.category)})`,
+                                boxShadow: `0 0 15px ${heroNews.isFocus ? color : `var(--color-${getCategoryColor(heroNews.category)})`}4D`
                             }}
                         >
                             {heroNews.isFocus ? 'FOCUS' : (heroNews.category || 'NEWS').toUpperCase()}

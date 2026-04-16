@@ -37,12 +37,12 @@ html.light-mode {
 @theme {
   --color-neon-cyan: var(--neon-cyan);
   --color-neon-red: var(--neon-red);
-  --color-neon-purple: #9933ff;
-  --color-neon-pink: #cc0077;
-  --color-neon-green: #229900;
-  --color-neon-orange: #dd5500;
-  --color-neon-yellow: #cc9900;
-  --color-neon-blue: #0055cc;
+  --color-neon-purple: #bc13fe;
+  --color-neon-pink: #ff007f;
+  --color-neon-green: #39ff14;
+  --color-neon-orange: #ff6700;
+  --color-neon-yellow: #fff01f;
+  --color-neon-blue: #0070ff;
   --color-dark-bg: var(--bg-primary);
   --color-dark-card: var(--bg-card);
   --color-gray-50: #fafafa;

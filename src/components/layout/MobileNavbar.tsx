@@ -15,8 +15,8 @@ export function MobileNavbar() {
     const [takeoverStatus, setTakeoverStatus] = useState(settings.takeover?.status || 'off');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
-    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-    const { isLoggedIn, user } = useUser();
+    const [isAdmin, setIsAdmin] = useState(false);
+    const { isLoggedIn, user, setIsAuthModalOpen } = useUser();
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
 
     useEffect(() => {
@@ -74,7 +74,7 @@ export function MobileNavbar() {
             icon: User, 
             label: isLoggedIn ? (user?.username || 'Compte') : 'Compte', 
             path: isLoggedIn ? '/profil' : '#', 
-            onClick: isLoggedIn ? () => setIsMenuOpen(false) : () => setIsUserModalOpen(true), 
+            onClick: isLoggedIn ? () => setIsMenuOpen(false) : () => { setIsMenuOpen(false); setIsAuthModalOpen(true); }, 
             color: isLoggedIn ? 'text-neon-red shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400' 
         },
         ...(isAdmin ? [{ icon: Shield, label: 'Admin', path: '/admin', color: 'text-white' }] : [])
@@ -198,9 +198,6 @@ export function MobileNavbar() {
                     </div>
                 )}
             </AnimatePresence>
-            <UserAuthModal
-                isOpen={isUserModalOpen}
-                onClose={() => setIsUserModalOpen(false)}
             />
         </>
     );

@@ -8,6 +8,7 @@ import { standardizeContent as standardizeText } from '../utils/standardizer';
 import { translateText, translateHTML } from '../utils/translate';
 import { getArticleLink, getRecapLink } from '../utils/slugify';
 import { resolveImageUrl } from '../utils/image';
+import { getCategoryColor } from '../utils/theme';
 import { ArticleReader } from '../components/widgets/ArticleReader';
 import settings from '../data/settings.json';
 import '../styles/article-premium.css';
@@ -60,15 +61,7 @@ interface ArticlePremiumTemplateProps {
     isLoading?: boolean;
 }
 
-const getCategoryColor = (category: string): string => {
-    const c = (category || '').toLowerCase().trim();
-    if (c === 'musique' || c === 'music') return 'neon-green';
-    if (c === 'festival' || c === 'festivals') return 'neon-red';
-    if (c === 'recap') return 'neon-cyan';
-    if (c === 'interview' || c === 'interviews') return 'neon-purple';
-    if (c.includes('jeux concours')) return 'neon-yellow';
-    return 'neon-red';
-};
+
 
 const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article, content, type, relatedArticles = [], previousArticle, nextArticle, isLoading }) => {
     const { t, language } = useLanguage();
@@ -675,9 +668,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                         <div className="flex flex-wrap gap-2 mb-6">
                             <span className={`inline-flex items-center justify-center px-6 py-2.5 rounded-full text-white font-black text-[10px] uppercase tracking-widest shadow-lg ${article.isFocus
                                 ? 'bg-yellow-500 shadow-yellow-500/20'
-                                : (article.category || '').toLowerCase() === 'musique'
-                                    ? 'bg-neon-green shadow-neon-green/20'
-                                    : 'bg-neon-red shadow-neon-red/20'
+                                : `bg-${themeColorName} shadow-${themeColorName}/20`
                                 }`}>
                                 {article.isFocus ? t('article_detail.focus').toUpperCase() : (article.category || (type === 'recap' ? 'Recap' : 'News'))}
                             </span>

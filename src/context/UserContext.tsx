@@ -23,12 +23,15 @@ interface UserContextType {
     toggleTrackId: (trackId: string) => void;
     toggleAgendaFavorite: (eventId: number) => void;
     updateUser: (updates: Partial<UserProfile>) => void;
+    isAuthModalOpen: boolean;
+    setIsAuthModalOpen: (open: boolean) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<UserProfile | null>(null);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     // Initial load from localStorage
     useEffect(() => {
@@ -182,7 +185,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             updateScore,
             toggleTrackId,
             toggleAgendaFavorite,
-            updateUser
+            updateUser,
+            isAuthModalOpen,
+            setIsAuthModalOpen
         }}>
             {children}
         </UserContext.Provider>

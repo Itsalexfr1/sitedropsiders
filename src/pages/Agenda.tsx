@@ -19,7 +19,7 @@ import { useUser } from '../context/UserContext';
 
 export function Agenda() {
     const { t, language } = useLanguage();
-    const { user, toggleAgendaFavorite, isLoggedIn } = useUser();
+    const { user, toggleAgendaFavorite, isLoggedIn, setIsAuthModalOpen } = useUser();
     const playHoverSound = useHoverSound();
     const [expandedEvent, setExpandedEvent] = useState<number | string | null>(null);
     const [activeCategory, setActiveCategory] = useState('ALL');
@@ -744,18 +744,20 @@ export function Agenda() {
                                                                     <Calendar className="w-5 h-5 text-gray-500 group-hover/btn:text-neon-red" />
                                                                 </button>
                                                             )}
-                                                            {isLoggedIn && (
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        toggleAgendaFavorite(event.id);
-                                                                    }}
-                                                                    className={`flex w-10 h-10 rounded-xl bg-white/5 border items-center justify-center transition-all group/heart ${user?.agendaFavorites.includes(event.id) ? `${styles.borderStrong} ${styles.bg}` : `border-white/10 ${styles.hoverBorder}`}`}
-                                                                    title="Ajouter aux favoris"
-                                                                >
-                                                                    <Heart className={`w-5 h-5 transition-colors ${user?.agendaFavorites.includes(event.id) ? `${styles.text} fill-current` : `text-gray-500 ${styles.groupHoverText}`}`} />
-                                                                </button>
-                                                            )}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (!isLoggedIn) {
+                                                                        setIsAuthModalOpen(true);
+                                                                        return;
+                                                                    }
+                                                                    toggleAgendaFavorite(event.id);
+                                                                }}
+                                                                className={`flex w-10 h-10 rounded-xl bg-white/5 border items-center justify-center transition-all group/heart ${user?.agendaFavorites?.includes(event.id) ? `${styles.borderStrong} ${styles.bg}` : `border-white/10 ${styles.hoverBorder}`}`}
+                                                                title={isLoggedIn ? "Ajouter aux favoris" : "Connectez-vous pour ajouter aux favoris"}
+                                                            >
+                                                                <Heart className={`w-5 h-5 transition-colors ${user?.agendaFavorites?.includes(event.id) ? `${styles.text} fill-current` : `text-gray-500 ${styles.groupHoverText}`}`} />
+                                                            </button>
                                                             {event.type === 'Jeux Concours' ? (
                                                                 <div className="hidden md:flex items-center gap-2">
                                                                     {isContestActive && (
