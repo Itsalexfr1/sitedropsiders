@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
     X, Settings, Zap, Edit3, ChevronLeft, Save, Timer, 
     AlertCircle, Trash2, Plus, Music, Camera, Scan, Globe,
-    ChevronRight, Calendar
+    ChevronRight, Calendar, RefreshCcw
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTakeover } from '../../context/TakeoverContext';
@@ -11,6 +11,7 @@ import type { StreamItem, LineupItem } from '../../context/TakeoverContext';
 import { resolveImageUrl } from '../../utils/image';
 import { PlanningTab } from './PlanningTab';
 import { ID, Query } from 'appwrite';
+import { uploadFile } from '../../utils/uploadService';
 
 export function AdminPanel() {
     const { 
@@ -40,6 +41,7 @@ export function AdminPanel() {
     const [editYoutube, setEditYoutube] = useState(settings.youtubeLink || '');
     const [editTwitter, setEditTwitter] = useState(settings.twitterLink || '');
     const [editFestivalLogo, setEditFestivalLogo] = useState(settings.festivalLogo || '');
+    const [isUploadingLogo, setIsUploadingLogo] = useState(false);
     const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText || '');
     const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink || '');
     const [editShowSponsorBanner, setEditShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
@@ -132,164 +134,23 @@ export function AdminPanel() {
                     </div>
                     <button onClick={() => setShowAdminPanel(false)} className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-500 border border-white/10 rounded-2xl transition-all" title="Fermer le panel"><X className="w-6 h-6" /></button>
                 </div>
-
                 <div className="min-h-[400px]">
                     {adminActiveTab === 'config' && (
                         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                             {/* Override Artist */}
-                             <div className="bg-white/5 border border-neon-cyan/20 rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 p-4 opacity-10">
-                                    <Zap className="w-20 h-20 text-neon-cyan" />
+                             {/* Multi-Stage management (MOVED TO TOP) */}
+                             <div className="bg-white/5 border border-neon-blue/20 rounded-3xl p-8 space-y-8 shadow-2xl relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-4 opacity-5">
+                                    <Globe className="w-24 h-24 text-neon-blue" />
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">
-                                        <Edit3 className="w-6 h-6 text-neon-cyan" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Artiste en Direct <span className="text-neon-cyan">(Override)</span></h3>
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Changez l'artiste instantanément sans passer par le planning</p>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col md:flex-row gap-4">
-                                    <div className="flex-1 space-y-2">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Nom de l'artiste</label>
-                                        <input 
-                                            type="text" 
-                                            value={editStreams.find(s => s.id === editActiveStreamId)?.overrideArtist || ''} 
-                                            onChange={e => {
-                                                const ns = [...editStreams];
-                                                const idx = ns.findIndex(s => s.id === editActiveStreamId);
-                                                if (idx !== -1) {
-                                                    ns[idx].overrideArtist = e.target.value.toUpperCase();
-                                                    setEditStreams(ns);
-                                                }
-                                            }}
-                                            placeholder="EX: TIESTO, CHARLOTTE DE WITTE..." 
-                                            className="w-full bg-black/60 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-neon-cyan uppercase outline-none focus:border-neon-cyan transition-all" 
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Main Config Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-8">
-                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
-                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Identité du Live</h3>
-                                        <div className="space-y-4">
-                                            <div className="space-y-1">
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase">Titre Global</label>
-                                                <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase">Logo du Festival (URL)</label>
-                                                <div className="flex gap-2">
-                                                    <input type="text" value={editFestivalLogo} onChange={e => setEditFestivalLogo(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" placeholder="https://..." />
-                                                    {editFestivalLogo && <img src={resolveImageUrl(editFestivalLogo)} className="w-10 h-10 rounded-lg object-contain bg-black" alt="" />}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
-                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Réseaux Sociaux</h3>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">Instagram</label>
-                                                <input type="text" value={editInsta} onChange={e => setEditInsta(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="dropsiders.fr" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">TikTok</label>
-                                                <input type="text" value={editTiktok} onChange={e => setEditTiktok(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="dropsiders" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">YouTube</label>
-                                                <input type="text" value={editYoutube} onChange={e => setEditYoutube(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="channel/..." />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">Twitter / X</label>
-                                                <input type="text" value={editTwitter} onChange={e => setEditTwitter(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="dropsiders" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-8">
-                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
-                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Bandeau Défilant (Ticker)</h3>
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-[10px] font-black text-gray-500 uppercase">Activer le bandeau</label>
-                                                <button onClick={() => setEditAnnEnabled(!editAnnEnabled)} className={`w-12 h-6 rounded-full transition-all relative ${editAnnEnabled ? 'bg-neon-cyan' : 'bg-white/10'}`}>
-                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editAnnEnabled ? 'left-7' : 'left-1'}`} />
-                                                </button>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">Texte</label>
-                                                <input type="text" value={editAnnText} onChange={e => setEditAnnText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className="text-[8px] font-black text-gray-500 uppercase">Couleur Fond</label>
-                                                    <input type="color" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="w-full h-10 bg-black/40 border border-white/10 rounded-xl px-2 py-1" />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[8px] font-black text-gray-500 uppercase">Couleur Texte</label>
-                                                    <input type="color" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="w-full h-10 bg-black/40 border border-white/10 rounded-xl px-2 py-1" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
-                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Sponsor & Partenaires</h3>
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-[10px] font-black text-gray-500 uppercase">Afficher le Sponsor</label>
-                                                <button onClick={() => setEditShowSponsorBanner(!editShowSponsorBanner)} className={`w-12 h-6 rounded-full transition-all relative ${editShowSponsorBanner ? 'bg-neon-cyan' : 'bg-white/10'}`}>
-                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editShowSponsorBanner ? 'left-7' : 'left-1'}`} />
-                                                </button>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">Texte Sponsor</label>
-                                                <input type="text" value={editSponsorText} onChange={e => setEditSponsorText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white" placeholder="POWERED BY..." />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">Lien Sponsor</label>
-                                                <input type="text" value={editSponsorLink} onChange={e => setEditSponsorLink(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white" placeholder="https://..." />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-8">
-                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
-                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Status & Programmation</h3>
-                                        <div className="flex gap-2 p-1 bg-black/40 rounded-xl">
-                                            {(['live', 'edit', 'off'] as const).map(s => (
-                                                <button key={s} onClick={() => setEditStatus(s)} className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase transition-all ${editStatus === s ? 'bg-red-600 text-white' : 'text-gray-400'}`}>{s}</button>
-                                            ))}
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">Début</label>
-                                                <input type="datetime-local" value={editStartDate} onChange={e => setEditStartDate(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" style={{ colorScheme: 'dark' }} />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">Fin</label>
-                                                <input type="datetime-local" value={editEndDate} onChange={e => setEditEndDate(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" style={{ colorScheme: 'dark' }} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Multi-Stage management */}
-                            <div className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-8">
-                                <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                <div className="flex items-center justify-between border-b border-white/5 pb-4 relative z-10">
                                     <div className="flex items-center gap-3">
-                                        <Globe className="w-5 h-5 text-neon-blue" />
-                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Gestion des Flux (Multi-Stage)</h3>
+                                        <div className="w-10 h-10 bg-neon-blue/20 rounded-xl flex items-center justify-center">
+                                            <Globe className="w-5 h-5 text-neon-blue" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-black text-white uppercase tracking-widest italic leading-tight">Gestion des Flux</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase">MULTI-STAGE SETUP</p>
+                                        </div>
                                     </div>
                                     <button 
                                         onClick={() => {
@@ -304,7 +165,7 @@ export function AdminPanel() {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-4">
+                                <div className="grid grid-cols-1 gap-4 relative z-10">
                                     {editStreams.map((stream, idx) => (
                                         <div key={stream.id} className={`group bg-black/40 border p-6 rounded-2xl transition-all ${editActiveStreamId === stream.id ? 'border-neon-blue shadow-[0_0_20px_rgba(0,255,255,0.1)]' : 'border-white/5 hover:border-white/20'}`}>
                                             <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -383,12 +244,207 @@ export function AdminPanel() {
                                 </div>
                             </div>
 
+                             {/* Override Artist */}
+                             <div className="bg-white/5 border border-neon-cyan/20 rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                    <Zap className="w-20 h-20 text-neon-cyan" />
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">
+                                        <Edit3 className="w-6 h-6 text-neon-cyan" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Artiste en Direct <span className="text-neon-cyan">(Override)</span></h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Changez l'artiste instantanément sans passer par le planning</p>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <div className="flex-1 space-y-2">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Nom de l'artiste</label>
+                                        <input 
+                                            type="text" 
+                                            value={editStreams.find(s => s.id === editActiveStreamId)?.overrideArtist || ''} 
+                                            onChange={e => {
+                                                const ns = [...editStreams];
+                                                const idx = ns.findIndex(s => s.id === editActiveStreamId);
+                                                if (idx !== -1) {
+                                                    ns[idx].overrideArtist = e.target.value.toUpperCase();
+                                                    setEditStreams(ns);
+                                                }
+                                            }}
+                                            placeholder="EX: TIESTO, CHARLOTTE DE WITTE..." 
+                                            className="w-full bg-black/60 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-neon-cyan uppercase outline-none focus:border-neon-cyan transition-all" 
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Main Config Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-8">
+                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Identité du Live</h3>
+                                        <div className="space-y-4">
+                                            <div className="space-y-1">
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase">Titre Global</label>
+                                                <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Logo du Festival (UPLOAD)</label>
+                                                <div className="flex items-center gap-4 p-4 bg-black/40 border border-white/10 rounded-2xl group transition-all hover:border-neon-cyan/50">
+                                                    <div className="w-16 h-16 rounded-xl bg-black border border-white/5 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
+                                                        {editFestivalLogo ? (
+                                                            <img src={resolveImageUrl(editFestivalLogo)} className="w-full h-full object-contain" alt="Logo preview" />
+                                                        ) : (
+                                                            <Camera className="w-6 h-6 text-gray-700" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 space-y-2">
+                                                        <div className="flex gap-2">
+                                                            <button 
+                                                                disabled={isUploadingLogo}
+                                                                onClick={() => document.getElementById('logo-upload')?.click()}
+                                                                className="flex items-center gap-2 px-4 py-2 bg-neon-cyan text-black text-[10px] font-black uppercase rounded-lg hover:bg-white transition-all disabled:opacity-50"
+                                                            >
+                                                                {isUploadingLogo ? <RefreshCcw className="w-3 h-3 animate-spin" /> : <Camera className="w-3 h-3" />}
+                                                                {isUploadingLogo ? 'Upload...' : 'Uploader Image'}
+                                                            </button>
+                                                            {editFestivalLogo && (
+                                                                <button 
+                                                                    onClick={() => setEditFestivalLogo('')}
+                                                                    className="px-4 py-2 bg-red-500/10 text-red-500 text-[10px] font-black uppercase rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                                                                >
+                                                                    Supprimer
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[8px] text-gray-600 font-bold uppercase">JPG, PNG OU SVG (MAX 2MO)</p>
+                                                        <input 
+                                                            id="logo-upload"
+                                                            type="file" 
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={async (e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (!file) return;
+                                                                setIsUploadingLogo(true);
+                                                                try {
+                                                                    const url = await uploadFile(file, 'festivals');
+                                                                    setEditFestivalLogo(url);
+                                                                    showNotification('Logo mis à jour !', 'success');
+                                                                } catch (err: any) {
+                                                                    showNotification(err.message, 'error');
+                                                                } finally {
+                                                                    setIsUploadingLogo(false);
+                                                                    e.target.value = '';
+                                                                }
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Réseaux Sociaux</h3>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">Instagram</label>
+                                                <input type="text" value={editInsta} onChange={e => setEditInsta(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="dropsiders.fr" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">TikTok</label>
+                                                <input type="text" value={editTiktok} onChange={e => setEditTiktok(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="dropsiders" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">YouTube</label>
+                                                <input type="text" value={editYoutube} onChange={e => setEditYoutube(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="channel/..." />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">Twitter / X</label>
+                                                <input type="text" value={editTwitter} onChange={e => setEditTwitter(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="dropsiders" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-8">
+                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Bandeau Défilant (Ticker)</h3>
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase">Activer le bandeau</label>
+                                                <button onClick={() => setEditAnnEnabled(!editAnnEnabled)} className={`w-12 h-6 rounded-full transition-all relative ${editAnnEnabled ? 'bg-neon-cyan' : 'bg-white/10'}`}>
+                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editAnnEnabled ? 'left-7' : 'left-1'}`} />
+                                                </button>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">Texte</label>
+                                                <input type="text" value={editAnnText} onChange={e => setEditAnnText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[8px] font-black text-gray-500 uppercase">Couleur Fond</label>
+                                                    <input type="color" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="w-full h-10 bg-black/40 border border-white/10 rounded-xl px-2 py-1" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[8px] font-black text-gray-500 uppercase">Couleur Texte</label>
+                                                    <input type="color" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="w-full h-10 bg-black/40 border border-white/10 rounded-xl px-2 py-1" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Sponsor & Partenaires</h3>
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase">Afficher le Sponsor</label>
+                                                <button onClick={() => setEditShowSponsorBanner(!editShowSponsorBanner)} className={`w-12 h-6 rounded-full transition-all relative ${editShowSponsorBanner ? 'bg-neon-cyan' : 'bg-white/10'}`}>
+                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editShowSponsorBanner ? 'left-7' : 'left-1'}`} />
+                                                </button>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">Texte Sponsor</label>
+                                                <input type="text" value={editSponsorText} onChange={e => setEditSponsorText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white" placeholder="POWERED BY..." />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">Lien Sponsor</label>
+                                                <input type="text" value={editSponsorLink} onChange={e => setEditSponsorLink(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white" placeholder="https://..." />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Status & Programmation</h3>
+                                        <div className="flex gap-2 p-1 bg-black/40 rounded-xl">
+                                            {(['live', 'edit', 'off'] as const).map(s => (
+                                                <button key={s} onClick={() => setEditStatus(s)} className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase transition-all ${editStatus === s ? 'bg-red-600 text-white' : 'text-gray-400'}`}>{s}</button>
+                                            ))}
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">Début</label>
+                                                <input type="datetime-local" value={editStartDate} onChange={e => setEditStartDate(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" style={{ colorScheme: 'dark' }} />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">Fin</label>
+                                                <input type="datetime-local" value={editEndDate} onChange={e => setEditEndDate(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" style={{ colorScheme: 'dark' }} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <button onClick={onSave} disabled={isSaving} className="w-full py-6 bg-neon-cyan text-black font-black uppercase rounded-3xl transition-all shadow-2xl flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95">
                                 {isSaving ? <Timer className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
                                 {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER LES MODIFICATIONS'}
                             </button>
                         </div>
                     )}
+
+
 
                     {adminActiveTab === 'planning' && <PlanningTab />}
 

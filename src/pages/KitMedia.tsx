@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
     Lock, Instagram, ArrowRight, Users, ExternalLink,
-    Facebook, Zap, Mic
+    Facebook, Zap, Mic, FileText, Download
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { SpotifyWidget } from '../components/widgets/SpotifyWidget';
@@ -680,6 +680,7 @@ const KitMedia = () => {
                         </div>
                     </div>
                 </section>
+
 
                 <section className="py-48 text-center px-6 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-red-900/10 to-transparent"></div>

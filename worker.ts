@@ -974,6 +974,7 @@ ${urls.map(u => `  <url>
             path === '/api/facture/send' ||
             path.startsWith('/api/invoices') ||
             path === '/api/upload' ||
+            path.startsWith('/api/pdfs') ||
             path.startsWith('/api/instagram-contest') ||
             path.startsWith('/api/quiz/contest') ||
             path === '/api/wiki/update-photo' ||
@@ -1425,6 +1426,44 @@ ${urls.map(u => `  <url>
             const { playlists } = await request.json();
             const file = await fetchGitHubFile(SPOTIFY_PATH, gitConfig) || { content: [], sha: null };
             const saved = await saveGitHubFile(SPOTIFY_PATH, playlists, `Update Spotify playlists`, file.sha, gitConfig);
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+        }
+
+        // --- API: PDF MANAGEMENT ---
+        if (path === '/api/pdfs' && request.method === 'GET') {
+            const FILE_PATH = 'src/data/pdfs.json';
+            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
+            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
+        }
+
+        if (path === '/api/pdfs/create' && request.method === 'POST') {
+            const body = await request.json();
+            const { title, url, size, category } = body;
+            const FILE_PATH = 'src/data/pdfs.json';
+            const file = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
+            
+            const newPdf = {
+                id: Date.now().toString(),
+                title: title || 'Nouveau PDF',
+                url,
+                size: size || 'Inconnu',
+                category: category || 'Général',
+                date: new Date().toISOString()
+            };
+
+            const updated = [newPdf, ...file.content];
+            const saved = await saveGitHubFile(FILE_PATH, updated, `Add PDF: ${title}`, file.sha, gitConfig);
+            return new Response(JSON.stringify({ success: saved.ok, pdf: newPdf, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+        }
+
+        if (path === '/api/pdfs/delete' && request.method === 'POST') {
+            const { id } = await request.json();
+            const FILE_PATH = 'src/data/pdfs.json';
+            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
+            if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+            
+            const updated = file.content.filter(p => String(p.id) !== String(id));
+            const saved = await saveGitHubFile(FILE_PATH, updated, `Delete PDF: ${id}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
