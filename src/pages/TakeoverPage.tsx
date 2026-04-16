@@ -2245,31 +2245,43 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     };
 
     const fluxCurrentArtist = lineupItems.find(item => {
-        if (!item.day || !item.startTime || !item.endTime) return false;
+        if (!item.day || !item.startTime) return false;
         const now = new Date();
-        const curDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const curDay = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+        
+        // Simple date check
         if (item.day !== curDay) return false;
 
         const [sh, sm] = item.startTime.replace('.', ':').replace('h', ':').split(':').map(Number);
-        const [eh, em] = item.endTime.replace('.', ':').replace('h', ':').split(':').map(Number);
+        const [eh, em] = (item.endTime || '').replace('.', ':').replace('h', ':').split(':').map(Number);
         
         const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm, 0);
-        const endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em, 0);
+        // Fallback: if no end time, assume 1 hour set
+        const endTime = !isNaN(eh) 
+            ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em || 0, 0)
+            : new Date(startTime.getTime() + 60 * 60 * 1000);
         
-        if (eh < sh) endTime.setDate(endTime.getDate() + 1);
+        if (!isNaN(eh) && eh < sh) endTime.setDate(endTime.getDate() + 1);
         
-        // Stage filtering
-        const itemStage = item.stage.toUpperCase();
+        // Stage filtering - More robust
+        const itemStage = (item.stage || '').toUpperCase();
         const stageMapping: Record<string, string> = {};
         settings.streams?.forEach((s: any, idx: number) => {
-            stageMapping[`stage${idx + 1}`] = (s.name || `STAGE ${idx + 1}`).toUpperCase();
+            const sid = `stage${idx + 1}`;
+            stageMapping[sid] = (s.name || sid).toUpperCase();
         });
 
-        const targetStageName = stageMapping[activeStage as string] || activeStage.toUpperCase();
-        if (itemStage !== targetStageName && itemStage !== activeStage.toUpperCase()) return false;
+        const targetStageName = stageMapping[activeStage as string] || (activeStage as string).toUpperCase();
+        
+        // Match if IDs match OR Names match
+        const matchesStage = itemStage === targetStageName || 
+                           itemStage === (activeStage as string).toUpperCase() ||
+                           (item.stage || '').toLowerCase() === (activeStage as string).toLowerCase();
+                           
+        if (!matchesStage) return false;
 
         return now >= startTime && now <= endTime;
-    }) || { artist: 'DROPSIDERS LIVE', stage: 'MAIN STAGE' };
+    }) || { artist: settings.title || 'DROPSIDERS LIVE', stage: 'MAIN' };
 
     const handlePurgeTarget = async (target: string) => {
         if (!isMod) return;
@@ -2383,7 +2395,11 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 <div className="flex items-center gap-1 lg:gap-2 mt-1 lg:mt-2">
                                     <Music className="w-2.5 h-2.5 lg:w-4 lg:h-4 text-neon-cyan animate-pulse shrink-0" />
                                     <span className="text-[7px] lg:text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none shrink-0 border-r border-neon-cyan/20 pr-1.5 mr-1.5">NOW</span>
-                                    <span className="text-[10px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter sm:max-w-none">
+                                    <span className={`font-black text-white uppercase italic tracking-tighter sm:max-w-none transition-all ${
+                                        (fluxCurrentArtist.artist.length > 25) ? 'text-[8px] lg:text-[12px]' : 
+                                        (fluxCurrentArtist.artist.length > 15) ? 'text-[9px] lg:text-[14px]' : 
+                                        'text-[10px] lg:text-[16px]'
+                                    }`}>
                                         {settings.streams?.find(s => s.id === settings.activeStreamId)?.overrideArtist || fluxCurrentArtist.artist} {settings.streams?.find(s => s.id === settings.activeStreamId)?.currentTrack ? ` - ${settings.streams.find(s => s.id === settings.activeStreamId)?.currentTrack}` : ''}
                                     </span>
                                 </div>
