@@ -197,42 +197,49 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
         }
         const lines = bulkText.split('\n').map(l => l.trim()).filter(Boolean);
         const newItems: LineupItem[] = [];
-        const regex = /^(\d{1,2})[h:.\s](\d{2})?\s*[-–—]\s*(.+)$/i;
-        const preset = timezonePresets.find(p => p.id === selectedTimezoneId);
-        const offset = selectedTimezoneId !== 'fr' ? calculateDynamicOffset(preset?.tz || 'Europe/Paris') : 0;
+        let currentStage = activeStage;
+        
+        // Preparation of available stages for detection
+        const availableStages = (settings.streams || []).map(s => ({ id: s.id, name: s.name.toLowerCase() }));
 
         lines.forEach(line => {
-            // Format: 5:20 – 6:10 : Teddy Swims
-            const mFull = line.match(/^(\d{1,2}[:h]\d{2})\s*[–—\-]\s*(\d{1,2}[:h]\d{2})\s*:\s*(.+)$/i);
-            // Format: 5:20 - Artist Name
-            const mSimple = line.match(/^(\d{1,2}[:h]\d{2})\s*[-–—]\s*(.+)$/i);
+            const lowerLine = line.toLowerCase();
+            
+            // 1. Detect Stage Change
+            const matchedStage = availableStages.find(s => lowerLine === s.name || lowerLine.includes(s.name));
+            if (matchedStage) {
+                currentStage = matchedStage.name;
+                return; // Continue to next line
+            }
+
+            // 2. Detect Artist with Time (Improved RegEx)
+            // Format 1: 17:20 - 18:10 : ARTISTE
+            const mFull = line.match(/^(\d{1,2}[:h]\d{2})\s*[-–—]\s*(\d{1,2}[:h]\d{2})\s*[:\-]\s*(.+)$/i);
+            // Format 2: 17:20 : ARTISTE (simple)
+            const mSimple = line.match(/^(\d{1,2}[:h]\d{2})\s*[:\-]\s*(.+)$/i);
+            // Format 3: 17:20 ARTISTE (space only)
+            const mSpace = line.match(/^(\d{1,2}[:h]\d{2})\s+(.+)$/i);
 
             if (mFull) {
-                const startTime = mFull[1].replace('h', ':');
-                const endTime = mFull[2].replace('h', ':');
-                const artist = mFull[3].trim().toUpperCase();
                 newItems.push({
                     id: Math.random().toString(36).substr(2, 9),
                     day: bulkDate,
-                    startTime,
-                    endTime,
-                    artist,
-                    stage: activeStage,
-                    instagram: '',
-                    image: ''
+                    startTime: mFull[1].replace('h', ':'),
+                    endTime: mFull[2].replace('h', ':'),
+                    artist: mFull[3].trim().toUpperCase(),
+                    stage: currentStage,
+                    instagram: '', image: ''
                 });
-            } else if (mSimple) {
-                const startTime = mSimple[1].replace('h', ':');
-                const artist = mSimple[2].trim().toUpperCase();
+            } else if (mSimple || mSpace) {
+                const match = mSimple || mSpace;
                 newItems.push({
                     id: Math.random().toString(36).substr(2, 9),
                     day: bulkDate,
-                    startTime,
+                    startTime: match![1].replace('h', ':'),
                     endTime: '',
-                    artist,
-                    stage: activeStage,
-                    instagram: '',
-                    image: ''
+                    artist: match![2].trim().toUpperCase(),
+                    stage: currentStage,
+                    instagram: '', image: ''
                 });
             }
         });
