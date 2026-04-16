@@ -7570,12 +7570,12 @@ export function AdminDashboard() {
                 {/* Modal Edition Wiki */}
                 <AnimatePresence>
                     {isEditWikiModalOpen && editingWikiEntry && (
-                        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
+                        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="bg-[#0A0A0A] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]"
+                                className="bg-[#111111] border border-white/10 ring-1 ring-white/5 rounded-[3rem] p-10 max-w-2xl w-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col max-h-[90vh]"
                             >
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
 
@@ -7706,7 +7706,7 @@ export function AdminDashboard() {
 
                                     {/* Bio / Description */}
                                     <div>
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Biographie / Description</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">Biographie / Description</label>
                                         <textarea
                                             value={editingWikiEntry.bio || ''}
                                             onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, bio: e.target.value })}
@@ -7773,12 +7773,12 @@ export function AdminDashboard() {
 
                     {/* Modal AJOUT Wiki */}
                     {isNewWikiModalOpen && (
-                        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
+                        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="bg-[#0A0A0A] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]"
+                                className="bg-[#111111] border border-white/10 ring-1 ring-white/5 rounded-[3rem] p-10 max-w-2xl w-full shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden flex flex-col max-h-[90vh]"
                             >
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
 
@@ -7800,7 +7800,7 @@ export function AdminDashboard() {
                                 <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar pb-6">
                                     {/* Name */}
                                     <div>
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Nom *</label>
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4 mb-2 block">Nom *</label>
                                         <input
                                             type="text"
                                             value={newWikiEntry.name}
