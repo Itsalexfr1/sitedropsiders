@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import type { Area } from 'react-easy-crop';
-import { X, Check } from 'lucide-react';
+import { X, Check, Loader2 } from 'lucide-react';
 
 import { resolveImageUrl } from '../utils/image';
 
@@ -59,6 +59,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
     const [manualW, setManualW] = useState(1);
     const [manualH, setManualH] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const onCropChange = (crop: { x: number; y: number }) => {
         setCrop(crop);
@@ -73,12 +74,16 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
     }, []);
 
     const handleConfirm = async () => {
-        if (!croppedAreaPixels) return;
+        if (!croppedAreaPixels || isProcessing) return;
+        setIsProcessing(true);
         try {
-            const croppedImage = await getCroppedImg(image, croppedAreaPixels);
+            const resolvedSrc = resolveImageUrl(image);
+            const croppedImage = await getCroppedImg(resolvedSrc, croppedAreaPixels);
             onCropComplete(croppedImage);
         } catch (e: any) {
-            console.error(e);
+            console.error("Crop error:", e);
+            alert("Erreur lors du rognage de l'image. Vérifiez la console.");
+            setIsProcessing(false);
         }
     };
 
@@ -181,9 +186,15 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
                     </div>
                     <button
                         onClick={handleConfirm}
-                        className="flex items-center gap-2 px-8 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20"
+                        disabled={isProcessing}
+                        className={`flex items-center gap-2 px-8 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-lg shadow-neon-red/20 ${isProcessing ? 'opacity-70 cursor-wait' : 'hover:bg-neon-red/80'}`}
                     >
-                        <Check className="w-4 h-4" /> Valider
+                        {isProcessing ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <Check className="w-4 h-4" />
+                        )} 
+                        {isProcessing ? 'Traitement...' : 'Valider'}
                     </button>
                 </div>
             </div>
