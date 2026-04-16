@@ -43,11 +43,13 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
     const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
 
     const timezonePresets = [
-        { id: 'fr', label: 'FR', tz: 'Europe/Paris', offset: 0 },
-        { id: 'uk', label: 'UK', tz: 'Europe/London', offset: 1 },
-        { id: 'us-east', label: 'US-EST', tz: 'America/New_York', offset: 6 },
-        { id: 'us-west', label: 'COACHELLA', tz: 'America/Los_Angeles', offset: 9 },
-        { id: 'us-central', label: 'US-CENTRAL', tz: 'America/Chicago', offset: 7 },
+        { id: 'coachella', label: 'COACHELLA', offset: 9, color: 'text-purple-400 border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/20', icon: <Zap className="w-3 h-3" /> },
+        { id: 'edc-vegas', label: 'EDC LAS VEGAS', offset: 9, color: 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/5 hover:bg-neon-cyan/20', icon: <Star className="w-3 h-3" /> },
+        { id: 'ultra-miami', label: 'ULTRA MIAMI', offset: 6, color: 'text-red-400 border-red-500/30 bg-red-500/5 hover:bg-red-500/20', icon: <Flame className="w-3 h-3" /> },
+        { id: 'day-trip', label: 'DAY TRIP LA', offset: 9, color: 'text-yellow-400 border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/20', icon: <Sun className="w-3 h-3" /> },
+        { id: 'uk', label: 'UK (LONDRES)', offset: 1, color: 'text-sky-400 border-sky-500/30 bg-sky-500/5 hover:bg-sky-500/20', icon: <Plus className="w-3 h-3" /> },
+        { id: 'europe', label: 'EUROPE / AFRIQUE', offset: 0, color: 'text-green-400 border-green-500/30 bg-green-500/5 hover:bg-green-500/20', icon: <Map className="w-3 h-3" /> },
+        { id: 'us-est', label: 'US-EAST', offset: 6, color: 'text-indigo-400 border-indigo-500/30 bg-indigo-500/5 hover:bg-indigo-500/20', icon: <Clock className="w-3 h-3" /> },
     ];
 
     const calculateDynamicOffset = (tzId: string) => {
@@ -293,31 +295,46 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                     })()}
                 </div>
 
-                {/* Row 2: TIMEZONES ONLY */}
+                {/* Row 2: TIMEZONES / FESTIVALS */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
                     <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-3 border-r border-white/10 shrink-0">Fuseau / Festival</span>
-                    <div className="flex bg-black/20 p-1 rounded-xl items-center gap-1">
-                        <button onClick={() => { setSelectedTimezoneId('us-west'); convertTimesByOffset(8); }} className="px-5 py-2.5 bg-neon-purple/20 border border-neon-purple/40 text-neon-purple rounded-lg text-[9px] font-black uppercase flex items-center gap-2 hover:bg-neon-purple hover:text-white transition-all">
-                            <Zap className="w-3 h-3" /> COACHELLA (+8H)
-                        </button>
-                        <button onClick={() => { setSelectedTimezoneId('uk'); convertTimesByOffset(1); }} className="px-5 py-2.5 bg-neon-blue/20 border border-neon-blue/40 text-neon-blue rounded-lg text-[9px] font-black uppercase flex items-center gap-2 hover:bg-neon-blue hover:text-white transition-all">
-                            <Plus className="w-3 h-3" /> UK (+1H)
-                        </button>
-                    </div>
                     
-                    <div className="h-4 w-px bg-white/10" />
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-4 border-r border-white/10">
+                        {timezonePresets.map(preset => (
+                            <button
+                                key={preset.id}
+                                onClick={() => {
+                                    convertTimesByOffset(preset.offset);
+                                    setSelectedTimezoneId(preset.id);
+                                }}
+                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-2 border shrink-0 ${
+                                    selectedTimezoneId === preset.id 
+                                    ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' 
+                                    : `border-transparent ${preset.color}`
+                                }`}
+                            >
+                                {preset.icon}
+                                {preset.label} ({preset.offset > 0 ? '+' : ''}{preset.offset}H)
+                            </button>
+                        ))}
+                    </div>
 
-                    <div className="flex bg-white/5 p-1 rounded-xl items-center gap-2 border border-white/10">
-                        <span className="text-[8px] font-black text-gray-500 uppercase ml-2">Manuel</span>
-                        <input 
-                            type="number" 
-                            value={manualOffset}
-                            onChange={e => setManualOffset(Number(e.target.value))}
-                            className="w-10 bg-black border border-white/10 rounded-lg py-1 px-2 text-[10px] text-white font-black text-center outline-none"
-                        />
-                        <button onClick={() => convertTimesByOffset(manualOffset)} className="p-2 bg-white/10 hover:bg-white text-black rounded-lg transition-all">
-                            <ArrowRight className="w-3 h-3" />
-                        </button>
+                    <div className="flex items-center gap-2 px-3 shrink-0">
+                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest mr-2">Manuel</span>
+                        <div className="flex items-center gap-1 bg-black/40 rounded-xl border border-white/10 p-1 group-focus-within:border-neon-cyan transition-all">
+                            <input
+                                type="number"
+                                value={manualOffset}
+                                onChange={(e) => setManualOffset(Number(e.target.value))}
+                                className="w-12 bg-transparent text-center text-[11px] font-bold text-white outline-none"
+                            />
+                            <button
+                                onClick={() => convertTimesByOffset(manualOffset)}
+                                className="p-1.5 bg-white/5 hover:bg-neon-cyan hover:text-black rounded-lg transition-all"
+                            >
+                                <ArrowRight className="w-3 h-3" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
