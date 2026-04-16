@@ -35,7 +35,7 @@ export function InterviewVisualGenerator() {
     const [previewUrl, setPreviewUrl]     = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [dropsidersLogo, setDropsidersLogo] = useState<HTMLImageElement | null>(null);
-    const [visualMode, setVisualMode]     = useState<'interview' | 'recap' | 'top100' | 'news'>('interview');
+    const [visualMode, setVisualMode]     = useState<'interview' | 'recap' | 'top100' | 'news' | 'highlights'>('interview');
     const [error, setError] = useState<string | null>(null);
 
     // Photo position controls
@@ -156,7 +156,7 @@ export function InterviewVisualGenerator() {
 
         // ── Drawing Logic ──
         const generateYouTube = async (ctx: CanvasRenderingContext2D, w: number, h: number) => {
-            const isMinimal = visualMode === 'top100' || visualMode === 'news';
+            const isMinimal = visualMode === 'top100' || visualMode === 'news' || visualMode === 'highlights';
 
             // Background
             if (isMinimal) {
@@ -205,6 +205,8 @@ export function InterviewVisualGenerator() {
                     labelText = 'TOP 100 DROPSIDERS';
                     labelBg = '#fff100'; // Neon Yellow
                     labelTextCol = '#000000';
+                } else if (visualMode === 'highlights') {
+                    labelText = 'HIGHLIGHTS';
                 }
                 const fontSize = h * 0.08;
                 ctx.font = `900 ${fontSize}px 'Arial Black', Arial, sans-serif`;
@@ -221,11 +223,38 @@ export function InterviewVisualGenerator() {
                 ctx.textBaseline = 'middle';
                 ctx.fillText(labelText, w / 2, h / 2 + 5);
 
+                // Footer Centered for Top 100
                 if (visualMode === 'top100') {
-                    ctx.font = `900 ${h * 0.022}px Arial, sans-serif`;
+                    const ctaSize = Math.round(h * 0.02);
+                    const prefix = 'VOTER SUR ';
+                    const domain = 'DROPSIDERS.FR';
+                    
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    ctx.font = `600 ${ctaSize}px Montserrat, sans-serif`;
+                    const w1 = ctx.measureText(prefix).width;
+                    ctx.font = `900 ${ctaSize}px Montserrat, sans-serif`;
+                    const w2 = ctx.measureText(domain).width;
+                    const totalW = w1 + w2;
+                    let curX = (w - totalW) / 2;
+                    const footerY = h - 60;
+
                     ctx.fillStyle = '#ffffff';
                     ctx.textAlign = 'left';
-                    ctx.fillText('VOTER SUR DROPSIDERS.FR', 40, h - 40);
+                    ctx.font = `600 ${ctaSize}px Montserrat, sans-serif`;
+                    ctx.fillText(prefix, curX, footerY);
+                    curX += w1;
+                    
+                    ctx.font = `900 ${ctaSize}px Montserrat, sans-serif`;
+                    ctx.fillText(domain, curX, footerY);
+                    
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(curX, footerY + 5);
+                    ctx.lineTo(curX + w2, footerY + 5);
+                    ctx.stroke();
                 }
                 return;
             }
@@ -261,7 +290,7 @@ export function InterviewVisualGenerator() {
         };
 
         const generateInstagram = async (ctx: CanvasRenderingContext2D, w: number, h: number) => {
-            const isMinimal = visualMode === 'top100' || visualMode === 'news';
+            const isMinimal = visualMode === 'top100' || visualMode === 'news' || visualMode === 'highlights';
 
             // Background
             if (isMinimal) {
@@ -309,6 +338,8 @@ export function InterviewVisualGenerator() {
                     labelText = 'TOP 100 DROPSIDERS';
                     labelBg = '#fff100';
                     labelCol = '#000000';
+                } else if (visualMode === 'highlights') {
+                    labelText = 'HIGHLIGHTS';
                 }
                 const fontSize = h * 0.07;
                 ctx.font = `900 ${fontSize}px 'Arial Black', Arial, sans-serif`;
@@ -326,12 +357,34 @@ export function InterviewVisualGenerator() {
                 ctx.fillText(labelText, cx, h / 2 + 5);
 
                 if (visualMode === 'top100') {
-                    ctx.textAlign = 'left';
-                    ctx.font = `900 ${h * 0.02}px Arial, sans-serif`;
+                    ctx.textAlign = 'center';
+                    const ctaSize = Math.round(h * 0.018);
+                    const prefix = 'VOTER SUR ';
+                    const domain = 'DROPSIDERS.FR';
+                    
+                    ctx.font = `600 ${ctaSize}px Montserrat, sans-serif`;
+                    const w1 = ctx.measureText(prefix).width;
+                    ctx.font = `900 ${ctaSize}px Montserrat, sans-serif`;
+                    const w2 = ctx.measureText(domain).width;
+                    const totalW = w1 + w2;
+                    let curX = (w - totalW) / 2;
+                    const footerY = h - 40;
+
                     ctx.fillStyle = '#ffffff';
-                    ctx.letterSpacing = '1px';
-                    ctx.fillText('VOTER SUR DROPSIDERS.FR', 30, h - 35);
-                    ctx.letterSpacing = '0px';
+                    ctx.textAlign = 'left';
+                    ctx.font = `600 ${ctaSize}px Montserrat, sans-serif`;
+                    ctx.fillText(prefix, curX, footerY);
+                    curX += w1;
+                    
+                    ctx.font = `900 ${ctaSize}px Montserrat, sans-serif`;
+                    ctx.fillText(domain, curX, footerY);
+                    
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.5;
+                    ctx.moveTo(curX, footerY + 4);
+                    ctx.lineTo(curX + w2, footerY + 4);
+                    ctx.stroke();
                 }
                 return;
             }
@@ -474,7 +527,7 @@ export function InterviewVisualGenerator() {
                         <span className="text-neon-red font-black uppercase tracking-widest text-[10px]">Visual Studio v2.0</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-3">
-                        {visualMode === 'recap' ? 'Récap' : visualMode === 'top100' ? 'Top 100' : visualMode === 'news' ? 'News' : 'Interview'} <span className={visualMode === 'recap' ? 'text-neon-cyan' : visualMode === 'top100' ? 'text-neon-yellow' : visualMode === 'news' ? 'text-neon-red' : 'text-neon-red'}>Visuals</span>
+                        {visualMode === 'recap' ? 'Récap' : visualMode === 'top100' ? 'Top 100' : visualMode === 'news' ? 'News' : visualMode === 'highlights' ? 'Highlights' : 'Interview'} <span className={visualMode === 'recap' ? 'text-neon-cyan' : visualMode === 'top100' ? 'text-neon-yellow' : 'text-neon-red'}>Visuals</span>
                     </h1>
                 </motion.div>
 
@@ -483,11 +536,12 @@ export function InterviewVisualGenerator() {
                     <div className="space-y-6">
                         {/* Creation Type */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                                <button onClick={() => setVisualMode('interview')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'interview' ? 'bg-neon-red/15 border-neon-red/50 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Interview</button>
-                                <button onClick={() => setVisualMode('recap')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'recap' ? 'bg-neon-cyan/15 border-neon-cyan/50 text-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Récap</button>
-                                <button onClick={() => setVisualMode('top100')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'top100' ? 'bg-yellow-500/15 border-yellow-500/50 text-yellow-500 shadow-[0_0_20px_rgba(255,240,31,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Top 100</button>
-                                <button onClick={() => setVisualMode('news')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'news' ? 'bg-white/15 border-white/50 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>News</button>
+                            <div className="grid grid-cols-5 gap-2">
+                                <button onClick={() => setVisualMode('interview')} className={`py-4 rounded-2xl border font-black text-[9px] uppercase tracking-widest transition-all ${visualMode === 'interview' ? 'bg-neon-red/15 border-neon-red/50 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Interview</button>
+                                <button onClick={() => setVisualMode('recap')} className={`py-4 rounded-2xl border font-black text-[9px] uppercase tracking-widest transition-all ${visualMode === 'recap' ? 'bg-neon-cyan/15 border-neon-cyan/50 text-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Récap</button>
+                                <button onClick={() => setVisualMode('news')} className={`py-4 rounded-2xl border font-black text-[9px] uppercase tracking-widest transition-all ${visualMode === 'news' ? 'bg-white/10 border-white/30 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>News</button>
+                                <button onClick={() => setVisualMode('highlights')} className={`py-4 rounded-2xl border font-black text-[9px] uppercase tracking-widest transition-all ${visualMode === 'highlights' ? 'bg-red-600/15 border-red-600/50 text-red-600' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Highlights</button>
+                                <button onClick={() => setVisualMode('top100')} className={`py-4 rounded-2xl border font-black text-[9px] uppercase tracking-widest transition-all ${visualMode === 'top100' ? 'bg-yellow-500/15 border-yellow-500/50 text-yellow-500 shadow-[0_0_20px_rgba(255,240,31,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Top 100</button>
                             </div>
                         </div>
 
