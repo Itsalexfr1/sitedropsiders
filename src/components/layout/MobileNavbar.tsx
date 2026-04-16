@@ -198,7 +198,6 @@ export function MobileNavbar() {
                     </div>
                 )}
             </AnimatePresence>
-            />
         </>
     );
 }
