@@ -59,7 +59,19 @@ export function AdminPanel() {
     const [flashInput, setFlashInput] = useState('');
     const [takeoverInput, setTakeoverInput] = useState('');
 
+    const [editLineup, setEditLineup] = useState<LineupItem[]>(() => {
+        try { return JSON.parse(settings.lineup || '[]'); } catch (e) { return []; }
+    });
+
     const onSave = async () => {
+        // VALIDATION: Check for missing images in lineup
+        const missing = editLineup.filter(item => !item.image);
+        if (missing.length > 0) {
+            showNotification(`SAUVEGARDE IMPOSSIBLE : ${missing.length} artistes n'ont pas de photo !`, 'error');
+            setAdminActiveTab('planning'); // Switch to planning to show where the issue is
+            return;
+        }
+
         setIsSaving(true);
         const updated = {
             ...settings,
@@ -81,6 +93,7 @@ export function AdminPanel() {
             sponsorLink: editSponsorLink,
             showSponsorBanner: editShowSponsorBanner,
             festivalLogo: editFestivalLogo,
+            lineup: JSON.stringify(editLineup)
         };
         setSettings(updated);
         await handleGlobalSave(updated);
@@ -453,7 +466,7 @@ export function AdminPanel() {
 
 
 
-                    {adminActiveTab === 'planning' && <PlanningTab />}
+                    {adminActiveTab === 'planning' && <PlanningTab editLineup={editLineup} setEditLineup={setEditLineup} />}
 
                     {/* Bot & Drops Tab */}
                     {adminActiveTab === 'bot_drops' && (

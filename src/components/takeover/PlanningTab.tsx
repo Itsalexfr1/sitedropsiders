@@ -12,19 +12,18 @@ import { ImageUploadModal } from '../ImageUploadModal';
 import { uploadFile } from '../../utils/uploadService';
 import { useUser } from '../../context/UserContext';
 
-export function PlanningTab() {
+interface PlanningTabProps {
+    editLineup: LineupItem[];
+    setEditLineup: React.Dispatch<React.SetStateAction<LineupItem[]>>;
+}
+
+export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
     const { 
         settings, setSettings, wikiDjs, wikiClubs, wikiFestivals,
         activeStage, setActiveStage, showNotification, handleGlobalSave
     } = useTakeover();
 
-    const [editLineup, setEditLineup] = useState<LineupItem[]>(() => {
-        try {
-            return JSON.parse(settings.lineup || '[]');
-        } catch (e) {
-            return [];
-        }
-    });
+
 
     const [searchTerm, setSearchTerm] = useState('');
     const [bulkDate, setBulkDate] = useState('');
@@ -114,20 +113,7 @@ export function PlanningTab() {
         ).sort((a, b) => getSortValue(a.startTime) - getSortValue(b.startTime));
     }, [editLineup, activeStage, searchTerm]);
 
-    const handleSaveLineup = async () => {
-        // Validation: Every artist must have an image
-        const missingImages = editLineup.filter(item => !item.image);
-        if (missingImages.length > 0) {
-            showNotification(`PHOTO MANQUANTE : ${missingImages.length} artistes n'ont pas encore de photo !`, 'error');
-            // We can also focus/scroll to the first one but let's just alert for now
-            return;
-        }
 
-        const updated = { ...settings, lineup: JSON.stringify(editLineup) };
-        setSettings(updated);
-        await handleGlobalSave(updated);
-        showNotification('Planning enregistré !', 'success');
-    };
 
     const addLineupItem = () => {
         const newItem: LineupItem = {
