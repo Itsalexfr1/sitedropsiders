@@ -104,8 +104,6 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
                     onCropComplete={onCropCompleteCallback}
                     onZoomChange={onZoomChange}
                 />
-
-                />
             </div>
             <div className="bg-[#0a0a0a] p-6 border-t border-white/10 flex flex-col gap-6">
                 <div className="flex flex-wrap items-center justify-center gap-6">

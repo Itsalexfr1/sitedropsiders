@@ -105,6 +105,14 @@ export function PlanningTab() {
     }, [editLineup, activeStage, searchTerm]);
 
     const handleSaveLineup = async () => {
+        // Validation: Every artist must have an image
+        const missingImages = editLineup.filter(item => !item.image);
+        if (missingImages.length > 0) {
+            showNotification(`PHOTO MANQUANTE : ${missingImages.length} artistes n'ont pas encore de photo !`, 'error');
+            // We can also focus/scroll to the first one but let's just alert for now
+            return;
+        }
+
         const updated = { ...settings, lineup: JSON.stringify(editLineup) };
         setSettings(updated);
         await handleGlobalSave(updated);
@@ -197,26 +205,34 @@ export function PlanningTab() {
         const offset = selectedTimezoneId !== 'fr' ? calculateDynamicOffset(preset?.tz || 'Europe/Paris') : 0;
 
         lines.forEach(line => {
-            const m = line.match(regex);
-            if (m) {
-                let h = parseInt(m[1]);
-                let min = m[2] || '00';
-                let dayShift = 0;
-                let newH = h + offset;
-                while (newH >= 24) { newH -= 24; dayShift++; }
-                while (newH < 0) { newH += 24; dayShift--; }
-                let finalDay = bulkDate;
-                if (dayShift !== 0) {
-                    const d = new Date(bulkDate);
-                    d.setDate(d.getDate() + dayShift);
-                    finalDay = d.toISOString().split('T')[0];
-                }
+            // Format: 5:20 – 6:10 : Teddy Swims
+            const mFull = line.match(/^(\d{1,2}[:h]\d{2})\s*[–—\-]\s*(\d{1,2}[:h]\d{2})\s*:\s*(.+)$/i);
+            // Format: 5:20 - Artist Name
+            const mSimple = line.match(/^(\d{1,2}[:h]\d{2})\s*[-–—]\s*(.+)$/i);
+
+            if (mFull) {
+                const startTime = mFull[1].replace('h', ':');
+                const endTime = mFull[2].replace('h', ':');
+                const artist = mFull[3].trim().toUpperCase();
                 newItems.push({
                     id: Math.random().toString(36).substr(2, 9),
-                    day: finalDay,
-                    startTime: `${newH.toString().padStart(2, '0')}:${min.padStart(2, '0')}`,
+                    day: bulkDate,
+                    startTime,
+                    endTime,
+                    artist,
+                    stage: activeStage,
+                    instagram: '',
+                    image: ''
+                });
+            } else if (mSimple) {
+                const startTime = mSimple[1].replace('h', ':');
+                const artist = mSimple[2].trim().toUpperCase();
+                newItems.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    day: bulkDate,
+                    startTime,
                     endTime: '',
-                    artist: m[3].trim().toUpperCase(),
+                    artist,
                     stage: activeStage,
                     instagram: '',
                     image: ''
@@ -350,12 +366,19 @@ export function PlanningTab() {
                             className="relative h-32 bg-zinc-900 border border-white/5 rounded-[2rem] overflow-hidden group hover:border-white/20 transition-all flex items-center"
                         >
                             {/* Full Background Image */}
-                            {item.image && (
+                            {item.image ? (
                                 <img 
                                     src={resolveImageUrl(item.image)} 
                                     className="absolute inset-0 w-full h-full object-cover transition-opacity" 
                                     alt="" 
                                 />
+                            ) : (
+                                <div className="absolute inset-0 bg-red-950/20 flex flex-col items-center justify-center gap-3 border-2 border-dashed border-red-500/30 animate-pulse">
+                                    <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+                                        <Camera className="w-6 h-6 text-white" />
+                                    </div>
+                                    <p className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em]">Image Requise</p>
+                                </div>
                             )}
                             
                             {/* Static readability gradient */}
