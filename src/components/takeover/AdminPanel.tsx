@@ -123,6 +123,12 @@ export function AdminPanel() {
                             Dashboard
                         </button>
                         <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration du <span className="text-neon-purple">Studio</span></h2>
+                        <div className="flex items-center gap-2 mt-1">
+                            <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                                NOW : <span className="text-white">{new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+                            </span>
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <button 

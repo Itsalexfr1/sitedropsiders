@@ -438,7 +438,12 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                                                 value={item.artist} 
                                                 onChange={e => { updateItem(item.id, { artist: e.target.value.toUpperCase() }); setShowWikiResults(item.id); }} 
                                                 onFocus={() => setShowWikiResults(item.id)} 
-                                                className="bg-transparent text-4xl md:text-6xl font-black text-white italic outline-none uppercase tracking-tighter drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]" 
+                                                className={`bg-transparent font-black text-white italic outline-none uppercase tracking-tighter drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all ${
+                                                    item.artist.length > 20 ? 'text-2xl md:text-3xl' : 
+                                                    item.artist.length > 15 ? 'text-3xl md:text-4xl' : 
+                                                    item.artist.length > 12 ? 'text-4xl md:text-5xl' : 
+                                                    'text-4xl md:text-6xl'
+                                                }`} 
                                             />
                                             <AnimatePresence>
                                                 {showWikiResults === item.id && item.artist.length >= 2 && findWikiDj(item.artist).length > 0 && (
