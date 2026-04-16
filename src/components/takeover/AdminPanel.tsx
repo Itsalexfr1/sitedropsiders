@@ -99,33 +99,17 @@ export function AdminPanel() {
         >
             <div className="max-w-4xl mx-auto space-y-10">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/10 pb-6 gap-6">
-                    <div className="flex flex-col gap-4">
+                {/* Header Row 1: Title & Close */}
+                <div className="flex items-center justify-between border-b border-white/10 pb-6">
+                    <div className="flex flex-col gap-2">
                         <button 
                             onClick={() => navigate('/admin')}
-                            className="w-fit flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-gray-400 text-[10px] font-black uppercase tracking-widest hover:text-white hover:bg-white/10 transition-all group"
+                            className="w-fit flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-gray-500 text-[8px] font-black uppercase tracking-widest hover:text-white hover:bg-white/10 transition-all group"
                         >
-                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                            Tableau Admin
+                            <ChevronLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
+                            Dashboard
                         </button>
-                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration du <span className="text-neon-purple">Studio</span></h2>
-                    </div>
-                    <div className="flex gap-1.5 bg-white/5 p-1.5 rounded-2xl border border-white/10 overflow-x-auto no-scrollbar">
-                        {[
-                            { id: 'config', label: '🛠️ CONFIG' },
-                            { id: 'planning', label: '📅 PLANNING' },
-                            { id: 'tracklist', label: '🎵 TRACKLIST' },
-                            { id: 'interactif', label: '🎮 INTERACTIF' },
-                            { id: 'bot_drops', label: '🤖 BOT & DROPS' }
-                        ].map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setAdminActiveTab(tab.id as any)}
-                                className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${adminActiveTab === tab.id ? 'bg-neon-purple/20 text-neon-purple border border-neon-purple/30 shadow-[0_0_20px_rgba(191,0,255,0.15)]' : 'text-gray-500 hover:text-white'}`}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
+                        <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration du <span className="text-neon-purple">Studio</span></h2>
                     </div>
                     <div className="flex items-center gap-3">
                         <button 
@@ -138,6 +122,25 @@ export function AdminPanel() {
                         </button>
                         <button onClick={() => setShowAdminPanel(false)} className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-500 border border-white/10 rounded-2xl transition-all" title="Fermer le panel"><X className="w-6 h-6" /></button>
                     </div>
+                </div>
+
+                {/* Header Row 2: Tabs (Full Width) */}
+                <div className="flex gap-1.5 bg-white/5 p-1.5 rounded-2xl border border-white/10 overflow-x-auto no-scrollbar">
+                    {[
+                        { id: 'config', label: '🛠️ CONFIG' },
+                        { id: 'planning', label: '📅 PLANNING' },
+                        { id: 'tracklist', label: '🎵 TRACKLIST' },
+                        { id: 'interactif', label: '🎮 INTERACTIF' },
+                        { id: 'bot_drops', label: '🤖 BOT & DROPS' }
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setAdminActiveTab(tab.id as any)}
+                            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${adminActiveTab === tab.id ? 'bg-neon-purple/20 text-neon-purple border border-neon-purple/30 shadow-[0_0_20px_rgba(191,0,255,0.15)]' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
                 </div>
                 <div className="min-h-[400px]">
                     {adminActiveTab === 'config' && (
