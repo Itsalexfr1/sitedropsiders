@@ -79,10 +79,16 @@ export const getCroppedImg = (imageSrc: string, pixelCrop: Area): Promise<string
                             Carré
                         </button>
                         <button 
+                            onClick={() => setAspect(3.5/1)}
+                            className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${aspect === 3.5/1 ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
+                        >
+                            Format Carte
+                        </button>
+                        <button 
                             onClick={() => setAspect(1/3)}
                             className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${aspect === 1/3 ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
                         >
-                            Colonne
+                            Format Mobile
                         </button>
                     </div>
 
