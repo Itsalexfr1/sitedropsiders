@@ -208,11 +208,20 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
         lines.forEach(line => {
             const lowerLine = line.toLowerCase();
             
-            // 1. Detect Stage Change
-            const matchedStage = availableStages.find(s => lowerLine === s.name || lowerLine.includes(s.name));
-            if (matchedStage) {
-                currentStage = matchedStage.name;
-                return; // Continue to next line
+            // 1. Detect Artist Pattern First (to avoid mistaking artist names for stages)
+            const isArtistLine = line.match(/^(\d{1,2}[:h]\d{2})/);
+            
+            // 2. Detect Stage Change (ONLY if not an artist line)
+            if (!isArtistLine) {
+                const matchedStage = availableStages.find(s => 
+                    lowerLine === s.name || 
+                    lowerLine.includes(s.name) || 
+                    s.name.includes(lowerLine)
+                );
+                if (matchedStage) {
+                    currentStage = matchedStage.name;
+                    return; // Header line processed
+                }
             }
 
             // 2. Detect Artist with Time (Improved RegEx)
@@ -248,10 +257,27 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
         });
 
         if (newItems.length > 0) {
-            setEditLineup(prev => [...prev, ...newItems]);
+            // Sort by time within each stage to calculate end times
+            const finalItems = [...newItems].sort((a, b) => a.startTime.localeCompare(b.startTime));
+            
+            // Set end times based on next artist start time
+            finalItems.forEach((item, idx) => {
+                if (item.endTime) return; // Already has end time (Format 1)
+                
+                const nextOnStage = finalItems.slice(idx + 1).find(next => next.stage === item.stage);
+                if (nextOnStage) {
+                    item.endTime = nextOnStage.startTime;
+                } else {
+                    // Default to 1 hour for the last artist
+                    const [h, m] = item.startTime.split(':').map(Number);
+                    item.endTime = `${(h + 1).toString().padStart(2, '0')}:${(m || 0).toString().padStart(2, '0')}`;
+                }
+            });
+
+            setEditLineup([...editLineup, ...finalItems]);
             setBulkText('');
             setShowBulkImport(false);
-            showNotification(`${newItems.length} artistes importés`, 'success');
+            showNotification(`${finalItems.length} artistes importés avec succès`, 'success');
         } else {
             showNotification('Format incorrect', 'error');
         }
