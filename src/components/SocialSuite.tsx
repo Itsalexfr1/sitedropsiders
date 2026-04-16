@@ -898,6 +898,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
                 const lines = [highlightsArtists, highlightsFestival, highlightsLocation];
 
+                ctx.save();
+                ctx.textAlign = 'center';
                 
                 const maxWidth = 960;
                 const getFontSize = (text: string, base: number, font: string) => {
