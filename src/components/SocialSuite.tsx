@@ -1075,7 +1075,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const prefix = 'VOTER SUR ';
                     const domain = 'DROPSIDERS.FR';
                     const centerX = canvas.width / 2;
-                    const footerY = canvas.height - 100;
+                    const footerY = canvas.height - 60;
                     
                     ctx.font = `600 ${ctaSize}px "Montserrat", sans-serif`;
                     const w1 = ctx.measureText(prefix).width;
