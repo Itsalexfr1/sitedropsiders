@@ -98,10 +98,20 @@ export function PlanningTab() {
     };
 
     const filteredLineup = useMemo(() => {
+        const getSortValue = (time: string) => {
+            if (!time) return 9999;
+            let [h, m] = time.replace('h', ':').replace('.', ':').split(':').map(Number);
+            if (isNaN(h)) return 9999;
+            // Festival logic: hours 0-7 are part of previous night (treat as 24-31)
+            let finalH = h;
+            if (h < 8) finalH += 24; 
+            return finalH * 60 + (m || 0);
+        };
+
         return editLineup.filter(item => 
             (item.stage || 'stage1') === activeStage &&
             (item.artist.toLowerCase().includes(searchTerm.toLowerCase()))
-        ).sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+        ).sort((a, b) => getSortValue(a.startTime) - getSortValue(b.startTime));
     }, [editLineup, activeStage, searchTerm]);
 
     const handleSaveLineup = async () => {
