@@ -861,6 +861,30 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path === '/api/r2/delete' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { key } = await request.json();
+                if (!key) return new Response(JSON.stringify({ error: 'Key missing' }), { status: 400, headers });
+                
+                // key might be a URL like /uploads/uploads/file.jpg, we need to extract the actual R2 key
+                let r2Key = key.replace(/^\//, ''); // Remove leading slash
+                if (r2Key.startsWith('uploads/')) {
+                    r2Key = r2Key.replace('uploads/', '');
+                }
+                
+                // Final sanitization: if it still has uploads/ at the start (double uploads/ case)
+                if (r2Key.startsWith('uploads/')) {
+                    r2Key = r2Key.replace('uploads/', '');
+                }
+
+                await env.R2.delete(decodeURIComponent(r2Key));
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         // --- SERVE UPLOADS FROM R2 ---
         if (path.startsWith('/uploads/') && request.method === 'GET') {
             const rawKey = path.replace('/uploads/', '');

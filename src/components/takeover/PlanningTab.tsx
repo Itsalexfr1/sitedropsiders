@@ -43,6 +43,7 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
     const [bulkText, setBulkText] = useState('');
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
+    const [isCleaning, setIsCleaning] = useState(false);
 
     const timezonePresets = [
         { id: 'coachella', label: 'COACHELLA', offset: 9, color: 'text-purple-400 border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/20', icon: <Zap className="w-3 h-3" /> },
@@ -190,6 +191,44 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
             const elapsed = now.getTime() - start.getTime();
             return Math.min(100, Math.max(0, (elapsed / total) * 100));
         } catch (e) { return 0; }
+    };
+
+    const cleanupFinishedCrops = async () => {
+        const finishedItemsWithCrops = editLineup.filter(item => {
+            const prog = getProgress(item);
+            return prog === 100 && item.image && item.image.includes('crop_');
+        });
+
+        if (finishedItemsWithCrops.length === 0) {
+            showNotification('Aucune image temporaire à nettoyer pour le moment.', 'info');
+            return;
+        }
+
+        if (!confirm(`Voulez-vous supprimer les images de ${finishedItemsWithCrops.length} artistes dont le set est terminé ?\nCette action est irréversible.`)) {
+            return;
+        }
+
+        setIsCleaning(true);
+        try {
+            let deletedCount = 0;
+            for (const item of finishedItemsWithCrops) {
+                const response = await fetch('/api/r2/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: item.image })
+                });
+
+                if (response.ok) {
+                    deletedCount++;
+                }
+            }
+            showNotification(`${deletedCount} images temporaires supprimées du R2 !`, 'success');
+        } catch (e) {
+            console.error('Cleanup error:', e);
+            showNotification('Erreur lors du nettoyage R2', 'error');
+        } finally {
+            setIsCleaning(false);
+        }
     };
 
     const handleBulkImport = () => {
@@ -402,6 +441,15 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <button 
+                            onClick={cleanupFinishedCrops}
+                            disabled={isCleaning}
+                            className={`h-11 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all flex items-center gap-2 ${isCleaning ? 'bg-white/5 border-white/5 text-gray-600' : 'bg-white/5 border-white/5 text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 hover:border-orange-500/30'}`}
+                            title="Supprime les images rognées des artistes dont le set est terminé"
+                        >
+                            <Trash2 className={`w-3 h-3 ${isCleaning ? 'animate-spin' : ''}`} />
+                            {isCleaning ? 'NETTOYAGE...' : 'NETTOYER LE R2'}
+                        </button>
                         <button 
                             onClick={() => setShowBulkImport(!showBulkImport)}
                             className={`h-11 px-8 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${showBulkImport ? 'bg-neon-purple border-neon-purple text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
