@@ -322,10 +322,13 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                 </div>
 
                 {/* Row 2: TIMEZONES / FESTIVALS */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
-                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-3 border-r border-white/10 shrink-0">Fuseau / Festival</span>
-                    
-                    <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-4 border-r border-white/10">
+                <div className="bg-white/5 border border-white/10 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center min-h-[60px] overflow-hidden">
+                    <div className="px-4 py-3 md:py-0 border-b md:border-b-0 md:border-r border-white/10 flex items-center justify-between md:justify-start shrink-0">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fuseau / Festival</span>
+                        <Globe className="w-3.5 h-3.5 text-gray-500 md:hidden" />
+                    </div>
+
+                    <div className="flex-1 flex items-center gap-2 overflow-x-auto px-3 py-2 no-scrollbar scroll-smooth">
                         {timezonePresets.map(preset => (
                             <button
                                 key={preset.id}
@@ -333,9 +336,9 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                                     convertTimesByOffset(preset.offset);
                                     setSelectedTimezoneId(preset.id);
                                 }}
-                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-2 border shrink-0 ${
+                                className={`px-5 py-2.5 rounded-xl text-[9px] lg:text-[10px] font-black uppercase transition-all flex items-center gap-2.5 border shrink-0 whitespace-nowrap ${
                                     selectedTimezoneId === preset.id 
-                                    ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' 
+                                    ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)] scale-105 z-10' 
                                     : `border-transparent ${preset.color}`
                                 }`}
                             >
@@ -345,20 +348,21 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                         ))}
                     </div>
 
-                    <div className="flex items-center gap-2 px-3 shrink-0">
-                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest mr-2">Manuel</span>
-                        <div className="flex items-center gap-1 bg-black/40 rounded-xl border border-white/10 p-1 group-focus-within:border-neon-cyan transition-all">
+                    <div className="px-4 py-3 md:py-0 border-t md:border-t-0 md:border-l border-white/10 bg-white/5 md:bg-transparent flex items-center gap-4 shrink-0">
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Manuel</span>
+                        <div className="flex items-center gap-1.5 bg-black/40 rounded-xl border border-white/10 p-1 focus-within:border-neon-cyan transition-all">
                             <input
                                 type="number"
                                 value={manualOffset}
                                 onChange={(e) => setManualOffset(Number(e.target.value))}
-                                className="w-12 bg-transparent text-center text-[11px] font-bold text-white outline-none"
+                                className="w-10 bg-transparent text-center text-[12px] font-black text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
                             <button
                                 onClick={() => convertTimesByOffset(manualOffset)}
-                                className="p-1.5 bg-white/5 hover:bg-neon-cyan hover:text-black rounded-lg transition-all"
+                                className="p-2 bg-white/5 hover:bg-neon-cyan hover:text-black rounded-lg transition-all"
+                                title="Appliquer le décalage manuel"
                             >
-                                <ArrowRight className="w-3 h-3" />
+                                <ArrowRight className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
