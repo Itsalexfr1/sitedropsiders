@@ -52,13 +52,15 @@ export function WikiDropsiders({
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
+    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+
     const fetchData = useCallback(async () => {
         try {
             const res = await fetch('/api/wiki/list?type=DJS');
             if (res.ok) {
                 const data: DjEntry[] = await res.json();
                 setDjData(data
-                    .filter(dj => dj.status !== 'waiting')
+                    .filter(dj => isAdmin || dj.status !== 'waiting')
                     .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }))
                 );
             }
@@ -72,9 +74,9 @@ export function WikiDropsiders({
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
     const [selectedDj, setSelectedDj] = useState<DjEntry | null>(null);
     const [votes, setVotes] = useState<Set<string>>(() => loadVotes());
-    const isAdmin = localStorage.getItem('admin_auth') === 'true';
     const [editMode, setEditMode] = useState(false);
     const [editValues, setEditValues] = useState<Partial<DjEntry>>({});
     const [isSaving, setIsSaving] = useState(false);

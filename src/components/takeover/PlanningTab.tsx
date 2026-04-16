@@ -103,7 +103,7 @@ export function PlanningTab() {
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Filtrer Scène</label>
                         <div className="flex gap-2">
-                            {['stage1', 'stage2', 'stage3'].map(s => (
+                            {(settings.streams && settings.streams.length > 0 ? settings.streams.map(s => s.name.toLowerCase()) : ['stage1']).map(s => (
                                 <button
                                     key={s}
                                     onClick={() => setActiveStage(s)}
