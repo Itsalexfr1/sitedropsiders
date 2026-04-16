@@ -6,7 +6,7 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "",
-    "title": "LIVESTREAM",
+    "title": "coachella week end 2 ",
     "moderators": "",
     "lineup": "",
     "customCommands": "",
@@ -29,7 +29,53 @@
     "startDate": "",
     "endDate": "",
     "status": "edit",
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d"
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
+    "streams": [
+      {
+        "id": "ij72ilxg8",
+        "name": "MAINSTAGE",
+        "youtubeId": "https://www.youtube.com/watch?v=xIiSaqq10Yw&pp=0gcJCdMKAYcqIYzv"
+      },
+      {
+        "id": "x67t9duf0",
+        "name": "YUMA",
+        "youtubeId": "https://www.youtube.com/watch?v=s5A5Y93nmPI"
+      },
+      {
+        "id": "j6irkuefe",
+        "name": "QUASAR",
+        "youtubeId": "https://www.youtube.com/watch?v=iulgXa5S62A"
+      },
+      {
+        "id": "kci6j6k83",
+        "name": "SAHARA",
+        "youtubeId": "https://www.youtube.com/watch?v=bkCTPTwU7ls"
+      },
+      {
+        "id": "ysaob27k6",
+        "name": "GOBI ",
+        "youtubeId": "https://www.youtube.com/watch?v=OMImphySFJs"
+      },
+      {
+        "id": "7wdfikavt",
+        "name": "MOJAVE",
+        "youtubeId": "https://www.youtube.com/watch?v=cYT79Dp0Wuk"
+      },
+      {
+        "id": "txi0ap2qc",
+        "name": "OUTDOOR THEATREHTTPS://WWW.YOUTUBE.COM/WATCH?V=XIISAQQ10YW&PP=0GCJCDMKAYCQIYZV",
+        "youtubeId": "https://www.youtube.com/watch?v=CzAJcgiywFo"
+      }
+    ],
+    "activeStreamId": "ij72ilxg8",
+    "instagramLink": "",
+    "tiktokLink": "",
+    "youtubeLink": "",
+    "twitterLink": "",
+    "sponsorText": "",
+    "sponsorLink": "",
+    "showSponsorBanner": true,
+    "festivalLogo": ""
   },
   "socials": {
     "instagram": "dropsiders.eu",
