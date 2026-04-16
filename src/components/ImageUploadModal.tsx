@@ -277,6 +277,26 @@ export function ImageUploadModal({
                     continue;
                 }
 
+                // If no file but we have a base64 preview (result of cropping)
+                if (!item.file && item.preview && item.preview.startsWith('data:')) {
+                    const filename = forceFilename || `crop_${Date.now()}.jpg`;
+                    const base64 = await processImage(item.preview);
+                    
+                    const response = await fetch('/api/upload', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ filename, content: base64, type: 'image/jpeg' })
+                    });
+
+                    const data = await response.json();
+                    if (data.success && data.url) {
+                         uploadedUrls.push(data.url);
+                         continue;
+                    } else {
+                         throw new Error(data.error || 'Upload échoué');
+                    }
+                }
+
                 if (item.file) {
                     const filename = forceFilename || sanitizeFilename(item.file.name);
                     let fileType = item.file.type;

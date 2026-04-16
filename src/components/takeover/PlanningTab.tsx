@@ -5,7 +5,7 @@ import {
     Plus, Trash2, Calendar, Clock, Instagram, 
     Image as ImageIcon, Zap, Check, Star, Flame, Sun, Map as MapIcon,
     Music, Home, MapPin, Globe, RefreshCcw, Camera, Scan, ArrowRight,
-    ChevronDown
+    ChevronDown, ToggleLeft, ToggleRight
 } from 'lucide-react';
 import { useTakeover } from '../../context/TakeoverContext';
 import type { LineupItem } from '../../context/TakeoverContext';
@@ -28,6 +28,7 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
 
     const [manualOffset, setManualOffset] = useState(8); 
     const [selectedTimezoneId, setSelectedTimezoneId] = useState('europe');
+    const [enableTimeConversion, setEnableTimeConversion] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [bulkDate, setBulkDate] = useState('');
     const [showWikiResults, setShowWikiResults] = useState<string | null>(null);
@@ -326,7 +327,7 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fuseau / Festival</span>
                     </div>
 
-                    <div className="flex-1 flex items-center gap-4">
+                    <div className="flex-1 flex items-center justify-between gap-4">
                         <div className="relative group">
                             <select 
                                 value={selectedTimezoneId}
@@ -348,6 +349,18 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                             </select>
                             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none group-focus-within:text-neon-cyan" />
                         </div>
+
+                        <button 
+                            onClick={() => setEnableTimeConversion(!enableTimeConversion)}
+                            className={`flex items-center gap-3 px-6 py-2.5 rounded-xl border transition-all ${
+                                enableTimeConversion 
+                                ? 'bg-neon-cyan/10 border-neon-cyan/50 text-neon-cyan' 
+                                : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'
+                            }`}
+                        >
+                            <span className="text-[10px] font-black uppercase tracking-widest">Conversion FR</span>
+                            {enableTimeConversion ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
+                        </button>
                     </div>
 
                     <div className="flex items-center gap-4 shrink-0 border-l border-white/10 pl-6">
@@ -533,7 +546,7 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                                 {/* Right Timeline Section - Keep for secondary view but slimmed down if needed */}
                                  <div className="flex flex-col items-end gap-1">
                                     <div className="flex items-center gap-4">
-                                        {getPreviewTime(item.startTime) && (
+                                        {enableTimeConversion && getPreviewTime(item.startTime) && (
                                             <div className="flex items-center gap-2 bg-neon-cyan/10 border border-neon-cyan/20 px-3 py-1.5 rounded-lg shadow-lg shadow-neon-cyan/5">
                                                 <Globe className="w-3 h-3 text-neon-cyan" />
                                                 <span className="text-[10px] font-black text-neon-cyan uppercase italic">FR: {getPreviewTime(item.startTime)}</span>
