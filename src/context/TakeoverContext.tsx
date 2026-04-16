@@ -142,7 +142,7 @@ interface TakeoverContextType {
     fetchWikiData: () => Promise<void>;
 
     // Handlers
-    handleGlobalSave: () => Promise<void>;
+    handleGlobalSave: (data?: TakeoverSettings) => Promise<void>;
     triggerConfetti: () => void;
     showNotification: (msg: string, type: 'success' | 'error' | 'info') => void;
 }
@@ -240,16 +240,19 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
     }, [localIsAdmin, isSpecialAdmin, fetchWikiData]);
 
     // Handlers
-    const handleGlobalSave = async () => {
+    const handleGlobalSave = async (data?: TakeoverSettings) => {
         try {
-            await fetch('/api/takeover-settings', {
+            const toSave = data || settings;
+            const res = await fetch('/api/takeover-settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(settings)
+                body: JSON.stringify(toSave)
             });
-            showNotification('Configuration enregistrée !', 'success');
+            if (!res.ok) throw new Error('Failed to save');
+            showNotification('Configuration enregistrée sur le serveur !', 'success');
         } catch (e) {
-            showNotification('Erreur de sauvegarde', 'error');
+            console.error('Save failed', e);
+            showNotification('Erreur de sauvegarde serveur', 'error');
         }
     };
 

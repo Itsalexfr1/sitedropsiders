@@ -3,16 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Plus, Trash2, Calendar, Clock, Instagram, 
     Image as ImageIcon, Search, Zap, Check,
-    Music, Home, MapPin, Globe, RefreshCcw
+    Music, Home, MapPin, Globe, RefreshCcw, Camera
 } from 'lucide-react';
 import { useTakeover } from '../../context/TakeoverContext';
 import type { LineupItem } from '../../context/TakeoverContext';
 import { resolveImageUrl } from '../../utils/image';
+import { uploadFile } from '../../utils/uploadService';
+import { useUser } from '../../context/UserContext';
 
 export function PlanningTab() {
     const { 
         settings, setSettings, wikiDjs, wikiClubs, wikiFestivals,
-        activeStage, setActiveStage, showNotification 
+        activeStage, setActiveStage, showNotification, handleGlobalSave
     } = useTakeover();
 
     const [editLineup, setEditLineup] = useState<LineupItem[]>(() => {
@@ -29,6 +31,8 @@ export function PlanningTab() {
     const [selectedTimezoneId, setSelectedTimezoneId] = useState('fr');
     const [showBulkImport, setShowBulkImport] = useState(false);
     const [bulkText, setBulkText] = useState('');
+    const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
+    const [isSavingLineup, setIsSavingLineup] = useState(false);
 
     const timezonePresets = [
         { id: 'fr', label: 'Heure Française (pas de conversion)', tz: 'Europe/Paris', offset: 0 },
@@ -105,12 +109,14 @@ export function PlanningTab() {
         ).sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
     }, [editLineup, activeStage, searchTerm]);
 
-    const handleSaveLineup = () => {
-        setSettings(prev => ({
-            ...prev,
+    const handleSaveLineup = async () => {
+        const updated = {
+            ...settings,
             lineup: JSON.stringify(editLineup)
-        }));
-        showNotification('Planning mis à jour localement. N\'oubliez pas de sauvegarder globalement !', 'info');
+        };
+        setSettings(updated);
+        await handleGlobalSave(updated);
+        showNotification('Planning enregistré sur le serveur !', 'success');
     };
 
     const addLineupItem = () => {
@@ -152,6 +158,20 @@ export function PlanningTab() {
         const fests = wikiFestivals.filter(f => f.name.toLowerCase().includes(search)).map(f => ({ ...f, _type: 'FESTIVAL' }));
 
         return [...djs, ...fests, ...clubs].slice(0, 8);
+    };
+
+    const getPreviewTime = (time: string) => {
+        const preset = timezonePresets.find(p => p.id === selectedTimezoneId);
+        if (!preset || preset.id === 'fr' || !time) return null;
+        
+        const offset = calculateDynamicOffset(preset.tz);
+        let [h, m] = time.split(':').map(Number);
+        if (isNaN(h)) return null;
+        
+        let newH = h + offset;
+        while (newH >= 24) newH -= 24;
+        while (newH < 0) newH += 24;
+        return `${newH.toString().padStart(2, '0')}:${(m || 0).toString().padStart(2, '0')}`;
     };
 
     const autoFillFromWiki = (id: string, item: any) => {
@@ -222,109 +242,98 @@ export function PlanningTab() {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* Controls */}
-            <div className="flex flex-col md:flex-row gap-4 items-end justify-between bg-white/5 p-6 rounded-3xl border border-white/10">
-                <div className="flex flex-wrap gap-4">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Filtrer Scène</label>
-                        <div className="flex gap-2">
-                            {(settings.streams && settings.streams.length > 0 ? settings.streams.map(s => s.name.toLowerCase()) : ['stage1']).map(s => (
-                                <button
-                                    key={s}
-                                    onClick={() => setActiveStage(s)}
-                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${activeStage === s ? 'bg-neon-cyan text-black' : 'bg-white/5 text-gray-400'}`}
-                                >
-                                    {s.toUpperCase()}
-                                </button>
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Main Header Controls */}
+            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-4 flex flex-col xl:flex-row gap-4 items-center">
+                {/* Search & Stage Group */}
+                <div className="flex flex-1 items-center gap-3 bg-black/40 border border-white/5 p-2 rounded-3xl w-full">
+                    <div className="flex gap-1 bg-white/5 p-1 rounded-2xl">
+                        {(settings.streams && settings.streams.length > 0 ? settings.streams.map(s => s.name.toLowerCase()) : ['stage1']).map(s => (
+                            <button
+                                key={s}
+                                onClick={() => setActiveStage(s)}
+                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all ${activeStage === s ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(34,211,238,0.3)]' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="h-4 w-[1px] bg-white/10 mx-1" />
+                    <div className="relative flex-1 group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-600 group-focus-within:text-neon-cyan transition-colors" />
+                        <input 
+                            type="text"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            placeholder="RECHERCHER UN ARTISTE..."
+                            className="w-full bg-transparent pl-10 pr-4 py-2 text-[10px] text-white font-black uppercase tracking-widest outline-none"
+                        />
+                    </div>
+                </div>
+
+                {/* Automation Group */}
+                <div className="flex items-center gap-3 bg-white/5 p-2 rounded-3xl w-full xl:w-auto">
+                    {/* Timezone */}
+                    <div className="flex items-center gap-2 pl-2">
+                        <Globe className="w-3.5 h-3.5 text-neon-purple" />
+                        <select 
+                            value={selectedTimezoneId}
+                            onChange={e => setSelectedTimezoneId(e.target.value)}
+                            className="bg-transparent text-[9px] font-black uppercase text-gray-400 outline-none hover:text-white transition-colors cursor-pointer"
+                        >
+                            {timezonePresets.map(tz => (
+                                <option key={tz.id} value={tz.id} className="bg-gray-950">{tz.label}</option>
                             ))}
-                        </div>
+                        </select>
+                        <button 
+                            onClick={convertTimesToFR}
+                            disabled={selectedTimezoneId === 'fr'}
+                            className={`p-2 rounded-xl transition-all ${selectedTimezoneId === 'fr' ? 'text-gray-700 opacity-20' : 'text-neon-purple hover:bg-neon-purple/20 shadow-lg shadow-neon-purple/5'}`}
+                            title="Convertir Tout"
+                        >
+                            <RefreshCcw className={`w-4 h-4 ${selectedTimezoneId !== 'fr' ? 'animate-spin-slow' : ''}`} />
+                        </button>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Recherche Artiste</label>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                            <input 
-                                type="text"
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                placeholder="RECHERCHER..."
-                                className="bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-[10px] text-white focus:border-neon-cyan outline-none transition-all"
-                            />
-                        </div>
+
+                    <div className="h-4 w-[1px] bg-white/10 mx-1" />
+
+                    {/* Mass Date */}
+                    <div className="flex items-center gap-2">
+                        <input 
+                            type="date" 
+                            value={bulkDate}
+                            onChange={e => setBulkDate(e.target.value)}
+                            className="bg-transparent text-[10px] text-gray-400 font-bold outline-none"
+                            style={{ colorScheme: 'dark' }}
+                        />
+                        <button 
+                            onClick={applyBulkDate}
+                            className="p-2 text-white/40 hover:text-white transition-colors"
+                        >
+                            <Check className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-4 mt-4 md:mt-0">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 flex items-center gap-1">
-                            <Globe className="w-3 h-3 text-neon-purple" /> 
-                            Conversion US/International {"->"} FR
-                        </label>
-                        <div className="flex gap-2">
-                            <select 
-                                value={selectedTimezoneId}
-                                onChange={e => setSelectedTimezoneId(e.target.value)}
-                                className="bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white outline-none focus:border-neon-purple transition-all hover:border-white/20"
-                            >
-                                {timezonePresets.map(tz => (
-                                    <option key={tz.id} value={tz.id} className="bg-gray-900">{tz.label}</option>
-                                ))}
-                            </select>
-                            <button 
-                                onClick={convertTimesToFR}
-                                disabled={selectedTimezoneId === 'fr'}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase transition-all shadow-lg ${
-                                    selectedTimezoneId === 'fr' 
-                                    ? 'bg-white/5 text-gray-600 opacity-50 cursor-not-allowed' 
-                                    : 'bg-neon-purple text-white hover:scale-105 active:scale-95 shadow-neon-purple/20'
-                                }`}
-                                title="Convertir tout le planning de cette scène"
-                            >
-                                <RefreshCcw className={`w-3.5 h-3.5 ${selectedTimezoneId !== 'fr' ? 'animate-spin-slow' : ''}`} />
-                                Convertir
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex gap-4">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 text-right block">Date de masse</label>
-                        <div className="flex gap-2">
-                            <input 
-                                type="date" 
-                                value={bulkDate}
-                                onChange={e => setBulkDate(e.target.value)}
-                                className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white outline-none"
-                                style={{ colorScheme: 'dark' }}
-                            />
-                            <button 
-                                onClick={applyBulkDate}
-                                className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all"
-                                title="Appliquer à toute la scène"
-                            >
-                                <Check className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
+                {/* Primary Actions Group */}
+                <div className="flex items-center gap-2 w-full xl:w-auto">
                     <button 
                         onClick={() => setShowBulkImport(!showBulkImport)}
-                        className={`flex items-center gap-2 px-6 py-2 border font-black uppercase text-[10px] rounded-xl transition-all self-end h-[38px] ${showBulkImport ? 'bg-neon-purple text-white border-neon-purple' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                        className={`px-5 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all flex-1 xl:flex-none ${showBulkImport ? 'bg-neon-purple border-neon-purple text-white' : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'}`}
                     >
-                        {showBulkImport ? 'Annuler Import' : 'Import Rapide'}
+                        IMPORT RAPIDE
                     </button>
                     <button 
                         onClick={addLineupItem}
-                        className="flex items-center gap-2 px-6 py-2 bg-neon-cyan text-black font-black uppercase text-[10px] rounded-xl hover:scale-105 transition-all self-end h-[38px]"
+                        className="px-5 py-3 bg-neon-cyan text-black text-[9px] font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-cyan/10 flex-1 xl:flex-none"
                     >
-                        <Plus className="w-4 h-4" /> Ajouter
+                        AJOUTER
                     </button>
                     <button 
                         onClick={handleSaveLineup}
-                        className="flex items-center gap-2 px-6 py-2 bg-white text-black font-black uppercase text-[10px] rounded-xl hover:scale-105 transition-all self-end h-[38px]"
+                        className="px-5 py-3 bg-white text-black text-[9px] font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all flex-1 xl:flex-none"
                     >
-                        Sauvegarder Planning
+                        SAUVEGARDER
                     </button>
                 </div>
             </div>
@@ -388,151 +397,193 @@ export function PlanningTab() {
                         <motion.div
                             key={item.id}
                             layout
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white/5 border border-white/10 rounded-3xl p-6 flex flex-col md:flex-row gap-6 group hover:border-white/20 transition-all"
+                            className="bg-white/5 border border-white/5 rounded-[2.5rem] p-6 flex flex-col lg:flex-row gap-8 group hover:border-white/20 hover:bg-white/[0.07] transition-all relative overflow-hidden"
                         >
-                            {/* Artist Info & Auto-fill */}
+                            {/* Backdrop Glow */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-neon-cyan/5 blur-[100px] -mr-32 -mt-32 pointer-events-none" />
+
+                            {/* Image Section */}
+                            <div className="flex-shrink-0 relative group/img cursor-pointer" onClick={() => document.getElementById(`upload-${item.id}`)?.click()}>
+                                <div className="w-24 h-24 rounded-3xl bg-black border border-white/10 overflow-hidden shadow-2xl transition-all group-hover/img:scale-105 group-hover/img:border-neon-cyan/30">
+                                    {item.image ? (
+                                        <img src={resolveImageUrl(item.image)} className="w-full h-full object-cover" alt={item.artist} />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-transparent">
+                                            <Music className="w-8 h-8 text-gray-800" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center rounded-3xl backdrop-blur-sm">
+                                    <Camera className="w-6 h-6 text-white" />
+                                </div>
+                                <input 
+                                    id={`upload-${item.id}`}
+                                    type="file" 
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        setUploadingItemId(item.id);
+                                        try {
+                                            const url = await uploadFile(file, 'artists');
+                                            updateItem(item.id, { image: url });
+                                            showNotification('Image mise à jour !', 'success');
+                                        } catch (err: any) {
+                                            showNotification(err.message, 'error');
+                                        } finally {
+                                            setUploadingItemId(null);
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            {/* Info Section */}
                             <div className="flex-1 space-y-4">
-                                <div className="space-y-1">
-                                    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-1">Artiste</label>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">
+                                        <Music className="w-3 h-3 text-neon-cyan" /> Artiste
+                                    </div>
                                     <div className="relative">
                                         <input 
                                             type="text" 
                                             value={item.artist}
                                             onChange={e => {
-                                                updateItem(item.id, { artist: e.target.value });
+                                                updateItem(item.id, { artist: e.target.value.toUpperCase() });
                                                 setShowWikiResults(item.id);
                                             }}
                                             onFocus={() => setShowWikiResults(item.id)}
                                             placeholder="NOM DE L'ARTISTE..."
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-black text-white uppercase focus:border-neon-cyan outline-none transition-all"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 text-xs font-black text-white placeholder-gray-700 outline-none focus:border-neon-cyan/30 transition-all shadow-inner"
                                         />
                                         <AnimatePresence>
-                                            {showWikiResults === item.id && item.artist.length >= 2 && (
+                                            {showWikiResults === item.id && item.artist.length >= 2 && findWikiDj(item.artist).length > 0 && (
                                                 <motion.div 
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: 10 }}
-                                                    className="absolute left-0 right-0 top-full mt-2 z-50 bg-gray-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                    className="absolute left-0 right-0 top-full mt-3 z-50 bg-gray-950/95 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
                                                 >
-                                                    <div className="p-2 border-b border-white/5 bg-white/5 flex items-center gap-2">
-                                                        <Zap className="w-3 h-3 text-amber-500" />
-                                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Suggestions Wiki DJs</span>
+                                                    <div className="p-3 border-b border-white/5 bg-white/5 flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <Zap className="w-3 h-3 text-neon-cyan" />
+                                                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Base de Données Wiki</span>
+                                                        </div>
+                                                        <button onClick={() => setShowWikiResults(null)} className="text-[7px] font-black text-gray-600 hover:text-white uppercase">Fermer</button>
                                                     </div>
-                                                    <div className="max-h-48 overflow-y-auto custom-scrollbar">
-                                                        {findWikiDj(item.artist).length > 0 ? (
-                                                            findWikiDj(item.artist).map(dj => (
-                                                                <button
-                                                                    key={dj.id}
-                                                                    onClick={() => autoFillFromWiki(item.id, dj)}
-                                                                    className="w-full p-3 flex  items-center gap-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-none"
-                                                                >
-                                                                    <div className="w-8 h-8 rounded-lg bg-black/40 overflow-hidden shrink-0 flex items-center justify-center">
-                                                                        {dj.image ? (
-                                                                            <img src={resolveImageUrl(dj.image)} className="w-full h-full object-cover" alt="" />
-                                                                        ) : (
-                                                                            dj._type === 'DJ' ? <Music className="w-4 h-4 text-gray-700" /> : 
-                                                                            dj._type === 'CLUB' ? <Home className="w-4 h-4 text-gray-700" /> :
-                                                                            <MapPin className="w-4 h-4 text-gray-700" />
-                                                                        )}
+                                                    <div className="max-h-56 overflow-y-auto custom-scrollbar">
+                                                        {findWikiDj(item.artist).map(dj => (
+                                                            <button
+                                                                key={dj.id}
+                                                                onClick={() => autoFillFromWiki(item.id, dj)}
+                                                                className="w-full p-4 flex items-center gap-4 hover:bg-white/5 transition-all text-left border-b border-white/5 last:border-none group/row"
+                                                            >
+                                                                <div className="w-10 h-10 rounded-xl bg-black border border-white/10 overflow-hidden flex-shrink-0">
+                                                                    {dj.image ? <img src={resolveImageUrl(dj.image)} className="w-full h-full object-cover" alt="" /> : <Music className="w-full h-full p-3 text-gray-800" />}
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <p className="text-[10px] font-black text-white group-hover/row:text-neon-cyan transition-colors">{dj.name}</p>
+                                                                        <span className="text-[6px] font-black px-1.5 py-0.5 bg-white/5 rounded text-gray-400">{dj._type}</span>
                                                                     </div>
-                                                                    <div className="text-left">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <p className="text-[10px] font-black text-white uppercase">{dj.name}</p>
-                                                                            <span className={`text-[6px] font-black px-1.5 py-0.5 rounded ${
-                                                                                dj._type === 'DJ' ? 'bg-neon-cyan/20 text-neon-cyan' :
-                                                                                dj._type === 'FESTIVAL' ? 'bg-amber-500/20 text-amber-500' :
-                                                                                'bg-pink-500/20 text-pink-500'
-                                                                            }`}>
-                                                                                {dj._type}
-                                                                            </span>
-                                                                        </div>
-                                                                        <p className="text-[8px] text-gray-500 uppercase">{dj.genre || dj.location || (dj._type === 'DJ' ? 'DJ/Producteur' : 'Lieu')}</p>
-                                                                    </div>
-                                                                    <div className="ml-auto">
-                                                                        <Plus className="w-3 h-3 text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                                    </div>
-                                                                </button>
-                                                            ))
-                                                        ) : (
-                                                            <div className="p-4 text-center">
-                                                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest">Aucun artiste trouvé dans le wiki</p>
-                                                            </div>
-                                                        )}
+                                                                    <p className="text-[8px] text-gray-600 font-bold mt-0.5">{dj.genre || dj.location || 'Artiste'}</p>
+                                                                </div>
+                                                                <Plus className="w-4 h-4 text-neon-cyan opacity-0 group-hover/row:opacity-100 transition-all" />
+                                                            </button>
+                                                        ))}
                                                     </div>
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-1 flex items-center gap-1"><Instagram className="w-3 h-3" /> Instagram</label>
+
+                                <div className="flex flex-wrap gap-4">
+                                    <div className="flex-1 space-y-2 min-w-[140px]">
+                                        <div className="flex items-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">
+                                            <Instagram className="w-3 h-3 text-pink-500" /> Instagram
+                                        </div>
                                         <input 
                                             type="text" 
                                             value={item.instagram}
                                             onChange={e => updateItem(item.id, { instagram: e.target.value })}
-                                            placeholder="@pseudo"
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white outline-none focus:border-pink-500/50 transition-all"
+                                            placeholder="@PSEUDO..."
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3 text-[10px] text-white font-bold outline-none focus:border-pink-500/20 transition-all"
                                         />
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-1 flex items-center gap-1"><ImageIcon className="w-3 h-3" /> Image URL</label>
-                                        <input 
-                                            type="text" 
-                                            value={item.image}
-                                            onChange={e => updateItem(item.id, { image: e.target.value })}
-                                            placeholder="https://..."
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white outline-none focus:border-neon-cyan/50 transition-all"
-                                        />
+                                    <div className="flex items-center gap-2 pt-6">
+                                        <button 
+                                            onClick={() => updateItem(item.id, { image: '' })}
+                                            className={`p-3 rounded-2xl transition-all ${item.image ? 'bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white' : 'opacity-0 pointer-events-none'}`}
+                                            title="Supprimer Image"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Time & Date */}
-                            <div className="flex flex-row md:flex-col gap-4 justify-between md:justify-center border-l border-white/5 pl-6">
-                                <div className="space-y-1">
-                                    <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1"><Calendar className="w-3 h-3" /> Date</label>
+                            {/* Timeline Section */}
+                            <div className="flex lg:flex-col gap-6 items-center lg:items-end justify-between border-l border-white/5 pl-8 min-w-[200px]">
+                                <div className="space-y-2 w-full lg:w-auto">
+                                    <div className="flex items-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] lg:justify-end">
+                                        <Calendar className="w-3 h-3 text-amber-500" /> Date
+                                    </div>
                                     <input 
                                         type="date" 
                                         value={item.day}
                                         onChange={e => updateItem(item.id, { day: e.target.value })}
-                                        className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none"
+                                        className="w-full lg:text-right bg-transparent text-[11px] font-black text-white outline-none cursor-pointer"
                                         style={{ colorScheme: 'dark' }}
                                     />
                                 </div>
-                                <div className="flex gap-2">
-                                    <div className="space-y-1">
-                                        <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1"><Clock className="w-3 h-3" /> Début</label>
+
+                                <div className="flex gap-4">
+                                    {/* Start Time */}
+                                    <div className="space-y-2 text-center">
+                                        <div className="flex items-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-widest justify-center">
+                                            <Clock className="w-3 h-3 text-neon-cyan" /> DEBUT
+                                        </div>
                                         <input 
                                             type="text" 
                                             value={item.startTime}
                                             onChange={e => updateItem(item.id, { startTime: e.target.value })}
                                             placeholder="20:00"
-                                            className="w-20 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white text-center outline-none"
+                                            className="w-16 bg-white/5 border border-white/10 rounded-xl px-2 py-3 text-[11px] font-black text-white text-center outline-none focus:border-neon-cyan/50"
                                         />
+                                        {getPreviewTime(item.startTime) && (
+                                            <div className="text-[7px] font-black text-neon-purple uppercase mt-1 animate-pulse">
+                                                FR: <span className="text-white">{getPreviewTime(item.startTime)}</span>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[8px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1"><Clock className="w-3 h-3" /> Fin</label>
+                                    {/* End Time */}
+                                    <div className="space-y-2 text-center">
+                                        <div className="flex items-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-widest justify-center">
+                                            <Clock className="w-3 h-3 text-neon-red" /> FIN
+                                        </div>
                                         <input 
                                             type="text" 
                                             value={item.endTime}
                                             onChange={e => updateItem(item.id, { endTime: e.target.value })}
                                             placeholder="21:00"
-                                            className="w-20 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white text-center outline-none"
+                                            className="w-16 bg-white/5 border border-white/10 rounded-xl px-2 py-3 text-[11px] font-black text-white text-center outline-none focus:border-neon-red/50"
                                         />
+                                        {getPreviewTime(item.endTime) && (
+                                            <div className="text-[7px] font-black text-neon-purple uppercase mt-1 animate-pulse">
+                                                FR: <span className="text-white">{getPreviewTime(item.endTime)}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Actions */}
-                            <div className="flex items-center justify-center border-l border-white/5 pl-6">
+                                {/* Trash */}
                                 <button
                                     onClick={() => removeLineupItem(item.id)}
-                                    className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all"
-                                    title="Supprimer"
+                                    className="p-4 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-[1.25rem] transition-all self-center lg:self-end"
                                 >
                                     <Trash2 className="w-5 h-5" />
                                 </button>

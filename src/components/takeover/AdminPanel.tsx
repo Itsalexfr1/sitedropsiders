@@ -83,13 +83,8 @@ export function AdminPanel() {
             festivalLogo: editFestivalLogo,
         };
         setSettings(updated);
-        // The handleGlobalSave in context expects settings to be updated
-        // or we could pass updated to it.
-        // For now, let's assume it works with the context state.
-        setTimeout(async () => {
-            await handleGlobalSave();
-            setIsSaving(false);
-        }, 100);
+        await handleGlobalSave(updated);
+        setIsSaving(false);
     };
 
     if (!showAdminPanel) return null;
