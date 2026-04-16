@@ -18,9 +18,12 @@ export function resolveImageUrl(url: string | undefined | null): string {
     // 1. Strip the main domain if present
     processedUrl = processedUrl.replace(/^https?:\/\/(www\.)?dropsiders\.fr/i, '');
 
-    // 2. If it's an absolute URL to another domain, return as is
+    // 2. If it's an absolute URL to another domain, return it through our proxy
     if (processedUrl.startsWith('http') || processedUrl.startsWith('//')) {
-        return processedUrl.startsWith('//') ? 'https:' + processedUrl : processedUrl;
+        const fullUrl = processedUrl.startsWith('//') ? 'https:' + processedUrl : processedUrl;
+        // Don't proxy if it's already a local/R2 URL
+        if (fullUrl.includes('dropsiders.fr')) return fullUrl;
+        return `/api/proxy-image?url=${encodeURIComponent(fullUrl)}`;
     }
 
     // 3. Handle local static assets

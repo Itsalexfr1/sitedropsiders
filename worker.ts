@@ -630,6 +630,33 @@ ${urls.map(u => `  <url>
             return new Response(data, { headers });
         }
 
+        // --- API: IMAGE PROXY (Bypass CORS for Cropper) ---
+        if (path === '/api/proxy-image' && request.method === 'GET') {
+            const imageUrl = url.searchParams.get('url');
+            if (!imageUrl) return new Response('URL missing', { status: 400, headers });
+            
+            try {
+                const imgRes = await fetch(imageUrl, {
+                    headers: { 
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+                    },
+                    redirect: 'follow'
+                });
+                if (!imgRes.ok) return new Response('Failed to fetch image', { status: imgRes.status, headers });
+                
+                const contentType = imgRes.headers.get('Content-Type') || 'image/jpeg';
+                const imgData = await imgRes.arrayBuffer();
+                
+                const proxyHeaders = new Headers(headers);
+                proxyHeaders.set('Content-Type', contentType);
+                proxyHeaders.set('Cache-Control', 'public, max-age=86400');
+                
+                return new Response(imgData, { headers: proxyHeaders });
+            } catch (e) {
+                return new Response('Proxy error', { status: 500, headers });
+            }
+        }
+
         // --- API: DOWNLOADER PROXY ---
 
         if (path === '/api/downloader-proxy' && request.method === 'POST') {
