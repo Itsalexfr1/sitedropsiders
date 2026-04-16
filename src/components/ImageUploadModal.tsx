@@ -86,6 +86,8 @@ export function ImageUploadModal({
             if (initialImage) {
                 setSelectedImages([{ file: null, preview: initialImage }]);
                 setStep('preview');
+                // Auto-open crop for existing images to allow immediate re-cropping
+                setIsCropOpen(true);
             }
         } else if (!isOpen) {
             document.body.style.overflow = 'unset';
@@ -384,40 +386,6 @@ export function ImageUploadModal({
                                     </div>
                                 ) : step === 'preview' && selectedImages.length > 0 ? (
                                     <motion.div key="preview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-5">
-                                        <div className="flex flex-col gap-3">
-                                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Aperçu du rendu final :</p>
-                                            <div className="grid grid-cols-1 gap-4">
-                                                {selectedImages.map((img, idx) => (
-                                                    <div key={idx} className="bg-white/5 border border-white/10 rounded-[2rem] flex items-center gap-6 overflow-hidden h-24 relative group">
-                                                        {/* Mock Card Preview */}
-                                                        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-                                                        
-                                                        {/* Image */}
-                                                        <div className="w-24 h-full flex-shrink-0 relative">
-                                                            {img.file?.type.startsWith('video/') ? (
-                                                                <video src={img.preview} className="w-full h-full object-cover" muted />
-                                                            ) : (
-                                                                <img src={img.preview} alt="" className="w-full h-full object-cover" />
-                                                            )}
-                                                            <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 bg-neon-cyan text-black rounded-lg">
-                                                                <div className="w-1.5 h-1.5 bg-black rounded-full animate-pulse" />
-                                                                <span className="text-[6px] font-black uppercase">LIVE</span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Info */}
-                                                        <div className="flex-1 flex flex-col justify-center gap-1">
-                                                            <div className="h-4 w-32 bg-white/10 rounded-full animate-pulse mb-1" />
-                                                            <div className="h-2 w-20 bg-white/5 rounded-full" />
-                                                        </div>
-                                                        
-                                                        {/* Progress bar mock */}
-                                                        <div className="absolute bottom-0 left-0 h-1 bg-neon-cyan/50 w-2/3" />
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
                                         {/* Watermark Toggle */}
                                         {!hasVideo && (
                                             <button 

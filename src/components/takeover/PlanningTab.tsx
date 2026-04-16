@@ -341,64 +341,103 @@ export function PlanningTab() {
             <div className="grid grid-cols-1 gap-4">
                 <AnimatePresence mode="popLayout">
                     {filteredLineup.map((item) => (
-                        <motion.div key={item.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white/5 border border-white/5 rounded-[2rem] flex flex-col md:flex-row gap-6 group hover:border-white/20 transition-all relative overflow-hidden h-32">
-                            <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-                            {getProgress(item) > 0 && getProgress(item) < 100 && (
-                                <motion.div className="absolute bottom-0 left-0 h-1 bg-neon-cyan shadow-[0_0_15px_rgba(34,211,238,0.5)] z-10" initial={{ width: 0 }} animate={{ width: `${getProgress(item)}%` }} />
+                        <motion.div 
+                            key={item.id} 
+                            layout 
+                            initial={{ opacity: 0, y: 20 }} 
+                            animate={{ opacity: 1, y: 0 }} 
+                            exit={{ opacity: 0, scale: 0.95 }} 
+                            className="relative h-32 bg-zinc-900 border border-white/5 rounded-[2rem] overflow-hidden group hover:border-white/20 transition-all flex items-center"
+                        >
+                            {/* Full Background Image */}
+                            {item.image && (
+                                <img 
+                                    src={resolveImageUrl(item.image)} 
+                                    className="absolute inset-0 w-full h-full object-cover transition-opacity" 
+                                    alt="" 
+                                />
                             )}
                             
-                            <div className="w-32 h-full flex-shrink-0 relative group/img cursor-pointer z-10" 
-                                onClick={() => { setUploadTargetId(item.id); setShowUploadModal(true); }}>
-                                {item.image ? <img src={resolveImageUrl(item.image)} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-white/5"><Music className="w-6 h-6 text-gray-800" /></div>}
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm"><Scan className="w-5 h-5 text-white" /></div>
-                            </div>
+                            {/* Static readability gradient */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-[1]" />
 
-                            <div className="flex-1 flex flex-col justify-center gap-1 z-10">
-                                <div className="flex items-center gap-3">
-                                    <div className="relative flex-1">
-                                        <input type="text" value={item.artist} onChange={e => { updateItem(item.id, { artist: e.target.value.toUpperCase() }); setShowWikiResults(item.id); }} onFocus={() => setShowWikiResults(item.id)} className="w-full bg-transparent text-xl md:text-2xl font-black text-white italic outline-none uppercase tracking-tighter" />
-                                        <AnimatePresence>
-                                            {showWikiResults === item.id && item.artist.length >= 2 && findWikiDj(item.artist).length > 0 && (
-                                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute left-0 right-0 top-full mt-2 z-[60] bg-gray-950 border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
-                                                    {findWikiDj(item.artist).map(dj => (
-                                                        <button key={dj.id} onClick={() => autoFillFromWiki(item.id, dj)} className="w-full p-3 flex items-center gap-3 hover:bg-white/5 text-left border-b border-white/5 last:border-none">
-                                                            <div className="w-8 h-8 rounded-lg bg-black border border-white/5 overflow-hidden">{dj.image ? <img src={resolveImageUrl(dj.image)} className="w-full h-full object-cover" /> : <Music className="w-full h-full p-2 text-gray-800" />}</div>
-                                                            <div className="flex-1"><p className="text-[10px] font-black text-white">{dj.name}</p><p className="text-[7px] text-gray-600 font-bold uppercase">{dj._type}</p></div>
-                                                        </button>
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                    <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5 text-pink-500">
-                                        <Instagram className="w-3 h-3" />
-                                        <input type="text" value={item.instagram} onChange={e => updateItem(item.id, { instagram: e.target.value })} placeholder="@INSTA..." className="bg-transparent text-[8px] font-bold outline-none" />
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4 text-gray-500 text-[9px] font-black uppercase">
-                                    <div className="flex items-center gap-1.5"><MapPin className="w-3 h-3 text-red-500" />{activeStage}</div>
-                                    <div className="h-2 w-px bg-white/10" />
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar className="w-3 h-3 text-amber-500" />
-                                        <input type="date" value={item.day} onChange={e => updateItem(item.id, { day: e.target.value })} className="bg-transparent outline-none" style={{ colorScheme: 'dark' }} />
-                                    </div>
-                                </div>
-                            </div>
+                            {/* Progress Overlay (Full Height Darkening) */}
+                            {getProgress(item) > 0 && (
+                                <motion.div 
+                                    className="absolute inset-y-0 left-0 bg-black/85 z-[2] pointer-events-none border-r-2 border-neon-cyan shadow-[30px_0_50px_rgba(34,211,238,0.3)]"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${getProgress(item)}%` }}
+                                    transition={{ duration: 0.5 }}
+                                />
+                            )}
 
-                            <div className="flex items-center gap-6 pr-8 z-10">
-                                <div className="flex gap-3">
-                                    <div className="flex flex-col items-center gap-1">
-                                        <span className="text-[7px] font-black text-neon-cyan">DEBUT</span>
-                                        <input type="text" value={item.startTime} onChange={e => updateItem(item.id, { startTime: e.target.value })} className="w-14 bg-white/5 border border-white/10 rounded-xl py-2 text-[11px] font-black text-white text-center outline-none" />
-                                        {getPreviewTime(item.startTime) && <span className="text-[7px] font-black text-neon-purple italic">FR {getPreviewTime(item.startTime)}</span>}
+                            {/* Clickable Image Edit Overlay */}
+                            <button 
+                                onClick={() => { setUploadTargetId(item.id); setShowUploadModal(true); }}
+                                className="absolute top-4 left-4 z-20 p-3 bg-black/60 backdrop-blur-md rounded-2xl opacity-0 group-hover:opacity-100 transition-all hover:bg-neon-cyan hover:text-black border border-white/10"
+                                title="Changer la photo"
+                            >
+                                <Camera className="w-6 h-6" />
+                            </button>
+
+                            {/* Content Overlays */}
+                            <div className="flex-1 flex flex-col md:flex-row items-center gap-10 px-12 z-10 w-full">
+                                {/* Center Info Section */}
+                                <div className="flex-1 flex flex-col justify-center gap-0 group/info">
+                                    <div className="flex items-center gap-6">
+                                        <div className="relative">
+                                            <input 
+                                                type="text" 
+                                                value={item.artist} 
+                                                onChange={e => { updateItem(item.id, { artist: e.target.value.toUpperCase() }); setShowWikiResults(item.id); }} 
+                                                onFocus={() => setShowWikiResults(item.id)} 
+                                                className="bg-transparent text-4xl md:text-6xl font-black text-white italic outline-none uppercase tracking-tighter drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]" 
+                                            />
+                                            <AnimatePresence>
+                                                {showWikiResults === item.id && item.artist.length >= 2 && findWikiDj(item.artist).length > 0 && (
+                                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute left-0 right-0 top-full mt-2 z-[60] bg-gray-950/90 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl overflow-hidden min-w-[250px]">
+                                                        {findWikiDj(item.artist).map(dj => (
+                                                            <button key={dj.id} onClick={() => autoFillFromWiki(item.id, dj)} className="w-full p-4 flex items-center gap-4 hover:bg-white/10 text-left border-b border-white/5 last:border-none">
+                                                                <div className="w-10 h-10 rounded-xl bg-black border border-white/10 overflow-hidden flex-shrink-0 shadow-lg">{dj.image ? <img src={resolveImageUrl(dj.image)} className="w-full h-full object-cover" /> : <Music className="w-full h-full p-2 text-gray-800" />}</div>
+                                                                <div className="flex-1"><p className="text-[12px] font-black text-white uppercase">{dj.name}</p><p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">{dj._type}</p></div>
+                                                            </button>
+                                                        ))}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col items-center gap-1">
-                                        <span className="text-[7px] font-black text-neon-red">FIN</span>
-                                        <input type="text" value={item.endTime} onChange={e => updateItem(item.id, { endTime: e.target.value })} className="w-14 bg-white/5 border border-white/10 rounded-xl py-2 text-[11px] font-black text-white text-center outline-none" />
-                                        {getPreviewTime(item.endTime) && <span className="text-[7px] font-black text-neon-purple italic">FR {getPreviewTime(item.endTime)}</span>}
+                                    <div className="flex items-center gap-6 text-white/60 text-[11px] font-black uppercase tracking-[0.2em] mt-2">
+                                        <div className="flex items-center gap-2 drop-shadow-lg"><MapPin className="w-4 h-4 text-red-500" />{activeStage}</div>
+                                        <div className="h-4 w-px bg-white/20" />
+                                        <div className="flex items-center gap-2 drop-shadow-lg p-1 hover:bg-white/5 rounded-lg transition-colors">
+                                            <Instagram className="w-4 h-4 text-pink-500" />
+                                            <input type="text" value={item.instagram} onChange={e => updateItem(item.id, { instagram: e.target.value })} className="bg-transparent text-[9px] font-black outline-none w-24" placeholder="@INSTA" />
+                                        </div>
+                                        <div className="h-4 w-px bg-white/20" />
+                                        <div className="flex items-center gap-2 drop-shadow-lg">
+                                            <Calendar className="w-4 h-4 text-amber-500" />
+                                            <input type="date" value={item.day} onChange={e => updateItem(item.id, { day: e.target.value })} className="bg-transparent outline-none border-none p-0 text-[10px]" style={{ colorScheme: 'dark' }} />
+                                        </div>
                                     </div>
                                 </div>
-                                <button onClick={() => removeLineupItem(item.id)} className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
+
+                                {/* Right Timeline Section */}
+                                <div className="flex items-center gap-10">
+                                    <div className="flex gap-4">
+                                        <div className="flex flex-col items-center gap-1.5">
+                                            <span className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">DEBUT</span>
+                                            <input type="text" value={item.startTime} onChange={e => updateItem(item.id, { startTime: e.target.value })} className="w-20 bg-black/70 border border-white/10 rounded-2xl py-3 text-[14px] font-black text-white text-center outline-none backdrop-blur-xl hover:border-neon-cyan transition-colors" />
+                                            {getPreviewTime(item.startTime) && <span className="text-[8px] font-black text-cyan-400 italic">FR {getPreviewTime(item.startTime)}</span>}
+                                        </div>
+                                        <div className="flex flex-col items-center gap-1.5">
+                                            <span className="text-[9px] font-black text-neon-red uppercase tracking-widest">FIN</span>
+                                            <input type="text" value={item.endTime} onChange={e => updateItem(item.id, { endTime: e.target.value })} className="w-20 bg-black/70 border border-white/10 rounded-2xl py-3 text-[14px] font-black text-white text-center outline-none backdrop-blur-xl hover:border-red-500 transition-colors" />
+                                            {getPreviewTime(item.endTime) && <span className="text-[8px] font-black text-red-400 italic">FR {getPreviewTime(item.endTime)}</span>}
+                                        </div>
+                                    </div>
+                                    <button onClick={() => removeLineupItem(item.id)} className="p-5 bg-red-500/10 text-red-500 hover:bg-neon-red hover:text-white rounded-[2rem] transition-all shadow-lg hover:shadow-neon-red/30"><Trash2 className="w-6 h-6" /></button>
+                                </div>
                             </div>
                         </motion.div>
                     ))}
@@ -418,7 +457,7 @@ export function PlanningTab() {
                     setShowUploadModal(false);
                 }}
                 accentColor="neon-cyan"
-                aspect={1}
+                aspect={16/9}
             />
         </div>
     );
