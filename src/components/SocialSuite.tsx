@@ -520,10 +520,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); // Descendu dans le dégradé
 
-            } else if (theme === 'TOP 100 DROPSIDERS') {
-                // Now uses the standard minimalist centered layout below
-                // Just keeping this block for any specific Top 100 logic later if needed
-                // or we can remove it and let it fall into the 'else' block.
+
 
             } else if (theme === 'LIVESTREAM') {
                 const centerX = canvas.width / 2;
