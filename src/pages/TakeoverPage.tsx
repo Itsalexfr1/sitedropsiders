@@ -2244,44 +2244,65 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         }
     };
 
-    const fluxCurrentArtist = lineupItems.find(item => {
-        if (!item.day || !item.startTime) return false;
+    const getFluxArtistInfo = () => {
         const now = new Date();
         const curDay = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
         
-        // Simple date check
-        if (item.day !== curDay) return false;
+        // Stage mapping helper
+        const getStageMapping = () => {
+            const mapping: Record<string, string> = {};
+            settings.streams?.forEach((s: any, idx: number) => {
+                const sid = `stage${idx + 1}`;
+                mapping[sid] = (s.name || sid).toUpperCase();
+            });
+            return mapping;
+        };
+        const stageMap = getStageMapping();
+        const targetStageName = stageMap[activeStage as string] || (activeStage as string).toUpperCase();
 
-        const [sh, sm] = item.startTime.replace('.', ':').replace('h', ':').split(':').map(Number);
-        const [eh, em] = (item.endTime || '').replace('.', ':').replace('h', ':').split(':').map(Number);
-        
-        const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm, 0);
-        // Fallback: if no end time, assume 1 hour set
-        const endTime = !isNaN(eh) 
-            ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em || 0, 0)
-            : new Date(startTime.getTime() + 60 * 60 * 1000);
-        
-        if (!isNaN(eh) && eh < sh) endTime.setDate(endTime.getDate() + 1);
-        
-        // Stage filtering - More robust
-        const itemStage = (item.stage || '').toUpperCase();
-        const stageMapping: Record<string, string> = {};
-        settings.streams?.forEach((s: any, idx: number) => {
-            const sid = `stage${idx + 1}`;
-            stageMapping[sid] = (s.name || sid).toUpperCase();
+        const isMyStage = (item: any) => {
+            const itemStage = (item.stage || '').toUpperCase();
+            return itemStage === targetStageName || 
+                   itemStage === (activeStage as string).toUpperCase() ||
+                   (item.stage || '').toLowerCase() === (activeStage as string).toLowerCase();
+        };
+
+        // 1. Find CURRENT Artist
+        const current = lineupItems.find(item => {
+            if (!item.day || !item.startTime || !isMyStage(item)) return false;
+            if (item.day !== curDay) return false;
+
+            const [sh, sm] = item.startTime.replace('.', ':').replace('h', ':').split(':').map(Number);
+            const [eh, em] = (item.endTime || '').replace('.', ':').replace('h', ':').split(':').map(Number);
+            const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm, 0);
+            const endTime = !isNaN(eh) 
+                ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em || 0, 0)
+                : new Date(startTime.getTime() + 60 * 60 * 1000);
+            if (!isNaN(eh) && eh < sh) endTime.setDate(endTime.getDate() + 1);
+            return now >= startTime && now <= endTime;
         });
 
-        const targetStageName = stageMapping[activeStage as string] || (activeStage as string).toUpperCase();
-        
-        // Match if IDs match OR Names match
-        const matchesStage = itemStage === targetStageName || 
-                           itemStage === (activeStage as string).toUpperCase() ||
-                           (item.stage || '').toLowerCase() === (activeStage as string).toLowerCase();
-                           
-        if (!matchesStage) return false;
+        if (current) return { mode: 'NOW', artist: current.artist };
 
-        return now >= startTime && now <= endTime;
-    }) || { artist: settings.title || 'DROPSIDERS LIVE', stage: 'MAIN' };
+        // 2. Find NEXT Artist (Today)
+        const sortedToday = [...lineupItems]
+            .filter(item => item.day === curDay && isMyStage(item) && item.startTime)
+            .sort((a,b) => a.startTime.localeCompare(b.startTime));
+
+        const next = sortedToday.find(item => {
+            const [sh, sm] = item.startTime.replace('.', ':').replace('h', ':').split(':').map(Number);
+            const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm, 0);
+            return startTime > now;
+        });
+
+        if (next) return { mode: 'NEXT', artist: `${next.artist} (${next.startTime})` };
+
+        // 3. Fallback
+        return { mode: 'NOW', artist: settings.title || 'DROPSIDERS LIVE' };
+    };
+
+    const fluxArtistInfo = getFluxArtistInfo();
+    const fluxCurrentArtist = { artist: fluxArtistInfo.artist }; // Keep for compatibility if used elsewhere
 
     const handlePurgeTarget = async (target: string) => {
         if (!isMod) return;
@@ -2393,8 +2414,10 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1 lg:gap-2 mt-1 lg:mt-2">
-                                    <Music className="w-2.5 h-2.5 lg:w-4 lg:h-4 text-neon-cyan animate-pulse shrink-0" />
-                                    <span className="text-[7px] lg:text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none shrink-0 border-r border-neon-cyan/20 pr-1.5 mr-1.5">NOW</span>
+                                    <Music className={`w-2.5 h-2.5 lg:w-4 lg:h-4 shrink-0 ${fluxArtistInfo.mode === 'NOW' ? 'text-neon-cyan animate-pulse' : 'text-amber-500 animate-pulse'}`} />
+                                    <span className={`text-[7px] lg:text-[10px] font-black uppercase tracking-widest leading-none shrink-0 border-r pr-1.5 mr-1.5 ${fluxArtistInfo.mode === 'NOW' ? 'text-neon-cyan border-neon-cyan/20' : 'text-amber-500 border-amber-500/20'}`}>
+                                        {fluxArtistInfo.mode}
+                                    </span>
                                     <span className={`font-black text-white uppercase italic tracking-tighter sm:max-w-none transition-all ${
                                         (fluxCurrentArtist.artist.length > 25) ? 'text-[8px] lg:text-[12px]' : 
                                         (fluxCurrentArtist.artist.length > 15) ? 'text-[9px] lg:text-[14px]' : 
