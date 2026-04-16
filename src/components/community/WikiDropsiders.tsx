@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart, Plus, Loader2, CheckCircle2 } from 'lucide-react';
+import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { UserAuthModal } from '../auth/UserAuthModal';
 import { apiFetch, getAuthHeaders } from '../../utils/auth';
@@ -79,8 +79,6 @@ export function WikiDropsiders({
     const [editValues, setEditValues] = useState<Partial<DjEntry>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
-    const [addForm, setAddForm] = useState({ name: '', bio: '', country: '', image: '', rating: '4.5', instagram: '', spotify: '' });
-    const [addSuccess, setAddSuccess] = useState(false);
     const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
     const [showImageModal, setShowImageModal] = useState(false);
 
@@ -119,8 +117,6 @@ export function WikiDropsiders({
         return a.localeCompare(b);
     });
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
-    const handleAddDj = () => {}; // No-op, retired in favor of global modal
 
     const toggleVote = async (id: string, e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -220,112 +216,12 @@ export function WikiDropsiders({
                     <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">{t('wiki_djs_title')}</h2>
                     <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">{djData.length} {t('wiki_artist_count')} · A–Z · {t('wiki_vote_favs')}</p>
                 </div>
-                    <div className="relative flex-1">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                        <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_placeholder')}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-all text-sm" />
-                    </div>
+                <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_placeholder')}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-all text-sm" />
                 </div>
             </div>
-
-            <AnimatePresence>
-                {showAdd && (
-                    <motion.div initial={{ opacity: 0, scale: 0.95, y: -20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                        className="bg-[#111111] border border-white/10 ring-1 ring-white/5 rounded-[2.5rem] p-10 mb-12 shadow-[0_0_100px_rgba(0,0,0,0.6)] relative overflow-hidden backdrop-blur-xl">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white/20 to-neon-red" />
-                        
-                        <div className="flex items-center justify-between mb-10">
-                            <div>
-                                <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">AJOUTER <span className="text-neon-red">UN DJ</span></h3>
-                                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Nouvelle entrée encyclopédie</p>
-                            </div>
-                            <button onClick={() => setShowAdd(false)} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all text-gray-400 hover:text-white group">
-                                <X className="w-6 h-6 group-hover:rotate-90 transition-transform" />
-                            </button>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-3">Nom de l'artiste *</label>
-                                <input type="text" value={addForm.name} onChange={e => setAddForm({...addForm, name: e.target.value})} placeholder="David Guetta"
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-3">Pays / Flag</label>
-                                <input type="text" value={addForm.country} onChange={e => setAddForm({...addForm, country: e.target.value})} placeholder="🇫🇷 FR"
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
-                            </div>
-                            <div className="md:col-span-1 group">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-3 flex items-center justify-between">
-                                    <span>Image (Upload Cloud recommandé) *</span>
-                                </label>
-                                <div className="flex gap-3">
-                                    <div className="flex-1 relative">
-                                        <input 
-                                            type="text" 
-                                            value={addForm.image} 
-                                            onChange={e => setAddForm({...addForm, image: e.target.value})} 
-                                            placeholder="https://..."
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-xs focus:outline-none focus:border-neon-red transition-all pr-12" 
-                                        />
-                                        {addForm.image && (
-                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg overflow-hidden border border-white/10 bg-black">
-                                                <img src={resolveImageUrl(addForm.image)} className="w-full h-full object-cover" alt="prev" />
-                                            </div>
-                                        )}
-                                    </div>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setShowAddImageModal(true)} 
-                                        className="px-5 bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red hover:text-white rounded-2xl transition-all text-[10px] font-black uppercase shrink-0 flex items-center gap-2"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        Upload
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="md:col-span-2 lg:col-span-3">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-3">Biographie / Infos</label>
-                                <textarea value={addForm.bio} onChange={e => setAddForm({...addForm, bio: e.target.value})} placeholder="Biographie de l'artiste..."
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-xs focus:outline-none focus:border-neon-red transition-all h-32 resize-none" />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-3">Lien Instagram</label>
-                                <input type="text" value={addForm.instagram} onChange={e => setAddForm({...addForm, instagram: e.target.value})} placeholder="https://instagram.com/..."
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-3">Lien Spotify</label>
-                                <input type="text" value={addForm.spotify} onChange={e => setAddForm({...addForm, spotify: e.target.value})} placeholder="https://open.spotify.com/artist/..."
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-xs focus:outline-none focus:border-neon-red transition-all" />
-                            </div>
-                            <div className="flex items-end">
-                                <button
-                                    onClick={handleAddDj}
-                                    disabled={isSaving}
-                                    className="w-full py-4 bg-neon-red text-white font-black uppercase text-[10px] tracking-widest rounded-2xl hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-neon-red/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                >
-                                    {isSaving ? (
-                                        <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            SAUVEGARDE...
-                                        </>
-                                    ) : addSuccess ? (
-                                        <>
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            DJ AJOUTÉ !
-                                        </>
-                                    ) : (
-                                        "ENREGISTRER AU WIKI"
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                        {saveMsg && <p className="mt-4 text-center text-xs text-neon-red font-black uppercase tracking-widest">{saveMsg}</p>}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
 
             {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-20">
@@ -618,7 +514,6 @@ export function WikiDropsiders({
                 onUploadSuccess={handleUpdatePhoto}
                 accentColor="neon-red"
                 aspect={4/5}
-            />
             />
             {/* Auth Modal for voting */}
             <UserAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
