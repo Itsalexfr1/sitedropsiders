@@ -1,6 +1,6 @@
-// Image Upload Modal component with Cloudflare R2 integration
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown, Check } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 import { getAuthHeaders } from '../utils/auth';
@@ -45,6 +45,9 @@ export function ImageUploadModal({
     } else if (accentColor === 'neon-blue') {
         bgClass = "bg-neon-blue/20";
         textClass = "text-neon-blue";
+    } else if (accentColor === 'neon-cyan') {
+        bgClass = "bg-neon-cyan/20";
+        textClass = "text-neon-cyan";
     }
 
     const [selectedImages, setSelectedImages] = useState<{file: File | null, preview: string}[]>([]);
@@ -333,10 +336,10 @@ export function ImageUploadModal({
 
     const hasVideo = selectedImages.some(img => img.file?.type.startsWith('video/'));
 
-    return (
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[400] overflow-hidden flex items-center justify-center">
+                <div className="fixed inset-0 z-[9999] overflow-hidden flex items-center justify-center">
                     <div className="flex min-h-full items-center justify-center p-6 text-center">
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -595,4 +598,7 @@ export function ImageUploadModal({
             )}
         </AnimatePresence>
     );
+
+    if (typeof document === 'undefined') return null;
+    return createPortal(modalContent, document.body);
 }
