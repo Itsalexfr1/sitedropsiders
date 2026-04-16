@@ -30,6 +30,12 @@ export function PlanningTab() {
     const [bulkDate, setBulkDate] = useState('');
     const [showWikiResults, setShowWikiResults] = useState<string | null>(null); // ID of lineup item being edited
     const [selectedTimezoneId, setSelectedTimezoneId] = useState('fr');
+    const [now, setNow] = React.useState(new Date());
+
+    React.useEffect(() => {
+        const timer = setInterval(() => setNow(new Date()), 60000); // Update ogni minuto
+        return () => clearInterval(timer);
+    }, []);
     const [showBulkImport, setShowBulkImport] = useState(false);
     const [bulkText, setBulkText] = useState('');
     const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
@@ -189,6 +195,26 @@ export function PlanningTab() {
         showNotification(`Infos auto-remplies (${item._type}) pour ${item.name}`, 'success');
     };
 
+    const getProgress = (item: LineupItem) => {
+        if (!item.startTime || !item.endTime || !item.day) return 0;
+        try {
+            const start = new Date(`${item.day}T${item.startTime}`);
+            const end = new Date(`${item.day}T${item.endTime}`);
+            
+            // Handle cross-day sets (e.g. 23:00 - 01:00)
+            if (end < start) end.setDate(end.getDate() + 1);
+            
+            if (now < start) return 0;
+            if (now > end) return 100;
+            
+            const total = end.getTime() - start.getTime();
+            const elapsed = now.getTime() - start.getTime();
+            return Math.min(100, Math.max(0, (elapsed / total) * 100));
+        } catch (e) {
+            return 0;
+        }
+    };
+
     const handleBulkImport = () => {
         if (!bulkText || !bulkDate) {
             showNotification('Veuillez remplir la date et coller le texte du planning', 'error');
@@ -247,42 +273,40 @@ export function PlanningTab() {
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Main Header Controls */}
-            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-4 flex flex-col xl:flex-row gap-4 items-center">
+            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-4 grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
                 {/* Search & Stage Group */}
-                <div className="flex flex-1 items-center gap-3 bg-black/40 border border-white/5 p-2 rounded-3xl w-full">
-                    <div className="flex gap-1 bg-white/5 p-1 rounded-2xl">
+                <div className="flex items-center gap-3 bg-black/40 border border-white/5 p-2 rounded-3xl h-14">
+                    <div className="flex gap-1 bg-white/5 p-1 rounded-2xl flex-shrink-0">
                         {(settings.streams && settings.streams.length > 0 ? settings.streams.map(s => s.name.toLowerCase()) : ['stage1']).map(s => (
                             <button
                                 key={s}
                                 onClick={() => setActiveStage(s)}
-                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all ${activeStage === s ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(34,211,238,0.3)]' : 'text-gray-500 hover:text-white'}`}
+                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all ${activeStage === s ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:text-white'}`}
                             >
                                 {s}
                             </button>
                         ))}
                     </div>
-                    <div className="h-4 w-[1px] bg-white/10 mx-1" />
-                    <div className="relative flex-1 group">
+                    <div className="relative flex-1 group h-full flex items-center">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-600 group-focus-within:text-neon-cyan transition-colors" />
                         <input 
                             type="text"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                             placeholder="RECHERCHER UN ARTISTE..."
-                            className="w-full bg-transparent pl-10 pr-4 py-2 text-[10px] text-white font-black uppercase tracking-widest outline-none"
+                            className="w-full bg-transparent pl-10 pr-4 py-2 text-[9px] text-white font-black uppercase tracking-widest outline-none"
                         />
                     </div>
                 </div>
 
                 {/* Automation Group */}
-                <div className="flex items-center gap-3 bg-white/5 p-2 rounded-3xl w-full xl:w-auto">
-                    {/* Timezone */}
-                    <div className="flex items-center gap-2 pl-2">
-                        <Globe className="w-3.5 h-3.5 text-neon-purple" />
+                <div className="flex items-center gap-3 bg-white/5 p-2 rounded-3xl h-14">
+                    <div className="flex items-center gap-2 pl-2 flex-1 relative">
+                        <Globe className="w-3.5 h-3.5 text-neon-purple flex-shrink-0" />
                         <select 
                             value={selectedTimezoneId}
                             onChange={e => setSelectedTimezoneId(e.target.value)}
-                            className="bg-transparent text-[9px] font-black uppercase text-gray-400 outline-none hover:text-white transition-colors cursor-pointer"
+                            className="bg-transparent text-[9px] font-black uppercase text-gray-400 outline-none hover:text-white transition-colors cursor-pointer w-full appearance-none"
                         >
                             {timezonePresets.map(tz => (
                                 <option key={tz.id} value={tz.id} className="bg-gray-950">{tz.label}</option>
@@ -291,50 +315,45 @@ export function PlanningTab() {
                         <button 
                             onClick={convertTimesToFR}
                             disabled={selectedTimezoneId === 'fr'}
-                            className={`p-2 rounded-xl transition-all ${selectedTimezoneId === 'fr' ? 'text-gray-700 opacity-20' : 'text-neon-purple hover:bg-neon-purple/20 shadow-lg shadow-neon-purple/5'}`}
-                            title="Convertir Tout"
+                            className={`p-2 rounded-xl transition-all ${selectedTimezoneId === 'fr' ? 'text-gray-700 opacity-20' : 'text-neon-purple hover:bg-neon-purple/20'}`}
                         >
-                            <RefreshCcw className={`w-4 h-4 ${selectedTimezoneId !== 'fr' ? 'animate-spin-slow' : ''}`} />
+                            <RefreshCcw className={`w-3.5 h-3.5 ${selectedTimezoneId !== 'fr' ? 'animate-spin-slow' : ''}`} />
                         </button>
                     </div>
 
-                    <div className="h-4 w-[1px] bg-white/10 mx-1" />
+                    <div className="h-4 w-[1px] bg-white/10" />
 
-                    {/* Mass Date */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 pr-2">
                         <input 
                             type="date" 
                             value={bulkDate}
                             onChange={e => setBulkDate(e.target.value)}
-                            className="bg-transparent text-[10px] text-gray-400 font-bold outline-none"
+                            className="bg-transparent text-[10px] text-gray-400 font-bold outline-none uppercase"
                             style={{ colorScheme: 'dark' }}
                         />
-                        <button 
-                            onClick={applyBulkDate}
-                            className="p-2 text-white/40 hover:text-white transition-colors"
-                        >
+                        <button onClick={applyBulkDate} className="p-2 text-white/40 hover:text-white transition-colors">
                             <Check className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
 
                 {/* Primary Actions Group */}
-                <div className="flex items-center gap-2 w-full xl:w-auto">
+                <div className="flex items-center gap-2 md:col-span-2 2xl:col-span-1">
                     <button 
                         onClick={() => setShowBulkImport(!showBulkImport)}
-                        className={`px-5 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all flex-1 xl:flex-none ${showBulkImport ? 'bg-neon-purple border-neon-purple text-white' : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'}`}
+                        className={`h-14 px-5 rounded-2xl text-[9px] font-black uppercase tracking-widest border transition-all flex-1 ${showBulkImport ? 'bg-neon-purple border-neon-purple text-white' : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'}`}
                     >
                         IMPORT RAPIDE
                     </button>
                     <button 
                         onClick={addLineupItem}
-                        className="px-5 py-3 bg-neon-cyan text-black text-[9px] font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-cyan/10 flex-1 xl:flex-none"
+                        className="h-14 px-5 bg-neon-cyan text-black text-[9px] font-black uppercase tracking-widest rounded-2xl transition-all flex-1"
                     >
                         AJOUTER
                     </button>
                     <button 
                         onClick={handleSaveLineup}
-                        className="px-5 py-3 bg-white text-black text-[9px] font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all flex-1 xl:flex-none"
+                        className="h-14 px-5 bg-white text-black text-[9px] font-black uppercase tracking-widest rounded-2xl transition-all flex-1"
                     >
                         SAUVEGARDER
                     </button>
@@ -386,7 +405,6 @@ export function PlanningTab() {
                                 value={bulkText}
                                 onChange={e => setBulkText(e.target.value)}
                                 className="w-full h-48 bg-black/40 border border-white/10 rounded-2xl p-6 text-xs text-white outline-none focus:border-neon-purple resize-none font-mono"
-                                placeholder={"20:00 - ARTISTE 1\n21:00 - ARTISTE 2\n..."}
                             />
                         </div>
                     </motion.div>
@@ -403,50 +421,61 @@ export function PlanningTab() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white/5 border border-white/5 rounded-[2.5rem] p-6 flex flex-col lg:flex-row gap-8 group hover:border-white/20 hover:bg-white/[0.07] transition-all relative overflow-hidden"
+                            className="bg-white/5 border border-white/5 rounded-[2rem] flex flex-col md:flex-row gap-6 group hover:border-white/20 transition-all relative overflow-hidden h-32"
                         >
-                            {/* Backdrop Glow */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-neon-cyan/5 blur-[100px] -mr-32 -mt-32 pointer-events-none" />
-
-                            {/* Image Section */}
-                            <div className="flex-shrink-0 relative group/img cursor-pointer" onClick={() => {
-                                setUploadTargetId(item.id);
-                                setShowUploadModal(true);
-                            }}>
-                                <div className="w-24 h-24 rounded-3xl bg-black border border-white/10 overflow-hidden shadow-2xl transition-all group-hover/img:scale-105 group-hover/img:border-neon-cyan/30">
-                                    {item.image ? (
-                                        <img src={resolveImageUrl(item.image)} className="w-full h-full object-cover" alt={item.artist} />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-transparent">
-                                            <Music className="w-8 h-8 text-gray-800" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center rounded-3xl backdrop-blur-sm">
-                                    <div className="flex flex-col items-center gap-1">
-                                        <Scan className="w-6 h-6 text-white" />
-                                        <span className="text-[7px] font-black text-white uppercase tracking-widest">Cadrage</span>
+                            {/* Progress Bar Background */}
+                            <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+                            
+                            {/* Active Progress Fill */}
+                            {getProgress(item) > 0 && getProgress(item) < 100 && (
+                                <motion.div 
+                                    className="absolute bottom-0 left-0 h-1 bg-neon-cyan shadow-[0_-5px_15px_rgba(34,211,238,0.5)] z-10"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${getProgress(item)}%` }}
+                                    transition={{ duration: 0.5 }}
+                                />
+                            )}
+                            
+                            {/* Left Image Section */}
+                            <div 
+                                className="w-32 h-full flex-shrink-0 relative group/img cursor-pointer z-10" 
+                                onClick={() => {
+                                    setUploadTargetId(item.id);
+                                    setShowUploadModal(true);
+                                }}
+                            >
+                                {item.image ? (
+                                    <img src={resolveImageUrl(item.image)} className="w-full h-full object-cover" alt="" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-white/5">
+                                        <Music className="w-6 h-6 text-gray-800" />
                                     </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center backdrop-blur-sm">
+                                    <Scan className="w-5 h-5 text-white" />
                                 </div>
+                                {getProgress(item) > 0 && getProgress(item) < 100 && (
+                                    <div className="absolute top-2 left-2 flex items-center gap-1.5 px-2 py-1 bg-neon-cyan text-black rounded-lg shadow-lg">
+                                        <div className="w-1.5 h-1.5 bg-black rounded-full animate-pulse" />
+                                        <span className="text-[7px] font-black uppercase tracking-tighter">LIVE</span>
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Info Section */}
-                            <div className="flex-1 space-y-4">
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">
-                                        <Music className="w-3 h-3 text-neon-cyan" /> Artiste
-                                    </div>
-                                    <div className="relative">
+                            {/* Center Info Section */}
+                            <div className="flex-1 flex flex-col justify-center gap-1 z-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="relative flex-1">
                                         <input 
-                                            type="text" 
+                                            type="text"
                                             value={item.artist}
                                             onChange={e => {
                                                 updateItem(item.id, { artist: e.target.value.toUpperCase() });
                                                 setShowWikiResults(item.id);
                                             }}
                                             onFocus={() => setShowWikiResults(item.id)}
-                                            placeholder="NOM DE L'ARTISTE..."
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3.5 text-xs font-black text-white placeholder-gray-700 outline-none focus:border-neon-cyan/30 transition-all shadow-inner"
+                                            placeholder="ARTISTE..."
+                                            className="w-full bg-transparent text-xl md:text-2xl font-black text-white placeholder-gray-800 outline-none uppercase tracking-tighter italic"
                                         />
                                         <AnimatePresence>
                                             {showWikiResults === item.id && item.artist.length >= 2 && findWikiDj(item.artist).length > 0 && (
@@ -454,129 +483,102 @@ export function PlanningTab() {
                                                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                    className="absolute left-0 right-0 top-full mt-3 z-50 bg-gray-950/95 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
+                                                    className="absolute left-0 right-0 top-full mt-4 z-[60] bg-gray-950 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
                                                 >
-                                                    <div className="p-3 border-b border-white/5 bg-white/5 flex items-center justify-between">
-                                                        <div className="flex items-center gap-2">
-                                                            <Zap className="w-3 h-3 text-neon-cyan" />
-                                                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Base de Données Wiki</span>
-                                                        </div>
-                                                        <button onClick={() => setShowWikiResults(null)} className="text-[7px] font-black text-gray-600 hover:text-white uppercase">Fermer</button>
-                                                    </div>
-                                                    <div className="max-h-56 overflow-y-auto custom-scrollbar">
-                                                        {findWikiDj(item.artist).map(dj => (
-                                                            <button
-                                                                key={dj.id}
-                                                                onClick={() => autoFillFromWiki(item.id, dj)}
-                                                                className="w-full p-4 flex items-center gap-4 hover:bg-white/5 transition-all text-left border-b border-white/5 last:border-none group/row"
-                                                            >
-                                                                <div className="w-10 h-10 rounded-xl bg-black border border-white/10 overflow-hidden flex-shrink-0">
-                                                                    {dj.image ? <img src={resolveImageUrl(dj.image)} className="w-full h-full object-cover" alt="" /> : <Music className="w-full h-full p-3 text-gray-800" />}
-                                                                </div>
-                                                                <div className="flex-1">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <p className="text-[10px] font-black text-white group-hover/row:text-neon-cyan transition-colors">{dj.name}</p>
-                                                                        <span className="text-[6px] font-black px-1.5 py-0.5 bg-white/5 rounded text-gray-400">{dj._type}</span>
-                                                                    </div>
-                                                                    <p className="text-[8px] text-gray-600 font-bold mt-0.5">{dj.genre || dj.location || 'Artiste'}</p>
-                                                                </div>
-                                                                <Plus className="w-4 h-4 text-neon-cyan opacity-0 group-hover/row:opacity-100 transition-all" />
-                                                            </button>
-                                                        ))}
-                                                    </div>
+                                                    {findWikiDj(item.artist).map(dj => (
+                                                        <button
+                                                            key={dj.id}
+                                                            onClick={() => autoFillFromWiki(item.id, dj)}
+                                                            className="w-full p-3 flex items-center gap-3 hover:bg-white/5 transition-all text-left border-b border-white/5 last:border-none"
+                                                        >
+                                                            <div className="w-8 h-8 rounded-lg bg-black border border-white/5 overflow-hidden flex-shrink-0">
+                                                                {dj.image ? <img src={resolveImageUrl(dj.image)} className="w-full h-full object-cover" /> : <Music className="w-full h-full p-2 text-gray-800" />}
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <p className="text-[10px] font-black text-white leading-tight">{dj.name}</p>
+                                                                <p className="text-[7px] text-gray-600 font-bold uppercase tracking-widest">{dj._type}</p>
+                                                            </div>
+                                                            <Plus className="w-3.5 h-3.5 text-neon-cyan" />
+                                                        </button>
+                                                    ))}
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
                                     </div>
-                                </div>
-
-                                <div className="flex flex-wrap gap-4">
-                                    <div className="flex-1 space-y-2 min-w-[140px]">
-                                        <div className="flex items-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">
-                                            <Instagram className="w-3 h-3 text-pink-500" /> Instagram
-                                        </div>
+                                    
+                                    <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+                                        <Instagram className="w-3 h-3 text-pink-500" />
                                         <input 
-                                            type="text" 
+                                            type="text"
                                             value={item.instagram}
                                             onChange={e => updateItem(item.id, { instagram: e.target.value })}
-                                            placeholder="@PSEUDO..."
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-3 text-[10px] text-white font-bold outline-none focus:border-pink-500/20 transition-all"
+                                            placeholder="@INSTA..."
+                                            className="bg-transparent text-[8px] font-bold text-gray-400 outline-none focus:text-white transition-colors"
                                         />
                                     </div>
-                                    <div className="flex items-center gap-2 pt-6">
-                                        <button 
-                                            onClick={() => updateItem(item.id, { image: '' })}
-                                            className={`p-3 rounded-2xl transition-all ${item.image ? 'bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white' : 'opacity-0 pointer-events-none'}`}
-                                            title="Supprimer Image"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                </div>
+
+                                <div className="flex items-center gap-4 text-gray-500">
+                                    <div className="flex items-center gap-1.5">
+                                        <MapPin className="w-3 h-3 text-red-500" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">{activeStage}</span>
+                                    </div>
+                                    <div className="h-2 w-px bg-white/10" />
+                                    <div className="flex items-center gap-1.5">
+                                        <Calendar className="w-3 h-3 text-amber-500" />
+                                        <input 
+                                            type="date"
+                                            value={item.day}
+                                            onChange={e => updateItem(item.id, { day: e.target.value })}
+                                            className="bg-transparent text-[10px] font-black text-gray-400 outline-none uppercase"
+                                            style={{ colorScheme: 'dark' }}
+                                        />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Timeline Section */}
-                            <div className="flex lg:flex-col gap-6 items-center lg:items-end justify-between border-l border-white/5 pl-8 min-w-[200px]">
-                                <div className="space-y-2 w-full lg:w-auto">
-                                    <div className="flex items-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-[0.2em] lg:justify-end">
-                                        <Calendar className="w-3 h-3 text-amber-500" /> Date
-                                    </div>
-                                    <input 
-                                        type="date" 
-                                        value={item.day}
-                                        onChange={e => updateItem(item.id, { day: e.target.value })}
-                                        className="w-full lg:text-right bg-transparent text-[11px] font-black text-white outline-none cursor-pointer"
-                                        style={{ colorScheme: 'dark' }}
-                                    />
-                                </div>
-
-                                <div className="flex gap-4">
-                                    {/* Start Time */}
-                                    <div className="space-y-2 text-center">
-                                        <div className="flex items-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-widest justify-center">
-                                            <Clock className="w-3 h-3 text-neon-cyan" /> DEBUT
-                                        </div>
+                            {/* Right Timeline Section */}
+                            <div className="flex items-center gap-6 pr-8 z-10">
+                                <div className="flex gap-3">
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span className="text-[7px] font-black text-neon-cyan uppercase tracking-widest">DEBUT</span>
                                         <input 
-                                            type="text" 
+                                            type="text"
                                             value={item.startTime}
                                             onChange={e => updateItem(item.id, { startTime: e.target.value })}
-                                            placeholder="20:00"
-                                            className="w-16 bg-white/5 border border-white/10 rounded-xl px-2 py-3 text-[11px] font-black text-white text-center outline-none focus:border-neon-cyan/50"
+                                            className="w-14 bg-white/5 border border-white/10 rounded-xl py-2 text-[11px] font-black text-white text-center outline-none"
                                         />
                                         {getPreviewTime(item.startTime) && (
-                                            <div className="text-[7px] font-black text-neon-purple uppercase mt-1 animate-pulse">
-                                                FR: <span className="text-white">{getPreviewTime(item.startTime)}</span>
-                                            </div>
+                                            <span className="text-[7px] font-black text-neon-purple mt-0.5">FR {getPreviewTime(item.startTime)}</span>
                                         )}
                                     </div>
-                                    {/* End Time */}
-                                    <div className="space-y-2 text-center">
-                                        <div className="flex items-center gap-2 text-[8px] font-black text-gray-500 uppercase tracking-widest justify-center">
-                                            <Clock className="w-3 h-3 text-neon-red" /> FIN
-                                        </div>
+
+                                    <div className="flex flex-col items-center gap-1">
+                                        <span className="text-[7px] font-black text-neon-red uppercase tracking-widest">FIN</span>
                                         <input 
-                                            type="text" 
+                                            type="text"
                                             value={item.endTime}
                                             onChange={e => updateItem(item.id, { endTime: e.target.value })}
-                                            placeholder="21:00"
-                                            className="w-16 bg-white/5 border border-white/10 rounded-xl px-2 py-3 text-[11px] font-black text-white text-center outline-none focus:border-neon-red/50"
+                                            className="w-14 bg-white/5 border border-white/10 rounded-xl py-2 text-[11px] font-black text-white text-center outline-none"
                                         />
                                         {getPreviewTime(item.endTime) && (
-                                            <div className="text-[7px] font-black text-neon-purple uppercase mt-1 animate-pulse">
-                                                FR: <span className="text-white">{getPreviewTime(item.endTime)}</span>
-                                            </div>
+                                            <span className="text-[7px] font-black text-neon-purple mt-0.5">FR {getPreviewTime(item.endTime)}</span>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* Trash */}
                                 <button
                                     onClick={() => removeLineupItem(item.id)}
-                                    className="p-4 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-[1.25rem] transition-all self-center lg:self-end"
+                                    className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all"
                                 >
-                                    <Trash2 className="w-5 h-5" />
+                                    <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
+
+                            {/* Overlap indicator if live */}
+                            {getProgress(item) > 0 && getProgress(item) < 100 && (
+                                <div className="absolute -top-10 -right-10 w-32 h-32 bg-neon-cyan/10 blur-[40px] pointer-events-none" />
+                            )}
                         </motion.div>
                     ))}
                     {filteredLineup.length === 0 && (
@@ -605,3 +607,4 @@ export function PlanningTab() {
         </div>
     );
 }
+
