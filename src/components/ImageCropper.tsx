@@ -17,35 +17,44 @@ interface ImageCropperProps {
 export const getCroppedImg = (imageSrc: string, pixelCrop: Area): Promise<string> => {
     return new Promise((resolve, reject) => {
         const image = new Image();
-        image.crossOrigin = 'anonymous';
-        image.src = imageSrc;
+        image.setAttribute('crossOrigin', 'anonymous'); // Use setAttribute for better compatibility
+        
+        // Add timestamp to bypass cache (often causes CORS issues with cached non-CORS responses)
+        const cacheBuster = imageSrc.includes('?') ? '&' : '?';
+        image.src = imageSrc.startsWith('data:') ? imageSrc : `${imageSrc}${cacheBuster}t=${Date.now()}`;
+        
         image.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
 
-            if (!ctx) {
-                reject('No 2d context');
-                return;
+                if (!ctx) {
+                    reject(new Error('Erreur interne: Impossible de créer le contexte 2D'));
+                    return;
+                }
+
+                canvas.width = pixelCrop.width;
+                canvas.height = pixelCrop.height;
+
+                ctx.drawImage(
+                    image,
+                    pixelCrop.x,
+                    pixelCrop.y,
+                    pixelCrop.width,
+                    pixelCrop.height,
+                    0,
+                    0,
+                    pixelCrop.width,
+                    pixelCrop.height
+                );
+
+                resolve(canvas.toDataURL('image/jpeg', 0.9));
+            } catch (err) {
+                console.error("Canvas error (likely CORS):", err);
+                reject(new Error("Sécurité: Cette image ne peut pas être rognée. Essayez d'en uploader une autre ou utilisez-la sans rognage."));
             }
-
-            canvas.width = pixelCrop.width;
-            canvas.height = pixelCrop.height;
-
-            ctx.drawImage(
-                image,
-                pixelCrop.x,
-                pixelCrop.y,
-                pixelCrop.width,
-                pixelCrop.height,
-                0,
-                0,
-                pixelCrop.width,
-                pixelCrop.height
-            );
-
-            resolve(canvas.toDataURL('image/jpeg', 0.9));
         };
-        image.onerror = (error) => reject(error);
+        image.onerror = () => reject(new Error("Impossible de charger l'image source pour le rognage."));
     });
 };
 
@@ -82,7 +91,16 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
             onCropComplete(croppedImage);
         } catch (e: any) {
             console.error("Crop error:", e);
-            alert("Erreur lors du rognage de l'image. Vérifiez la console.");
+            
+            // If it's a security error, offer a fallback
+            if (e.message?.includes("Sécurité") || e.message?.includes("CORS")) {
+                if (confirm(e.message + "\n\nVoulez-vous utiliser l'image originale à la place ?")) {
+                    onCropComplete(image); // Proceed with original
+                    return;
+                }
+            } else {
+                alert(e.message || "Erreur lors du rognage.");
+            }
             setIsProcessing(false);
         }
     };
