@@ -27,6 +27,7 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
 
     const [manualOffset, setManualOffset] = useState(8); 
     const [selectedTimezoneId, setSelectedTimezoneId] = useState('fr');
+    const [searchTerm, setSearchTerm] = useState('');
     const [bulkDate, setBulkDate] = useState('');
     const [showWikiResults, setShowWikiResults] = useState<string | null>(null);
     const [now, setNow] = React.useState(new Date());
@@ -261,15 +262,35 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                 {/* Row 1: STAGES ONLY */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
                     <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-3 border-r border-white/10 shrink-0">Stages</span>
-                    {(settings.streams && settings.streams.length > 0 ? settings.streams.map(s => s.name.toUpperCase()) : ['STAGE 1']).map(s => (
-                        <button
-                            key={s}
-                            onClick={() => setActiveStage(s.toLowerCase())}
-                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${activeStage === s.toLowerCase() ? 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(34,211,238,0.2)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                        >
-                            {s}
-                        </button>
-                    ))}
+                    <div className="flex items-center gap-2">
+                        {(settings.streams && settings.streams.length > 0 ? settings.streams.map(s => s.name.toUpperCase()) : ['STAGE 1']).map(s => (
+                            <button
+                                key={s}
+                                onClick={() => setActiveStage(s.toLowerCase())}
+                                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${activeStage === s.toLowerCase() ? 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(34,211,238,0.2)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                            >
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="flex-1" />
+
+                    {/* NOW INDICATOR */}
+                    {(() => {
+                        const currentlyPlaying = editLineup.find(item => {
+                            if ((item.stage || 'stage1') !== activeStage) return false;
+                            const prog = getProgress(item);
+                            return prog > 0 && prog < 100;
+                        });
+                        if (!currentlyPlaying) return null;
+                        return (
+                            <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl animate-pulse">
+                                <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full shadow-[0_0_10px_rgba(34,211,238,1)]" />
+                                <span className="text-[9px] font-black text-neon-cyan uppercase tracking-tighter italic">NOW: {currentlyPlaying.artist}</span>
+                            </div>
+                        );
+                    })()}
                 </div>
 
                 {/* Row 2: TIMEZONES ONLY */}
