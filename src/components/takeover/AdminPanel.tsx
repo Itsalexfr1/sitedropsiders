@@ -382,7 +382,6 @@ export function AdminPanel() {
                                     )}
                                 </div>
                             </div>
-                        </div>
 
                             <button onClick={onSave} disabled={isSaving} className="w-full py-6 bg-neon-cyan text-black font-black uppercase rounded-3xl transition-all shadow-2xl flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95">
                                 {isSaving ? <Timer className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
