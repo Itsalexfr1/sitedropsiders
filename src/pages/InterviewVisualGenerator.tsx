@@ -549,15 +549,26 @@ export function InterviewVisualGenerator() {
             </AnimatePresence>
 
             {/* Nav */}
-            <div className="fixed top-4 left-4 z-50">
+            <div className="flex fixed top-4 right-4 lg:top-8 lg:right-8 z-[210] items-center gap-6">
                 <button
                     onClick={() => navigate('/admin')}
-                    className="flex items-center gap-2 px-6 py-3 bg-black/60 border border-white/10 rounded-2xl text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 hover:border-red-500/50 transition-all backdrop-blur-md shadow-2xl group"
+                    className="p-3 lg:p-4 bg-white/10 hover:bg-neon-red/20 text-white rounded-2xl border border-white/20 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(255,0,51,0.1)]"
                 >
                     <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    Tableau de Bord
+                    TABLEAU ADMIN
                 </button>
             </div>
+            
+            <div className="flex fixed top-4 left-4 lg:top-8 lg:left-8 z-[210] items-center gap-6">
+                <button
+                    onClick={() => navigate('/')}
+                    className="p-3 lg:p-4 bg-black/60 lg:bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/20 lg:border-white/10 backdrop-blur-3xl lg:backdrop-blur-md transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(0,0,0,0.5)] lg:shadow-none"
+                >
+                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    RETOUR AU SITE
+                </button>
+            </div>
+
 
             <div className="max-w-7xl mx-auto px-4 py-20 lg:py-16">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 text-center">
