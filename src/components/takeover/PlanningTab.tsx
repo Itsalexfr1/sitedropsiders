@@ -264,73 +264,72 @@ export function PlanningTab() {
         <div className="space-y-6">
             {/* Header Controls */}
             <div className="space-y-4">
-                {/* Header Row 1: Stages & Timezones */}
-                <div className="flex flex-col lg:flex-row gap-4">
-                    <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
-                        {(settings.streams && settings.streams.length > 0 ? settings.streams.map(s => s.name.toUpperCase()) : ['STAGE 1']).map(s => (
-                            <button
-                                key={s}
-                                onClick={() => setActiveStage(s.toLowerCase())}
-                                className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${activeStage === s.toLowerCase() ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(34,211,238,0.3)]' : 'text-gray-500 hover:text-white'}`}
-                            >
-                                {s}
-                            </button>
-                        ))}
-                    </div>
-                    
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
-                        <div className="flex gap-1">
-                            {timezonePresets.map(tz => (
-                                <button
-                                    key={tz.id}
-                                    onClick={() => setSelectedTimezoneId(tz.id)}
-                                    className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase transition-all whitespace-nowrap ${selectedTimezoneId === tz.id ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
-                                >
-                                    {tz.label}
-                                </button>
-                            ))}
-                        </div>
-                        <div className="h-6 w-px bg-white/10 mx-1" />
-                        <button 
-                            onClick={convertTimesToFR}
-                            disabled={selectedTimezoneId === 'fr'}
-                            className={`p-2.5 rounded-xl transition-all ${selectedTimezoneId === 'fr' ? 'text-gray-700 opacity-20' : 'text-neon-purple hover:bg-neon-purple/10'}`}
+                {/* Row 1: STAGES ONLY */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-3 border-r border-white/10 shrink-0">Stages</span>
+                    {(settings.streams && settings.streams.length > 0 ? settings.streams.map(s => s.name.toUpperCase()) : ['STAGE 1']).map(s => (
+                        <button
+                            key={s}
+                            onClick={() => setActiveStage(s.toLowerCase())}
+                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all whitespace-nowrap ${activeStage === s.toLowerCase() ? 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(34,211,238,0.2)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                         >
-                            <RefreshCcw className="w-4 h-4" />
+                            {s}
                         </button>
-                    </div>
+                    ))}
                 </div>
 
-                {/* Header Row 2: Date & Actions */}
+                {/* Row 2: TIMEZONES ONLY */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-3 border-r border-white/10 shrink-0">Fuseau / Festival</span>
+                    {timezonePresets.map(tz => (
+                        <button
+                            key={tz.id}
+                            onClick={() => setSelectedTimezoneId(tz.id)}
+                            className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase transition-all whitespace-nowrap flex items-center gap-2 ${selectedTimezoneId === tz.id ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                        >
+                            {tz.id === 'us-west' && <Scan className="w-3 h-3" />}
+                            {tz.label}
+                        </button>
+                    ))}
+                    <div className="flex-1" />
+                    <button 
+                        onClick={convertTimesToFR}
+                        disabled={selectedTimezoneId === 'fr'}
+                        className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase flex items-center gap-2 transition-all ${selectedTimezoneId === 'fr' ? 'text-gray-700 opacity-20' : 'text-neon-purple hover:bg-neon-purple/10 border border-neon-purple/20'}`}
+                    >
+                        <RefreshCcw className="w-3.5 h-3.5" />
+                        Convertir tout en FR
+                    </button>
+                </div>
+
+                {/* Row 3: DATE & ACTIONS */}
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white/5 border border-white/10 rounded-3xl p-3">
                     <div className="flex items-center gap-4 pl-2">
-                        <div className="flex items-center gap-3">
-                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Date à appliquer :</span>
-                            <div className="flex items-center gap-2 bg-black/40 px-4 py-2 rounded-xl">
-                                <input 
-                                    type="date" 
-                                    value={bulkDate}
-                                    onChange={e => setBulkDate(e.target.value)}
-                                    className="bg-transparent text-[10px] text-white font-black outline-none uppercase"
-                                    style={{ colorScheme: 'dark' }}
-                                />
-                                <button onClick={applyBulkDate} className="p-1 text-neon-cyan hover:scale-110 transition-transform" title="Appliquer à tous">
-                                    <Check className="w-4 h-4" />
-                                </button>
-                            </div>
+                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest border-r border-white/10 pr-4">Appliquer Date</span>
+                        <div className="flex items-center gap-2 bg-black/40 px-4 py-2 rounded-xl border border-white/5">
+                            <input 
+                                type="date" 
+                                value={bulkDate}
+                                onChange={e => setBulkDate(e.target.value)}
+                                className="bg-transparent text-[10px] text-white font-black outline-none uppercase"
+                                style={{ colorScheme: 'dark' }}
+                            />
+                            <button onClick={applyBulkDate} className="p-1 text-neon-cyan hover:scale-110 transition-transform" title="Appliquer à tous">
+                                <Check className="w-4 h-4" />
+                            </button>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                         <button 
                             onClick={() => setShowBulkImport(!showBulkImport)}
-                            className={`h-12 px-8 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${showBulkImport ? 'bg-neon-purple border-neon-purple text-white shadow-lg shadow-neon-purple/20' : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                            className={`h-11 px-8 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${showBulkImport ? 'bg-neon-purple border-neon-purple text-white shadow-lg' : 'bg-white/5 border-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
                         >
                             📥 IMPORT MASSIF
                         </button>
                         <button 
                             onClick={addLineupItem}
-                            className="h-12 px-10 bg-neon-cyan text-black text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-neon-cyan/20 hover:scale-[1.03] active:scale-95 transition-all"
+                            className="h-11 px-10 bg-neon-cyan text-black text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-neon-cyan/20 hover:scale-[1.03] active:scale-95 transition-all"
                         >
                             ➕ AJOUTER UN ARTISTE
                         </button>
