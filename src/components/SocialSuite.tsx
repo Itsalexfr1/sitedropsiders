@@ -233,7 +233,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     useEffect(() => {
         if (activeTab === 'REEL') {
             // Only set default if current theme is not a Reel-specific theme
-            if (theme !== 'TRACKLIST' && theme !== 'INTRO' && !theme.startsWith('TOP 5')) {
+            if (theme !== 'TRACKLIST' && theme !== 'INTRO' && theme !== 'TOP 100 DROPSIDERS' && !theme.startsWith('TOP 5')) {
                 setTheme('TRACKLIST');
             }
         } else {
@@ -521,108 +521,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); // Descendu dans le dégradé
 
             } else if (theme === 'TOP 100 DROPSIDERS') {
-                const item = top5Items[currentPreviewIndex];
-                const artist = item.main.toUpperCase();
-                // Default to input value (streams logic), or fallback to rank based on index. Can type "4" here.
-                const rank = item.value.trim() || `${100 - currentPreviewIndex}`;
-
-                // --- Background is already drawn ---
-
-                // Add nice red inner frame (DJ Mag style)
-                ctx.strokeStyle = '#ff0033';
-                ctx.lineWidth = 14;
-                ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
-
-                // Add dark top overlay for text readability
-                const topGrad = ctx.createLinearGradient(0, 0, 0, 400);
-                topGrad.addColorStop(0, 'rgba(0,0,0,0.85)');
-                topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = topGrad;
-                ctx.fillRect(0, 0, canvas.width, 400);
-
-                // Add dark bottom overlay
-                const botGradStart = canvas.height - 400;
-                const botGrad = ctx.createLinearGradient(0, botGradStart, 0, canvas.height);
-                botGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                botGrad.addColorStop(1, 'rgba(0,0,0,0.95)');
-                ctx.fillStyle = botGrad;
-                ctx.fillRect(0, botGradStart, canvas.width, canvas.height - botGradStart);
-
-                // Top Left: Artist Name
-                ctx.save();
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'top';
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0,0,0,1)';
-                ctx.shadowBlur = 20;
-                
-                // Dynamic font size for long artist names
-                let artistFontSize = 90;
-                ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
-                while (ctx.measureText(artist).width > canvas.width - 350 && artistFontSize > 40) {
-                    artistFontSize -= 2;
-                    ctx.font = `900 italic ${artistFontSize}px "Montserrat", sans-serif`;
-                }
-                ctx.fillText(artist, 70, 70);
-                ctx.restore();
-
-                // Top Right: Red Square + Rank Number
-                ctx.save();
-                const boxSize = 140;
-                ctx.fillStyle = '#ff0033';
-                ctx.shadowColor = 'rgba(255,0,51,0.4)';
-                ctx.shadowBlur = 15;
-                const boxX = canvas.width - boxSize - 30;
-                ctx.fillRect(boxX, 30, boxSize, boxSize);
-                
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'transparent';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                const rankFs = rank.length > 2 ? 65 : 85;
-                ctx.font = `900 italic ${rankFs}px "Montserrat", sans-serif`;
-                ctx.fillText(rank, boxX + (boxSize/2), 30 + (boxSize/2) + 5); 
-                ctx.restore();
-
-                // Bottom Left: BIG Rank + TOP 100 DROPSIDERS + Logo
-                ctx.save();
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'bottom';
-                
-                // Adjust Y position if Reel versus Post to ensure safe area
-                const botY = effectiveTab === 'PUBLICATION' ? canvas.height - 120 : safeBottom - 50;
-                
-                // Red Rank Text
-                ctx.fillStyle = '#ff0033';
-                ctx.font = '900 italic 140px "Montserrat", sans-serif';
-                ctx.shadowColor = 'rgba(0,0,0,0.9)';
-                ctx.shadowBlur = 25;
-                ctx.fillText(rank, 70, botY);
-                
-                // Measure the big red rank number width
-                const rankW = ctx.measureText(rank).width;
-                
-                // White "TOP 100 DJS / DROPSIDERS" Text
-                const labelStr = 'TOP 100 DROPSIDERS';
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 55px "Montserrat", sans-serif';
-                ctx.shadowBlur = 15;
-                const labelX = 70 + rankW + 30; // Spacing after big rank num
-                ctx.fillText(labelStr, labelX, botY - 15);
-
-                // ALIGN THE LOGO: Exact alignment under the label
-                if (logoRef.current) {
-                    const logo = logoRef.current;
-                    const labelW = ctx.measureText(labelStr).width;
-                    
-                    // Logo takes the width of the label for neat alignment
-                    const logoW = labelW; 
-                    const logoH = (logo.height * logoW) / logo.width;
-                    
-                    // Center the logo under the text by using the same labelX
-                    ctx.drawImage(logo, labelX, botY + 15, logoW, logoH);
-                }
-                ctx.restore();
+                // Now uses the standard minimalist centered layout below
+                // Just keeping this block for any specific Top 100 logic later if needed
+                // or we can remove it and let it fall into the 'else' block.
 
             } else if (theme === 'LIVESTREAM') {
                 const centerX = canvas.width / 2;
@@ -1144,6 +1045,40 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
+                
+                // Draw Stylized Footer for Top 100
+                if (theme === 'TOP 100 DROPSIDERS') {
+                    ctx.save();
+                    const ctaSize = 24;
+                    const prefix = 'VOTER SUR ';
+                    const domain = 'DROPSIDERS.FR';
+                    const centerX = canvas.width / 2;
+                    const footerY = canvas.height - 100;
+                    
+                    ctx.font = `600 ${ctaSize}px "Montserrat", sans-serif`;
+                    const w1 = ctx.measureText(prefix).width;
+                    ctx.font = `900 ${ctaSize}px "Montserrat", sans-serif`;
+                    const w2 = ctx.measureText(domain).width;
+                    const totalW = w1 + w2;
+                    let curX = centerX - totalW / 2;
+
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `600 ${ctaSize}px "Montserrat", sans-serif`;
+                    ctx.fillText(prefix, curX, footerY);
+                    curX += w1;
+                    
+                    ctx.font = `900 ${ctaSize}px "Montserrat", sans-serif`;
+                    ctx.fillText(domain, curX, footerY);
+                    
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(curX, footerY + 8);
+                    ctx.lineTo(curX + w2, footerY + 8);
+                    ctx.stroke();
+                    ctx.restore();
+                }
                 
                 const textToRender = customText;
                     
