@@ -867,15 +867,20 @@ ${urls.map(u => `  <url>
                 const { key } = await request.json();
                 if (!key) return new Response(JSON.stringify({ error: 'Key missing' }), { status: 400, headers });
                 
-                // key might be a URL like /uploads/uploads/file.jpg, we need to extract the actual R2 key
-                let r2Key = key.replace(/^\//, ''); // Remove leading slash
-                if (r2Key.startsWith('uploads/')) {
-                    r2Key = r2Key.replace('uploads/', '');
+                // key might be a URL like /uploads/uploads/file.jpg or a path like uploads/file.jpg
+                let r2Key = key;
+                if (r2Key.includes('://')) {
+                    try { r2Key = new URL(r2Key).pathname; } catch (e) {}
                 }
                 
-                // Final sanitization: if it still has uploads/ at the start (double uploads/ case)
+                // First slash check
+                if (r2Key.startsWith('/')) r2Key = r2Key.substring(1);
+
+                // If it starts with uploads/ twice from a path like /uploads/uploads/foo.jpg
+                // The router part is the FIRST /uploads/, the R2 key is everything AFTER it.
                 if (r2Key.startsWith('uploads/')) {
-                    r2Key = r2Key.replace('uploads/', '');
+                    // We only strip the first 'uploads/' because that's the Cloudflare Worker route prefix
+                    r2Key = r2Key.substring(8);
                 }
 
                 await env.R2.delete(decodeURIComponent(r2Key));
