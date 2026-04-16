@@ -36,6 +36,16 @@
     "columns": 1
   },
   {
+    "title": "Générateur Fiches",
+    "description": "Interview Visual Cards",
+    "icon": "Columns",
+    "category": "SOCIAL_STUDIO",
+    "link": "interview-generator",
+    "permission": "news",
+    "baseColor": "#8951db",
+    "columns": 1
+  },
+  {
     "title": "Accueil",
     "description": "Sections & Vues",
     "icon": "LayoutDashboard",
@@ -69,6 +79,18 @@
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
     "baseColor": "#00bfff",
+    "columns": 1
+  },
+  {
+    "title": "Top Dropsiders",
+    "description": "Résultats des votes",
+    "icon": "Star",
+    "category": "WIKI",
+    "link": "#",
+    "color": "border-neon-yellow/20 hover:border-neon-yellow",
+    "bg": "bg-neon-yellow/5",
+    "permission": "community_mod",
+    "baseColor": "#e7f708",
     "columns": 1
   },
   {

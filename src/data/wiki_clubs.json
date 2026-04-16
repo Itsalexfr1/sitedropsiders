@@ -583,7 +583,7 @@
     "instagram": "https://instagram.com/fuse",
     "votes": 0,
     "description_en": "Fuse est le plus ancien club techno de Belgique, une institution bruxelloise respectée dans le monde entier pour son authenticité.",
-    "status": "waiting"
+    "status": "verified"
   },
   {
     "id": "c70",
@@ -610,7 +610,7 @@
     "instagram": "https://instagram.com/villageunderground",
     "votes": 0,
     "description_en": "Lieu hybride installé dans d'anciens wagons de métro et entrepôts, c'est l'un des cœurs de la scène créative et club de Shoreditch.",
-    "status": "waiting"
+    "status": "verified"
   },
   {
     "id": "c72",
@@ -624,7 +624,7 @@
     "instagram": "https://instagram.com/katerblau",
     "votes": 0,
     "description_en": "Héritier de l'esprit du Bar25, Kater Blau est un lieu onirique au bord de la Spree avec une ambiance festival et des sets infinis.",
-    "status": "waiting"
+    "status": "verified"
   },
   {
     "id": "c73",
@@ -859,7 +859,7 @@
     "instagram": "https://instagram.com/luxfragil",
     "votes": 0,
     "description_en": "Le club le plus iconique du Portugal, avec une vue imprenable sur le Tage et une programmation toujours à la pointe.",
-    "status": "waiting"
+    "status": "verified"
   },
   {
     "id": "c99",
@@ -1038,7 +1038,7 @@
     "soundcloud": "https://soundcloud.com/rsoberlin",
     "beatport": "https://www.beatport.com/search?q=RSO.Berlin",
     "bio_en": "A major figure on the global scene, RSO.Berlin is a key player in today's electronic culture.",
-    "status": "waiting"
+    "status": "verified"
   },
   {
     "id": "315",
@@ -1103,7 +1103,7 @@
     "soundcloud": "https://soundcloud.com/palhamburg",
     "beatport": "https://www.beatport.com/search?q=PAL%20Hamburg",
     "bio_en": "A major figure on the global scene, PAL Hamburg is a key player in today's electronic culture.",
-    "status": "waiting"
+    "status": "verified"
   },
   {
     "id": "320",
@@ -1345,7 +1345,7 @@
     "soundcloud": "https://soundcloud.com/101clermont",
     "beatport": "https://www.beatport.com/search?q=101%20Clermont",
     "bio_en": "A major figure on the global scene, 101 Clermont is a key player in today's electronic culture.",
-    "status": "waiting"
+    "status": "verified"
   },
   {
     "id": "336",
@@ -1659,7 +1659,7 @@
     "soundcloud": "https://soundcloud.com/cocoricoriccione",
     "beatport": "https://www.beatport.com/search?q=Cocoric%C3%B2%20Riccione",
     "bio_en": "A major figure on the global scene, Cocoricò Riccione is a key player in today's electronic culture.",
-    "status": "waiting"
+    "status": "verified"
   },
   {
     "id": "357",
