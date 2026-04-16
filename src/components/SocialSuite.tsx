@@ -1060,7 +1060,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let curX = centerX - totalW / 2;
 
                     ctx.textAlign = 'left';
-                    ctx.fillStyle = '#ffffff';
+                    ctx.fillStyle = '#000000'; // Noir pour lisibilité sur le dégradé jaune
                     ctx.font = `600 ${ctaSize}px "Montserrat", sans-serif`;
                     ctx.fillText(prefix, curX, footerY);
                     curX += w1;
@@ -1069,7 +1069,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(domain, curX, footerY);
                     
                     ctx.beginPath();
-                    ctx.strokeStyle = '#ffffff';
+                    ctx.strokeStyle = '#000000'; // Noir pour soulignement
                     ctx.lineWidth = 2;
                     ctx.moveTo(curX, footerY + 8);
                     ctx.lineTo(curX + w2, footerY + 8);
@@ -1113,7 +1113,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fill();
 
                 ctx.globalAlpha = 1;
-                ctx.fillStyle = labelText === 'MUSIQUE' ? '#000' : '#FFF';
+                ctx.fillStyle = (labelText === 'MUSIQUE' || labelText === 'TOP 100 DROPSIDERS') ? '#000' : '#FFF';
                 const labelFontSize = 42;
                 ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
