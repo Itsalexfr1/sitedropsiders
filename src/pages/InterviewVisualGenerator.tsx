@@ -156,42 +156,31 @@ export function InterviewVisualGenerator() {
 
         // ── Drawing Logic ──
         const generateYouTube = async (ctx: CanvasRenderingContext2D, w: number, h: number) => {
-            const isMinimal = visualMode === 'top100' || visualMode === 'news';
-
             // Background
-            if (isMinimal) {
-                const grad = ctx.createLinearGradient(0, 0, 0, h);
-                grad.addColorStop(0, '#0a0a0a');
-                grad.addColorStop(0.6, '#0a0a0a');
-                grad.addColorStop(1, '#ff0033');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, w, h);
-            } else {
-                ctx.fillStyle = '#0a0a0a';
-                ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, w, h);
 
-                if (artistPhoto) {
-                    const photoImg = await loadImage(artistPhoto);
-                    const BASE_H = 1050;
-                    const ph = BASE_H * (photoScale / 100);
-                    const pw = ph * (photoImg.width / photoImg.height);
-                    const px = (w - pw * 0.8) + (photoOffsetX / 100) * h;
-                    const py = (h - ph) / 2 + (photoOffsetY / 100) * h * 0.5;
-                    
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.rect(w * 0.35, 0, w * 0.65, h);
-                    ctx.clip();
-                    ctx.drawImage(photoImg, px, py, pw, ph);
-                    
-                    const fadeWidth = w * 0.4;
-                    const fadeGrad = ctx.createLinearGradient(w * 0.35, 0, w * 0.35 + fadeWidth, 0);
-                    fadeGrad.addColorStop(0,   '#0a0a0a');
-                    fadeGrad.addColorStop(1,   'transparent');
-                    ctx.fillStyle = fadeGrad;
-                    ctx.fillRect(w * 0.35, 0, fadeWidth, h);
-                    ctx.restore();
-                }
+            if (artistPhoto) {
+                const photoImg = await loadImage(artistPhoto);
+                const BASE_H = 1050; // Reference height
+                const ph = BASE_H * (photoScale / 100);
+                const pw = ph * (photoImg.width / photoImg.height);
+                const px = (w - pw * 0.8) + (photoOffsetX / 100) * h;
+                const py = (h - ph) / 2 + (photoOffsetY / 100) * h * 0.5;
+                
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(w * 0.35, 0, w * 0.65, h);
+                ctx.clip();
+                ctx.drawImage(photoImg, px, py, pw, ph);
+                
+                const fadeWidth = w * 0.4;
+                const fadeGrad = ctx.createLinearGradient(w * 0.35, 0, w * 0.35 + fadeWidth, 0);
+                fadeGrad.addColorStop(0,   '#0a0a0a');
+                fadeGrad.addColorStop(1,   'transparent');
+                ctx.fillStyle = fadeGrad;
+                ctx.fillRect(w * 0.35, 0, fadeWidth, h);
+                ctx.restore();
             }
 
             // Logo Dropsiders Top Right
@@ -201,43 +190,7 @@ export function InterviewVisualGenerator() {
                 ctx.drawImage(dropsidersLogo, w - logoW - 40, 40, logoW, logoH);
             }
 
-            if (isMinimal) {
-                // Centered Label
-                let labelText = 'NEWS';
-                let labelBg = '#ff0033'; // Default Red
-                if (visualMode === 'top100') {
-                    labelText = 'TOP 100 DROPSIDERS';
-                    labelBg = '#fff01f'; // Gold/Yellow
-                }
-
-                const fontSize = h * 0.08;
-                ctx.font = `900 ${fontSize}px 'Arial Black', Arial, sans-serif`;
-                const textWidth = ctx.measureText(labelText).width;
-                const padX = 60;
-                const padY = 30;
-                const bx = (w - textWidth) / 2 - padX;
-                const by = (h - fontSize) / 2 - padY;
-
-                ctx.fillStyle = labelBg;
-                ctx.beginPath();
-                ctx.roundRect(bx, by, textWidth + padX * 2, fontSize + padY * 2, 25);
-                ctx.fill();
-
-                ctx.fillStyle = visualMode === 'top100' ? '#000000' : '#ffffff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(labelText, w / 2, h / 2 + 5);
-
-                // FOOTER (Top 100 only)
-                if (visualMode === 'top100') {
-                    ctx.font = `900 italic ${h * 0.06}px 'Orbitron', sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText('VOTER SUR DROPSIDERS', w / 2, h - h * 0.12);
-                }
-                return;
-            }
-
-            // NORMAL YT TEMPLATE
+            // Label Styling
             const blockX = 80;
             const blockY = 80;
             const labelFontSize = Math.round(h * 0.045);
@@ -246,17 +199,40 @@ export function InterviewVisualGenerator() {
             ctx.textBaseline = 'alphabetic';
 
             let labelText = 'INTERVIEW';
-            if (visualMode === 'recap') labelText = 'RÉCAP VIDÉO';
+            let labelBg = '#ff0033'; // Red
+            let labelTextCol = '#ffffff';
 
-            ctx.fillStyle = '#ff0033';
+            if (visualMode === 'recap') {
+                labelText = 'RÉCAP VIDÉO';
+                labelBg = '#00f0ff'; // Cyan
+            } else if (visualMode === 'news') {
+                labelText = 'NEWS';
+                labelBg = '#ff0033'; // Red
+            } else if (visualMode === 'top100') {
+                labelText = 'TOP 100 DROPSIDERS';
+                labelBg = '#fff100'; // Pure Neon Yellow
+                labelTextCol = '#000000';
+            }
+
+            ctx.fillStyle = labelBg;
             const textW = ctx.measureText(labelText).width;
             ctx.beginPath();
             ctx.roundRect(blockX - 20, blockY - labelFontSize * 1.05, textW + 40, labelFontSize * 1.5, 10);
             ctx.fill();
 
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = labelTextCol;
             ctx.textAlign = 'left';
             ctx.fillText(labelText, blockX, blockY);
+
+            // Special Bottom-Left CTA for Top 100
+            if (visualMode === 'top100') {
+                const ctaSize = Math.round(h * 0.022);
+                ctx.font = `900 ${ctaSize}px Arial, sans-serif`;
+                ctx.fillStyle = '#ffffff';
+                ctx.letterSpacing = '2px';
+                ctx.fillText('VOTER SUR DROPSIDERS.FR', 40, h - 40);
+                ctx.letterSpacing = '0px';
+            }
 
             const nameY = blockY + labelFontSize * 2.5;
             if (artistLogo) {
@@ -276,87 +252,64 @@ export function InterviewVisualGenerator() {
         };
 
         const generateInstagram = async (ctx: CanvasRenderingContext2D, w: number, h: number) => {
-            const isMinimal = visualMode === 'top100' || visualMode === 'news';
-
             // Background
-            if (isMinimal) {
-                const grad = ctx.createLinearGradient(0, 0, 0, h);
-                grad.addColorStop(0, '#0a0a0a');
-                grad.addColorStop(0.6, '#0a0a0a');
-                grad.addColorStop(1, '#ff0033');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, w, h);
-            } else {
-                ctx.fillStyle = '#0a0a0a';
-                ctx.fillRect(0, 0, w, h);
-                if (artistPhoto) {
-                    const photoImg = await loadImage(artistPhoto);
-                    const BASE_H = 1050;
-                    const ph = BASE_H * (photoScale / 100);
-                    const pw = ph * (photoImg.width / photoImg.height);
-                    const px = (w - pw) / 2 + (photoOffsetX / 100) * h;
-                    const py = (h - ph) / 2 + (photoOffsetY / 100) * h * 0.4;
-                    ctx.save();
-                    ctx.globalAlpha = 0.5;
-                    ctx.drawImage(photoImg, px, py, pw, ph);
-                    ctx.restore();
-                }
-                const grad = ctx.createLinearGradient(0, 0, 0, h);
-                grad.addColorStop(0, 'rgba(10,10,10,0)');
-                grad.addColorStop(1, '#0a0a0a');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, w, h);
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, w, h);
+            if (artistPhoto) {
+                const photoImg = await loadImage(artistPhoto);
+                const BASE_H = 1050;
+                const ph = BASE_H * (photoScale / 100);
+                const pw = ph * (photoImg.width / photoImg.height);
+                const px = (w - pw) / 2 + (photoOffsetX / 100) * h;
+                const py = (h - ph) / 2 + (photoOffsetY / 100) * h * 0.4;
+                ctx.save();
+                ctx.globalAlpha = 0.5;
+                ctx.drawImage(photoImg, px, py, pw, ph);
+                ctx.restore();
             }
+            const grad = ctx.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, 'rgba(10,10,10,0)');
+            grad.addColorStop(1, '#0a0a0a');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, w, h);
 
             const cx = w / 2;
+            const topY = h * 0.1;
+
             if (dropsidersLogo) {
                 const lw = w * 0.25;
                 const lh = (dropsidersLogo.height / dropsidersLogo.width) * lw;
-                ctx.drawImage(dropsidersLogo, w - lw - 40, 40, lw, lh);
+                ctx.drawImage(dropsidersLogo, cx - lw / 2, topY, lw, lh);
             }
 
-            if (isMinimal) {
-                let labelText = 'NEWS';
-                let labelBg = '#ff0033';
-                if (visualMode === 'top100') {
-                    labelText = 'TOP 100 DROPSIDERS';
-                    labelBg = '#fff01f';
-                }
-
-                const fontSize = h * 0.07;
-                ctx.font = `900 ${fontSize}px 'Arial Black', Arial, sans-serif`;
-                const textWidth = ctx.measureText(labelText).width;
-                const padX = 50;
-                const padY = 25;
-                const bx = (w - textWidth) / 2 - padX;
-                const by = (h - fontSize) / 2 - padY;
-
-                ctx.fillStyle = labelBg;
-                ctx.beginPath();
-                ctx.roundRect(bx, by, textWidth + padX * 2, fontSize + padY * 2, 20);
-                ctx.fill();
-
-                ctx.fillStyle = visualMode === 'top100' ? '#000000' : '#ffffff';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(labelText, cx, h / 2 + 5);
-
-                if (visualMode === 'top100') {
-                    ctx.font = `900 italic ${h * 0.052}px 'Orbitron', sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText('VOTER SUR DROPSIDERS', cx, h - h * 0.15);
-                }
-                return;
-            }
-
-            // NORMAL INSTA TEMPLATE
-            ctx.textAlign = 'center';
+            // Label logic
             let labelText = '— INTERVIEW —';
-            if (visualMode === 'recap') labelText = '— RÉCAP VIDÉO —';
+            let labelCol = '#ff0033';
+            if (visualMode === 'recap') {
+                labelText = '— RÉCAP VIDÉO —';
+                labelCol = '#00f0ff';
+            } else if (visualMode === 'news') {
+                labelText = '— NEWS —';
+                labelCol = '#ff0033';
+            } else if (visualMode === 'top100') {
+                labelText = '— TOP 100 DROPSIDERS —';
+                labelCol = '#fff100';
+            }
 
             ctx.font = `900 ${h * 0.032}px 'Arial Black', Arial, sans-serif`;
-            ctx.fillStyle = '#ff0033';
-            ctx.fillText(labelText, cx, h * 0.15);
+            ctx.fillStyle = labelCol;
+            ctx.textAlign = 'center';
+            ctx.fillText(labelText, cx, topY + h * 0.07);
+
+            // Bottom-Left CTA for Instagram
+            if (visualMode === 'top100') {
+                ctx.textAlign = 'left';
+                ctx.font = `900 ${h * 0.02}px Arial, sans-serif`;
+                ctx.fillStyle = '#ffffff';
+                ctx.letterSpacing = '1px';
+                ctx.fillText('VOTER SUR DROPSIDERS.FR', 30, h - 35);
+                ctx.letterSpacing = '0px';
+            }
 
             const nameY = h * 0.82;
             if (artistLogo) {
