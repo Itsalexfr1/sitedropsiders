@@ -21,7 +21,7 @@
     "forceHomepage": true,
     "isSecret": false,
     "password": "",
-    "wikiVotesEnabled": true,
+    "wikiVotesEnabled": false,
     "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
