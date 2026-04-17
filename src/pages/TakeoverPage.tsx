@@ -20,6 +20,7 @@ import { FlagIcon } from '../components/ui/FlagIcon';
 import { ModerationModal } from '../components/admin/ModerationModal';
 import { ImageCropper } from '../components/ImageCropper';
 import { resolveImageUrl } from '../utils/image';
+import settingsData from '../data/settings.json';
 
 interface LineupItem {
     id: string;

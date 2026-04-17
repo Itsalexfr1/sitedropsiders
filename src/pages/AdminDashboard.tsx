@@ -488,6 +488,7 @@ export function AdminDashboard() {
 
     interface TakeoverState {
         enabled: boolean;
+        wikiVotesEnabled?: boolean;
         youtubeId: string;
         title: string;
         moderators: string;
@@ -3038,7 +3039,7 @@ export function AdminDashboard() {
                                                                     await apiFetch('/api/settings/update', {
                                                                         method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(newSettings)
                                                                     });
-                                                                    setGlobalAlert({ type: 'success', title: 'VOTES', message: newState ? 'Les votes sont ACTIVÉS.' : 'Les votes sont DÉSACTIVÉS.' });
+                                                                    setGlobalAlert({ type: 'info', title: 'VOTES', message: newState ? 'Les votes sont ACTIVÉS.' : 'Les votes sont DÉSACTIVÉS.' });
                                                                 } catch (e) {
                                                                     console.error(e);
                                                                 }
@@ -3065,7 +3066,7 @@ export function AdminDashboard() {
                                                                                 body: JSON.stringify({ type: 'wiki' })
                                                                             });
                                                                             if (res.ok) {
-                                                                                setGlobalAlert({ type: 'success', title: 'VOTES RÉINITIALISÉS', message: 'Tous les compteurs sont revenus à zéro.' });
+                                                                                setGlobalAlert({ type: 'info', title: 'VOTES RÉINITIALISÉS', message: 'Tous les compteurs sont revenus à zéro.' });
                                                                                 setTimeout(() => window.location.reload(), 1500);
                                                                             }
                                                                         } catch (e) {
