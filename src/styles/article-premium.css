@@ -425,50 +425,51 @@
 /* --- MUSIC TOP LIST --- */
 .music-top-section {
     max-width: none;
-    margin: 4rem auto;
+    margin: 2rem auto;
 }
 
+/* Each music item: completely transparent, no card */
 .music-top-item-premium {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 32px;
-    padding: 3rem;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    margin-bottom: 8rem;
-    margin-top: 2rem;
-    text-align: center;
+    background: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin-bottom: 6rem;
+    margin-top: 0;
+    text-align: left;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .music-top-item-premium:hover {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5);
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
-/* Espace harmonieux entre le titre et le player */
+/* Title spacing */
 .music-top-item-premium .music-top-header {
-    margin-bottom: 4rem !important;
-    justify-content: center;
+    margin-bottom: 1.5rem !important;
+    justify-content: flex-start;
 }
 
-/* Titles/Artists inside music top list (Blanc avec lueur rouge) */
+/* Title style: clean, white neon text */
 .music-top-item-premium h3 {
-    margin: 0 !important;
-    text-align: center !important;
+    margin: 0 0 1.5rem !important;
+    text-align: left !important;
     color: white !important;
     text-shadow:
-        0 0 10px var(--theme-color, rgba(255, 0, 51, 0.8)),
-        0 0 20px var(--theme-color, rgba(255, 0, 51, 0.4)) !important;
+        0 0 10px var(--theme-color, rgba(255, 0, 51, 0.6)),
+        0 0 30px var(--theme-color, rgba(255, 0, 51, 0.2)) !important;
 }
 
-/* Numbers inside music top list (Rouge avec lueur blanche) */
-.music-top-item-premium .text-4xl {
-    color: var(--theme-color, #ff0033) !important;
-    text-shadow:
-        0 0 10px rgba(255, 255, 255, 0.8),
-        0 0 20px rgba(255, 255, 255, 0.4) !important;
+/* Player: pure black, flush */
+.music-player-container {
+    border: none !important;
+    background: #000 !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
 }
 
 .music-top-item-premium .aspect-video {

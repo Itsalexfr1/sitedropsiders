@@ -150,14 +150,22 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                 </div>
 
                                 <AnimatePresence>
-                                    {openTrackTitle === track.title && track.media && (
+                                    {openTrackTitle === track.title && (
                                         <motion.div
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden bg-black/40 rounded-2xl p-2 border border-white/10 mb-2"
+                                            className="overflow-hidden rounded-2xl border border-white/10 mb-2"
                                         >
-                                            {renderPlayer(track.media, track.playerType || 'spotify')}
+                                            {track.media ? (
+                                                <div className="bg-black/60 p-2">
+                                                    {renderPlayer(track.media, track.playerType || 'spotify')}
+                                                </div>
+                                            ) : (
+                                                <div className="bg-black/40 p-4 text-center text-gray-500 text-xs uppercase tracking-widest font-bold">
+                                                    Vote depuis un article pour activer le player
+                                                </div>
+                                            )}
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
