@@ -2312,14 +2312,6 @@ ${generateSocialsHtml()}
                                     >
                                         <BeatportIcon className="w-3.5 h-3.5" /> Beatport
                                     </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setMediaModal({ show: true, type: 'beatport', url: '', urls: '' })}
-                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#02FF95]/20 border border-[#02FF95]/30 text-[#02FF95] rounded-full hover:bg-[#02FF95]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
-                                    >
-                                        <Music className="w-3 h-3" /> Beatport
-                                    </button>
                                 </div>
                             </div>
 
@@ -3315,6 +3307,13 @@ ${generateSocialsHtml()}
                                         className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#1DB954]/20 border border-[#1DB954]/30 text-[#1DB954] rounded-full hover:bg-[#1DB954]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
                                     >
                                         <SpotifyIcon className="w-3.5 h-3.5" /> Spotify
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'beatport', url: '', urls: '' })}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#02FF95]/20 border border-[#02FF95]/30 text-[#02FF95] rounded-full hover:bg-[#02FF95]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <BeatportIcon className="w-3.5 h-3.5" /> Beatport
                                     </button>
                                 </div>
                             </div>
