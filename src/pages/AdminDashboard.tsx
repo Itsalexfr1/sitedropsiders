@@ -174,6 +174,7 @@ export function AdminDashboard() {
     const [editingResidence, setEditingResidence] = useState<any>(null);
     const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
     const [isResettingVotes, setIsResettingVotes] = useState(false);
+    const [isResetMusicConfirmOpen, setIsResetMusicConfirmOpen] = useState(false);
     const [isR2PhotosModalOpen, setIsR2PhotosModalOpen] = useState(false);
     const [isScanMenuOpen, setIsScanMenuOpen] = useState(false);
     const [maintenanceLoading, setMaintenanceLoading] = useState(false);
@@ -2020,6 +2021,29 @@ export function AdminDashboard() {
         }
     };
 
+    const handleResetVotes = async () => {
+        setIsResetMusicConfirmOpen(false);
+        setIsResettingVotes(true);
+        try {
+            const adminToken = import.meta.env.VITE_ADMIN_TOKEN;
+            const res = await apiFetch('/api/music/reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminToken })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setGlobalAlert({ message: `✅ ${data.deleted} votes supprimés avec succès !`, type: 'info' });
+            } else {
+                setGlobalAlert({ message: `❌ Erreur: ${data.error}`, type: 'danger' });
+            }
+        } catch (err: any) {
+            setGlobalAlert({ message: `❌ Erreur réseau: ${err.message}`, type: 'danger' });
+        } finally {
+            setIsResettingVotes(false);
+        }
+    };
+
     const isAdminAcc = storedPermissions.includes('all');
 
 
@@ -2276,28 +2300,7 @@ export function AdminDashboard() {
                                     {isAlex && (
                                         <button
                                             disabled={isResettingVotes}
-                                            onClick={async () => {
-                                                if (!window.confirm('⚠️ Remettre TOUS les votes music à zéro ? Action IRREVERSIBLE.')) return;
-                                                setIsResettingVotes(true);
-                                                try {
-                                                    const adminToken = import.meta.env.VITE_ADMIN_TOKEN;
-                                                    const res = await fetch('/api/music/reset', {
-                                                        method: 'POST',
-                                                        headers: { 'Content-Type': 'application/json' },
-                                                        body: JSON.stringify({ adminToken })
-                                                    });
-                                                    const data = await res.json();
-                                                    if (data.success) {
-                                                        setGlobalAlert({ message: `✅ ${data.deleted} votes supprimés avec succès !`, type: 'info' });
-                                                    } else {
-                                                        setGlobalAlert({ message: `❌ Erreur: ${data.error}`, type: 'danger' });
-                                                    }
-                                                } catch (err: any) {
-                                                    setGlobalAlert({ message: `❌ Erreur réseau: ${err.message}`, type: 'danger' });
-                                                } finally {
-                                                    setIsResettingVotes(false);
-                                                }
-                                            }}
+                                            onClick={() => setIsResetMusicConfirmOpen(true)}
                                             title="Reset Votes Music"
                                             className="w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full bg-red-500/10 border border-red-500/40 text-red-500 hover:bg-red-500 hover:text-white text-xs font-black uppercase tracking-widest transition-all gap-2 shadow-lg shadow-red-500/10 disabled:opacity-50"
                                         >
@@ -8997,6 +9000,16 @@ export function AdminDashboard() {
                 </AnimatePresence>
                 </div>
             </div>
+            <ConfirmModal
+                isOpen={isResetMusicConfirmOpen}
+                title="Reset Votes Music"
+                message="⚠️ Êtes-vous sûr de vouloir remettre TOUS les votes musiques à zéro ? Cette action est irréversible."
+                onConfirm={handleResetVotes}
+                onCancel={() => setIsResetMusicConfirmOpen(false)}
+                type="danger"
+                confirmText="Réinitialiser"
+                cancelText="Annuler"
+            />
         </div>
     );
 }
