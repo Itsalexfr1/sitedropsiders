@@ -1501,14 +1501,21 @@ ${generateSocialsHtml()}
       <div class="h-px w-24 bg-neon-red mt-3 opacity-50"></div>
     </div>
   </div>
-  <div class="music-player-container rounded-[2rem] overflow-hidden border border-white/5 bg-black/20 shadow-2xl">
+  <div class="music-player-container rounded-[2rem] overflow-hidden border border-white/5 bg-black/20 shadow-2xl relative">
     ${renderMediaEmbed(item.media, item.playerType)}
+    
+    ${item.canVote || item.description ? `
+    <div class="music-player-footer px-6 py-4 bg-white/[0.02] border-t border-white/5 flex flex-wrap items-center justify-between gap-4">
+      <div class="music-footer-left flex-1 min-w-0">
+        ${item.description ? `<p class="text-gray-500 text-[11px] italic truncate uppercase tracking-widest font-bold opacity-60">${standardizeContent(item.description)}</p>` : ''}
+      </div>
+      ${item.canVote ? `
+      <button class="music-vote-button group flex items-center gap-2 px-6 py-2.5 rounded-xl text-neon-cyan/80 hover:text-neon-cyan font-black uppercase tracking-[0.2em] text-[9px] transition-all hover:bg-white/5" data-item-id="${item.id}" data-item-title="${item.title.replace(/"/g, '&quot;')}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 transition-transform group-hover:scale-110 shadow-neon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <span>VOTER</span>
+      </button>` : ''}
+    </div>` : ''}
   </div>
-  ${item.description ? `
-  <div class="music-item-description mt-6 px-4 py-3 bg-white/[0.03] border-l-2 border-neon-cyan rounded-r-xl">
-    <p class="text-gray-400 text-sm italic">${standardizeContent(item.description)}</p>
-  </div>` : ''}
-  ${voteBtn}
 </div>`;
                 }).join('\n');
 

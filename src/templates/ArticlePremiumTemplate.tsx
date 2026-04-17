@@ -485,9 +485,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 const originalContent = voteBtn.innerHTML;
                 voteBtn.classList.add('opacity-50', 'pointer-events-none');
                 voteBtn.innerHTML = `
-                    <div class="absolute inset-0 bg-white/5 animate-pulse"></div>
-                    <div class="w-4 h-4 border-2 border-neon-cyan/20 border-t-neon-cyan rounded-full animate-spin"></div>
-                    <span class="relative z-10">${language === 'fr' ? 'VOTING...' : 'VOTING...'}</span>
+                    <div class="w-3.5 h-3.5 border-2 border-neon-cyan/20 border-t-neon-cyan rounded-full animate-spin"></div>
+                    <span class="relative z-10 text-[9px] font-black">${language === 'fr' ? 'VOTE...' : 'VOTE...'}</span>
                 `;
 
                 try {
@@ -499,8 +498,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                     if (res.ok) {
                         voteBtn.innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            <span class="text-green-400 font-bold relative z-10">${language === 'fr' ? 'VOTÉ !' : 'VOTED!'}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.6)]"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <span class="text-green-400 font-bold relative z-10 text-[9px]">${language === 'fr' ? 'VOTÉ !' : 'VOTED!'}</span>
                         `;
                         // Keep it disabled for a while
                         setTimeout(() => {
@@ -512,7 +511,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     }
                 } catch (err) {
                     voteBtn.innerHTML = `
-                        <span class="text-red-500 font-bold relative z-10 uppercase">ERROR</span>
+                        <span class="text-red-500 font-bold relative z-10 uppercase text-[9px]">ERROR</span>
                     `;
                     setTimeout(() => {
                         voteBtn.innerHTML = originalContent;
