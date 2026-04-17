@@ -5254,50 +5254,105 @@ ${urls.map(u => `  <url>
         // Reset all leaderboards
         if (path === '/api/admin/reset-leaderboards' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
-            const { type } = await request.json(); // 'xp', 'wiki', 'all'
-
             try {
+                const { type } = await request.json(); // 'xp', 'wiki', 'music', 'all'
+                const gitConfig = await getGitConfig(env);
+                const tasks = [];
+                
+                // 1. Reset XP
                 if (type === 'xp' || type === 'all') {
-                    const keys = await env.CHAT_KV.list({ prefix: 'community_player_xp_' });
-                    for (const key of keys.keys) {
-                        await env.CHAT_KV.delete(key.name);
-                    }
+                    tasks.push((async () => {
+                        const list = await env.CHAT_KV.list({ prefix: 'community_player_xp_' });
+                        for (const key of list.keys) {
+                            await env.CHAT_KV.delete(key.name);
+                        }
+                    })());
                 }
 
+                // 2. Reset Wiki JSONs
                 if (type === 'wiki' || type === 'all') {
-                    const DJS_PATH = 'src/data/wiki_djs.json';
-                    const CLUBS_PATH = 'src/data/wiki_clubs.json';
-                    const FESTS_PATH = 'src/data/wiki_festivals.json';
+                    tasks.push((async () => {
+                        const DJS_PATH = 'src/data/wiki_djs.json';
+                        const CLUBS_PATH = 'src/data/wiki_clubs.json';
+                        const FESTS_PATH = 'src/data/wiki_festivals.json';
 
-                    // Reset DJs
-                    const djFile = await fetchGitHubFile(DJS_PATH, gitConfig);
-                    if (djFile) {
-                        const content = djFile.content.map((d: any) => ({ ...d, rating: "0", votes: 0 }));
-                        const saved = await saveGitHubFile(DJS_PATH, content, "Reset DJ ratings & votes", djFile.sha, gitConfig);
-                        if (!saved.ok) throw new Error(`DJs reset failed: ${saved.error}`);
-                    }
-
-                    // Reset Clubs
-                    const clubFile = await fetchGitHubFile(CLUBS_PATH, gitConfig);
-                    if (clubFile) {
-                        const content = clubFile.content.map((c: any) => ({ ...c, votes: 0, rating: "0" }));
-                        const saved = await saveGitHubFile(CLUBS_PATH, content, "Reset Club votes & ratings", clubFile.sha, gitConfig);
-                        if (!saved.ok) throw new Error(`Clubs reset failed: ${saved.error}`);
-                    }
-
-                    // Reset Festivals
-                    const festFile = await fetchGitHubFile(FESTS_PATH, gitConfig);
-                    if (festFile) {
-                        const content = festFile.content.map((f: any) => ({ ...f, votes: 0, rating: "0" }));
-                        const saved = await saveGitHubFile(FESTS_PATH, content, "Reset Festival votes & ratings", festFile.sha, gitConfig);
-                        if (!saved.ok) throw new Error(`Festivals reset failed: ${saved.error}`);
-                    }
+                        const djFile = await fetchGitHubFile(DJS_PATH, gitConfig);
+                        if (djFile?.content) {
+                            const content = djFile.content.map((d: any) => ({ ...d, rating: "0", votes: 0 }));
+                            await saveGitHubFile(DJS_PATH, content, "Reset DJ ratings & votes", djFile.sha, gitConfig);
+                        }
+                        const clubFile = await fetchGitHubFile(CLUBS_PATH, gitConfig);
+                        if (clubFile?.content) {
+                            const content = clubFile.content.map((c: any) => ({ ...c, votes: 0, rating: "0" }));
+                            await saveGitHubFile(CLUBS_PATH, content, "Reset Club votes & ratings", clubFile.sha, gitConfig);
+                        }
+                        const festFile = await fetchGitHubFile(FESTS_PATH, gitConfig);
+                        if (festFile?.content) {
+                            const content = festFile.content.map((f: any) => ({ ...f, votes: 0, rating: "0" }));
+                            await saveGitHubFile(FESTS_PATH, content, "Reset Festival votes & ratings", festFile.sha, gitConfig);
+                        }
+                    })());
                 }
 
+                // 3. Reset Music Tracks in KV
+                if (type === 'music' || type === 'all') {
+                    tasks.push((async () => {
+                        const list = await env.KV.list({ prefix: 'music_track:' });
+                        for (const key of list.keys) {
+                            await env.KV.delete(key.name);
+                        }
+                    })());
+                }
+
+                await Promise.all(tasks);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-            } catch (e: any) {
-                console.error("GitHub reset failed:", e);
-                return new Response(JSON.stringify({ error: e.message || 'Reset failed' }), { status: 500, headers });
+            } catch (error: any) {
+                return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+            }
+        }
+
+        // --- NEW: MUSIC TRACK VOTING ---
+        if (path === '/api/music/vote' && request.method === 'POST') {
+            try {
+                const { trackTitle } = await request.json();
+                if (!trackTitle) return new Response(JSON.stringify({ error: 'Title required' }), { status: 400, headers });
+
+                const trackId = trackTitle.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
+                const kvKey = `music_track:${trackId}`;
+
+                let data = await env.KV.get(kvKey, { type: 'json' }) as { title: string, votes: number } | null;
+                if (!data) {
+                    data = { title: trackTitle, votes: 1 };
+                } else {
+                    data.votes = (data.votes || 0) + 1;
+                }
+
+                await env.KV.put(kvKey, JSON.stringify(data));
+                return new Response(JSON.stringify({ success: true, votes: data.votes }), { status: 200, headers });
+            } catch (error: any) {
+                return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/music/top-tracks' && request.method === 'GET') {
+            try {
+                const list = await env.KV.list({ prefix: 'music_track:' });
+                const tracks = await Promise.all(
+                    list.keys.map(async (key) => {
+                        return await env.KV.get(key.name, { type: 'json' });
+                    })
+                );
+
+                const top10 = (tracks.filter(Boolean) as { title: string, votes: number }[])
+                    .sort((a, b) => b.votes - a.votes)
+                    .slice(0, 10);
+
+                return new Response(JSON.stringify(top10), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60', ...headers }
+                });
+            } catch (error: any) {
+                return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
             }
         }
 

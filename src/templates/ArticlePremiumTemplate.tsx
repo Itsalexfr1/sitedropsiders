@@ -461,23 +461,69 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         displayContent = displayContent.replace(/(<(h2|h3|p)[^>]*>)\s*(\d+[.:])\s*/gi, '$1<span class="music-number">$3</span> ');
     }
 
-    // Lightbox for content images
     useEffect(() => {
         const contentArea = document.querySelector('.article-body-premium');
         if (!contentArea) return;
 
-        const handleImageClick = (e: MouseEvent) => {
+        const handleContentClick = async (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            // Only trigger if it's an image and not already inside a clickable element (though we want it even there)
+            
+            // 1. Lightbox for images
             if (target.tagName === 'IMG') {
                 const src = (target as HTMLImageElement).src;
                 if (src) setSelectedImage(src);
+                return;
+            }
+
+            // 2. Music Vote Buttons
+            const voteBtn = target.closest('.music-vote-button');
+            if (voteBtn) {
+                const trackTitle = voteBtn.getAttribute('data-item-title');
+                if (!trackTitle) return;
+
+                // Visual feedback
+                const originalContent = voteBtn.innerHTML;
+                voteBtn.classList.add('opacity-50', 'pointer-events-none');
+                voteBtn.innerHTML = `
+                    <div class="w-4 h-4 border-2 border-neon-cyan/20 border-t-neon-cyan rounded-full animate-spin"></div>
+                    <span>VOTING...</span>
+                `;
+
+                try {
+                    const res = await fetch('/api/music/vote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ trackTitle })
+                    });
+
+                    if (res.ok) {
+                        voteBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-green-400"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            <span class="text-green-400">${language === 'fr' ? 'VOTÉ !' : 'VOTED!'}</span>
+                        `;
+                        // Keep it disabled for a while
+                        setTimeout(() => {
+                            voteBtn.innerHTML = originalContent;
+                            voteBtn.classList.remove('opacity-50', 'pointer-events-none');
+                        }, 3000);
+                    } else {
+                        throw new Error('Vote failed');
+                    }
+                } catch (err) {
+                    voteBtn.innerHTML = `
+                        <span class="text-red-500">ERROR</span>
+                    `;
+                    setTimeout(() => {
+                        voteBtn.innerHTML = originalContent;
+                        voteBtn.classList.remove('opacity-50', 'pointer-events-none');
+                    }, 2000);
+                }
             }
         };
 
-        contentArea.addEventListener('click', handleImageClick as any);
-        return () => contentArea.removeEventListener('click', handleImageClick as any);
-    }, [displayContent]);
+        contentArea.addEventListener('click', handleContentClick as any);
+        return () => contentArea.removeEventListener('click', handleContentClick as any);
+    }, [displayContent, language]);
 
     const displayTitle = language === 'en' && translatedTitle ? translatedTitle : article.title;
     const backLink = type === 'recap' ? '/recaps' : (isInterview ? '/interviews' : '/news');

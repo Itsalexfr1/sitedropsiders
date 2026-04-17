@@ -14,6 +14,7 @@ import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { LayoutDashboard, FileText, Calendar } from 'lucide-react';
 import { WikiWidget } from '../components/widgets/WikiWidget';
+import { TopTracksLeaderboard } from '../components/widgets/TopTracksLeaderboard';
 
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
@@ -139,7 +140,14 @@ export function Home() {
                 return (
                     <section key="spotify" className="bg-dark-bg/5 py-8 relative z-10">
                         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                            <SpotifyWidget accentColor={accentColor} resolvedColor={color} />
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <div className="lg:col-span-2">
+                                    <SpotifyWidget accentColor={accentColor} resolvedColor={color} />
+                                </div>
+                                <div className="lg:col-span-1">
+                                    <TopTracksLeaderboard resolvedColor={color} />
+                                </div>
+                            </div>
                         </div>
                     </section>
                 );
