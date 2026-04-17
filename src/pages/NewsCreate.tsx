@@ -1491,30 +1491,37 @@ ${generateSocialsHtml()}
       <span class="relative z-10">VOTER POUR CE MORCEAU</span>
     </button>
   </div>` : '';
-
-                    return `
-<div class="music-top-item-premium mb-16 last:mb-0" data-media="${item.media}" data-player-type="${item.playerType || 'spotify'}">
-  <div class="music-top-header flex items-center gap-6 mb-6">
-    <div class="vinyl-wrapper w-24 h-24 lg:w-32 lg:h-32 shrink-0">${item.imageUrl ? `<img src="${item.imageUrl}" class="w-full h-full object-cover rounded-full shadow-2xl ring-4 ring-white/5" />` : `<div class="w-full h-full bg-black/40 rounded-full border border-white/10 flex items-center justify-center"><span class="text-[8px] font-black text-gray-700">MUSIC</span></div>`}</div>
+<div class="music-top-item-premium mb-24 last:mb-0" data-item-id="${item.id}">
+  <div class="music-top-header cursor-pointer group flex items-center gap-6 mb-8 py-4 border-b border-white/5 hover:border-neon-cyan/30 transition-all" onclick="this.parentElement.classList.toggle('is-open')">
+    <div class="music-number-badge text-2xl font-black italic text-neon-cyan/40 group-hover:text-neon-cyan transition-colors">#${index + 1}</div>
     <div class="flex-1">
-      <h3 class="text-2xl lg:text-4xl font-display font-black text-white uppercase italic tracking-tighter leading-none">${item.title}</h3>
-      <div class="h-px w-24 bg-neon-red mt-3 opacity-50"></div>
+      <h3 class="text-2xl lg:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-tight group-hover:text-neon-cyan transition-colors">${item.title}</h3>
+    </div>
+    <div class="play-indicator opacity-0 group-hover:opacity-100 transition-opacity">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-neon-cyan"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
     </div>
   </div>
-  <div class="music-player-container rounded-[2rem] overflow-hidden border border-white/5 bg-black/20 shadow-2xl relative">
-    ${renderMediaEmbed(item.media, item.playerType)}
-    
-    ${item.canVote || item.description ? `
-    <div class="music-player-footer px-6 py-4 bg-white/[0.02] border-t border-white/5 flex flex-wrap items-center justify-between gap-4">
-      <div class="music-footer-left flex-1 min-w-0">
-        ${item.description ? `<p class="text-gray-500 text-[11px] italic truncate uppercase tracking-widest font-bold opacity-60">${standardizeContent(item.description)}</p>` : ''}
+  <div class="music-player-expand-container overflow-hidden transition-all duration-500 max-h-0">
+    <div class="music-player-inner pb-8">
+      <div class="music-player-container rounded-[2rem] overflow-hidden bg-black shadow-2xl relative">
+        ${renderMediaEmbed(item.media, item.playerType)}
+        
+        ${item.canVote || item.description ? `
+        <div class="music-player-footer px-6 py-4 bg-white/[0.02] border-t border-white/5 flex flex-wrap items-center justify-between gap-4">
+          <div class="music-footer-left flex-1 min-w-0">
+            ${item.description ? `<p class="text-gray-500 text-[11px] italic truncate uppercase tracking-widest font-bold opacity-60">${standardizeContent(item.description)}</p>` : ''}
+          </div>
+          ${item.canVote ? `
+          <button class="music-vote-button group flex items-center gap-2 px-6 py-2.5 rounded-xl text-neon-cyan/80 hover:text-neon-cyan font-black uppercase tracking-[0.2em] text-[9px] transition-all hover:bg-white/5" data-item-id="${item.id}" data-item-title="${item.title.replace(/"/g, '&quot;')}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 transition-transform group-hover:scale-110 shadow-neon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span>VOTER</span>
+          </button>` : ''}
+        </div>` : ''}
       </div>
-      ${item.canVote ? `
-      <button class="music-vote-button group flex items-center gap-2 px-6 py-2.5 rounded-xl text-neon-cyan/80 hover:text-neon-cyan font-black uppercase tracking-[0.2em] text-[9px] transition-all hover:bg-white/5" data-item-id="${item.id}" data-item-title="${item.title.replace(/"/g, '&quot;')}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 transition-transform group-hover:scale-110 shadow-neon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-        <span>VOTER</span>
-      </button>` : ''}
-    </div>` : ''}
+    </div>
+  </div>
+</div>
+</div>` : ''}
   </div>
 </div>`;
                 }).join('\n');

@@ -475,7 +475,17 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 return;
             }
 
-            // 2. Music Vote Buttons
+            // 2. Music Track Expansion
+            const trackHeader = target.closest('.music-top-header');
+            if (trackHeader) {
+                const itemWrapper = trackHeader.parentElement;
+                if (itemWrapper) {
+                    itemWrapper.classList.toggle('is-open');
+                }
+                return;
+            }
+
+            // 3. Music Vote Buttons
             const voteBtn = target.closest('.music-vote-button');
             if (voteBtn) {
                 const trackTitle = voteBtn.getAttribute('data-item-title');
