@@ -429,6 +429,11 @@
 }
 
 /* Each music item: completely transparent, no card */
+/* Hide legacy elements like "MUSIC" badge in older articles */
+.music-top-item-premium .vinyl-wrapper {
+    display: none !important;
+}
+
 .music-top-item-premium {
     background: none !important;
     border: none !important;
