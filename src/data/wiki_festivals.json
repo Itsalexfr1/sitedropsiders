@@ -1117,7 +1117,8 @@
     "soundcloud": "https://soundcloud.com/ultramiami",
     "beatport": "https://www.beatport.com/search?q=Ultra%20Miami",
     "bio_en": "A major figure on the global scene, Ultra Miami is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "302",
@@ -1132,7 +1133,8 @@
     "soundcloud": "https://soundcloud.com/awakenings",
     "beatport": "https://www.beatport.com/search?q=Awakenings",
     "bio_en": "A major figure on the global scene, Awakenings is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "303",
@@ -1147,7 +1149,8 @@
     "soundcloud": "https://soundcloud.com/sonarbarcelona",
     "beatport": "https://www.beatport.com/search?q=S%C3%B3nar%20Barcelona",
     "bio_en": "A major figure on the global scene, Sónar Barcelona is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "304",
@@ -1162,7 +1165,8 @@
     "soundcloud": "https://soundcloud.com/untold",
     "beatport": "https://www.beatport.com/search?q=Untold",
     "bio_en": "A major figure on the global scene, Untold is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "305",
@@ -1177,7 +1181,8 @@
     "soundcloud": "https://soundcloud.com/dekmantel",
     "beatport": "https://www.beatport.com/search?q=Dekmantel",
     "bio_en": "A major figure on the global scene, Dekmantel is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "306",
@@ -1193,7 +1198,8 @@
     "beatport": "https://www.beatport.com/search?q=Coachella",
     "bio_en": "A major figure on the global scene, Coachella is a key player in today's electronic culture.",
     "status": "verified",
-    "website": "https://www.coachella.com"
+    "website": "https://www.coachella.com",
+    "votes": 0
   },
   {
     "id": "308",
@@ -1208,7 +1214,8 @@
     "soundcloud": "https://soundcloud.com/sziget",
     "beatport": "https://www.beatport.com/search?q=Sziget",
     "bio_en": "A major figure on the global scene, Sziget is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "309",
@@ -1223,7 +1230,8 @@
     "soundcloud": "https://soundcloud.com/primaverasound",
     "beatport": "https://www.beatport.com/search?q=Primavera%20Sound",
     "bio_en": "A major figure on the global scene, Primavera Sound is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "311",
@@ -1238,7 +1246,8 @@
     "soundcloud": "https://soundcloud.com/fusionfestival",
     "beatport": "https://www.beatport.com/search?q=Fusion%20Festival",
     "bio_en": "A major figure on the global scene, Fusion Festival is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "312",
@@ -1253,7 +1262,8 @@
     "soundcloud": "https://soundcloud.com/natureone",
     "beatport": "https://www.beatport.com/search?q=Nature%20One",
     "bio_en": "A major figure on the global scene, Nature One is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "313",
@@ -1268,7 +1278,8 @@
     "soundcloud": "https://soundcloud.com/dgtlamsterdam",
     "beatport": "https://www.beatport.com/search?q=DGTL%20Amsterdam",
     "bio_en": "A major figure on the global scene, DGTL Amsterdam is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "314",
@@ -1283,7 +1294,8 @@
     "soundcloud": "https://soundcloud.com/loveland",
     "beatport": "https://www.beatport.com/search?q=Loveland",
     "bio_en": "A major figure on the global scene, Loveland is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "315",
@@ -1298,7 +1310,8 @@
     "soundcloud": "https://soundcloud.com/intothewoods",
     "beatport": "https://www.beatport.com/search?q=Into%20the%20Woods",
     "bio_en": "A major figure on the global scene, Into the Woods is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "316",
@@ -1313,7 +1326,8 @@
     "soundcloud": "https://soundcloud.com/lowlands",
     "beatport": "https://www.beatport.com/search?q=Lowlands",
     "bio_en": "A major figure on the global scene, Lowlands is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "317",
@@ -1328,7 +1342,8 @@
     "soundcloud": "https://soundcloud.com/rebirth",
     "beatport": "https://www.beatport.com/search?q=Rebirth",
     "bio_en": "A major figure on the global scene, Rebirth is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "318",
@@ -1343,7 +1358,8 @@
     "soundcloud": "https://soundcloud.com/paradisecity",
     "beatport": "https://www.beatport.com/search?q=Paradise%20City",
     "bio_en": "A major figure on the global scene, Paradise City is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "319",
@@ -1358,7 +1374,8 @@
     "soundcloud": "https://soundcloud.com/rampage",
     "beatport": "https://www.beatport.com/search?q=Rampage",
     "bio_en": "A major figure on the global scene, Rampage is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "321",
@@ -1373,7 +1390,8 @@
     "soundcloud": "https://soundcloud.com/fuseonthebeach",
     "beatport": "https://www.beatport.com/search?q=Fuse%20on%20the%20Beach",
     "bio_en": "A major figure on the global scene, Fuse on the Beach is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "322",
@@ -1388,7 +1406,8 @@
     "soundcloud": "https://soundcloud.com/horst",
     "beatport": "https://www.beatport.com/search?q=Horst",
     "bio_en": "A major figure on the global scene, Horst is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "323",
@@ -1403,7 +1422,8 @@
     "soundcloud": "https://soundcloud.com/wecandance",
     "beatport": "https://www.beatport.com/search?q=WECANDANCE",
     "bio_en": "A major figure on the global scene, WECANDANCE is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "324",
@@ -1418,7 +1438,8 @@
     "soundcloud": "https://soundcloud.com/extremaoutdoor",
     "beatport": "https://www.beatport.com/search?q=Extrema%20Outdoor",
     "bio_en": "A major figure on the global scene, Extrema Outdoor is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "325",
@@ -1434,7 +1455,8 @@
     "beatport": "https://www.beatport.com/search?q=Nuits%20Sonores",
     "bio_en": "A major figure on the global scene, Nuits Sonores is a key player in today's electronic culture.",
     "status": "verified",
-    "website": "https://www.nuits-sonores.com"
+    "website": "https://www.nuits-sonores.com",
+    "votes": 0
   },
   {
     "id": "326",
@@ -1450,7 +1472,8 @@
     "beatport": "https://www.beatport.com/search?q=Astropolis",
     "bio_en": "A major figure on the global scene, Astropolis is a key player in today's electronic culture.",
     "status": "verified",
-    "website": "https://www.astropolis.org"
+    "website": "https://www.astropolis.org",
+    "votes": 0
   },
   {
     "id": "327",
@@ -1466,7 +1489,8 @@
     "beatport": "https://www.beatport.com/search?q=Peacock%20Society",
     "bio_en": "A major figure on the global scene, Peacock Society is a key player in today's electronic culture.",
     "status": "verified",
-    "website": "https://thepeacocksociety.fr"
+    "website": "https://thepeacocksociety.fr",
+    "votes": 0
   },
   {
     "id": "328",
@@ -1482,7 +1506,8 @@
     "beatport": "https://www.beatport.com/search?q=Family%20Piknik",
     "bio_en": "A major figure on the global scene, Family Piknik is a key player in today's electronic culture.",
     "status": "verified",
-    "website": "https://www.familypiknikfestival.com"
+    "website": "https://www.familypiknikfestival.com",
+    "votes": 0
   },
   {
     "id": "329",
@@ -1497,7 +1522,8 @@
     "soundcloud": "https://soundcloud.com/marvellousisland",
     "beatport": "https://www.beatport.com/search?q=Marvellous%20Island",
     "bio_en": "A major figure on the global scene, Marvellous Island is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "331",
@@ -1512,7 +1538,8 @@
     "soundcloud": "https://soundcloud.com/positivfestival",
     "beatport": "https://www.beatport.com/search?q=Positiv%20Festival",
     "bio_en": "A major figure on the global scene, Positiv Festival is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "332",
@@ -1528,7 +1555,8 @@
     "beatport": "https://www.beatport.com/search?q=Cercle%20Festival",
     "bio_en": "A major figure on the global scene, Cercle Festival is a key player in today's electronic culture.",
     "status": "verified",
-    "website": "https://cercle.io"
+    "website": "https://cercle.io",
+    "votes": 0
   },
   {
     "id": "334",
@@ -1543,7 +1571,8 @@
     "soundcloud": "https://soundcloud.com/touquetmusicbeach",
     "beatport": "https://www.beatport.com/search?q=Touquet%20Music%20Beach",
     "bio_en": "A major figure on the global scene, Touquet Music Beach is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "335",
@@ -1558,7 +1587,8 @@
     "soundcloud": "https://soundcloud.com/reperkusound",
     "beatport": "https://www.beatport.com/search?q=Reperkusound",
     "bio_en": "A major figure on the global scene, Reperkusound is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "336",
@@ -1573,7 +1603,8 @@
     "soundcloud": "https://soundcloud.com/insanefestival",
     "beatport": "https://www.beatport.com/search?q=Insane%20Festival",
     "bio_en": "A major figure on the global scene, Insane Festival is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "337",
@@ -1588,7 +1619,8 @@
     "soundcloud": "https://soundcloud.com/deltafestival",
     "beatport": "https://www.beatport.com/search?q=Delta%20Festival",
     "bio_en": "A major figure on the global scene, Delta Festival is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "339",
@@ -1603,7 +1635,8 @@
     "soundcloud": "https://soundcloud.com/brunchelectronik",
     "beatport": "https://www.beatport.com/search?q=Brunch%20Electronik",
     "bio_en": "A major figure on the global scene, Brunch Electronik is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "340",
@@ -1619,7 +1652,8 @@
     "beatport": "https://www.beatport.com/search?q=Madame%20Loyal",
     "bio_en": "A major figure on the global scene, Madame Loyal is a key player in today's electronic culture.",
     "status": "verified",
-    "website": "https://madameloyal.com"
+    "website": "https://madameloyal.com",
+    "votes": 0
   },
   {
     "id": "341",
@@ -1634,7 +1668,8 @@
     "soundcloud": "https://soundcloud.com/junction2",
     "beatport": "https://www.beatport.com/search?q=Junction%202",
     "bio_en": "A major figure on the global scene, Junction 2 is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "342",
@@ -1649,7 +1684,8 @@
     "soundcloud": "https://soundcloud.com/houghton",
     "beatport": "https://www.beatport.com/search?q=Houghton",
     "bio_en": "A major figure on the global scene, Houghton is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "343",
@@ -1664,7 +1700,8 @@
     "soundcloud": "https://soundcloud.com/gottwood",
     "beatport": "https://www.beatport.com/search?q=Gottwood",
     "bio_en": "A major figure on the global scene, Gottwood is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "344",
@@ -1679,7 +1716,8 @@
     "soundcloud": "https://soundcloud.com/fieldday",
     "beatport": "https://www.beatport.com/search?q=Field%20Day",
     "bio_en": "A major figure on the global scene, Field Day is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "345",
@@ -1694,7 +1732,8 @@
     "soundcloud": "https://soundcloud.com/avafestival",
     "beatport": "https://www.beatport.com/search?q=AVA%20Festival",
     "bio_en": "A major figure on the global scene, AVA Festival is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "346",
@@ -1709,7 +1748,8 @@
     "soundcloud": "https://soundcloud.com/neopop",
     "beatport": "https://www.beatport.com/search?q=Neopop",
     "bio_en": "A major figure on the global scene, Neopop is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "347",
@@ -1724,7 +1764,8 @@
     "soundcloud": "https://soundcloud.com/bpmportugal",
     "beatport": "https://www.beatport.com/search?q=BPM%20Portugal",
     "bio_en": "A major figure on the global scene, BPM Portugal is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "348",
@@ -1739,7 +1780,8 @@
     "soundcloud": "https://soundcloud.com/monegrosdesert",
     "beatport": "https://www.beatport.com/search?q=Monegros%20Desert",
     "bio_en": "A major figure on the global scene, Monegros Desert is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "349",
@@ -1754,7 +1796,8 @@
     "soundcloud": "https://soundcloud.com/bbklive",
     "beatport": "https://www.beatport.com/search?q=BBK%20Live",
     "bio_en": "A major figure on the global scene, BBK Live is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "350",
@@ -1769,7 +1812,8 @@
     "soundcloud": "https://soundcloud.com/dreambeach",
     "beatport": "https://www.beatport.com/search?q=Dreambeach",
     "bio_en": "A major figure on the global scene, Dreambeach is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "352",
@@ -1784,7 +1828,8 @@
     "soundcloud": "https://soundcloud.com/seastar",
     "beatport": "https://www.beatport.com/search?q=Sea%20Star",
     "bio_en": "A major figure on the global scene, Sea Star is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "353",
@@ -1799,7 +1844,8 @@
     "soundcloud": "https://soundcloud.com/neversea",
     "beatport": "https://www.beatport.com/search?q=Neversea",
     "bio_en": "A major figure on the global scene, Neversea is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "354",
@@ -1814,7 +1860,8 @@
     "soundcloud": "https://soundcloud.com/sunwaves",
     "beatport": "https://www.beatport.com/search?q=Sunwaves",
     "bio_en": "A major figure on the global scene, Sunwaves is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "355",
@@ -1829,7 +1876,8 @@
     "soundcloud": "https://soundcloud.com/shambhalacanada",
     "beatport": "https://www.beatport.com/search?q=Shambhala%20Canada",
     "bio_en": "A major figure on the global scene, Shambhala Canada is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "356",
@@ -1844,7 +1892,8 @@
     "soundcloud": "https://soundcloud.com/ilesoniq",
     "beatport": "https://www.beatport.com/search?q=%C3%8Elesoniq",
     "bio_en": "A major figure on the global scene, Îlesoniq is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "357",
@@ -1859,7 +1908,8 @@
     "soundcloud": "https://soundcloud.com/veld",
     "beatport": "https://www.beatport.com/search?q=Veld",
     "bio_en": "A major figure on the global scene, Veld is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "358",
@@ -1874,7 +1924,8 @@
     "soundcloud": "https://soundcloud.com/piknicelectronik",
     "beatport": "https://www.beatport.com/search?q=Piknic%20%C3%89lectronik",
     "bio_en": "A major figure on the global scene, Piknic Électronik is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "359",
@@ -1889,7 +1940,8 @@
     "soundcloud": "https://soundcloud.com/igloofest",
     "beatport": "https://www.beatport.com/search?q=Igloofest",
     "bio_en": "A major figure on the global scene, Igloofest is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "360",
@@ -1905,7 +1957,8 @@
     "beatport": "https://www.beatport.com/search?q=Mutek",
     "bio_en": "A major figure on the global scene, Mutek is a key player in today's electronic culture.",
     "status": "verified",
-    "photo_verified": true
+    "photo_verified": true,
+    "votes": 0
   },
   {
     "id": "361",
@@ -1920,7 +1973,8 @@
     "soundcloud": "https://soundcloud.com/escapade",
     "beatport": "https://www.beatport.com/search?q=Escapade",
     "bio_en": "A major figure on the global scene, Escapade is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "362",
@@ -1935,7 +1989,8 @@
     "soundcloud": "https://soundcloud.com/lostlands",
     "beatport": "https://www.beatport.com/search?q=Lost%20Lands",
     "bio_en": "A major figure on the global scene, Lost Lands is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "363",
@@ -1950,7 +2005,8 @@
     "soundcloud": "https://soundcloud.com/electricforest",
     "beatport": "https://www.beatport.com/search?q=Electric%20Forest",
     "bio_en": "A major figure on the global scene, Electric Forest is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "364",
@@ -1965,7 +2021,8 @@
     "soundcloud": "https://soundcloud.com/lightninginabottle",
     "beatport": "https://www.beatport.com/search?q=Lightning%20in%20a%20Bottle",
     "bio_en": "A major figure on the global scene, Lightning in a Bottle is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "365",
@@ -1980,7 +2037,8 @@
     "soundcloud": "https://soundcloud.com/arcchicago",
     "beatport": "https://www.beatport.com/search?q=ARC%20Chicago",
     "bio_en": "A major figure on the global scene, ARC Chicago is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "366",
@@ -1995,7 +2053,8 @@
     "soundcloud": "https://soundcloud.com/portola",
     "beatport": "https://www.beatport.com/search?q=Portola",
     "bio_en": "A major figure on the global scene, Portola is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "367",
@@ -2010,7 +2069,8 @@
     "soundcloud": "https://soundcloud.com/crssd",
     "beatport": "https://www.beatport.com/search?q=CRSSD",
     "bio_en": "A major figure on the global scene, CRSSD is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "368",
@@ -2025,7 +2085,8 @@
     "soundcloud": "https://soundcloud.com/seismicdanceevent",
     "beatport": "https://www.beatport.com/search?q=Seismic%20Dance%20Event",
     "bio_en": "A major figure on the global scene, Seismic Dance Event is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "370",
@@ -2040,7 +2101,8 @@
     "soundcloud": "https://soundcloud.com/timewarpbrazil",
     "beatport": "https://www.beatport.com/search?q=Time%20Warp%20Brazil",
     "bio_en": "A major figure on the global scene, Time Warp Brazil is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "371",
@@ -2055,7 +2117,8 @@
     "soundcloud": "https://soundcloud.com/zamnatulum",
     "beatport": "https://www.beatport.com/search?q=Zamna%20Tulum",
     "bio_en": "A major figure on the global scene, Zamna Tulum is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "372",
@@ -2070,7 +2133,8 @@
     "soundcloud": "https://soundcloud.com/dayzero",
     "beatport": "https://www.beatport.com/search?q=Dayzero",
     "bio_en": "A major figure on the global scene, Dayzero is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "373",
@@ -2085,7 +2149,8 @@
     "soundcloud": "https://soundcloud.com/wonderfruit",
     "beatport": "https://www.beatport.com/search?q=Wonderfruit",
     "bio_en": "A major figure on the global scene, Wonderfruit is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "374",
@@ -2100,7 +2165,8 @@
     "soundcloud": "https://soundcloud.com/ultrajapan",
     "beatport": "https://www.beatport.com/search?q=Ultra%20Japan",
     "bio_en": "A major figure on the global scene, Ultra Japan is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "375",
@@ -2115,7 +2181,8 @@
     "soundcloud": "https://soundcloud.com/epizode",
     "beatport": "https://www.beatport.com/search?q=Epizode",
     "bio_en": "A major figure on the global scene, Epizode is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "376",
@@ -2130,7 +2197,8 @@
     "soundcloud": "https://soundcloud.com/zoukout",
     "beatport": "https://www.beatport.com/search?q=ZoukOut",
     "bio_en": "A major figure on the global scene, ZoukOut is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "377",
@@ -2145,7 +2213,8 @@
     "soundcloud": "https://soundcloud.com/s2obangkok",
     "beatport": "https://www.beatport.com/search?q=S2O%20Bangkok",
     "bio_en": "A major figure on the global scene, S2O Bangkok is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "378",
@@ -2160,7 +2229,8 @@
     "soundcloud": "https://soundcloud.com/pitchmusicarts",
     "beatport": "https://www.beatport.com/search?q=Pitch%20Music%20%26%20Arts",
     "bio_en": "A major figure on the global scene, Pitch Music & Arts is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "379",
@@ -2175,7 +2245,8 @@
     "soundcloud": "https://soundcloud.com/strawberryfields",
     "beatport": "https://www.beatport.com/search?q=Strawberry%20Fields",
     "bio_en": "A major figure on the global scene, Strawberry Fields is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "380",
@@ -2190,7 +2261,8 @@
     "soundcloud": "https://soundcloud.com/oasisfestivalmorocco",
     "beatport": "https://www.beatport.com/search?q=Oasis%20Festival%20Morocco",
     "bio_en": "A major figure on the global scene, Oasis Festival Morocco is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   },
   {
     "id": "381",
@@ -2205,6 +2277,7 @@
     "soundcloud": "https://soundcloud.com/mdlbeastsoundstorm",
     "beatport": "https://www.beatport.com/search?q=MDLBEAST%20Soundstorm",
     "bio_en": "A major figure on the global scene, MDLBEAST Soundstorm is a key player in today's electronic culture.",
-    "status": "verified"
+    "status": "verified",
+    "votes": 0
   }
 ]
