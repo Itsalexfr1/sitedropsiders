@@ -5256,42 +5256,91 @@ ${urls.map(u => `  <url>
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             const { type } = await request.json(); // 'xp', 'wiki', 'all'
 
-            if (type === 'xp' || type === 'all') {
-                const keys = await env.CHAT_KV.list({ prefix: 'community_player_xp_' });
-                for (const key of keys.keys) {
-                    await env.CHAT_KV.delete(key.name);
+            try {
+                if (type === 'xp' || type === 'all') {
+                    const keys = await env.CHAT_KV.list({ prefix: 'community_player_xp_' });
+                    for (const key of keys.keys) {
+                        await env.CHAT_KV.delete(key.name);
+                    }
                 }
-            }
 
-            if (type === 'wiki' || type === 'all') {
-                const DJS_PATH = 'src/data/wiki_djs.json';
-                const CLUBS_PATH = 'src/data/wiki_clubs.json';
-                const FESTS_PATH = 'src/data/wiki_festivals.json';
+                if (type === 'wiki' || type === 'all') {
+                    const DJS_PATH = 'src/data/wiki_djs.json';
+                    const CLUBS_PATH = 'src/data/wiki_clubs.json';
+                    const FESTS_PATH = 'src/data/wiki_festivals.json';
 
-                try {
+                    // Reset DJs
                     const djFile = await fetchGitHubFile(DJS_PATH, gitConfig);
                     if (djFile) {
-                        const content = djFile.content.map(d => ({ ...d, rating: "0" }));
-                        await saveGitHubFile(DJS_PATH, content, "Reset DJ ratings", djFile.sha, gitConfig);
+                        const content = djFile.content.map((d: any) => ({ ...d, rating: "0", votes: 0 }));
+                        const saved = await saveGitHubFile(DJS_PATH, content, "Reset DJ ratings & votes", djFile.sha, gitConfig);
+                        if (!saved.ok) throw new Error(`DJs reset failed: ${saved.error}`);
                     }
 
+                    // Reset Clubs
                     const clubFile = await fetchGitHubFile(CLUBS_PATH, gitConfig);
                     if (clubFile) {
-                        const content = clubFile.content.map(c => ({ ...c, votes: 0 }));
-                        await saveGitHubFile(CLUBS_PATH, content, "Reset Club votes", clubFile.sha, gitConfig);
+                        const content = clubFile.content.map((c: any) => ({ ...c, votes: 0, rating: "0" }));
+                        const saved = await saveGitHubFile(CLUBS_PATH, content, "Reset Club votes & ratings", clubFile.sha, gitConfig);
+                        if (!saved.ok) throw new Error(`Clubs reset failed: ${saved.error}`);
                     }
 
+                    // Reset Festivals
                     const festFile = await fetchGitHubFile(FESTS_PATH, gitConfig);
                     if (festFile) {
-                        const content = festFile.content.map(f => ({ ...f, votes: 0 }));
-                        await saveGitHubFile(FESTS_PATH, content, "Reset Festival votes", festFile.sha, gitConfig);
+                        const content = festFile.content.map((f: any) => ({ ...f, votes: 0, rating: "0" }));
+                        const saved = await saveGitHubFile(FESTS_PATH, content, "Reset Festival votes & ratings", festFile.sha, gitConfig);
+                        if (!saved.ok) throw new Error(`Festivals reset failed: ${saved.error}`);
                     }
-                } catch (e) {
-                    console.error("GitHub reset failed:", e);
                 }
-            }
 
-            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
+                console.error("GitHub reset failed:", e);
+                return new Response(JSON.stringify({ error: e.message || 'Reset failed' }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/wiki/vote' && request.method === 'POST') {
+            try {
+                const { artistId, type } = await request.json();
+                if (!artistId || !type) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+
+                let filePath = '';
+                if (type === 'DJS') filePath = WIKI_DJS_PATH;
+                else if (type === 'CLUBS') filePath = WIKI_CLUBS_PATH;
+                else if (type === 'FESTIVALS') filePath = WIKI_FESTIVALS_PATH;
+                else return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
+
+                let attempts = 0;
+                let saved = { ok: false, error: '' };
+                
+                while (attempts < 3) {
+                    const file = await fetchGitHubFile(filePath, gitConfig);
+                    if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                    const index = file.content.findIndex((item: any) => item.id === artistId);
+                    if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+
+                    // Increment votes & rating
+                    file.content[index].votes = (file.content[index].votes || 0) + 1;
+                    if (type === 'DJS') {
+                        const currentRating = parseInt(file.content[index].rating || "0");
+                        file.content[index].rating = (currentRating + 1).toString();
+                    }
+
+                    saved = await saveGitHubFile(filePath, file.content, `Vote for ${file.content[index].name} (${type})`, file.sha, gitConfig);
+                    if (saved.ok) break;
+                    if (saved.status !== 409) break;
+                    attempts++;
+                    await new Promise(r => setTimeout(r, 500 * attempts));
+                }
+
+                if (!saved.ok) return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
         }
 
         // Reset all BLIND_TEST questions
