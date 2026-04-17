@@ -241,7 +241,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             '.jw-widget-newsletter',
             // 'iframe', // REMOVED - We want to allow iframes for YouTube widgets
             '.jw-news-comments',
-            '#jw-comments'
+            '#jw-comments',
+            '.vinyl-wrapper' // Remove legacy "MUSIC" badge element from older articles
         ];
 
         selectorsToRemove.forEach(selector => {
