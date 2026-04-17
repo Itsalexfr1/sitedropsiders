@@ -1484,10 +1484,11 @@ ${generateSocialsHtml()}
                 finalCategory = 'Musique';
                 const musicTopHtml = musicItems.map((item) => {
                     const voteBtn = item.canVote ? `
-  <div class="music-vote-container mt-6 flex justify-center">
-    <button class="music-vote-button group flex items-center gap-3 px-8 py-4 bg-neon-cyan/10 border border-neon-cyan/30 rounded-full text-neon-cyan font-black uppercase tracking-widest text-[11px] hover:bg-neon-cyan/20 transition-all shadow-[0_0_20px_rgba(0,255,243,0.1)]" data-item-id="${item.id}" data-item-title="${item.title.replace(/"/g, '&quot;')}">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-      VOTER POUR CE MORCEAU
+  <div class="music-vote-container mt-8 flex justify-center">
+    <button class="music-vote-button group relative flex items-center gap-3 px-10 py-5 bg-white/5 backdrop-blur-xl rounded-full text-neon-cyan font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white/10 transition-all shadow-2xl overflow-hidden" data-item-id="${item.id}" data-item-title="${item.title.replace(/"/g, '&quot;')}">
+      <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan/0 via-neon-cyan/5 to-neon-cyan/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shadow-neon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      <span class="relative z-10">VOTER POUR CE MORCEAU</span>
     </button>
   </div>` : '';
 
