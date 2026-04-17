@@ -7,6 +7,7 @@ import { ImageUploadModal } from '../ImageUploadModal';
 import { useLanguage } from '../../context/LanguageContext';
 import { getAuthHeaders } from '../../utils/auth';
 import { resolveImageUrl } from '../../utils/image';
+import settingsData from '../../data/settings.json';
 
 import CLUBS_RAW from '../../data/wiki_clubs.json';
 import FESTIVALS_RAW from '../../data/wiki_festivals.json';
@@ -156,6 +157,7 @@ export function WikiVenues({
             setIsAuthModalOpen(true);
             return;
         }
+        if (!settingsData.takeover.wikiVotesEnabled) return;
 
         const n = new Set(votes);
         if (n.has(id)) {
@@ -458,11 +460,13 @@ export function WikiVenues({
                                         </div>
 
                                         {/* Vote button */}
+                                        {settingsData.takeover.wikiVotesEnabled && (
                                         <button onClick={e => { e.stopPropagation(); toggleVote(v.id); }}
                                             className={`w-full flex items-center justify-center gap-1.5 py-2 text-[8px] font-black uppercase tracking-widest transition-all border-t ${hasVoted ? 'bg-neon-red/15 border-neon-red/30 text-neon-red' : 'bg-black border-white/10 text-gray-500 hover:text-neon-red/70'}`}>
                                             <Heart className={`w-3 h-3 ${hasVoted ? 'fill-current' : ''}`} />
                                             {showResults && voteCount > 0 ? voteCount : ''} {hasVoted ? t('voted') : t('vote')}
                                         </button>
+                                        )}
                                     </motion.div>
                                 );
                             })}
@@ -535,12 +539,14 @@ export function WikiVenues({
                                 </p>
 
                                 {/* Vote */}
+                                {settingsData.takeover.wikiVotesEnabled && (
                                 <button onClick={() => toggleVote(selected.id)}
                                     className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-black uppercase tracking-widest transition-all ${votes.has(selected.id) ? 'bg-neon-red text-white shadow-[0_0_30px_rgba(255,0,0,0.3)]' : 'bg-white/5 border border-white/10 text-gray-300 hover:border-neon-red/50 hover:text-neon-red'}`}>
                                     <Heart className={`w-5 h-5 ${votes.has(selected.id) ? 'fill-current' : ''}`} />
                                     {votes.has(selected.id) ? t('voted_for_venue') : t('vote_for_venue')}
                                     {showResults && <span className="text-sm opacity-70">· {getVoteCount(selected)} votes</span>}
                                 </button>
+                                )}
 
                                 {/* Links */}
                                 <div className="flex flex-wrap gap-3">

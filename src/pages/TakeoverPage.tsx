@@ -652,6 +652,10 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             setIsAuthModalOpen(true);
             return;
         }
+        if (!settingsData.takeover.wikiVotesEnabled) {
+            showNotification('LES VOTES SONT TEMPORAIREMENT DÉSACTIVÉS', 'error');
+            return;
+        }
         if (hasVotedToday.has(targetId)) return;
 
         try {

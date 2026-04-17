@@ -1708,15 +1708,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setIsDownloading(true);
         try {
             await generateImage(format);
+            const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
+            const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0);
+
+            if (isMobile && navigator.share) {
+                try {
+                    const blob = await new Promise<Blob | null>(resolve => canvasRef.current!.toBlob(resolve, 'image/png'));
+                    if (blob) {
+                        const file = new File([blob], fileName, { type: 'image/png' });
+                        await navigator.share({
+                            files: [file],
+                            title: 'Dropsiders Visual'
+                        });
+                        return; // If Share succeeds, stop here
+                    }
+                } catch (e) {
+                    console.log('Share API denied or failed', e);
+                }
+            }
+
+            // Default fallback for desktop or if Share failed
             const dataUrl = canvasRef.current!.toDataURL('image/png');
             const a = document.createElement('a');
             a.href = dataUrl;
-            a.download = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
+            a.download = fileName;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         } catch (e) {
             console.error(e);
+            alert("Erreur lors de l'exportation PNG.");
         } finally {
             setTimeout(() => {
                 setIsDownloading(false);

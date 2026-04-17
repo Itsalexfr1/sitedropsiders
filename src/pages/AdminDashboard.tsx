@@ -3029,6 +3029,58 @@ export function AdminDashboard() {
                                                     <div className="flex gap-4 flex-wrap">
                                                         <button
                                                             onClick={async () => {
+                                                                const newState = !takeoverState.wikiVotesEnabled;
+                                                                setTakeoverState({ ...takeoverState, wikiVotesEnabled: newState });
+                                                                try {
+                                                                    const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
+                                                                    const data = res.ok ? await res.json() : {};
+                                                                    const newSettings = { ...data, takeover: { ...data.takeover, wikiVotesEnabled: newState } };
+                                                                    await apiFetch('/api/settings/update', {
+                                                                        method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(newSettings)
+                                                                    });
+                                                                    setGlobalAlert({ type: 'success', title: 'VOTES', message: newState ? 'Les votes sont ACTIVÉS.' : 'Les votes sont DÉSACTIVÉS.' });
+                                                                } catch (e) {
+                                                                    console.error(e);
+                                                                }
+                                                            }}
+                                                            className={`px-8 py-4 border rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all flex items-center gap-2 ${takeoverState.wikiVotesEnabled ? 'bg-white/10 border-white/20 text-white' : 'bg-neon-green/20 border-neon-green text-neon-green'}`}
+                                                        >
+                                                            <Activity className="w-4 h-4" />
+                                                            {takeoverState.wikiVotesEnabled ? 'DÉSACTIVER LES VOTES' : 'ACTIVER LES VOTES'}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                setConfirmModal({
+                                                                    isOpen: true,
+                                                                    title: 'RÉINITIALISER LES VOTES',
+                                                                    message: 'Êtes-vous sûr de vouloir remettre tous les votes (DJs, Clubs, Festivals) à zéro ? Cette action est irréversible et écrasera les données sur GitHub.',
+                                                                    type: 'danger',
+                                                                    confirmText: 'OUI, RÉINITIALISER',
+                                                                    onConfirm: async () => {
+                                                                        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                                                                        try {
+                                                                            const res = await apiFetch('/api/admin/reset-leaderboards', {
+                                                                                method: 'POST',
+                                                                                headers: getAuthHeaders(),
+                                                                                body: JSON.stringify({ type: 'wiki' })
+                                                                            });
+                                                                            if (res.ok) {
+                                                                                setGlobalAlert({ type: 'success', title: 'VOTES RÉINITIALISÉS', message: 'Tous les compteurs sont revenus à zéro.' });
+                                                                                setTimeout(() => window.location.reload(), 1500);
+                                                                            }
+                                                                        } catch (e) {
+                                                                            console.error(e);
+                                                                        }
+                                                                    }
+                                                                });
+                                                            }}
+                                                            className="px-8 py-4 bg-red-500/10 border border-red-500 text-red-500 rounded-2xl text-[11px] font-black uppercase hover:scale-105 hover:bg-red-500 hover:text-white transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,0,0,0.2)]"
+                                                        >
+                                                            <RotateCcw className="w-4 h-4" /> RAZ DES VOTES
+                                                        </button>
+                                                        
+                                                        <button
+                                                            onClick={async () => {
                                                                 const canvas = document.createElement('canvas');
                                                                 canvas.width = 1080; canvas.height = 1350;
                                                                 const ctx = canvas.getContext('2d')!;

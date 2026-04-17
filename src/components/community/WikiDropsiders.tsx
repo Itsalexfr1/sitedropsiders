@@ -7,6 +7,7 @@ import { apiFetch, getAuthHeaders } from '../../utils/auth';
 import { useLanguage } from '../../context/LanguageContext';
 import { ImageUploadModal } from '../ImageUploadModal';
 import { resolveImageUrl } from '../../utils/image';
+import settingsData from '../../data/settings.json';
 import React from 'react';
 
 type DjEntry = {
@@ -127,6 +128,7 @@ export function WikiDropsiders({
             setIsAuthModalOpen(true);
             return;
         }
+        if (!settingsData.takeover.wikiVotesEnabled) return;
 
         const n = new Set(votes);
         if (n.has(id)) {
@@ -340,12 +342,14 @@ export function WikiDropsiders({
                                                 </div>
 
                                                 {/* Vote button */}
+                                                {settingsData.takeover.wikiVotesEnabled && (
                                                 <button onClick={e => toggleVote(dj.id, e)}
                                                     className={`w-full flex items-center justify-center gap-1 py-2 text-[8px] font-black uppercase tracking-wider transition-all border-t ${hasVoted ? 'bg-neon-red/15 border-neon-red/30 text-neon-red' : 'bg-black border-white/10 text-gray-500 hover:text-neon-red/70'}`}>
                                                     <Heart className={`w-3 h-3 ${hasVoted ? 'fill-current' : ''}`} />
                                                     {showResults && ((dj as any).votes || 0) > 0 ? `${(dj as any).votes} ` : ''}
                                                     {hasVoted ? t('voted') : t('vote')}
                                                 </button>
+                                                )}
                                             </motion.div>
                                         );
                                     })}
@@ -419,12 +423,14 @@ export function WikiDropsiders({
                                 </p>
 
                                 {/* Vote */}
+                                {settingsData.takeover.wikiVotesEnabled && (
                                 <button onClick={e => toggleVote(selectedDj.id, e)}
                                     className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-black uppercase tracking-widest transition-all ${votes.has(selectedDj.id) ? 'bg-neon-red text-white shadow-[0_0_30px_rgba(255,0,0,0.3)]' : 'bg-white/5 border border-white/10 text-gray-300 hover:border-neon-red/50 hover:text-neon-red'}`}>
                                     <Heart className={`w-5 h-5 ${votes.has(selectedDj.id) ? 'fill-current' : ''}`} />
                                     {votes.has(selectedDj.id) ? t('voted_for_artist') : t('vote_for_artist')}
                                     {showResults && <span className="text-sm opacity-70">· {((selectedDj as any).votes || 0)} votes</span>}
                                 </button>
+                                )}
 
 
 

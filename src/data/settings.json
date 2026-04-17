@@ -21,6 +21,7 @@
     "forceHomepage": true,
     "isSecret": false,
     "password": "",
+    "wikiVotesEnabled": true,
     "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
@@ -110,5 +111,8 @@
     "bgColor": "#000000",
     "size": "medium",
     "link": "/contact"
+  },
+  "wiki": {
+    "votesEnabled": true
   }
 }
