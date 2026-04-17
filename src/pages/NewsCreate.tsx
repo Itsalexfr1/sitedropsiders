@@ -2247,7 +2247,7 @@ ${generateSocialsHtml()}
 
 
                     {/* WIDGET EDITOR SECTION (Always available to add flexibility) */}
-                    {(activeTab === 'News' || activeTab === 'Focus' || type === 'Interview') && (
+                    {(activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Musique' || type === 'Interview') && (
                         <div className="pt-8 border-t border-white/10">
                             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${isMobileEditorActive ? 'hidden' : ''}`}>
                                 <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
