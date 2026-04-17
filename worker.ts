@@ -5297,9 +5297,9 @@ ${urls.map(u => `  <url>
                 // 3. Reset Music Tracks in KV
                 if (type === 'music' || type === 'all') {
                     tasks.push((async () => {
-                        const list = await env.KV.list({ prefix: 'music_track:' });
+                        const list = await env.CHAT_KV.list({ prefix: 'music_track:' });
                         for (const key of list.keys) {
-                            await env.KV.delete(key.name);
+                            await env.CHAT_KV.delete(key.name);
                         }
                     })());
                 }
@@ -5320,14 +5320,14 @@ ${urls.map(u => `  <url>
                 const trackId = trackTitle.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
                 const kvKey = `music_track:${trackId}`;
 
-                let data = await env.KV.get(kvKey, { type: 'json' }) as { title: string, votes: number } | null;
+                let data = await env.CHAT_KV.get(kvKey, { type: 'json' }) as { title: string, votes: number } | null;
                 if (!data) {
                     data = { title: trackTitle, votes: 1 };
                 } else {
                     data.votes = (data.votes || 0) + 1;
                 }
 
-                await env.KV.put(kvKey, JSON.stringify(data));
+                await env.CHAT_KV.put(kvKey, JSON.stringify(data));
                 return new Response(JSON.stringify({ success: true, votes: data.votes }), { status: 200, headers });
             } catch (error: any) {
                 return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
@@ -5336,10 +5336,10 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/music/top-tracks' && request.method === 'GET') {
             try {
-                const list = await env.KV.list({ prefix: 'music_track:' });
+                const list = await env.CHAT_KV.list({ prefix: 'music_track:' });
                 const tracks = await Promise.all(
                     list.keys.map(async (key) => {
-                        return await env.KV.get(key.name, { type: 'json' });
+                        return await env.CHAT_KV.get(key.name, { type: 'json' });
                     })
                 );
 
