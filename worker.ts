@@ -5337,6 +5337,21 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- MUSIC TRACK VOTE RESET (admin) ---
+        if (path === '/api/music/reset' && request.method === 'POST') {
+            try {
+                const { adminToken } = await request.json();
+                if (adminToken !== env.ADMIN_TOKEN) {
+                    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+                }
+                const list = await env.CHAT_KV.list({ prefix: 'music_track:' });
+                await Promise.all(list.keys.map((k) => env.CHAT_KV.delete(k.name)));
+                return new Response(JSON.stringify({ success: true, deleted: list.keys.length }), { status: 200, headers });
+            } catch (error: any) {
+                return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/music/top-tracks' && request.method === 'GET') {
             try {
                 const list = await env.CHAT_KV.list({ prefix: 'music_track:' });

@@ -24,6 +24,7 @@ export function AdminPanel() {
     
     const [adminActiveTab, setAdminActiveTab] = useState<'config' | 'planning' | 'tracklist' | 'interactif' | 'bot_drops'>('config');
     const [isSaving, setIsSaving] = useState(false);
+    const [isResettingVotes, setIsResettingVotes] = useState(false);
 
     // Edit Buffers (Local to AdminPanel for performance)
     const [editTitle, setEditTitle] = useState(settings.title);
@@ -640,6 +641,46 @@ export function AdminPanel() {
                                         {eff.label}
                                     </button>
                                 ))}
+                             </div>
+
+                             {/* Danger Zone: Reset Music Votes */}
+                             <div className="bg-red-500/5 border border-red-500/20 rounded-3xl p-6 space-y-4">
+                                <h3 className="text-sm font-black text-red-400 uppercase tracking-widest italic border-b border-red-500/10 pb-4 flex items-center gap-3">
+                                    <Music className="w-4 h-4" />
+                                    Zone Danger — Votes Music
+                                </h3>
+                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">
+                                    Remet tous les compteurs de votes du Top Tracks à zéro. Action irréversible.
+                                </p>
+                                <button
+                                    disabled={isResettingVotes}
+                                    onClick={async () => {
+                                        if (!window.confirm('⚠️ Remettre TOUS les votes music à zéro ? Action irréversible.')) return;
+                                        setIsResettingVotes(true);
+                                        try {
+                                            const adminToken = import.meta.env.VITE_ADMIN_TOKEN;
+                                            const res = await fetch('/api/music/reset', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ adminToken })
+                                            });
+                                            const data = await res.json();
+                                            if (data.success) {
+                                                showNotification(`✅ ${data.deleted} votes supprimés !`, 'success');
+                                            } else {
+                                                showNotification(`❌ Erreur: ${data.error}`, 'error');
+                                            }
+                                        } catch (err: any) {
+                                            showNotification(`❌ ${err.message}`, 'error');
+                                        } finally {
+                                            setIsResettingVotes(false);
+                                        }
+                                    }}
+                                    className="flex items-center gap-3 px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-40"
+                                >
+                                    {isResettingVotes ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                    {isResettingVotes ? 'Reset en cours...' : 'Reset Votes Music'}
+                                </button>
                              </div>
 
                              <div className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6">
