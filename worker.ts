@@ -5314,17 +5314,20 @@ ${urls.map(u => `  <url>
         // --- NEW: MUSIC TRACK VOTING ---
         if (path === '/api/music/vote' && request.method === 'POST') {
             try {
-                const { trackTitle } = await request.json();
+                const { trackTitle, media, playerType } = await request.json();
                 if (!trackTitle) return new Response(JSON.stringify({ error: 'Title required' }), { status: 400, headers });
 
                 const trackId = trackTitle.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
                 const kvKey = `music_track:${trackId}`;
 
-                let data = await env.CHAT_KV.get(kvKey, { type: 'json' }) as { title: string, votes: number } | null;
+                let data = await env.CHAT_KV.get(kvKey, { type: 'json' }) as { title: string, votes: number, media?: string, playerType?: string } | null;
                 if (!data) {
-                    data = { title: trackTitle, votes: 1 };
+                    data = { title: trackTitle, votes: 1, media, playerType };
                 } else {
                     data.votes = (data.votes || 0) + 1;
+                    // Update media info if provided and not already present
+                    if (media) data.media = media;
+                    if (playerType) data.playerType = playerType;
                 }
 
                 await env.CHAT_KV.put(kvKey, JSON.stringify(data));

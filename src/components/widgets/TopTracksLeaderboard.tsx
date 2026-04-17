@@ -35,6 +35,37 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         return () => clearInterval(interval);
     }, []);
 
+    const [openTrackTitle, setOpenTrackTitle] = useState<string | null>(null);
+
+    const renderPlayer = (media: string, playerType: string) => {
+        if (playerType === 'beatport') {
+            const trackId = media.match(/\d+/)?.[0] || media;
+            return (
+                <iframe 
+                    src={`https://embed.beatport.com/?id=${trackId}&type=track`} 
+                    width="100%" 
+                    height="162" 
+                    frameBorder="0" 
+                    scrolling="no" 
+                    style={{ borderRadius: '12px' }}
+                />
+            );
+        }
+        // Fallback or Spotify
+        const match = media.match(/track\/([a-zA-Z0-9]+)/);
+        const spotifyId = match ? match[1] : (media.includes('spotify:track:') ? media.split(':').pop() : media);
+        return (
+            <iframe 
+                src={`https://open.spotify.com/embed/track/${spotifyId}`} 
+                width="100%" 
+                height="80" 
+                frameBorder="0" 
+                allow="encrypted-media"
+                style={{ borderRadius: '12px' }}
+            />
+        );
+    };
+
     return (
         <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 h-full shadow-2xl relative overflow-hidden group">
             {/* Background Glow */}
@@ -76,42 +107,60 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                             <p className="text-xs font-bold uppercase tracking-widest opacity-50">Aucun vote pour le moment</p>
                         </div>
                     ) : (
-                        tracks.map((track, index) => (
+                        tracks.map((track: any, index) => (
                             <motion.div
                                 key={track.title}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 transition={{ delay: index * 0.05 }}
-                                className="flex items-center gap-4 p-4 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 rounded-2xl transition-all group/item"
+                                className="flex flex-col gap-2"
                             >
-                                <div className="w-8 flex-shrink-0 text-center">
-                                    <span className={`text-sm font-black italic ${index < 3 ? 'text-white' : 'text-gray-600'}`}>
-                                        #{index + 1}
-                                    </span>
-                                </div>
-                                
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="text-xs font-black text-white uppercase truncate group-hover/item:text-neon-cyan transition-colors">
-                                        {track.title}
-                                    </h4>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <TrendingUp className="w-3 h-3 text-gray-600" />
-                                        <div className="h-1 bg-white/5 flex-1 rounded-full overflow-hidden">
-                                            <motion.div 
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${Math.min(100, (track.votes / tracks[0].votes) * 100)}%` }}
-                                                className="h-full rounded-full"
-                                                style={{ backgroundColor: color }}
-                                            />
+                                <div 
+                                    onClick={() => setOpenTrackTitle(openTrackTitle === track.title ? null : track.title)}
+                                    className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-white/10 border border-white/5 rounded-2xl transition-all group/item ${openTrackTitle === track.title ? 'bg-white/10 border-white/20' : 'bg-white/5'}`}
+                                >
+                                    <div className="w-8 flex-shrink-0 text-center">
+                                        <span className={`text-sm font-black italic ${index < 3 ? 'text-white' : 'text-gray-600'}`}>
+                                            #{index + 1}
+                                        </span>
+                                    </div>
+                                    
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className={`text-xs font-black uppercase truncate transition-colors ${openTrackTitle === track.title ? 'text-neon-cyan' : 'text-white group-hover/item:text-neon-cyan'}`}>
+                                            {track.title}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <TrendingUp className="w-3 h-3 text-gray-600" />
+                                            <div className="h-1 bg-white/5 flex-1 rounded-full overflow-hidden">
+                                                <motion.div 
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${Math.min(100, (track.votes / tracks[0].votes) * 100)}%` }}
+                                                    className="h-full rounded-full"
+                                                    style={{ backgroundColor: color }}
+                                                />
+                                            </div>
                                         </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
+                                        <Flame className="w-3 h-3 text-orange-500" />
+                                        <span className="text-[10px] font-black text-white">{track.votes}</span>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
-                                    <Flame className="w-3 h-3 text-orange-500" />
-                                    <span className="text-[10px] font-black text-white">{track.votes}</span>
-                                </div>
+                                <AnimatePresence>
+                                    {openTrackTitle === track.title && track.media && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden bg-black/40 rounded-2xl p-2 border border-white/10 mb-2"
+                                        >
+                                            {renderPlayer(track.media, track.playerType || 'spotify')}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </motion.div>
                         ))
                     )}

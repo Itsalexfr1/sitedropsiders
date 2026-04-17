@@ -489,6 +489,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             const voteBtn = target.closest('.music-vote-button');
             if (voteBtn) {
                 const trackTitle = voteBtn.getAttribute('data-item-title');
+                const media = voteBtn.getAttribute('data-item-media');
+                const playerType = voteBtn.getAttribute('data-item-player-type');
                 if (!trackTitle) return;
 
                 // Visual feedback
@@ -503,7 +505,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     const res = await fetch('/api/music/vote', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ trackTitle })
+                        body: JSON.stringify({ trackTitle, media, playerType })
                     });
 
                     if (res.ok) {
