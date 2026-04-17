@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, LayoutDashboard, Youtube, Calendar, Newspaper, MessageSquare, Music, Share2, GripVertical, Instagram, Trash2, ImageIcon } from 'lucide-react';
+import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, LayoutDashboard, Youtube, Calendar, Newspaper, MessageSquare, Music, Share2, GripVertical, Instagram, Trash2, ImageIcon, RefreshCcw } from 'lucide-react';
 import { Link, useBlocker, Navigate } from 'react-router-dom';
 import { getAuthHeaders, apiFetch, isSuperAdmin } from '../utils/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -261,6 +261,8 @@ export function AdminHome() {
     const [socials, setSocials] = useState((settingsData as any).socials || {});
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isResettingVotes, setIsResettingVotes] = useState(false);
+    const [resetMessage, setResetMessage] = useState('');
     const [message, setMessage] = useState('');
     const [hasChanges, setHasChanges] = useState(false);
 
@@ -466,6 +468,51 @@ export function AdminHome() {
                             >
                                 {isSaving ? <Loader2 className="w-7 h-7 animate-spin" /> : <Save className="w-7 h-7 group-hover/btn:scale-110 transition-transform" />}
                                 Publier les modifications
+                            </button>
+                        </div>
+
+                        {/* Danger Zone: Reset Music Votes */}
+                        <div className="mt-4 bg-red-500/5 border border-red-500/20 rounded-[40px] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-6">
+                                <div className="p-5 bg-red-500/10 rounded-2xl border border-red-500/20">
+                                    <Music className="w-10 h-10 text-red-400" />
+                                </div>
+                                <div>
+                                    <h4 className="text-2xl font-display font-black uppercase italic text-white tracking-tight">Reset Votes Music</h4>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em]">Remet les compteurs du Top 10 à zéro — action irréversible</p>
+                                    {resetMessage && <p className="text-[10px] text-neon-cyan font-black uppercase mt-1">{resetMessage}</p>}
+                                </div>
+                            </div>
+                            <button
+                                disabled={isResettingVotes}
+                                onClick={async () => {
+                                    if (!window.confirm('⚠️ Remettre TOUS les votes music à zéro ?')) return;
+                                    setIsResettingVotes(true);
+                                    setResetMessage('');
+                                    try {
+                                        const adminToken = import.meta.env.VITE_ADMIN_TOKEN;
+                                        const res = await fetch('/api/music/reset', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ adminToken })
+                                        });
+                                        const data = await res.json();
+                                        if (data.success) {
+                                            setResetMessage(`✅ ${data.deleted} votes supprimés !`);
+                                            setTimeout(() => setResetMessage(''), 4000);
+                                        } else {
+                                            setResetMessage(`❌ ${data.error}`);
+                                        }
+                                    } catch (err: any) {
+                                        setResetMessage(`❌ ${err.message}`);
+                                    } finally {
+                                        setIsResettingVotes(false);
+                                    }
+                                }}
+                                className="w-full md:w-auto px-12 py-6 bg-red-500/10 border border-red-500/30 text-red-400 rounded-[24px] font-black uppercase tracking-widest flex items-center justify-center gap-4 hover:bg-red-500 hover:text-white transition-all disabled:opacity-40 active:scale-95"
+                            >
+                                {isResettingVotes ? <RefreshCcw className="w-6 h-6 animate-spin" /> : <Trash2 className="w-6 h-6" />}
+                                {isResettingVotes ? 'Reset...' : 'Reset Votes'}
                             </button>
                         </div>
                     </div>
