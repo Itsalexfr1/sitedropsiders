@@ -1482,16 +1482,10 @@ ${generateSocialsHtml()}
                 finalContent = widgetsHtml + "\n" + interviewHtml + (interviewHtml || widgetsHtml ? `\n<div class="article-section">${generateSocialsHtml(artistNameLabel || mainName, mainColor)}</div>` : '');
             } else if (activeTab === 'Musique') {
                 finalCategory = 'Musique';
-                const musicTopHtml = musicItems.map((item) => {
-                    const voteBtn = item.canVote ? `
-  <div class="music-vote-container mt-8 flex justify-center">
-    <button class="music-vote-button group relative flex items-center gap-3 px-10 py-5 bg-white/5 backdrop-blur-xl rounded-full text-neon-cyan font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white/10 transition-all shadow-2xl overflow-hidden" data-item-id="${item.id}" data-item-title="${item.title.replace(/"/g, '&quot;')}">
-      <div class="absolute inset-0 bg-gradient-to-r from-neon-cyan/0 via-neon-cyan/5 to-neon-cyan/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 shadow-neon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-      <span class="relative z-10">VOTER POUR CE MORCEAU</span>
-    </button>
-  </div>` : '';
-<div class="music-top-item-premium mb-16 last:mb-0" data-item-id="${item.id}">
+                const musicTopHtml = musicItems.map((item, index) => {
+
+                    return `
+<div class="music-top-item-premium mb-16 last:mb-0" data-item-id="${item.id}">
   <div class="music-top-header flex items-center gap-6 mb-8">
     <div class="music-number-badge text-2xl lg:text-3xl font-black italic text-neon-cyan">#${index + 1}</div>
     <div class="flex-1">
@@ -1500,24 +1494,13 @@ ${generateSocialsHtml()}
   </div>
   <div class="music-player-container rounded-[2rem] overflow-hidden bg-black shadow-2xl relative">
     ${renderMediaEmbed(item.media, item.playerType)}
-    
     ${item.canVote || item.description ? `
     <div class="music-player-footer px-6 py-4 bg-white/[0.02] border-t border-white/5 flex flex-wrap items-center justify-between gap-4">
       <div class="music-footer-left flex-1 min-w-0">
         ${item.description ? `<p class="text-gray-500 text-[11px] italic truncate uppercase tracking-widest font-bold opacity-60">${standardizeContent(item.description)}</p>` : ''}
       </div>
-      <button class="music-vote-button group flex items-center gap-2 px-6 py-2.5 rounded-xl text-neon-cyan/80 hover:text-neon-cyan font-black uppercase tracking-[0.2em] text-[9px] transition-all hover:bg-white/5" 
-        data-item-id="${item.id}" 
-        data-item-title="${item.title.replace(/"/g, '&quot;')}"
-        data-item-media="${item.media || ''}"
-        data-item-player-type="${item.playerType || 'spotify'}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 transition-transform group-hover:scale-110 shadow-neon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-        <span>VOTER</span>
-      </button>` : ''}
+      ${item.canVote ? `<button class="music-vote-button group flex items-center gap-2 px-6 py-2.5 rounded-xl text-neon-cyan/80 hover:text-neon-cyan font-black uppercase tracking-[0.2em] text-[9px] transition-all hover:bg-white/5" data-item-id="${item.id}" data-item-title="${item.title.replace(/"/g, '&quot;')}" data-item-media="${item.media || ''}" data-item-player-type="${item.playerType || 'spotify'}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5 transition-transform group-hover:scale-110 shadow-neon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg><span>VOTER</span></button>` : ''}
     </div>` : ''}
-  </div>
-</div>
-</div>` : ''}
   </div>
 </div>`;
                 }).join('\n');
