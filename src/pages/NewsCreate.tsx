@@ -3246,6 +3246,16 @@ ${generateSocialsHtml()}
                                     </div>
                                 ))}
                             </div>
+
+                            {/* Additional add button at the bottom for ergonomics */}
+                            <div className="mt-8 flex justify-center">
+                                <button
+                                    onClick={addMusicItem}
+                                    className="flex items-center gap-2 px-8 py-4 bg-neon-cyan text-black rounded-full hover:bg-neon-cyan/80 transition-all font-bold uppercase tracking-widest text-[10px] shadow-2xl shadow-neon-cyan/20"
+                                >
+                                    <Plus className="w-4 h-4" /> Ajouter un autre morceau
+                                </button>
+                            </div>
                         </div>
                     )}
 
