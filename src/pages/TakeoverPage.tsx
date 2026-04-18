@@ -22,7 +22,7 @@ import { ImageCropper } from '../components/ImageCropper';
 import { resolveImageUrl } from '../utils/image';
 import settingsData from '../data/settings.json';
 
-import { TakeoverProvider, useTakeover, type TakeoverSettings, type StreamItem, type LineupItem, type TracklistSet } from '../context/TakeoverContext';
+import { TakeoverProvider, useTakeover, type TakeoverSettings, type StreamItem, type LineupItem, type TracklistSet, type TrackItem } from '../context/TakeoverContext';
 import { AdminPanel } from '../components/takeover/AdminPanel';
 
 export const TakeoverPage = (props: any) => {
