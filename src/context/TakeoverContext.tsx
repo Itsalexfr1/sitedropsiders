@@ -148,7 +148,7 @@ interface TakeoverContextType {
     showNotification: (msg: string, type: 'success' | 'error' | 'info') => void;
 }
 
-const TakeoverContext = createContext<TakeoverContextType | undefined>(undefined);
+export const TakeoverContext = createContext<TakeoverContextType | undefined>(undefined);
 
 export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSettings?: any }> = ({ children, initialSettings }) => {
     // Appwrite Config

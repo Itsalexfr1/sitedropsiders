@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Instagram, Facebook, RefreshCcw, CheckCircle2, User, Heart, Trophy, Gift, AlertCircle, ExternalLink, Smartphone, Image as ImageIcon, Download } from 'lucide-react';
-import { useTakeover } from '../../../context/TakeoverContext';
+import { TakeoverContext } from '../../../context/TakeoverContext';
+import { useContext } from 'react';
 
 interface SocialGiveawayModalProps {
     isOpen: boolean;
@@ -9,7 +10,8 @@ interface SocialGiveawayModalProps {
 }
 
 export function SocialGiveawayModal({ isOpen, onClose }: SocialGiveawayModalProps) {
-    const { showNotification } = useTakeover();
+    const takeover = useContext(TakeoverContext);
+    const showNotification = takeover?.showNotification || ((msg: string) => alert(msg));
     const [postUrl, setPostUrl] = useState('');
     const [isExtracting, setIsExtracting] = useState(false);
     const [step, setStep] = useState<'input' | 'extracting' | 'results'>('input');
