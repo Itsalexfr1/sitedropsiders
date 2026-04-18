@@ -38,6 +38,7 @@ export interface TakeoverSettings {
     showTickerBanner: boolean;
     tickerBgColor: string;
     tickerTextColor: string;
+    tickerMode?: 'news' | 'custom';
     lineup: string;
     status: 'live' | 'edit' | 'off';
     startDate?: string;

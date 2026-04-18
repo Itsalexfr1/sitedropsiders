@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, Zap, MessageSquare, Trophy, Send, BarChart3, 
     CheckCircle2, AlertCircle, RefreshCcw, Users,
-    Crown, Star, Sparkles, Wand2
+    Crown, Star, Sparkles, Wand2, Megaphone
 } from 'lucide-react';
 import { Client, Databases, ID, Query } from 'appwrite';
 

@@ -22,88 +22,7 @@ import { ImageCropper } from '../components/ImageCropper';
 import { resolveImageUrl } from '../utils/image';
 import settingsData from '../data/settings.json';
 
-interface LineupItem {
-    id: string;
-    day: string;
-    startTime: string;
-    endTime: string;
-    artist: string;
-    stage: string;
-    wikiId?: string;
-    wikiType?: 'DJS' | 'CLUBS' | 'FESTIVALS';
-    instagram: string;
-    instagram2?: string;
-    instagram3?: string;
-    image?: string;
-}
-
-interface StreamItem {
-    id: string;
-    name: string;
-    youtubeId: string;
-    currentTrack?: string;
-    overrideArtist?: string;
-    isExternalLink?: boolean;
-    enabledInGrid?: boolean;
-}
-
-interface TakeoverSettings {
-    title: string;
-    youtubeId: string;
-    mainFluxName: string;
-    currentTrack: string;
-    tickerText: string;
-    showTickerBanner: boolean;
-    tickerBgColor: string;
-    tickerTextColor: string;
-    tickerMode?: 'news' | 'custom';
-    lineup: string;
-    status: 'live' | 'edit' | 'off';
-    startDate?: string;
-    endDate?: string;
-    enabled: boolean;
-    streams?: StreamItem[];
-    activeStreamId?: string;
-    acrHost?: string;
-    acrAccessKey?: string;
-    acrAccessSecret?: string;
-    auddToken?: string;
-    highlightPrice?: number;
-    lots?: any[];
-    dropsAmount?: number;
-    dropsInterval?: number;
-    sponsorText?: string;
-    sponsorLink?: string;
-    showSponsorBanner?: boolean;
-    instagramLink?: string;
-    tiktokLink?: string;
-    youtubeLink?: string;
-    twitterLink?: string;
-    botCommands?: { command: string, response: string }[];
-    tracklist?: string;
-    bannedWords?: string;
-    festivalLogo?: string;
-    moderators?: string[];
-    bannedPseudos?: string[];
-}
-
-interface TrackItem {
-    id: string;
-    time: string;
-    title: string;
-    user: string;
-}
-
-interface TracklistSet {
-    id: string;
-    artist: string;
-    startTime: string;
-    tracks: TrackItem[];
-    stage: string;
-}
-
-
-import { TakeoverProvider, useTakeover } from '../context/TakeoverContext';
+import { TakeoverProvider, useTakeover, type TakeoverSettings, type StreamItem, type LineupItem, type TracklistSet } from '../context/TakeoverContext';
 import { AdminPanel } from '../components/takeover/AdminPanel';
 
 export const TakeoverPage = (props: any) => {
@@ -1340,7 +1259,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             setTimeout(() => setTakeoverAlert(null), 5000);
                         } else if (cmd.startsWith('WINNER:')) {
                             const text = cmd.replace('WINNER:', '');
-                            setTakeoverAlert({ text, type: 'success' });
+                            setTakeoverAlert({ text, type: 'alert' });
                             triggerFireworks();
                             setTimeout(() => setTakeoverAlert(null), 10000);
                         } else if (cmd.startsWith('JACKPOT_SPAWN')) {

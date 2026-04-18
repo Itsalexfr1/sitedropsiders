@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTakeover } from '../../context/TakeoverContext';
-import type { StreamItem, LineupItem } from '../../context/TakeoverContext';
+import type { StreamItem, LineupItem, TakeoverSettings } from '../../context/TakeoverContext';
 import { resolveImageUrl } from '../../utils/image';
 import { PlanningTab } from './PlanningTab';
 import { ID, Query } from 'appwrite';
@@ -15,7 +15,7 @@ import { uploadFile } from '../../utils/uploadService';
 
 export function AdminPanel() {
     const takeover = useTakeover();
-    const settings = takeover?.settings || {} as any;
+    const settings = (takeover?.settings || {}) as TakeoverSettings;
     const setSettings = takeover?.setSettings;
     const showAdminPanel = takeover?.showAdminPanel;
     const setShowAdminPanel = takeover?.setShowAdminPanel;
