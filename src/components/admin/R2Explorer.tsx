@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
     Image as ImageIcon, Loader2, Trash2, ExternalLink, 
-    RefreshCw, ChevronLeft, ChevronRight, Search,
+    RefreshCw, ChevronLeft, ChevronRight, Search, X,
     LayoutGrid, List as ListIcon, HardDrive as StorageIcon
 } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
