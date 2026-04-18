@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart } from 'lucide-react';
+import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart, Plus, RefreshCcw } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { UserAuthModal } from '../auth/UserAuthModal';
 import { apiFetch, getAuthHeaders } from '../../utils/auth';
@@ -84,6 +84,45 @@ export function WikiDropsiders({
     const [saveMsg, setSaveMsg] = useState('');
     const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
     const [showImageModal, setShowImageModal] = useState(false);
+
+    const [isProposing, setIsProposing] = useState(false);
+    const [proposeMsg, setProposeMsg] = useState('');
+
+    const handlePropose = async (name: string) => {
+        setIsProposing(true);
+        try {
+            const res = await fetch('/api/wiki/propose', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'DJS',
+                    entry: {
+                        name: name.toUpperCase(),
+                        country: 'Unknown',
+                        bio: `Un utilisateur a proposé l'ajout de ${name}. En attente de validation.`,
+                        image: '',
+                        instagram: ''
+                    }
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setProposeMsg('Merci ! Ta proposition a été envoyée et sera ajoutée après validation.');
+                setSearch(''); // Clear search
+            } else {
+                if (data.error === 'exists') {
+                    setProposeMsg('Cet artiste existe déjà dans la base de données sous un orthographe similaire.');
+                } else {
+                    setProposeMsg(`Erreur : ${data.error || 'Impossible de proposer l'ajout.'}`);
+                }
+            }
+        } catch {
+            setProposeMsg('Erreur lors de la proposition.');
+        } finally {
+            setIsProposing(false);
+            setTimeout(() => setProposeMsg(''), 5000);
+        }
+    };
 
     const reportBrokenImage = async (id: string) => {
         try {
@@ -249,6 +288,25 @@ export function WikiDropsiders({
                             );
                         })}
                     </div>
+
+                    {filtered.length === 0 && search.length > 2 && (
+                        <div className="flex flex-col items-center justify-center py-20 bg-white/5 border border-white/10 rounded-3xl mt-8">
+                            <BookOpen className="w-12 h-12 text-gray-500 mb-4" />
+                            <h3 className="text-xl font-black text-white uppercase tracking-widest text-center mb-2">DJ Introuvable</h3>
+                            <p className="text-gray-400 text-[10px] font-bold uppercase text-center max-w-md mx-auto mb-6">
+                                "{search}" n'est pas encore dans notre base.
+                            </p>
+                            <button
+                                onClick={() => handlePropose(search)}
+                                disabled={isProposing}
+                                className="px-6 py-3 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-red/80 transition-all flex items-center gap-2"
+                            >
+                                {isProposing ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                {isProposing ? 'Envoi en cours...' : 'Proposer l\'ajout'}
+                            </button>
+                            {proposeMsg && <span className="mt-4 text-[10px] font-black text-green-400 uppercase tracking-widest">{proposeMsg}</span>}
+                        </div>
+                    )}
 
                     {/* A-Z sections */}
                     <div className="space-y-12">

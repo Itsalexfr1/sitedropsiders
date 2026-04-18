@@ -114,5 +114,7 @@
   },
   "wiki": {
     "votesEnabled": true
-  }
+  },
+  "google_search_key": "",
+  "google_cx": ""
 }

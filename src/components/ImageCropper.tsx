@@ -17,11 +17,18 @@ interface ImageCropperProps {
 export const getCroppedImg = (imageSrc: string, pixelCrop: Area): Promise<string> => {
     return new Promise((resolve, reject) => {
         const image = new Image();
-        image.setAttribute('crossOrigin', 'anonymous'); // Use setAttribute for better compatibility
+        
+        // Only set crossOrigin if the image is actually from a different origin.
+        // Forcing crossOrigin='anonymous' on same-origin requests can break if the server doesn't send CORS headers.
+        const originMatch = imageSrc.match(/^https?:\/\/[^\/]+/i);
+        if (originMatch && originMatch[0] !== window.location.origin) {
+            image.setAttribute('crossOrigin', 'anonymous');
+        }
         
         // Add timestamp to bypass cache (often causes CORS issues with cached non-CORS responses)
         const cacheBuster = imageSrc.includes('?') ? '&' : '?';
-        image.src = imageSrc.startsWith('data:') ? imageSrc : `${imageSrc}${cacheBuster}t=${Date.now()}`;
+        const isDataOrBlob = imageSrc.startsWith('data:') || imageSrc.startsWith('blob:');
+        image.src = isDataOrBlob ? imageSrc : `${imageSrc}${cacheBuster}t=${Date.now()}`;
         
         image.onload = () => {
             try {

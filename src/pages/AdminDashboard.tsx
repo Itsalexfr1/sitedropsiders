@@ -34,6 +34,9 @@ import { Downloader } from './Downloader';
 import { WikiWidget } from '../components/widgets/WikiWidget';
 import { resolveImageUrl } from '../utils/image';
 import { InterviewGenerator } from '../components/admin/InterviewGenerator';
+import { SocialGiveawayModal } from '../components/admin/modals/SocialGiveawayModal';
+import { InterviewRandomizer } from '../components/admin/InterviewRandomizer';
+import { ScheduleVisualGenerator } from '../components/admin/modals/ScheduleVisualGenerator';
 
 
 
@@ -102,6 +105,8 @@ export function AdminDashboard() {
     const [selectedSocialTheme, setSelectedSocialTheme] = useState<string | undefined>(undefined);
     const [isQuickWizardOpen, setIsQuickWizardOpen] = useState(false);
     const [isInterviewGeneratorOpen, setIsInterviewGeneratorOpen] = useState(false);
+    const [isGiveawayModalOpen, setIsGiveawayModalOpen] = useState(false);
+    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
     const [isLoadingSocial, setIsLoadingSocial] = useState(false);
     const [bannerState, setBannerState] = useState({
@@ -554,7 +559,7 @@ export function AdminDashboard() {
     // GESTION TEAM STATES
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [editors, setEditors] = useState<any[]>([]);
-    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'R2' | 'SOCIAL_STUDIO' | 'TOP_DROPSIDERS'>('ALL');
+    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'R2' | 'SOCIAL_STUDIO' | 'TOP_DROPSIDERS' | 'INTERVIEW'>('ALL');
     const [isWikiExpanded, setIsWikiExpanded] = useState(false);
     const [wikiTab, setWikiTab] = useState<'djs' | 'clubs' | 'festivals'>('djs');
 
@@ -568,6 +573,7 @@ export function AdminDashboard() {
         { id: 'STUDIO', label: 'Studio' },
         { id: 'SHOP', label: 'Boutique' },
         { id: 'TEAM', label: 'Équipe' },
+        { id: 'INTERVIEW', label: 'Interviews' },
     ];
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean,
@@ -1690,9 +1696,8 @@ export function AdminDashboard() {
         // STUDIO & ANALYTICS
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
-        { title: "Studio Création", description: "Générateurs Rapides", icon: "Sparkles", category: "STUDIO", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "news", baseColor: "orange", columns: 2 },
-        { title: "Social Studio", description: "Générateur de Visuels", icon: "Paintbrush", category: "SOCIAL_STUDIO", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "pink", columns: 2 },
-        { title: "Générateur Fiches", description: "Interview Visual Cards", icon: "Columns", category: "SOCIAL_STUDIO", link: "interview-generator", permission: "news", baseColor: "red", columns: 1 },
+        { title: "Interview Studio", description: "Studio & Questions", icon: "MessageSquare", category: "STUDIO", link: "interview-studio", permission: "news", baseColor: "cyan", columns: 2 },
+        { title: "Générateur Fiches", description: "Interview Visual Cards", icon: "Columns", category: "STUDIO", link: "interview-generator", permission: "news", baseColor: "red", columns: 1 },
 
 
         // SHOP & CONTACT
@@ -1708,6 +1713,8 @@ export function AdminDashboard() {
 
         // SYSTÈME
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "ALL", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
+        { title: "Tirage au Sort", description: "Instagram & Facebook", icon: "Trophy", category: "SOCIAL_STUDIO", link: "#", color: "border-pink-500/20 hover:border-pink-500", bg: "bg-pink-500/5", permission: "community_mod", baseColor: "pink", columns: 1 },
+        { title: "Planning Story", description: "Visuel Programme", icon: "Calendar", category: "SOCIAL_STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 1 },
         { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "ALL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
         
         // MODÉRATION WIKI (Isolée)
@@ -1943,6 +1950,7 @@ export function AdminDashboard() {
             case 'Activity': return <Activity className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'MessageSquare': return <MessageSquare className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Download': return <Download className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Trophy': return <Trophy className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             default: return <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
         }
     };
@@ -3020,6 +3028,68 @@ export function AdminDashboard() {
                                 </div>
                             </div>
                         </div>
+                ) : dashboardTab === 'INTERVIEW' ? (
+                        <div className="space-y-12 pb-20">
+                            <div className="flex items-center gap-4 mb-10">
+                                <div className="p-3 bg-neon-cyan/10 rounded-2xl border border-neon-cyan/20">
+                                    <MessageSquare className="w-6 h-6 text-neon-cyan" />
+                                </div>
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic leading-none">Studio <span className="text-neon-cyan">Interviews</span></h2>
+                                    <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Outils de création et gestion des interviews</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                                {/* MAIN ACTION CARDS */}
+                                <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Card Generator */}
+                                    <button 
+                                        onClick={() => setIsInterviewGeneratorOpen(true)}
+                                        className="relative group overflow-hidden bg-white/5 border border-white/10 rounded-[2.5rem] p-10 text-left hover:border-neon-cyan/50 transition-all flex flex-col justify-between h-[350px]"
+                                    >
+                                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all">
+                                            <Sparkles className="w-40 h-40 text-neon-cyan" />
+                                        </div>
+                                        <div className="relative z-10">
+                                            <div className="w-16 h-16 bg-neon-cyan/10 rounded-3xl flex items-center justify-center border border-neon-cyan/30 mb-6 group-hover:scale-110 transition-transform">
+                                                <FileText className="w-8 h-8 text-neon-cyan" />
+                                            </div>
+                                            <h3 className="text-3xl font-display font-black text-white uppercase italic mb-2 tracking-tighter">Générateur <span className="text-neon-cyan">de fiches</span></h3>
+                                            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest leading-relaxed max-w-[250px]">Créez des fiches de questions personnalisées pour vos interviews.</p>
+                                        </div>
+                                        <div className="relative z-10 flex items-center gap-2 text-neon-cyan font-black uppercase text-[10px] tracking-widest border border-neon-cyan/20 bg-neon-cyan/10 px-6 py-3 rounded-xl w-max group-hover:bg-neon-cyan group-hover:text-black transition-all">
+                                            Ouvrir l'outil <ChevronRight className="w-4 h-4" />
+                                        </div>
+                                    </button>
+
+                                    {/* Visuals Generator */}
+                                    <button 
+                                        onClick={() => navigate('/interview-visuals')}
+                                        className="relative group overflow-hidden bg-white/5 border border-white/10 rounded-[2.5rem] p-10 text-left hover:border-pink-500/50 transition-all flex flex-col justify-between h-[350px]"
+                                    >
+                                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all">
+                                            <ImageIcon className="w-40 h-40 text-pink-500" />
+                                        </div>
+                                        <div className="relative z-10">
+                                            <div className="w-16 h-16 bg-pink-500/10 rounded-3xl flex items-center justify-center border border-pink-500/30 mb-6 group-hover:scale-110 transition-transform">
+                                                <ImageIcon className="w-8 h-8 text-pink-500" />
+                                            </div>
+                                            <h3 className="text-3xl font-display font-black text-white uppercase italic mb-2 tracking-tighter">Visuels <span className="text-pink-500">Instagram</span></h3>
+                                            <p className="text-gray-500 text-xs font-bold uppercase tracking-widest leading-relaxed max-w-[250px]">Générez des visuels promo pour les réseaux sociaux.</p>
+                                        </div>
+                                        <div className="relative z-10 flex items-center gap-2 text-pink-500 font-black uppercase text-[10px] tracking-widest border border-pink-500/20 bg-pink-500/10 px-6 py-3 rounded-xl w-max group-hover:bg-pink-500 group-hover:text-white transition-all">
+                                            Gérer les visuels <ChevronRight className="w-4 h-4" />
+                                        </div>
+                                    </button>
+                                </div>
+
+                                {/* RANDOMIZER SIDEBAR */}
+                                <div className="lg:col-span-4">
+                                    <InterviewRandomizer />
+                                </div>
+                            </div>
+                        </div>
                 ) : dashboardTab === 'TOP_DROPSIDERS' ? (
                         <div className="space-y-12 pb-20">
                             {/* WIKI VOTES SUMMARY & GENERATION AT TOP */}
@@ -3714,6 +3784,16 @@ export function AdminDashboard() {
                                                     } else if (action.title === 'Quiz & Blind Test') {
                                                         e.preventDefault();
                                                         setIsQuizModalOpen(true);
+                                                    } else if (action.link === 'interview-studio' || action.title === 'Interview Studio') {
+                                                        e.preventDefault();
+                                                        setDashboardTab('INTERVIEW');
+                                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                    } else if (action.title === 'Tirage au Sort') {
+                                                        e.preventDefault();
+                                                        setIsGiveawayModalOpen(true);
+                                                    } else if (action.title === 'Planning Story') {
+                                                        e.preventDefault();
+                                                        setIsScheduleModalOpen(true);
                                                     } else if (action.title === 'L\'Équipe & Éditeurs') {
                                                         e.preventDefault();
                                                         setDashboardTab('TEAM');
@@ -9009,6 +9089,14 @@ export function AdminDashboard() {
                 type="danger"
                 confirmText="Réinitialiser"
                 cancelText="Annuler"
+            />
+            <SocialGiveawayModal 
+                isOpen={isGiveawayModalOpen} 
+                onClose={() => setIsGiveawayModalOpen(false)} 
+            />
+            <ScheduleVisualGenerator 
+                isOpen={isScheduleModalOpen} 
+                onClose={() => setIsScheduleModalOpen(false)} 
             />
         </div>
     );

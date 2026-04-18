@@ -4875,6 +4875,54 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path === '/api/wiki/propose' && request.method === 'POST') {
+            try {
+                const { type, entry } = await request.json();
+                if (!type || !entry || !entry.name) return new Response(JSON.stringify({ error: 'Missing type or entry' }), { status: 400, headers });
+
+                let filePath = '';
+                if (type === 'DJS') filePath = WIKI_DJS_PATH;
+                else if (type === 'CLUBS') filePath = WIKI_CLUBS_PATH;
+                else if (type === 'FESTIVALS') filePath = WIKI_FESTIVALS_PATH;
+                else return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
+
+                const file = await fetchGitHubFile(filePath, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                // Check if already exists
+                const searchName = entry.name.toLowerCase().trim();
+                const exists = file.content.find((item: any) => item.name && item.name.toLowerCase().trim() === searchName);
+                if (exists) return new Response(JSON.stringify({ error: 'exists', id: exists.id }), { status: 409, headers });
+
+                // Find max ID
+                let maxId = 0;
+                file.content.forEach((item: any) => {
+                    const nid = parseInt(item.id);
+                    if (!isNaN(nid) && nid > maxId) maxId = nid;
+                });
+                const newId = (maxId + 1).toString();
+
+                const newEntry = {
+                    ...entry,
+                    id: newId,
+                    rating: "0.0",
+                    votes: 1, // Premier vote accordé !
+                    status: 'waiting'
+                };
+
+                const newContent = [...file.content, newEntry];
+                const saved = await saveGitHubFile(filePath, newContent, `Propose ${newEntry.name} to Wiki (${type})`, file.sha, gitConfig);
+                
+                if (!saved.ok) {
+                    return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true, id: newId }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/wiki/report-broken' && request.method === 'POST') {
             try {
                 const { id, type } = await request.json();

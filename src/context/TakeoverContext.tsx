@@ -26,6 +26,7 @@ export interface StreamItem {
     currentTrack?: string;
     overrideArtist?: string;
     isExternalLink?: boolean;
+    enabledInGrid?: boolean;
 }
 
 export interface TakeoverSettings {

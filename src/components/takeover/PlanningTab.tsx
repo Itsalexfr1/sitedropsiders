@@ -5,7 +5,7 @@ import {
     Plus, Trash2, Calendar, Clock, Instagram, 
     Image as ImageIcon, Zap, Check, Star, Flame, Sun, Map as MapIcon,
     Music, Home, MapPin, Globe, RefreshCcw, Camera, Scan, ArrowRight,
-    ChevronDown, ToggleLeft, ToggleRight
+    ChevronDown, ToggleLeft, ToggleRight, BookOpen
 } from 'lucide-react';
 import { useTakeover } from '../../context/TakeoverContext';
 import type { LineupItem } from '../../context/TakeoverContext';
@@ -25,6 +25,38 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
         activeStage, setActiveStage, showNotification, handleGlobalSave
     } = useTakeover();
 
+    const handleAddToDatabase = async (item: LineupItem) => {
+        if (!item.artist || item.artist.length < 2) return;
+        const adminToken = localStorage.getItem('admin_token'); // Or we just send request, apiFetch uses jwt
+        try {
+            const res = await fetch('/api/wiki/add', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    ...(adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {})
+                },
+                body: JSON.stringify({
+                    type: 'DJS',
+                    entry: {
+                        name: item.artist.toUpperCase(),
+                        country: 'Unknown',
+                        bio: `Artiste ajouté manuellement depuis le planning LIVE.`,
+                        image: item.image || '',
+                        instagram: item.instagram || ''
+                    }
+                })
+            });
+            if (res.ok) {
+                showNotification(`${item.artist} a été ajouté à la base !`, 'success');
+                // The new data will be synced later or we could update local state
+            } else {
+                const err = await res.json();
+                showNotification(`Erreur d'ajout : ${err.error || 'Inconnue'}`, 'error');
+            }
+        } catch (e: any) {
+            showNotification(`Erreur backend : ${e.message}`, 'error');
+        }
+    };
 
     const [manualOffset, setManualOffset] = useState(8); 
     const [selectedTimezoneId, setSelectedTimezoneId] = useState('europe');
@@ -592,8 +624,18 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                                 </div>
 
                                 {/* Right Timeline Section - Keep for secondary view but slimmed down if needed */}
-                                 <div className="flex flex-col items-end gap-1">
+                                 <div className="flex flex-col items-end gap-2">
                                     <div className="flex items-center gap-4">
+                                        {item.artist && item.artist.length > 2 && !wikiDjs.some(dj => dj.name.toUpperCase() === item.artist.toUpperCase()) && (
+                                            <button 
+                                                onClick={() => handleAddToDatabase(item)}
+                                                className="flex items-center gap-2 px-3 py-1.5 bg-neon-purple/10 text-neon-purple hover:bg-neon-purple hover:text-white border border-neon-purple/30 rounded-lg transition-all"
+                                                title="Ajouter à l'Encyclopédie"
+                                            >
+                                                <BookOpen className="w-3.5 h-3.5" />
+                                                <span className="text-[9px] font-black uppercase">À la base</span>
+                                            </button>
+                                        )}
                                         {enableTimeConversion && getPreviewTime(item.startTime) && (
                                             <div className="flex items-center gap-2 bg-neon-cyan/10 border border-neon-cyan/20 px-3 py-1.5 rounded-lg shadow-lg shadow-neon-cyan/5">
                                                 <Globe className="w-3 h-3 text-neon-cyan" />

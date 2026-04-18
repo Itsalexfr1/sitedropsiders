@@ -44,6 +44,7 @@ interface StreamItem {
     currentTrack?: string;
     overrideArtist?: string;
     isExternalLink?: boolean;
+    enabledInGrid?: boolean;
 }
 
 interface TakeoverSettings {
@@ -245,6 +246,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const [activeStage, setActiveStage] = useState<string>('stage1');
     const [viewMode, setViewMode] = useState<'single' | 'grid'>('single');
     const [gridCount, setGridCount] = useState<number>(4);
+    const [viewerGridSelection, setViewerGridSelection] = useState<string[]>([]);
+    const [showStagePicker, setShowStagePicker] = useState(false);
 
     const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
     const [accentColor, setAccentColor] = useState(localStorage.getItem('chat_accent_color') || '#ff0033');
@@ -361,6 +364,12 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         }
     }, [isAdmin]);
 
+
+    useEffect(() => {
+        if (settings.streams && settings.streams.length > 0 && viewerGridSelection.length === 0) {
+            setViewerGridSelection(settings.streams.map((s: any) => s.id));
+        }
+    }, [settings.streams]);
 
     const [userInstagram, setUserInstagram] = useState(localStorage.getItem('user_instagram') || '');
     const [timeOnSite, setTimeOnSite] = useState(() => parseInt(localStorage.getItem('time_on_site') || '0'));
@@ -2250,6 +2259,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     };
 
     const getFluxArtistInfo = () => {
+        const streamOverride = settings.streams?.find(s => s.id === settings.activeStreamId)?.overrideArtist;
+        const currentTrack = settings.streams?.find(s => s.id === settings.activeStreamId)?.currentTrack;
+
+        if (streamOverride) {
+            return { mode: 'NOW', artist: streamOverride + (currentTrack ? ` - ${currentTrack}` : '') };
+        }
+
         const now = new Date();
         const curDay = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
         
@@ -2275,6 +2291,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         // 1. Find CURRENT Artist
         const current = lineupItems.find(item => {
             if (!item.day || !item.startTime || !isMyStage(item)) return false;
+            // Check day match (or override if needed, but strict for now)
             if (item.day !== curDay) return false;
 
             const [sh, sm] = item.startTime.replace('.', ':').replace('h', ':').split(':').map(Number);
@@ -2287,8 +2304,6 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             return now >= startTime && now <= endTime;
         });
 
-        if (current) return { mode: 'NOW', artist: current.artist };
-
         // 2. Find NEXT Artist (Today)
         const sortedToday = [...lineupItems]
             .filter(item => item.day === curDay && isMyStage(item) && item.startTime)
@@ -2300,14 +2315,34 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             return startTime > now;
         });
 
-        if (next) return { mode: 'NEXT', artist: `${next.artist} (${next.startTime})` };
+        const isAlternateMinute = now.getMinutes() % 2 !== 0;
+
+        let displayArtist = '';
+        if (current && next) {
+            if (isAlternateMinute) {
+                displayArtist = `${next.artist} (${next.startTime})`;
+                return { mode: 'À SUIVRE', artist: displayArtist + (currentTrack && !isAlternateMinute ? ` - ${currentTrack}` : '') };
+            } else {
+                displayArtist = current.artist;
+                return { mode: 'NOW', artist: displayArtist + (currentTrack ? ` - ${currentTrack}` : '') };
+            }
+        }
+        
+        if (current) {
+            displayArtist = current.artist;
+            return { mode: 'NOW', artist: displayArtist + (currentTrack ? ` - ${currentTrack}` : '') };
+        }
+        
+        if (next) {
+            displayArtist = `${next.artist} (${next.startTime})`;
+            return { mode: 'À SUIVRE', artist: displayArtist };
+        }
 
         // 3. Fallback
         return { mode: 'NOW', artist: settings.title || 'DROPSIDERS LIVE' };
     };
 
     const fluxArtistInfo = getFluxArtistInfo();
-    const fluxCurrentArtist = { artist: fluxArtistInfo.artist }; // Keep for compatibility if used elsewhere
 
     const handlePurgeTarget = async (target: string) => {
         if (!isMod) return;
@@ -2424,17 +2459,36 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         {fluxArtistInfo.mode}
                                     </span>
                                     <span className={`font-black text-white uppercase italic tracking-tighter sm:max-w-none transition-all ${
-                                        (fluxCurrentArtist.artist.length > 25) ? 'text-[8px] lg:text-[12px]' : 
-                                        (fluxCurrentArtist.artist.length > 15) ? 'text-[9px] lg:text-[14px]' : 
+                                        (fluxArtistInfo.artist.length > 25) ? 'text-[8px] lg:text-[12px]' : 
+                                        (fluxArtistInfo.artist.length > 15) ? 'text-[9px] lg:text-[14px]' : 
                                         'text-[10px] lg:text-[16px]'
                                     }`}>
-                                        {settings.streams?.find(s => s.id === settings.activeStreamId)?.overrideArtist || fluxCurrentArtist.artist} {settings.streams?.find(s => s.id === settings.activeStreamId)?.currentTrack ? ` - ${settings.streams.find(s => s.id === settings.activeStreamId)?.currentTrack}` : ''}
+                                        {fluxArtistInfo.artist}
                                     </span>
                                 </div>
                             </div>
 
                             {/* Mobile specific controls for header top right */}
-                            <div className="flex lg:hidden items-center gap-2">
+                            <div className="flex lg:hidden items-center gap-2 shrink-0">
+                                {settings.streams && settings.streams.length > 1 && (
+                                    <div className="relative group">
+                                        <select 
+                                            value={settings.activeStreamId || ''}
+                                            onChange={(e) => {
+                                                const sId = e.target.value;
+                                                const idx = settings.streams!.findIndex((s: any) => s.id === sId);
+                                                setSettings(prev => ({ ...prev, activeStreamId: sId }));
+                                                setActiveStage(`stage${idx + 1}` as any);
+                                            }}
+                                            className="bg-black/60 border border-neon-cyan/30 rounded-lg px-6 py-1.5 text-[9px] font-black uppercase text-neon-cyan outline-none appearance-none cursor-pointer hover:border-neon-cyan transition-all text-center"
+                                        >
+                                            {settings.streams.map((s: any, idx: number) => (
+                                                <option key={s.id} value={s.id} className="bg-zinc-900 text-white font-sans">{s.name || `STAGE ${idx + 1}`}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="w-3 h-3 text-neon-cyan absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                    </div>
+                                )}
                                 <button
                                     onClick={() => setShowViewersList(!showViewersList)}
                                     className={`p-1.5 rounded-lg border ${showViewersList ? 'bg-pink-600 border-pink-500 text-white' : 'bg-white/5 border-white/10 text-gray-500'}`}
@@ -2448,7 +2502,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                         </div>
 
                         {settings.streams && settings.streams.length > 1 && (
-                            <div className="flex lg:absolute lg:left-1/2 lg:-translate-x-1/2 gap-0 border-t lg:border-t-0 border-white/5 overflow-x-auto no-scrollbar">
+                            <div className="hidden lg:flex lg:absolute lg:left-1/2 lg:-translate-x-1/2 gap-0 border-white/5 overflow-x-auto no-scrollbar">
                                 {settings.streams.map((s: any, idx: number) => {
                                     const isActive = settings.activeStreamId === s.id;
                                     return (
@@ -2505,15 +2559,58 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     <BarChart3 className="w-4 h-4 rotate-90" />
                                 </button>
                                 {viewMode === 'grid' && (
-                                    <select
-                                        value={gridCount}
-                                        onChange={(e) => setGridCount(Number(e.target.value))}
-                                        className="bg-black/40 border border-white/10 rounded-lg px-2 text-[10px] font-black text-white outline-none focus:border-neon-cyan"
-                                    >
-                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                                            <option key={n} value={n}>{n} STAGES</option>
-                                        ))}
-                                    </select>
+                                    <div className="relative h-full flex items-center">
+                                        <button 
+                                            onClick={() => setShowStagePicker(!showStagePicker)}
+                                            className="h-8 px-3 bg-neon-cyan/20 text-neon-cyan text-[10px] font-black uppercase rounded-lg border border-neon-cyan/30 flex items-center gap-2 hover:bg-neon-cyan hover:text-black transition-all"
+                                        >
+                                            <Globe className="w-3 h-3 text-neon-cyan group-hover:text-black" /> 
+                                            <span className="shrink-0">{viewerGridSelection.length} SCÈNES</span>
+                                            <ChevronDown className="w-2.5 h-2.5" />
+                                        </button>
+
+                                        {showStagePicker && (
+                                            <>
+                                                <div className="fixed inset-0 z-40" onClick={() => setShowStagePicker(false)} />
+                                                <div className="absolute top-full mt-2 right-0 w-64 bg-black/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 z-50 shadow-2xl space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                                                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Choix des Scènes</h4>
+                                                        <button 
+                                                            onClick={() => setViewerGridSelection((settings.streams || []).map((s: any) => s.id))}
+                                                            className="text-[8px] font-black text-neon-cyan uppercase hover:underline"
+                                                        >
+                                                            TOUT
+                                                        </button>
+                                                    </div>
+                                                    <div className="space-y-1 max-h-60 overflow-y-auto custom-scrollbar">
+                                                        {(settings.streams || []).map((s: any) => {
+                                                            const isSelected = viewerGridSelection.includes(s.id);
+                                                            return (
+                                                                <button
+                                                                    key={s.id}
+                                                                    onClick={() => {
+                                                                        if (isSelected) {
+                                                                            if (viewerGridSelection.length > 1) {
+                                                                                setViewerGridSelection(viewerGridSelection.filter(id => id !== s.id));
+                                                                            }
+                                                                        } else {
+                                                                            setViewerGridSelection([...viewerGridSelection, s.id]);
+                                                                        }
+                                                                    }}
+                                                                    className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isSelected ? 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-500 border border-transparent hover:bg-white/10'}`}
+                                                                >
+                                                                    <span className="text-[10px] font-black uppercase truncate pr-4">{s.name}</span>
+                                                                    <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-all ${isSelected ? 'bg-neon-cyan border-neon-cyan' : 'border-white/20'}`}>
+                                                                        {isSelected && <Check className="w-3 h-3 text-black" />}
+                                                                    </div>
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                             <button
@@ -2531,38 +2628,40 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     </div>
 
                     {/* TOP NEWS MARQUEE (Hidden on Mobile) */}
-                    <div className="hidden lg:flex h-6 lg:h-10 bg-neon-red/10 backdrop-blur-md border-b border-neon-red/30 items-center overflow-hidden group shrink-0">
-                        <div className="bg-neon-red px-2 lg:px-3 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
-                            <Megaphone className="w-3 lg:w-3.5 h-3 lg:h-3.5 text-white" />
-                            <span className="ml-1 lg:ml-2 text-[7px] lg:text-[9px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
+                    {settings.showTickerBanner && (
+                        <div className="hidden lg:flex h-6 lg:h-10 bg-neon-red/10 backdrop-blur-md border-b border-neon-red/30 items-center overflow-hidden group shrink-0">
+                            <div className="bg-neon-red px-2 lg:px-3 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
+                                <Megaphone className="w-3 lg:w-3.5 h-3 lg:h-3.5 text-white" />
+                                <span className="ml-1 lg:ml-2 text-[7px] lg:text-[9px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
+                            </div>
+                            <motion.div
+                                animate={{ x: [0, -2000] }}
+                                transition={{ repeat: Infinity, duration: 50, ease: "linear" }}
+                                className="flex items-center gap-16 whitespace-nowrap pl-6 group-hover:[animation-play-state:paused]"
+                            >
+                                {[...Array(3)].map((_, loopIdx) => (
+                                    <div key={loopIdx} className="flex gap-16">
+                                        {(marqueeItems.length > 0 ? marqueeItems : [{ text: settings.tickerText, link: '#' }]).filter(i => i.text).map((item, idx) => {
+                                            const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
+                                            const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
+                                            return (
+                                                <a
+                                                    key={`${loopIdx}-${idx}`}
+                                                    href={fullLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
+                                                >
+                                                    <Sparkles className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
+                                                    <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
+                                                </a>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
+                            </motion.div>
                         </div>
-                        <motion.div
-                            animate={{ x: [0, -2000] }}
-                            transition={{ repeat: Infinity, duration: 50, ease: "linear" }}
-                            className="flex items-center gap-16 whitespace-nowrap pl-6 group-hover:[animation-play-state:paused]"
-                        >
-                            {[...Array(3)].map((_, loopIdx) => (
-                                <div key={loopIdx} className="flex gap-16">
-                                    {(marqueeItems.length > 0 ? marqueeItems : [{ text: settings.tickerText, link: '#' }]).filter(i => i.text).map((item, idx) => {
-                                        const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
-                                        const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
-                                        return (
-                                            <a
-                                                key={`${loopIdx}-${idx}`}
-                                                href={fullLink}
-                                                target={isExternal ? "_blank" : "_self"}
-                                                rel={isExternal ? "noopener noreferrer" : ""}
-                                                className="text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
-                                            >
-                                                <Sparkles className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
-                                                <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
-                                            </a>
-                                        );
-                                    })}
-                                </div>
-                            ))}
-                        </motion.div>
-                    </div>
+                    )}
 
                     {/* Viewers List Overlay (Mobile / Desktop floating) */}
                     <AnimatePresence>
@@ -2692,9 +2791,11 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 );
                             })()
                         ) : (
-                            <div className={`grid h-full w-full gap-1 p-1 bg-black ${gridCount === 1 ? 'grid-cols-1' : gridCount === 2 ? 'grid-cols-2' : gridCount <= 4 ? 'grid-cols-2' : gridCount <= 6 ? 'grid-cols-3' : gridCount <= 8 ? 'grid-cols-4' : 'grid-cols-5'}`}>
-                                {Array.from({ length: gridCount }).map((_, idx) => {
-                                    const s = settings.streams?.[idx];
+                            <div className={`grid h-full w-full gap-1 p-1 bg-black ${(() => {
+                                const count = viewerGridSelection.length;
+                                return count === 1 ? 'grid-cols-1' : count === 2 ? 'grid-cols-2' : count <= 4 ? 'grid-cols-2' : count <= 6 ? 'grid-cols-3' : count <= 8 ? 'grid-cols-4' : 'grid-cols-5';
+                            })()}`}>
+                                {(settings.streams || []).filter((s: any) => viewerGridSelection.includes(s.id)).map((s: any, idx: number) => {
                                     return (
                                         <div key={s?.id || `empty-${idx}`} className="relative group overflow-hidden bg-black/20 border border-white/5 rounded-xl flex items-center justify-center">
                                             {s ? (

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown, Check } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown, Check, Globe } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 import { getAuthHeaders } from '../utils/auth';
+import settingsData from '../data/settings.json';
 
 interface ImageUploadModalProps {
     isOpen: boolean;
@@ -56,12 +57,67 @@ export function ImageUploadModal({
     const [isWatermarkEnabled, setIsWatermarkEnabled] = useState(watermark);
 
     // R2 State
+    const [libTab, setLibTab] = useState<'r2' | 'unsplash'>('r2');
     const [r2Photos, setR2Photos] = useState<any[]>([]);
     const [r2Loading, setR2Loading] = useState(false);
     const [r2Cursor, setR2Cursor] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest');
 
+    // Web Search State
+    const googleKey = (settingsData as any).google_search_key || '';
+    const googleCx = (settingsData as any).google_cx || '';
+    const [webQuery, setWebQuery] = useState('');
+    const [webResults, setWebResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [webStartIndex, setWebStartIndex] = useState(1);
+
     const sentinelRef = useRef<HTMLDivElement>(null);
+
+    const searchWeb = async (e?: React.FormEvent, isLoadMore: boolean = false) => {
+        if (e) e.preventDefault();
+        if (!googleKey || !googleCx) {
+            setMessage('Les identifiants Google Search (google_search_key, google_cx) sont manquants (à configurer dans settings.json).');
+            setStatus('error');
+            return;
+        }
+        if (!webQuery) return;
+        
+        setIsSearching(true);
+        if (!isLoadMore) {
+            setStatus('idle');
+            setWebStartIndex(1);
+        }
+        
+        const start = isLoadMore ? webStartIndex + 10 : 1;
+
+        try {
+            const res = await fetch(`https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(webQuery)}&cx=${googleCx}&key=${googleKey}&searchType=image&num=10&imgSize=large&start=${start}`);
+            const data = await res.json();
+            if (res.ok) {
+                const newItems = (data.items || []).map((r: any) => ({
+                    id: r.link,
+                    url: r.link,
+                    thumb: r.image?.thumbnailLink || r.link,
+                    author: r.displayLink
+                }));
+                
+                if (isLoadMore) {
+                    setWebResults(prev => [...prev, ...newItems]);
+                } else {
+                    setWebResults(newItems);
+                }
+                setWebStartIndex(start);
+            } else {
+                if (!isLoadMore) setStatus('error');
+                setMessage(`Erreur Google: ${data.error?.message || 'Inconnue'}`);
+            }
+        } catch (e: any) {
+            if (!isLoadMore) setStatus('error');
+            setMessage(`Erreur de connexion Google Images`);
+        } finally {
+            setIsSearching(false);
+        }
+    };
 
     useEffect(() => {
         if (!r2Cursor || r2Loading) return;
@@ -242,7 +298,14 @@ export function ImageUploadModal({
 
         return new Promise((resolve, reject) => {
             const img = new Image();
-            img.crossOrigin = "anonymous";
+            // Data URLs don't technically need crossOrigin, but for external URLs it's safe.
+            // Be careful to not blindly apply it to same-origin URLs as it can break.
+            if (!dataUrl.startsWith('data:') && !dataUrl.startsWith('blob:')) {
+                const originMatch = dataUrl.match(/^https?:\/\/[^\/]+/i);
+                if (originMatch && originMatch[0] !== window.location.origin) {
+                    img.crossOrigin = "anonymous";
+                }
+            }
             img.src = dataUrl;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
@@ -262,7 +325,7 @@ export function ImageUploadModal({
 
                 // Add DROPSIDERS Logo
                 const logo = new Image();
-                logo.crossOrigin = "anonymous";
+                // Logo is local, so no crossOrigin needed
                 logo.src = '/Logo.png';
                 logo.onload = () => {
                     clearTimeout(timeout);
@@ -527,11 +590,18 @@ export function ImageUploadModal({
                                         <div className="lg:col-span-8 flex flex-col gap-4 border-l border-white/5 pl-8">
                                             <div className="flex justify-between items-center bg-white/5 p-3 rounded-2xl border border-white/10">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <HardDrive className="w-4 h-4 text-neon-blue" />
-                                                        <span className="font-black text-[10px] text-white uppercase tracking-widest">Librairie Cloud</span>
-                                                    </div>
+                                                    <button onClick={() => setLibTab('r2')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${libTab === 'r2' ? 'bg-neon-blue text-black font-black' : 'text-white hover:bg-white/10'}`}>
+                                                        <HardDrive className="w-4 h-4" />
+                                                        <span className="font-black text-[10px] uppercase tracking-widest">Cloud Dropsiders</span>
+                                                    </button>
                                                     <div className="h-4 w-px bg-white/10" />
+                                                    <button onClick={() => setLibTab('unsplash')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${libTab === 'unsplash' ? 'bg-neon-cyan text-black font-black' : 'text-white hover:bg-white/10'}`}>
+                                                        <Globe className="w-4 h-4" />
+                                                        <span className="font-black text-[10px] uppercase tracking-widest">Google Images</span>
+                                                    </button>
+                                                </div>
+                                                
+                                                {libTab === 'r2' && (
                                                     <div className="flex items-center gap-2">
                                                         <ArrowUpDown className="w-3 h-3 text-gray-500" />
                                                         <select 
@@ -544,16 +614,86 @@ export function ImageUploadModal({
                                                             <option value="name">Nom</option>
                                                             <option value="unused">Non utilisées 🗑️</option>
                                                         </select>
+                                                        <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest italic ml-2">{r2Photos.length} fichiers</span>
                                                     </div>
-                                                </div>
-                                                <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest italic">{r2Photos.length} fichiers</span>
+                                                )}
                                             </div>
 
-                                            {r2Loading && r2Photos.length === 0 ? (
+                                            {libTab === 'unsplash' ? (
+                                                <div className="flex flex-col gap-4 h-full">
+                                                    <form onSubmit={searchWeb} className="flex gap-2 relative">
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder={`Rechercher sur Google Images...`}
+                                                            value={webQuery}
+                                                            onChange={e => setWebQuery(e.target.value)}
+                                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-black text-white hover:border-white/30 focus:border-neon-cyan outline-none transition-all uppercase placeholder:italic"
+                                                        />
+                                                        <button type="submit" disabled={isSearching} className="bg-neon-cyan text-black px-4 rounded-xl font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-all outline-none flex items-center justify-center min-w-[100px]">
+                                                            {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Chercher'}
+                                                        </button>
+                                                    </form>
+                                                    
+                                                    {aspect && (
+                                                        <div className="flex items-center gap-2 bg-neon-cyan/10 border border-neon-cyan/20 p-2 rounded-xl text-neon-cyan text-[9px] font-black uppercase tracking-widest">
+                                                            <Check className="w-3 h-3 shrink-0" />
+                                                            Vous serez invité à recadrer l'image après sélection ({aspect > 1.1 ? 'Paysage' : aspect < 0.9 ? 'Portrait' : 'Carré'})
+                                                        </div>
+                                                    )}
+
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 overflow-y-auto no-scrollbar max-h-[60vh] rounded-xl pr-2 pb-4 content-start auto-rows-max">
+                                                        {webResults.map(photo => (
+                                                             <div 
+                                                                key={photo.id} 
+                                                                onClick={() => {
+                                                                    const isSelected = selectedImages.some(img => img.preview === photo.url);
+                                                                    if (allowMultiple) {
+                                                                        if (isSelected) {
+                                                                            setSelectedImages(prev => prev.filter(img => img.preview !== photo.url));
+                                                                        } else {
+                                                                            setSelectedImages(prev => [...prev, { file: null, preview: photo.url }]);
+                                                                        }
+                                                                    } else {
+                                                                        setSelectedImages([{ file: null, preview: photo.url }]);
+                                                                        setStep('preview');
+                                                                    }
+                                                                }}
+                                                                className={`relative w-full aspect-square min-h-[100px] md:min-h-[120px] border-2 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 group shadow-lg ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-cyan ring-4 ring-neon-cyan/20 scale-[0.98]' : 'border-white/5 hover:border-white/10 hover:scale-[1.02]'}`}
+                                                            >
+                                                                <img src={photo.thumb} className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${selectedImages.some(img => img.preview === photo.url) ? 'opacity-100 scale-110' : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'}`} />
+                                                                
+                                                                {selectedImages.some(img => img.preview === photo.url) && (
+                                                                    <div className="absolute top-4 right-4 w-8 h-8 bg-neon-cyan rounded-full flex items-center justify-center shadow-2xl animate-in zoom-in duration-300 z-20">
+                                                                        <div className="text-xs font-black text-black">
+                                                                            {allowMultiple ? selectedImages.findIndex(img => img.preview === photo.url) + 1 : <Check className="w-4 h-4" strokeWidth={4} />}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-md p-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                                                    <span className="text-[8px] font-black text-white block truncate text-center uppercase tracking-widest">{photo.author}</span>
+                                                                </div>
+                                                             </div>
+                                                        ))}
+                                                        
+                                                        {webResults.length > 0 && webResults.length % 10 === 0 && (
+                                                            <div className="col-span-full mt-4 flex justify-center pb-8">
+                                                                <button 
+                                                                    onClick={() => searchWeb(undefined, true)}
+                                                                    disabled={isSearching}
+                                                                    className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase text-white tracking-widest transition-all flex items-center gap-2 group"
+                                                                >
+                                                                    {isSearching ? <Loader2 className="w-4 h-4 animate-spin text-neon-cyan" /> : <span className="flex items-center gap-2">Charger la suite <ArrowUpDown className="w-3 h-3 group-hover:translate-y-1 transition-transform" /></span>}
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ) : r2Loading && r2Photos.length === 0 ? (
                                                 <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-neon-blue" /></div>
                                             ) : (
                                                 <>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 max-h-[70vh] overflow-y-auto no-scrollbar rounded-3xl p-4 w-full auto-rows-max content-start">
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 max-h-[60vh] overflow-y-auto no-scrollbar rounded-3xl p-4 w-full auto-rows-max content-start">
                                                         {r2Photos.map(photo => (
                                                             <div 
                                                                 key={photo.key} 

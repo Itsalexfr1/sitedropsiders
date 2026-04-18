@@ -490,8 +490,18 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             const voteBtn = target.closest('.music-vote-button');
             if (voteBtn) {
                 const trackTitle = voteBtn.getAttribute('data-item-title');
-                const media = voteBtn.getAttribute('data-item-media');
-                const playerType = voteBtn.getAttribute('data-item-player-type');
+                let media = voteBtn.getAttribute('data-item-media');
+                let playerType = voteBtn.getAttribute('data-item-player-type');
+                
+                // Fallback to parent container for older articles
+                if (!media || !playerType) {
+                    const parentItem = voteBtn.closest('.music-top-item-premium');
+                    if (parentItem) {
+                        media = media || parentItem.getAttribute('data-media');
+                        playerType = playerType || parentItem.getAttribute('data-player-type');
+                    }
+                }
+                
                 if (!trackTitle) return;
 
                 // Visual feedback
