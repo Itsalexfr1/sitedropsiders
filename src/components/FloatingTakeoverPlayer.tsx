@@ -24,7 +24,7 @@ export function FloatingTakeoverPlayer() {
     }, []);
 
     const isLivePage = location.pathname === '/live';
-    const showFloating = takeover?.enabled && !isLivePage && !isClosed && (takeover?.youtubeId || takeover?.channels);
+    const showFloating = takeover?.enabled && !isLivePage && !isClosed && (takeover?.youtubeId || takeover?.channels || (takeover?.streams && takeover?.streams.length > 0));
 
     if (!showFloating) return null;
 
@@ -72,6 +72,9 @@ export function FloatingTakeoverPlayer() {
                 <div className="w-full h-full relative">
                     {(() => {
                         let videoId = takeover.youtubeId;
+                        if (!videoId && takeover.streams && takeover.streams.length > 0) {
+                            videoId = takeover.streams[0].youtubeId;
+                        }
                         if (!videoId && takeover.channels) {
                             const firstChannel = takeover.channels.split('\n')[0];
                             videoId = firstChannel?.split(':')[0]?.trim();

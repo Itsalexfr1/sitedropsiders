@@ -2471,7 +2471,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                             <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                         </div>
-                                        <h1 className="text-[12px] sm:text-xs lg:text-[24px] xl:text-[28px] font-display font-black text-white italic tracking-tighter leading-none sm:max-w-none">{settings.title.toUpperCase()}</h1>
+                                        <h1 className="text-[10px] sm:text-[11px] lg:text-[24px] xl:text-[28px] font-display font-black text-white italic tracking-tighter leading-none truncate max-w-[120px] sm:max-w-[180px] lg:max-w-none">{settings.title.toUpperCase()}</h1>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1 lg:gap-2 mt-1 lg:mt-2">
@@ -2490,9 +2490,11 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             >
                                                 <span className="text-[10px] lg:text-[14px] font-black text-white uppercase italic tracking-tighter truncate">{fluxArtistInfo.artist}</span>
                                                 {nextLiveItem && (
-                                                    <div className="hidden sm:flex items-center gap-2 opacity-40 hover:opacity-100 transition-opacity shrink-0">
-                                                        <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest">SUIVANT :</span>
-                                                        <span className="text-[8px] font-black text-white uppercase italic">{nextLiveItem.artist} • {nextLiveItem.startTime}</span>
+                                                    <div className="flex items-center gap-2 overflow-hidden max-w-[150px] lg:max-w-none">
+                                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 border border-white/10 rounded-md animate-pulse">
+                                                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest whitespace-nowrap">NEXT :</span>
+                                                            <span className="text-[8px] lg:text-[10px] font-black text-white uppercase italic whitespace-nowrap">{nextLiveItem.artist} ({nextLiveItem.startTime})</span>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </motion.div>
@@ -2504,7 +2506,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             {/* Mobile specific controls for header top right */}
                             <div className="flex lg:hidden items-center gap-2 shrink-0">
                                 {settings.streams && settings.streams.length > 1 && (
-                                    <div className="relative group">
+                                    <div className="flex items-center gap-1.5 bg-black/40 p-1 border border-white/10 rounded-xl relative group">
                                         <select 
                                             value={settings.activeStreamId || ''}
                                             onChange={(e) => {
@@ -2513,13 +2515,63 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                 setSettings(prev => ({ ...prev, activeStreamId: sId }));
                                                 setActiveStage(`stage${idx + 1}` as any);
                                             }}
-                                            className="bg-black/60 border border-neon-cyan/30 rounded-lg px-6 py-1.5 text-[9px] font-black uppercase text-neon-cyan outline-none appearance-none cursor-pointer hover:border-neon-cyan transition-all text-center"
+                                            className="bg-transparent px-3 py-1.5 text-[8px] font-black uppercase text-neon-cyan outline-none appearance-none cursor-pointer hover:text-white transition-all text-center pr-6"
                                         >
                                             {settings.streams.map((s: any, idx: number) => (
                                                 <option key={s.id} value={s.id} className="bg-zinc-900 text-white font-sans">{s.name || `STAGE ${idx + 1}`}</option>
                                             ))}
                                         </select>
-                                        <ChevronDown className="w-3 h-3 text-neon-cyan absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                        <ChevronDown className="w-2.5 h-2.5 text-neon-cyan absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                        
+                                        {viewMode === 'grid' && (
+                                            <button 
+                                                onClick={() => setShowStagePicker(!showStagePicker)}
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all ${showStagePicker ? 'bg-neon-cyan text-black border-neon-cyan' : 'bg-white/5 border-white/10 text-neon-cyan'}`}
+                                            >
+                                                <Globe className="w-3 h-3" />
+                                                <span className="text-[8px] font-black">{viewerGridSelection.length}</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                
+                                {showStagePicker && (
+                                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm lg:hidden">
+                                        <div className="bg-zinc-900 border border-white/10 rounded-[2rem] w-full max-w-sm p-6 shadow-2xl relative">
+                                            <button onClick={() => setShowStagePicker(false)} className="absolute top-4 right-4 text-gray-400"><X className="w-5 h-5" /></button>
+                                            <h3 className="text-sm font-black text-white uppercase tracking-widest mb-4">Sélection des scènes</h3>
+                                            <div className="grid grid-cols-1 gap-2 max-h-[50vh] overflow-y-auto no-scrollbar">
+                                                {(settings.streams || []).map((s: any) => {
+                                                    const isSelected = viewerGridSelection.includes(s.id);
+                                                    return (
+                                                        <button
+                                                            key={s.id}
+                                                            onClick={() => {
+                                                                if (isSelected) {
+                                                                    if (viewerGridSelection.length > 1) {
+                                                                        setViewerGridSelection(viewerGridSelection.filter(id => id !== s.id));
+                                                                    }
+                                                                } else {
+                                                                    setViewerGridSelection([...viewerGridSelection, s.id]);
+                                                                }
+                                                            }}
+                                                            className={`flex items-center justify-between p-4 rounded-xl border transition-all ${isSelected ? 'bg-neon-cyan/10 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-transparent text-gray-500'}`}
+                                                        >
+                                                            <span className="text-[10px] font-black uppercase">{s.name}</span>
+                                                            <div className={`w-4 h-4 rounded-md border flex items-center justify-center ${isSelected ? 'bg-neon-cyan border-neon-cyan text-black' : 'border-white/20'}`}>
+                                                                {isSelected && <Check className="w-3 h-3 text-black" />}
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            <button 
+                                                onClick={() => setShowStagePicker(false)}
+                                                className="w-full mt-6 py-4 bg-neon-cyan text-black font-black uppercase rounded-xl"
+                                            >
+                                                VALIDER ({viewerGridSelection.length})
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                                 <button
@@ -2662,7 +2714,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             >
                                 {[...Array(3)].map((_, loopIdx) => (
                                     <div key={loopIdx} className="flex gap-16">
-                                        {(marqueeItems.length > 0 ? marqueeItems : [{ text: settings.tickerText, link: '#' }]).filter(i => i.text).map((item, idx) => {
+                                        {(marqueeItems.length > 0 ? marqueeItems : [{ text: settings.tickerText, link: '' }]).filter(i => i.text).map((item, idx) => {
                                             const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
                                             const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
                                             return (

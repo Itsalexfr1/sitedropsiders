@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown, Check, Globe } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown, Check, Globe, Search } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 import { getAuthHeaders } from '../utils/auth';
 import settingsData from '../data/settings.json';
@@ -62,6 +62,7 @@ export function ImageUploadModal({
     const [r2Loading, setR2Loading] = useState(false);
     const [r2Cursor, setR2Cursor] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest');
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Web Search State
     const googleKey = (settingsData as any).google_search_key || '';
@@ -601,8 +602,18 @@ export function ImageUploadModal({
                                                     </button>
                                                 </div>
                                                 
-                                                {libTab === 'r2' && (
-                                                    <div className="flex items-center gap-2">
+                                                 {libTab === 'r2' && (
+                                                    <div className="flex flex-1 items-center gap-3">
+                                                        <div className="relative flex-1 group">
+                                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 group-focus-within:text-neon-blue transition-colors" />
+                                                            <input 
+                                                                type="text" 
+                                                                placeholder="Filtrer vos fichiers..." 
+                                                                value={searchTerm}
+                                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                                className="w-full pl-8 pr-4 py-2 bg-black/40 border border-white/10 rounded-lg text-[10px] font-black uppercase text-white outline-none focus:border-neon-blue transition-all"
+                                                            />
+                                                        </div>
                                                         <ArrowUpDown className="w-3 h-3 text-gray-500" />
                                                         <select 
                                                             value={sortBy} 
@@ -694,7 +705,7 @@ export function ImageUploadModal({
                                             ) : (
                                                 <>
                                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 max-h-[60vh] overflow-y-auto no-scrollbar rounded-3xl p-4 w-full auto-rows-max content-start">
-                                                        {r2Photos.map(photo => (
+                                                        {r2Photos.filter(p => !searchTerm || p.key.toLowerCase().includes(searchTerm.toLowerCase())).map(photo => (
                                                             <div 
                                                                 key={photo.key} 
                                                                 onClick={() => {
