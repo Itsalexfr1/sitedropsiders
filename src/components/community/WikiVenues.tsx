@@ -69,7 +69,6 @@ export function WikiVenues({
     const [mode] = useState<Mode>(initialMode);
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState<Venue | null>(null);
-    const [showAdd, setShowAdd] = useState(false);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     const [clubVotes, setClubVotes] = useState<Set<string>>(() => loadVotes(VOTE_KEY_CLUBS));
@@ -79,10 +78,8 @@ export function WikiVenues({
     const isAdmin = localStorage.getItem('admin_auth') === 'true';
     const [isSaving, setIsSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
-    const [addForm, setAddForm] = useState({ name: '', city: '', country: '', description: '', website: '', instagram: '', image: '' });
     const [showImageModal, setShowImageModal] = useState(false);
     const [isEditingPhoto, setIsEditingPhoto] = useState(false);
-    const [addSuccess, setAddSuccess] = useState(false);
     const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
     const [liveBaseData, setLiveBaseData] = useState<any[]>([]);
 
@@ -186,28 +183,6 @@ export function WikiVenues({
 
     const getVoteCount = (v: Venue) => (v.votes || 0) + (votes.has(v.id) ? 1 : 0);
 
-    const handleAdd = () => {
-        if (!addForm.name || !addForm.city || !addForm.country || !addForm.image) return;
-        const id = `custom_${Date.now()}`;
-        const newVenue: Venue = { 
-            id, 
-            name: addForm.name, 
-            city: addForm.city, 
-            country: addForm.country.toUpperCase(), 
-            djmag_rank: 9999, 
-            description: addForm.description || 'Lieu ajouté par la communauté Dropsiders.', 
-            image: addForm.image, 
-            website: addForm.website, 
-            instagram: addForm.instagram, 
-            votes: 0, 
-            custom: true 
-        };
-        if (mode === 'clubs') { const u = [...customClubs, newVenue]; setCustomClubs(u); saveCustom(CUSTOM_KEY_CLUBS, u); }
-        else { const u = [...customFests, newVenue]; setCustomFests(u); saveCustom(CUSTOM_KEY_FESTIVALS, u); }
-        setAddForm({ name: '', city: '', country: '', description: '', website: '', instagram: '', image: '' });
-        setAddSuccess(true);
-        setTimeout(() => { setAddSuccess(false); setShowAdd(false); }, 2000);
-    };
 
     const handleUpdatePhoto = async (url: string | string[]) => {
         if (!selected) return;
@@ -275,86 +250,8 @@ export function WikiVenues({
                         placeholder={t('venue_search_placeholder')}
                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-all text-sm" />
                 </div>
-                <button onClick={() => setShowAdd(!showAdd)}
-                    className="flex items-center gap-2 px-5 py-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl text-neon-red font-black uppercase tracking-widest text-[10px] hover:bg-neon-red/20 transition-all shrink-0">
-                    <Plus className="w-4 h-4" />{t('add_to_wiki')}
-                </button>
             </div>
 
-            {/* Add form */}
-            <AnimatePresence>
-                {showAdd && (
-                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-                        className="bg-white/5 border border-neon-red/20 rounded-3xl p-8">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-lg font-black text-white uppercase italic">Ajouter un {mode === 'clubs' ? 'club' : 'festival'}</h3>
-                            <button onClick={() => setShowAdd(false)}><X className="w-5 h-5 text-gray-400 hover:text-white" /></button>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {[{ key: 'name', label: 'Nom *', placeholder: mode === 'clubs' ? 'Fabric' : 'Tomorrowland' }, { key: 'city', label: 'Ville *', placeholder: 'Londres' }, { key: 'country', label: 'Pays (code 2 lettres) *', placeholder: 'GB' }, { key: 'website', label: 'Site web', placeholder: 'https://...' }, { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/...' }].map(({ key, label, placeholder }) => (
-                                <div key={key}>
-                                    <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">{label}</label>
-                                    <input type="text" value={(addForm as any)[key]} onChange={e => setAddForm(p => ({ ...p, [key]: e.target.value }))} placeholder={placeholder}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-neon-red transition-all" />
-                                </div>
-                            ))}
-                            <div className="sm:col-span-2">
-                                <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Description</label>
-                                <textarea value={addForm.description} onChange={e => setAddForm(p => ({ ...p, description: e.target.value }))}
-                                    placeholder="Décris ce lieu en quelques mots..." rows={2}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-neon-red transition-all resize-none" />
-                            </div>
-
-                            <div className="sm:col-span-2">
-                                <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Photo (Obligatoire) *</label>
-                                <div className="flex gap-3">
-                                    <div className="flex-1 relative group">
-                                        <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                        <input 
-                                            type="text" 
-                                            value={addForm.image} 
-                                            onChange={e => setAddForm(p => ({ ...p, image: e.target.value }))} 
-                                            placeholder="URL d'image ou cliquez sur Upload"
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-neon-red transition-all" 
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowImageModal(true)}
-                                        className="px-4 py-3 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-neon-red/20 transition-all flex items-center gap-2"
-                                    >
-                                        <Upload className="w-3.5 h-3.5" />
-                                        Upload
-                                    </button>
-                                </div>
-                                {addForm.image && (
-                                    <div className="mt-3 relative w-20 h-20 rounded-lg overflow-hidden border border-white/10">
-                                        <img src={addForm.image} alt="preview" className="w-full h-full object-cover" />
-                                        <button 
-                                            type="button"
-                                            onClick={() => setAddForm(p => ({ ...p, image: '' }))}
-                                            className="absolute top-1 right-1 p-0.5 bg-black/60 rounded-full hover:bg-black/80 transition-all"
-                                        >
-                                            <X className="w-3 h-3 text-white" />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4 mt-6">
-                            <button 
-                                onClick={handleAdd} 
-                                disabled={!addForm.name || !addForm.city || !addForm.country || !addForm.image}
-                                className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all ${(!addForm.name || !addForm.city || !addForm.country || !addForm.image) ? 'bg-white/5 text-gray-600 grayscale cursor-not-allowed' : 'bg-neon-red text-white hover:bg-neon-red/80 shadow-[0_0_20px_rgba(255,0,0,0.3)]'}`}>
-                                {addSuccess ? '✓ Ajouté !' : <><Save className="w-4 h-4" />{t('add_to_wiki')}</>}
-                            </button>
-                            {(!addForm.name || !addForm.city || !addForm.country || !addForm.image) && (
-                                <span className="text-[8px] font-black text-neon-red/60 uppercase tracking-widest italic animate-pulse">{t('all_fields_required')}</span>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* Alphabet nav */}
             <div className="flex flex-wrap gap-1.5">
@@ -578,8 +475,6 @@ export function WikiVenues({
                     const actualUrl = Array.isArray(url) ? url[0] : url;
                     if (isEditingPhoto) {
                         handleUpdatePhoto(actualUrl);
-                    } else {
-                        setAddForm(p => ({ ...p, image: actualUrl }));
                     }
                     setShowImageModal(false);
                 }}

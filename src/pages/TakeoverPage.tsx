@@ -567,7 +567,16 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
     const activeLiveItem = useMemo(() => {
         const now = new Date();
+        const stageIdx = parseInt(activeStage.replace('stage', '')) - 1;
+        const activeStreamName = settings.streams?.[stageIdx]?.name?.toUpperCase();
+
         return lineupItems.find(item => {
+            const itemStage = (item.stage || '').toUpperCase();
+            const isMatch = itemStage === (activeStage as string).toUpperCase() || 
+                          (activeStreamName && itemStage === activeStreamName);
+            
+            if (!isMatch) return false;
+
             const [h, m] = (item.startTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
             const [eh, em] = (item.endTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
             const dateParts = item.day.split('-');
@@ -576,12 +585,21 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             if (eh < h) end.setDate(end.getDate() + 1);
             return now >= start && now <= end;
         });
-    }, [lineupItems, currentTime]);
+    }, [lineupItems, currentTime, activeStage, settings.streams]);
 
     const nextLiveItem = useMemo(() => {
         const now = new Date();
+        const stageIdx = parseInt(activeStage.replace('stage', '')) - 1;
+        const activeStreamName = settings.streams?.[stageIdx]?.name?.toUpperCase();
+
         const upcoming = lineupItems
             .filter(item => {
+                const itemStage = (item.stage || '').toUpperCase();
+                const isMatch = itemStage === (activeStage as string).toUpperCase() || 
+                              (activeStreamName && itemStage === activeStreamName);
+                
+                if (!isMatch) return false;
+
                 const [h, m] = (item.startTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
                 const dateParts = item.day.split('-');
                 const start = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), h, m, 0);
@@ -597,7 +615,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 return da.getTime() - db.getTime();
             });
         return upcoming[0] || null;
-    }, [lineupItems, currentTime]);
+    }, [lineupItems, currentTime, activeStage, settings.streams]);
 
     const handleVoteFromLive = async (targetId: string, type: 'DJS' | 'FESTIVALS' | 'CLUBS', label: string) => {
         if (!isLoggedIn) {
