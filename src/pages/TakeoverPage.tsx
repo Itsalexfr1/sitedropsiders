@@ -2459,7 +2459,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 <>
 
                     {/* 2. HEADER */}
-                    <div className="h-20 lg:h-16 border-b border-white/5 flex flex-col lg:flex-row items-stretch lg:items-center justify-start px-2 lg:px-6 bg-black/40 backdrop-blur-md relative z-40 shrink-0">
+                    <div className="h-24 lg:h-16 border-b border-white/5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between px-2 lg:px-6 bg-black/40 backdrop-blur-md relative z-40 shrink-0">
                         <div className="flex flex-1 lg:flex-none items-center justify-between lg:justify-start gap-4 min-w-0">
                             <div className="flex flex-col min-w-0">
                                 <div className="flex items-center gap-2 lg:gap-4">
@@ -2535,7 +2535,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                         </div>
 
                         {settings.streams && settings.streams.length > 1 && (
-                            <div className="hidden lg:flex lg:absolute lg:left-1/2 lg:-translate-x-1/2 gap-0 border-white/5 overflow-x-auto no-scrollbar">
+                            <div className="hidden lg:flex flex-1 justify-center gap-0 border-white/5 overflow-x-auto no-scrollbar mx-4">
                                 {settings.streams.map((s: any, idx: number) => {
                                     const isActive = settings.activeStreamId === s.id;
                                     return (
@@ -2563,20 +2563,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 onClick={() => navigate('/')}
                                 className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] hover:text-white hover:bg-white/10 transition-all group"
                             >
-                                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                                RETOUR AU SITE
-                            </button>
-                            <button
-                                onClick={() => {
-                                    if (isMod) {
-                                        setShowAdminPanel(true);
-                                        setAdminActiveTab('config');
-                                    }
-                                }}
-                                className={`flex items-center gap-4 px-4 py-2 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
-                            >
-                                <Users className="w-4 h-4 text-neon-cyan" />
-                                <span className="text-xs font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
+                                <ChevronLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
+                                RETOUR
                             </button>
                             <div className="flex gap-1 p-1 bg-white/5 border border-white/10 rounded-xl">
                                 <button
@@ -2996,7 +2984,18 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 </div>
                             )}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => {
+                                    if (isMod) {
+                                        setShowAdminPanel(true);
+                                    }
+                                }}
+                                className={`flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
+                            >
+                                <Users className="w-4 h-4 text-neon-cyan" />
+                                <span className="text-[10px] font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
+                            </button>
                             {isMod && (
                                 <button onClick={() => setIsModChat(!isModChat)} className={`px-2 py-1 rounded-md text-[8px] font-black uppercase flex items-center gap-1.5 transition-all ${isModChat ? 'bg-amber-500 text-black' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
                                     <ShieldCheck className="w-3 h-3" /> CANAL MODOS

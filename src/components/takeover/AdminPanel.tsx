@@ -14,12 +14,22 @@ import { ID, Query } from 'appwrite';
 import { uploadFile } from '../../utils/uploadService';
 
 export function AdminPanel() {
-    const { 
-        settings, setSettings, showAdminPanel, setShowAdminPanel, 
-        handleGlobalSave, isMod, isAdmin, activeStage, setActiveStage,
-        databases, DATABASE_ID, COLLECTION_CHAT, showNotification,
-        triggerConfetti
-    } = useTakeover();
+    const takeover = useTakeover();
+    const settings = takeover?.settings || {} as any;
+    const setSettings = takeover?.setSettings;
+    const showAdminPanel = takeover?.showAdminPanel;
+    const setShowAdminPanel = takeover?.setShowAdminPanel;
+    const handleGlobalSave = takeover?.handleGlobalSave;
+    const isMod = takeover?.isMod;
+    const isAdmin = takeover?.isAdmin;
+    const activeStage = takeover?.activeStage;
+    const setActiveStage = takeover?.setActiveStage;
+    const databases = takeover?.databases;
+    const DATABASE_ID = takeover?.DATABASE_ID;
+    const COLLECTION_CHAT = takeover?.COLLECTION_CHAT;
+    const showNotification = takeover?.showNotification;
+    const triggerConfetti = takeover?.triggerConfetti;
+
     const navigate = useNavigate();
     
     const [adminActiveTab, setAdminActiveTab] = useState<'config' | 'planning' | 'tracklist' | 'interactif' | 'bot_drops'>('config');
