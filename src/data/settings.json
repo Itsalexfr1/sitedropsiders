@@ -16,7 +16,7 @@
     "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff",
     "showTopBanner": true,
-    "showTickerBanner": false,
+    "showTickerBanner": true,
     "showInNavbar": true,
     "forceHomepage": true,
     "isSecret": false,
@@ -78,7 +78,8 @@
     "showSponsorBanner": true,
     "festivalLogo": "",
     "mainFluxName": "MAIN STAGE",
-    "currentTrack": "ID - UNRELEASED"
+    "currentTrack": "ID - UNRELEASED",
+    "tickerMode": "news"
   },
   "socials": {
     "instagram": "dropsiders.eu",
