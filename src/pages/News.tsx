@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Edit2, Loader2, Filter, ArrowRight, Calendar, Film } from 'lucide-react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
@@ -28,6 +28,8 @@ const DEFAULT_TABS: { key: TabKey; label: string; activeClass: string; inactiveC
 export function News() {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const tabParam = searchParams.get('tab') as TabKey;
     const [newsData, setNewsData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -94,7 +96,11 @@ export function News() {
             } catch (e) { /* silent */ }
         };
         fetchRecaps();
-    }, []);
+
+        if (tabParam && ['all', 'news', 'musique', 'focus'].includes(tabParam)) {
+            setActiveTab(tabParam);
+        }
+    }, [tabParam]);
 
     const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 

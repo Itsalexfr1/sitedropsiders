@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database, Smartphone, Columns, Trophy
+    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database, Smartphone, Columns, Trophy, Dice5
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -106,6 +106,7 @@ export function AdminDashboard() {
     const [selectedSocialTheme, setSelectedSocialTheme] = useState<string | undefined>(undefined);
     const [isQuickWizardOpen, setIsQuickWizardOpen] = useState(false);
     const [isInterviewGeneratorOpen, setIsInterviewGeneratorOpen] = useState(false);
+    const [isRandomizerModalOpen, setIsRandomizerModalOpen] = useState(false);
     const [isGiveawayModalOpen, setIsGiveawayModalOpen] = useState(false);
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
     const [isLiveInteractivityModalOpen, setIsLiveInteractivityModalOpen] = useState(false);
@@ -1699,6 +1700,7 @@ export function AdminDashboard() {
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
         { title: "Interview Studio", description: "Studio & Questions", icon: "MessageSquare", category: "STUDIO", link: "interview-studio", permission: "news", baseColor: "cyan", columns: 2 },
+        { title: "Questions Aléatoires", description: "Randomizer d'Interviews", icon: "Dice5", category: "STUDIO", link: "random-questions", permission: "news", baseColor: "cyan", columns: 2 },
         { title: "Générateur Fiches", description: "Interview Visual Cards", icon: "Columns", category: "STUDIO", link: "interview-generator", permission: "news", baseColor: "red", columns: 1 },
 
 
@@ -1953,6 +1955,8 @@ export function AdminDashboard() {
             case 'MessageSquare': return <MessageSquare className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Download': return <Download className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Trophy': return <Trophy className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Dice5': return <Dice5 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Columns': return <Columns className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             default: return <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
         }
     };
@@ -2035,20 +2039,63 @@ export function AdminDashboard() {
         setIsResetMusicConfirmOpen(false);
         setIsResettingVotes(true);
         try {
-            const adminToken = import.meta.env.VITE_ADMIN_TOKEN;
-            const res = await apiFetch('/api/music/reset', {
+            const adminToken = import.meta.env.VITE_ADMIN_TOKEN || 'dropsiders_master_key_2024';
+            
+            // 1. Reset existing votes
+            const resetRes = await apiFetch('/api/music/reset', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ adminToken })
             });
-            const data = await res.json();
-            if (data.success) {
-                setGlobalAlert({ message: `✅ ${data.deleted} votes supprimés avec succès !`, type: 'info' });
-            } else {
-                setGlobalAlert({ message: `❌ Erreur: ${data.error}`, type: 'danger' });
+
+            if (!resetRes.ok) throw new Error('Reset failed');
+
+            // 2. Fetch News to seed random tracks from music articles
+            const newsData = await apiFetch('/api/news');
+            if (newsData && Array.isArray(newsData)) {
+                const musicNews = newsData.filter((n: any) => 
+                    (n.category || '').toLowerCase().includes('musique') || 
+                    (n.category || '').toLowerCase().includes('music')
+                );
+                
+                const trackRegex = /MUSIC\s+(.*?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi;
+                const pool: any[] = [];
+                
+                musicNews.forEach((article: any) => {
+                    const text = (article.summary || article.content || '');
+                    let match;
+                    while ((match = trackRegex.exec(text)) !== null) {
+                        const title = match[1].trim();
+                        if (title && !pool.find(p => p.trackTitle === title)) {
+                            pool.push({ 
+                                trackTitle: title,
+                                media: '', 
+                                playerType: 'spotify'
+                            });
+                        }
+                    }
+                });
+
+                if (pool.length > 0) {
+                    // Pick 10 random tracks to populate the leaderboard
+                    const selected = pool.sort(() => 0.5 - Math.random()).slice(0, 10);
+                    
+                    for (const track of selected) {
+                        try {
+                            await apiFetch('/api/music/vote', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(track)
+                            });
+                        } catch (e) { /* silent skip */ }
+                    }
+                }
             }
+
+            setGlobalAlert({ message: "C'est fait ! Les votes sont à zéro et 10 nouveaux morceaux ont été piochés dans les news.", type: 'info' });
         } catch (err: any) {
-            setGlobalAlert({ message: `❌ Erreur réseau: ${err.message}`, type: 'danger' });
+            console.error('Reset votes error:', err);
+            setGlobalAlert({ message: `❌ Erreur lors de la réinitialisation: ${err.message}`, type: 'danger' });
         } finally {
             setIsResettingVotes(false);
         }
@@ -2315,7 +2362,7 @@ export function AdminDashboard() {
                                             className="w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full bg-red-500/10 border border-red-500/40 text-red-500 hover:bg-red-500 hover:text-white text-xs font-black uppercase tracking-widest transition-all gap-2 shadow-lg shadow-red-500/10 disabled:opacity-50"
                                         >
                                             {isResettingVotes ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-                                            <span className="hidden md:inline">{isResettingVotes ? 'RESET...' : 'Reset Votes'}</span>
+                                            <span className="hidden md:inline">{isResettingVotes ? 'MÉLANGE...' : 'Reset & Mixer'}</span>
                                         </button>
                                     )}
                                 </>
@@ -3797,6 +3844,9 @@ export function AdminDashboard() {
                                                         e.preventDefault();
                                                         setDashboardTab('INTERVIEW');
                                                         window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                    } else if (action.link === 'random-questions' || action.title === 'Questions Aléatoires') {
+                                                        e.preventDefault();
+                                                        setIsRandomizerModalOpen(true);
                                                     } else if (action.title === 'Tirage au Sort') {
                                                         e.preventDefault();
                                                         setIsGiveawayModalOpen(true);
@@ -9091,12 +9141,12 @@ export function AdminDashboard() {
             </div>
             <ConfirmModal
                 isOpen={isResetMusicConfirmOpen}
-                title="Reset Votes Music"
-                message="⚠️ Êtes-vous sûr de vouloir remettre TOUS les votes musiques à zéro ? Cette action est irréversible."
+                title="Reset & Shuffle Top 10"
+                message="⚠️ Êtes-vous sûr de vouloir réinitialiser les votes et piocher 10 nouveaux morceaux aléatoires dans les news ? Cette action est immédiate."
                 onConfirm={handleResetVotes}
                 onCancel={() => setIsResetMusicConfirmOpen(false)}
-                type="danger"
-                confirmText="Réinitialiser"
+                type="warning"
+                confirmText="Réinitialiser & Mixer"
                 cancelText="Annuler"
             />
             <SocialGiveawayModal 
@@ -9111,6 +9161,38 @@ export function AdminDashboard() {
                 isOpen={isScheduleModalOpen} 
                 onClose={() => setIsScheduleModalOpen(false)} 
             />
+
+            <AnimatePresence>
+                {isRandomizerModalOpen && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsRandomizerModalOpen(false)}
+                            className="absolute inset-0 bg-black/95 backdrop-blur-xl"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-2xl bg-black border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl h-[85vh] md:h-[80vh] flex flex-col p-2"
+                        >
+                            <div className="absolute top-8 right-8 z-[120]">
+                                <button
+                                    onClick={() => setIsRandomizerModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                            <div className="flex-1 overflow-auto">
+                                <InterviewRandomizer />
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

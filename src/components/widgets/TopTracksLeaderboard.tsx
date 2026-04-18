@@ -245,7 +245,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
             
             <div className="mt-8 pt-6 border-t border-white/5">
                 <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">
-                    Votes mis à jour en temps réel via les <Link to="/news" className="text-white hover:text-neon-cyan transition-colors underline decoration-dotted">articles musique</Link>
+                    Votes mis à jour en temps réel via les <Link to="/news?tab=musique" className="text-white hover:text-neon-cyan transition-colors underline decoration-dotted">articles musique</Link>
                 </p>
             </div>
         </div>
