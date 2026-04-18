@@ -12,34 +12,10 @@
     "columns": 1
   },
   {
-    "title": "Social Studio",
-    "description": "Générateur de Visuels",
-    "icon": "Paintbrush",
-    "category": "SOCIAL_STUDIO",
-    "link": "#",
-    "color": "border-neon-pink/20 hover:border-neon-pink",
-    "bg": "bg-neon-pink/5",
-    "permission": "all",
-    "baseColor": "#ee00ff",
-    "columns": 1
-  },
-  {
-    "title": "Studio Création",
-    "description": "Générateurs Rapides",
-    "icon": "Sparkles",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-orange/20 hover:border-neon-orange",
-    "bg": "bg-neon-orange/5",
-    "permission": "news",
-    "baseColor": "#00fffb",
-    "columns": 1
-  },
-  {
     "title": "Générateur Fiches",
     "description": "Interview Visual Cards",
     "icon": "Columns",
-    "category": "SOCIAL_STUDIO",
+    "category": "STUDIO",
     "link": "interview-generator",
     "permission": "news",
     "baseColor": "#8951db",
@@ -166,6 +142,16 @@
     "columns": 1
   },
   {
+    "title": "Interview Studio",
+    "description": "Studio & Questions",
+    "icon": "MessageSquare",
+    "category": "STUDIO",
+    "link": "interview-studio",
+    "permission": "news",
+    "baseColor": "cyan",
+    "columns": 1
+  },
+  {
     "title": "Vérifier Photos",
     "description": "Modération Wiki Photos",
     "icon": "Camera",
@@ -175,6 +161,52 @@
     "bg": "bg-neon-cyan/5",
     "permission": "community_mod",
     "baseColor": "#a36262",
-    "columns": 2
+    "columns": 1
+  },
+  {
+    "title": "Documents PDF",
+    "description": "Hébergement & Partage",
+    "icon": "Download",
+    "category": "WIKI",
+    "link": "/admin/pdfs",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "news",
+    "baseColor": "cyan",
+    "columns": 1
+  },
+  {
+    "title": "Questions Aléatoires",
+    "description": "Randomizer d'Interviews",
+    "icon": "Dice5",
+    "category": "STUDIO",
+    "link": "random-questions",
+    "permission": "news",
+    "baseColor": "cyan",
+    "columns": 1
+  },
+  {
+    "title": "Tirage au Sort",
+    "description": "Instagram & Facebook",
+    "icon": "Trophy",
+    "category": "SOCIAL_STUDIO",
+    "link": "#",
+    "color": "border-pink-500/20 hover:border-pink-500",
+    "bg": "bg-pink-500/5",
+    "permission": "community_mod",
+    "baseColor": "pink",
+    "columns": 1
+  },
+  {
+    "title": "Planning Story",
+    "description": "Visuel Programme",
+    "icon": "Calendar",
+    "category": "SOCIAL_STUDIO",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "news",
+    "baseColor": "cyan",
+    "columns": 1
   }
 ]
