@@ -1699,6 +1699,7 @@ export function AdminDashboard() {
         // STUDIO & ANALYTICS
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
+        { title: "Social Studio", description: "Outils Réseaux Sociaux", icon: "Instagram", category: "SOCIAL_STUDIO", link: "social-studio", permission: "news", baseColor: "pink", columns: 2 },
         { title: "Interview Studio", description: "Studio & Questions", icon: "MessageSquare", category: "STUDIO", link: "interview-studio", permission: "news", baseColor: "cyan", columns: 2 },
         { title: "Questions Aléatoires", description: "Randomizer d'Interviews", icon: "Dice5", category: "STUDIO", link: "random-questions", permission: "news", baseColor: "cyan", columns: 2 },
         { title: "Générateur Fiches", description: "Interview Visual Cards", icon: "Columns", category: "STUDIO", link: "interview-generator", permission: "news", baseColor: "red", columns: 1 },
@@ -1714,9 +1715,6 @@ export function AdminDashboard() {
 
         // PDF & DOCUMENTS
         { title: "Documents PDF", description: "Hébergement & Partage", icon: "Download", category: "WIKI", link: "/admin/pdfs", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 1 },
-
-        // SOCIAL STUDIO
-        { title: "Social Studio", description: "Outils Réseaux Sociaux", icon: "Zap", category: "SOCIAL_STUDIO", link: "social-studio", permission: "news", baseColor: "pink", columns: 2 },
 
         // SYSTÈME
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "ALL", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
