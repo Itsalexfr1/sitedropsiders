@@ -44,6 +44,11 @@ export function InterviewRandomizer() {
     });
     const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
     const [isShuffling, setIsShuffling] = useState(false);
+    const [artist, setArtist] = useState('');
+    const [history, setHistory] = useState<{ artist: string, question: string, time: string }[]>(() => {
+        const saved = localStorage.getItem('interview_history');
+        return saved ? JSON.parse(saved) : [];
+    });
 
     useEffect(() => {
         localStorage.setItem('interview_lang', lang);
@@ -58,11 +63,22 @@ export function InterviewRandomizer() {
         const maxShuffles = 10;
         
         const interval = setInterval(() => {
-            setCurrentQuestion(questions[Math.floor(Math.random() * questions.length)]);
+            const randomQ = questions[Math.floor(Math.random() * questions.length)];
+            setCurrentQuestion(randomQ);
             count++;
             if (count >= maxShuffles) {
                 clearInterval(interval);
                 setIsShuffling(false);
+                
+                // Add to history
+                const newEntry = {
+                    artist: artist || 'ARTISTE INCONNU',
+                    question: randomQ,
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                };
+                const nextHistory = [newEntry, ...history].slice(0, 50);
+                setHistory(nextHistory);
+                localStorage.setItem('interview_history', JSON.stringify(nextHistory));
             }
         }, 80);
     };
@@ -149,7 +165,40 @@ export function InterviewRandomizer() {
                         </div>
                     </div>
                 </button>
+
+                {/* Artist Input */}
+                <div className="w-full max-w-xs space-y-2">
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Nom de l'artiste</label>
+                    <input 
+                        type="text"
+                        value={artist}
+                        onChange={e => setArtist(e.target.value.toUpperCase())}
+                        placeholder="EX: CARL COX"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white outline-none focus:border-neon-cyan transition-all font-black"
+                    />
+                </div>
             </div>
+
+            {/* History Section */}
+            {history.length > 0 && (
+                <div className="mt-4 pt-6 border-t border-white/5 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Historique des questions</h4>
+                        <button onClick={() => { setHistory([]); localStorage.removeItem('interview_history'); }} className="text-[8px] font-black text-red-500/50 hover:text-red-500 transition-colors uppercase">Vider</button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2 pb-4">
+                        {history.map((item, idx) => (
+                            <div key={idx} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[8px] font-black text-neon-cyan uppercase italic">{item.artist}</span>
+                                    <span className="text-[8px] font-medium text-gray-600">{item.time}</span>
+                                </div>
+                                <p className="text-[10px] text-white/80 font-bold leading-snug">"{item.question}"</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-gray-500">

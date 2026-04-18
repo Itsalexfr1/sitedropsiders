@@ -56,6 +56,7 @@ interface TakeoverSettings {
     showTickerBanner: boolean;
     tickerBgColor: string;
     tickerTextColor: string;
+    tickerMode?: 'news' | 'custom';
     lineup: string;
     status: 'live' | 'edit' | 'off';
     startDate?: string;
@@ -1337,11 +1338,16 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             const text = cmd.replace('TAKEOVER_ALERT:', '');
                             setTakeoverAlert({ text, type: 'alert' });
                             setTimeout(() => setTakeoverAlert(null), 5000);
+                        } else if (cmd.startsWith('WINNER:')) {
+                            const text = cmd.replace('WINNER:', '');
+                            setTakeoverAlert({ text, type: 'success' });
+                            triggerFireworks();
+                            setTimeout(() => setTakeoverAlert(null), 10000);
                         } else if (cmd.startsWith('JACKPOT_SPAWN')) {
                             setActiveSlots({ id: Math.random().toString(), participants: [], timeLeft: 60 });
                         } else if (cmd.startsWith('JACKPOT_JOIN:')) {
                             const joiner = cmd.replace('JACKPOT_JOIN:', '');
-                            setActiveSlots(prev => prev ? { ...prev, participants: [...new Set([...prev.participants, joiner])] } : null);
+                            setActiveSlots(prev => prev ? { ...prev, participants: Array.from(new Set([...prev.participants, joiner])) } : null);
                         } else if (cmd.startsWith('CLASH_START:')) {
                             const data = JSON.parse(cmd.replace('CLASH_START:', ''));
                             setClashPoll({ active: true, teamA: data.teamA, teamB: data.teamB, votesA: [], votesB: [] });
@@ -1350,8 +1356,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             setClashPoll(prev => {
                                 if (!prev) return null;
                                 const next = { ...prev };
-                                if (team === 'A') next.votesA = [...new Set([...next.votesA, ps])];
-                                else next.votesB = [...new Set([...next.votesB, ps])];
+                                if (team === 'A') next.votesA = Array.from(new Set([...next.votesA, ps]));
+                                else next.votesB = Array.from(new Set([...next.votesB, ps]));
                                 return next;
                             });
                         } else if (cmd.startsWith('TRACKLIST_SET_NEW:')) {
@@ -2281,8 +2287,12 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     };
 
     const getFluxArtistInfo = () => {
-        const streamOverride = settings.streams?.find(s => s.id === settings.activeStreamId)?.overrideArtist;
-        const currentTrack = settings.streams?.find(s => s.id === settings.activeStreamId)?.currentTrack;
+        // Correction : On cherche l'override pour le flux sélectionné (activeStage)
+        const streamIdx = parseInt(activeStage.replace('stage', '')) - 1;
+        const activeStream = (settings.streams && !isNaN(streamIdx)) ? settings.streams[streamIdx] : settings.streams?.find(s => s.id === settings.activeStreamId);
+        
+        const streamOverride = activeStream?.overrideArtist;
+        const currentTrack = activeStream?.currentTrack;
 
         if (streamOverride) {
             return { mode: 'NOW', artist: streamOverride + (currentTrack ? ` - ${currentTrack}` : '') };
@@ -2717,28 +2727,27 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 {[...Array(3)].map((_, loopIdx) => (
                                     <div key={loopIdx} className="flex gap-16">
                                         {(() => {
-                                            // Mode 'news' : on prend les articles du site (marqueeItems)
-                                            // Mode 'custom' : on prend le texte personnalisé des settings
                                             const tickerMode = settings.tickerMode || 'news';
                                             const items = tickerMode === 'news'
                                                 ? (marqueeItems.length > 0 ? marqueeItems : [{ text: settings.tickerText || 'DROPSIDERS', link: '' }])
                                                 : [{ text: settings.tickerText || 'BIENVENUE SUR LE LIVE !', link: '' }];
                                             return items.filter(i => i.text).map((item, idx) => {
-                                            const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
-                                            const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
-                                            return (
-                                                <a
-                                                    key={`${loopIdx}-${idx}`}
-                                                    href={fullLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
-                                                >
-                                                    <Sparkles className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
-                                                    <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
-                                                </a>
-                                            );
-                                        })}
+                                                const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
+                                                const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
+                                                return (
+                                                    <a
+                                                        key={`${loopIdx}-${idx}`}
+                                                        href={fullLink}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
+                                                    >
+                                                        <Sparkles className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
+                                                        <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
+                                                    </a>
+                                                );
+                                            });
+                                        })()}
                                     </div>
                                 ))}
                             </motion.div>
@@ -4611,7 +4620,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             <h4 className="text-xs font-black text-white uppercase italic">{activeLiveItem.artist}</h4>
                                         </div>
                                     </div>
-                                    <button onClick={() => setHasVotedToday(prev => new Set([...prev, activeLiveItem.wikiId || activeLiveItem.id]))} className="text-gray-500 hover:text-white transition-colors">
+                                    <button onClick={() => setHasVotedToday(prev => new Set(Array.from(prev).concat([activeLiveItem.wikiId || activeLiveItem.id])))} className="text-gray-500 hover:text-white transition-colors">
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>

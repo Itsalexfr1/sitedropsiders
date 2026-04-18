@@ -651,37 +651,12 @@ export function AdminPanel() {
                     {/* Interactif Tab */}
                     {adminActiveTab === 'interactif' && (
                         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {[
-                                    { label: 'CONFETTI', cmd: '[SYSTEM]:CONFETTI', color: 'bg-pink-500' },
-                                    { label: 'MATRIX', cmd: '[SYSTEM]:MATRIX', color: 'bg-green-500' },
-                                    { label: 'FIREWORKS', cmd: '[SYSTEM]:FIREWORKS', color: 'bg-amber-500' },
-                                    { label: 'NETTOYER CHAT', cmd: 'CLEAR', color: 'bg-red-600', special: true },
-                                ].map(eff => (
-                                    <button 
-                                        key={eff.label}
-                                        onClick={async () => {
-                                            if (eff.special && eff.label === 'NETTOYER CHAT') {
-                                                const res = await databases.listDocuments(DATABASE_ID, COLLECTION_CHAT, [Query.limit(100)]);
-                                                for (const doc of res.documents) await databases.deleteDocument(DATABASE_ID, COLLECTION_CHAT, doc.$id);
-                                                showNotification('Chat vidé !', 'info');
-                                                return;
-                                            }
-                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                pseudo: "BOT_SYSTEM",
-                                                message: eff.cmd,
-                                                color: "text-neon-cyan",
-                                                time: "SYSTEM",
-                                                country: "FR"
-                                            });
-                                            if (eff.label === 'CONFETTI') triggerConfetti();
-                                        }}
-                                        className={`py-4 rounded-2xl ${eff.color} text-white font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-white/5`}
-                                    >
-                                        {eff.label}
-                                    </button>
-                                ))}
-                             </div>
+                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 opacity-30 pointer-events-none grayscale">
+                                    <div className="py-4 rounded-2xl bg-white/5 text-gray-500 font-black text-[10px] uppercase text-center">CONFETTI</div>
+                                    <div className="py-4 rounded-2xl bg-white/5 text-gray-500 font-black text-[10px] uppercase text-center">MATRIX</div>
+                                    <div className="py-4 rounded-2xl bg-white/5 text-gray-500 font-black text-[10px] uppercase text-center">FIREWORKS</div>
+                                    <div className="py-4 rounded-2xl bg-white/5 text-gray-500 font-black text-[10px] uppercase text-center">CLEAR</div>
+                                 </div>
 
                              {/* Danger Zone: Reset Music Votes */}
                              <div className="bg-red-500/5 border border-red-500/20 rounded-3xl p-6 space-y-4">
@@ -724,72 +699,22 @@ export function AdminPanel() {
                              </div>
 
                              <div className="bg-white/5 border border-white/10 rounded-3xl p-8 space-y-6">
-                                <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Actions Globales</h3>
-                                <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase">Alerte Takeover (Message Flash Overlay)</label>
-                                        <div className="flex gap-2">
-                                            <input type="text" value={takeoverInput} onChange={e => setTakeoverInput(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" placeholder="FLASH: BIENVENUE SUR LE LIVE !" />
-                                            <button 
-                                                onClick={async () => {
-                                                    if(!takeoverInput) return;
-                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                        pseudo: "BOT_SYSTEM",
-                                                        message: `[SYSTEM]:TAKEOVER_ALERT:${takeoverInput}`,
-                                                        color: "text-neon-cyan",
-                                                        time: "SYSTEM",
-                                                        country: "FR"
-                                                    });
-                                                    setTakeoverInput('');
-                                                }}
-                                                className="px-6 bg-neon-cyan text-black font-black uppercase text-[10px] rounded-xl"
-                                            >DIFFUSER</button>
-                                        </div>
+                                <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4">Migration des Outils</h3>
+                                <div className="p-6 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl text-center space-y-4">
+                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-full flex items-center justify-center mx-auto">
+                                        <Zap className="w-6 h-6 text-neon-cyan" />
                                     </div>
-                                    
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase">Question Sondage (Poll)</label>
-                                        <div className="flex gap-2">
-                                            <input type="text" value={pollInput} onChange={e => setPollInput(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" placeholder="Kiffes-tu le set ? | OUI | MOYEN | NON" />
-                                            <button 
-                                                onClick={async () => {
-                                                    if(!pollInput) return;
-                                                    const [question, ...options] = pollInput.split('|').map(s => s.trim());
-                                                    const pollData = { question, options: options.map(o => ({ text: o, votes: 0 })), active: true };
-                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                        pseudo: "BOT_SYSTEM",
-                                                        message: `[SYSTEM]:POLL:${JSON.stringify(pollData)}`,
-                                                        color: "text-neon-cyan",
-                                                        time: "SYSTEM",
-                                                        country: "FR"
-                                                    });
-                                                    setPollInput('');
-                                                }}
-                                                className="px-6 bg-neon-purple text-white font-black uppercase text-[10px] rounded-xl"
-                                            >LANCER</button>
-                                        </div>
+                                        <p className="text-xs font-black text-white uppercase tracking-widest leading-relaxed">Les outils interactifs (Sondages, Quiz, Tirages) sont désormais centralisés !</p>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Retrouvez-les dans le <span className="text-neon-cyan">Tableau de Bord Admin</span> onglet <span className="text-white">COMMUNAUTÉ</span>.</p>
                                     </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase">Question Quiz (QCM)</label>
-                                        <div className="flex gap-2">
-                                            <input type="text" value={quizInput} onChange={e => setQuizInput(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" placeholder="Question | Opt1 | Opt2 | Opt3 | Opt4 | IndexCorrect" />
-                                            <button 
-                                                onClick={async () => {
-                                                    if(!quizInput) return;
-                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                        pseudo: "BOT_SYSTEM",
-                                                        message: `[QUIZ_START]:${quizInput}`,
-                                                        color: "text-neon-cyan",
-                                                        time: "SYSTEM",
-                                                        country: "FR"
-                                                    });
-                                                    setQuizInput('');
-                                                }}
-                                                className="px-6 bg-pink-600 text-white font-black uppercase text-[10px] rounded-xl"
-                                            >LANCER</button>
-                                        </div>
-                                    </div>
+                                    <button 
+                                        onClick={() => navigate('/admin')}
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-neon-cyan text-black font-black uppercase text-[9px] rounded-xl hover:scale-105 transition-all"
+                                    >
+                                        ALLER AU DASHBOARD
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
                                 </div>
                              </div>
 

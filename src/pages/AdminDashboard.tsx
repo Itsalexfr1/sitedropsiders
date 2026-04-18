@@ -37,6 +37,7 @@ import { InterviewGenerator } from '../components/admin/InterviewGenerator';
 import { SocialGiveawayModal } from '../components/admin/modals/SocialGiveawayModal';
 import { InterviewRandomizer } from '../components/admin/InterviewRandomizer';
 import { ScheduleVisualGenerator } from '../components/admin/modals/ScheduleVisualGenerator';
+import { LiveInteractivityModal } from '../components/admin/modals/LiveInteractivityModal';
 
 
 
@@ -107,6 +108,7 @@ export function AdminDashboard() {
     const [isInterviewGeneratorOpen, setIsInterviewGeneratorOpen] = useState(false);
     const [isGiveawayModalOpen, setIsGiveawayModalOpen] = useState(false);
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+    const [isLiveInteractivityModalOpen, setIsLiveInteractivityModalOpen] = useState(false);
 
     const [isLoadingSocial, setIsLoadingSocial] = useState(false);
     const [bannerState, setBannerState] = useState({
@@ -2840,11 +2842,18 @@ export function AdminDashboard() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
-                                                onClick={() => setIsInstagramContestModalOpen(true)}
+                                                onClick={() => setIsGiveawayModalOpen(true)}
                                                 className="px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-xl text-[9px] font-black uppercase text-neon-red hover:bg-neon-red hover:text-white transition-all flex items-center gap-2"
                                             >
                                                 <Instagram className="w-3 h-3" />
                                                 CONCOURS INSTA
+                                            </button>
+                                            <button
+                                                onClick={() => setIsLiveInteractivityModalOpen(true)}
+                                                className="px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl text-[9px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-white transition-all flex items-center gap-2"
+                                            >
+                                                <Zap className="w-3 h-3" />
+                                                INTERACTIF LIVE
                                             </button>
                                             <div className="px-3 py-1 bg-neon-blue/10 border border-neon-blue/20 rounded-full">
                                                 <span className="text-[10px] font-black text-neon-blue uppercase">{contestResults.length} Inscrits</span>
@@ -9093,6 +9102,10 @@ export function AdminDashboard() {
             <SocialGiveawayModal 
                 isOpen={isGiveawayModalOpen} 
                 onClose={() => setIsGiveawayModalOpen(false)} 
+            />
+            <LiveInteractivityModal 
+                isOpen={isLiveInteractivityModalOpen} 
+                onClose={() => setIsLiveInteractivityModalOpen(false)} 
             />
             <ScheduleVisualGenerator 
                 isOpen={isScheduleModalOpen} 
