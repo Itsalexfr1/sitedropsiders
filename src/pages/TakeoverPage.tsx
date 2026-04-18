@@ -657,6 +657,27 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         });
     }, [lineupItems, currentTime]);
 
+    const nextLiveItem = useMemo(() => {
+        const now = new Date();
+        const upcoming = lineupItems
+            .filter(item => {
+                const [h, m] = (item.startTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
+                const dateParts = item.day.split('-');
+                const start = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), h, m, 0);
+                return start > now;
+            })
+            .sort((a, b) => {
+                const [ha, ma] = (a.startTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
+                const [hb, mb] = (b.startTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
+                const dpa = a.day.split('-');
+                const dpb = b.day.split('-');
+                const da = new Date(parseInt(dpa[0]), parseInt(dpa[1]) - 1, parseInt(dpa[2]), ha, ma);
+                const db = new Date(parseInt(dpb[0]), parseInt(dpb[1]) - 1, parseInt(dpb[2]), hb, mb);
+                return da.getTime() - db.getTime();
+            });
+        return upcoming[0] || null;
+    }, [lineupItems, currentTime]);
+
     const handleVoteFromLive = async (targetId: string, type: 'DJS' | 'FESTIVALS' | 'CLUBS', label: string) => {
         if (!isLoggedIn) {
             setIsAuthModalOpen(true);
@@ -2458,13 +2479,25 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     <span className={`text-[7px] lg:text-[10px] font-black uppercase tracking-widest leading-none shrink-0 border-r pr-1.5 mr-1.5 ${fluxArtistInfo.mode === 'NOW' ? 'text-neon-cyan border-neon-cyan/20' : 'text-amber-500 border-amber-500/20'}`}>
                                         {fluxArtistInfo.mode}
                                     </span>
-                                    <span className={`font-black text-white uppercase italic tracking-tighter sm:max-w-none transition-all ${
-                                        (fluxArtistInfo.artist.length > 25) ? 'text-[8px] lg:text-[12px]' : 
-                                        (fluxArtistInfo.artist.length > 15) ? 'text-[9px] lg:text-[14px]' : 
-                                        'text-[10px] lg:text-[16px]'
-                                    }`}>
-                                        {fluxArtistInfo.artist}
-                                    </span>
+                                    <div className="flex-1 min-w-0 overflow-hidden relative h-4">
+                                        <AnimatePresence mode="wait">
+                                            <motion.div 
+                                                key={fluxArtistInfo.artist}
+                                                initial={{ y: 20, opacity: 0 }}
+                                                animate={{ y: 0, opacity: 1 }}
+                                                exit={{ y: -20, opacity: 0 }}
+                                                className="absolute inset-0 flex items-center gap-4"
+                                            >
+                                                <span className="text-[10px] lg:text-[14px] font-black text-white uppercase italic tracking-tighter truncate">{fluxArtistInfo.artist}</span>
+                                                {nextLiveItem && (
+                                                    <div className="hidden sm:flex items-center gap-2 opacity-40 hover:opacity-100 transition-opacity shrink-0">
+                                                        <span className="text-[7px] font-black text-gray-400 uppercase tracking-widest">SUIVANT :</span>
+                                                        <span className="text-[8px] font-black text-white uppercase italic">{nextLiveItem.artist} • {nextLiveItem.startTime}</span>
+                                                    </div>
+                                                )}
+                                            </motion.div>
+                                        </AnimatePresence>
+                                    </div>
                                 </div>
                             </div>
 

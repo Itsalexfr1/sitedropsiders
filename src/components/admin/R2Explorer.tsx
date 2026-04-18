@@ -137,11 +137,19 @@ export function R2Explorer() {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-red transition-colors" />
                     <input 
                         type="text" 
-                        placeholder="Rechercher par nom de fichier..." 
+                        placeholder="Rechercher un fichier..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-neon-red transition-all"
+                        className="w-full pl-12 pr-12 py-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:border-neon-red transition-all font-bold placeholder:text-gray-600"
                     />
+                    {searchTerm && (
+                        <button 
+                            onClick={() => setSearchTerm('')}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-all"
+                        >
+                            <X className="w-4 h-4 text-gray-500 hover:text-white" />
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
