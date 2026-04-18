@@ -113,7 +113,7 @@ export function WikiDropsiders({
                 if (data.error === 'exists') {
                     setProposeMsg('Cet artiste existe déjà dans la base de données sous un orthographe similaire.');
                 } else {
-                    setProposeMsg(`Erreur : ${data.error || 'Impossible de proposer l'ajout.'}`);
+                    setProposeMsg(`Erreur : ${data.error || "Impossible de proposer l'ajout."}`);
                 }
             }
         } catch {
