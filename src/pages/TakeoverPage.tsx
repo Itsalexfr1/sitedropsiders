@@ -3242,7 +3242,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     <div className="w-16 h-16 bg-neon-cyan/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                         <Heart className="w-8 h-8 text-neon-cyan animate-pulse" />
                                     </div>
-                                    <h4 className="text-xl font-display font-black text-white uppercase italic tracking-tighter mb-2">NOTE LE SET DE <span className="text-neon-cyan">{fluxCurrentArtist.artist}</span></h4>
+                                    <h4 className="text-xl font-display font-black text-white uppercase italic tracking-tighter mb-2">NOTE LE SET DE <span className="text-neon-cyan">{activeLiveItem?.artist || 'L\'ARTISTE'}</span></h4>
                                     <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-6">Partage ton avis avec la communauté !</p>
 
                                     <div className="flex justify-center gap-3 mb-8">
@@ -3250,14 +3250,15 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             <button
                                                 key={star}
                                                 onClick={async () => {
-                                                    setSetRatings(prev => ({ ...prev, [fluxCurrentArtist.artist]: star }));
+                                                    if (!activeLiveItem) return;
+                                                    setSetRatings(prev => ({ ...prev, [activeLiveItem.artist]: star }));
                                                     setShowRatingPrompt(false);
-                                                    showNotification(`VOTE ENREGISTRÉ : ${star}/5 â­`, 'success');
+                                                    showNotification(`VOTE ENREGISTRÉ : ${star}/5 â­ `, 'success');
 
                                                     // Broadcast rating via Appwrite
                                                     await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                                                         pseudo: "BOT_SYSTEM",
-                                                        message: `[SYSTEM]:RATING:${fluxCurrentArtist.artist}:${star}`,
+                                                        message: `[SYSTEM]:RATING:${activeLiveItem.artist}:${star}`,
                                                         color: "text-neon-cyan",
                                                         time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                                                         country: "FR",
@@ -3266,7 +3267,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                 }}
                                                 className="group relative"
                                             >
-                                                <Star className={`w-10 h-10 transition-all ${star <= (setRatings[fluxCurrentArtist.artist] || 0) ? 'text-amber-500 fill-amber-500 scale-110 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'text-white/10 hover:text-amber-500/50 hover:scale-105'}`} />
+                                                <Star className={`w-10 h-10 transition-all ${star <= (setRatings[activeLiveItem?.artist || ''] || 0) ? 'text-amber-500 fill-amber-500 scale-110 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'text-white/10 hover:text-amber-500/50 hover:scale-105'}`} />
                                             </button>
                                         ))}
                                     </div>
