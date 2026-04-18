@@ -2419,7 +2419,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                             <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                         </div>
-                                        <h1 className="text-[10px] sm:text-[11px] lg:text-[24px] xl:text-[28px] font-display font-black text-white italic tracking-tighter leading-none truncate max-w-[120px] sm:max-w-[180px] lg:max-w-none">{settings.title.toUpperCase()}</h1>
+                                        <h1 className="text-[10px] sm:text-[11px] lg:text-[24px] xl:text-[28px] font-display font-black text-white italic tracking-tight leading-none truncate max-w-[120px] sm:max-w-[180px] lg:max-w-none pr-1">{settings.title.toUpperCase()}</h1>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1 lg:gap-2 mt-1 lg:mt-2">
@@ -2436,7 +2436,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                 exit={{ y: -20, opacity: 0 }}
                                                 className="absolute inset-0 flex items-center gap-4"
                                             >
-                                                <span className="text-[10px] lg:text-[14px] font-black text-white uppercase italic tracking-tighter truncate">{fluxArtistInfo.artist}</span>
+                                                <span className="text-[10px] lg:text-[14px] font-black text-white uppercase italic tracking-tight truncate pr-1">{fluxArtistInfo.artist}</span>
                                                 {nextLiveItem && (
                                                     <div className="flex items-center gap-2 overflow-hidden max-w-[150px] lg:max-w-none">
                                                         <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 border border-white/10 rounded-md animate-pulse">
