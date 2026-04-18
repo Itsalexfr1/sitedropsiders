@@ -42,6 +42,7 @@ export function AdminPanel() {
     const [editActiveStreamId, setEditActiveStreamId] = useState(settings.activeStreamId || '');
     const [editAnnText, setEditAnnText] = useState(settings.tickerText);
     const [editAnnEnabled, setEditAnnEnabled] = useState(settings.showTickerBanner);
+    const [editTickerMode, setEditTickerMode] = useState<'news' | 'custom'>(settings.tickerMode || 'news');
     const [editStatus, setEditStatus] = useState(settings.status);
     const [editStartDate, setEditStartDate] = useState(settings.startDate || '');
     const [editEndDate, setEditEndDate] = useState(settings.endDate || '');
@@ -91,6 +92,7 @@ export function AdminPanel() {
             activeStreamId: editActiveStreamId,
             tickerText: editAnnText,
             showTickerBanner: editAnnEnabled,
+            tickerMode: editTickerMode,
             status: editStatus,
             startDate: editStartDate,
             endDate: editEndDate,
@@ -417,10 +419,38 @@ export function AdminPanel() {
                                                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editAnnEnabled ? 'left-7' : 'left-1'}`} />
                                                 </button>
                                             </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">Texte</label>
-                                                <input type="text" value={editAnnText} onChange={e => setEditAnnText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+
+                                            {/* Mode selector */}
+                                            <div className="space-y-2">
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">Contenu du bandeau</label>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <button
+                                                        onClick={() => setEditTickerMode('news')}
+                                                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${editTickerMode === 'news' ? 'bg-neon-cyan/10 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                                    >
+                                                        <span className="text-lg">📰</span>
+                                                        <span className="text-[9px] font-black uppercase tracking-widest">Dernières News</span>
+                                                        <span className="text-[7px] text-gray-500 italic">Articles du site auto</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setEditTickerMode('custom')}
+                                                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${editTickerMode === 'custom' ? 'bg-neon-red/10 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                                    >
+                                                        <span className="text-lg">✏️</span>
+                                                        <span className="text-[9px] font-black uppercase tracking-widest">Texte Perso</span>
+                                                        <span className="text-[7px] text-gray-500 italic">Message personnalisé</span>
+                                                    </button>
+                                                </div>
                                             </div>
+
+                                            {/* Custom text — visible uniquement si mode custom */}
+                                            {editTickerMode === 'custom' && (
+                                                <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <label className="text-[8px] font-black text-gray-500 uppercase">Texte personnalisé</label>
+                                                    <input type="text" value={editAnnText} onChange={e => setEditAnnText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" placeholder="BIENVENUE SUR LE LIVE DROPSIDERS !" />
+                                                </div>
+                                            )}
+
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-[8px] font-black text-gray-500 uppercase">Couleur Fond</label>

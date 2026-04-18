@@ -266,8 +266,9 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const [editMarqueeItems, setEditMarqueeItems] = useState<{ text: string, link: string }[]>([]);
     const [editingLineupId, setEditingLineupId] = useState<string | null>(null);
 
-    // Fetch real site news to populate the marquee
+    // Fetch real site news to populate the marquee (only in 'news' mode)
     useEffect(() => {
+        if (settings.tickerMode === 'custom') return; // skip si mode texte perso
         fetch('/api/news')
             .then(r => r.json())
             .then((data: any[]) => {
@@ -283,7 +284,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 }
             })
             .catch(() => { });
-    }, []);
+    }, [settings.tickerMode]);
     const [leaderboard] = useState<{ pseudo: string, drops: number, country: string }[]>([
         { pseudo: 'ALEX_FR1', drops: 15400, country: 'FR' },
         { pseudo: 'DJ_KOROS', drops: 12200, country: 'BE' },
@@ -2563,7 +2564,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                             </div>
                                                         </button>
                                                     );
-                                                })}
+                                                 })}
+
                                             </div>
                                             <button 
                                                 onClick={() => setShowStagePicker(false)}
@@ -2714,7 +2716,14 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             >
                                 {[...Array(3)].map((_, loopIdx) => (
                                     <div key={loopIdx} className="flex gap-16">
-                                        {(marqueeItems.length > 0 ? marqueeItems : [{ text: settings.tickerText, link: '' }]).filter(i => i.text).map((item, idx) => {
+                                        {(() => {
+                                            // Mode 'news' : on prend les articles du site (marqueeItems)
+                                            // Mode 'custom' : on prend le texte personnalisé des settings
+                                            const tickerMode = settings.tickerMode || 'news';
+                                            const items = tickerMode === 'news'
+                                                ? (marqueeItems.length > 0 ? marqueeItems : [{ text: settings.tickerText || 'DROPSIDERS', link: '' }])
+                                                : [{ text: settings.tickerText || 'BIENVENUE SUR LE LIVE !', link: '' }];
+                                            return items.filter(i => i.text).map((item, idx) => {
                                             const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
                                             const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
                                             return (
