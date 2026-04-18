@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Music, TrendingUp, Flame } from 'lucide-react';
@@ -11,24 +12,6 @@ interface Track {
     playerType?: string;
 }
 
-const FALLBACK_POOL = [
-    { title: "Anyma, LISA - Bad Angel", votes: 850, media: "https://open.spotify.com/track/6Z886D0X3W3H3C3D3G3H3J" },
-    { title: "FISHER - FAVOUR", votes: 720, media: "https://open.spotify.com/track/4Z886D0X3W3H3C3D3G3H3J" },
-    { title: "John Summit - ALL THE TIME", votes: 640, media: "https://open.spotify.com/track/3Z886D0X3W3H3C3D3G3H3J" },
-    { title: "Mau P - Baddest Behaviour", votes: 590, media: "https://open.spotify.com/track/2Z886D0X3W3H3C3D3G3H3J" },
-    { title: "David Guetta - Goin' Crazy", votes: 510, media: "https://open.spotify.com/track/1Z886D0X3W3H3C3D3G3H3J" },
-    { title: "Martin Garrix - Catharina", votes: 480, media: "https://open.spotify.com/track/5Z886D0X3W3H3C3D3G3H3J" },
-    { title: "Piem, CASSIMM - Ya Mon", votes: 420 },
-    { title: "Coskun Karaca - About Me", votes: 390 },
-    { title: "Rag - Stand Up!", votes: 350 },
-    { title: "Adam K - Rushing", votes: 310 },
-    { title: "Mochakk - Jealous", votes: 290 },
-    { title: "Vintage Culture - Fallen Leaf", votes: 270 },
-    { title: "Cloonee - Sippin' Yak", votes: 250 },
-    { title: "Pawsa - Pick Up The Phone", votes: 230 },
-    { title: "Chris Stussy - All Night Long", votes: 210 }
-];
-
 export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string }) {
     const { t } = useLanguage();
     const [tracks, setTracks] = useState<Track[]>([]);
@@ -38,25 +21,82 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     useEffect(() => {
         const fetchTopTracks = async () => {
             try {
+                // 1. Try to fetch real votes
                 const res = await fetch('/api/music/top-tracks');
+                let data = [];
                 if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.length > 0) {
-                        setTracks(data);
-                    } else {
-                        // Pick 10 random from pool if no votes
-                        const shuffled = [...FALLBACK_POOL].sort(() => 0.5 - Math.random());
-                        setTracks(shuffled.slice(0, 10));
-                    }
+                    data = await res.json();
+                }
+
+                if (data && data.length >= 5) {
+                    setTracks(data);
                 } else {
-                    // Fallback on error too
-                    const shuffled = [...FALLBACK_POOL].sort(() => 0.5 - Math.random());
-                    setTracks(shuffled.slice(0, 10));
+                    // 2. If no votes or too few, pick from articles
+                    const newsRes = await fetch('/api/news');
+                    if (newsRes.ok) {
+                        const news = await newsRes.json();
+                        const musicNews = news.filter((n: any) => 
+                            n.category === 'Musique' || 
+                            n.category === 'Music' || 
+                            n.title?.toLowerCase().includes('sorties')
+                        );
+                        
+                        // Extract tracks from summaries
+                        const extractedTracks: Track[] = [];
+                        const trackRegex = /MUSIC\s+(.*?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi;
+                        
+                        musicNews.forEach((article: any) => {
+                            if (!article.summary) return;
+                            let match;
+                            while ((match = trackRegex.exec(article.summary)) !== null) {
+                                const trackTitle = match[1].trim();
+                                if (trackTitle && !extractedTracks.some(t => t.title === trackTitle)) {
+                                    extractedTracks.push({
+                                        title: trackTitle,
+                                        votes: Math.floor(Math.random() * 200) + 100 // Simulate some activity for display
+                                    });
+                                }
+                            }
+                        });
+
+                        if (extractedTracks.length > 0) {
+                            // Combine with existing data if any, or just use extracted
+                            const combined = [...data, ...extractedTracks];
+                            // Remove duplicates by title
+                            const unique = combined.filter((v, i, a) => a.findIndex(t => (t.title === v.title)) === i);
+                            // Sort and take top 10
+                            const shuffled = unique.sort(() => 0.5 - Math.random());
+                            setTracks(shuffled.slice(0, 10).sort((a, b) => b.votes - a.votes));
+                        } else if (data.length > 0) {
+                            setTracks(data);
+                        } else {
+                            // Last resort fallback if no tracks in articles found
+                            setTracks([
+                                { title: "Anyma, LISA - Bad Angel", votes: 850 },
+                                { title: "FISHER - FAVOUR", votes: 720 },
+                                { title: "John Summit - ALL THE TIME", votes: 640 },
+                                { title: "Mau P - Baddest Behaviour", votes: 590 },
+                                { title: "David Guetta - Goin' Crazy", votes: 510 },
+                                { title: "Martin Garrix - Catharina", votes: 480 },
+                                { title: "Piem, CASSIMM - Ya Mon", votes: 420 },
+                                { title: "Coskun Karaca - About Me", votes: 390 },
+                                { title: "Rag - Stand Up!", votes: 350 },
+                                { title: "Adam K - Rushing", votes: 310 }
+                            ]);
+                        }
+                    } else {
+                        // If /api/news fails, keep hardcoded pool
+                        setTracks([
+                            { title: "Anyma, LISA - Bad Angel", votes: 850 },
+                            { title: "FISHER - FAVOUR", votes: 720 },
+                            { title: "John Summit - ALL THE TIME", votes: 640 },
+                            { title: "Mau P - Baddest Behaviour", votes: 590 },
+                            { title: "David Guetta - Goin' Crazy", votes: 510 }
+                        ]);
+                    }
                 }
             } catch (err) {
                 console.error('Failed to fetch top tracks', err);
-                const shuffled = [...FALLBACK_POOL].sort(() => 0.5 - Math.random());
-                setTracks(shuffled.slice(0, 10));
             } finally {
                 setLoading(false);
             }
