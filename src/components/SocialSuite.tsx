@@ -538,25 +538,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
                 
                 // --- 1. SETTINGS & POSITIONS ---
-                const cardW = 420;
-                const cardH = 580;
+                // Square cards as in the pixel-perfect reference
+                const cardW = 480;
+                const cardH = 480;
                 
-                // Dense staggering to match screen exactly
+                // Dense staggering - high fidelity overlap
                 const wallPositions = [
                     { x: 920, y: 300 },  // 1 
-                    { x: 200, y: 550 },  // 2 
-                    { x: 960, y: 900 },  // 3 
-                    { x: 280, y: 1300 }, // 4 
-                    { x: 900, y: 1650 }, // 5 
-                    { x: 180, y: 2050 }, // 6 
-                    { x: 940, y: 2450 }, // 7 
-                    { x: 250, y: 2850 }, // 8 
-                    { x: 920, y: 3250 }, // 9 
-                    { x: 450, y: 3750 }, // 10 
+                    { x: 260, y: 650 },  // 2 
+                    { x: 980, y: 1000 }, // 3 
+                    { x: 300, y: 1450 }, // 4 
+                    { x: 900, y: 1850 }, // 5 
+                    { x: 180, y: 2300 }, // 6 
+                    { x: 960, y: 2750 }, // 7 
+                    { x: 320, y: 3200 }, // 8 
+                    { x: 920, y: 3650 }, // 9 
+                    { x: 480, y: 4150 }, // 10 
                 ];
 
                 const isPost = effectiveTab === 'PUBLICATION';
-                const baseScroll = isPost ? 800 : 1000;
+                const baseScroll = isPost ? 850 : 1100;
                 const scrollY = currentPreviewIndex === 0 
                     ? 50 
                     : (currentPreviewIndex) * baseScroll - 400;
@@ -565,7 +566,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.save();
                 ctx.translate(slideX, -scrollY); 
 
-                wallPositions.forEach((pos, i) => {
+                 wallPositions.forEach((pos, i) => {
                     const item = top10Items[i];
                     if (!item) return;
                     const x = pos.x - cardW / 2;
@@ -574,22 +575,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (y - scrollY > canvas.height + 1200 || y - scrollY < -1200) return;
 
                     ctx.save();
-                    // 2.1 The Container (Black Rounded Card)
-                    ctx.shadowColor = 'rgba(0,0,0,0.95)'; ctx.shadowBlur = 80;
-                    ctx.fillStyle = '#050505';
-                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 90); ctx.fill();
+                    // 2.1 The Container (Pure Black Square rounded)
+                    ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 100;
+                    ctx.fillStyle = '#000000';
+                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 100); ctx.fill();
                     
-                    // 2.2 The Photo (Rectangular center-crop as in screen)
+                    // 2.2 The Photo (Horizontal Rectangle)
+                    const photoH = 260;
+                    const photoY = y + 60; // Space at top
+
                     if (item.photo) {
                         let photoImg = imageCacheRef.current[item.photo];
                         if (photoImg && photoImg.complete) {
                             ctx.save();
-                            const photoH = cardH * 0.55;
-                            const photoY = y + (cardH * 0.15); // Offset from top
-                            
-                            // Clip the photo part
                             ctx.beginPath(); ctx.rect(x, photoY, cardW, photoH); ctx.clip();
-                            
                             const scale = Math.max(cardW / photoImg.width, photoH / photoImg.height);
                             ctx.drawImage(
                                 photoImg, 
@@ -602,11 +601,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     }
 
-                    // 2.3 The Name (Bold White below photo)
+                    // 2.3 The Name (Ultra Bold Montserrat 900)
                     ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 42px "Montserrat", sans-serif'; 
-                    ctx.shadowColor = 'rgba(0,0,0,1)'; ctx.shadowBlur = 10;
-                    ctx.fillText(item.main.toUpperCase(), x + cardW / 2, y + cardH - 65);
+                    ctx.font = '900 44px "Montserrat", sans-serif'; 
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10;
+                    // Centered in the black space below photo
+                    ctx.fillText(item.main.toUpperCase(), x + cardW / 2, photoY + photoH + 110);
                     ctx.restore();
                 });
                 ctx.restore();
