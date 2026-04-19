@@ -62,7 +62,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -137,6 +137,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         main: 'ARTISTE',
         sub: 'TITRE DU MORCEAU',
         value: '50',
+        spotifyUrl: '',
+        photo: ''
+    })));
+    const [top10Items, setTop10Items] = useState<Top5Item[]>(Array.from({ length: 10 }, (_, i) => ({
+        main: `ARTISTE ${i + 1}`,
+        sub: 'TITRE DU MORCEAU',
+        value: '100',
         spotifyUrl: '',
         photo: ''
     })));
@@ -217,6 +224,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const baseThemeData: Record<ThemeType, { label: string; grad: string; color: string }> = {
         'TOP 5 ARTISTE': { label: 'TOP 5 ARTISTES', grad: '255, 230, 0', color: '#ffe600' }, // Unique Yellow/Gold
         'TOP 5 STYLES': { label: 'TOP 5 STYLES', grad: '0, 240, 255', color: '#00f0ff' },
+        'TOP 10 FESTIVAL': { label: 'TOP 10 ARTISTES', grad: '255, 0, 51', color: '#ff0033' }, // Neon Red
         'TOP 100 DROPSIDERS': { label: 'TOP 100 DROPSIDERS', grad: '255, 230, 0', color: '#ffe600' },
         'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
@@ -233,11 +241,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     useEffect(() => {
         if (activeTab === 'REEL') {
             // Only set default if current theme is not a Reel-specific theme
-            if (theme !== 'TRACKLIST' && theme !== 'INTRO' && theme !== 'TOP 100 DROPSIDERS' && !theme.startsWith('TOP 5')) {
+            if (theme !== 'TRACKLIST' && theme !== 'INTRO' && theme !== 'TOP 100 DROPSIDERS' && !theme.startsWith('TOP ')) {
                 setTheme('TRACKLIST');
             }
         } else {
-            if (theme === 'TRACKLIST' || theme === 'INTRO' || theme.startsWith('TOP 5')) {
+            if (theme === 'TRACKLIST' || theme === 'INTRO' || theme.startsWith('TOP ')) {
                 setTheme('NEWS');
             }
         }
@@ -514,13 +522,133 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillRect(barX + slideX, barY, barWidth, barHeight);
                 ctx.fillStyle = '#000'; // Black text on yellow bar
                 ctx.font = '900 italic 43px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                ctx.textAlign = 'left';
                 ctx.fillText(`${item.value.toUpperCase()} MILLIONS D'ÉCOUTES`, barX + 30 + slideX, barY + 60);
+
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 117px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
-                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); // Descendu dans le dégradé
+                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); 
 
+            } else if (theme === 'TOP 10 FESTIVAL') {
+                const centerX = canvas.width / 2;
+                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
+                
+                // Continuous Wall Positions
+                const cardW = 550;
+                const cardH = 550;
+                const wallPositions = [
+                    { col: 240, y: 150 },  // 1 (Center)
+                    { col: 780, y: 50 },   // 2 (Right cut)
+                    { col: -300, y: 400 }, // 3 (Left cut)
+                    { col: 240, y: 650 },  // 4 (Center)
+                    { col: 780, y: 550 },  // 5 (Right cut)
+                    { col: -300, y: 900 }, // 6 (Left cut)
+                    { col: 240, y: 1150 }, // 7 (Center)
+                    { col: 780, y: 1050 }, // 8 (Right cut)
+                    { col: -300, y: 1400 },// 9 (Left cut)
+                    { col: 240, y: 1650 }, // 10 (Center)
+                ];
 
+                // Scroll Logic: Slide 0 starts higher so artists pop in from bottom
+                const scrollY = currentPreviewIndex === 0 ? -1250 : (currentPreviewIndex - 1) * 600;
+
+                // 1. RENDER WALL FIRST 
+                ctx.save();
+                ctx.translate(slideX, -scrollY + 100); 
+
+                wallPositions.forEach((pos, i) => {
+                    const item = top10Items[i];
+                    const x = pos.col;
+                    const y = pos.y;
+                    if (y - scrollY > canvas.height + 600 || y - scrollY < -600) return;
+
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                    ctx.shadowBlur = 40;
+                    ctx.fillStyle = 'rgba(20,20,20,0.95)';
+                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 50); ctx.fill();
+                    
+                    if (item.photo) {
+                        let img = imageCacheRef.current[item.photo];
+                        if (img && img.complete) {
+                            ctx.clip();
+                            const scale = Math.max(cardW / img.width, cardH / img.height);
+                            ctx.drawImage(img, x + (cardW - img.width * scale) / 2, y + (cardH - img.height * scale) / 2, img.width * scale, img.height * scale);
+                        }
+                    }
+                    ctx.restore();
+
+                    const footerH = 100;
+                    ctx.save();
+                    ctx.translate(x, y + cardH - footerH);
+                    ctx.beginPath(); ctx.roundRect(0, 0, cardW, footerH, 0); ctx.clip();
+                    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, cardW, footerH);
+                    ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 italic 38px "Montserrat", sans-serif';
+                    ctx.fillText(item.main.toUpperCase(), cardW / 2, 65);
+                    ctx.restore();
+                });
+                ctx.restore();
+
+                // 2. RENDER OVERLAYS / TEXT
+                if (currentPreviewIndex === 0) {
+                    // --- COVER OVERLAY (Standard Theme Gradient) ---
+                    ctx.save();
+                    const gradH = 800;
+                    const grad = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - gradH);
+                    grad.addColorStop(0, activeData.color);
+                    grad.addColorStop(1, 'transparent');
+                    ctx.globalAlpha = 0.8;
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, canvas.height - gradH, canvas.width, gradH);
+                    ctx.restore();
+
+                    ctx.save();
+                    // Darken top a bit for text readability
+                    const topGrad = ctx.createLinearGradient(0, 0, 0, 400);
+                    topGrad.addColorStop(0, 'rgba(0,0,0,0.7)');
+                    topGrad.addColorStop(1, 'transparent');
+                    ctx.fillStyle = topGrad;
+                    ctx.fillRect(0, 0, canvas.width, 400);
+
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = '900 italic 160px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ff0033';
+                    ctx.shadowColor = 'rgba(255,0,51,0.8)'; ctx.shadowBlur = 40;
+                    ctx.fillText('LINE-UP', centerX + slideX, (canvas.height / 2) - 120);
+                    
+                    ctx.font = '900 italic 85px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 20;
+                    ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, (canvas.height / 2) + 60);
+                    
+                    ctx.font = '700 italic 32px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "10px";
+                    ctx.fillText('EDITION 2024 - ARTISTES', centerX + slideX, (canvas.height / 2) + 160);
+                    ctx.restore();
+                }
+
+                // DRAW CAPSULE (Always visible or only on grids?)
+                if (currentPreviewIndex > 0) {
+                    ctx.save();
+                    ctx.textAlign = 'center'; ctx.font = `900 italic 42px "Montserrat", sans-serif`;
+                    const labelText = "FESTIVAL LINE-UP";
+                    const labelW = ctx.measureText(labelText).width + 80;
+                    ctx.fillStyle = activeData.color;
+                    const rectX = (canvas.width - labelW) / 2 + slideX;
+                    const rectY = labelY - 52;
+                    ctx.beginPath(); ctx.roundRect(rectX, rectY, labelW, 80, 20); ctx.fill();
+                    ctx.fillStyle = '#FFFFFF'; ctx.textBaseline = 'middle';
+                    ctx.fillText(labelText, canvas.width / 2 + slideX, rectY + 44);
+                    ctx.restore();
+                }
+
+            } else if (theme === 'LIVESTREAM') {
+
+            } else if (theme === 'LIVESTREAM') {
+rectH / 2) + 4);
+                ctx.restore();
 
             } else if (theme === 'LIVESTREAM') {
                 const centerX = canvas.width / 2;
@@ -1566,6 +1694,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             totalDuration = 10000;
         } else if (theme.startsWith('TOP 5')) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
+        } else if (theme === 'TOP 10 FESTIVAL') {
+            totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else {
             totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 15000;
             if (totalDuration > 180000) totalDuration = 180000; // Limit to 3 minutes
@@ -1600,6 +1730,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setCurrentPreviewIndex(i);
                 }
                 setTransitionProgress(0);
+                await new Promise(r => setTimeout(r, 16800));
+            }
+        } else if (theme === 'TOP 10 FESTIVAL') {
+            for (let i = 0; i < 11; i++) {
+                if (i > 0) {
+                    const durationTransition = 1200;
+                    const startT = Date.now();
+                    let switched = false;
+                    while (Date.now() - startT < durationTransition) {
+                        const progress = (Date.now() - startT) / durationTransition;
+                        setTransitionProgress(progress);
+                        if (progress > 0.5 && !switched) {
+                            setCurrentPreviewIndex(i);
+                            switched = true;
+                        }
+                        await new Promise(r => requestAnimationFrame(r));
+                    }
+                    setTransitionProgress(0);
+                } else {
+                    setCurrentPreviewIndex(i);
+                }
                 await new Promise(r => setTimeout(r, 16800));
             }
         } else {
@@ -1766,6 +1917,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <button onClick={() => setTheme('INTRO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
                     <button onClick={() => setTheme('TOP 5 ARTISTE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
                     <button onClick={() => setTheme('TOP 5 STYLES')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
+                    <button onClick={() => setTheme('TOP 10 FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 10 FESTIVAL' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 10 FESTIVAL</button>
                 </>
             )}
         </div>
@@ -1825,6 +1977,53 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                 </div>
             ))}
+        </div>
+    );
+
+    const top10Editor = (
+        <div className="space-y-4">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4">
+                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-2 block">Cover Festival</span>
+                <input value={customText} onChange={e => setCustomText(e.target.value)} placeholder="NOM DU FESTIVAL" className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs" />
+            </div>
+            <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                {top10Items.map((item, i) => (
+                    <div key={i} className={`p-4 rounded-3xl border transition-all ${currentPreviewIndex === i + 1 ? 'bg-neon-red/10 border-neon-red/40 shadow-[0_0_20px_rgba(255,0,51,0.1)]' : 'bg-white/5 border-white/10 hover:border-white/20'}`} onClick={() => setCurrentPreviewIndex(i + 1)}>
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[12px] font-black italic text-white/40">#{i + 1}</span>
+                            <div className="flex gap-1">
+                                <button className="p-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all"><PlusCircle className="w-3.5 h-3.5" /></button>
+                            </div>
+                        </div>
+                        <input value={item.main} onChange={e => { const n = [...top10Items]; n[i].main = e.target.value; setTop10Items(n); }} placeholder="NOM DE L'ARTISTE" className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs mb-2 transition-all focus:border-neon-red" />
+                        <input value={item.sub} onChange={e => { const n = [...top10Items]; n[i].sub = e.target.value; setTop10Items(n); }} placeholder="DESCRIPTION ARTISTE" className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white/60 font-bold uppercase text-[10px] mb-3" />
+                        <div className="flex items-center gap-2">
+                            <button onClick={(e) => {
+                                e.stopPropagation();
+                                const input = document.createElement('input');
+                                input.type = 'file'; input.accept = 'image/*';
+                                input.onchange = (ev: any) => {
+                                    const file = ev.target.files?.[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onload = (re) => { const n = [...top10Items]; n[i].photo = re.target?.result as string; setTop10Items(n); };
+                                        reader.readAsDataURL(file);
+                                    }
+                                };
+                                input.click();
+                            }} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                                <ImageIcon className="w-3 h-3" /> {item.photo ? 'Modifier Photo' : 'Ajouter Photo'}
+                            </button>
+                            {item.photo && (
+                                <button onClick={(e) => { e.stopPropagation(); const n = [...top10Items]; n[i].photo = ''; setTop10Items(n); }}
+                                    className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                                    <X className="w-3 h-3" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 
@@ -2401,6 +2600,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Horaires Planning</span>{planningEditor}</>
                             ) : theme.startsWith('TOP 5') ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
+                            ) : theme === 'TOP 10 FESTIVAL' ? (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {[0, 1, 2, 3].map((idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setCurrentPreviewIndex(idx)}
+                                                className={`py-2 rounded-xl font-bold transition-all border-2 text-[10px] uppercase ${currentPreviewIndex === idx ? 'bg-[#ff0033] border-[#ff0033] text-white shadow-[0_0_15px_rgba(255,0,51,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
+                                            >
+                                                {idx === 0 ? 'Couv.' : `Page ${idx}`}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {top10Editor}
+                                </div>
                             ) : theme === 'HIGHLIGHTS' ? (
                                 <>{highlightsEditor}</>
                             ) : theme === 'TRACKLIST' ? (
