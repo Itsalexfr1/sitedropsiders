@@ -2040,10 +2040,12 @@ export function AdminDashboard() {
         setIsResetMusicConfirmOpen(false);
         setIsResettingVotes(true);
         try {
+            // 1. Reset existing votes
             const adminToken = import.meta.env.VITE_ADMIN_TOKEN || 'dropsiders_master_key_2024';
             
-            // 1. Reset existing votes
-            const resetRes = await apiFetch('/api/music/reset', {
+            // NOTE: On utilise fetch ici au lieu de apiFetch pour ne pas déconnecter l'utilisateur 
+            // si le token admin interne est invalide ou expiré.
+            const resetRes = await fetch('/api/music/reset', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ adminToken })
@@ -2052,7 +2054,7 @@ export function AdminDashboard() {
             if (!resetRes.ok) throw new Error('Reset failed');
 
             // 2. Fetch News to seed random tracks from music articles
-            const newsRes = await apiFetch('/api/news');
+            const newsRes = await fetch('/api/news');
             const newsData = newsRes.ok ? await newsRes.json() : [];
             
             if (newsData && Array.isArray(newsData)) {
