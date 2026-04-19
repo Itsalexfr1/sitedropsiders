@@ -10,7 +10,7 @@ import { useUser } from '../../context/UserContext';
 import { Footer } from './Footer';
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { FloatingTakeoverPlayer } from '../FloatingTakeoverPlayer';
+
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -102,7 +102,7 @@ export function Layout({ children }: LayoutProps) {
                 isOpen={isAuthModalOpen} 
                 onClose={() => setIsAuthModalOpen(false)} 
             />
-            <FloatingTakeoverPlayer />
+            {/* <FloatingTakeoverPlayer /> */}
         </div>
     );
 }
