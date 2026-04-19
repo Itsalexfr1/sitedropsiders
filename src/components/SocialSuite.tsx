@@ -3222,11 +3222,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     } else if (r2TargetType === 'background') {
                         const isVid = url.match(/\.(mp4|webm|mov|ogg)$/i) || url.includes('/video/upload/');
                         if (isVid) {
-                            setBgVideo(url);
+                            const video = document.createElement('video');
+                            video.src = url;
+                            video.muted = true;
+                            video.loop = true;
+                            video.playsInline = true;
+                            video.crossOrigin = "anonymous";
+                            video.play().catch(e => console.warn("Auto-preview play failed", e));
+                            setBgVideo(video);
                             setBgImage('');
                         } else {
                             setBgImage(url);
-                            setBgVideo('');
+                            setBgVideo(null);
                         }
                     } else if (r2TargetType === 'logo') {
                         setArtistLogo(url);
