@@ -39,7 +39,8 @@
       { "id": "stage7", "name": "SONORA", "youtubeId": "", "enabledInGrid": true },
       { "id": "stage8", "name": "QUASAR", "youtubeId": "", "enabledInGrid": true }
     ],
-    "activeStreamId": "stage1"
+    "activeStreamId": "stage1",
+    "wikiVotesEnabled": true
   },
   "socials": {
     "instagram": "dropsiders.eu",

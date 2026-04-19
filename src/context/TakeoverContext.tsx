@@ -46,6 +46,7 @@ export interface TakeoverSettings {
     enabled: boolean;
     streams?: StreamItem[];
     activeStreamId?: string;
+    wikiVotesEnabled?: boolean;
     acrHost?: string;
     acrAccessKey?: string;
     acrAccessSecret?: string;
