@@ -23,6 +23,8 @@ export function AdminSettings() {
     const [showKitMediaPassword, setShowKitMediaPassword] = useState(false);
     const [contestFestivalHandle, setContestFestivalHandle] = useState('@tomorrowland');
     const [isContestActive, setIsContestActive] = useState(false);
+    const [googleSearchKey, setGoogleSearchKey] = useState('');
+    const [googleCx, setGoogleCx] = useState('');
 
     const [isSaving, setIsSaving] = useState(false);
     const [isRevoking, setIsRevoking] = useState(false);
@@ -61,6 +63,8 @@ export function AdminSettings() {
                     if (data.socials) setSocials(data.socials);
                     if (data.contest_festival_handle) setContestFestivalHandle(data.contest_festival_handle);
                     if (data.is_contest_active !== undefined) setIsContestActive(data.is_contest_active);
+                    if (data.google_search_key) setGoogleSearchKey(data.google_search_key);
+                    if (data.google_cx) setGoogleCx(data.google_cx);
                 }
 
                 const resAuth = await apiFetch('/api/editors', { headers: getAuthHeaders() });
@@ -94,7 +98,9 @@ export function AdminSettings() {
                 kit_media_password: kitMediaPassword,
                 socials: socials,
                 contest_festival_handle: contestFestivalHandle,
-                is_contest_active: isContestActive
+                is_contest_active: isContestActive,
+                google_search_key: googleSearchKey,
+                google_cx: googleCx
             };
 
             const saveRes = await apiFetch('/api/settings/update', {
@@ -342,6 +348,42 @@ export function AdminSettings() {
                                 </div>
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
                                     Mot de passe à donner aux marques pour afficher le Kit Media / Les Statistiques.
+                                </p>
+                            </div>
+
+                            {/* Google Search API */}
+                            <div className="pt-8 border-t border-white/5">
+                                <label className="block text-[10px] font-black text-neon-cyan uppercase tracking-widest mb-3 ml-1">
+                                    API GOOGLE IMAGES (SEARCH API)
+                                </label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                            <Globe className="w-5 h-5 text-neon-cyan/50" />
+                                        </div>
+                                        <input
+                                            type="password"
+                                            value={googleSearchKey}
+                                            onChange={(e) => setGoogleSearchKey(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-4 py-5 text-white font-bold text-xs focus:outline-none focus:border-neon-cyan transition-all"
+                                            placeholder="GOOGLE_SEARCH_KEY"
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                            <Search className="w-5 h-5 text-neon-cyan/50" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={googleCx}
+                                            onChange={(e) => setGoogleCx(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-4 py-5 text-white font-bold text-xs focus:outline-none focus:border-neon-cyan transition-all"
+                                            placeholder="GOOGLE_CX (Search Engine ID)"
+                                        />
+                                    </div>
+                                </div>
+                                <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
+                                    Nécessaire pour la recherche d'images Google dans le Cloud Upload.
                                 </p>
                             </div>
                         </div>
