@@ -540,24 +540,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // --- 1. SETTINGS & POSITIONS ---
                 const cardW = 600;
                 const cardH = 600;
-                // Organic staggered positions
+                // Dimensions & Organic staggered positions from photo
                 const wallPositions = [
-                    { x: 950, y: 350 },  // 1 (Right)
-                    { x: 130, y: 650 },  // 2 (Left)
-                    { x: 950, y: 950 },  // 3 (Right)
-                    { x: 130, y: 1250 }, // 4 (Left)
-                    { x: 950, y: 1550 }, // 5 (Right)
-                    { x: 130, y: 1850 }, // 6 (Left)
-                    { x: 950, y: 2150 }, // 7 (Right)
-                    { x: 130, y: 2450 }, // 8 (Left)
-                    { x: 950, y: 2750 }, // 9 (Right)
-                    { x: 130, y: 3050 }, // 10 (Left)
+                    { x: 920, y: 350 },  // 1 (Right)
+                    { x: 180, y: 550 },  // 2 (Left)
+                    { x: 880, y: 950 },  // 3 (Right)
+                    { x: 120, y: 1350 }, // 4 (Left)
+                    { x: 940, y: 1750 }, // 5 (Right)
+                    { x: 160, y: 2150 }, // 6 (Left)
+                    { x: 900, y: 2550 }, // 7 (Right)
+                    { x: 200, y: 2950 }, // 8 (Left)
+                    { x: 850, y: 3350 }, // 9 (Right)
+                    { x: 400, y: 3750 }, // 10 (Floating Center-ish)
                 ];
 
                 const isPost = effectiveTab === 'PUBLICATION';
-                const baseScroll = isPost ? 900 : 1200;
+                const baseScroll = isPost ? 850 : 1100;
                 const scrollY = currentPreviewIndex === 0 
-                    ? 0 
+                    ? 50 // Peeking 
                     : (currentPreviewIndex) * baseScroll - 400;
 
                 // --- 2. RENDER FESTIVAL WALL ---
@@ -575,9 +575,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     // Premium Card Shadow
                     ctx.shadowColor = 'rgba(0,0,0,0.95)';
-                    ctx.shadowBlur = 100;
-                    ctx.fillStyle = '#111'; // Default card fill
-                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 80); ctx.fill();
+                    ctx.shadowBlur = 120;
+                    ctx.fillStyle = '#111';
+                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 85); ctx.fill();
                     
                     if (item.photo) {
                         let photoImg = imageCacheRef.current[item.photo];
@@ -586,21 +586,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const scale = Math.max(cardW / photoImg.width, cardH / photoImg.height);
                             ctx.drawImage(photoImg, x + (cardW - photoImg.width * scale) / 2, y + (cardH - photoImg.height * scale) / 2, photoImg.width * scale, photoImg.height * scale);
                             
-                            // Name readability gradient
-                            const nameGrad = ctx.createLinearGradient(0, y + cardH * 0.65, 0, y + cardH);
+                            // Bottom Vignette for text
+                            const nameGrad = ctx.createLinearGradient(0, y + cardH * 0.6, 0, y + cardH);
                             nameGrad.addColorStop(0, 'transparent');
                             nameGrad.addColorStop(1, 'rgba(0,0,0,0.9)');
                             ctx.fillStyle = nameGrad;
-                            ctx.fillRect(x, y + cardH * 0.6, cardW, cardH * 0.45);
+                            ctx.fillRect(x, y + cardH * 0.6, cardW, cardH * 0.4);
                         }
                     }
                     ctx.restore();
 
-                    // Bold Artist Name
+                    // Bold Artist Name Overlay
                     ctx.save();
                     ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
                     ctx.font = '900 48px "Montserrat", sans-serif';
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 15;
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10;
                     ctx.fillText(item.main.toUpperCase(), x + cardW / 2, y + cardH - 65);
                     ctx.restore();
                 });
@@ -608,34 +608,47 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // --- 3. COVER OVERLAY (Slide 0) ---
                 if (currentPreviewIndex === 0) {
+                    const labelY = isPost ? 880 : safeBottom - 450;
+                    const startY = labelY + 130;
+
                     ctx.save();
-                    // High-End Cover Vignette
+                    // Cover Vignette
                     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
                     grad.addColorStop(0, 'rgba(0,0,0,0.7)');
-                    grad.addColorStop(0.3, 'rgba(0,0,0,0)');
-                    grad.addColorStop(0.7, 'rgba(0,0,0,0)');
+                    grad.addColorStop(0.4, 'rgba(0,0,0,0)');
                     grad.addColorStop(1, 'rgba(0,0,0,0.9)'); 
                     ctx.fillStyle = grad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // Massive Line-up text
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
+                    // --- 3.1 CATEGORY BADGE (News Style Re-instated) ---
+                    const labelText = 'LINE-UP';
+                    ctx.font = '900 italic 42px "Montserrat", sans-serif';
+                    const labelW = ctx.measureText(labelText).width + 80;
+                    const rectX = (canvas.width - labelW) / 2 + slideX;
+                    const rectY = labelY - 52;
                     
-                    ctx.font = '900 italic 160px "Montserrat", sans-serif';
                     ctx.fillStyle = '#ff0033';
-                    ctx.shadowColor = 'rgba(255,10,60,0.8)'; ctx.shadowBlur = 60;
-                    ctx.fillText('LINE-UP', centerX + slideX, (canvas.height / 2) - 80);
+                    ctx.shadowColor = 'rgba(255,0,51,0.6)'; ctx.shadowBlur = 40;
+                    ctx.beginPath(); ctx.roundRect(rectX, rectY, labelW, 80, 20); ctx.fill();
                     
-                    ctx.font = '900 italic 82px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#fff'; ctx.shadowBlur = 20;
-                    ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, (canvas.height / 2) + 60);
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 0;
+                    ctx.fillText(labelText, centerX + slideX, rectY + 44);
+                    ctx.restore();
 
+                    // --- 3.2 TITLE & DESCRIPTION ---
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.font = '900 italic 85px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
+                    ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, startY + 40);
+                    
                     const lines = (customText || '').split('\n').filter(l => l.trim() !== '');
                     if (lines[1]) {
-                        ctx.font = '700 italic 32px "Montserrat", sans-serif';
+                        ctx.font = '600 italic 32px "Montserrat", sans-serif';
                         ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "10px";
-                        ctx.fillText(lines[1].toUpperCase(), centerX + slideX, (canvas.height / 2) + 140);
+                        ctx.fillText(lines[1].toUpperCase(), centerX + slideX, startY + 110);
                     }
                     ctx.restore();
                 }
