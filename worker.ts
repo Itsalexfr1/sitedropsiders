@@ -87,6 +87,7 @@ const CONTACTS_PATH = 'src/data/contacts.json';
 const WIKI_DJS_PATH = 'src/data/wiki_djs.json';
 const WIKI_CLUBS_PATH = 'src/data/wiki_clubs.json';
 const WIKI_FESTIVALS_PATH = 'src/data/wiki_festivals.json';
+const INTERVIEW_QUESTIONS_PATH = 'src/data/interview_questions.json';
 
 // Simple un-expiring cache per isolate for performance
 const githubCache = new Map();
@@ -2098,6 +2099,19 @@ ${urls.map(u => `  <url>
             }
             
             return new Response(JSON.stringify(file.content), { status: 200, headers });
+        }
+        if (path === '/api/interview-questions' && request.method === 'GET') {
+            const file = await fetchGitHubFile(INTERVIEW_QUESTIONS_PATH, gitConfig);
+            if (!file) return new Response(JSON.stringify({ fr: [], en: [] }), { status: 200, headers });
+            return new Response(JSON.stringify(file.content), { status: 200, headers });
+        }
+
+        if (path === '/api/interview-questions/update' && request.method === 'POST') {
+            const newQuestions = await request.json();
+            const file = await fetchGitHubFile(INTERVIEW_QUESTIONS_PATH, gitConfig);
+            const sha = file ? file.sha : undefined;
+            const saved = await saveGitHubFile(INTERVIEW_QUESTIONS_PATH, newQuestions, `Update interview questions`, sha, gitConfig);
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if ((path === '/api/settings/takeover' || path === '/api/takeover-settings') && request.method === 'GET') {

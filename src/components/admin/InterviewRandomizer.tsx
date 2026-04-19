@@ -1,42 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, RotateCcw, Languages, MessageSquare, ChevronRight, Sparkles, X } from 'lucide-react';
-
-const QUESTIONS_FR = [
-    "Quel est ton meilleur souvenir sur scène ?",
-    "Comment as-tu commencé la musique ?",
-    "Quel est ton track 'secret weapon' du moment ?",
-    "Avec quel artiste rêverais-tu de collaborer ?",
-    "Quelle est ta routine avant un set ?",
-    "Quel conseil donnerais-tu à un producteur débutant ?",
-    "Quel est le festival le plus fou que tu as fait ?",
-    "Comment définirais-tu ton style en 3 mots ?",
-    "Quelle est ta ville préférée pour jouer ?",
-    "Quel est le premier album que tu as acheté ?",
-    "Si tu n'étais pas DJ, que ferais-tu ?",
-    "Quel est ton plat préféré après un set ?",
-    "Ta pire galère en tournée ?",
-    "Le dernier morceau que tu as écouté aujourd'hui ?",
-    "Ton club préféré au monde ?"
-];
-
-const QUESTIONS_EN = [
-    "What is your best memory on stage?",
-    "How did you start making music?",
-    "What is your current 'secret weapon' track?",
-    "Which artist would you dream to collaborate with?",
-    "What's your pre-set routine?",
-    "What advice would you give to a beginner producer?",
-    "What's the craziest festival you've ever played at?",
-    "How would you define your style in 3 words?",
-    "What's your favorite city to play in?",
-    "What was the first album you ever bought?",
-    "If you weren't a DJ, what would you be doing?",
-    "What's your go-to meal after a set?",
-    "Your worst tour nightmare?",
-    "The last track you listened to today?",
-    "Your favorite club in the world?"
-];
+import { getAuthHeaders, apiFetch } from '../../utils/auth';
+import { Play, RotateCcw, Languages, MessageSquare, ChevronRight, Sparkles, X, Settings } from 'lucide-react';
 
 interface HistoryEntry {
     artist: string;
@@ -48,6 +13,7 @@ export function InterviewRandomizer() {
     const [lang, setLang] = useState<'FR' | 'EN'>(() => {
         return (localStorage.getItem('interview_lang') as 'FR' | 'EN') || 'FR';
     });
+    const [questionsData, setQuestionsData] = useState<{fr: string[], en: string[]}>({ fr: [], en: [] });
     const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
     const [isShuffling, setIsShuffling] = useState(false);
     const [artist, setArtist] = useState('');
@@ -60,14 +26,34 @@ export function InterviewRandomizer() {
     });
 
     useEffect(() => {
+        const fetchQuestions = async () => {
+            try {
+                const res = await apiFetch('/api/interview-questions', { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    setQuestionsData(data);
+                }
+            } catch (e) {
+                console.error('Failed to fetch questions:', e);
+            }
+        };
+        fetchQuestions();
+    }, []);
+
+    useEffect(() => {
         localStorage.setItem('interview_lang', lang);
     }, [lang]);
 
     const handleShuffle = () => {
+        const questions = lang === 'FR' ? questionsData.fr : questionsData.en;
+        if (!questions || questions.length === 0) {
+            alert('Aucune question disponible pour cette langue.');
+            return;
+        }
+
         setIsShuffling(true);
         setCurrentQuestion(null);
         
-        const questions = lang === 'FR' ? QUESTIONS_FR : QUESTIONS_EN;
         let count = 0;
         const maxShuffles = 10;
         
@@ -138,6 +124,14 @@ export function InterviewRandomizer() {
                             EN
                         </button>
                     </div>
+
+                    <a
+                        href="/admin/interview-questions"
+                        className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-500 hover:text-white transition-all shadow-xl"
+                        title="Gérer les questions"
+                    >
+                        <Settings className="w-4 h-4" />
+                    </a>
                 </div>
             </div>
 

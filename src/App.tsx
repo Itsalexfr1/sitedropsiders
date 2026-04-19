@@ -62,6 +62,7 @@ const VideoStudioGenerator = lazyRetry(() => import('./pages/AftermovieGenerator
 const TopDropsiders = lazyRetry(() => import('./pages/TopDropsiders').then(m => m.TopDropsiders));
 const Profile = lazyRetry(() => import('./pages/Profile').then(m => m.Profile));
 const AdminPdfs = lazyRetry(() => import('./pages/AdminPdfs').then(m => m.AdminPdfs));
+const AdminInterviewQuestions = lazyRetry(() => import('./pages/AdminInterviewQuestions').then(m => m.AdminInterviewQuestions));
 
 function ErrorFallback() {
   return (
@@ -186,6 +187,7 @@ const router = createBrowserRouter([
       { path: "admin/factures", element: <ProtectedRoute><AdminFactures /></ProtectedRoute> },
       { path: "admin/banner", element: <ProtectedRoute><AdminBanner /></ProtectedRoute> },
       { path: "admin/pdfs", element: <ProtectedRoute><AdminPdfs /></ProtectedRoute> },
+      { path: "admin/interview-questions", element: <ProtectedRoute><AdminInterviewQuestions /></ProtectedRoute> },
       { path: "social-studio", element: <ProtectedRoute><SocialStudioPage /></ProtectedRoute> },
       { path: "interview-visuals", element: <ProtectedRoute><InterviewVisualGenerator /></ProtectedRoute> },
       { path: "aftermovie", element: <ProtectedRoute><VideoStudioGenerator /></ProtectedRoute> },
