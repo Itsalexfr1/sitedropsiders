@@ -538,26 +538,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
                 
                 // --- 1. SETTINGS & POSITIONS ---
-                // Portrait cards from the screen reference
-                const cardW = 520;
-                const cardH = 720;
+                // "Petite" Portrait cards 
+                const cardW = 400;
+                const cardH = 560;
                 
-                // More dense / overlapping staggered positions matching the screen
+                // Optimized dense positions for smaller cards
                 const wallPositions = [
-                    { x: 980, y: 350 },  // 1 (Far Right)
-                    { x: 300, y: 750 },  // 2 (Left)
-                    { x: 1050, y: 1100 }, // 3 (Out-Right)
-                    { x: 350, y: 1600 }, // 4 (Left-ish)
-                    { x: 920, y: 1950 }, // 5 (Right)
-                    { x: 150, y: 2450 }, // 6 (Far Left)
-                    { x: 1000, y: 2850 }, // 7 (Right)
-                    { x: 250, y: 3350 }, // 8 (Left)
-                    { x: 950, y: 3850 }, // 9 (Right)
-                    { x: 450, y: 4450 }, // 10 (Center)
+                    { x: 920, y: 300 },  // 1 (Right)
+                    { x: 250, y: 550 },  // 2 (Left)
+                    { x: 1000, y: 900 }, // 3 (Far Right)
+                    { x: 320, y: 1300 }, // 4 (Left)
+                    { x: 880, y: 1650 }, // 5 (Right)
+                    { x: 180, y: 2050 }, // 6 (Far Left)
+                    { x: 960, y: 2450 }, // 7 (Right)
+                    { x: 280, y: 2850 }, // 8 (Left)
+                    { x: 920, y: 3250 }, // 9 (Right)
+                    { x: 450, y: 3750 }, // 10 (Center)
                 ];
 
                 const isPost = effectiveTab === 'PUBLICATION';
-                const baseScroll = isPost ? 900 : 1200;
+                const baseScroll = isPost ? 800 : 1000;
                 const scrollY = currentPreviewIndex === 0 
                     ? 50 
                     : (currentPreviewIndex) * baseScroll - 400;
@@ -577,9 +577,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     // Dense Card Shadow
                     ctx.shadowColor = 'rgba(0,0,0,0.95)';
-                    ctx.shadowBlur = 120;
+                    ctx.shadowBlur = 100;
                     ctx.fillStyle = '#0a0a0a';
-                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 95); ctx.fill();
+                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 75); ctx.fill();
                     
                     if (item.photo) {
                         let photoImg = imageCacheRef.current[item.photo];
@@ -588,7 +588,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const scale = Math.max(cardW / photoImg.width, cardH / photoImg.height);
                             ctx.drawImage(photoImg, x + (cardW - photoImg.width * scale) / 2, y + (cardH - photoImg.height * scale) / 2, photoImg.width * scale, photoImg.height * scale);
                             
-                            // Vignette for name
+                            // Vignette
                             const nameGrad = ctx.createLinearGradient(0, y + cardH * 0.7, 0, y + cardH);
                             nameGrad.addColorStop(0, 'transparent');
                             nameGrad.addColorStop(1, 'rgba(0,0,0,0.95)');
@@ -598,12 +598,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                     ctx.restore();
 
-                    // Bold Artist Name Overlay
+                    // Artist Name Overlay
                     ctx.save();
                     ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 52px "Montserrat", sans-serif';
-                    ctx.shadowColor = 'rgba(0,0,0,1)'; ctx.shadowBlur = 15;
-                    ctx.fillText(item.main.toUpperCase(), x + cardW / 2, y + cardH - 75);
+                    ctx.font = '900 38px "Montserrat", sans-serif'; // Slightly smaller for petite cards
+                    ctx.shadowColor = 'rgba(0,0,0,1)'; ctx.shadowBlur = 12;
+                    ctx.fillText(item.main.toUpperCase(), x + cardW / 2, y + cardH - 55);
                     ctx.restore();
                 });
                 ctx.restore();
