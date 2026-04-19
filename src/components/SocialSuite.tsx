@@ -536,118 +536,135 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             } else if (theme === 'TOP 10 FESTIVAL') {
                 const centerX = canvas.width / 2;
-                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
                 
-                // Continuous Wall Positions
-                const cardW = 550;
-                const cardH = 550;
+                // --- 1. SETTINGS & POSITIONS ---
+                const cardW = 620;
+                const cardH = 680;
                 const wallPositions = [
-                    { col: 240, y: 150 },  // 1 (Center)
-                    { col: 780, y: 50 },   // 2 (Right cut)
-                    { col: -300, y: 400 }, // 3 (Left cut)
-                    { col: 240, y: 650 },  // 4 (Center)
-                    { col: 780, y: 550 },  // 5 (Right cut)
-                    { col: -300, y: 900 }, // 6 (Left cut)
-                    { col: 240, y: 1150 }, // 7 (Center)
-                    { col: 780, y: 1050 }, // 8 (Right cut)
-                    { col: -300, y: 1400 },// 9 (Left cut)
-                    { col: 240, y: 1650 }, // 10 (Center)
+                    { x: 540, y: 1200 }, // Artist 1 (Center, low)
+                    { x: 980, y: 1050 }, // Artist 2 (Right, high)
+                    { x: 100, y: 1450 }, // Artist 3 (Left, middle)
+                    { x: 540, y: 1850 }, // Artist 4 (Center, high)
+                    { x: 980, y: 2200 }, // Artist 5 (Right, low)
+                    { x: 100, y: 1950 }, // Artist 6 (Left, high)
+                    { x: 540, y: 2600 }, // Artist 7 (Center, low)
+                    { x: 980, y: 2800 }, // Artist 8 (Right, middle)
+                    { x: 100, y: 2500 }, // Artist 9 (Left, low)
+                    { x: 540, y: 3200 }, // Artist 10 (Center)
                 ];
 
-                // Scroll Logic adapted for 9:16 vs 1:1
+                // Scroll Logic: Slide 0 is Cover, Slides 1-3 are the wall
+                // We calculate scrollY to focus on different sections
                 const isPost = effectiveTab === 'PUBLICATION';
-                const baseScroll = isPost ? 400 : 600;
-                const coverStart = isPost ? -650 : -1250;
-                const scrollY = currentPreviewIndex === 0 ? coverStart : (currentPreviewIndex - 1) * baseScroll;
+                const baseScroll = isPost ? 650 : 850;
+                const scrollY = currentPreviewIndex === 0 
+                    ? -200 // Start of wall visible at bottom 
+                    : (currentPreviewIndex - 0.5) * baseScroll;
 
-                // 1. RENDER WALL FIRST 
+                // --- 2. RENDER FESTIVAL WALL (Artists) ---
                 ctx.save();
-                ctx.translate(slideX, -scrollY + 100); 
+                ctx.translate(slideX, -scrollY); 
 
                 wallPositions.forEach((pos, i) => {
                     const item = top10Items[i];
-                    const x = pos.col;
+                    if (!item) return;
+                    const x = pos.x - cardW / 2;
                     const y = pos.y;
-                    if (y - scrollY > canvas.height + 600 || y - scrollY < -600) return;
+                    
+                    // Frustum culling for performance
+                    if (y - scrollY > canvas.height + 800 || y - scrollY < -800) return;
 
                     ctx.save();
-                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-                    ctx.shadowBlur = 40;
-                    ctx.fillStyle = 'rgba(20,20,20,0.95)';
+                    // Card Shadow & Container
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 50;
+                    ctx.fillStyle = '#0a0a0a';
                     ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 50); ctx.fill();
                     
+                    // Artist Photo
                     if (item.photo) {
-                        let img = imageCacheRef.current[item.photo];
-                        if (img && img.complete) {
+                        let photoImg = imageCacheRef.current[item.photo];
+                        if (photoImg && photoImg.complete) {
                             ctx.clip();
-                            const scale = Math.max(cardW / img.width, cardH / img.height);
-                            ctx.drawImage(img, x + (cardW - img.width * scale) / 2, y + (cardH - img.height * scale) / 2, img.width * scale, img.height * scale);
+                            const scale = Math.max(cardW / photoImg.width, cardH / photoImg.height);
+                            ctx.drawImage(photoImg, x + (cardW - photoImg.width * scale) / 2, y + (cardH - photoImg.height * scale) / 2, photoImg.width * scale, photoImg.height * scale);
                         }
                     }
                     ctx.restore();
 
-                    const footerH = 100;
+                    // Name Label (at the bottom of each card)
+                    const labelH = 120;
                     ctx.save();
-                    ctx.translate(x, y + cardH - footerH);
-                    ctx.beginPath(); ctx.roundRect(0, 0, cardW, footerH, 0); ctx.clip();
-                    ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0, 0, cardW, footerH);
+                    ctx.translate(x, y + cardH - labelH);
+                    ctx.beginPath(); ctx.roundRect(0, 0, cardW, labelH, 0); ctx.clip();
+                    ctx.fillStyle = 'rgba(0,0,0,0.9)'; ctx.fillRect(0, 0, cardW, labelH);
+                    
                     ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 italic 38px "Montserrat", sans-serif';
-                    ctx.fillText(item.main.toUpperCase(), cardW / 2, 65);
+                    ctx.font = '900 italic 42px "Montserrat", sans-serif';
+                    ctx.fillText(item.main.toUpperCase(), cardW / 2, 75);
                     ctx.restore();
                 });
                 ctx.restore();
 
-                // 2. RENDER OVERLAYS / TEXT
-                if (currentPreviewIndex === 0) {
-                    // --- COVER OVERLAY (Standard Theme Gradient) ---
+                // --- 3. LOGO (Top Right) ---
+                if (logoRef.current) {
                     ctx.save();
-                    const gradH = 800;
-                    const grad = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - gradH);
-                    grad.addColorStop(0, activeData.color);
-                    grad.addColorStop(1, 'transparent');
-                    ctx.globalAlpha = 0.8;
-                    ctx.fillStyle = grad;
-                    ctx.fillRect(0, canvas.height - gradH, canvas.width, gradH);
-                    ctx.restore();
-
-                    ctx.save();
-                    // Darken top a bit for text readability
-                    const topGrad = ctx.createLinearGradient(0, 0, 0, 400);
-                    topGrad.addColorStop(0, 'rgba(0,0,0,0.7)');
-                    topGrad.addColorStop(1, 'transparent');
-                    ctx.fillStyle = topGrad;
-                    ctx.fillRect(0, 0, canvas.width, 400);
-
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = '900 italic 160px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ff0033';
-                    ctx.shadowColor = 'rgba(255,0,51,0.8)'; ctx.shadowBlur = 40;
-                    ctx.fillText('LINE-UP', centerX + slideX, (canvas.height / 2) - 120);
-                    
-                    ctx.font = '900 italic 85px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 20;
-                    ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, (canvas.height / 2) + 60);
-                    
-                    ctx.font = '700 italic 32px "Montserrat", sans-serif';
-                    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "10px";
-                    ctx.fillText('EDITION 2024 - ARTISTES', centerX + slideX, (canvas.height / 2) + 160);
+                    const lw = 320;
+                    const lh = (logoRef.current.height / logoRef.current.width) * lw;
+                    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15;
+                    ctx.drawImage(logoRef.current, canvas.width - lw - 60, 60, lw, lh);
                     ctx.restore();
                 }
 
-                // DRAW CAPSULE (Always visible or only on grids?)
+                // --- 4. COVER OVERLAY (Slide 0) ---
+                if (currentPreviewIndex === 0) {
+                    ctx.save();
+                    // Main Gradient Overlay (Matching the mockup's red gradient)
+                    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                    grad.addColorStop(0, 'rgba(0,0,0,0.6)');
+                    grad.addColorStop(0.3, 'rgba(0,0,0,0)');
+                    grad.addColorStop(0.6, 'rgba(0,0,0,0)');
+                    grad.addColorStop(0.8, 'rgba(0,0,0,0.4)');
+                    grad.addColorStop(1, 'rgba(255,0,51,0.7)'); // Final red wash at bottom
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    // --- TYPOGRAPHY ---
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    
+                    // Large "LINE-UP" with glow
+                    ctx.font = '900 italic 165px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ff0033';
+                    ctx.shadowColor = 'rgba(255,0,51,0.9)'; ctx.shadowBlur = 60;
+                    ctx.fillText('LINE-UP', centerX + slideX, (canvas.height / 2) - 100);
+                    
+                    // Nom du Festival (White bold italic)
+                    ctx.font = '900 italic 82px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 20;
+                    ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, (canvas.height / 2) + 60);
+                    
+                    // Edition/Artist subtitle (Light italic)
+                    ctx.font = '900 italic 30px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "12px";
+                    ctx.fillText('EDITION 2024 - ARTISTES', centerX + slideX, (canvas.height / 2) + 160);
+                    ctx.restore();
+                }
+                
+                // --- 5. TOP FLOATING BADGE (Slide 1-3) ---
                 if (currentPreviewIndex > 0) {
                     ctx.save();
-                    ctx.textAlign = 'center'; ctx.font = `900 italic 42px "Montserrat", sans-serif`;
+                    ctx.textAlign = 'center'; ctx.font = `900 italic 32px "Montserrat", sans-serif`;
                     const labelText = "FESTIVAL LINE-UP";
                     const labelW = ctx.measureText(labelText).width + 80;
-                    ctx.fillStyle = activeData.color;
+                    
+                    ctx.fillStyle = '#ff0033';
                     const rectX = (canvas.width - labelW) / 2 + slideX;
-                    const rectY = labelY - 52;
-                    ctx.beginPath(); ctx.roundRect(rectX, rectY, labelW, 80, 20); ctx.fill();
+                    const rectY = 60;
+                    ctx.beginPath(); ctx.roundRect(rectX, rectY, labelW, 70, 15); ctx.fill();
+                    
                     ctx.fillStyle = '#FFFFFF'; ctx.textBaseline = 'middle';
-                    ctx.fillText(labelText, canvas.width / 2 + slideX, rectY + 44);
+                    ctx.fillText(labelText, canvas.width / 2 + slideX, rectY + 38);
                     ctx.restore();
                 }
 
