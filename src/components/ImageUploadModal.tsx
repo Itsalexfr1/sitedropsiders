@@ -605,8 +605,6 @@ export function ImageUploadModal({
                                                         <Globe className="w-4 h-4" />
                                                         <span className="font-black text-[10px] uppercase tracking-widest">Google Images</span>
                                                     </button>
-                                                        <Search className="w-4 h-4" />
-                                                    </button>
                                                 </div>
                                                 
                                                  {libTab === 'r2' && (
