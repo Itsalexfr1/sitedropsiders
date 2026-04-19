@@ -22,6 +22,16 @@
     "columns": 1
   },
   {
+    "title": "Social Studio",
+    "description": "Outils Réseaux Sociaux",
+    "icon": "Instagram",
+    "category": "SOCIAL_STUDIO",
+    "link": "social-studio",
+    "permission": "news",
+    "baseColor": "#fb00ff",
+    "columns": 1
+  },
+  {
     "title": "Accueil",
     "description": "Sections & Vues",
     "icon": "LayoutDashboard",
@@ -142,16 +152,6 @@
     "columns": 1
   },
   {
-    "title": "Interview Studio",
-    "description": "Studio & Questions",
-    "icon": "MessageSquare",
-    "category": "STUDIO",
-    "link": "interview-studio",
-    "permission": "news",
-    "baseColor": "cyan",
-    "columns": 1
-  },
-  {
     "title": "Vérifier Photos",
     "description": "Modération Wiki Photos",
     "icon": "Camera",
@@ -164,6 +164,26 @@
     "columns": 1
   },
   {
+    "title": "Questions Aléatoires",
+    "description": "Randomizer d'Interviews",
+    "icon": "Dice5",
+    "category": "STUDIO",
+    "link": "random-questions",
+    "permission": "news",
+    "baseColor": "#2b00ff",
+    "columns": 1
+  },
+  {
+    "title": "Interview Studio",
+    "description": "Studio & Questions",
+    "icon": "MessageSquare",
+    "category": "STUDIO",
+    "link": "interview-studio",
+    "permission": "news",
+    "baseColor": "#ff0000",
+    "columns": 1
+  },
+  {
     "title": "Documents PDF",
     "description": "Hébergement & Partage",
     "icon": "Download",
@@ -172,17 +192,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "news",
-    "baseColor": "cyan",
-    "columns": 1
-  },
-  {
-    "title": "Questions Aléatoires",
-    "description": "Randomizer d'Interviews",
-    "icon": "Dice5",
-    "category": "STUDIO",
-    "link": "random-questions",
-    "permission": "news",
-    "baseColor": "cyan",
+    "baseColor": "#00ccff",
     "columns": 1
   },
   {
@@ -194,7 +204,7 @@
     "color": "border-pink-500/20 hover:border-pink-500",
     "bg": "bg-pink-500/5",
     "permission": "community_mod",
-    "baseColor": "pink",
+    "baseColor": "#ff0000",
     "columns": 1
   },
   {
@@ -206,17 +216,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "news",
-    "baseColor": "cyan",
+    "baseColor": "#4dff00",
     "columns": 1
-  },
-  {
-    "title": "Social Studio",
-    "description": "Outils Réseaux Sociaux",
-    "icon": "Instagram",
-    "category": "SOCIAL_STUDIO",
-    "link": "social-studio",
-    "permission": "news",
-    "baseColor": "pink",
-    "columns": 2
   }
 ]
