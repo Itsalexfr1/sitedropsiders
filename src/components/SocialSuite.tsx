@@ -538,26 +538,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
                 
                 // --- 1. SETTINGS & POSITIONS ---
-                const cardW = 600;
-                const cardH = 600;
-                // Dimensions & Organic staggered positions from photo
+                // Portrait cards from the screen reference
+                const cardW = 520;
+                const cardH = 720;
+                
+                // More dense / overlapping staggered positions matching the screen
                 const wallPositions = [
-                    { x: 920, y: 350 },  // 1 (Right)
-                    { x: 180, y: 550 },  // 2 (Left)
-                    { x: 880, y: 950 },  // 3 (Right)
-                    { x: 120, y: 1350 }, // 4 (Left)
-                    { x: 940, y: 1750 }, // 5 (Right)
-                    { x: 160, y: 2150 }, // 6 (Left)
-                    { x: 900, y: 2550 }, // 7 (Right)
-                    { x: 200, y: 2950 }, // 8 (Left)
-                    { x: 850, y: 3350 }, // 9 (Right)
-                    { x: 400, y: 3750 }, // 10 (Floating Center-ish)
+                    { x: 980, y: 350 },  // 1 (Far Right)
+                    { x: 300, y: 750 },  // 2 (Left)
+                    { x: 1050, y: 1100 }, // 3 (Out-Right)
+                    { x: 350, y: 1600 }, // 4 (Left-ish)
+                    { x: 920, y: 1950 }, // 5 (Right)
+                    { x: 150, y: 2450 }, // 6 (Far Left)
+                    { x: 1000, y: 2850 }, // 7 (Right)
+                    { x: 250, y: 3350 }, // 8 (Left)
+                    { x: 950, y: 3850 }, // 9 (Right)
+                    { x: 450, y: 4450 }, // 10 (Center)
                 ];
 
                 const isPost = effectiveTab === 'PUBLICATION';
-                const baseScroll = isPost ? 850 : 1100;
+                const baseScroll = isPost ? 900 : 1200;
                 const scrollY = currentPreviewIndex === 0 
-                    ? 50 // Peeking 
+                    ? 50 
                     : (currentPreviewIndex) * baseScroll - 400;
 
                 // --- 2. RENDER FESTIVAL WALL ---
@@ -570,14 +572,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const x = pos.x - cardW / 2;
                     const y = pos.y;
                     
-                    if (y - scrollY > canvas.height + 1000 || y - scrollY < -1000) return;
+                    if (y - scrollY > canvas.height + 1200 || y - scrollY < -1200) return;
 
                     ctx.save();
-                    // Premium Card Shadow
+                    // Dense Card Shadow
                     ctx.shadowColor = 'rgba(0,0,0,0.95)';
                     ctx.shadowBlur = 120;
-                    ctx.fillStyle = '#111';
-                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 85); ctx.fill();
+                    ctx.fillStyle = '#0a0a0a';
+                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 95); ctx.fill();
                     
                     if (item.photo) {
                         let photoImg = imageCacheRef.current[item.photo];
@@ -586,10 +588,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const scale = Math.max(cardW / photoImg.width, cardH / photoImg.height);
                             ctx.drawImage(photoImg, x + (cardW - photoImg.width * scale) / 2, y + (cardH - photoImg.height * scale) / 2, photoImg.width * scale, photoImg.height * scale);
                             
-                            // Bottom Vignette for text
-                            const nameGrad = ctx.createLinearGradient(0, y + cardH * 0.6, 0, y + cardH);
+                            // Vignette for name
+                            const nameGrad = ctx.createLinearGradient(0, y + cardH * 0.7, 0, y + cardH);
                             nameGrad.addColorStop(0, 'transparent');
-                            nameGrad.addColorStop(1, 'rgba(0,0,0,0.9)');
+                            nameGrad.addColorStop(1, 'rgba(0,0,0,0.95)');
                             ctx.fillStyle = nameGrad;
                             ctx.fillRect(x, y + cardH * 0.6, cardW, cardH * 0.4);
                         }
@@ -599,9 +601,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     // Bold Artist Name Overlay
                     ctx.save();
                     ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 48px "Montserrat", sans-serif';
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10;
-                    ctx.fillText(item.main.toUpperCase(), x + cardW / 2, y + cardH - 65);
+                    ctx.font = '900 52px "Montserrat", sans-serif';
+                    ctx.shadowColor = 'rgba(0,0,0,1)'; ctx.shadowBlur = 15;
+                    ctx.fillText(item.main.toUpperCase(), x + cardW / 2, y + cardH - 75);
                     ctx.restore();
                 });
                 ctx.restore();
@@ -612,15 +614,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const startY = labelY + 130;
 
                     ctx.save();
-                    // Cover Vignette
                     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
                     grad.addColorStop(0, 'rgba(0,0,0,0.7)');
                     grad.addColorStop(0.4, 'rgba(0,0,0,0)');
-                    grad.addColorStop(1, 'rgba(0,0,0,0.9)'); 
+                    grad.addColorStop(1, 'rgba(0,0,0,0.95)'); 
                     ctx.fillStyle = grad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // --- 3.1 CATEGORY BADGE (News Style Re-instated) ---
+                    // Badge LINE-UP (Style News)
                     const labelText = 'LINE-UP';
                     ctx.font = '900 italic 42px "Montserrat", sans-serif';
                     const labelW = ctx.measureText(labelText).width + 80;
@@ -636,7 +637,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(labelText, centerX + slideX, rectY + 44);
                     ctx.restore();
 
-                    // --- 3.2 TITLE & DESCRIPTION ---
+                    // Titre Festival
                     ctx.save();
                     ctx.textAlign = 'center';
                     ctx.font = '900 italic 85px "Montserrat", sans-serif';
