@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { translateText } from '../utils/translate';
 
 interface QuestionsData {
     fr: string[];
@@ -23,10 +24,14 @@ export function AdminInterviewQuestions() {
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [editingValue, setEditingValue] = useState('');
     const [newQuestion, setNewQuestion] = useState('');
+    const [autoTranslate, setAutoTranslate] = useState(true);
 
     // Modal State
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [indexToDelete, setIndexToDelete] = useState<number | null>(null);
+    const [indexToDelete, setIndexToDelete] = useState<number[] | null>(null);
+
+    // Selection State
+    const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
     // Toast State
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
@@ -92,26 +97,67 @@ export function AdminInterviewQuestions() {
         }
     };
 
-    const addQuestion = () => {
+    const addQuestion = async () => {
         if (!newQuestion.trim()) return;
+        const qText = newQuestion.trim();
         const updated = { ...questions };
-        updated[activeLang] = [newQuestion.trim(), ...updated[activeLang]];
+        
+        // Add to current lang
+        updated[activeLang] = [qText, ...updated[activeLang]];
+
+        // Auto-translate if FR
+        if (activeLang === 'fr' && autoTranslate) {
+            try {
+                showNotification('Traduction en cours...', 'success');
+                const translated = await translateText(qText, 'en');
+                updated.en = [translated, ...updated.en];
+                showNotification('Question ajoutée et traduite !', 'success');
+            } catch (e) {
+                console.error('Translation failed', e);
+                showNotification('La question a été ajoutée mais la traduction a échoué', 'error');
+            }
+        } else {
+            showNotification('Question ajoutée !', 'success');
+        }
+
         setQuestions(updated);
         setNewQuestion('');
     };
 
     const deleteQuestion = (index: number) => {
-        setIndexToDelete(index);
+        setIndexToDelete([index]);
+        setIsDeleteModalOpen(true);
+    };
+
+    const deleteSelected = () => {
+        if (selectedIndices.length === 0) return;
+        setIndexToDelete(selectedIndices);
         setIsDeleteModalOpen(true);
     };
 
     const confirmDelete = () => {
         if (indexToDelete === null) return;
         const updated = { ...questions };
-        updated[activeLang] = updated[activeLang].filter((_, i) => i !== indexToDelete);
+        updated[activeLang] = updated[activeLang].filter((_, i) => !indexToDelete.includes(i));
         setQuestions(updated);
         setIsDeleteModalOpen(false);
         setIndexToDelete(null);
+        setSelectedIndices([]);
+    };
+
+    const toggleSelect = (index: number) => {
+        setSelectedIndices(prev => 
+            prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIndices.length === filteredQuestions.length) {
+            setSelectedIndices([]);
+        } else {
+            const indices = filteredQuestions.map(q => questions[activeLang].indexOf(q));
+            setSelectedIndices(indices);
+        }
     };
 
     const startEditing = (index: number, value: string) => {
@@ -179,7 +225,7 @@ export function AdminInterviewQuestions() {
                 <div className="grid lg:grid-cols-[1fr_350px] gap-8">
                     <div className="space-y-6">
                         {/* Search & Add */}
-                        <div className="flex flex-col md:flex-row gap-4 p-6 bg-white/[0.03] border border-white/10 rounded-[2.5rem]">
+                        <div className="flex flex-col md:flex-row gap-4 p-6 bg-white/[0.03] border border-white/10 rounded-[2.5rem] relative">
                             <div className="relative flex-1">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                 <input 
@@ -192,17 +238,28 @@ export function AdminInterviewQuestions() {
                             </div>
                             <div className="flex gap-2">
                                 <button 
-                                    onClick={() => setActiveLang('fr')}
+                                    onClick={() => { setActiveLang('fr'); setSelectedIndices([]); }}
                                     className={`px-6 py-4 rounded-xl font-black text-xs transition-all border ${activeLang === 'fr' ? 'bg-white text-black border-white' : 'bg-black/40 border-white/10 text-gray-500 hover:text-white'}`}
                                 >
                                     FRENCH
                                 </button>
                                 <button 
-                                    onClick={() => setActiveLang('en')}
+                                    onClick={() => { setActiveLang('en'); setSelectedIndices([]); }}
                                     className={`px-6 py-4 rounded-xl font-black text-xs transition-all border ${activeLang === 'en' ? 'bg-white text-black border-white' : 'bg-black/40 border-white/10 text-gray-500 hover:text-white'}`}
                                 >
                                     ENGLISH
                                 </button>
+                            </div>
+
+                            {/* Select All Toggle */}
+                            <div className="absolute -bottom-3 left-8 flex items-center gap-2 px-3 py-1 bg-[#050505] border border-white/10 rounded-full">
+                                <input 
+                                    type="checkbox"
+                                    checked={selectedIndices.length > 0 && selectedIndices.length === filteredQuestions.length}
+                                    onChange={toggleSelectAll}
+                                    className="w-3 h-3 rounded border-white/20 bg-transparent checked:bg-neon-cyan cursor-pointer"
+                                />
+                                <span className="text-[8px] font-black uppercase tracking-widest text-gray-500">Tout sélectionner</span>
                             </div>
                         </div>
 
@@ -220,10 +277,18 @@ export function AdminInterviewQuestions() {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, scale: 0.95 }}
-                                            className="group flex items-center gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/20 transition-all"
+                                            className={`group flex items-center gap-4 p-5 border rounded-2xl transition-all ${selectedIndices.includes(realIndex) ? 'bg-neon-cyan/5 border-neon-cyan/30' : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04] hover:border-white/20'}`}
                                         >
-                                            <div className="w-8 h-8 flex items-center justify-center bg-black/40 rounded-lg text-gray-600 font-bold text-xs shrink-0">
-                                                {realIndex + 1}
+                                            <div className="flex items-center gap-3">
+                                                <input 
+                                                    type="checkbox"
+                                                    checked={selectedIndices.includes(realIndex)}
+                                                    onChange={() => toggleSelect(realIndex)}
+                                                    className="w-4 h-4 rounded border-white/20 bg-transparent checked:bg-neon-cyan cursor-pointer"
+                                                />
+                                                <div className={`w-8 h-8 flex items-center justify-center rounded-lg font-bold text-xs shrink-0 transition-colors ${selectedIndices.includes(realIndex) ? 'bg-neon-cyan text-black' : 'bg-black/40 text-gray-600'}`}>
+                                                    {realIndex + 1}
+                                                </div>
                                             </div>
 
                                             {isEditing ? (
@@ -281,6 +346,21 @@ export function AdminInterviewQuestions() {
                             <h3 className="text-lg font-display font-black uppercase italic mb-6">Ajouter une question</h3>
                             
                             <div className="space-y-4">
+                                {activeLang === 'fr' && (
+                                    <button 
+                                        onClick={() => setAutoTranslate(!autoTranslate)}
+                                        className={`flex items-center justify-between w-full p-3 rounded-xl border transition-all ${autoTranslate ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-black/40 border-white/5 text-gray-500'}`}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Languages className="w-3 h-3" />
+                                            <span className="text-[8px] font-black uppercase tracking-widest">Auto-Traduire en Anglais</span>
+                                        </div>
+                                        <div className={`w-6 h-3 rounded-full relative ${autoTranslate ? 'bg-neon-cyan' : 'bg-gray-700'}`}>
+                                            <div className={`absolute top-0.5 w-2 h-2 rounded-full bg-white transition-all ${autoTranslate ? 'right-0.5' : 'left-0.5'}`} />
+                                        </div>
+                                    </button>
+                                )}
+
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest ml-1">Label {activeLang.toUpperCase()}</label>
                                     <textarea 
@@ -323,6 +403,39 @@ export function AdminInterviewQuestions() {
                     </div>
                 </div>
             </div>
+
+            {/* Bulk Actions Floating Bar */}
+            <AnimatePresence>
+                {selectedIndices.length > 0 && (
+                    <motion.div 
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 100, opacity: 0 }}
+                        className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[5000]"
+                    >
+                        <div className="px-6 py-4 bg-black/80 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-3xl flex items-center gap-8">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase text-neon-cyan tracking-widest">{selectedIndices.length} sélectionné(s)</span>
+                                <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">Actions groupées</span>
+                            </div>
+                            <div className="h-8 w-px bg-white/10" />
+                            <button 
+                                onClick={deleteSelected}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 rounded-xl hover:text-white transition-all font-black uppercase tracking-widest text-[9px]"
+                            >
+                                <Trash2 className="w-3 h-3" />
+                                Supprimer la sélection
+                            </button>
+                            <button 
+                                onClick={() => setSelectedIndices([])}
+                                className="text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors"
+                            >
+                                Annuler
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <ConfirmModal 
                 isOpen={isDeleteModalOpen}
