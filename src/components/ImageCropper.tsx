@@ -17,18 +17,21 @@ interface ImageCropperProps {
 export const getCroppedImg = (imageSrc: string, pixelCrop: Area): Promise<string> => {
     return new Promise((resolve, reject) => {
         const image = new Image();
-        
-        // Only set crossOrigin if the image is actually from a different origin.
-        // Forcing crossOrigin='anonymous' on same-origin requests can break if the server doesn't send CORS headers.
-        const originMatch = imageSrc.match(/^https?:\/\/[^\/]+/i);
-        if (originMatch && originMatch[0] !== window.location.origin) {
-            image.setAttribute('crossOrigin', 'anonymous');
-        }
-        
-        // Add timestamp to bypass cache (often causes CORS issues with cached non-CORS responses)
-        const cacheBuster = imageSrc.includes('?') ? '&' : '?';
         const isDataOrBlob = imageSrc.startsWith('data:') || imageSrc.startsWith('blob:');
-        image.src = isDataOrBlob ? imageSrc : `${imageSrc}${cacheBuster}t=${Date.now()}`;
+        
+        const originMatch = imageSrc.match(/^https?:\/\/[^\/]+/i);
+        const isExternal = originMatch && originMatch[0] !== window.location.origin;
+
+        // If it's an external URL, route it through our Cloudflare Worker proxy
+        // This avoids both CORS blocks and canvas tainting
+        if (isExternal && !isDataOrBlob) {
+            image.setAttribute('crossOrigin', 'anonymous');
+            image.src = `/api/proxy-image?url=${encodeURIComponent(imageSrc)}`;
+        } else {
+            // Add timestamp to bypass cache for non-proxied images
+            const cacheBuster = imageSrc.includes('?') ? '&' : '?';
+            image.src = isDataOrBlob ? imageSrc : `${imageSrc}${cacheBuster}t=${Date.now()}`;
+        }
         
         image.onload = () => {
             try {
