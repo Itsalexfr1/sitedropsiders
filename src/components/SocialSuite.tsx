@@ -541,25 +541,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const cardW = 620;
                 const cardH = 680;
                 const wallPositions = [
-                    { x: 540, y: 1200 }, // Artist 1 (Center, low)
-                    { x: 980, y: 1050 }, // Artist 2 (Right, high)
-                    { x: 100, y: 1450 }, // Artist 3 (Left, middle)
-                    { x: 540, y: 1850 }, // Artist 4 (Center, high)
-                    { x: 980, y: 2200 }, // Artist 5 (Right, low)
-                    { x: 100, y: 1950 }, // Artist 6 (Left, high)
-                    { x: 540, y: 2600 }, // Artist 7 (Center, low)
-                    { x: 980, y: 2800 }, // Artist 8 (Right, middle)
-                    { x: 100, y: 2500 }, // Artist 9 (Left, low)
-                    { x: 540, y: 3200 }, // Artist 10 (Center)
+                    { x: 980, y: 300 },  // Artist 1 (Top Right, peeking on cover)
+                    { x: 1050, y: 950 },  // Artist 2 (Far Right)
+                    { x: 940, y: 1600 }, // Artist 3 (Right)
+                    { x: 540, y: 1200 }, // Artist 4 (Center)
+                    { x: 100, y: 900 },  // Artist 5 (Left peeking)
+                    { x: 540, y: 1950 }, // Artist 6 (Center)
+                    { x: 120, y: 1650 }, // Artist 7 (Left)
+                    { x: 960, y: 2300 }, // Artist 8 (Right)
+                    { x: 480, y: 2700 }, // Artist 9 (Center-ish)
+                    { x: 100, y: 2400 }, // Artist 10 (Left)
                 ];
 
                 // Scroll Logic: Slide 0 is Cover, Slides 1-3 are the wall
                 // We calculate scrollY to focus on different sections
                 const isPost = effectiveTab === 'PUBLICATION';
-                const baseScroll = isPost ? 650 : 850;
+                const baseScroll = isPost ? 750 : 1000;
                 const scrollY = currentPreviewIndex === 0 
-                    ? -200 // Start of wall visible at bottom 
-                    : (currentPreviewIndex - 0.5) * baseScroll;
+                    ? 0 // Start of wall peeking from top right 
+                    : (currentPreviewIndex) * baseScroll - 400;
 
                 // --- 2. RENDER FESTIVAL WALL (Artists) ---
                 ctx.save();
@@ -577,9 +577,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     // Card Shadow & Container
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 50;
+                    ctx.shadowBlur = 60;
                     ctx.fillStyle = '#0a0a0a';
-                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 50); ctx.fill();
+                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 60); ctx.fill();
                     
                     // Artist Photo
                     if (item.photo) {
@@ -593,15 +593,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
 
                     // Name Label (at the bottom of each card)
-                    const labelH = 120;
+                    const labelH = 130;
                     ctx.save();
                     ctx.translate(x, y + cardH - labelH);
                     ctx.beginPath(); ctx.roundRect(0, 0, cardW, labelH, 0); ctx.clip();
-                    ctx.fillStyle = 'rgba(0,0,0,0.9)'; ctx.fillRect(0, 0, cardW, labelH);
+                    ctx.fillStyle = 'rgba(0,0,0,0.95)'; ctx.fillRect(0, 0, cardW, labelH);
                     
                     ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 italic 42px "Montserrat", sans-serif';
-                    ctx.fillText(item.main.toUpperCase(), cardW / 2, 75);
+                    ctx.font = '900 italic 44px "Montserrat", sans-serif';
+                    ctx.fillText(item.main.toUpperCase(), cardW / 2, 80);
                     ctx.restore();
                 });
                 ctx.restore();
@@ -611,7 +611,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     const lw = 320;
                     const lh = (logoRef.current.height / logoRef.current.width) * lw;
-                    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15;
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 20;
                     ctx.drawImage(logoRef.current, canvas.width - lw - 60, 60, lw, lh);
                     ctx.restore();
                 }
@@ -622,17 +622,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const startY = labelY + 130;
 
                     ctx.save();
-                    // Main Gradient Overlay
+                    // Main Gradient Overlay (Dark wash at bottom)
                     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
                     grad.addColorStop(0, 'rgba(0,0,0,0.6)');
-                    grad.addColorStop(0.3, 'rgba(0,0,0,0)');
-                    grad.addColorStop(0.6, 'rgba(0,0,0,0)');
-                    grad.addColorStop(0.8, 'rgba(0,0,0,0.4)');
-                    grad.addColorStop(1, 'rgba(255,0,51,0.7)'); 
+                    grad.addColorStop(0.4, 'rgba(0,0,0,0)');
+                    grad.addColorStop(0.7, 'rgba(0,0,0,0.2)');
+                    grad.addColorStop(1, 'rgba(0,0,0,0.8)'); 
                     ctx.fillStyle = grad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // --- 4.1 LINE-UP BADGE (Same as News Category) ---
+                    // --- 4.1 LINE-UP BADGE (Category style) ---
                     const labelText = 'LINE-UP';
                     ctx.font = '900 italic 42px "Montserrat", sans-serif';
                     const labelW = ctx.measureText(labelText).width + 80;
@@ -640,7 +639,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const rectY = labelY - 52;
                     
                     ctx.fillStyle = '#ff0033';
-                    ctx.shadowColor = 'rgba(255,0,51,0.5)'; ctx.shadowBlur = 30;
+                    ctx.shadowColor = 'rgba(255,0,51,0.6)'; ctx.shadowBlur = 40;
                     ctx.beginPath(); ctx.roundRect(rectX, rectY, labelW, 80, 20); ctx.fill();
                     
                     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -648,20 +647,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(labelText, centerX + slideX, rectY + 44);
                     ctx.restore();
 
-                    // --- 4.2 TITLE & SUBTITLE (Same as News Title) ---
+                    // --- 4.2 TITLE & SUBTITLE ---
                     ctx.save();
                     ctx.textAlign = 'center';
 
                     // Nom du Festival
                     ctx.font = '900 italic 85px "Montserrat", sans-serif';
                     ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15;
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
                     ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, startY + 40);
                     
-                    // Edition subtitle
-                    ctx.font = '900 italic 30px "Montserrat", sans-serif';
-                    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "12px";
-                    ctx.fillText('EDITION 2024 - ARTISTES', centerX + slideX, startY + 110);
+                    // Simple text below (if any) or placeholder
+                    const lines = customText ? customText.split('\n') : [];
+                    if (lines[1]) {
+                        ctx.font = '900 italic 30px "Montserrat", sans-serif';
+                        ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "6px";
+                        ctx.fillText(lines[1].toUpperCase(), centerX + slideX, startY + 110);
+                    }
                     ctx.restore();
                 }
                 
