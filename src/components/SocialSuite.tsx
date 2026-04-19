@@ -618,36 +618,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 // --- 4. COVER OVERLAY (Slide 0) ---
                 if (currentPreviewIndex === 0) {
+                    const labelY = isPost ? 880 : safeBottom - 450;
+                    const startY = labelY + 130;
+
                     ctx.save();
-                    // Main Gradient Overlay (Matching the mockup's red gradient)
+                    // Main Gradient Overlay
                     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
                     grad.addColorStop(0, 'rgba(0,0,0,0.6)');
                     grad.addColorStop(0.3, 'rgba(0,0,0,0)');
                     grad.addColorStop(0.6, 'rgba(0,0,0,0)');
                     grad.addColorStop(0.8, 'rgba(0,0,0,0.4)');
-                    grad.addColorStop(1, 'rgba(255,0,51,0.7)'); // Final red wash at bottom
+                    grad.addColorStop(1, 'rgba(255,0,51,0.7)'); 
                     ctx.fillStyle = grad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // --- TYPOGRAPHY ---
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
+                    // --- 4.1 LINE-UP BADGE (Same as News Category) ---
+                    const labelText = 'LINE-UP';
+                    ctx.font = '900 italic 42px "Montserrat", sans-serif';
+                    const labelW = ctx.measureText(labelText).width + 80;
+                    const rectX = (canvas.width - labelW) / 2 + slideX;
+                    const rectY = labelY - 52;
                     
-                    // Large "LINE-UP" with glow
-                    ctx.font = '900 italic 165px "Montserrat", sans-serif';
                     ctx.fillStyle = '#ff0033';
-                    ctx.shadowColor = 'rgba(255,0,51,0.9)'; ctx.shadowBlur = 60;
-                    ctx.fillText('LINE-UP', centerX + slideX, (canvas.height / 2) - 100);
+                    ctx.shadowColor = 'rgba(255,0,51,0.5)'; ctx.shadowBlur = 30;
+                    ctx.beginPath(); ctx.roundRect(rectX, rectY, labelW, 80, 20); ctx.fill();
                     
-                    // Nom du Festival (White bold italic)
-                    ctx.font = '900 italic 82px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 20;
-                    ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, (canvas.height / 2) + 60);
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 0;
+                    ctx.fillText(labelText, centerX + slideX, rectY + 44);
+                    ctx.restore();
+
+                    // --- 4.2 TITLE & SUBTITLE (Same as News Title) ---
+                    ctx.save();
+                    ctx.textAlign = 'center';
+
+                    // Nom du Festival
+                    ctx.font = '900 italic 85px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 15;
+                    ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, startY + 40);
                     
-                    // Edition/Artist subtitle (Light italic)
+                    // Edition subtitle
                     ctx.font = '900 italic 30px "Montserrat", sans-serif';
                     ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "12px";
-                    ctx.fillText('EDITION 2024 - ARTISTES', centerX + slideX, (canvas.height / 2) + 160);
+                    ctx.fillText('EDITION 2024 - ARTISTES', centerX + slideX, startY + 110);
                     ctx.restore();
                 }
                 
