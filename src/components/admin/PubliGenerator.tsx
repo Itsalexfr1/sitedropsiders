@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { uploadFile } from '../../utils/uploadService';
 import { fixEncoding } from '../../utils/standardizer';
+import { R2PhotosMenuModal } from './modals/R2PhotosMenuModal';
 
 interface PubliGeneratorProps {
     isOpen: boolean;
@@ -219,6 +220,7 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
     const [copied, setCopied] = useState<string | null>(null);
     const [imageUrl, setImageUrl] = useState<string>('');
     const [isUploading, setIsUploading] = useState(false);
+    const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [selectedPlatform, setSelectedPlatform] = useState<Platform>('instagram');
     const [generated, setGenerated] = useState(false);
     const [editedTexts, setEditedTexts] = useState<Record<Platform, string>>({
@@ -366,17 +368,19 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                                             </button>
                                         </div>
                                     ) : (
-                                        <label className="w-24 h-24 rounded-xl border-2 border-dashed border-white/10 hover:border-neon-orange/50 hover:bg-neon-orange/[0.04] transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer group flex-shrink-0">
+                                        <button 
+                                            onClick={() => setIsR2ModalOpen(true)}
+                                            className="w-24 h-24 rounded-xl border-2 border-dashed border-white/10 hover:border-neon-orange/50 hover:bg-neon-orange/[0.04] transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer group flex-shrink-0"
+                                        >
                                             {isUploading ? (
                                                 <RefreshCw className="w-5 h-5 text-neon-orange animate-spin" />
                                             ) : (
                                                 <>
                                                     <Upload className="w-5 h-5 text-gray-500 group-hover:text-neon-orange transition-colors" />
-                                                    <span className="text-[7px] font-black text-gray-600 uppercase tracking-wider">Upload</span>
+                                                    <span className="text-[7px] font-black text-gray-600 uppercase tracking-wider">Cloud Upload</span>
                                                 </>
                                             )}
-                                            <input type="file" onChange={handleImageUpload} accept="image/*" className="hidden" />
-                                        </label>
+                                        </button>
                                     )}
                                     <p className="text-[10px] text-gray-500 leading-relaxed">Ajoute une photo pour les templates Social Studio</p>
                                 </div>
@@ -552,13 +556,21 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div className="flex-shrink-0 px-6 py-3 bg-black/40 border-t border-white/5 text-center">
                     <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-700">
                         DROPSIDERS CONTENT ENGINE • POWERED BY ALEXFR1
                     </p>
                 </div>
             </motion.div>
+
+            <R2PhotosMenuModal 
+                isOpen={isR2ModalOpen} 
+                onClose={() => setIsR2ModalOpen(false)}
+                onSelect={(url) => {
+                    setImageUrl(url);
+                    setIsR2ModalOpen(false);
+                }}
+            />
         </div>
     );
 }

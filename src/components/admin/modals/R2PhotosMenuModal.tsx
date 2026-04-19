@@ -6,11 +6,14 @@ import { getAuthHeaders } from '../../../utils/auth';
 interface R2PhotosMenuModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSelect?: (url: string) => void;
+    mode?: 'view' | 'select';
 }
 
-export function R2PhotosMenuModal({ isOpen, onClose }: R2PhotosMenuModalProps) {
+export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: R2PhotosMenuModalProps) {
     const [photos, setPhotos] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [cursor, setCursor] = useState<string | null>(null);
     const [history, setHistory] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -82,6 +85,33 @@ export function R2PhotosMenuModal({ isOpen, onClose }: R2PhotosMenuModalProps) {
         }
     };
 
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/r2/upload', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: formData
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const newPhoto = { key: data.key, url: data.url, size: file.size, uploaded: new Date().toISOString() };
+                setPhotos(prev => [newPhoto, ...prev]);
+                if (mode === 'select' && onSelect) {
+                    onSelect(data.url);
+                }
+            }
+        } catch (err) {
+            console.error('Upload failed', err);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const filteredPhotos = photos.filter(p => p.key.toLowerCase().includes(searchTerm.toLowerCase()));
 
     return (
@@ -126,6 +156,13 @@ export function R2PhotosMenuModal({ isOpen, onClose }: R2PhotosMenuModalProps) {
                                         className="w-full md:w-48 pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-xs focus:ring-1 focus:ring-neon-red outline-none transition-all"
                                     />
                                 </div>
+
+                                <label className="flex items-center gap-2 px-4 py-2 bg-neon-red hover:bg-red-600 text-white rounded-xl cursor-pointer transition-all shadow-lg shadow-neon-red/20 group">
+                                    {isUploading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform" />}
+                                    <span className="text-[10px] font-black uppercase tracking-widest">{isUploading ? 'Chargement...' : 'Upload'}</span>
+                                    <input type="file" onChange={handleUpload} className="hidden" accept="image/*" />
+                                </label>
+
                                 <button 
                                     onClick={() => fetchPhotos()} 
                                     className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white transition-all scale-110 md:scale-100"
@@ -175,7 +212,16 @@ export function R2PhotosMenuModal({ isOpen, onClose }: R2PhotosMenuModalProps) {
                                             
                                             {/* Overlay info */}
                                             <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black via-black/90 to-transparent translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                                <p className="text-[8px] font-black text-white truncate uppercase tracking-widest mb-2">{photo.key.split('/').pop()}</p>
+                                                {mode === 'select' ? (
+                                                    <button 
+                                                        onClick={() => onSelect?.(photo.url)}
+                                                        className="w-full py-2 bg-neon-red text-white text-[9px] font-black uppercase rounded-lg mb-2 shadow-lg shadow-neon-red/30 hover:scale-105 active:scale-95 transition-all"
+                                                    >
+                                                        Sélectionner
+                                                    </button>
+                                                ) : (
+                                                    <p className="text-[8px] font-black text-white truncate uppercase tracking-widest mb-2">{photo.key.split('/').pop()}</p>
+                                                )}
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-[7px] text-gray-400 font-bold">{(photo.size / 1024).toFixed(1)} KB</span>
                                                     <div className="flex gap-1.5">
