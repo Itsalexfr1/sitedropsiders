@@ -15,6 +15,11 @@ export function resolveImageUrl(url: string | undefined | null): string {
     let processedUrl = String(url).trim();
     if (!processedUrl || processedUrl === 'undefined' || processedUrl === 'null') return fallback;
 
+    // 0. Do not process base64 data URLs or blob URLs
+    if (processedUrl.startsWith('data:') || processedUrl.startsWith('blob:')) {
+        return processedUrl;
+    }
+
     // 1. Strip the main domain if present
     processedUrl = processedUrl.replace(/^https?:\/\/(www\.)?dropsiders\.fr/i, '');
 
