@@ -2052,29 +2052,38 @@ export function AdminDashboard() {
             if (!resetRes.ok) throw new Error('Reset failed');
 
             // 2. Fetch News to seed random tracks from music articles
-            const newsData = await apiFetch('/api/news');
+            const newsRes = await apiFetch('/api/news');
+            const newsData = newsRes.ok ? await newsRes.json() : [];
+            
             if (newsData && Array.isArray(newsData)) {
                 const musicNews = newsData.filter((n: any) => 
                     (n.category || '').toLowerCase().includes('musique') || 
                     (n.category || '').toLowerCase().includes('music')
                 );
                 
-                const trackRegex = /MUSIC\s+(.*?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi;
                 const pool: any[] = [];
-                
                 musicNews.forEach((article: any) => {
                     const text = (article.summary || article.content || '');
-                    let match;
-                    while ((match = trackRegex.exec(text)) !== null) {
-                        const title = match[1].trim();
-                        if (title && !pool.find(p => p.trackTitle === title)) {
-                            pool.push({ 
-                                trackTitle: title,
-                                media: '', 
-                                playerType: 'spotify'
-                            });
+                    
+                    const patterns = [
+                        /MUSIC\s+(.*?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi,
+                        /Music:\s+(.*?)(?=\n|$)/gi,
+                        /^\s*(.*?)\s+-\s+(.*?)\s*$/gm
+                    ];
+
+                    patterns.forEach(regex => {
+                        let match;
+                        while ((match = regex.exec(text)) !== null) {
+                            const title = (match[1] + (match[2] ? ` - ${match[2]}` : '')).trim().toUpperCase();
+                            if (title && title.length > 5 && title.length < 100 && !pool.find(p => p.trackTitle === title)) {
+                                pool.push({ 
+                                    trackTitle: title,
+                                    media: '', 
+                                    playerType: 'spotify'
+                                });
+                            }
                         }
-                    }
+                    });
                 });
 
                 if (pool.length > 0) {

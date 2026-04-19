@@ -160,7 +160,7 @@ export function InterviewRandomizer() {
                                                 <Sparkles className="w-3 h-3 text-neon-cyan" />
                                                 <span className="text-[8px] md:text-[10px] font-black text-neon-cyan uppercase tracking-[0.2em]">SÉLECTIONNÉE</span>
                                             </div>
-                                            <h4 className="text-3xl md:text-7xl font-display font-black text-white italic tracking-tighter leading-[1.1] px-4 md:px-10 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                                            <h4 className="text-4xl md:text-8xl lg:text-[10rem] font-display font-black text-white italic tracking-tighter leading-[0.9] px-4 md:px-20 drop-shadow-[0_0_50px_rgba(255,255,255,0.2)]">
                                                 "{currentQuestion}"
                                             </h4>
                                         </motion.div>
@@ -282,7 +282,7 @@ export function InterviewRandomizer() {
                                 </div>
 
                                 <div className="px-2">
-                                    <h2 className="text-2xl md:text-6xl font-display font-black text-white italic tracking-tighter leading-tight drop-shadow-2xl">
+                                    <h2 className="text-3xl md:text-7xl lg:text-9xl font-display font-black text-white italic tracking-tighter leading-[1] drop-shadow-[0_0_60px_rgba(255,255,255,0.3)]">
                                         "{selectedEntry.question}"
                                     </h2>
                                 </div>

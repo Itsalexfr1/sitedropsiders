@@ -43,20 +43,29 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                         
                         // Extract tracks from summaries
                         const extractedTracks: Track[] = [];
-                        const trackRegex = /MUSIC\s+(.*?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi;
                         
                         musicNews.forEach((article: any) => {
-                            if (!article.summary) return;
-                            let match;
-                            while ((match = trackRegex.exec(article.summary)) !== null) {
-                                const trackTitle = match[1].trim();
-                                if (trackTitle && !extractedTracks.some(t => t.title === trackTitle)) {
-                                    extractedTracks.push({
-                                        title: trackTitle,
-                                        votes: Math.floor(Math.random() * 200) + 100 // Simulate some activity for display
-                                    });
+                            const text = article.summary || '';
+                            if (!text) return;
+                            
+                            const patterns = [
+                                /MUSIC\s+(.*?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi,
+                                /Music:\s+(.*?)(?=\n|$)/gi,
+                                /^\s*(.*?)\s+-\s+(.*?)\s*$/gm
+                            ];
+
+                            patterns.forEach(regex => {
+                                let match;
+                                while ((match = regex.exec(text)) !== null) {
+                                    const title = (match[1] + (match[2] ? ` - ${match[2]}` : '')).trim();
+                                    if (title && title.length > 5 && title.length < 100 && !extractedTracks.find(t => t.title === title.toUpperCase())) {
+                                        extractedTracks.push({
+                                            title: title.toUpperCase(),
+                                            votes: Math.floor(Math.random() * 300) + 100 // Seed random votes for variety
+                                        });
+                                    }
                                 }
-                            }
+                            });
                         });
 
                         if (extractedTracks.length > 0) {
