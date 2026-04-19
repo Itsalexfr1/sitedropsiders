@@ -6,6 +6,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 interface QuestionsData {
     fr: string[];
@@ -22,6 +23,22 @@ export function AdminInterviewQuestions() {
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [editingValue, setEditingValue] = useState('');
     const [newQuestion, setNewQuestion] = useState('');
+
+    // Modal State
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [indexToDelete, setIndexToDelete] = useState<number | null>(null);
+
+    // Toast State
+    const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
+        show: false,
+        message: '',
+        type: 'success'
+    });
+
+    const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
+    };
 
     const currentUser = localStorage.getItem('admin_user');
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
@@ -63,13 +80,13 @@ export function AdminInterviewQuestions() {
             });
 
             if (res.ok) {
-                alert('Questions enregistrées avec succès !');
+                showNotification('Questions enregistrées avec succès !', 'success');
             } else {
-                alert('Erreur lors de l\'enregistrement');
+                showNotification('Erreur lors de l\'enregistrement', 'error');
             }
         } catch (e) {
             console.error('Save error:', e);
-            alert('Erreur de connexion');
+            showNotification('Erreur de connexion', 'error');
         } finally {
             setIsSaving(false);
         }
@@ -84,10 +101,17 @@ export function AdminInterviewQuestions() {
     };
 
     const deleteQuestion = (index: number) => {
-        if (!confirm('Voulez-vous supprimer cette question ?')) return;
+        setIndexToDelete(index);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (indexToDelete === null) return;
         const updated = { ...questions };
-        updated[activeLang] = updated[activeLang].filter((_, i) => i !== index);
+        updated[activeLang] = updated[activeLang].filter((_, i) => i !== indexToDelete);
         setQuestions(updated);
+        setIsDeleteModalOpen(false);
+        setIndexToDelete(null);
     };
 
     const startEditing = (index: number, value: string) => {
@@ -299,6 +323,36 @@ export function AdminInterviewQuestions() {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal 
+                isOpen={isDeleteModalOpen}
+                title="Supprimer la question"
+                message="Êtes-vous sûr de vouloir supprimer cette question ? Cette action est irréversible jusqu'au prochain enregistrement."
+                onConfirm={confirmDelete}
+                onCancel={() => setIsDeleteModalOpen(false)}
+                type="danger"
+                confirmText="Supprimer définitvement"
+                cancelText="Annuler"
+            />
+
+            {/* Toast Notification */}
+            <AnimatePresence>
+                {toast.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                        className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[10000]"
+                    >
+                        <div className={`px-8 py-4 rounded-2xl border backdrop-blur-xl shadow-2xl flex items-center gap-4 ${toast.type === 'success' ? 'bg-black/80 border-neon-cyan/50 text-white' : 'bg-red-950/80 border-red-500/50 text-white'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${toast.type === 'success' ? 'bg-neon-cyan/20' : 'bg-red-500/20'}`}>
+                                {toast.type === 'success' ? <Check className="w-5 h-5 text-neon-cyan" /> : <X className="w-5 h-5 text-red-500" />}
+                            </div>
+                            <span className="font-black uppercase tracking-widest text-[10px]">{toast.message}</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
