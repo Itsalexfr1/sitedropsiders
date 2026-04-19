@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Settings, Users, MessageSquare, Send, Zap,
@@ -2671,25 +2671,46 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             return items.filter(i => i.text).map((item, idx) => {
                                                 const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
                                                 const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
-                                                return (
-                                                    <a
-                                                        key={`${loopIdx}-${idx}`}
-                                                        href={fullLink || undefined}
-                                                        target={isExternal ? "_blank" : undefined}
-                                                        rel={isExternal ? "noopener noreferrer" : undefined}
-                                                        onClick={(e) => {
-                                                            if (!fullLink) {
-                                                                e.preventDefault();
-                                                            } else if (!isExternal) {
-                                                                e.preventDefault();
-                                                                navigate(fullLink);
-                                                            }
-                                                        }}
-                                                        className={`text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 drop-shadow-md group/newsitem ${fullLink ? 'hover:text-neon-red transition-colors cursor-pointer' : 'cursor-default'}`}
-                                                    >
-                                                        <Sparkles className={`w-3 h-3 text-neon-red transition-colors ${fullLink ? 'group-hover/newsitem:text-white' : ''}`} />
+                                                
+                                                const content = (
+                                                    <>
+                                                        <Sparkles className={`w-3 h-3 transition-colors ${fullLink ? 'text-neon-red group-hover/newsitem:text-white' : 'text-neon-red'}`} />
                                                         <span className={fullLink ? 'group-hover/newsitem:text-neon-red transition-colors' : ''}>{item.text}</span>
-                                                    </a>
+                                                    </>
+                                                );
+                                                
+                                                const sharedClassName = `text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 drop-shadow-md group/newsitem ${fullLink ? 'hover:text-neon-red transition-colors cursor-pointer' : 'cursor-default'}`;
+
+                                                if (!fullLink) {
+                                                    return (
+                                                        <span key={`${loopIdx}-${idx}`} className={sharedClassName}>
+                                                            {content}
+                                                        </span>
+                                                    );
+                                                }
+
+                                                if (isExternal) {
+                                                    return (
+                                                        <a
+                                                            key={`${loopIdx}-${idx}`}
+                                                            href={fullLink}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className={sharedClassName}
+                                                        >
+                                                            {content}
+                                                        </a>
+                                                    );
+                                                }
+
+                                                return (
+                                                    <Link
+                                                        key={`${loopIdx}-${idx}`}
+                                                        to={fullLink}
+                                                        className={sharedClassName}
+                                                    >
+                                                        {content}
+                                                    </Link>
                                                 );
                                             });
                                         })()}
