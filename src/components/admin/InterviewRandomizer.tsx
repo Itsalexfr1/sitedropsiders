@@ -79,7 +79,7 @@ export function InterviewRandomizer() {
     };
 
     return (
-        <div className="bg-white/5 border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-8 flex flex-col h-full relative overflow-hidden group">
+        <div className="bg-black flex flex-col h-full relative overflow-hidden group p-6 md:p-12 lg:p-20">
             {/* Background Decor */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/5 blur-3xl pointer-events-none group-hover:bg-neon-cyan/10 transition-all text-black" />
             
@@ -160,7 +160,7 @@ export function InterviewRandomizer() {
                                                 <Sparkles className="w-3 h-3 text-neon-cyan" />
                                                 <span className="text-[8px] md:text-[10px] font-black text-neon-cyan uppercase tracking-[0.2em]">SÉLECTIONNÉE</span>
                                             </div>
-                                            <h4 className="text-xl md:text-3xl font-display font-black text-white italic tracking-tight leading-tight underline decoration-neon-cyan/30 underline-offset-8">
+                                            <h4 className="text-3xl md:text-7xl font-display font-black text-white italic tracking-tighter leading-[1.1] px-4 md:px-10 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)]">
                                                 "{currentQuestion}"
                                             </h4>
                                         </motion.div>

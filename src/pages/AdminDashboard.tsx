@@ -9165,7 +9165,7 @@ export function AdminDashboard() {
 
             <AnimatePresence>
                 {isRandomizerModalOpen && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -9174,20 +9174,20 @@ export function AdminDashboard() {
                             className="absolute inset-0 bg-black/95 backdrop-blur-xl"
                         />
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-2xl bg-black border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl h-[85vh] md:h-[80vh] flex flex-col p-2"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="relative w-full h-full bg-black flex flex-col p-0 overflow-hidden"
                         >
-                            <div className="absolute top-8 right-8 z-[120]">
+                            <div className="absolute top-6 right-6 md:top-10 md:right-10 z-[120]">
                                 <button
                                     onClick={() => setIsRandomizerModalOpen(false)}
-                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
+                                    className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-500 hover:text-white transition-all shadow-2xl group"
                                 >
-                                    <X className="w-6 h-6" />
+                                    <X className="w-8 h-8 group-hover:rotate-90 transition-transform" />
                                 </button>
                             </div>
-                            <div className="flex-1 overflow-auto">
+                            <div className="flex-1 w-full h-full">
                                 <InterviewRandomizer />
                             </div>
                         </motion.div>
