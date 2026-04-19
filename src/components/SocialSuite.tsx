@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
-import { R2PhotosMenuModal } from './admin/modals/R2PhotosMenuModal';
+import { ImageUploadModal } from './ImageUploadModal';
 import recapsData from '../data/recaps.json';
 // @ts-ignore
 import { FFmpeg } from '@ffmpeg/ffmpeg';
@@ -3223,28 +3223,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </motion.div>
                 )}
             </AnimatePresence>
-            <R2PhotosMenuModal 
+            <ImageUploadModal 
                 isOpen={isR2ModalOpen} 
                 onClose={() => {
                     setIsR2ModalOpen(false);
                     setR2TargetIdx(null);
                     setR2TargetType(null);
                 }}
-                mode="select"
-                onSelect={(url) => {
+                aspect={
+                    (r2TargetType === 'top10' || r2TargetType === 'top5') ? 1 : 
+                    (r2TargetType === 'background') ? (activeTab === 'REEL' ? 9/16 : 1) : 
+                    undefined
+                }
+                allowMultiple={false}
+                onUploadSuccess={(url) => {
+                    const finalUrl = Array.isArray(url) ? url[0] : url;
+                    if (!finalUrl) return;
+
                     if (r2TargetType === 'top10' && r2TargetIdx !== null) {
                         const n = [...top10Items];
-                        n[r2TargetIdx].photo = url;
+                        n[r2TargetIdx].photo = finalUrl;
                         setTop10Items(n);
                     } else if (r2TargetType === 'top5' && r2TargetIdx !== null) {
                         const n = [...top5Items];
-                        n[r2TargetIdx].photo = url;
+                        n[r2TargetIdx].photo = finalUrl;
                         setTop5Items(n);
                     } else if (r2TargetType === 'background') {
-                        const isVid = url.match(/\.(mp4|webm|mov|ogg)$/i) || url.includes('/video/upload/');
+                        const isVid = finalUrl.match(/\.(mp4|webm|mov|ogg)$/i) || finalUrl.includes('/video/upload/');
                         if (isVid) {
                             const video = document.createElement('video');
-                            video.src = url;
+                            video.src = finalUrl;
                             video.muted = true;
                             video.loop = true;
                             video.playsInline = true;
@@ -3253,15 +3261,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setBgVideo(video);
                             setBgImage('');
                         } else {
-                            setBgImage(url);
+                            setBgImage(finalUrl);
                             setBgVideo(null);
                         }
                     } else if (r2TargetType === 'logo') {
-                        setArtistLogo(url);
+                        setArtistLogo(finalUrl);
                         // Logo pre-caching
                         const img = new Image();
                         img.crossOrigin = 'anonymous';
-                        img.src = url;
+                        img.src = finalUrl;
                         img.onload = () => {
                             artistLogoRef.current = img;
                             generateImage();
