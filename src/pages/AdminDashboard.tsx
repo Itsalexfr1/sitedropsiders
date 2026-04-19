@@ -1700,7 +1700,6 @@ export function AdminDashboard() {
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
         { title: "Social Studio", description: "Outils Réseaux Sociaux", icon: "Instagram", category: "SOCIAL_STUDIO", link: "social-studio", permission: "news", baseColor: "pink", columns: 2 },
-        { title: "Interview Studio", description: "Studio & Questions", icon: "MessageSquare", category: "STUDIO", link: "interview-studio", permission: "news", baseColor: "cyan", columns: 2 },
         { title: "Questions Aléatoires", description: "Randomizer d'Interviews", icon: "Dice5", category: "STUDIO", link: "random-questions", permission: "news", baseColor: "cyan", columns: 2 },
         { title: "Générateur Fiches", description: "Interview Visual Cards", icon: "Columns", category: "STUDIO", link: "interview-generator", permission: "news", baseColor: "red", columns: 1 },
 
@@ -3852,10 +3851,6 @@ export function AdminDashboard() {
                                                     } else if (action.title === 'Quiz & Blind Test') {
                                                         e.preventDefault();
                                                         setIsQuizModalOpen(true);
-                                                    } else if (action.link === 'interview-studio' || action.title === 'Interview Studio') {
-                                                        e.preventDefault();
-                                                        setDashboardTab('INTERVIEW');
-                                                        window.scrollTo({ top: 0, behavior: 'smooth' });
                                                     } else if (action.link === 'random-questions' || action.title === 'Questions Aléatoires') {
                                                         e.preventDefault();
                                                         setIsRandomizerModalOpen(true);

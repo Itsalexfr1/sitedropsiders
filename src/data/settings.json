@@ -6,17 +6,17 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "",
-    "title": "LIVESTREAM",
+    "title": "COACHELLA 2026 - DIRECT",
     "moderators": "",
-    "lineup": "",
+    "lineup": "[]",
     "customCommands": "",
     "tickerType": "news",
-    "tickerText": "",
+    "tickerText": "🎡 BIENVENUE SUR LE LIVE COACHELLA 2026 - SUIVEZ LES 8 SCÈNES EN DIRECT ! 🎡",
     "tickerLink": "",
     "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff",
     "showTopBanner": true,
-    "showTickerBanner": false,
+    "showTickerBanner": true,
     "showInNavbar": true,
     "forceHomepage": true,
     "isSecret": false,
@@ -28,7 +28,18 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "live"
+    "status": "live",
+    "streams": [
+      { "id": "stage1", "name": "COACHELLA STAGE", "youtubeId": "", "enabledInGrid": true },
+      { "id": "stage2", "name": "OUTDOOR THEATRE", "youtubeId": "", "enabledInGrid": true },
+      { "id": "stage3", "name": "SAHARA", "youtubeId": "", "enabledInGrid": true },
+      { "id": "stage4", "name": "MOJAVE", "youtubeId": "", "enabledInGrid": true },
+      { "id": "stage5", "name": "GOBI", "youtubeId": "", "enabledInGrid": true },
+      { "id": "stage6", "name": "YUMA", "youtubeId": "", "enabledInGrid": true },
+      { "id": "stage7", "name": "SONORA", "youtubeId": "", "enabledInGrid": true },
+      { "id": "stage8", "name": "QUASAR", "youtubeId": "", "enabledInGrid": true }
+    ],
+    "activeStreamId": "stage1"
   },
   "socials": {
     "instagram": "dropsiders.eu",
