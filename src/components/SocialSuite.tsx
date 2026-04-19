@@ -538,29 +538,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
                 
                 // --- 1. SETTINGS & POSITIONS ---
-                const cardW = 580;
-                const cardH = 580;
+                const cardW = 600;
+                const cardH = 600;
+                // Organic staggered positions
                 const wallPositions = [
-                    { x: 920, y: 300 },  // Artist 1
-                    { x: 260, y: 550 },  // Artist 2
-                    { x: 820, y: 850 },  // Artist 3
-                    { x: 340, y: 1250 }, // Artist 4
-                    { x: 940, y: 1550 }, // Artist 5
-                    { x: 180, y: 1850 }, // Artist 6
-                    { x: 760, y: 2250 }, // Artist 7
-                    { x: 300, y: 2650 }, // Artist 8
-                    { x: 880, y: 3050 }, // Artist 9
-                    { x: 440, y: 3450 }, // Artist 10
+                    { x: 950, y: 350 },  // 1 (Right)
+                    { x: 130, y: 650 },  // 2 (Left)
+                    { x: 950, y: 950 },  // 3 (Right)
+                    { x: 130, y: 1250 }, // 4 (Left)
+                    { x: 950, y: 1550 }, // 5 (Right)
+                    { x: 130, y: 1850 }, // 6 (Left)
+                    { x: 950, y: 2150 }, // 7 (Right)
+                    { x: 130, y: 2450 }, // 8 (Left)
+                    { x: 950, y: 2750 }, // 9 (Right)
+                    { x: 130, y: 3050 }, // 10 (Left)
                 ];
 
-                // Scroll Logic: Slide 0 is Cover, Slides 1-3 are the wall
                 const isPost = effectiveTab === 'PUBLICATION';
-                const baseScroll = isPost ? 850 : 1200;
+                const baseScroll = isPost ? 900 : 1200;
                 const scrollY = currentPreviewIndex === 0 
-                    ? 100 // Peeking artists on cover
+                    ? 0 
                     : (currentPreviewIndex) * baseScroll - 400;
 
-                // --- 2. RENDER FESTIVAL WALL (Artists) ---
+                // --- 2. RENDER FESTIVAL WALL ---
                 ctx.save();
                 ctx.translate(slideX, -scrollY); 
 
@@ -570,15 +570,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const x = pos.x - cardW / 2;
                     const y = pos.y;
                     
-                    if (y - scrollY > canvas.height + 800 || y - scrollY < -800) return;
+                    if (y - scrollY > canvas.height + 1000 || y - scrollY < -1000) return;
 
                     ctx.save();
-                    // Card Container (Shadow + Mask)
-                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                    ctx.shadowBlur = 80;
+                    // Premium Card Shadow
+                    ctx.shadowColor = 'rgba(0,0,0,0.95)';
+                    ctx.shadowBlur = 100;
+                    ctx.fillStyle = '#111'; // Default card fill
                     ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 80); ctx.fill();
                     
-                    // Artist Photo
                     if (item.photo) {
                         let photoImg = imageCacheRef.current[item.photo];
                         if (photoImg && photoImg.complete) {
@@ -586,71 +586,56 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             const scale = Math.max(cardW / photoImg.width, cardH / photoImg.height);
                             ctx.drawImage(photoImg, x + (cardW - photoImg.width * scale) / 2, y + (cardH - photoImg.height * scale) / 2, photoImg.width * scale, photoImg.height * scale);
                             
-                            // Subtle gradient bottom for name readability
-                            const nameGrad = ctx.createLinearGradient(0, y + cardH * 0.6, 0, y + cardH);
+                            // Name readability gradient
+                            const nameGrad = ctx.createLinearGradient(0, y + cardH * 0.65, 0, y + cardH);
                             nameGrad.addColorStop(0, 'transparent');
-                            nameGrad.addColorStop(1, 'rgba(0,0,0,0.8)');
+                            nameGrad.addColorStop(1, 'rgba(0,0,0,0.9)');
                             ctx.fillStyle = nameGrad;
-                            ctx.fillRect(x, y + cardH * 0.6, cardW, cardH * 0.4);
+                            ctx.fillRect(x, y + cardH * 0.6, cardW, cardH * 0.45);
                         }
                     }
                     ctx.restore();
 
-                    // Name Overlay (Direct on card)
+                    // Bold Artist Name
                     ctx.save();
                     ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 48px "Montserrat", sans-serif'; // Removed italic, bigger
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10;
-                    ctx.fillText(item.main.toUpperCase(), x + cardW / 2, y + cardH - 60);
+                    ctx.font = '900 48px "Montserrat", sans-serif';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 15;
+                    ctx.fillText(item.main.toUpperCase(), x + cardW / 2, y + cardH - 65);
                     ctx.restore();
                 });
                 ctx.restore();
 
                 // --- 3. COVER OVERLAY (Slide 0) ---
                 if (currentPreviewIndex === 0) {
-                    const labelY = isPost ? 880 : safeBottom - 450;
-                    const startY = labelY + 130;
-
                     ctx.save();
-                    // Dark wash for cover aesthetics
+                    // High-End Cover Vignette
                     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
                     grad.addColorStop(0, 'rgba(0,0,0,0.7)');
-                    grad.addColorStop(0.4, 'rgba(0,0,0,0)');
+                    grad.addColorStop(0.3, 'rgba(0,0,0,0)');
+                    grad.addColorStop(0.7, 'rgba(0,0,0,0)');
                     grad.addColorStop(1, 'rgba(0,0,0,0.9)'); 
                     ctx.fillStyle = grad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // --- 3.1 CATEGORY BADGE ---
-                    const labelText = 'LINE-UP';
-                    ctx.font = '900 italic 42px "Montserrat", sans-serif';
-                    const labelW = ctx.measureText(labelText).width + 80;
-                    const rectX = (canvas.width - labelW) / 2 + slideX;
-                    const rectY = labelY - 52;
-                    
-                    ctx.fillStyle = '#ff0033';
-                    ctx.shadowColor = 'rgba(255,0,51,0.6)'; ctx.shadowBlur = 40;
-                    ctx.beginPath(); ctx.roundRect(rectX, rectY, labelW, 80, 20); ctx.fill();
-                    
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 0;
-                    ctx.fillText(labelText, centerX + slideX, rectY + 44);
-                    ctx.restore();
-
-                    // --- 3.2 TITLE & DESCRIPTION ---
-                    ctx.save();
+                    // Massive Line-up text
                     ctx.textAlign = 'center';
-                    // Nom du Festival
-                    ctx.font = '900 italic 85px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
-                    ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, startY + 40);
+                    ctx.textBaseline = 'middle';
                     
-                    // Custom description text
+                    ctx.font = '900 italic 160px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ff0033';
+                    ctx.shadowColor = 'rgba(255,10,60,0.8)'; ctx.shadowBlur = 60;
+                    ctx.fillText('LINE-UP', centerX + slideX, (canvas.height / 2) - 80);
+                    
+                    ctx.font = '900 italic 82px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#fff'; ctx.shadowBlur = 20;
+                    ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, (canvas.height / 2) + 60);
+
                     const lines = (customText || '').split('\n').filter(l => l.trim() !== '');
                     if (lines[1]) {
-                        ctx.font = '600 italic 32px "Montserrat", sans-serif';
-                        ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "6px";
-                        ctx.fillText(lines[1].toUpperCase(), centerX + slideX, startY + 110);
+                        ctx.font = '700 italic 32px "Montserrat", sans-serif';
+                        ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "10px";
+                        ctx.fillText(lines[1].toUpperCase(), centerX + slideX, (canvas.height / 2) + 140);
                     }
                     ctx.restore();
                 }
