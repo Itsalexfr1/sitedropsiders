@@ -645,12 +645,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
             } else if (theme === 'LIVESTREAM') {
-
-            } else if (theme === 'LIVESTREAM') {
-rectH / 2) + 4);
-                ctx.restore();
-
-            } else if (theme === 'LIVESTREAM') {
                 const centerX = canvas.width / 2;
                 const centerY = (canvas.height / 2);
 
