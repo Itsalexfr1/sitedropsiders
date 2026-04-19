@@ -6,7 +6,7 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "",
-    "title": "COACHELLA 2026 - DIRECT",
+    "title": "COACHELLA week end 2 ",
     "moderators": "",
     "lineup": "[]",
     "customCommands": "",
@@ -30,17 +30,61 @@
     "endDate": "",
     "status": "live",
     "streams": [
-      { "id": "stage1", "name": "COACHELLA STAGE", "youtubeId": "", "enabledInGrid": true },
-      { "id": "stage2", "name": "OUTDOOR THEATRE", "youtubeId": "", "enabledInGrid": true },
-      { "id": "stage3", "name": "SAHARA", "youtubeId": "", "enabledInGrid": true },
-      { "id": "stage4", "name": "MOJAVE", "youtubeId": "", "enabledInGrid": true },
-      { "id": "stage5", "name": "GOBI", "youtubeId": "", "enabledInGrid": true },
-      { "id": "stage6", "name": "YUMA", "youtubeId": "", "enabledInGrid": true },
-      { "id": "stage7", "name": "SONORA", "youtubeId": "", "enabledInGrid": true },
-      { "id": "stage8", "name": "QUASAR", "youtubeId": "", "enabledInGrid": true }
+      {
+        "id": "stage1",
+        "name": "COACHELLA STAGE",
+        "youtubeId": "https://www.youtube.com/watch?v=xIiSaqq10Yw",
+        "enabledInGrid": true
+      },
+      {
+        "id": "stage2",
+        "name": "OUTDOOR THEATRE",
+        "youtubeId": "https://www.youtube.com/watch?v=CzAJcgiywFo&pp=0gcJCdMKAYcqIYzv",
+        "enabledInGrid": true
+      },
+      {
+        "id": "stage3",
+        "name": "SAHARA",
+        "youtubeId": "https://www.youtube.com/watch?v=bkCTPTwU7ls",
+        "enabledInGrid": true
+      },
+      {
+        "id": "stage4",
+        "name": "MOJAVE",
+        "youtubeId": "https://www.youtube.com/watch?v=cYT79Dp0Wuk",
+        "enabledInGrid": true
+      },
+      {
+        "id": "stage5",
+        "name": "GOBI",
+        "youtubeId": "https://www.youtube.com/watch?v=OMImphySFJs",
+        "enabledInGrid": true
+      },
+      {
+        "id": "stage6",
+        "name": "YUMA",
+        "youtubeId": "https://www.youtube.com/watch?v=s5A5Y93nmPI",
+        "enabledInGrid": true
+      },
+      {
+        "id": "stage8",
+        "name": "QUASAR",
+        "youtubeId": "https://www.youtube.com/watch?v=iulgXa5S62A",
+        "enabledInGrid": true
+      }
     ],
-    "activeStreamId": "stage1",
-    "wikiVotesEnabled": true
+    "activeStreamId": "stage8",
+    "wikiVotesEnabled": true,
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
+    "tickerMode": "news",
+    "instagramLink": "",
+    "tiktokLink": "",
+    "youtubeLink": "",
+    "twitterLink": "",
+    "sponsorText": "",
+    "sponsorLink": "",
+    "showSponsorBanner": true,
+    "festivalLogo": ""
   },
   "socials": {
     "instagram": "dropsiders.eu",
