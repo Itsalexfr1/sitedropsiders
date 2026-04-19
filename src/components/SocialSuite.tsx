@@ -63,7 +63,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -131,7 +131,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const ffmpegRef = useRef<any>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
-    const [r2TargetType, setR2TargetType] = useState<'top10' | 'top5' | 'background' | 'logo' | null>(null);
+    const [r2TargetType, setR2TargetType] = useState<'top5' | 'background' | 'logo' | null>(null);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -144,13 +144,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         spotifyUrl: '',
         photo: ''
     })));
-    const [top10Items, setTop10Items] = useState<Top5Item[]>(Array.from({ length: 10 }, (_, i) => ({
-        main: `ARTISTE ${i + 1}`,
-        sub: 'TITRE DU MORCEAU',
-        value: '100',
-        spotifyUrl: '',
-        photo: ''
-    })));
+
     const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
     const [rotation, setRotation] = useState(0);
     const [transitionProgress, setTransitionProgress] = useState(0); // 0 to 1 for glitches/fades
@@ -534,145 +528,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); 
 
-            } else if (theme === 'TOP 10 FESTIVAL') {
-                const centerX = canvas.width / 2;
-                
-                // --- 1. SETTINGS & POSITIONS ---
-                // Square cards as in the pixel-perfect reference
-                const cardW = 480;
-                const cardH = 480;
-                
-                // Dense staggering - high fidelity overlap
-                const wallPositions = [
-                    { x: 920, y: 300 },  // 1 
-                    { x: 260, y: 650 },  // 2 
-                    { x: 980, y: 1000 }, // 3 
-                    { x: 300, y: 1450 }, // 4 
-                    { x: 900, y: 1850 }, // 5 
-                    { x: 180, y: 2300 }, // 6 
-                    { x: 960, y: 2750 }, // 7 
-                    { x: 320, y: 3200 }, // 8 
-                    { x: 920, y: 3650 }, // 9 
-                    { x: 480, y: 4150 }, // 10 
-                ];
 
-                const isPost = effectiveTab === 'PUBLICATION';
-                const baseScroll = isPost ? 850 : 1100;
-                const scrollY = currentPreviewIndex === 0 
-                    ? 50 
-                    : (currentPreviewIndex) * baseScroll - 400;
-
-                // --- 2. RENDER FESTIVAL WALL ---
-                ctx.save();
-                ctx.translate(slideX, -scrollY); 
-
-                 wallPositions.forEach((pos, i) => {
-                    const item = top10Items[i];
-                    if (!item) return;
-                    const x = pos.x - cardW / 2;
-                    const y = pos.y;
-                    
-                    if (y - scrollY > canvas.height + 1200 || y - scrollY < -1200) return;
-
-                    ctx.save();
-                    // 2.1 The Container (Pure Black Square rounded)
-                    ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 100;
-                    ctx.fillStyle = '#000000';
-                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 100); ctx.fill();
-                    
-                    // 2.2 The Photo (Horizontal Rectangle)
-                    const photoH = 260;
-                    const photoY = y + 60; // Space at top
-
-                    if (item.photo) {
-                        let photoImg = imageCacheRef.current[item.photo];
-                        if (photoImg && photoImg.complete) {
-                            ctx.save();
-                            ctx.beginPath(); ctx.rect(x, photoY, cardW, photoH); ctx.clip();
-                            const scale = Math.max(cardW / photoImg.width, photoH / photoImg.height);
-                            ctx.drawImage(
-                                photoImg, 
-                                x + (cardW - photoImg.width * scale) / 2, 
-                                photoY + (photoH - photoImg.height * scale) / 2, 
-                                photoImg.width * scale, 
-                                photoImg.height * scale
-                            );
-                            ctx.restore();
-                        }
-                    }
-
-                    // 2.3 The Name (Ultra Bold Montserrat 900)
-                    ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 44px "Montserrat", sans-serif'; 
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10;
-                    // Centered in the black space below photo
-                    ctx.fillText(item.main.toUpperCase(), x + cardW / 2, photoY + photoH + 110);
-                    ctx.restore();
-                });
-                ctx.restore();
-
-                // --- 3. COVER OVERLAY (Slide 0) ---
-                if (currentPreviewIndex === 0) {
-                    const labelY = isPost ? 880 : safeBottom - 450;
-                    const startY = labelY + 130;
-
-                    ctx.save();
-                    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                    grad.addColorStop(0, 'rgba(0,0,0,0.7)');
-                    grad.addColorStop(0.4, 'rgba(0,0,0,0)');
-                    grad.addColorStop(1, 'rgba(0,0,0,0.95)'); 
-                    ctx.fillStyle = grad;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    // Badge LINE-UP (Style News)
-                    const labelText = 'LINE-UP';
-                    ctx.font = '900 italic 42px "Montserrat", sans-serif';
-                    const labelW = ctx.measureText(labelText).width + 80;
-                    const rectX = (canvas.width - labelW) / 2 + slideX;
-                    const rectY = labelY - 52;
-                    
-                    ctx.fillStyle = '#ff0033';
-                    ctx.shadowColor = 'rgba(255,0,51,0.6)'; ctx.shadowBlur = 40;
-                    ctx.beginPath(); ctx.roundRect(rectX, rectY, labelW, 80, 20); ctx.fill();
-                    
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 0;
-                    ctx.fillText(labelText, centerX + slideX, rectY + 44);
-                    ctx.restore();
-
-                    // Titre Festival
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.font = '900 italic 85px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
-                    ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, startY + 40);
-                    
-                    const lines = (customText || '').split('\n').filter(l => l.trim() !== '');
-                    if (lines[1]) {
-                        ctx.font = '600 italic 32px "Montserrat", sans-serif';
-                        ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "10px";
-                        ctx.fillText(lines[1].toUpperCase(), centerX + slideX, startY + 110);
-                    }
-                    ctx.restore();
-                }
-                
-                // --- 5. TOP FLOATING BADGE (Slide 1-3) ---
-                if (currentPreviewIndex > 0) {
-                    ctx.save();
-                    ctx.textAlign = 'center'; ctx.font = `900 italic 32px "Montserrat", sans-serif`;
-                    const labelText = "FESTIVAL LINE-UP";
-                    const labelW = ctx.measureText(labelText).width + 80;
-                    
-                    ctx.fillStyle = '#ff0033';
-                    const rectX = (canvas.width - labelW) / 2 + slideX;
-                    const rectY = 60;
-                    ctx.beginPath(); ctx.roundRect(rectX, rectY, labelW, 70, 15); ctx.fill();
-                    
-                    ctx.fillStyle = '#FFFFFF'; ctx.textBaseline = 'middle';
-                    ctx.fillText(labelText, canvas.width / 2 + slideX, rectY + 38);
-                    ctx.restore();
-                }
 
             } else if (theme === 'LIVESTREAM') {
                 const centerX = canvas.width / 2;
@@ -1943,7 +1799,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <button onClick={() => setTheme('TOP 5 STYLES')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
                 </>
             )}
-            <button onClick={() => setTheme('TOP 10 FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 10 FESTIVAL' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 10 FESTIVAL</button>
+
         </div>
     );
 
@@ -1996,44 +1852,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
-    const top10Editor = (
-        <div className="space-y-4">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4">
-                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-2 block">Cover Festival</span>
-                <input value={customText} onChange={e => setCustomText(e.target.value)} placeholder="NOM DU FESTIVAL" className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs" />
-            </div>
-            <div className="grid grid-cols-1 gap-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                {top10Items.map((item, i) => (
-                    <div key={i} className={`p-4 rounded-3xl border transition-all ${currentPreviewIndex === i + 1 ? 'bg-neon-red/10 border-neon-red/40 shadow-[0_0_20px_rgba(255,0,51,0.1)]' : 'bg-white/5 border-white/10 hover:border-white/20'}`} onClick={() => setCurrentPreviewIndex(i + 1)}>
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-black italic text-white/40">#{i + 1}</span>
-                            <div className="flex gap-1">
-                                <button className="p-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all"><PlusCircle className="w-3.5 h-3.5" /></button>
-                            </div>
-                        </div>
-                        <input value={item.main} onChange={e => { const n = [...top10Items]; n[i].main = e.target.value; setTop10Items(n); }} placeholder="NOM DE L'ARTISTE" className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs mb-2 transition-all focus:border-neon-red" />
-                        <input value={item.sub} onChange={e => { const n = [...top10Items]; n[i].sub = e.target.value; setTop10Items(n); }} placeholder="DESCRIPTION ARTISTE" className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white/60 font-bold uppercase text-[10px] mb-3" />
-                        <div className="flex items-center gap-2">
-                            <button onClick={(e) => {
-                                e.stopPropagation();
-                                setR2TargetIdx(i);
-                                setR2TargetType('top10');
-                                setIsR2ModalOpen(true);
-                            }} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-                                <Upload className="w-3 h-3 text-neon-red" /> {item.photo ? 'Modifier Photo' : 'Ajouter Photo (Cloud)'}
-                            </button>
-                            {item.photo && (
-                                <button onClick={(e) => { e.stopPropagation(); const n = [...top10Items]; n[i].photo = ''; setTop10Items(n); }}
-                                    className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all">
-                                    <X className="w-3 h-3" />
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
+
 
     const handleConvertPlanningTimes = () => {
         if (planningTimezoneOffset === 0) return;
@@ -2608,21 +2427,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Horaires Planning</span>{planningEditor}</>
                             ) : theme.startsWith('TOP 5') ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
-                            ) : theme === 'TOP 10 FESTIVAL' ? (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {[0, 1, 2, 3].map((idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => setCurrentPreviewIndex(idx)}
-                                                className={`py-2 rounded-xl font-bold transition-all border-2 text-[10px] uppercase ${currentPreviewIndex === idx ? 'bg-[#ff0033] border-[#ff0033] text-white shadow-[0_0_15px_rgba(255,0,51,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
-                                            >
-                                                {idx === 0 ? 'Couv.' : `Page ${idx}`}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {top10Editor}
-                                </div>
+
                             ) : theme === 'HIGHLIGHTS' ? (
                                 <>{highlightsEditor}</>
                             ) : theme === 'TRACKLIST' ? (
@@ -3242,11 +3047,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const finalUrl = Array.isArray(url) ? url[0] : url;
                     if (!finalUrl) return;
 
-                    if (r2TargetType === 'top10' && r2TargetIdx !== null) {
-                        const n = [...top10Items];
-                        n[r2TargetIdx].photo = finalUrl;
-                        setTop10Items(n);
-                    } else if (r2TargetType === 'top5' && r2TargetIdx !== null) {
+
                         const n = [...top5Items];
                         n[r2TargetIdx].photo = finalUrl;
                         setTop5Items(n);
