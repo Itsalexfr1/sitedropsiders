@@ -2674,13 +2674,21 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                 return (
                                                     <a
                                                         key={`${loopIdx}-${idx}`}
-                                                        href={fullLink}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
+                                                        href={fullLink || undefined}
+                                                        target={isExternal ? "_blank" : undefined}
+                                                        rel={isExternal ? "noopener noreferrer" : undefined}
+                                                        onClick={(e) => {
+                                                            if (!fullLink) {
+                                                                e.preventDefault();
+                                                            } else if (!isExternal) {
+                                                                e.preventDefault();
+                                                                navigate(fullLink);
+                                                            }
+                                                        }}
+                                                        className={`text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 drop-shadow-md group/newsitem ${fullLink ? 'hover:text-neon-red transition-colors cursor-pointer' : 'cursor-default'}`}
                                                     >
-                                                        <Sparkles className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
-                                                        <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
+                                                        <Sparkles className={`w-3 h-3 text-neon-red transition-colors ${fullLink ? 'group-hover/newsitem:text-white' : ''}`} />
+                                                        <span className={fullLink ? 'group-hover/newsitem:text-neon-red transition-colors' : ''}>{item.text}</span>
                                                     </a>
                                                 );
                                             });
