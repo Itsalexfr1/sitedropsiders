@@ -538,27 +538,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
                 
                 // --- 1. SETTINGS & POSITIONS ---
-                const cardW = 620;
-                const cardH = 680;
+                const cardW = 580;
+                const cardH = 580;
                 const wallPositions = [
-                    { x: 980, y: 300 },  // Artist 1 (Top Right, peeking on cover)
-                    { x: 1050, y: 950 },  // Artist 2 (Far Right)
-                    { x: 940, y: 1600 }, // Artist 3 (Right)
-                    { x: 540, y: 1200 }, // Artist 4 (Center)
-                    { x: 100, y: 900 },  // Artist 5 (Left peeking)
-                    { x: 540, y: 1950 }, // Artist 6 (Center)
-                    { x: 120, y: 1650 }, // Artist 7 (Left)
-                    { x: 960, y: 2300 }, // Artist 8 (Right)
-                    { x: 480, y: 2700 }, // Artist 9 (Center-ish)
-                    { x: 100, y: 2400 }, // Artist 10 (Left)
+                    { x: 920, y: 300 },  // Artist 1
+                    { x: 260, y: 550 },  // Artist 2
+                    { x: 820, y: 850 },  // Artist 3
+                    { x: 340, y: 1250 }, // Artist 4
+                    { x: 940, y: 1550 }, // Artist 5
+                    { x: 180, y: 1850 }, // Artist 6
+                    { x: 760, y: 2250 }, // Artist 7
+                    { x: 300, y: 2650 }, // Artist 8
+                    { x: 880, y: 3050 }, // Artist 9
+                    { x: 440, y: 3450 }, // Artist 10
                 ];
 
                 // Scroll Logic: Slide 0 is Cover, Slides 1-3 are the wall
-                // We calculate scrollY to focus on different sections
                 const isPost = effectiveTab === 'PUBLICATION';
-                const baseScroll = isPost ? 750 : 1000;
+                const baseScroll = isPost ? 850 : 1200;
                 const scrollY = currentPreviewIndex === 0 
-                    ? 0 // Start of wall peeking from top right 
+                    ? 100 // Peeking artists on cover
                     : (currentPreviewIndex) * baseScroll - 400;
 
                 // --- 2. RENDER FESTIVAL WALL (Artists) ---
@@ -571,15 +570,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const x = pos.x - cardW / 2;
                     const y = pos.y;
                     
-                    // Frustum culling for performance
                     if (y - scrollY > canvas.height + 800 || y - scrollY < -800) return;
 
                     ctx.save();
-                    // Card Shadow & Container
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 60;
-                    ctx.fillStyle = '#0a0a0a';
-                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 60); ctx.fill();
+                    // Card Container (Shadow + Mask)
+                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                    ctx.shadowBlur = 80;
+                    ctx.beginPath(); ctx.roundRect(x, y, cardW, cardH, 80); ctx.fill();
                     
                     // Artist Photo
                     if (item.photo) {
@@ -588,50 +585,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             ctx.clip();
                             const scale = Math.max(cardW / photoImg.width, cardH / photoImg.height);
                             ctx.drawImage(photoImg, x + (cardW - photoImg.width * scale) / 2, y + (cardH - photoImg.height * scale) / 2, photoImg.width * scale, photoImg.height * scale);
+                            
+                            // Subtle gradient bottom for name readability
+                            const nameGrad = ctx.createLinearGradient(0, y + cardH * 0.6, 0, y + cardH);
+                            nameGrad.addColorStop(0, 'transparent');
+                            nameGrad.addColorStop(1, 'rgba(0,0,0,0.8)');
+                            ctx.fillStyle = nameGrad;
+                            ctx.fillRect(x, y + cardH * 0.6, cardW, cardH * 0.4);
                         }
                     }
                     ctx.restore();
 
-                    // Name Label (at the bottom of each card)
-                    const labelH = 130;
+                    // Name Overlay (Direct on card)
                     ctx.save();
-                    ctx.translate(x, y + cardH - labelH);
-                    ctx.beginPath(); ctx.roundRect(0, 0, cardW, labelH, 0); ctx.clip();
-                    ctx.fillStyle = 'rgba(0,0,0,0.95)'; ctx.fillRect(0, 0, cardW, labelH);
-                    
                     ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 italic 44px "Montserrat", sans-serif';
-                    ctx.fillText(item.main.toUpperCase(), cardW / 2, 80);
+                    ctx.font = '900 48px "Montserrat", sans-serif'; // Removed italic, bigger
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10;
+                    ctx.fillText(item.main.toUpperCase(), x + cardW / 2, y + cardH - 60);
                     ctx.restore();
                 });
                 ctx.restore();
 
-                // --- 3. LOGO (Top Right) ---
-                if (logoRef.current) {
-                    ctx.save();
-                    const lw = 320;
-                    const lh = (logoRef.current.height / logoRef.current.width) * lw;
-                    ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 20;
-                    ctx.drawImage(logoRef.current, canvas.width - lw - 60, 60, lw, lh);
-                    ctx.restore();
-                }
-
-                // --- 4. COVER OVERLAY (Slide 0) ---
+                // --- 3. COVER OVERLAY (Slide 0) ---
                 if (currentPreviewIndex === 0) {
                     const labelY = isPost ? 880 : safeBottom - 450;
                     const startY = labelY + 130;
 
                     ctx.save();
-                    // Main Gradient Overlay (Dark wash at bottom)
+                    // Dark wash for cover aesthetics
                     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-                    grad.addColorStop(0, 'rgba(0,0,0,0.6)');
+                    grad.addColorStop(0, 'rgba(0,0,0,0.7)');
                     grad.addColorStop(0.4, 'rgba(0,0,0,0)');
-                    grad.addColorStop(0.7, 'rgba(0,0,0,0.2)');
-                    grad.addColorStop(1, 'rgba(0,0,0,0.8)'); 
+                    grad.addColorStop(1, 'rgba(0,0,0,0.9)'); 
                     ctx.fillStyle = grad;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                    // --- 4.1 LINE-UP BADGE (Category style) ---
+                    // --- 3.1 CATEGORY BADGE ---
                     const labelText = 'LINE-UP';
                     ctx.font = '900 italic 42px "Montserrat", sans-serif';
                     const labelW = ctx.measureText(labelText).width + 80;
@@ -647,20 +636,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(labelText, centerX + slideX, rectY + 44);
                     ctx.restore();
 
-                    // --- 4.2 TITLE & SUBTITLE ---
+                    // --- 3.2 TITLE & DESCRIPTION ---
                     ctx.save();
                     ctx.textAlign = 'center';
-
                     // Nom du Festival
                     ctx.font = '900 italic 85px "Montserrat", sans-serif';
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 20;
                     ctx.fillText((customText || 'NOM DU FESTIVAL').toUpperCase(), centerX + slideX, startY + 40);
                     
-                    // Simple text below (if any) or placeholder
-                    const lines = customText ? customText.split('\n') : [];
+                    // Custom description text
+                    const lines = (customText || '').split('\n').filter(l => l.trim() !== '');
                     if (lines[1]) {
-                        ctx.font = '900 italic 30px "Montserrat", sans-serif';
+                        ctx.font = '600 italic 32px "Montserrat", sans-serif';
                         ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.letterSpacing = "6px";
                         ctx.fillText(lines[1].toUpperCase(), centerX + slideX, startY + 110);
                     }
