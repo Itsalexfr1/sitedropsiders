@@ -658,6 +658,38 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- API: GOOGLE IMAGE SEARCH PROXY ---
+        if (path === '/api/google-image-search' && request.method === 'GET') {
+            const q = url.searchParams.get('q');
+            const start = url.searchParams.get('start') || '1';
+            if (!q) return new Response(JSON.stringify({ error: 'Query manquante' }), { status: 400, headers });
+
+            try {
+                const settingsFile = await fetchGitHubFile('src/data/settings.json', { OWNER, REPO, TOKEN });
+                const settings = settingsFile?.content || {};
+                const googleKey = settings.google_search_key || env.GOOGLE_SEARCH_KEY || '';
+                const googleCx = settings.google_cx || env.GOOGLE_CX || '';
+
+                if (!googleKey || !googleCx) {
+                    return new Response(JSON.stringify({ error: 'Clés API Google manquantes dans les réglages.' }), { status: 500, headers });
+                }
+
+                const searchUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(q)}&cx=${googleCx}&key=${googleKey}&searchType=image&num=10&imgSize=large&start=${start}`;
+                const res = await fetch(searchUrl, {
+                    headers: { 'User-Agent': 'Cloudflare-Worker/1.0' }
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    return new Response(JSON.stringify({ error: data.error?.message || 'Erreur Google API' }), { status: res.status, headers });
+                }
+
+                return new Response(JSON.stringify(data), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         // --- API: DOWNLOADER PROXY ---
 
         if (path === '/api/downloader-proxy' && request.method === 'POST') {

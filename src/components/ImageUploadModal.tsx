@@ -57,8 +57,7 @@ export function ImageUploadModal({
     const [isWatermarkEnabled, setIsWatermarkEnabled] = useState(watermark);
 
     // R2 State
-    const [libTab, setLibTab] = useState<'r2' | 'unsplash' | 'url'>('r2');
-    const [directUrl, setDirectUrl] = useState('');
+    const [libTab, setLibTab] = useState<'r2' | 'unsplash'>('r2');
     const [r2Photos, setR2Photos] = useState<any[]>([]);
     const [r2Loading, setR2Loading] = useState(false);
     const [r2Cursor, setR2Cursor] = useState<string | null>(null);
@@ -66,8 +65,6 @@ export function ImageUploadModal({
     const [searchTerm, setSearchTerm] = useState('');
 
     // Web Search State
-    const googleKey = (settingsData as any).google_search_key || '';
-    const googleCx = (settingsData as any).google_cx || '';
     const [webQuery, setWebQuery] = useState('');
     const [webResults, setWebResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -77,24 +74,21 @@ export function ImageUploadModal({
 
     const searchWeb = async (e?: React.FormEvent, isLoadMore: boolean = false) => {
         if (e) e.preventDefault();
-        if (!googleKey || !googleCx) {
-            setMessage('Les identifiants Google Search (google_search_key, google_cx) sont manquants (à configurer dans settings.json).');
-            setStatus('error');
-            return;
-        }
         if (!webQuery) return;
-        
+
         setIsSearching(true);
         if (!isLoadMore) {
             setStatus('idle');
             setWebStartIndex(1);
         }
-        
+
         const start = isLoadMore ? webStartIndex + 10 : 1;
 
         try {
-            const res = await fetch(`https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(webQuery)}&cx=${googleCx}&key=${googleKey}&searchType=image&num=10&imgSize=large&start=${start}`);
+            // Passe par le Worker Cloudflare en proxy pour éviter les restrictions CORS et de domaine de l'API Google
+            const res = await fetch(`/api/google-image-search?q=${encodeURIComponent(webQuery)}&start=${start}`);
             const data = await res.json();
+
             if (res.ok) {
                 const newItems = (data.items || []).map((r: any) => ({
                     id: r.link,
@@ -102,44 +96,51 @@ export function ImageUploadModal({
                     thumb: r.image?.thumbnailLink || r.link,
                     author: r.displayLink
                 }));
-                
-                if (isLoadMore) {
-                    setWebResults(prev => [...prev, ...newItems]);
-                } else {
-                    setWebResults(newItems);
+
+                if (newItems.length > 0) {
+                    if (isLoadMore) {
+                        setWebResults(prev => [...prev, ...newItems]);
+                    } else {
+                        setWebResults(newItems);
+                    }
+                    setWebStartIndex(start);
+                } else if (!isLoadMore) {
+                    setStatus('error');
+                    setMessage('Aucun résultat trouvé.');
                 }
-                setWebStartIndex(start);
             } else {
                 if (!isLoadMore) setStatus('error');
-                let errStr = data.error?.message || 'Inconnue';
-                if (errStr.includes('access to Custom Search')) {
-                    errStr = "L'API Google Images n'est pas activée sur votre projet Google Cloud. Activez 'Custom Search API' dans la console Google.";
-                }
-                setMessage(`Erreur Google: ${errStr}`);
+                setMessage(`Erreur Google: ${data.error || 'Inconnue'}`);
             }
         } catch (e: any) {
             if (!isLoadMore) setStatus('error');
-            setMessage(`Erreur de connexion Google Images`);
+            setMessage('Erreur de connexion.');
         } finally {
             setIsSearching(false);
         }
     };
 
     useEffect(() => {
-        if (!r2Cursor || r2Loading) return;
-
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting) {
-                handleR2LoadMore();
-            }
-        }, { threshold: 0.1 });
-
-        if (sentinelRef.current) {
-            observer.observe(sentinelRef.current);
+        if (libTab === 'r2') {
+            if (!r2Cursor || r2Loading) return;
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    handleR2LoadMore();
+                }
+            }, { threshold: 0.1 });
+            if (sentinelRef.current) observer.observe(sentinelRef.current);
+            return () => observer.disconnect();
+        } else if (libTab === 'unsplash') {
+            if (webResults.length === 0 || isSearching) return;
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    searchWeb(undefined, true);
+                }
+            }, { threshold: 0.1 });
+            if (sentinelRef.current) observer.observe(sentinelRef.current);
+            return () => observer.disconnect();
         }
-
-        return () => observer.disconnect();
-    }, [r2Cursor, r2Loading]);
+    }, [r2Cursor, r2Loading, libTab, webResults.length, isSearching]);
 
     useEffect(() => {
         if (isOpen) {
@@ -602,12 +603,9 @@ export function ImageUploadModal({
                                                     </button>
                                                     <button onClick={() => setLibTab('unsplash')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${libTab === 'unsplash' ? 'bg-neon-cyan text-black font-black' : 'text-white hover:bg-white/10'}`}>
                                                         <Globe className="w-4 h-4" />
-                                                        <span className="font-black text-[10px] uppercase tracking-widest">Recherche Web</span>
+                                                        <span className="font-black text-[10px] uppercase tracking-widest">Google Images</span>
                                                     </button>
-                                                    <div className="h-4 w-px bg-white/10" />
-                                                    <button onClick={() => setLibTab('url')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${libTab === 'url' ? 'bg-neon-red text-black font-black' : 'text-white hover:bg-white/10'}`}>
                                                         <Search className="w-4 h-4" />
-                                                        <span className="font-black text-[10px] uppercase tracking-widest">Lien Direct</span>
                                                     </button>
                                                 </div>
                                                 
@@ -644,7 +642,7 @@ export function ImageUploadModal({
                                                     <form onSubmit={searchWeb} className="flex gap-2 relative">
                                                         <input 
                                                             type="text" 
-                                                            placeholder={`Rechercher sur Google Images...`}
+                                                            placeholder="Rechercher une image sur Google..."
                                                             value={webQuery}
                                                             onChange={e => setWebQuery(e.target.value)}
                                                             className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-black text-white hover:border-white/30 focus:border-neon-cyan outline-none transition-all uppercase placeholder:italic"
@@ -769,36 +767,6 @@ export function ImageUploadModal({
                                                         </div>
                                                     )}
                                                 </>
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center h-full max-h-[40vh] gap-6 py-10">
-                                                    <div className="w-20 h-20 bg-neon-red/10 rounded-3xl flex items-center justify-center border border-neon-red/20">
-                                                        <Globe className="w-10 h-10 text-neon-red" />
-                                                    </div>
-                                                    <div className="text-center space-y-2">
-                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Importer via URL</h3>
-                                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest max-w-xs mx-auto">Collez l'adresse directe d'une image (se terminant par .jpg, .png...)</p>
-                                                    </div>
-                                                    <div className="w-full max-w-sm space-y-4">
-                                                        <input 
-                                                            type="text" 
-                                                            placeholder="https://exemple.com/image.jpg"
-                                                            value={directUrl}
-                                                            onChange={e => setDirectUrl(e.target.value)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                        />
-                                                        <button 
-                                                            onClick={() => {
-                                                                if (!directUrl) return;
-                                                                setSelectedImages([{ file: null, preview: directUrl }]);
-                                                                setStep('preview');
-                                                            }}
-                                                            disabled={!directUrl}
-                                                            className="w-full py-4 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
-                                                        >
-                                                            Valider le lien
-                                                        </button>
-                                                    </div>
-                                                </div>
                                             )}
                                         </div>
                                     </div>

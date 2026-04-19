@@ -25,6 +25,8 @@ export function AdminSettings() {
     const [isContestActive, setIsContestActive] = useState(false);
     const [googleSearchKey, setGoogleSearchKey] = useState('');
     const [googleCx, setGoogleCx] = useState('');
+    const [unsplashAccessKey, setUnsplashAccessKey] = useState('');
+    const [pexelsApiKey, setPexelsApiKey] = useState('');
 
     const [isSaving, setIsSaving] = useState(false);
     const [isRevoking, setIsRevoking] = useState(false);
@@ -65,6 +67,8 @@ export function AdminSettings() {
                     if (data.is_contest_active !== undefined) setIsContestActive(data.is_contest_active);
                     if (data.google_search_key) setGoogleSearchKey(data.google_search_key);
                     if (data.google_cx) setGoogleCx(data.google_cx);
+                    if (data.unsplash_access_key) setUnsplashAccessKey(data.unsplash_access_key);
+                    if (data.pexels_api_key) setPexelsApiKey(data.pexels_api_key);
                 }
 
                 const resAuth = await apiFetch('/api/editors', { headers: getAuthHeaders() });
@@ -100,7 +104,9 @@ export function AdminSettings() {
                 contest_festival_handle: contestFestivalHandle,
                 is_contest_active: isContestActive,
                 google_search_key: googleSearchKey,
-                google_cx: googleCx
+                google_cx: googleCx,
+                unsplash_access_key: unsplashAccessKey,
+                pexels_api_key: pexelsApiKey
             };
 
             const saveRes = await apiFetch('/api/settings/update', {
@@ -382,8 +388,35 @@ export function AdminSettings() {
                                         />
                                     </div>
                                 </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                            <Sparkles className="w-5 h-5 text-neon-cyan/50" />
+                                        </div>
+                                        <input
+                                            type="password"
+                                            value={unsplashAccessKey}
+                                            onChange={(e) => setUnsplashAccessKey(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-4 py-5 text-white font-bold text-xs focus:outline-none focus:border-neon-cyan transition-all"
+                                            placeholder="UNSPLASH_ACCESS_KEY"
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                            <Camera className="w-5 h-5 text-neon-cyan/50" />
+                                        </div>
+                                        <input
+                                            type="password"
+                                            value={pexelsApiKey}
+                                            onChange={(e) => setPexelsApiKey(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-4 py-5 text-white font-bold text-xs focus:outline-none focus:border-neon-cyan transition-all"
+                                            placeholder="PEXELS_API_KEY"
+                                        />
+                                    </div>
+                                </div>
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
-                                    Nécessaire pour la recherche d'images Google dans le Cloud Upload.
+                                    Nécessaire pour la recherche d'images (Google, Unsplash ou Pexels) dans le Cloud Upload.
                                 </p>
                             </div>
                         </div>
