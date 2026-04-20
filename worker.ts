@@ -6292,13 +6292,27 @@ ${urls.map(u => `  <url>
             const todayKey = todayStr; // YYYY-MM-DD
 
             if (hourUTC >= 18 && hourUTC <= 20 && lastMusicReset !== todayKey) {
-                console.log('[SCHEDULED] Auto-resetting Music Top 20...');
-                // Reuse the internal reset logic
+                console.log('[SCHEDULED] Auto-updating Music Top 20 (Smart Reset)...');
                 try {
-                    // Logic from /api/music/reset (simplified for scheduled context)
+                    // 1. Get all current tracks
                     const listKeys = await env.CHAT_KV.list({ prefix: 'music_track:' });
-                    await Promise.all(listKeys.keys.map((k) => env.CHAT_KV.delete(k.name)));
+                    const currentTracks = await Promise.all(
+                        listKeys.keys.map(k => env.CHAT_KV.get(k.name, { type: 'json' }))
+                    ) as any[];
 
+                    // 2. Keep tracks with votes, delete those with 0 votes
+                    const votedTracks = currentTracks.filter(t => t && t.votes > 0);
+                    const zeroVoteKeys = listKeys.keys.filter((k, i) => !currentTracks[i] || currentTracks[i].votes === 0);
+                    
+                    await Promise.all(zeroVoteKeys.map(k => env.CHAT_KV.delete(k.name)));
+                    console.log(`[SCHEDULED] Preserved ${votedTracks.length} voted tracks, deleted ${zeroVoteKeys.length} tracks with 0 votes.`);
+
+                    if (votedTracks.length >= 20) {
+                        await env.CHAT_KV.put('last_auto_music_reset_day', todayKey);
+                        return;
+                    }
+
+                    // 3. Find news tracks to fill the remaining slots
                     const owner = env.GITHUB_OWNER || 'Itsalexfr1';
                     const repo = env.GITHUB_REPO || 'sitedropsiders';
                     const newsData: any[] = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/src/data/news.json`).then(r => r.json());
@@ -6306,6 +6320,8 @@ ${urls.map(u => `  <url>
                     const contentData: any[] = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/src/data/news_content_3.json`).then(r => r.json());
                     
                     const pool = [];
+                    const votedTitles = new Set(votedTracks.map(t => t.title.toUpperCase()));
+
                     for (const item of contentData) {
                         if (!musicIds.has(String(item.id))) continue;
                         const blocks = (item.content || '').split('class="music-top-item-premium');
@@ -6315,21 +6331,26 @@ ${urls.map(u => `  <url>
                             const beatportMatch = block.match(/src="(https:\/\/embed\.beatport\.com\/[^"]+)"/);
                             if (titleMatch && beatportMatch) {
                                 const title = titleMatch[1].trim().toUpperCase();
-                                if (!pool.some(t => t.title === title)) {
+                                if (!votedTitles.has(title) && !pool.some(t => t.title === title)) {
                                     pool.push({ title, media: beatportMatch[1].replace(/&amp;/g, '&') });
                                 }
                             }
                         }
                     }
-                    const selected = pool.sort(() => Math.random() - 0.5).slice(0, 20);
+
+                    // 4. Seed new tracks to fill up to 20
+                    const needed = 20 - votedTracks.length;
+                    const selected = pool.sort(() => Math.random() - 0.5).slice(0, needed);
+                    
                     for (const { title, media } of selected) {
                         const trackId = title.toLowerCase().replace(/[^a-z0-9]/g, '_');
                         await env.CHAT_KV.put(`music_track:${trackId}`, JSON.stringify({ title, votes: 0, media, playerType: 'beatport' }));
                     }
+
                     await env.CHAT_KV.put('last_auto_music_reset_day', todayKey);
-                    console.log(`[SCHEDULED] Successfully seeded ${selected.length} tracks.`);
+                    console.log(`[SCHEDULED] Successfully filled with ${selected.length} new tracks.`);
                 } catch (e) {
-                    console.error('[SCHEDULED] Auto-reset music failed:', e);
+                    console.error('[SCHEDULED] Smart auto-reset failed:', e);
                 }
             }
         }
