@@ -113,13 +113,17 @@ export function Home() {
                 return (
                     <section key="social_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div 
-                            className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 items-stretch"
+                            className="grid grid-cols-1 gap-8 items-start"
+                            style={{ 
+                                display: 'grid',
+                                gridTemplateColumns: window.innerWidth > 1024 ? '1.5fr 1fr' : '1fr'
+                            }}
                         >
-                            <div className="flex flex-col gap-8">
+                            <div className="flex flex-col gap-8 w-full">
                                 <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
                                 <TikTokWidget accentColor={item.accentColor2 || 'cyan'} resolvedColor={resolveColor(item.accentColor2 || 'cyan')} username={socials?.tiktok} />
                             </div>
-                            <div className="h-full">
+                            <div className="w-full">
                                 <TopTracksLeaderboard resolvedColor={color} />
                             </div>
                         </div>

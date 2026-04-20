@@ -52,7 +52,7 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
                 ref={containerRef}
                 whileHover={{ scale: 1.01 }}
                 onMouseEnter={playHoverSound}
-                className="flex-1 bg-dark-bg/50 border border-white/10 rounded-2xl p-4 sm:p-6 backdrop-blur-sm shadow-2xl space-y-4 sm:space-y-6 flex flex-col items-center transition-all duration-300 h-full"
+                className="bg-dark-bg/50 border border-white/10 rounded-2xl p-4 sm:p-6 backdrop-blur-sm shadow-2xl space-y-4 sm:space-y-6 flex flex-col items-center transition-all duration-300"
             >
                 <div className="w-full flex-1 relative group rounded-xl overflow-hidden p-[1px] bg-white/5 flex flex-col min-h-[380px]">
                     {/* Skeleton */}
