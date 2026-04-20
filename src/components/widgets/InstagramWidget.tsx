@@ -52,9 +52,9 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
                 ref={containerRef}
                 whileHover={{ scale: 1.01 }}
                 onMouseEnter={playHoverSound}
-                className="flex-1 bg-dark-bg/50 border border-white/10 rounded-2xl p-0 backdrop-blur-sm shadow-2xl space-y-3 sm:space-y-4 flex flex-col items-center transition-all duration-300 h-full min-h-[220px] sm:min-h-[280px]"
+                className="flex-1 bg-dark-bg/50 border border-white/10 rounded-2xl p-0 backdrop-blur-sm shadow-2xl flex flex-col items-center transition-all duration-300 h-full min-h-[300px] sm:min-h-[380px]"
             >
-                <div className="w-full flex-1 relative group rounded-xl overflow-hidden p-0 bg-white/5 flex flex-col min-h-[180px]">
+                <div className="w-full flex-1 relative group rounded-xl overflow-hidden p-0 bg-white/5 flex flex-col min-h-[220px]">
                     {/* Skeleton */}
                     <AnimatePresence>
                         {!isLoaded && (
@@ -80,7 +80,7 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
                         className="flex-1 bg-black/20 rounded-[11px] overflow-hidden flex flex-col justify-between"
                         style={{ border: `1px solid ${color}20` }}
                     >
-                        <div className="w-full px-0 pt-2 pb-0 flex justify-center flex-1 overflow-hidden relative min-h-[180px] sm:min-h-[220px]">
+                        <div className="w-full px-0 pt-0 pb-0 flex justify-center flex-1 overflow-hidden relative min-h-[160px] sm:min-h-[200px]">
                             {isInView && (
                                 <InstagramEmbed
                                     url={instagramUrl}
