@@ -143,9 +143,6 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                         <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] italic">VOTES LIVE</span>
                     </div>
-                    <div className="px-3 py-1 bg-white/5 rounded-full border border-white/10">
-                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest leading-none">COMMUNITY CHOICE</span>
-                    </div>
                 </div>
 
                 <div className="space-y-3 relative z-10">
