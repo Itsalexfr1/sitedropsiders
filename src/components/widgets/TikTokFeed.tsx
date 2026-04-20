@@ -48,11 +48,11 @@ export function TikTokFeed({ resolvedColor, username }: { accentColor?: string, 
             <motion.div
                 whileHover={{ scale: 1.005 }}
                 onMouseEnter={playHoverSound}
-                className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
-                style={{ height: '600px', background: 'rgba(0,0,0,0.4) !important' }}
+                className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
+                style={{ height: '600px' }}
             >
-                <div className="h-full w-full overflow-y-auto custom-scrollbar flex justify-center items-start bg-transparent">
-                    <div className="w-full" style={{ marginTop: '-80px' }}>
+                <div className="h-full w-full overflow-y-auto custom-scrollbar flex justify-center items-start bg-black">
+                    <div className="w-full max-w-[325px]" style={{ marginTop: '-100px' }}>
                         {isInView && (
                             <blockquote 
                                 className="tiktok-embed" 
