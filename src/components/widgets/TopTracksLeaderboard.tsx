@@ -144,6 +144,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     style={{ borderRadius: '12px' }}
                 />
             );
+        }
         if (playerType === 'spotify') {
             return (
                 <iframe
