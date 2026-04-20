@@ -5419,21 +5419,51 @@ ${urls.map(u => `  <url>
                     }), { status: 501, headers });
                 }
 
-                const searchRes = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${apiKey}`);
+                const searchRes = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoCategoryId=10&maxResults=20&key=${apiKey}`);
                 if (!searchRes.ok) {
                     const errData: any = await searchRes.json();
                     throw new Error(errData.error?.message || 'YouTube search failed');
                 }
 
                 const searchData: any = await searchRes.json();
-                const results = (searchData.items || []).map((item: any) => ({
-                    id: item.id.videoId,
-                    title: item.snippet.title.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&'),
-                    media: item.id.videoId,
-                    playerType: 'youtube',
-                    cover: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
-                    previewUrl: null
-                }));
+                const videoIds = (searchData.items || []).map((item: any) => item.id.videoId).filter(Boolean).join(',');
+
+                if (!videoIds) {
+                    return new Response(JSON.stringify([]), { status: 200, headers });
+                }
+
+                // Fetch details to get duration and filter out long sets
+                const detailsRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoIds}&key=${apiKey}`);
+                if (!detailsRes.ok) {
+                    throw new Error('Failed to fetch video details');
+                }
+                const detailsData: any = await detailsRes.json();
+
+                const results = (detailsData.items || [])
+                    .filter((item: any) => {
+                        const duration = item.contentDetails?.duration || '';
+                        // Discard if it contains hours (H)
+                        if (duration.includes('H')) return false;
+                        
+                        // Discard if minutes > 15
+                        const minMatch = duration.match(/(\d+)M/);
+                        if (minMatch && parseInt(minMatch[1]) > 15) return false;
+                        
+                        // Discard obvious set titles
+                        const t = item.snippet?.title?.toLowerCase() || '';
+                        if (t.includes('full set') || t.includes('dj set') || t.includes('live at ') || t.includes('live set')) return false;
+
+                        return true;
+                    })
+                    .slice(0, 10)
+                    .map((item: any) => ({
+                        id: item.id,
+                        title: item.snippet.title.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&'),
+                        media: item.id,
+                        playerType: 'youtube',
+                        cover: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
+                        previewUrl: null
+                    }));
 
                 return new Response(JSON.stringify(results), { status: 200, headers });
             } catch (error: any) {
