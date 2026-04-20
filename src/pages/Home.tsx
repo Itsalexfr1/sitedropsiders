@@ -73,10 +73,10 @@ export function Home() {
                 return (
                     <section key="news_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div 
-                            className="grid grid-cols-1 gap-8 items-stretch"
+                            className="grid gap-8"
                             style={{ 
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? '1.5fr 1fr' : '1fr'
                             }}
                         >
                             <FeaturedNews accentColor={accentColor} resolvedColor={color} />
@@ -88,10 +88,10 @@ export function Home() {
                 return (
                     <section key="recap_agenda_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div 
-                            className="grid grid-cols-1 gap-8 items-start"
+                            className="grid gap-8"
                             style={{ 
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? '1.5fr 1fr' : '1fr'
                             }}
                         >
                             <div className="space-y-8">
