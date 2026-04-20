@@ -37,7 +37,9 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
             if (res.ok) {
                 setSearchResults(data);
             } else {
-                setSearchError(data.error || 'Erreur recherche');
+                // Affiche l'erreur + les détails s'ils existent
+                const errorMsg = data.details ? `${data.error} (${data.details})` : (data.error || 'Erreur recherche');
+                setSearchError(errorMsg);
             }
         } catch (err) {
             setSearchError('Impossible de contacter Spotify');
