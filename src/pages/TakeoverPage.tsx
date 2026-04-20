@@ -322,11 +322,11 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 return next;
             });
             localStorage.setItem('last_daily_reward', today);
-            showNotification(`ðŸŽ CADEAU SUR LE LIVE (PALIER ${streak}) : +${totalReward} DROPS !`, 'success');
+            showNotification(`🎁 CADEAU SUR LE LIVE (PALIER ${streak}) : +${totalReward} DROPS !`, 'success');
         }
     }, [isConnected]);
 
-    // â±ï¸ HEIST & BOSS TIMERS
+    // ⏱️ HEIST & BOSS TIMERS
     useEffect(() => {
         if (activeHeist && activeHeist.timeLeft > 0) {
             const timer = setTimeout(() => {
@@ -3074,7 +3074,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                         <AnimatePresence>
                             {mentionNotify && (
                                 <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="absolute bottom-4 right-4 z-[50] bg-neon-red text-white text-[10px] font-black px-4 py-2 rounded-full shadow-[0_0_20px_rgba(255,0,51,0.5)]">
-                                    ON T'A CITÉ ! ðŸ‘‡
+                                    ON T'A CITÉ ! 👇
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -3115,7 +3115,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         onClick={async () => {
                                             const myPseudo = localStorage.getItem('chat_pseudo') || "VISITEUR";
                                             setQteActive(false);
-                                            showNotification("TU AS GAGNÉ LE QTE ! âš¡ (+500 DROPS)", 'success');
+                                            showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
                                             triggerConfetti();
                                             setUserDrops(prev => prev + 500);
                                             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -3201,7 +3201,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         onClick={async () => {
                                             const myPseudo = localStorage.getItem('chat_pseudo') || "VISITEUR";
                                             setQteActive(false);
-                                            showNotification("TU AS GAGNÉ LE QTE ! âš¡ (+500 DROPS)", 'success');
+                                            showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
                                             triggerConfetti();
                                             setUserDrops(prev => prev + 500);
                                             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -3280,7 +3280,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                         </div>
                                                         <div className="flex flex-col items-end">
                                                             <span className="text-[11px] font-black text-neon-purple">{percentage}%</span>
-                                                            <span className="text-[7px] font-bold text-gray-600 uppercase tracking-tighter">{v[idx]} REP.</span>
+                                                            <span className="text-[7px] font-bold text-gray-600 uppercase tracking-tighter">{v[idx]} RÉP.</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -3291,7 +3291,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
                                         <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Répondez par 1, 2, 3 ou 4 dans le chat</p>
                                         {userHasAnswered && (
-                                            <span className="text-[8px] font-black text-neon-cyan uppercase">Participation enregistrée âœ… </span>
+                                            <span className="text-[8px] font-black text-neon-cyan uppercase">Participation enregistrée ✅ </span>
                                         )}
                                     </div>
                                 </motion.div>
@@ -3321,7 +3321,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                     if (!activeLiveItem) return;
                                                     setSetRatings(prev => ({ ...prev, [activeLiveItem.artist]: star }));
                                                     setShowRatingPrompt(false);
-                                                    showNotification(`VOTE ENREGISTRÉ : ${star}/5 â­ `, 'success');
+                                                    showNotification(`VOTE ENREGISTRÉ : ${star}/5 ⭐`, 'success');
 
                                                     // Broadcast rating via Appwrite
                                                     await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
