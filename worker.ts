@@ -5466,6 +5466,7 @@ ${urls.map(u => `  <url>
         }
 
         // --- YOUTUBE SEARCH API ---
+        // Uses YOUTUBE_API_KEY secret from Cloudflare
         if (path === '/api/youtube/search' && request.method === 'GET') {
             const query = url.searchParams.get('q');
             if (!query) return new Response(JSON.stringify({ error: 'Query required' }), { status: 400, headers });
