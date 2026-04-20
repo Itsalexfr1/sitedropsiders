@@ -5484,39 +5484,62 @@ ${urls.map(u => `  <url>
                 await Promise.all(list.keys.map((k) => env.CHAT_KV.delete(k.name)));
                 console.log(`[MUSIC RESET] Deleted ${list.keys.length} existing tracks`);
 
-                // 2. Seed from news articles via direct GitHub raw fetch (no helper deps)
+                // 2. Seed from news_content_3.json — only tracks with Beatport embed links
                 let seededCount = 0;
                 let seedError: string | null = null;
                 try {
                     const owner = env.GITHUB_OWNER || 'Itsalexfr1';
                     const repo = env.GITHUB_REPO || 'sitedropsiders';
-                    const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/src/data/news.json`;
-                    const newsRes = await fetch(rawUrl, { headers: { 'Accept': 'application/json' } });
-                    if (!newsRes.ok) throw new Error(`GitHub raw fetch failed: ${newsRes.status}`);
 
+                    // Get music article IDs from news.json
+                    const newsUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/src/data/news.json`;
+                    const newsRes = await fetch(newsUrl, { headers: { 'Accept': 'application/json' } });
+                    if (!newsRes.ok) throw new Error(`news.json fetch failed: ${newsRes.status}`);
                     const newsData: any[] = await newsRes.json();
-                    const musicArticles = newsData
-                        .filter((n: any) => (n.category || '').toLowerCase().includes('musique'))
-                        .slice(0, 20);
+                    const musicIds = new Set(
+                        newsData
+                            .filter((n: any) => (n.category || '').toLowerCase().includes('musique'))
+                            .map((n: any) => String(n.id))
+                    );
 
-                    const pool: string[] = [];
-                    for (const article of musicArticles) {
-                        const tracks = extractTracks(article.summary || '');
-                        for (const t of tracks) {
-                            if (!pool.includes(t)) pool.push(t);
+                    // Fetch article content to extract Beatport-linked tracks
+                    const contentUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/src/data/news_content_3.json`;
+                    const contentRes = await fetch(contentUrl, { headers: { 'Accept': 'application/json' } });
+
+                    const pool: Array<{ title: string; media: string }> = [];
+
+                    if (contentRes.ok) {
+                        const contentData: Array<{ id: number | string; content: string }> = await contentRes.json();
+                        for (const item of contentData) {
+                            if (!musicIds.has(String(item.id))) continue;
+                            const content = item.content || '';
+                            // Split by music item block and process each
+                            const blocks = content.split('class="music-top-item-premium');
+                            for (let i = 1; i < blocks.length; i++) {
+                                const block = blocks[i];
+                                const titleMatch = block.match(/<h3[^>]*>([^<]+)<\/h3>/);
+                                const beatportMatch = block.match(/src="(https:\/\/embed\.beatport\.com\/[^"]+)"/);
+                                if (titleMatch && beatportMatch) {
+                                    const title = titleMatch[1].trim().toUpperCase();
+                                    const mediaUrl = beatportMatch[1].replace(/&amp;/g, '&');
+                                    if (!pool.some(t => t.title === title)) {
+                                        pool.push({ title, media: mediaUrl });
+                                    }
+                                }
+                            }
                         }
                     }
 
                     const selected = pool.sort(() => Math.random() - 0.5).slice(0, 10);
-                    console.log(`[MUSIC RESET] Pool: ${pool.length} tracks → seeding ${selected.length}`);
+                    console.log(`[MUSIC RESET] Beatport pool: ${pool.length} tracks → seeding ${selected.length}`);
 
-                    for (const trackTitle of selected) {
-                        const trackId = trackTitle.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    for (const { title, media } of selected) {
+                        const trackId = title.toLowerCase().replace(/[^a-z0-9]/g, '_');
                         await env.CHAT_KV.put(`music_track:${trackId}`, JSON.stringify({
-                            title: trackTitle,
+                            title,
                             votes: 0,
-                            media: '',
-                            playerType: 'spotify'
+                            media,
+                            playerType: 'beatport'
                         }));
                         seededCount++;
                     }
