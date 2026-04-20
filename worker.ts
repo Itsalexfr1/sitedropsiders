@@ -5432,6 +5432,55 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- SPOTIFY SEARCH API ---
+        if (path === '/api/spotify/search' && request.method === 'GET') {
+            const query = url.searchParams.get('q');
+            if (!query) return new Response(JSON.stringify({ error: 'Query required' }), { status: 400, headers });
+
+            try {
+                const clientId = env.SPOTIFY_CLIENT_ID;
+                const clientSecret = env.SPOTIFY_CLIENT_SECRET;
+
+                if (!clientId || !clientSecret) {
+                    return new Response(JSON.stringify({ 
+                        error: 'Spotify API not configured. Please set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in worker environment.' 
+                    }), { status: 501, headers });
+                }
+
+                // 1. Get Access Token
+                const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret)
+                    },
+                    body: 'grant_type=client_credentials'
+                });
+
+                const tokenData: any = await tokenRes.json();
+                const token = tokenData.access_token;
+
+                // 2. Search Spotify
+                const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const searchData: any = await searchRes.json();
+                const results = (searchData.tracks?.items || []).map((item: any) => ({
+                    id: item.id,
+                    title: `${item.artists.map((a: any) => a.name).join(', ')} - ${item.name}`,
+                    media: item.id,
+                    playerType: 'spotify',
+                    cover: item.album.images[0]?.url,
+                    previewUrl: item.preview_url
+                }));
+
+                return new Response(JSON.stringify(results), { status: 200, headers });
+            } catch (error: any) {
+                return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+            }
+        }
+
         // --- MUSIC TRACK VOTE RESET (admin) ---
         if (path === '/api/music/reset' && request.method === 'POST') {
             try {

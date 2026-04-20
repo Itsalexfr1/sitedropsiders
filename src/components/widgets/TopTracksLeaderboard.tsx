@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, TrendingUp, Heart } from 'lucide-react';
+import { Music, TrendingUp, Heart, Search, X, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -17,7 +17,57 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [tracks, setTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(true);
     const [openTrackTitle, setOpenTrackTitle] = useState<string | null>(null);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
     const color = resolvedColor || '#ff1241';
+
+    const handleSpotifySearch = async (q: string) => {
+        if (!q.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        setIsSearching(true);
+        setSearchError(null);
+        try {
+            const res = await fetch(`/api/spotify/search?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            if (res.ok) {
+                setSearchResults(data);
+            } else {
+                setSearchError(data.error || 'Erreur recherche');
+            }
+        } catch (err) {
+            setSearchError('Impossible de contacter Spotify');
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleAddTrack = async (track: any) => {
+        try {
+            const res = await fetch('/api/music/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    trackTitle: track.title,
+                    media: track.media,
+                    playerType: 'spotify'
+                })
+            });
+            if (res.ok) {
+                setIsSearchOpen(false);
+                setSearchQuery('');
+                setSearchResults([]);
+                // Reload tracks
+                window.location.reload(); // Simple reload to get the new track in the list
+            }
+        } catch (err) {
+            console.error('Failed to add track', err);
+        }
+    };
 
     const handleVote = async (title: string, e: React.MouseEvent, media?: string) => {
         e.stopPropagation();
@@ -49,14 +99,14 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 if (res.ok) {
                     const data = await res.json();
 
-                    // Garder uniquement les tracks avec un lien Beatport embed
-                    const beatportTracks: Track[] = Array.isArray(data)
-                        ? data.filter((t: any) => t.title && t.media && t.media.includes('beatport'))
+                    // On garde Beatport ET Spotify
+                    const validTracks: Track[] = Array.isArray(data)
+                        ? data.filter((t: any) => t.title && t.media)
                         : [];
 
                     // Tri stable : on ne change l'ordre QUE si le nombre de votes est différent.
                     // Cela permet de garder l'ordre exact du "Mixer" tant que les votes sont à 0.
-                    const sorted = [...beatportTracks].sort((a, b) => {
+                    const sorted = [...validTracks].sort((a, b) => {
                         const vA = a.votes || 0;
                         const vB = b.votes || 0;
                         if (vB !== vA) return vB - vA;
@@ -91,6 +141,17 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     height="162"
                     frameBorder="0"
                     scrolling="no"
+                    style={{ borderRadius: '12px' }}
+                />
+            );
+        if (playerType === 'spotify') {
+            return (
+                <iframe
+                    src={`https://open.spotify.com/embed/track/${media}`}
+                    width="100%"
+                    height="80"
+                    frameBorder="0"
+                    allow="encrypted-media"
                     style={{ borderRadius: '12px' }}
                 />
             );
@@ -225,7 +286,15 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     </AnimatePresence>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-white/5">
+                <div className="mt-8 flex flex-col gap-6 pt-6 border-t border-white/5">
+                    <button
+                        onClick={() => setIsSearchOpen(true)}
+                        className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 hover:border-white/40 transition-all group"
+                    >
+                        <Search className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
+                        <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-widest">Ajouter un titre (Spotify)</span>
+                    </button>
+
                     <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">
                         Votes mis à jour en temps réel via les{' '}
                         <Link to="/news?tab=musique" className="text-white hover:text-neon-cyan transition-colors underline decoration-dotted">
@@ -234,6 +303,95 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     </p>
                 </div>
             </div>
+
+            {/* Search Modal */}
+            <AnimatePresence>
+                {isSearchOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsSearchOpen(false)}
+                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                        />
+
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-8">
+                                <div className="flex items-center justify-between mb-8">
+                                    <h2 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-[#1DB954] flex items-center justify-center">
+                                            <Search className="w-4 h-4 text-black" />
+                                        </div>
+                                        RECHERCHE SPOTIFY
+                                    </h2>
+                                    <button
+                                        onClick={() => setIsSearchOpen(false)}
+                                        className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                                    >
+                                        <X className="w-6 h-6 text-gray-500" />
+                                    </button>
+                                </div>
+
+                                <div className="relative mb-8">
+                                    <input
+                                        type="text"
+                                        autoFocus
+                                        value={searchQuery}
+                                        onChange={(e) => {
+                                            setSearchQuery(e.target.value);
+                                            handleSpotifySearch(e.target.value);
+                                        }}
+                                        placeholder="Titre, artiste..."
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white font-medium focus:border-white/20 focus:outline-none transition-all"
+                                    />
+                                    {isSearching && (
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                            <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                    {searchError && (
+                                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center font-bold uppercase tracking-wider">
+                                            {searchError}
+                                        </div>
+                                    )}
+
+                                    {searchResults.map((track) => (
+                                        <div
+                                            key={track.id}
+                                            className="flex items-center gap-4 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition-all group"
+                                        >
+                                            <img src={track.cover} alt="" className="w-12 h-12 rounded-lg object-cover shadow-lg" />
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-sm font-bold text-white truncate">{track.title}</h4>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mt-0.5">Spotify Track</p>
+                                            </div>
+                                            <button
+                                                onClick={() => handleAddTrack(track)}
+                                                className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center hover:bg-[#1DB954] hover:text-black transition-all active:scale-90"
+                                            >
+                                                <Plus className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    ))}
+
+                                    {!isSearching && searchQuery && searchResults.length === 0 && !searchError && (
+                                        <p className="text-center text-gray-500 text-[10px] font-black uppercase tracking-[2px] py-8">Aucun résultat trouvé</p>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
