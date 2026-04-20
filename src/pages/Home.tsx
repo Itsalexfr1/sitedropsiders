@@ -88,26 +88,19 @@ export function Home() {
                 return (
                     <section key="recap_agenda_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div 
-                            className="grid grid-cols-1 gap-8 items-stretch"
+                            className="grid grid-cols-1 gap-8 items-start"
                             style={{ 
                                 display: 'grid',
                                 gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
                             }}
                         >
-                            {/* Colonne GAUCHE : Recap + Social */}
-                            <div className="flex flex-col h-full">
+                            <div className="space-y-8">
                                 <RecapWidget accentColor={accentColor} resolvedColor={color} />
-                                <div className="flex-1 min-h-[40px]" /> {/* Spacer pour aligner le bas */}
-                                <div className="flex flex-col gap-8">
-                                    <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
-                                    <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
-                                </div>
+                                <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
+                                <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
                             </div>
-
-                            {/* Colonne DROITE : Agenda + Music */}
-                            <div className="flex flex-col h-full">
+                            <div className="space-y-8">
                                 <AgendaWidget maxItems={item.maxAgendaItems || 8} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
-                                <div className="flex-1 min-h-[40px]" /> {/* Spacer identique */}
                                 <TopTracksLeaderboard resolvedColor={color} />
                             </div>
                         </div>
