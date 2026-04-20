@@ -94,7 +94,7 @@ export function TikTokWidget({ accentColor = 'cyan', resolvedColor, username }: 
                         className="flex-1 bg-black/20 rounded-[11px] overflow-hidden flex flex-col justify-between"
                         style={{ border: `1px solid ${color}20` }}
                     >
-                        <div className="w-full px-0 flex-1 relative min-h-[450px] sm:min-h-[550px] pb-24">
+                        <div className="w-full px-0 flex-1 relative min-h-[450px] pb-0">
                             {isInView && (
                                 <blockquote
                                     className="tiktok-embed"
