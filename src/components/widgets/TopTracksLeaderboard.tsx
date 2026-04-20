@@ -19,6 +19,25 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [openTrackTitle, setOpenTrackTitle] = useState<string | null>(null);
     const color = resolvedColor || '#ff1241';
 
+    const handleVote = async (title: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            const res = await fetch('/api/music/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, action: 'up' })
+            });
+            if (res.ok) {
+                // Update local state for immediate feedback
+                setTracks(prev => prev.map(t => 
+                    t.title === title ? { ...t, votes: (t.votes || 0) + 1 } : t
+                ).sort((a, b) => (b.votes || 0) - (a.votes || 0)));
+            }
+        } catch (err) {
+            console.error('Failed to vote:', err);
+        }
+    };
+
     useEffect(() => {
         const fetchTopTracks = async () => {
             try {
@@ -31,16 +50,12 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                         ? data.filter((t: any) => t.title && t.media && t.media.includes('beatport'))
                         : [];
 
-                    // Si tous les votes sont à 0 → ordre aléatoire (en attente de votes)
-                    // Sinon → tri par votes décroissants
-                    const maxVotes = beatportTracks.reduce((max, t) => Math.max(max, t.votes || 0), 0);
-                    const sorted = maxVotes === 0
-                        ? [...beatportTracks].sort(() => Math.random() - 0.5)
-                        : [...beatportTracks].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+                    // Tri par votes décroissants (stable)
+                    const sorted = [...beatportTracks].sort((a, b) => (b.votes || 0) - (a.votes || 0));
 
                     const final = sorted.slice(0, 20);
                     setTracks(final);
-                    if (final[0]?.title) setOpenTrackTitle(final[0].title);
+                    if (!openTrackTitle && final[0]?.title) setOpenTrackTitle(final[0].title);
                 }
             } catch (err) {
                 console.error('Failed to fetch top tracks', err);
@@ -174,10 +189,13 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
-                                            <Heart className="w-3 h-3 text-pink-400" />
+                                        <button 
+                                            onClick={(e) => handleVote(track.title, e)}
+                                            className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-pink-500/20 hover:border-pink-500/40 transition-colors group/btn"
+                                        >
+                                            <Heart className="w-3 h-3 text-pink-400 group-hover/btn:scale-125 transition-transform" />
                                             <span className="text-[10px] font-black text-white">{track.votes || 0}</span>
-                                        </div>
+                                        </button>
                                     </div>
 
                                     <AnimatePresence>
