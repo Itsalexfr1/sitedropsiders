@@ -95,11 +95,11 @@ export function Home() {
                             }}
                         >
                             <div className="space-y-8">
-                                <RecapWidget accentColor={accentColor} resolvedColor={color} />
                                 <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
                                 <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
                             </div>
                             <div className="space-y-8">
+                                <RecapWidget accentColor={accentColor} resolvedColor={color} />
                                 <AgendaWidget maxItems={(item.maxAgendaItems || 8) - 1} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
                                 <TopTracksLeaderboard resolvedColor={color} />
                             </div>

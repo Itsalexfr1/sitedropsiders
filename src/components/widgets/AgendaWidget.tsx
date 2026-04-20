@@ -295,6 +295,36 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                         </div>
                     </Link>
                 )}
+                {!takeoverEnabled && upcomingEvents.length > 0 && (
+                    <Link
+                        to={getAgendaLink(upcomingEvents[0])}
+                        className="block relative group overflow-hidden rounded-xl border border-white/10 shadow-2xl transition-all duration-300 hover:scale-[1.02] bg-black/40 mb-6"
+                        onClick={playHoverSound}
+                    >
+                        <div className="absolute inset-0">
+                            <img 
+                                src={resolveImageUrl(upcomingEvents[0].image)} 
+                                className="w-full h-full object-cover opacity-30 group-hover:opacity-50 group-hover:scale-110 transition-all duration-700"
+                                alt=""
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                        </div>
+                        
+                        <div className="relative z-10 p-5">
+                            <span className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-[10px] font-black text-white uppercase tracking-widest mb-3">
+                                {t('home.featured_event') || 'À LA UNE'}
+                            </span>
+                            <h4 className="text-xl font-display font-black text-white uppercase tracking-tighter mb-1 group-hover:text-neon-cyan transition-colors">
+                                {upcomingEvents[0].title}
+                            </h4>
+                            <div className="flex items-center gap-3 text-xs text-gray-400 font-bold">
+                                <span className="flex items-center gap-1">
+                                    <MapPin className="w-3.5 h-3.5 text-neon-red" /> {upcomingEvents[0].location}
+                                </span>
+                            </div>
+                        </div>
+                    </Link>
+                )}
                 {upcomingEvents.map((event: any, index: number) => {
                     const styles = getEventStyles(event.genre);
                     return (
