@@ -128,10 +128,11 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
     const renderPlayer = (media: string, playerType: string) => {
         if (playerType === 'beatport') {
-            const trackId = media.match(/\d+/)?.[0] || media;
+            // Use the full URL if available, otherwise fallback to ID extraction
+            const src = media.startsWith('http') ? media : `https://embed.beatport.com/?id=${media.match(/\d+/)?.[0] || media}&type=track`;
             return (
                 <iframe 
-                    src={`https://embed.beatport.com/?id=${trackId}&type=track`} 
+                    src={src} 
                     width="100%" 
                     height="162" 
                     frameBorder="0" 
