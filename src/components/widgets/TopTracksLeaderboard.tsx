@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Music, TrendingUp, Flame, Share2 } from 'lucide-react';
+import { Trophy, Music, TrendingUp, Flame } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -166,11 +166,6 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     />
                     TOP 10 TRACKS
                 </h3>
-                <Share2
-                    className="w-4 h-4 text-gray-500 transition-colors cursor-pointer hover:text-white"
-                    onMouseOver={(e) => e.currentTarget.style.color = color}
-                    onMouseOut={(e) => e.currentTarget.style.color = 'rgb(107, 114, 128)'}
-                />
             </div>
 
             <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 h-full shadow-2xl relative overflow-hidden group">
