@@ -23,6 +23,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
     const [previewId, setPreviewId] = useState<string | null>(null);
+    const [votedTracks, setVotedTracks] = useState<string[]>([]);
     const color = resolvedColor || '#ff1241';
 
     const handleYouTubeSearch = async (q: string) => {
@@ -112,6 +113,16 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 setTracks(prev => prev.map(t => 
                     t.title === title ? { ...t, votes: (t.votes || 0) + 1 } : t
                 ).sort((a, b) => (b.votes || 0) - (a.votes || 0)));
+
+                // Enregistrer le vote localement
+                const newVoted = [...votedTracks, title];
+                setVotedTracks(newVoted);
+                localStorage.setItem('music_voted_tracks', JSON.stringify(newVoted));
+            } else if (res.status === 403) {
+                // Déjà voté sur le serveur (synchro locale)
+                const newVoted = [...votedTracks, title];
+                setVotedTracks(newVoted);
+                localStorage.setItem('music_voted_tracks', JSON.stringify(newVoted));
             }
         } catch (err) {
             console.error('Failed to vote:', err);
@@ -119,8 +130,11 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     };
 
     useEffect(() => {
+        const stored = localStorage.getItem('music_voted_tracks');
+        if (stored) {
+            try { setVotedTracks(JSON.parse(stored)); } catch (e) { console.error(e); }
+        }
         fetchTopTracks();
-        // Rafraîchissement automatique toutes les 30 secondes
         const interval = setInterval(fetchTopTracks, 30000);
         return () => clearInterval(interval);
     }, []);
@@ -272,13 +286,13 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                             </div>
                                         </div>
 
-                                        <button 
-                                            type="button"
+                                        <button
                                             onClick={(e) => handleVote(track.title, e, track.media)}
-                                            className="relative z-20 flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-pink-500/20 hover:border-pink-500/40 transition-all active:scale-95 group/btn"
+                                            disabled={votedTracks.includes(track.title)}
+                                            className={`p-2 rounded-xl transition-all flex items-center gap-2 group/heart ${votedTracks.includes(track.title) ? 'bg-white/5 text-neon-cyan' : 'bg-white/10 text-gray-400 hover:bg-white/20 hover:text-pink-500 active:scale-90'}`}
                                         >
-                                            <Heart className="w-3 h-3 text-pink-400 group-hover/btn:scale-125 transition-transform" />
-                                            <span className="text-[10px] font-black text-white">{track.votes || 0}</span>
+                                            <Heart className={`w-4 h-4 transition-colors ${votedTracks.includes(track.title) ? 'fill-current' : 'group-hover/heart:fill-current'}`} />
+                                            <span className="text-xs font-bold font-display">{track.votes || 0}</span>
                                         </button>
                                     </div>
 

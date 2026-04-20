@@ -5412,20 +5412,38 @@ ${urls.map(u => `  <url>
                 const { trackTitle, media, playerType } = await request.json();
                 if (!trackTitle) return new Response(JSON.stringify({ error: 'Title required' }), { status: 400, headers });
 
+                const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
                 const trackId = trackTitle.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
-                const kvKey = `music_track:${trackId}`;
+                
+                // IP Protection: Check if this IP already voted for this track
+                const limitKey = `music_vote_limit:${trackId}:${ip}`;
+                const alreadyVoted = await env.CHAT_KV.get(limitKey);
+                
+                if (alreadyVoted) {
+                    return new Response(JSON.stringify({ 
+                        error: 'Déjà voté', 
+                        details: 'Vous avez déjà voté pour ce morceau aujourd\'hui !' 
+                    }), { status: 403, headers });
+                }
 
+                const kvKey = `music_track:${trackId}`;
                 let data = await env.CHAT_KV.get(kvKey, { type: 'json' }) as { title: string, votes: number, media?: string, playerType?: string } | null;
+                
                 if (!data) {
                     data = { title: trackTitle, votes: 1, media, playerType };
                 } else {
                     data.votes = (data.votes || 0) + 1;
-                    // Update media info if provided and not already present
                     if (media) data.media = media;
                     if (playerType) data.playerType = playerType;
                 }
 
-                await env.CHAT_KV.put(kvKey, JSON.stringify(data));
+                // Record the vote and the limit
+                await Promise.all([
+                    env.CHAT_KV.put(kvKey, JSON.stringify(data)),
+                    // Limit for 24 hours (86400 seconds)
+                    env.CHAT_KV.put(limitKey, Date.now().toString(), { expirationTtl: 86400 })
+                ]);
+
                 return new Response(JSON.stringify({ success: true, votes: data.votes }), { status: 200, headers });
             } catch (error: any) {
                 return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
