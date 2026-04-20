@@ -228,7 +228,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 </h3>
             </div>
 
-            <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 h-full shadow-2xl relative overflow-hidden group min-h-[600px] lg:min-h-[760px] flex flex-col">
+            <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/5 via-transparent to-neon-purple/5 opacity-50" />
                 
                 <div className="flex items-center justify-between mb-8 relative z-10 px-2">
@@ -238,7 +238,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     </div>
                 </div>
 
-                <div className="space-y-3 relative z-10 overflow-y-auto no-scrollbar flex-1 pb-4">
+                <div className="space-y-3 relative z-10 overflow-y-auto no-scrollbar max-h-[calc(100%-140px)]">
                     <AnimatePresence mode="popLayout">
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
