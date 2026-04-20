@@ -156,12 +156,22 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                         TOP 15 TRACKS
                     </h3>
                 </div>
-                <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center justify-center gap-4">
-                    <Music className="w-12 h-12 text-gray-700" />
-                    <p className="text-gray-600 font-black uppercase tracking-widest text-[10px] text-center leading-loose">
-                        Aucun morceau en lice.<br />
-                        Utilisez la recherche pour ajouter un titre.
-                    </p>
+                <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center justify-center gap-6">
+                    <div className="flex flex-col items-center gap-4">
+                        <Music className="w-12 h-12 text-gray-700" />
+                        <p className="text-gray-600 font-black uppercase tracking-widest text-[10px] text-center leading-loose">
+                            Aucun morceau en lice.<br />
+                            Utilisez la recherche pour ajouter un titre.
+                        </p>
+                    </div>
+                    
+                    <button
+                        onClick={() => setIsSearchOpen(true)}
+                        className="px-8 py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 hover:border-white/40 transition-all group"
+                    >
+                        <Youtube className="w-5 h-5 text-red-500" />
+                        <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-widest">Ajouter un titre (YouTube)</span>
+                    </button>
                 </div>
             </div>
         );

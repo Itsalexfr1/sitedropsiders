@@ -97,6 +97,7 @@ export function Home() {
                             <div className="space-y-8">
                                 <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
                                 <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
+                                <AgendaWidget maxItems={3} accentColor="red" resolvedColor="var(--color-neon-red)" />
                             </div>
                             <div className="space-y-8">
                                 <RecapWidget accentColor={accentColor} resolvedColor={color} />
