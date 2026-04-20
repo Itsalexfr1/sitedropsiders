@@ -2044,9 +2044,9 @@ export function AdminDashboard() {
             
             // NOTE: On utilise fetch ici au lieu de apiFetch pour ne pas déconnecter l'utilisateur 
             // si le token admin interne est invalide ou expiré.
-            const resetRes = await fetch('/api/music/reset', {
+            const resetRes = await apiFetch('/api/music/reset', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ adminToken })
             });
 

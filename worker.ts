@@ -5434,9 +5434,11 @@ ${urls.map(u => `  <url>
         // --- MUSIC TRACK VOTE RESET (admin) ---
         if (path === '/api/music/reset' && request.method === 'POST') {
             try {
-                const { adminToken } = await request.json();
-                if (adminToken !== env.ADMIN_TOKEN) {
-                    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+                const body = await request.json().catch(() => ({}));
+                const { adminToken } = body;
+                if (!authenticated && adminToken !== env.ADMIN_TOKEN) {
+                    console.error('[AUTH] Music reset unauthorized. authenticated:', authenticated, 'adminToken provided:', !!adminToken);
+                    return new Response(JSON.stringify({ error: 'Unauthorized: Admin authentication or token required' }), { status: 401, headers });
                 }
                 const list = await env.CHAT_KV.list({ prefix: 'music_track:' });
                 await Promise.all(list.keys.map((k) => env.CHAT_KV.delete(k.name)));
