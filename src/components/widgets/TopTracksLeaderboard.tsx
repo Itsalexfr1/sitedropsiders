@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, TrendingUp, Heart, Search, X, Plus } from 'lucide-react';
+import { Music, TrendingUp, Heart, Search, X, Plus, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -22,6 +22,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
+    const [previewId, setPreviewId] = useState<string | null>(null);
     const color = resolvedColor || '#ff1241';
 
     const handleYouTubeSearch = async (q: string) => {
@@ -154,6 +155,19 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     height="80"
                     frameBorder="0"
                     allow="encrypted-media"
+                    style={{ borderRadius: '12px' }}
+                />
+            );
+        }
+        if (playerType === 'youtube') {
+            return (
+                <iframe
+                    src={`https://www.youtube.com/embed/${media}?autoplay=0&rel=0`}
+                    width="100%"
+                    height="200"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
                     style={{ borderRadius: '12px' }}
                 />
             );
@@ -367,21 +381,38 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                     )}
 
                                     {searchResults.map((track) => (
-                                        <div
-                                            key={track.id}
-                                            className="flex items-center gap-4 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition-all group"
-                                        >
-                                            <img src={track.cover} alt="" className="w-12 h-12 rounded-lg object-cover shadow-lg" />
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="text-sm font-bold text-white truncate">{track.title}</h4>
-                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mt-0.5">{track.channel || 'YouTube'}</p>
+                                        <div key={track.id} className="flex flex-col gap-2 p-2 bg-white/5 border border-white/5 rounded-2xl hover:border-white/10 transition-all">
+                                            <div className="flex items-center gap-4 p-1">
+                                                <img src={track.cover} alt="" className="w-12 h-12 rounded-xl object-cover shadow-lg" />
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="text-sm font-bold text-white truncate">{track.title}</h4>
+                                                    <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mt-0.5">{track.channel || 'YouTube'}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => setPreviewId(previewId === track.id ? null : track.id)}
+                                                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${previewId === track.id ? 'bg-neon-cyan text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                                                    >
+                                                        {previewId === track.id ? <X className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleAddTrack(track)}
+                                                        className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center hover:bg-green-500 hover:text-black transition-all active:scale-90"
+                                                    >
+                                                        <Plus className="w-5 h-5" />
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <button
-                                                onClick={() => handleAddTrack(track)}
-                                                className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center hover:bg-[#1DB954] hover:text-black transition-all active:scale-90"
-                                            >
-                                                <Plus className="w-5 h-5" />
-                                            </button>
+                                            
+                                            {previewId === track.id && (
+                                                <motion.div 
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    className="overflow-hidden bg-black/40 rounded-xl"
+                                                >
+                                                    {renderPlayer(track.id, 'youtube')}
+                                                </motion.div>
+                                            )}
                                         </div>
                                     ))}
 
