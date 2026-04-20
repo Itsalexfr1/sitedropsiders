@@ -6282,5 +6282,56 @@ ${urls.map(u => `  <url>
                 }
             }
         }
+
+        // --- NEW: AUTO-RESET MUSIC TOP 20 (Every Monday at 8 PM Paris time) ---
+        // 8 PM Paris is around 6 PM (Summer) or 7 PM (Winter) UTC. We check for a window.
+        if (now.getDay() === 1) { // Monday
+            const hourUTC = now.getUTCHours();
+            // Use a KV flag to ensure we only run this once between 18:00 and 19:59 UTC (approx 20h-21h Paris)
+            const lastMusicReset = await env.CHAT_KV.get('last_auto_music_reset_day');
+            const todayKey = todayStr; // YYYY-MM-DD
+
+            if (hourUTC >= 18 && hourUTC <= 20 && lastMusicReset !== todayKey) {
+                console.log('[SCHEDULED] Auto-resetting Music Top 20...');
+                // Reuse the internal reset logic
+                try {
+                    // Logic from /api/music/reset (simplified for scheduled context)
+                    const listKeys = await env.CHAT_KV.list({ prefix: 'music_track:' });
+                    await Promise.all(listKeys.keys.map((k) => env.CHAT_KV.delete(k.name)));
+
+                    const owner = env.GITHUB_OWNER || 'Itsalexfr1';
+                    const repo = env.GITHUB_REPO || 'sitedropsiders';
+                    const newsData: any[] = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/src/data/news.json`).then(r => r.json());
+                    const musicIds = new Set(newsData.filter((n: any) => (n.category || '').toLowerCase().includes('musique')).map((n: any) => String(n.id)));
+                    const contentData: any[] = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/src/data/news_content_3.json`).then(r => r.json());
+                    
+                    const pool = [];
+                    for (const item of contentData) {
+                        if (!musicIds.has(String(item.id))) continue;
+                        const blocks = (item.content || '').split('class="music-top-item-premium');
+                        for (let i = 1; i < blocks.length; i++) {
+                            const block = blocks[i];
+                            const titleMatch = block.match(/<h3[^>]*>([^<]+)<\/h3>/);
+                            const beatportMatch = block.match(/src="(https:\/\/embed\.beatport\.com\/[^"]+)"/);
+                            if (titleMatch && beatportMatch) {
+                                const title = titleMatch[1].trim().toUpperCase();
+                                if (!pool.some(t => t.title === title)) {
+                                    pool.push({ title, media: beatportMatch[1].replace(/&amp;/g, '&') });
+                                }
+                            }
+                        }
+                    }
+                    const selected = pool.sort(() => Math.random() - 0.5).slice(0, 20);
+                    for (const { title, media } of selected) {
+                        const trackId = title.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                        await env.CHAT_KV.put(`music_track:${trackId}`, JSON.stringify({ title, votes: 0, media, playerType: 'beatport' }));
+                    }
+                    await env.CHAT_KV.put('last_auto_music_reset_day', todayKey);
+                    console.log(`[SCHEDULED] Successfully seeded ${selected.length} tracks.`);
+                } catch (e) {
+                    console.error('[SCHEDULED] Auto-reset music failed:', e);
+                }
+            }
+        }
     }
 };

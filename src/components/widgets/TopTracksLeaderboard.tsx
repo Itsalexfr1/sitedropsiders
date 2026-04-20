@@ -65,7 +65,6 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
                     const final = sorted.slice(0, 20);
                     setTracks(final);
-                    if (!openTrackTitle && final[0]?.title) setOpenTrackTitle(final[0].title);
                 }
             } catch (err) {
                 console.error('Failed to fetch top tracks', err);
