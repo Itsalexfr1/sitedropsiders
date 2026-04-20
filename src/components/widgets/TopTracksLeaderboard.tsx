@@ -24,6 +24,14 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [searchError, setSearchError] = useState<string | null>(null);
     const [previewId, setPreviewId] = useState<string | null>(null);
     const [votedTracks, setVotedTracks] = useState<string[]>([]);
+    const [expandedTrack, setExpandedTrack] = useState<string | null>(null);
+
+    // Ouvrir le premier track par défaut quand ils sont chargés
+    useEffect(() => {
+        if (tracks.length > 0 && !expandedTrack) {
+            setExpandedTrack(tracks[0].title);
+        }
+    }, [tracks]);
     const color = resolvedColor || '#ff1241';
 
     const handleYouTubeSearch = async (q: string) => {
