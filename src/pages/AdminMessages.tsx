@@ -224,8 +224,26 @@ export function AdminMessages() {
     };
 
     const handleReply = async () => {
+        setReplyError('');
         const to = isNewMail ? destinationEmails.map(e => e.trim()).filter(Boolean).join(',') : selected?.email;
-        if (!to || !replyBody.trim()) return;
+        
+        if (!to) {
+            setReplyError("Veuillez saisir un destinataire.");
+            setReplyStatus('error');
+            return;
+        }
+
+        if (!replyBody.trim()) {
+            setReplyError("Veuillez rédiger un message.");
+            setReplyStatus('error');
+            return;
+        }
+
+        if (isNewMail && !signatureName) {
+            setReplyError("Veuillez sélectionner une signature (cliquez sur votre nom).");
+            setReplyStatus('error');
+            return;
+        }
 
         setReplyStatus('sending');
         try {
@@ -898,14 +916,14 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
-                        className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-md"
+                        className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/90 backdrop-blur-md"
                     >
                         <motion.div
                             initial={{ y: 50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 50, opacity: 0 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-[#111] border border-white/10 rounded-2xl md:rounded-[2rem] w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] md:max-h-[85vh]"
+                            className="bg-[#111] border-t md:border border-white/10 rounded-t-[2rem] md:rounded-[2rem] w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col h-[95vh] md:max-h-[85vh]"
                         >
                             {/* Sticky Header */}
                             <div className="p-4 md:p-6 border-b border-white/10 flex items-center justify-between bg-[#111] shrink-0">
@@ -1299,10 +1317,10 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                 </button>
                                 <button
                                     onClick={handleReply}
-                                    disabled={replyStatus === 'sending' || replyStatus === 'success' || !replyBody.trim() || (isNewMail && !signatureName)}
-                                    className="px-8 py-2.5 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-xl hover:opacity-90 transition-all flex items-center gap-2 text-[10px] disabled:opacity-50"
+                                    disabled={replyStatus === 'sending' || replyStatus === 'success'}
+                                    className="flex-1 md:flex-none px-8 py-3 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2 text-[11px] md:text-[10px] disabled:opacity-50 shadow-xl shadow-neon-cyan/20 active:scale-95"
                                 >
-                                    <Send className="w-3.5 h-3.5" />
+                                    <Send className="w-4 h-4 md:w-3.5 md:h-3.5" />
                                     {replyStatus === 'sending' ? 'Envoi...' : 'Envoyer via Brevo'}
                                 </button>
                             </div>
