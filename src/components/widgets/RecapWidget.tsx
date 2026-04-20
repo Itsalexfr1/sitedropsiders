@@ -62,7 +62,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                 // Fallback to ID for stable sorting if dates are same or missing
                 return String(b.id).localeCompare(String(a.id));
             })
-            .slice(0, 12);
+            .slice(0, 6);
     }, [recapsData, galerieData]);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<string, string>>({});

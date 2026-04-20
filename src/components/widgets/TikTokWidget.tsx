@@ -36,18 +36,15 @@ export function TikTokWidget({ accentColor = 'cyan', resolvedColor, username }: 
         const timer = setTimeout(() => {
             const existing = document.getElementById('tiktok-embed-script');
             if (existing) {
-                // Script already loaded – try to trigger re-render of new blockquotes
-                (window as any).tiktokEmbed?.render?.();
-                setTimeout(() => setIsLoaded(true), 2000);
-            } else {
-                const script = document.createElement('script');
-                script.id = 'tiktok-embed-script';
-                script.src = 'https://www.tiktok.com/embed.js';
-                script.async = true;
-                script.onload = () => setTimeout(() => setIsLoaded(true), 2000);
-                script.onerror = () => setIsLoaded(true);
-                document.body.appendChild(script);
+                existing.remove();
             }
+            const script = document.createElement('script');
+            script.id = 'tiktok-embed-script';
+            script.src = 'https://www.tiktok.com/embed.js';
+            script.async = true;
+            script.onload = () => setTimeout(() => setIsLoaded(true), 1500);
+            script.onerror = () => setIsLoaded(true);
+            document.body.appendChild(script);
         }, 200);
 
         return () => clearTimeout(timer);
