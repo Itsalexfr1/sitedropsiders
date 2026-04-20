@@ -99,7 +99,7 @@ export function Home() {
                                 <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
                             </div>
                             <div className="space-y-8">
-                                <AgendaWidget maxItems={item.maxAgendaItems || 6} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
+                                <AgendaWidget maxItems={5} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
                                 <RecapWidget accentColor={accentColor} resolvedColor={color} />
                                 <TopTracksLeaderboard resolvedColor={color} />
                             </div>

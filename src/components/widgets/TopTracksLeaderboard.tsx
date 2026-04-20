@@ -164,14 +164,14 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 const existingTitles = new Set(votedData.map((t: Track) => t.title.toLowerCase()));
 
                 for (const article of musicArticles) {
-                    if (finalTracks.length >= 10) break;
+                    if (finalTracks.length >= 5) break;
                     if (!existingTitles.has(article.title.toLowerCase())) {
                         finalTracks.push(article);
                         existingTitles.add(article.title.toLowerCase());
                     }
                 }
 
-                setTracks(finalTracks.slice(0, 10));
+                setTracks(finalTracks.slice(0, 5));
             } catch (err) {
                 console.error('Failed to fetch top tracks', err);
             } finally {
@@ -236,7 +236,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
             <div className="w-full flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                     <Trophy className="w-6 h-6 text-yellow-500" />
-                    TOP 10 TRACKS
+                    TOP 5 TRACKS
                 </h3>
             </div>
 
