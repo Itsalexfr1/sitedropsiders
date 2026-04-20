@@ -1,26 +1,5 @@
 [
   {
-    "id": 5,
-    "title": "Coachella - Weekend 2",
-    "date": "2026-04-17",
-    "startDate": "2026-04-17",
-    "endDate": "2026-04-19",
-    "location": "Indio",
-    "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/uploads/a40d87e481ef492a-VsUNZFoo56bbdvYfz9X7yURvgQA52T.jpg",
-    "description": "Deuxième week-end de magie dans le désert d'Indio.",
-    "url": "https://www.coachella.com",
-    "genre": "Hybride",
-    "country": "USA",
-    "month": "AVRIL",
-    "isWeekly": false,
-    "isSoldOut": false,
-    "isLiveDropsiders": true,
-    "photo_verified": true,
-    "venue": "",
-    "additionalDates": []
-  },
-  {
     "id": 6,
     "title": "EDC Week (Las Vegas)",
     "date": "2026-05-13",
