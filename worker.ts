@@ -5449,22 +5449,37 @@ ${urls.map(u => `  <url>
                 }
 
                 // 1. Get Access Token
+                const authHeader = btoa(`${clientId}:${clientSecret}`);
                 const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret)
+                        'Authorization': `Basic ${authHeader}`
                     },
                     body: 'grant_type=client_credentials'
                 });
 
+                if (!tokenRes.ok) {
+                    const errorBody = await tokenRes.text();
+                    return new Response(JSON.stringify({ error: `Spotify Auth Failed: ${tokenRes.status}`, details: errorBody }), { status: tokenRes.status, headers });
+                }
+
                 const tokenData: any = await tokenRes.json();
                 const token = tokenData.access_token;
+
+                if (!token) {
+                    return new Response(JSON.stringify({ error: 'Spotify returned no access token' }), { status: 500, headers });
+                }
 
                 // 2. Search Spotify
                 const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                if (!searchRes.ok) {
+                    const errorBody = await searchRes.text();
+                    return new Response(JSON.stringify({ error: `Spotify Search Failed: ${searchRes.status}`, details: errorBody }), { status: searchRes.status, headers });
+                }
 
                 const searchData: any = await searchRes.json();
                 const results = (searchData.tracks?.items || []).map((item: any) => ({
@@ -5478,7 +5493,8 @@ ${urls.map(u => `  <url>
 
                 return new Response(JSON.stringify(results), { status: 200, headers });
             } catch (error: any) {
-                return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+                console.error('Spotify API Error:', error);
+                return new Response(JSON.stringify({ error: 'Internal API Error', message: error.message }), { status: 500, headers });
             }
         }
 
