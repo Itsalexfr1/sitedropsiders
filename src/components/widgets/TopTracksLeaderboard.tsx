@@ -30,6 +30,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
                 if (data && data.length >= 5) {
                     setTracks(data);
+                    if (data[0]?.title) setOpenTrackTitle(data[0].title);
                 } else {
                     // 2. If no votes or too few, pick from articles
                     const newsRes = await fetch('/api/news');
@@ -116,6 +117,12 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         const interval = setInterval(fetchTopTracks, 30000);
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        if (!loading && tracks.length > 0 && !openTrackTitle) {
+            setOpenTrackTitle(tracks[0].title);
+        }
+    }, [loading, tracks]);
 
     const [openTrackTitle, setOpenTrackTitle] = useState<string | null>(null);
 
@@ -234,15 +241,9 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                             exit={{ height: 0, opacity: 0 }}
                                             className="overflow-hidden rounded-2xl border border-white/10 mb-2"
                                         >
-                                            {track.media ? (
-                                                <div className="bg-black/60 p-2">
-                                                    {renderPlayer(track.media, track.playerType || 'spotify')}
-                                                </div>
-                                            ) : (
-                                                <div className="bg-black/40 p-4 text-center text-gray-500 text-xs uppercase tracking-widest font-bold">
-                                                    Vote depuis un article pour activer le player
-                                                </div>
-                                            )}
+                                            <div className="bg-black/60 p-2">
+                                                {renderPlayer(track.media || '', track.playerType || (track.media?.includes('beatport') ? 'beatport' : 'spotify'))}
+                                            </div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
