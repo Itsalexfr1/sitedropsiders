@@ -52,35 +52,35 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
                 ref={containerRef}
                 whileHover={{ scale: 1.01 }}
                 onMouseEnter={playHoverSound}
-                className="flex-1 bg-dark-bg/50 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-sm shadow-2xl space-y-3 sm:space-y-4 flex flex-col items-center transition-all duration-300 h-full min-h-[220px] sm:min-h-[280px]"
+                className="flex-1 bg-dark-bg/50 border border-white/10 rounded-2xl p-0 backdrop-blur-sm shadow-2xl space-y-3 sm:space-y-4 flex flex-col items-center transition-all duration-300 h-full min-h-[220px] sm:min-h-[280px]"
             >
-                <div className="w-full flex-1 relative group rounded-xl overflow-hidden p-[1px] bg-white/5 flex flex-col min-h-[180px]">
+                <div className="w-full flex-1 relative group rounded-xl overflow-hidden p-0 bg-white/5 flex flex-col min-h-[180px]">
                     {/* Skeleton */}
                     <AnimatePresence>
                         {!isLoaded && (
                             <motion.div
                                 exit={{ opacity: 0 }}
-                                className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white rounded-xl"
+                                className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md rounded-xl"
                             >
                                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-500 via-pink-500 to-orange-500 p-0.5 animate-pulse">
-                                    <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
+                                    <div className="w-full h-full bg-black/60 rounded-[14px] flex items-center justify-center">
                                         <InstagramIcon className="w-8 h-8 text-pink-500" />
                                     </div>
                                 </div>
                                 <div className="mt-4 flex flex-col items-center gap-2">
-                                    <div className="h-2 w-24 bg-gray-100 rounded-full animate-pulse" />
-                                    <div className="h-2 w-16 bg-gray-50 rounded-full animate-pulse" />
+                                    <div className="h-2 w-24 bg-white/10 rounded-full animate-pulse" />
+                                    <div className="h-2 w-16 bg-white/5 rounded-full animate-pulse" />
                                 </div>
-                                <span className="absolute bottom-4 text-[9px] font-black text-gray-300 uppercase tracking-widest animate-pulse">Chargement flux...</span>
+                                <span className="absolute bottom-4 text-[9px] font-black text-white/20 uppercase tracking-widest animate-pulse">Chargement flux...</span>
                             </motion.div>
                         )}
                     </AnimatePresence>
 
                     <div
-                        className="flex-1 bg-white rounded-[11px] overflow-hidden flex flex-col justify-between"
+                        className="flex-1 bg-black/20 rounded-[11px] overflow-hidden flex flex-col justify-between"
                         style={{ border: `1px solid ${color}20` }}
                     >
-                        <div className="w-full px-2 pt-2 pb-0 flex justify-center bg-white flex-1 overflow-hidden relative min-h-[180px] sm:min-h-[220px]">
+                        <div className="w-full px-0 pt-2 pb-0 flex justify-center flex-1 overflow-hidden relative min-h-[180px] sm:min-h-[220px]">
                             {isInView && (
                                 <InstagramEmbed
                                     url={instagramUrl}

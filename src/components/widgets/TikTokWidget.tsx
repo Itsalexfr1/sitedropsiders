@@ -66,35 +66,35 @@ export function TikTokWidget({ accentColor = 'cyan', resolvedColor, username }: 
                 ref={containerRef}
                 whileHover={{ scale: 1.01 }}
                 onMouseEnter={playHoverSound}
-                className="flex-1 bg-dark-bg/50 border border-white/10 rounded-2xl p-4 sm:p-5 backdrop-blur-sm shadow-2xl space-y-3 sm:space-y-4 flex flex-col items-center transition-all duration-300 h-full min-h-[550px] sm:min-h-[680px]"
+                className="flex-1 bg-dark-bg/50 border border-white/10 rounded-2xl p-0 backdrop-blur-sm shadow-2xl space-y-3 sm:space-y-4 flex flex-col items-center transition-all duration-300 h-full min-h-[550px] sm:min-h-[680px]"
             >
-                <div className="w-full flex-1 relative group rounded-xl overflow-hidden p-[1px] bg-white/5 flex flex-col min-h-[480px]">
+                <div className="w-full flex-1 relative group rounded-xl overflow-hidden p-0 bg-white/5 flex flex-col min-h-[480px]">
                     {/* Skeleton */}
                     <AnimatePresence>
                         {!isLoaded && (
                             <motion.div
                                 exit={{ opacity: 0 }}
-                                className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white rounded-xl"
+                                className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md rounded-xl"
                             >
-                                <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center animate-pulse">
+                                <div className="w-16 h-16 rounded-full bg-black/60 flex items-center justify-center animate-pulse border border-white/10">
                                     <svg viewBox="0 0 24 24" fill="white" className="w-9 h-9">
                                         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43V7.82a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.25z" />
                                     </svg>
                                 </div>
                                 <div className="mt-4 flex flex-col items-center gap-2">
-                                    <div className="h-2 w-24 bg-gray-100 rounded-full animate-pulse" />
-                                    <div className="h-2 w-16 bg-gray-50 rounded-full animate-pulse" />
+                                    <div className="h-2 w-24 bg-white/10 rounded-full animate-pulse" />
+                                    <div className="h-2 w-16 bg-white/5 rounded-full animate-pulse" />
                                 </div>
-                                <span className="absolute bottom-4 text-[9px] font-black text-gray-300 uppercase tracking-widest animate-pulse">Chargement TikTok...</span>
+                                <span className="absolute bottom-4 text-[9px] font-black text-white/20 uppercase tracking-widest animate-pulse">Chargement TikTok...</span>
                             </motion.div>
                         )}
                     </AnimatePresence>
 
                     <div
-                        className="flex-1 bg-white rounded-[11px] overflow-hidden flex flex-col justify-between"
+                        className="flex-1 bg-black/20 rounded-[11px] overflow-hidden flex flex-col justify-between"
                         style={{ border: `1px solid ${color}20` }}
                     >
-                        <div className="w-full px-2 pt-2 pb-0 flex-1 overflow-hidden relative min-h-[480px] sm:min-h-[580px] bg-white">
+                        <div className="w-full px-0 pt-2 pb-0 flex-1 overflow-hidden relative min-h-[480px] sm:min-h-[580px]">
                             <div className="absolute inset-x-0" style={{ top: '-10px' }}>
                                 {isInView && (
                                     <blockquote

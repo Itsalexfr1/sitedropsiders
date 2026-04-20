@@ -77,7 +77,19 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 setIsSearchOpen(false);
                 setSearchQuery('');
                 setSearchResults([]);
-                window.location.reload();
+                
+                // Re-fetch tracks to show the new one without refresh
+                const refreshRes = await fetch('/api/music/top-tracks');
+                if (refreshRes.ok) {
+                    const data = await refreshRes.json();
+                    const filteredData = (Array.isArray(data) ? data : []).filter((item: any) => {
+                        const t = (item.title || '').toUpperCase();
+                        return !t.includes('SORTIES DE LA SEMAINE') && 
+                               !t.includes('WEEKLY SELECTION') &&
+                               !t.includes('DÉVOILE');
+                    });
+                    setTracks(filteredData.slice(0, 5));
+                }
             }
         } catch (err) {
             console.error('Failed to add track', err);
@@ -167,11 +179,11 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 ? `https://www.youtube.com/embed/${media}?autoplay=1` 
                 : `https://www.youtube-nocookie.com/embed?listType=search&list=${encodeURIComponent(media)}&autoplay=1`;
             return (
-                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black shadow-lg border border-white/5">
+                <div className="relative w-full h-[150px] sm:h-[180px] rounded-xl overflow-hidden bg-black shadow-lg border border-white/5">
                     <iframe
                         src={src}
-                        className="absolute inset-0 w-full h-full"
-                        allow="autoplay; encrypted-media"
+                        className="absolute top-0 left-0 w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                     />
                 </div>
