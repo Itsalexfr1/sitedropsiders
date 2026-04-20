@@ -112,9 +112,7 @@ export function Home() {
             case 'social_grid':
                 return (
                     <section key="social_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <div 
-                            className="flex flex-col lg:flex-row gap-8 items-stretch"
-                        >
+                        <div className="flex flex-col lg:flex-row gap-8 items-stretch">
                             <div className="w-full lg:w-[30%]">
                                 <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
                             </div>
@@ -136,9 +134,13 @@ export function Home() {
             case 'tiktok':
                 return (
                     <section key="tiktok" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-                            <TikTokWidget accentColor={accentColor} resolvedColor={color} username={socials?.tiktok} />
-                            <TopTracksLeaderboard resolvedColor={color} />
+                        <div className="flex flex-col lg:flex-row gap-8 items-stretch">
+                            <div className="w-full lg:w-[50%]">
+                                <TikTokWidget accentColor={accentColor} resolvedColor={color} username={socials?.tiktok} />
+                            </div>
+                            <div className="w-full lg:w-[50%]">
+                                <TopTracksLeaderboard resolvedColor={color} />
+                            </div>
                         </div>
                     </section>
                 );
