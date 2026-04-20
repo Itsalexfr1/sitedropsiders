@@ -224,7 +224,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     return (
         <div className="h-full flex flex-col">
             <div className="w-full flex justify-between items-center mb-6">
-                <h3 className="text-xl font-display font-bold text-white flex items-center gap-3">
+                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                     <span
                         className="w-2.5 h-2.5 rounded-full animate-pulse"
                         style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
@@ -233,7 +233,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 </h3>
             </div>
 
-            <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-6 h-full shadow-2xl relative overflow-hidden group">
+            <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 h-full shadow-2xl relative overflow-hidden group">
                 <div
                     className="absolute top-0 right-0 w-64 h-64 opacity-5 blur-[100px] pointer-events-none transition-all duration-1000 group-hover:opacity-10"
                     style={{ backgroundColor: color }}
