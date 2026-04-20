@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'; // Forced refresh build v2
 import { Hero } from '../components/ui/Hero';
 import { FeaturedNews } from '../components/widgets/FeaturedNews';
 import { RecentNews } from '../components/widgets/RecentNews';
