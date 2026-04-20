@@ -80,7 +80,7 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
                         className="flex-1 bg-black/20 rounded-[11px] overflow-hidden flex flex-col justify-between"
                         style={{ border: `1px solid ${color}20` }}
                     >
-                        <div className="w-full px-0 pt-0 pb-0 flex justify-center flex-1 overflow-hidden relative min-h-[160px] sm:min-h-[200px]">
+                        <div className="w-full px-0 pt-1 pb-0 flex justify-center flex-1 overflow-hidden relative min-h-[160px] sm:min-h-[200px]">
                             {isInView && (
                                 <InstagramEmbed
                                     url={instagramUrl}
@@ -90,9 +90,9 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
                             )}
                         </div>
 
-                        <div className="w-full p-4 sm:p-6 relative z-10 bg-gradient-to-t from-black/90 to-black/60 border-t border-white/10 flex-none flex flex-col justify-center items-center">
-                            <h4 className="text-white font-display font-bold text-lg mb-2 uppercase tracking-wide">Rejoignez la communauté</h4>
-                            <p className="text-gray-400 text-sm text-center mb-4">Ne manquez aucune actu, festival et exclusivité sur notre compte Instagram.</p>
+                        <div className="w-full p-2 sm:p-3 relative z-10 bg-gradient-to-t from-black/90 to-black/60 flex-none flex flex-col justify-center items-center">
+                            <h4 className="text-white font-display font-bold text-base mb-1 uppercase tracking-wide">Rejoignez la communauté</h4>
+                            <p className="text-gray-400 text-[10px] text-center mb-3">Ne manquez aucune actu, festival et exclusivité sur notre compte Instagram.</p>
                             <a
                                 href={instagramUrl}
                                 target="_blank"
