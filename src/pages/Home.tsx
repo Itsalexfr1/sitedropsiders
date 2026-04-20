@@ -71,7 +71,7 @@ export function Home() {
                 return <Hero key="hero" videoId={item.videoId} videoUrl={item.videoUrl} accentColor={accentColor} resolvedColor={color} />;
             case 'news_grid':
                 return (
-                    <section key="news_grid" className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
+                    <section key="news_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div 
                             className="grid grid-cols-1 gap-8 items-stretch"
                             style={{ 
@@ -86,7 +86,7 @@ export function Home() {
                 );
             case 'recap_agenda_grid':
                 return (
-                    <section key="recap_agenda_grid" className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12">
+                    <section key="recap_agenda_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div 
                             className="grid grid-cols-1 gap-8 items-start"
                             style={{ 
