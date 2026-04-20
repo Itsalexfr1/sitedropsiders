@@ -125,7 +125,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         return () => clearInterval(interval);
     }, []);
 
-    const renderPlayer = (media: string, playerType: string) => {
+    const renderPlayer = (media: string, playerType: string, autoplay: boolean = false) => {
         if (playerType === 'beatport' || media.includes('beatport')) {
             const src = media.startsWith('http')
                 ? media
@@ -148,7 +148,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     width="100%"
                     height="80"
                     frameBorder="0"
-                    allow="encrypted-media"
+                    allow="encrypted-media;
                     style={{ borderRadius: '12px' }}
                 />
             );
@@ -156,7 +156,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         if (playerType === 'youtube') {
             return (
                 <iframe
-                    src={`https://www.youtube.com/embed/${media}?autoplay=0&rel=0`}
+                    src={`https://www.youtube.com/embed/${media}?autoplay=${autoplay ? 1 : 0}&rel=0`}
                     width="100%"
                     height="200"
                     frameBorder="0"
@@ -404,7 +404,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                                     animate={{ height: 'auto', opacity: 1 }}
                                                     className="overflow-hidden bg-black/40 rounded-xl"
                                                 >
-                                                    {renderPlayer(track.id, 'youtube')}
+                                                    {renderPlayer(track.id, 'youtube', true)}
                                                 </motion.div>
                                             )}
                                         </div>
