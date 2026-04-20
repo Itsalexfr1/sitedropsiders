@@ -116,7 +116,7 @@ export function Home() {
                             className="grid grid-cols-1 gap-8 items-start"
                             style={{ 
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? '63% 37%' : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? '60% 40%' : '1fr'
                             }}
                         >
                             <div className="flex flex-col gap-8 w-full items-start">

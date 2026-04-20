@@ -52,7 +52,7 @@ export function TikTokFeed({ resolvedColor, username }: { accentColor?: string, 
                 style={{ height: '600px' }}
             >
                 <div className="h-full w-full overflow-y-auto custom-scrollbar flex justify-center items-start bg-black">
-                    <div className="w-full max-w-[325px]" style={{ marginTop: '-100px' }}>
+                    <div className="w-[325px] flex-none origin-top" style={{ marginTop: '-150px', transform: 'scale(1.8)' }}>
                         {isInView && (
                             <blockquote 
                                 className="tiktok-embed" 

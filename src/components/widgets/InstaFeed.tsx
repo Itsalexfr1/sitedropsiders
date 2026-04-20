@@ -37,11 +37,11 @@ export function InstaFeed({ resolvedColor, username }: { accentColor?: string, r
             <motion.div
                 whileHover={{ scale: 1.005 }}
                 onMouseEnter={playHoverSound}
-                className="w-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
+                className="w-full bg-black border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
                 style={{ height: '600px' }}
             >
                 <div className="h-full w-full overflow-y-auto custom-scrollbar flex justify-center items-start bg-black">
-                    <div className="w-full max-w-[325px]" style={{ marginTop: '-85px' }}>
+                    <div className="w-[325px] flex-none origin-top" style={{ marginTop: '-150px', transform: 'scale(1.8)' }}>
                         {isInView && (
                             <InstagramEmbed 
                                 url={instagramUrl} 
