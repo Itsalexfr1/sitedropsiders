@@ -48,6 +48,29 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         }
     };
 
+    const fetchTopTracks = async () => {
+        try {
+            const res = await fetch('/api/music/top-tracks');
+            if (res.ok) {
+                const data = await res.json();
+                const validTracks: Track[] = Array.isArray(data)
+                    ? data.filter((t: any) => t.title && t.media)
+                    : [];
+                const sorted = [...validTracks].sort((a, b) => {
+                    const vA = a.votes || 0;
+                    const vB = b.votes || 0;
+                    if (vB !== vA) return vB - vA;
+                    return 0;
+                });
+                setTracks(sorted.slice(0, 20));
+            }
+        } catch (err) {
+            console.error('Failed to fetch top tracks', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleAddTrack = async (track: any) => {
         try {
             const res = await fetch('/api/music/vote', {
@@ -56,15 +79,16 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 body: JSON.stringify({ 
                     trackTitle: track.title,
                     media: track.media,
-                    playerType: 'spotify'
+                    playerType: track.playerType || 'youtube'
                 })
             });
             if (res.ok) {
                 setIsSearchOpen(false);
                 setSearchQuery('');
                 setSearchResults([]);
-                // Reload tracks
-                window.location.reload(); // Simple reload to get the new track in the list
+                setPreviewId(null);
+                // Rafraîchir la liste sans recharger la page
+                await fetchTopTracks();
             }
         } catch (err) {
             console.error('Failed to add track', err);
@@ -95,36 +119,6 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     };
 
     useEffect(() => {
-        const fetchTopTracks = async () => {
-            try {
-                const res = await fetch('/api/music/top-tracks');
-                if (res.ok) {
-                    const data = await res.json();
-
-                    // On garde Beatport ET Spotify
-                    const validTracks: Track[] = Array.isArray(data)
-                        ? data.filter((t: any) => t.title && t.media)
-                        : [];
-
-                    // Tri stable : on ne change l'ordre QUE si le nombre de votes est différent.
-                    // Cela permet de garder l'ordre exact du "Mixer" tant que les votes sont à 0.
-                    const sorted = [...validTracks].sort((a, b) => {
-                        const vA = a.votes || 0;
-                        const vB = b.votes || 0;
-                        if (vB !== vA) return vB - vA;
-                        return 0; // Garde l'ordre original de l'API (Mixer)
-                    });
-
-                    const final = sorted.slice(0, 20);
-                    setTracks(final);
-                }
-            } catch (err) {
-                console.error('Failed to fetch top tracks', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchTopTracks();
         // Rafraîchissement automatique toutes les 30 secondes
         const interval = setInterval(fetchTopTracks, 30000);
