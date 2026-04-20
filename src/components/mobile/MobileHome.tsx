@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Newspaper, TrendingUp, Calendar, MapPin, Play, MessageSquare, Camera, Music } from 'lucide-react';
-import { TopTracksLeaderboard } from '../widgets/TopTracksLeaderboard';
+import { Newspaper, TrendingUp, Calendar, MapPin, Play, MessageSquare, Camera } from 'lucide-react';
 import { getArticleLink, getAgendaLink, getRecapLink, getGalleryLink } from '../../utils/slugify';
 import { resolveImageUrl } from '../../utils/image';
 import { useLanguage } from '../../context/LanguageContext';
@@ -269,19 +268,6 @@ export function MobileHome() {
                         </Link>
                     ))}
                     <div className="min-w-[20px] shrink-0" />
-                </div>
-            </section>
-            
-            {/* 4. TOP 15 TRACKS - NEW FOR MOBILE */}
-            <section className="pt-8 border-t border-white/5">
-                <div className="mobile-safe-container mb-5">
-                    <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
-                        <Music className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
-                        TOP 15 TRACKS
-                    </h2>
-                </div>
-                <div className="px-5">
-                    <TopTracksLeaderboard resolvedColor="var(--color-neon-cyan)" />
                 </div>
             </section>
 
