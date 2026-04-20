@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Music, TrendingUp, Flame } from 'lucide-react';
+import { Trophy, Music, TrendingUp, Flame, Share2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -157,33 +157,38 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     };
 
     return (
-        <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 h-full shadow-2xl relative overflow-hidden group">
-            {/* Background Glow */}
-            <div 
-                className="absolute top-0 right-0 w-64 h-64 opacity-5 blur-[100px] pointer-events-none transition-all duration-1000 group-hover:opacity-10"
-                style={{ backgroundColor: color }}
-            />
-
-            <div className="flex items-center justify-between mb-8 relative z-10">
-                <div className="flex items-center gap-4">
-                    <div 
-                        className="p-3 rounded-2xl bg-white/5 border border-white/10 shadow-lg"
-                        style={{ color: color }}
-                    >
-                        <Trophy className="w-6 h-6" />
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter leading-tight">
-                            TOP 10 <span style={{ color: color }}>TRACKS</span>
-                        </h3>
-                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-[0.2em]">Community Choice</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">LIVE</span>
-                </div>
+        <div className="h-full flex flex-col">
+            <div className="w-full flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-2">
+                    <span
+                        className="w-2 h-2 rounded-full animate-pulse"
+                        style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
+                    />
+                    TOP 10 TRACKS
+                </h3>
+                <Share2
+                    className="w-4 h-4 text-gray-500 transition-colors cursor-pointer hover:text-white"
+                    onMouseOver={(e) => e.currentTarget.style.color = color}
+                    onMouseOut={(e) => e.currentTarget.style.color = 'rgb(107, 114, 128)'}
+                />
             </div>
+
+            <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 h-full shadow-2xl relative overflow-hidden group">
+                {/* Background Glow */}
+                <div 
+                    className="absolute top-0 right-0 w-64 h-64 opacity-5 blur-[100px] pointer-events-none transition-all duration-1000 group-hover:opacity-10"
+                    style={{ backgroundColor: color }}
+                />
+
+                <div className="flex items-center justify-between mb-8 relative z-10 px-2">
+                    <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] italic">VOTES LIVE</span>
+                    </div>
+                    <div className="px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest leading-none">COMMUNITY CHOICE</span>
+                    </div>
+                </div>
 
             <div className="space-y-3 relative z-10">
                 <AnimatePresence mode="popLayout">
@@ -258,6 +263,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">
                     Votes mis à jour en temps réel via les <Link to="/news?tab=musique" className="text-white hover:text-neon-cyan transition-colors underline decoration-dotted">articles musique</Link>
                 </p>
+            </div>
             </div>
         </div>
     );
