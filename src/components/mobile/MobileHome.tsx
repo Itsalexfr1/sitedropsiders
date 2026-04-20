@@ -7,6 +7,7 @@ import { translateText } from '../../utils/translate';
 import { standardizeContent } from '../../utils/standardizer';
 import { getCategoryColor } from '../../utils/theme';
 import { useMemo, useState, useEffect } from 'react';
+import { TopTracksLeaderboard } from '../widgets/TopTracksLeaderboard';
 
 
 export function MobileHome() {
@@ -268,6 +269,13 @@ export function MobileHome() {
                         </Link>
                     ))}
                     <div className="min-w-[20px] shrink-0" />
+                </div>
+            </section>
+
+            {/* 4. TOP TRACKS LEADERBOARD */}
+            <section className="pt-8 border-t border-white/5">
+                <div className="mobile-safe-container">
+                    <TopTracksLeaderboard />
                 </div>
             </section>
 

@@ -5444,7 +5444,10 @@ ${urls.map(u => `  <url>
         // --- NEW: MUSIC TRACK VOTING (Anti-Spam) ---
         if (path === '/api/music/vote' && request.method === 'POST') {
             try {
-                const { trackId: trackTitle, media, playerType } = await request.json();
+                const body = await request.json();
+                const trackTitle = body.trackTitle || body.trackId;
+                const { media, playerType } = body;
+                
                 if (!trackTitle) return new Response(JSON.stringify({ error: 'Title required' }), { status: 400, headers });
 
                 // 1. IP Check for Anti-Spam
@@ -5571,7 +5574,13 @@ ${urls.map(u => `  <url>
                                 if (titleMatch && beatportMatch) {
                                     const title = titleMatch[1].trim().toUpperCase();
                                     const mediaUrl = beatportMatch[1].replace(/&amp;/g, '&');
-                                    if (!pool.some(t => t.title === title)) {
+                                    
+                                    // Skip titles that look like article headers or generic names
+                                    const isArticleTitle = title.includes('SORTIES DE LA SEMAINE') || 
+                                                            title.includes('WEEKLY SELECTION') ||
+                                                            title.includes('DÉVOILE SON NOUVEL ALBUM');
+                                    
+                                    if (!isArticleTitle && !pool.some(t => t.title === title)) {
                                         pool.push({ title, media: mediaUrl });
                                     }
                                 }
@@ -5607,20 +5616,61 @@ ${urls.map(u => `  <url>
         if (path === '/api/music/top-tracks' && request.method === 'GET') {
             try {
                 const list = await env.CHAT_KV.list({ prefix: 'music_track:' });
-                const tracks = await Promise.all(
+                const tracksWithKeys = await Promise.all(
                     list.keys.map(async (key) => {
-                        return await env.CHAT_KV.get(key.name, { type: 'json' });
+                        const data = await env.CHAT_KV.get(key.name, { type: 'json' }) as any;
+                        return { key: key.name, data };
                     })
                 );
 
-                const top20 = (tracks.filter(Boolean) as { title: string, votes: number }[])
-                    .sort((a, b) => b.votes - a.votes)
+                const validTracks: any[] = [];
+                const keysToDelete: string[] = [];
+
+                for (const item of tracksWithKeys) {
+                    if (!item.data) {
+                        keysToDelete.push(item.key);
+                        continue;
+                    }
+                    const t = (item.data.title || '').toUpperCase();
+                    // AUTO-CLEANUP: if it's a news article title, mark for deletion
+                    if (t.includes('SORTIES DE LA SEMAINE') || t.includes('WEEKLY SELECTION') || t.includes('DÉVOILE')) {
+                        keysToDelete.push(item.key);
+                    } else {
+                        validTracks.push(item.data);
+                    }
+                }
+
+                // Async cleanup (don't wait for completion to respond)
+                if (keysToDelete.length > 0) {
+                    ctx.waitUntil(Promise.all(keysToDelete.map(k => env.CHAT_KV.delete(k))));
+                }
+
+                const top20 = validTracks
+                    .sort((a, b) => (b.votes || 0) - (a.votes || 0))
                     .slice(0, 20);
 
                 return new Response(JSON.stringify(top20), {
                     status: 200,
                     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...headers }
                 });
+            } catch (error: any) {
+                return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
+            }
+        }
+
+        // --- NEW: DELETE TRACK (admin) ---
+        if (path === '/api/music/delete' && request.method === 'POST') {
+            try {
+                const { title, adminToken } = await request.json();
+                if (!authenticated && adminToken !== env.ADMIN_TOKEN) {
+                    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+                }
+                if (!title) return new Response(JSON.stringify({ error: 'Title required' }), { status: 400, headers });
+                
+                const trackIdSlug = title.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
+                await env.CHAT_KV.delete(`music_track:${trackIdSlug}`);
+                
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (error: any) {
                 return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
             }

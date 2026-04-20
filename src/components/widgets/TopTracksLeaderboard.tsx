@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, TrendingUp, Heart, Search, X, Plus, Youtube, Trophy } from 'lucide-react';
+import { Music, TrendingUp, Heart, Search, X, Plus, Youtube, Trophy, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -112,13 +112,40 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         }
     };
 
+    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+
+    const handleDelete = async (title: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!isAdmin) return;
+        if (!confirm(`Supprimer "${title}" du classement ?`)) return;
+
+        try {
+            const res = await fetch('/api/music/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, adminToken: localStorage.getItem('admin_token') })
+            });
+
+            if (res.ok) {
+                setTracks(prev => prev.filter(t => t.title !== title));
+            }
+        } catch (err) {
+            console.error('Failed to delete track:', err);
+        }
+    };
+
     useEffect(() => {
         const fetchTopTracks = async () => {
             try {
                 const res = await fetch('/api/music/top-tracks');
                 if (res.ok) {
                     const data = await res.json();
-                    const filteredData = Array.isArray(data) ? data : [];
+                    const filteredData = (Array.isArray(data) ? data : []).filter((item: any) => {
+                        const t = (item.title || '').toUpperCase();
+                        return !t.includes('SORTIES DE LA SEMAINE') && 
+                               !t.includes('WEEKLY SELECTION') &&
+                               !t.includes('DÉVOILE');
+                    });
                     setTracks(filteredData.slice(0, 5));
                 }
             } catch (err) {
@@ -258,15 +285,26 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                             </div>
                                         </div>
 
-                                        <button 
-                                            type="button"
-                                            disabled={votedTracks.includes(track.title)}
-                                            onClick={(e) => handleVote(track.title, e, track.media, track.playerType)}
-                                            className={`relative z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all active:scale-95 group/btn ${votedTracks.includes(track.title) ? 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/10' : 'bg-black/40 border-white/5 hover:bg-pink-500/20 hover:border-pink-500/40 text-white'}`}
-                                        >
-                                            <Heart className={`w-3 h-3 transition-transform ${votedTracks.includes(track.title) ? 'fill-neon-cyan' : 'text-pink-400 group-hover/btn:scale-125'}`} />
-                                            <span className="text-[10px] font-black">{track.votes || 0}</span>
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            {isAdmin && (
+                                                <button
+                                                    onClick={(e) => handleDelete(track.title, e)}
+                                                    className="p-2 text-gray-500 hover:text-red-500 transition-colors"
+                                                    title="Supprimer"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                            <button 
+                                                type="button"
+                                                disabled={votedTracks.includes(track.title)}
+                                                onClick={(e) => handleVote(track.title, e, track.media, track.playerType)}
+                                                className={`relative z-20 flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all active:scale-95 group/btn ${votedTracks.includes(track.title) ? 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/10' : 'bg-black/40 border-white/5 hover:bg-pink-500/20 hover:border-pink-500/40 text-white'}`}
+                                            >
+                                                <Heart className={`w-3 h-3 transition-transform ${votedTracks.includes(track.title) ? 'fill-neon-cyan' : 'text-pink-400 group-hover/btn:scale-125'}`} />
+                                                <span className="text-[10px] font-black">{track.votes || 0}</span>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <AnimatePresence>
