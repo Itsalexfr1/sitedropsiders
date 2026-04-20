@@ -5484,43 +5484,48 @@ ${urls.map(u => `  <url>
                 await Promise.all(list.keys.map((k) => env.CHAT_KV.delete(k.name)));
                 console.log(`[MUSIC RESET] Deleted ${list.keys.length} existing tracks`);
 
-                // 2. Seed from news articles (best-effort)
+                // 2. Seed from news articles via direct GitHub raw fetch (no helper deps)
                 let seededCount = 0;
+                let seedError: string | null = null;
                 try {
-                    const gitConfig = await getGitConfig(env);
-                    const newsFile = await fetchGitHubFile('src/data/news.json', gitConfig);
-                    if (newsFile?.content && Array.isArray(newsFile.content)) {
-                        const musicArticles = (newsFile.content as any[])
-                            .filter((n: any) => (n.category || '').toLowerCase().includes('musique'))
-                            .slice(0, 20);
+                    const owner = env.GITHUB_OWNER || 'Itsalexfr1';
+                    const repo = env.GITHUB_REPO || 'sitedropsiders';
+                    const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/src/data/news.json`;
+                    const newsRes = await fetch(rawUrl, { headers: { 'Accept': 'application/json' } });
+                    if (!newsRes.ok) throw new Error(`GitHub raw fetch failed: ${newsRes.status}`);
 
-                        const pool: string[] = [];
-                        for (const article of musicArticles) {
-                            const tracks = extractTracks(article.summary || '');
-                            for (const t of tracks) {
-                                if (!pool.includes(t)) pool.push(t);
-                            }
-                        }
+                    const newsData: any[] = await newsRes.json();
+                    const musicArticles = newsData
+                        .filter((n: any) => (n.category || '').toLowerCase().includes('musique'))
+                        .slice(0, 20);
 
-                        const selected = pool.sort(() => Math.random() - 0.5).slice(0, 10);
-                        console.log(`[MUSIC RESET] Pool: ${pool.length} tracks → seeding ${selected.length}`);
-
-                        for (const trackTitle of selected) {
-                            const trackId = trackTitle.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                            await env.CHAT_KV.put(`music_track:${trackId}`, JSON.stringify({
-                                title: trackTitle,
-                                votes: 0,
-                                media: '',
-                                playerType: 'spotify'
-                            }));
-                            seededCount++;
+                    const pool: string[] = [];
+                    for (const article of musicArticles) {
+                        const tracks = extractTracks(article.summary || '');
+                        for (const t of tracks) {
+                            if (!pool.includes(t)) pool.push(t);
                         }
                     }
+
+                    const selected = pool.sort(() => Math.random() - 0.5).slice(0, 10);
+                    console.log(`[MUSIC RESET] Pool: ${pool.length} tracks → seeding ${selected.length}`);
+
+                    for (const trackTitle of selected) {
+                        const trackId = trackTitle.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                        await env.CHAT_KV.put(`music_track:${trackId}`, JSON.stringify({
+                            title: trackTitle,
+                            votes: 0,
+                            media: '',
+                            playerType: 'spotify'
+                        }));
+                        seededCount++;
+                    }
                 } catch (seedErr: any) {
-                    console.error('[MUSIC RESET] Seeding error (non-fatal):', seedErr.message);
+                    seedError = seedErr.message;
+                    console.error('[MUSIC RESET] Seeding error:', seedErr.message);
                 }
 
-                return new Response(JSON.stringify({ success: true, deleted: list.keys.length, seeded: seededCount, debug_keys: list.keys.map(k => k.name) }), { status: 200, headers });
+                return new Response(JSON.stringify({ success: true, deleted: list.keys.length, seeded: seededCount, seed_error: seedError }), { status: 200, headers });
             } catch (error: any) {
                 return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
             }
