@@ -94,8 +94,10 @@ export function Home() {
                                 gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
                             }}
                         >
-                            <div className="">
+                            <div className="flex flex-col gap-8">
                                 <RecapWidget accentColor={accentColor} resolvedColor={color} />
+                                <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
+                                <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
                             </div>
                             <div className="flex flex-col gap-8">
                                 <AgendaWidget maxItems={item.maxAgendaItems || 8} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
@@ -111,22 +113,8 @@ export function Home() {
                     </section>
                 );
             case 'social_grid':
-                return (
-                    <section key="social_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <div 
-                            className="grid grid-cols-1 gap-8 items-start"
-                            style={{ 
-                                display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? '1.5fr 1fr' : '1fr'
-                            }}
-                        >
-                            <div className="flex flex-col gap-8 w-full">
-                                <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
-                                <TikTokWidget accentColor={item.accentColor2 || 'cyan'} resolvedColor={resolveColor(item.accentColor2 || 'cyan')} username={socials?.tiktok} />
-                            </div>
-                        </div>
-                    </section>
-                );
+                // Instagram + TikTok are now rendered inside recap_agenda_grid left column
+                return null;
             case 'instagram':
                 return (
                     <section key="instagram" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
