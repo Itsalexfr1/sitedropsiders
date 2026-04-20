@@ -62,7 +62,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     if (vB !== vA) return vB - vA;
                     return 0;
                 });
-                setTracks(sorted.slice(0, 20));
+                setTracks(sorted.slice(0, 15));
             }
         } catch (err) {
             console.error('Failed to fetch top tracks', err);
@@ -126,34 +126,12 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     }, []);
 
     const renderPlayer = (media: string, playerType: string, autoplay: boolean = false) => {
-        if (playerType === 'beatport' || media.includes('beatport')) {
-            const src = media.startsWith('http')
-                ? media
-                : `https://embed.beatport.com/?id=${media.match(/\d+/)?.[0] || media}&type=track`;
-            return (
-                <iframe
-                    src={src}
-                    width="100%"
-                    height="162"
-                    frameBorder="0"
-                    scrolling="no"
-                    style={{ borderRadius: '12px' }}
-                />
-            );
-        }
-        if (playerType === 'spotify') {
-            return (
-                <iframe
-                    src={`https://open.spotify.com/embed/track/${media}`}
-                    width="100%"
-                    height="80"
-                    frameBorder="0"
-                    allow="encrypted-media"
-                    style={{ borderRadius: '12px' }}
-                />
-            );
-        }
-        if (playerType === 'youtube') {
+        if (!media) return null;
+
+        // Détection plus robuste du type de player
+        const type = playerType?.toLowerCase();
+        
+        if (type === 'youtube' || (media.length === 11 && !media.includes('beatport'))) {
             return (
                 <iframe
                     src={`https://www.youtube.com/embed/${media}?autoplay=${autoplay ? 1 : 0}&rel=0`}
@@ -166,7 +144,35 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 />
             );
         }
-        return null;
+
+        if (type === 'spotify') {
+            return (
+                <iframe
+                    src={`https://open.spotify.com/embed/track/${media}`}
+                    width="100%"
+                    height="80"
+                    frameBorder="0"
+                    allow="encrypted-media"
+                    style={{ borderRadius: '12px' }}
+                />
+            );
+        }
+
+        // Par défaut : Beatport
+        const src = media.startsWith('http')
+            ? media
+            : `https://embed.beatport.com/?id=${media.match(/\d+/)?.[0] || media}&type=track`;
+
+        return (
+            <iframe
+                src={src}
+                width="100%"
+                height="162"
+                frameBorder="0"
+                scrolling="no"
+                style={{ borderRadius: '12px' }}
+            />
+        );
     };
 
     // État vide : aucune track Beatport disponible
@@ -179,7 +185,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                             className="w-2.5 h-2.5 rounded-full animate-pulse"
                             style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
                         />
-                        TOP 20 TRACKS
+                        TOP 15 TRACKS
                     </h3>
                 </div>
                 <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center justify-center gap-4">
@@ -201,7 +207,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                         className="w-2.5 h-2.5 rounded-full animate-pulse"
                         style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
                     />
-                    TOP 20 TRACKS
+                    TOP 15 TRACKS
                 </h3>
             </div>
 
