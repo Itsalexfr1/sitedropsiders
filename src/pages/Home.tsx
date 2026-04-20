@@ -88,19 +88,15 @@ export function Home() {
                 return (
                     <section key="recap_agenda_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div 
-                            className="grid grid-cols-1 gap-8 items-stretch"
+                            className="grid grid-cols-1 gap-8 items-start"
                             style={{ 
                                 display: 'grid',
                                 gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
                             }}
                         >
-                            <div className="flex flex-col gap-8 h-full">
-                                <div className="flex-1">
-                                    <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
-                                </div>
-                                <div className="flex-1">
-                                    <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
-                                </div>
+                            <div className="space-y-8">
+                                <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
+                                <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
                             </div>
                             <div className="space-y-8">
                                 <AgendaWidget maxItems={5} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
