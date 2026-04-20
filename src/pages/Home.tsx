@@ -133,21 +133,17 @@ export function Home() {
             case 'tiktok':
                 return (
                     <section key="tiktok" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <TikTokWidget accentColor={accentColor} resolvedColor={color} username={socials?.tiktok} />
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                            <TikTokWidget accentColor={accentColor} resolvedColor={color} username={socials?.tiktok} />
+                            <TopTracksLeaderboard resolvedColor={color} />
+                        </div>
                     </section>
                 );
             case 'spotify':
                 return (
                     <section key="spotify" className="bg-dark-bg/5 py-8 relative z-10">
                         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                <div className="lg:col-span-2">
-                                    <SpotifyWidget accentColor={accentColor} resolvedColor={color} />
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <TopTracksLeaderboard resolvedColor={color} />
-                                </div>
-                            </div>
+                            <SpotifyWidget accentColor={accentColor} resolvedColor={color} />
                         </div>
                     </section>
                 );
