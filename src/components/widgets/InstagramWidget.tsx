@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useState, useEffect, useRef } from 'react';
 
-export function InstaFeed({ resolvedColor, username }: { accentColor?: string, resolvedColor?: string, username?: string }) {
+export function InstagramWidget({ resolvedColor, username }: { accentColor?: string, resolvedColor?: string, username?: string }) {
     const account = (username || 'dropsiders.eu').replace('@', '');
     const instagramUrl = `https://www.instagram.com/${account}/`;
     const color = resolvedColor || '#ff1241';
@@ -37,34 +37,19 @@ export function InstaFeed({ resolvedColor, username }: { accentColor?: string, r
             <motion.div
                 whileHover={{ scale: 1.005 }}
                 onMouseEnter={playHoverSound}
-                className="w-full bg-black border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
-                style={{ height: '600px' }}
+                className="bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
+                style={{ height: '220px' }}
             >
-                <div className="h-full w-full overflow-y-auto custom-scrollbar flex justify-center items-start bg-black">
-                    <div className="w-[325px] flex-none origin-top" style={{ marginTop: '-150px', transform: 'scale(1.8)' }}>
+                <div className="h-full w-full overflow-y-auto custom-scrollbar p-2 bg-white/5 flex justify-center items-start">
+                    <div className="w-full max-w-[325px]">
                         {isInView && (
                             <InstagramEmbed 
                                 url={instagramUrl} 
                                 width="100%" 
-                                style={{ borderRadius: '0px', border: 'none' }}
+                                style={{ borderRadius: '12px' }}
                             />
                         )}
                     </div>
-                </div>
-
-                <div className="w-full p-4 sm:p-6 relative z-10 bg-gradient-to-t from-black/90 to-black/60 border-t border-white/10 flex-none flex flex-col justify-center items-center">
-                    <a
-                        href={instagramUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group/btn relative px-8 py-3 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden w-full text-center"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#ff1241] via-[#ff4066] to-[#ff8c00] opacity-100 group-hover/btn:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
-                        <span className="relative z-10 text-white flex items-center justify-center gap-2">
-                            S'ABONNER À @{account}
-                        </span>
-                    </a>
                 </div>
             </motion.div>
         </div>

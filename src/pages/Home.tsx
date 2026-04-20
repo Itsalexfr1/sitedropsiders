@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'; // Forced refresh build v2
+import { useState, useEffect } from 'react';
 import { Hero } from '../components/ui/Hero';
 import { FeaturedNews } from '../components/widgets/FeaturedNews';
 import { RecentNews } from '../components/widgets/RecentNews';
 import { AgendaWidget } from '../components/widgets/AgendaWidget';
-import { InstaFeed } from '../components/widgets/InstaFeed';
-import { TikTokFeed } from '../components/widgets/TikTokFeed';
+import { InstagramWidget } from '../components/widgets/InstagramWidget';
+import { TikTokWidget } from '../components/widgets/TikTokWidget';
 import { SpotifyWidget } from '../components/widgets/SpotifyWidget';
 import { RecapWidget } from '../components/widgets/RecapWidget';
 import { InterviewWidget } from '../components/widgets/InterviewWidget';
@@ -116,12 +116,12 @@ export function Home() {
                             className="grid grid-cols-1 gap-8 items-start"
                             style={{ 
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? '60% 40%' : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? '1.5fr 1fr' : '1fr'
                             }}
                         >
-                            <div className="flex flex-col gap-8 w-full items-start">
-                                <InstaFeed accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
-                                <TikTokFeed accentColor={item.accentColor2 || 'cyan'} resolvedColor={resolveColor(item.accentColor2 || 'cyan')} username={socials?.tiktok} />
+                            <div className="flex flex-col gap-8 w-full">
+                                <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
+                                <TikTokWidget accentColor={item.accentColor2 || 'cyan'} resolvedColor={resolveColor(item.accentColor2 || 'cyan')} username={socials?.tiktok} />
                             </div>
                             <div className="w-full">
                                 <TopTracksLeaderboard resolvedColor={color} />
@@ -132,7 +132,7 @@ export function Home() {
             case 'instagram':
                 return (
                     <section key="instagram" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <InstaFeed accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
+                        <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
                     </section>
                 );
             case 'tiktok':
@@ -140,7 +140,7 @@ export function Home() {
                     <section key="tiktok" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div className="flex flex-col lg:flex-row gap-8 items-stretch">
                             <div className="w-full lg:w-[50%]">
-                                <TikTokFeed accentColor={accentColor} resolvedColor={color} username={socials?.tiktok} />
+                                <TikTokWidget accentColor={accentColor} resolvedColor={color} username={socials?.tiktok} />
                             </div>
                             <div className="w-full lg:w-[50%]">
                                 <TopTracksLeaderboard resolvedColor={color} />
