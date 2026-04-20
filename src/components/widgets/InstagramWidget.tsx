@@ -80,7 +80,7 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
                         className="flex-1 bg-white rounded-[11px] overflow-hidden flex flex-col justify-between"
                         style={{ border: `1px solid ${color}20` }}
                     >
-                        <div className="w-full px-2 pt-2 pb-0 flex-1 overflow-y-auto custom-scrollbar bg-white relative" style={{ minHeight: '450px', height: '450px' }}>
+                        <div className="w-full px-2 pt-2 pb-0 flex-1 overflow-y-auto custom-scrollbar bg-white relative" style={{ minHeight: '350px', height: '350px' }}>
                             {isInView && (
                                 <div className="space-y-4 py-2 flex flex-col items-center">
                                     <InstagramEmbed
