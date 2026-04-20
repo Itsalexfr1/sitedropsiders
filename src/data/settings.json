@@ -4,12 +4,11 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": true,
+    "enabled": false,
     "youtubeId": "",
     "title": "COACHELLA week end 2 ",
     "moderators": "",
     "lineup": "[]",
-    "customCommands": "",
     "tickerType": "news",
     "tickerText": "🎡 BIENVENUE SUR LE LIVE COACHELLA 2026 - SUIVEZ LES 8 SCÈNES EN DIRECT ! 🎡",
     "tickerLink": "",
@@ -19,8 +18,9 @@
     "showTickerBanner": true,
     "showInNavbar": true,
     "forceHomepage": true,
+    "customCommands": "",
     "isSecret": false,
-    "password": "",
+    "password": "2024",
     "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
@@ -28,65 +28,7 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "live",
-    "streams": [
-      {
-        "id": "stage1",
-        "name": "COACHELLA STAGE",
-        "youtubeId": "https://www.youtube.com/watch?v=xIiSaqq10Yw",
-        "enabledInGrid": true
-      },
-      {
-        "id": "stage2",
-        "name": "OUTDOOR THEATRE",
-        "youtubeId": "https://www.youtube.com/watch?v=CzAJcgiywFo&pp=0gcJCdMKAYcqIYzv",
-        "enabledInGrid": true
-      },
-      {
-        "id": "stage3",
-        "name": "SAHARA",
-        "youtubeId": "https://www.youtube.com/watch?v=bkCTPTwU7ls",
-        "enabledInGrid": true
-      },
-      {
-        "id": "stage4",
-        "name": "MOJAVE",
-        "youtubeId": "https://www.youtube.com/watch?v=cYT79Dp0Wuk",
-        "enabledInGrid": true
-      },
-      {
-        "id": "stage5",
-        "name": "GOBI",
-        "youtubeId": "https://www.youtube.com/watch?v=OMImphySFJs",
-        "enabledInGrid": true
-      },
-      {
-        "id": "stage6",
-        "name": "YUMA",
-        "youtubeId": "https://www.youtube.com/watch?v=s5A5Y93nmPI",
-        "enabledInGrid": true
-      },
-      {
-        "id": "stage8",
-        "name": "QUASAR",
-        "youtubeId": "https://www.youtube.com/watch?v=iulgXa5S62A",
-        "enabledInGrid": true
-      }
-    ],
-    "activeStreamId": "stage8",
-    "wikiVotesEnabled": true,
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
-    "tickerMode": "news",
-    "instagramLink": "",
-    "tiktokLink": "",
-    "youtubeLink": "",
-    "twitterLink": "",
-    "sponsorText": "",
-    "sponsorLink": "",
-    "showSponsorBanner": true,
-    "festivalLogo": "",
-    "mainFluxName": "MAIN STAGE",
-    "currentTrack": "ID - UNRELEASED"
+    "status": "off"
   },
   "socials": {
     "instagram": "dropsiders.eu",
