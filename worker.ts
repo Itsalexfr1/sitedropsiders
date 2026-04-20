@@ -1078,6 +1078,7 @@ ${urls.map(u => `  <url>
             path === '/api/admin/bulk-update-year' ||
             path === '/api/admin/cleanup-past-agenda' ||
             path === '/api/admin/reset-leaderboards' ||
+            path === '/api/music/reset' ||
             path === '/api/admin/clean-encoding' ||
             path === '/api/quiz/reset-blind-test' ||
             path === '/api/r2/delete' ||
