@@ -19,13 +19,17 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [openTrackTitle, setOpenTrackTitle] = useState<string | null>(null);
     const color = resolvedColor || '#ff1241';
 
-    const handleVote = async (title: string, e: React.MouseEvent) => {
+    const handleVote = async (title: string, e: React.MouseEvent, media?: string) => {
         e.stopPropagation();
         try {
             const res = await fetch('/api/music/vote', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, action: 'up' })
+                body: JSON.stringify({ 
+                    trackTitle: title, // Le worker attend 'trackTitle'
+                    media: media, 
+                    playerType: 'beatport' 
+                })
             });
             if (res.ok) {
                 // Update local state for immediate feedback
@@ -194,7 +198,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
                                         <button 
                                             type="button"
-                                            onClick={(e) => handleVote(track.title, e)}
+                                            onClick={(e) => handleVote(track.title, e, track.media)}
                                             className="relative z-20 flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-pink-500/20 hover:border-pink-500/40 transition-all active:scale-95 group/btn"
                                         >
                                             <Heart className="w-3 h-3 text-pink-400 group-hover/btn:scale-125 transition-transform" />
