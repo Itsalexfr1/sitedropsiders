@@ -253,36 +253,40 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     transition={{ delay: index * 0.04 }}
-                                    className={`flex flex-col gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl transition-all cursor-pointer hover:bg-white/10 ${expandedTrack === track.title ? 'border-neon-cyan/30' : 'border-transparent'}`}
+                                    className={`relative group flex flex-col gap-4 p-5 bg-white/5 border border-white/5 rounded-[2rem] transition-all hover:bg-white/10 ${expandedTrack === track.title ? 'ring-1 ring-white/20' : ''}`}
                                     onClick={() => setExpandedTrack(expandedTrack === track.title ? null : track.title)}
                                 >
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-4 min-w-0">
-                                            <span className="text-xl font-display font-black italic text-white/20">#{index + 1}</span>
-                                            <div className="min-w-0">
-                                                <h4 className="text-sm font-bold text-white truncate uppercase tracking-tight">{track.title}</h4>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-5">
+                                            <span className="text-2xl font-display font-black italic text-white/10 group-hover:text-white/20 transition-colors">#{index + 1}</span>
+                                            <div className="flex flex-col">
+                                                <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Track</h4>
+                                                <h3 className="text-sm font-bold text-white truncate max-w-[150px] sm:max-w-[200px]">{track.title}</h3>
                                             </div>
                                         </div>
 
                                         <button
                                             onClick={(e) => handleVote(track.title, e, track.media)}
                                             disabled={votedTracks.includes(track.title)}
-                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${votedTracks.includes(track.title) ? 'bg-white/5 text-neon-cyan' : 'bg-white/10 text-gray-400 hover:bg-white/20 hover:text-pink-500'}`}
+                                            className={`p-2 rounded-xl transition-all flex items-center gap-2 group/heart ${votedTracks.includes(track.title) ? 'bg-white/5 text-neon-cyan' : 'bg-white/10 text-gray-400 hover:bg-white/20 hover:text-pink-500 active:scale-90'}`}
                                         >
-                                            <Heart className={`w-3 h-3 transition-colors ${votedTracks.includes(track.title) ? 'fill-current' : ''}`} />
-                                            <span className="text-[10px] font-black">{track.votes || 0}</span>
+                                            <Heart className={`w-4 h-4 transition-colors ${votedTracks.includes(track.title) ? 'fill-current' : 'group-hover/heart:fill-current'}`} />
+                                            <span className="text-xs font-bold font-display">{track.votes || 0}</span>
                                         </button>
                                     </div>
 
-                                    {expandedTrack === track.title && (
-                                        <motion.div
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            className="pt-2"
-                                        >
-                                            {renderPlayer(track.media, track.playerType || 'youtube')}
-                                        </motion.div>
-                                    )}
+                                    <AnimatePresence mode="wait">
+                                        {expandedTrack === track.title && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="overflow-hidden"
+                                            >
+                                                {renderPlayer(track.media, track.playerType || 'youtube')}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </motion.div>
                             ))
                         )}
