@@ -148,7 +148,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     width="100%"
                     height="80"
                     frameBorder="0"
-                    allow="encrypted-media;
+                    allow="encrypted-media"
                     style={{ borderRadius: '12px' }}
                 />
             );
