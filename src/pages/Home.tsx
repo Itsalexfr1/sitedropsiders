@@ -97,11 +97,10 @@ export function Home() {
                             <div className="space-y-8">
                                 <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
                                 <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
-                                <AgendaWidget maxItems={3} accentColor="red" resolvedColor="var(--color-neon-red)" />
                             </div>
                             <div className="space-y-8">
+                                <AgendaWidget maxItems={item.maxAgendaItems || 6} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
                                 <RecapWidget accentColor={accentColor} resolvedColor={color} />
-                                <AgendaWidget maxItems={(item.maxAgendaItems || 8) - 1} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
                                 <TopTracksLeaderboard resolvedColor={color} />
                             </div>
                         </div>
@@ -137,7 +136,10 @@ export function Home() {
                 );
             case 'spotify':
                 return (
-                    <section key="spotify" className="bg-dark-bg/5 py-8 relative z-10">
+                    <section key="spotify" className="bg-dark-bg/5 py-8 relative z-10 w-full">
+                        <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 mb-10">
+                            <div className="h-[1px] w-full bg-red-900/40" />
+                        </div>
                         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                             <SpotifyWidget accentColor={accentColor} resolvedColor={color} />
                         </div>
