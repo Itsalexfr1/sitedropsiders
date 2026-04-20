@@ -5520,7 +5520,7 @@ ${urls.map(u => `  <url>
                     console.error('[MUSIC RESET] Seeding error (non-fatal):', seedErr.message);
                 }
 
-                return new Response(JSON.stringify({ success: true, deleted: list.keys.length, seeded: seededCount }), { status: 200, headers });
+                return new Response(JSON.stringify({ success: true, deleted: list.keys.length, seeded: seededCount, debug_keys: list.keys.map(k => k.name) }), { status: 200, headers });
             } catch (error: any) {
                 return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
             }
@@ -5542,7 +5542,7 @@ ${urls.map(u => `  <url>
 
                 return new Response(JSON.stringify(top10), {
                     status: 200,
-                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60', ...headers }
+                    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...headers }
                 });
             } catch (error: any) {
                 return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
