@@ -158,7 +158,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
     return (
         <div className="h-full flex flex-col">
-            <div className="w-full flex justify-between items-center mb-6">
+            <div className="w-full flex justify-between items-center mb-6 pl-1">
                 <h3 className="text-2xl font-display font-bold text-white flex items-center gap-2">
                     <span
                         className="w-2 h-2 rounded-full animate-pulse"
