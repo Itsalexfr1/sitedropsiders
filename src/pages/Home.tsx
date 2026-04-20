@@ -117,11 +117,13 @@ export function Home() {
                             className="grid grid-cols-1 gap-8 items-start"
                             style={{ 
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? '1fr 1fr' : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? '1.5fr 1fr' : '1fr'
                             }}
                         >
-                            <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
-                            <TikTokWidget accentColor={item.accentColor2 || 'cyan'} resolvedColor={resolveColor(item.accentColor2 || 'cyan')} username={socials?.tiktok} />
+                            <div className="flex flex-col gap-8 w-full">
+                                <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
+                                <TikTokWidget accentColor={item.accentColor2 || 'cyan'} resolvedColor={resolveColor(item.accentColor2 || 'cyan')} username={socials?.tiktok} />
+                            </div>
                         </div>
                     </section>
                 );
