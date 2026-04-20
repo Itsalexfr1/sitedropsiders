@@ -5432,69 +5432,67 @@ ${urls.map(u => `  <url>
             }
         }
 
-        // --- SPOTIFY SEARCH API ---
-        // Required secrets in Cloudflare: SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
+        // --- SPOTIFY SEARCH API (Deprecated due to Premium requirement) ---
         if (path === '/api/spotify/search' && request.method === 'GET') {
             const query = url.searchParams.get('q');
             if (!query) return new Response(JSON.stringify({ error: 'Query required' }), { status: 400, headers });
-
             try {
                 const clientId = env.SPOTIFY_CLIENT_ID;
                 const clientSecret = env.SPOTIFY_CLIENT_SECRET;
-
-                if (!clientId || !clientSecret) {
-                    return new Response(JSON.stringify({ 
-                        error: 'Spotify API not configured. Please set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in worker environment.' 
-                    }), { status: 501, headers });
-                }
-
-                // 1. Get Access Token
+                if (!clientId || !clientSecret) return new Response(JSON.stringify({ error: 'Spotify not configured' }), { status: 501, headers });
                 const authHeader = btoa(`${clientId}:${clientSecret}`);
                 const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': `Basic ${authHeader}`
-                    },
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Authorization': `Basic ${authHeader}` },
                     body: 'grant_type=client_credentials'
                 });
-
-                if (!tokenRes.ok) {
-                    const errorBody = await tokenRes.text();
-                    return new Response(JSON.stringify({ error: `Spotify Auth Failed: ${tokenRes.status}`, details: errorBody }), { status: tokenRes.status, headers });
-                }
-
+                if (!tokenRes.ok) return new Response(JSON.stringify({ error: `Spotify Auth Failed: ${tokenRes.status}`, details: await tokenRes.text() }), { status: tokenRes.status, headers });
                 const tokenData: any = await tokenRes.json();
                 const token = tokenData.access_token;
-
-                if (!token) {
-                    return new Response(JSON.stringify({ error: 'Spotify returned no access token' }), { status: 500, headers });
-                }
-
-                // 2. Search Spotify
                 const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                if (!searchRes.ok) {
-                    const errorBody = await searchRes.text();
-                    return new Response(JSON.stringify({ error: `Spotify Search Failed: ${searchRes.status}`, details: errorBody }), { status: searchRes.status, headers });
-                }
-
+                if (!searchRes.ok) return new Response(JSON.stringify({ error: `Spotify Search Failed: ${searchRes.status}`, details: await searchRes.text() }), { status: searchRes.status, headers });
                 const searchData: any = await searchRes.json();
                 const results = (searchData.tracks?.items || []).map((item: any) => ({
                     id: item.id,
                     title: `${item.artists.map((a: any) => a.name).join(', ')} - ${item.name}`,
                     media: item.id,
                     playerType: 'spotify',
-                    cover: item.album.images[0]?.url,
-                    previewUrl: item.preview_url
+                    cover: item.album.images[0]?.url
                 }));
-
                 return new Response(JSON.stringify(results), { status: 200, headers });
-            } catch (error: any) {
-                console.error('Spotify API Error:', error);
-                return new Response(JSON.stringify({ error: 'Internal API Error', message: error.message }), { status: 500, headers });
+            } catch (error: any) { return new Response(JSON.stringify({ error: error.message }), { status: 500, headers }); }
+        }
+
+        // --- YOUTUBE SEARCH API ---
+        if (path === '/api/youtube/search' && request.method === 'GET') {
+            const query = url.searchParams.get('q');
+            if (!query) return new Response(JSON.stringify({ error: 'Query required' }), { status: 400, headers });
+
+            const YOUTUBE_KEY = env.YOUTUBE_API_KEY || env.GOOGLE_SEARCH_KEY;
+            if (!YOUTUBE_KEY) {
+                return new Response(JSON.stringify({ error: 'YouTube API Key missing in environment (set YOUTUBE_API_KEY)' }), { status: 501, headers });
+            }
+
+            try {
+                const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${YOUTUBE_KEY}&videoCategoryId=10`); // Category 10 is Music
+                if (!res.ok) {
+                    const err = await res.text();
+                    return new Response(JSON.stringify({ error: 'YouTube API Error', details: err }), { status: res.status, headers });
+                }
+                const data: any = await res.json();
+                const results = (data.items || []).map((item: any) => ({
+                    id: item.id.videoId,
+                    title: item.snippet.title,
+                    media: item.id.videoId,
+                    playerType: 'youtube',
+                    cover: item.snippet.thumbnails.medium?.url,
+                    channel: item.snippet.channelTitle
+                }));
+                return new Response(JSON.stringify(results), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
         }
 

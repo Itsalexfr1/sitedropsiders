@@ -24,7 +24,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [searchError, setSearchError] = useState<string | null>(null);
     const color = resolvedColor || '#ff1241';
 
-    const handleSpotifySearch = async (q: string) => {
+    const handleYouTubeSearch = async (q: string) => {
         if (!q.trim()) {
             setSearchResults([]);
             return;
@@ -32,17 +32,16 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         setIsSearching(true);
         setSearchError(null);
         try {
-            const res = await fetch(`/api/spotify/search?q=${encodeURIComponent(q)}`);
+            const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(q)}`);
             const data = await res.json();
             if (res.ok) {
                 setSearchResults(data);
             } else {
-                // Affiche l'erreur + les détails s'ils existent
                 const errorMsg = data.details ? `${data.error} (${data.details})` : (data.error || 'Erreur recherche');
                 setSearchError(errorMsg);
             }
         } catch (err) {
-            setSearchError('Impossible de contacter Spotify');
+            setSearchError('Impossible de contacter YouTube');
         } finally {
             setIsSearching(false);
         }
@@ -295,7 +294,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                         className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 hover:border-white/40 transition-all group"
                     >
                         <Search className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
-                        <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-widest">Ajouter un titre (Spotify)</span>
+                        <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-widest">Ajouter un titre (YouTube)</span>
                     </button>
 
                     <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">
@@ -328,10 +327,10 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                             <div className="p-8">
                                 <div className="flex items-center justify-between mb-8">
                                     <h2 className="text-2xl font-display font-bold text-white flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-[#1DB954] flex items-center justify-center">
-                                            <Search className="w-4 h-4 text-black" />
+                                        <div className="w-8 h-8 rounded-full bg-[#FF0000] flex items-center justify-center">
+                                            <Search className="w-4 h-4 text-white" />
                                         </div>
-                                        RECHERCHE SPOTIFY
+                                        RECHERCHE YOUTUBE
                                     </h2>
                                     <button
                                         onClick={() => setIsSearchOpen(false)}
@@ -348,7 +347,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                         value={searchQuery}
                                         onChange={(e) => {
                                             setSearchQuery(e.target.value);
-                                            handleSpotifySearch(e.target.value);
+                                            handleYouTubeSearch(e.target.value);
                                         }}
                                         placeholder="Titre, artiste..."
                                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white font-medium focus:border-white/20 focus:outline-none transition-all"
@@ -375,7 +374,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                             <img src={track.cover} alt="" className="w-12 h-12 rounded-lg object-cover shadow-lg" />
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="text-sm font-bold text-white truncate">{track.title}</h4>
-                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mt-0.5">Spotify Track</p>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mt-0.5">{track.channel || 'YouTube'}</p>
                                             </div>
                                             <button
                                                 onClick={() => handleAddTrack(track)}
