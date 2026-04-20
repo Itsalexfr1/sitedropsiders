@@ -1,7 +1,6 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, TrendingUp, Heart, Search, X, Plus } from 'lucide-react';
+import { Music, TrendingUp, Heart, Search, X, Plus, Youtube, Trophy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -22,28 +21,41 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
-    const color = resolvedColor || '#ff1241';
+    const [votedTracks, setVotedTracks] = useState<string[]>([]);
+    const [previewVideo, setPreviewVideo] = useState<string | null>(null);
+    const color = resolvedColor || 'var(--color-neon-cyan)';
+    const searchTimeout = useRef<any>(null);
 
-    const handleSpotifySearch = async (q: string) => {
+    useEffect(() => {
+        const savedVotes = localStorage.getItem('music_voted_tracks');
+        if (savedVotes) setVotedTracks(JSON.parse(savedVotes));
+    }, []);
+
+    const handleSearch = async (q: string) => {
+        setSearchQuery(q);
         if (!q.trim()) {
             setSearchResults([]);
             return;
         }
-        setIsSearching(true);
-        setSearchError(null);
-        try {
-            const res = await fetch(`/api/spotify/search?q=${encodeURIComponent(q)}`);
-            const data = await res.json();
-            if (res.ok) {
-                setSearchResults(data);
-            } else {
-                setSearchError(data.error || 'Erreur recherche');
+
+        if (searchTimeout.current) clearTimeout(searchTimeout.current);
+        searchTimeout.current = setTimeout(async () => {
+            setIsSearching(true);
+            setSearchError(null);
+            try {
+                const res = await fetch(`/api/youtube/search?q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                if (res.ok) {
+                    setSearchResults(data);
+                } else {
+                    setSearchError(data.error || 'Erreur recherche');
+                }
+            } catch (err) {
+                setSearchError('Échec de la recherche');
+            } finally {
+                setIsSearching(false);
             }
-        } catch (err) {
-            setSearchError('Impossible de contacter Spotify');
-        } finally {
-            setIsSearching(false);
-        }
+        }, 500);
     };
 
     const handleAddTrack = async (track: any) => {
@@ -52,17 +64,19 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    trackTitle: track.title,
+                    trackId: track.title,
                     media: track.media,
-                    playerType: 'spotify'
+                    playerType: 'youtube'
                 })
             });
             if (res.ok) {
+                const updatedVotes = [...votedTracks, track.title];
+                setVotedTracks(updatedVotes);
+                localStorage.setItem('music_voted_tracks', JSON.stringify(updatedVotes));
                 setIsSearchOpen(false);
                 setSearchQuery('');
                 setSearchResults([]);
-                // Reload tracks
-                window.location.reload(); // Simple reload to get the new track in the list
+                window.location.reload();
             }
         } catch (err) {
             console.error('Failed to add track', err);
@@ -71,18 +85,23 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
     const handleVote = async (title: string, e: React.MouseEvent, media?: string) => {
         e.stopPropagation();
+        if (votedTracks.includes(title)) return;
+
         try {
             const res = await fetch('/api/music/vote', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    trackTitle: title, // Le worker attend 'trackTitle'
+                    trackId: title,
                     media: media, 
-                    playerType: 'beatport' 
+                    playerType: 'youtube' 
                 })
             });
             if (res.ok) {
-                // Update local state for immediate feedback
+                const updatedVotes = [...votedTracks, title];
+                setVotedTracks(updatedVotes);
+                localStorage.setItem('music_voted_tracks', JSON.stringify(updatedVotes));
+                
                 setTracks(prev => prev.map(t => 
                     t.title === title ? { ...t, votes: (t.votes || 0) + 1 } : t
                 ).sort((a, b) => (b.votes || 0) - (a.votes || 0)));
@@ -95,26 +114,10 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     useEffect(() => {
         const fetchTopTracks = async () => {
             try {
-                const res = await fetch('/api/music/top-tracks');
+                const res = await fetch('/api/music/leaderboard');
                 if (res.ok) {
                     const data = await res.json();
-
-                    // On garde Beatport ET Spotify
-                    const validTracks: Track[] = Array.isArray(data)
-                        ? data.filter((t: any) => t.title && t.media)
-                        : [];
-
-                    // Tri stable : on ne change l'ordre QUE si le nombre de votes est différent.
-                    // Cela permet de garder l'ordre exact du "Mixer" tant que les votes sont à 0.
-                    const sorted = [...validTracks].sort((a, b) => {
-                        const vA = a.votes || 0;
-                        const vB = b.votes || 0;
-                        if (vB !== vA) return vB - vA;
-                        return 0; // Garde l'ordre original de l'API (Mixer)
-                    });
-
-                    const final = sorted.slice(0, 20);
-                    setTracks(final);
+                    setTracks(data.slice(0, 15));
                 }
             } catch (err) {
                 console.error('Failed to fetch top tracks', err);
@@ -124,60 +127,40 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         };
 
         fetchTopTracks();
-        // Rafraîchissement automatique toutes les 30 secondes
         const interval = setInterval(fetchTopTracks, 30000);
         return () => clearInterval(interval);
     }, []);
 
     const renderPlayer = (media: string, playerType: string) => {
-        if (playerType === 'beatport' || media.includes('beatport')) {
-            const src = media.startsWith('http')
-                ? media
-                : `https://embed.beatport.com/?id=${media.match(/\d+/)?.[0] || media}&type=track`;
+        if (playerType === 'youtube') {
             return (
-                <iframe
-                    src={src}
-                    width="100%"
-                    height="162"
-                    frameBorder="0"
-                    scrolling="no"
-                    style={{ borderRadius: '12px' }}
-                />
-            );
-        }
-        if (playerType === 'spotify') {
-            return (
-                <iframe
-                    src={`https://open.spotify.com/embed/track/${media}`}
-                    width="100%"
-                    height="80"
-                    frameBorder="0"
-                    allow="encrypted-media"
-                    style={{ borderRadius: '12px' }}
-                />
+                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
+                    <iframe
+                        src={`https://www.youtube.com/embed/${media}?autoplay=1`}
+                        className="absolute inset-0 w-full h-full"
+                        allow="autoplay; encrypted-media; picture-in-picture"
+                        allowFullScreen
+                    />
+                </div>
             );
         }
         return null;
     };
 
-    // État vide : aucune track Beatport disponible
     if (!loading && tracks.length === 0) {
         return (
             <div className="h-full flex flex-col">
                 <div className="w-full flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
-                        <span
-                            className="w-2.5 h-2.5 rounded-full animate-pulse"
-                            style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
-                        />
-                        TOP 20 TRACKS
+                        <Trophy className="w-6 h-6 text-yellow-500" />
+                        TOP 15 TRACKS
                     </h3>
                 </div>
                 <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center justify-center gap-4">
                     <Music className="w-12 h-12 text-gray-700" />
                     <p className="text-gray-600 font-black uppercase tracking-widest text-[10px] text-center leading-loose">
-                        Aucun morceau Beatport disponible.<br />
-                        Effectuez un <span className="text-white">Reset &amp; Mixer</span> depuis le Dashboard.
+                        Aucun morceau en lice.<br />
+                        Utilisez la recherche pour ajouter un titre.
                     </p>
                 </div>
             </div>
@@ -188,21 +171,14 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         <div className="h-full flex flex-col">
             <div className="w-full flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
-                    <span
-                        className="w-2.5 h-2.5 rounded-full animate-pulse"
-                        style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
-                    />
-                    TOP 20 TRACKS
+                    <Trophy className="w-6 h-6 text-yellow-500" />
+                    TOP 15 TRACKS
                 </h3>
             </div>
 
             <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 h-full shadow-2xl relative overflow-hidden group">
-                {/* Background Glow */}
-                <div
-                    className="absolute top-0 right-0 w-64 h-64 opacity-5 blur-[100px] pointer-events-none transition-all duration-1000 group-hover:opacity-10"
-                    style={{ backgroundColor: color }}
-                />
-
+                <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/5 via-transparent to-neon-purple/5 opacity-50" />
+                
                 <div className="flex items-center justify-between mb-8 relative z-10 px-2">
                     <div className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -210,7 +186,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     </div>
                 </div>
 
-                <div className="space-y-3 relative z-10">
+                <div className="space-y-3 relative z-10 overflow-y-auto no-scrollbar max-h-[calc(100%-140px)]">
                     <AnimatePresence mode="popLayout">
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
@@ -237,7 +213,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                         </div>
 
                                         <div className="flex-1 min-w-0">
-                                            <h4 className={`text-xs font-black uppercase truncate transition-colors ${openTrackTitle === track.title ? 'text-neon-cyan' : 'text-white group-hover/item:text-neon-cyan'}`}>
+                                            <h4 className={`text-xs font-black uppercase transition-colors ${openTrackTitle === track.title ? 'text-neon-cyan' : 'text-white group-hover/item:text-neon-cyan'}`}>
                                                 {track.title}
                                             </h4>
                                             <div className="flex items-center gap-2 mt-1">
@@ -259,11 +235,12 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
                                         <button 
                                             type="button"
+                                            disabled={votedTracks.includes(track.title)}
                                             onClick={(e) => handleVote(track.title, e, track.media)}
-                                            className="relative z-20 flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-pink-500/20 hover:border-pink-500/40 transition-all active:scale-95 group/btn"
+                                            className={`relative z-20 flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 transition-all active:scale-95 group/btn ${votedTracks.includes(track.title) ? 'text-neon-cyan border-neon-cyan/30' : 'hover:bg-pink-500/20 hover:border-pink-500/40 text-white'}`}
                                         >
-                                            <Heart className="w-3 h-3 text-pink-400 group-hover/btn:scale-125 transition-transform" />
-                                            <span className="text-[10px] font-black text-white">{track.votes || 0}</span>
+                                            <Heart className={`w-3 h-3 transition-transform ${votedTracks.includes(track.title) ? 'fill-current text-neon-cyan' : 'text-pink-400 group-hover/btn:scale-125'}`} />
+                                            <span className="text-[10px] font-black">{track.votes || 0}</span>
                                         </button>
                                     </div>
 
@@ -276,7 +253,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                                 className="overflow-hidden rounded-2xl border border-white/10 mb-2"
                                             >
                                                 <div className="bg-black/60 p-2">
-                                                    {renderPlayer(track.media, track.playerType || 'beatport')}
+                                                    {renderPlayer(track.media, track.playerType || 'youtube')}
                                                 </div>
                                             </motion.div>
                                         )}
@@ -287,13 +264,13 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     </AnimatePresence>
                 </div>
 
-                <div className="mt-8 flex flex-col gap-6 pt-6 border-t border-white/5">
+                <div className="absolute bottom-8 inset-x-8 flex flex-col gap-6 pt-6 border-t border-white/5 bg-dark-bg/80 backdrop-blur-md z-20">
                     <button
                         onClick={() => setIsSearchOpen(true)}
                         className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 hover:border-white/40 transition-all group"
                     >
-                        <Search className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
-                        <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-widest">Ajouter un titre (Spotify)</span>
+                        <Youtube className="w-5 h-5 text-red-500" />
+                        <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-widest">Ajouter un titre (YouTube)</span>
                     </button>
 
                     <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">
@@ -305,7 +282,6 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 </div>
             </div>
 
-            {/* Search Modal */}
             <AnimatePresence>
                 {isSearchOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -326,10 +302,10 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                             <div className="p-8">
                                 <div className="flex items-center justify-between mb-8">
                                     <h2 className="text-2xl font-display font-bold text-white flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-[#1DB954] flex items-center justify-center">
-                                            <Search className="w-4 h-4 text-black" />
+                                        <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center">
+                                            <Youtube className="w-4 h-4 text-white" />
                                         </div>
-                                        RECHERCHE SPOTIFY
+                                        RECHERCHE YOUTUBE
                                     </h2>
                                     <button
                                         onClick={() => setIsSearchOpen(false)}
@@ -344,11 +320,8 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                         type="text"
                                         autoFocus
                                         value={searchQuery}
-                                        onChange={(e) => {
-                                            setSearchQuery(e.target.value);
-                                            handleSpotifySearch(e.target.value);
-                                        }}
-                                        placeholder="Titre, artiste..."
+                                        onChange={(e) => handleSearch(e.target.value)}
+                                        placeholder="Artiste, titre, url..."
                                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white font-medium focus:border-white/20 focus:outline-none transition-all"
                                     />
                                     {isSearching && (
@@ -358,7 +331,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                     )}
                                 </div>
 
-                                <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                <div className="max-h-[400px] overflow-y-auto space-y-2 pr-2 custom-scrollbar no-scrollbar">
                                     {searchError && (
                                         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-center font-bold uppercase tracking-wider">
                                             {searchError}
@@ -369,24 +342,32 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                         <div
                                             key={track.id}
                                             className="flex items-center gap-4 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 transition-all group"
+                                            onMouseEnter={() => setPreviewVideo(track.id)}
+                                            onMouseLeave={() => setPreviewVideo(null)}
                                         >
-                                            <img src={track.cover} alt="" className="w-12 h-12 rounded-lg object-cover shadow-lg" />
+                                            <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 relative bg-black">
+                                                <img src={track.cover} className="w-full h-full object-cover opacity-80" />
+                                                {previewVideo === track.id && (
+                                                    <div className="absolute inset-0 z-10">
+                                                        <iframe 
+                                                            src={`https://www.youtube.com/embed/${track.id}?autoplay=1&controls=0&mute=1&loop=1&playlist=${track.id}`}
+                                                            className="w-[200%] h-[200%] scale-[2.5] origin-center translate-x-[-25%] translate-y-[-25%]"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="text-sm font-bold text-white truncate">{track.title}</h4>
-                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mt-0.5">Spotify Track</p>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mt-0.5">YouTube Video</p>
                                             </div>
                                             <button
                                                 onClick={() => handleAddTrack(track)}
-                                                className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center hover:bg-[#1DB954] hover:text-black transition-all active:scale-90"
+                                                className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all active:scale-90"
                                             >
                                                 <Plus className="w-5 h-5" />
                                             </button>
                                         </div>
                                     ))}
-
-                                    {!isSearching && searchQuery && searchResults.length === 0 && !searchError && (
-                                        <p className="text-center text-gray-500 text-[10px] font-black uppercase tracking-[2px] py-8">Aucun résultat trouvé</p>
-                                    )}
                                 </div>
                             </div>
                         </motion.div>

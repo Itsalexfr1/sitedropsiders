@@ -5406,77 +5406,76 @@ ${urls.map(u => `  <url>
             }
         }
 
-        // --- NEW: MUSIC TRACK VOTING ---
-        if (path === '/api/music/vote' && request.method === 'POST') {
+        // --- YouTube Search API ---
+        if (path === '/api/youtube/search' && request.method === 'GET') {
+            const query = url.searchParams.get('q');
+            if (!query) return new Response(JSON.stringify({ error: 'Query required' }), { status: 400, headers });
+
             try {
-                const { trackTitle, media, playerType } = await request.json();
-                if (!trackTitle) return new Response(JSON.stringify({ error: 'Title required' }), { status: 400, headers });
-
-                const trackId = trackTitle.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
-                const kvKey = `music_track:${trackId}`;
-
-                let data = await env.CHAT_KV.get(kvKey, { type: 'json' }) as { title: string, votes: number, media?: string, playerType?: string } | null;
-                if (!data) {
-                    data = { title: trackTitle, votes: 1, media, playerType };
-                } else {
-                    data.votes = (data.votes || 0) + 1;
-                    // Update media info if provided and not already present
-                    if (media) data.media = media;
-                    if (playerType) data.playerType = playerType;
+                const apiKey = env.YOUTUBE_API_KEY;
+                if (!apiKey) {
+                    return new Response(JSON.stringify({ 
+                        error: 'YouTube API not configured. Please set YOUTUBE_API_KEY in worker environment.' 
+                    }), { status: 501, headers });
                 }
 
-                await env.CHAT_KV.put(kvKey, JSON.stringify(data));
-                return new Response(JSON.stringify({ success: true, votes: data.votes }), { status: 200, headers });
+                const searchRes = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${apiKey}`);
+                if (!searchRes.ok) {
+                    const errData: any = await searchRes.json();
+                    throw new Error(errData.error?.message || 'YouTube search failed');
+                }
+
+                const searchData: any = await searchRes.json();
+                const results = (searchData.items || []).map((item: any) => ({
+                    id: item.id.videoId,
+                    title: item.snippet.title.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&'),
+                    media: item.id.videoId,
+                    playerType: 'youtube',
+                    cover: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
+                    previewUrl: null
+                }));
+
+                return new Response(JSON.stringify(results), { status: 200, headers });
             } catch (error: any) {
                 return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
             }
         }
 
-        // --- SPOTIFY SEARCH API ---
-        // Required secrets in Cloudflare: SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
-        if (path === '/api/spotify/search' && request.method === 'GET') {
-            const query = url.searchParams.get('q');
-            if (!query) return new Response(JSON.stringify({ error: 'Query required' }), { status: 400, headers });
-
+        // --- NEW: MUSIC TRACK VOTING (Anti-Spam) ---
+        if (path === '/api/music/vote' && request.method === 'POST') {
             try {
-                const clientId = env.SPOTIFY_CLIENT_ID;
-                const clientSecret = env.SPOTIFY_CLIENT_SECRET;
+                const { trackId: trackTitle, media, playerType } = await request.json();
+                if (!trackTitle) return new Response(JSON.stringify({ error: 'Title required' }), { status: 400, headers });
 
-                if (!clientId || !clientSecret) {
-                    return new Response(JSON.stringify({ 
-                        error: 'Spotify API not configured. Please set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in worker environment.' 
-                    }), { status: 501, headers });
+                // 1. IP Check for Anti-Spam
+                const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+                const trackIdSlug = trackTitle.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
+                const rateLimitKey = `music_vote_limit:${trackIdSlug}:${ip}`;
+
+                const alreadyVoted = await env.CHAT_KV.get(rateLimitKey);
+                if (alreadyVoted) {
+                    return new Response(JSON.stringify({ error: 'Voted', message: 'Déjà voté pour ce morceau (limite 24h)' }), { status: 429, headers });
                 }
 
-                // 1. Get Access Token
-                const tokenRes = await fetch('https://accounts.spotify.com/api/token', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'Authorization': 'Basic ' + btoa(clientId + ':' + clientSecret)
-                    },
-                    body: 'grant_type=client_credentials'
-                });
+                // 2. Increment Vote
+                const kvKey = `music_track:${trackIdSlug}`;
+                let data = await env.CHAT_KV.get(kvKey, { type: 'json' }) as { title: string, votes: number, media?: string, playerType?: string } | null;
+                
+                if (!data) {
+                    data = { title: trackTitle, votes: 1, media, playerType };
+                } else {
+                    data.votes = (data.votes || 0) + 1;
+                    if (media) data.media = media;
+                    if (playerType) data.playerType = playerType;
+                }
 
-                const tokenData: any = await tokenRes.json();
-                const token = tokenData.access_token;
+                // 3. Mark as voted for 24h
+                await Promise.all([
+                    env.CHAT_KV.put(kvKey, JSON.stringify(data)),
+                    env.CHAT_KV.put(rateLimitKey, '1', { expirationTtl: 86400 }) // 24h
+                ]);
 
-                // 2. Search Spotify
-                const searchRes = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
-                const searchData: any = await searchRes.json();
-                const results = (searchData.tracks?.items || []).map((item: any) => ({
-                    id: item.id,
-                    title: `${item.artists.map((a: any) => a.name).join(', ')} - ${item.name}`,
-                    media: item.id,
-                    playerType: 'spotify',
-                    cover: item.album.images[0]?.url,
-                    previewUrl: item.preview_url
-                }));
-
-                return new Response(JSON.stringify(results), { status: 200, headers });
+                return new Response(JSON.stringify({ success: true, votes: data.votes }), { status: 200, headers });
             } catch (error: any) {
                 return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
             }
