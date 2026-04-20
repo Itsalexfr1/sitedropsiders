@@ -101,7 +101,7 @@ export function Home() {
                             </div>
                             <div className="space-y-8">
                                 <RecapWidget accentColor={accentColor} resolvedColor={color} />
-                                <AgendaWidget maxItems={(item.maxAgendaItems || 8) - 1} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
+                                <AgendaWidget maxItems={item.maxAgendaItems || 6} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
                                 <TopTracksLeaderboard resolvedColor={color} />
                             </div>
                         </div>
