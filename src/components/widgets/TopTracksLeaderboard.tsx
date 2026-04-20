@@ -66,7 +66,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     trackTitle: track.title, // Corrected from trackId
-                    media: track.media,
+                    media: track.id || track.media,
                     playerType: 'youtube'
                 })
             });
@@ -340,7 +340,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     </AnimatePresence>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-white/5">
+                <div className="mt-8 pt-6 border-t border-white/5 relative z-10">
                     <button
                         onClick={() => setIsSearchOpen(true)}
                         className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 hover:border-white/40 transition-all group"
