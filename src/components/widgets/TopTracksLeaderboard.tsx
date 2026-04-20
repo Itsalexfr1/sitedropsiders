@@ -50,8 +50,14 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                         ? data.filter((t: any) => t.title && t.media && t.media.includes('beatport'))
                         : [];
 
-                    // Tri par votes décroissants (stable)
-                    const sorted = [...beatportTracks].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+                    // Tri stable : on ne change l'ordre QUE si le nombre de votes est différent.
+                    // Cela permet de garder l'ordre exact du "Mixer" tant que les votes sont à 0.
+                    const sorted = [...beatportTracks].sort((a, b) => {
+                        const vA = a.votes || 0;
+                        const vB = b.votes || 0;
+                        if (vB !== vA) return vB - vA;
+                        return 0; // Garde l'ordre original de l'API (Mixer)
+                    });
 
                     const final = sorted.slice(0, 20);
                     setTracks(final);
