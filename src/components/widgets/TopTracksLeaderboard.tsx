@@ -74,9 +74,9 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                             const combined = [...data, ...extractedTracks];
                             // Remove duplicates by title
                             const unique = combined.filter((v, i, a) => a.findIndex(t => (t.title === v.title)) === i);
-                            // Sort and take top 10
+                            // Sort and take top 15
                             const shuffled = unique.sort(() => 0.5 - Math.random());
-                            setTracks(shuffled.slice(0, 10).sort((a, b) => b.votes - a.votes));
+                            setTracks(shuffled.slice(0, 15).sort((a, b) => b.votes - a.votes));
                         } else if (data.length > 0) {
                             setTracks(data);
                         } else {
@@ -91,7 +91,12 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                 { title: "Piem, CASSIMM - Ya Mon", votes: 420 },
                                 { title: "Coskun Karaca - About Me", votes: 390 },
                                 { title: "Rag - Stand Up!", votes: 350 },
-                                { title: "Adam K - Rushing", votes: 310 }
+                                { title: "Adam K - Rushing", votes: 310 },
+                                { title: "Tiësto - Lay Low", votes: 290 },
+                                { title: "Hardwell - Spaceman", votes: 260 },
+                                { title: "Alesso - Words", votes: 240 },
+                                { title: "Swedish House Mafia - Ray of Solar", votes: 220 },
+                                { title: "DJ Snake - Disco Maghreb", votes: 200 }
                             ]);
                         }
                     } else {
@@ -101,7 +106,17 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                             { title: "FISHER - FAVOUR", votes: 720 },
                             { title: "John Summit - ALL THE TIME", votes: 640 },
                             { title: "Mau P - Baddest Behaviour", votes: 590 },
-                            { title: "David Guetta - Goin' Crazy", votes: 510 }
+                            { title: "David Guetta - Goin' Crazy", votes: 510 },
+                            { title: "Martin Garrix - Catharina", votes: 480 },
+                            { title: "Piem, CASSIMM - Ya Mon", votes: 420 },
+                            { title: "Coskun Karaca - About Me", votes: 390 },
+                            { title: "Rag - Stand Up!", votes: 350 },
+                            { title: "Adam K - Rushing", votes: 310 },
+                            { title: "Tiësto - Lay Low", votes: 290 },
+                            { title: "Hardwell - Spaceman", votes: 260 },
+                            { title: "Alesso - Words", votes: 240 },
+                            { title: "Swedish House Mafia - Ray of Solar", votes: 220 },
+                            { title: "DJ Snake - Disco Maghreb", votes: 200 }
                         ]);
                     }
                 }
@@ -158,13 +173,13 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
     return (
         <div className="h-full flex flex-col">
-            <div className="w-full flex justify-between items-center mb-6 pl-1">
-                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-2">
+            <div className="w-full flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                     <span
-                        className="w-2 h-2 rounded-full animate-pulse"
+                        className="w-2.5 h-2.5 rounded-full animate-pulse"
                         style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
                     />
-                    TOP 10 TRACKS
+                    TOP 15 TRACKS
                 </h3>
             </div>
 
