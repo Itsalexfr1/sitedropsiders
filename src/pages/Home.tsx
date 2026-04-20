@@ -115,7 +115,7 @@ export function Home() {
                         <div 
                             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch"
                             style={{ 
-                                gridTemplateColumns: window.innerWidth > 1024 ? '1fr 1fr 1.2fr' : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? '0.75fr 0.75fr 1fr' : '1fr'
                             }}
                         >
                             <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />

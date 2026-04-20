@@ -103,14 +103,14 @@ export function TikTokWidget({ accentColor = 'cyan', resolvedColor, username }: 
                         style={{ border: `1px solid ${color}20` }}
                     >
                         <div className="w-full px-2 pt-2 pb-0 flex-1 overflow-hidden relative bg-white">
-                            <div className="absolute inset-x-0" style={{ top: '-10px' }}>
+                            <div className="absolute inset-0 overflow-y-auto custom-scrollbar">
                                 {isInView && (
                                     <blockquote
                                         className="tiktok-embed"
                                         cite={tiktokUrl}
                                         data-unique-id={account}
                                         data-embed-type="creator"
-                                        style={{ width: '100%', maxWidth: '100%', margin: 0, padding: 0 }}
+                                        style={{ width: '100%', margin: 0, padding: 0 }}
                                     >
                                         <section>
                                             <a target="_blank" href={`${tiktokUrl}?refer=creator_embed`} rel="noreferrer">@{account}</a>
