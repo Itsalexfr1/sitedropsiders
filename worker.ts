@@ -5433,6 +5433,7 @@ ${urls.map(u => `  <url>
         }
 
         // --- SPOTIFY SEARCH API ---
+        // Required secrets in Cloudflare: SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
         if (path === '/api/spotify/search' && request.method === 'GET') {
             const query = url.searchParams.get('q');
             if (!query) return new Response(JSON.stringify({ error: 'Query required' }), { status: 400, headers });
