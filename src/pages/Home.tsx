@@ -3,8 +3,8 @@ import { Hero } from '../components/ui/Hero';
 import { FeaturedNews } from '../components/widgets/FeaturedNews';
 import { RecentNews } from '../components/widgets/RecentNews';
 import { AgendaWidget } from '../components/widgets/AgendaWidget';
-import { InstagramWidget } from '../components/widgets/InstagramWidget';
-import { TikTokWidget } from '../components/widgets/TikTokWidget';
+import { InstaFeed } from '../components/widgets/InstaFeed';
+import { TikTokFeed } from '../components/widgets/TikTokFeed';
 import { SpotifyWidget } from '../components/widgets/SpotifyWidget';
 import { RecapWidget } from '../components/widgets/RecapWidget';
 import { InterviewWidget } from '../components/widgets/InterviewWidget';
@@ -120,8 +120,8 @@ export function Home() {
                             }}
                         >
                             <div className="flex flex-col gap-8 w-full">
-                                <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
-                                <TikTokWidget accentColor={item.accentColor2 || 'cyan'} resolvedColor={resolveColor(item.accentColor2 || 'cyan')} username={socials?.tiktok} />
+                                <InstaFeed accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
+                                <TikTokFeed accentColor={item.accentColor2 || 'cyan'} resolvedColor={resolveColor(item.accentColor2 || 'cyan')} username={socials?.tiktok} />
                             </div>
                             <div className="w-full">
                                 <TopTracksLeaderboard resolvedColor={color} />
