@@ -94,22 +94,20 @@ export function TikTokWidget({ accentColor = 'cyan', resolvedColor, username }: 
                         className="flex-1 bg-black/20 rounded-[11px] overflow-hidden flex flex-col justify-between"
                         style={{ border: `1px solid ${color}20` }}
                     >
-                        <div className="w-full px-0 pt-1 pb-0 flex-1 overflow-hidden relative min-h-[420px] sm:min-h-[520px]">
-                            <div className="absolute inset-x-0" style={{ top: '0px' }}>
-                                {isInView && (
-                                    <blockquote
-                                        className="tiktok-embed"
-                                        cite={tiktokUrl}
-                                        data-unique-id={account}
-                                        data-embed-type="creator"
-                                        style={{ width: '100%', maxWidth: '100%', margin: 0, padding: 0 }}
-                                    >
-                                        <section>
-                                            <a target="_blank" href={`${tiktokUrl}?refer=creator_embed`} rel="noreferrer">@{account}</a>
-                                        </section>
-                                    </blockquote>
-                                )}
-                            </div>
+                        <div className="w-full px-0 flex-1 relative min-h-[450px] sm:min-h-[550px] pb-24">
+                            {isInView && (
+                                <blockquote
+                                    className="tiktok-embed"
+                                    cite={tiktokUrl}
+                                    data-unique-id={account}
+                                    data-embed-type="creator"
+                                    style={{ width: '100%', maxWidth: '100%', margin: 0, padding: 0 }}
+                                >
+                                    <section>
+                                        <a target="_blank" href={`${tiktokUrl}?refer=creator_embed`} rel="noreferrer">@{account}</a>
+                                    </section>
+                                </blockquote>
+                            )}
                         </div>
 
                         <div className="w-full p-2 sm:p-3 relative z-10 bg-gradient-to-t from-black/90 to-black/60 flex-none flex flex-col justify-center items-center">
