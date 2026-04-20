@@ -63,7 +63,7 @@ export function MusiqueMenuModal({
                                 <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-cyan/30 group-hover:scale-110 transition-transform">
                                     {isUpdatingCharts ? <Loader2 className="w-6 h-6 text-neon-cyan animate-spin" /> : <RefreshCw className="w-6 h-6 text-neon-cyan" />}
                                 </div>
-                                <h3 className="text-xl font-bold text-white uppercase italic mb-1">Mettre à jour Top 15</h3>
+                                <h3 className="text-xl font-bold text-white uppercase italic mb-1">Mettre à jour Top 20</h3>
                                 <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Forcer la rotation</p>
                             </button>
                         </div>

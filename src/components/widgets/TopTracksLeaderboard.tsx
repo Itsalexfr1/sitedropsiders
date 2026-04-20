@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Music, TrendingUp, Flame } from 'lucide-react';
+import { Music, TrendingUp, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -16,135 +16,87 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const { t } = useLanguage();
     const [tracks, setTracks] = useState<Track[]>([]);
     const [loading, setLoading] = useState(true);
+    const [openTrackTitle, setOpenTrackTitle] = useState<string | null>(null);
     const color = resolvedColor || '#ff1241';
 
     useEffect(() => {
-        const fallbackList = [
-            { title: "Anyma, LISA - Bad Angel", votes: 850 },
-            { title: "FISHER - FAVOUR", votes: 720 },
-            { title: "John Summit - ALL THE TIME", votes: 640 },
-            { title: "Mau P - Baddest Behaviour", votes: 590 },
-            { title: "David Guetta - Goin' Crazy", votes: 510 },
-            { title: "Martin Garrix - Catharina", votes: 480 },
-            { title: "Piem, CASSIMM - Ya Mon", votes: 420 },
-            { title: "Coskun Karaca - About Me", votes: 390 },
-            { title: "Rag - Stand Up!", votes: 350 },
-            { title: "Adam K - Rushing", votes: 310 },
-            { title: "Tiësto - Lay Low", votes: 290 },
-            { title: "Hardwell - Spaceman", votes: 260 },
-            { title: "Alesso - Words", votes: 240 },
-            { title: "Swedish House Mafia - Ray of Solar", votes: 220 },
-            { title: "DJ Snake - Disco Maghreb", votes: 200 }
-        ];
-
         const fetchTopTracks = async () => {
             try {
-                let realData: any[] = [];
                 const res = await fetch('/api/music/top-tracks');
                 if (res.ok) {
-                    realData = await res.json();
+                    const data = await res.json();
+
+                    // Garder uniquement les tracks avec un lien Beatport embed
+                    const beatportTracks: Track[] = Array.isArray(data)
+                        ? data.filter((t: any) => t.title && t.media && t.media.includes('beatport'))
+                        : [];
+
+                    // Si tous les votes sont à 0 → ordre aléatoire (en attente de votes)
+                    // Sinon → tri par votes décroissants
+                    const maxVotes = beatportTracks.reduce((max, t) => Math.max(max, t.votes || 0), 0);
+                    const sorted = maxVotes === 0
+                        ? [...beatportTracks].sort(() => Math.random() - 0.5)
+                        : [...beatportTracks].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+
+                    const final = sorted.slice(0, 20);
+                    setTracks(final);
+                    if (final[0]?.title) setOpenTrackTitle(final[0].title);
                 }
-
-                // Toujours fetcher les news pour avoir des tracks au cas où on n'en ait pas 15
-                let extractedTracks: Track[] = [];
-                const newsRes = await fetch('/api/news');
-                if (newsRes.ok) {
-                    const news = await newsRes.json();
-                    const musicNews = news.filter((n: any) => 
-                        n.category === 'Musique' || 
-                        n.category === 'Music' || 
-                        n.title?.toLowerCase().includes('sorties')
-                    );
-                    
-                    musicNews.forEach((article: any) => {
-                        const text = article.summary || '';
-                        if (!text) return;
-                        
-                        const patterns = [
-                            /MUSIC\s+(.*?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi,
-                            /Music:\s+(.*?)(?=\n|$)/gi,
-                            /^\s*(.*?)\s+-\s+(.*?)\s*$/gm
-                        ];
-
-                        patterns.forEach(regex => {
-                            let match;
-                            while ((match = regex.exec(text)) !== null) {
-                                const title = (match[1] + (match[2] ? ` - ${match[2]}` : '')).trim();
-                                if (title && title.length > 5 && title.length < 100 && !extractedTracks.find(t => t.title === title.toUpperCase())) {
-                                    extractedTracks.push({
-                                        title: title.toUpperCase(),
-                                        votes: Math.floor(Math.random() * 300) + 100
-                                    });
-                                }
-                            }
-                        });
-                    });
-                }
-
-                const combined = [...(realData || []), ...extractedTracks, ...fallbackList];
-                const unique = combined.filter((v, i, a) => a.findIndex(t => (t.title?.toUpperCase() === v.title?.toUpperCase())) === i);
-                
-                // On garde les votes réels en priorité. S'il n'y a pas de vote, on trie de façon aléatoire pour les tracks extraites, mais on garde un tri par vote final
-                const processed = unique.map(t => ({
-                    ...t,
-                    title: t.title?.toUpperCase()
-                }));
-
-                const sorted = processed.sort((a, b) => b.votes - a.votes).slice(0, 15);
-                setTracks(sorted);
-                if (sorted[0]?.title) setOpenTrackTitle(sorted[0].title);
-
             } catch (err) {
                 console.error('Failed to fetch top tracks', err);
-                setTracks(fallbackList);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchTopTracks();
-        // Refresh every 30 seconds
+        // Rafraîchissement automatique toutes les 30 secondes
         const interval = setInterval(fetchTopTracks, 30000);
         return () => clearInterval(interval);
     }, []);
 
-    useEffect(() => {
-        if (!loading && tracks.length > 0 && !openTrackTitle) {
-            setOpenTrackTitle(tracks[0].title);
-        }
-    }, [loading, tracks]);
-
-    const [openTrackTitle, setOpenTrackTitle] = useState<string | null>(null);
-
     const renderPlayer = (media: string, playerType: string) => {
-        if (playerType === 'beatport') {
-            // Use the full URL if available, otherwise fallback to ID extraction
-            const src = media.startsWith('http') ? media : `https://embed.beatport.com/?id=${media.match(/\d+/)?.[0] || media}&type=track`;
+        if (playerType === 'beatport' || media.includes('beatport')) {
+            const src = media.startsWith('http')
+                ? media
+                : `https://embed.beatport.com/?id=${media.match(/\d+/)?.[0] || media}&type=track`;
             return (
-                <iframe 
-                    src={src} 
-                    width="100%" 
-                    height="162" 
-                    frameBorder="0" 
-                    scrolling="no" 
+                <iframe
+                    src={src}
+                    width="100%"
+                    height="162"
+                    frameBorder="0"
+                    scrolling="no"
                     style={{ borderRadius: '12px' }}
                 />
             );
         }
-        // Fallback or Spotify
-        const match = media.match(/track\/([a-zA-Z0-9]+)/);
-        const spotifyId = match ? match[1] : (media.includes('spotify:track:') ? media.split(':').pop() : media);
-        return (
-            <iframe 
-                src={`https://open.spotify.com/embed/track/${spotifyId}`} 
-                width="100%" 
-                height="80" 
-                frameBorder="0" 
-                allow="encrypted-media"
-                style={{ borderRadius: '12px' }}
-            />
-        );
+        return null;
     };
+
+    // État vide : aucune track Beatport disponible
+    if (!loading && tracks.length === 0) {
+        return (
+            <div className="h-full flex flex-col">
+                <div className="w-full flex justify-between items-center mb-6">
+                    <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                        <span
+                            className="w-2.5 h-2.5 rounded-full animate-pulse"
+                            style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
+                        />
+                        TOP 20 TRACKS
+                    </h3>
+                </div>
+                <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center justify-center gap-4">
+                    <Music className="w-12 h-12 text-gray-700" />
+                    <p className="text-gray-600 font-black uppercase tracking-widest text-[10px] text-center leading-loose">
+                        Aucun morceau Beatport disponible.<br />
+                        Effectuez un <span className="text-white">Reset &amp; Mixer</span> depuis le Dashboard.
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="h-full flex flex-col">
@@ -154,13 +106,13 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                         className="w-2.5 h-2.5 rounded-full animate-pulse"
                         style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
                     />
-                    TOP 15 TRACKS
+                    TOP 20 TRACKS
                 </h3>
             </div>
 
             <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 h-full shadow-2xl relative overflow-hidden group">
                 {/* Background Glow */}
-                <div 
+                <div
                     className="absolute top-0 right-0 w-64 h-64 opacity-5 blur-[100px] pointer-events-none transition-all duration-1000 group-hover:opacity-10"
                     style={{ backgroundColor: color }}
                 />
@@ -175,80 +127,87 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     </div>
                 </div>
 
-            <div className="space-y-3 relative z-10">
-                <AnimatePresence mode="popLayout">
-                    {loading ? (
-                        Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="h-14 bg-white/5 rounded-2xl animate-pulse" />
-                        ))
-                    ) : (
-                        tracks.map((track: any, index) => (
-                            <motion.div
-                                key={track.title}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ delay: index * 0.05 }}
-                                className="flex flex-col gap-2"
-                            >
-                                <div 
-                                    onClick={() => setOpenTrackTitle(openTrackTitle === track.title ? null : track.title)}
-                                    className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-white/10 border border-white/5 rounded-2xl transition-all group/item ${openTrackTitle === track.title ? 'bg-white/10 border-white/20' : 'bg-white/5'}`}
+                <div className="space-y-3 relative z-10">
+                    <AnimatePresence mode="popLayout">
+                        {loading ? (
+                            Array.from({ length: 5 }).map((_, i) => (
+                                <div key={i} className="h-14 bg-white/5 rounded-2xl animate-pulse" />
+                            ))
+                        ) : (
+                            tracks.map((track: any, index) => (
+                                <motion.div
+                                    key={track.title}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ delay: index * 0.04 }}
+                                    className="flex flex-col gap-2"
                                 >
-                                    <div className="w-8 flex-shrink-0 text-center">
-                                        <span className={`text-sm font-black italic ${index < 3 ? 'text-white' : 'text-gray-600'}`}>
-                                            #{index + 1}
-                                        </span>
-                                    </div>
-                                    
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className={`text-xs font-black uppercase truncate transition-colors ${openTrackTitle === track.title ? 'text-neon-cyan' : 'text-white group-hover/item:text-neon-cyan'}`}>
-                                            {track.title}
-                                        </h4>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <TrendingUp className="w-3 h-3 text-gray-600" />
-                                            <div className="h-1 bg-white/5 flex-1 rounded-full overflow-hidden">
-                                                <motion.div 
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${Math.min(100, (track.votes / tracks[0].votes) * 100)}%` }}
-                                                    className="h-full rounded-full"
-                                                    style={{ backgroundColor: color }}
-                                                />
+                                    <div
+                                        onClick={() => setOpenTrackTitle(openTrackTitle === track.title ? null : track.title)}
+                                        className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-white/10 border border-white/5 rounded-2xl transition-all group/item ${openTrackTitle === track.title ? 'bg-white/10 border-white/20' : 'bg-white/5'}`}
+                                    >
+                                        <div className="w-8 flex-shrink-0 text-center">
+                                            <span className={`text-sm font-black italic ${index < 3 ? 'text-white' : 'text-gray-600'}`}>
+                                                #{index + 1}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className={`text-xs font-black uppercase truncate transition-colors ${openTrackTitle === track.title ? 'text-neon-cyan' : 'text-white group-hover/item:text-neon-cyan'}`}>
+                                                {track.title}
+                                            </h4>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <TrendingUp className="w-3 h-3 text-gray-600" />
+                                                <div className="h-1 bg-white/5 flex-1 rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{
+                                                            width: tracks[0]?.votes > 0
+                                                                ? `${Math.min(100, ((track.votes || 0) / tracks[0].votes) * 100)}%`
+                                                                : '0%'
+                                                        }}
+                                                        className="h-full rounded-full"
+                                                        style={{ backgroundColor: color }}
+                                                    />
+                                                </div>
                                             </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
+                                            <Heart className="w-3 h-3 text-pink-400" />
+                                            <span className="text-[10px] font-black text-white">{track.votes || 0}</span>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5">
-                                        <Flame className="w-3 h-3 text-orange-500" />
-                                        <span className="text-[10px] font-black text-white">{track.votes}</span>
-                                    </div>
-                                </div>
+                                    <AnimatePresence>
+                                        {openTrackTitle === track.title && track.media && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="overflow-hidden rounded-2xl border border-white/10 mb-2"
+                                            >
+                                                <div className="bg-black/60 p-2">
+                                                    {renderPlayer(track.media, track.playerType || 'beatport')}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </motion.div>
+                            ))
+                        )}
+                    </AnimatePresence>
+                </div>
 
-                                <AnimatePresence>
-                                    {openTrackTitle === track.title && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden rounded-2xl border border-white/10 mb-2"
-                                        >
-                                            <div className="bg-black/60 p-2">
-                                                {renderPlayer(track.media || '', track.playerType || (track.media?.includes('beatport') ? 'beatport' : 'spotify'))}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </motion.div>
-                        ))
-                    )}
-                </AnimatePresence>
-            </div>
-            
-            <div className="mt-8 pt-6 border-t border-white/5">
-                <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">
-                    Votes mis à jour en temps réel via les <Link to="/news?tab=musique" className="text-white hover:text-neon-cyan transition-colors underline decoration-dotted">articles musique</Link>
-                </p>
-            </div>
+                <div className="mt-8 pt-6 border-t border-white/5">
+                    <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest text-center">
+                        Votes mis à jour en temps réel via les{' '}
+                        <Link to="/news?tab=musique" className="text-white hover:text-neon-cyan transition-colors underline decoration-dotted">
+                            articles musique
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );

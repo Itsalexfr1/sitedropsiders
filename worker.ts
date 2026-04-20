@@ -5530,7 +5530,7 @@ ${urls.map(u => `  <url>
                         }
                     }
 
-                    const selected = pool.sort(() => Math.random() - 0.5).slice(0, 15);
+                    const selected = pool.sort(() => Math.random() - 0.5).slice(0, 20);
                     console.log(`[MUSIC RESET] Beatport pool: ${pool.length} tracks → seeding ${selected.length}`);
 
                     for (const { title, media } of selected) {
@@ -5564,11 +5564,11 @@ ${urls.map(u => `  <url>
                     })
                 );
 
-                const top15 = (tracks.filter(Boolean) as { title: string, votes: number }[])
+                const top20 = (tracks.filter(Boolean) as { title: string, votes: number }[])
                     .sort((a, b) => b.votes - a.votes)
-                    .slice(0, 15);
+                    .slice(0, 20);
 
-                return new Response(JSON.stringify(top15), {
+                return new Response(JSON.stringify(top20), {
                     status: 200,
                     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...headers }
                 });

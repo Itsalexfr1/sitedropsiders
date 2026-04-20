@@ -1698,7 +1698,7 @@ export function AdminDashboard() {
 
         // STUDIO & ANALYTICS
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
-        { title: "Spotify", description: "Top 15 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
+        { title: "Spotify", description: "Top 20 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
         { title: "Social Studio", description: "Outils Réseaux Sociaux", icon: "Instagram", category: "SOCIAL_STUDIO", link: "social-studio", permission: "news", baseColor: "pink", columns: 2 },
         { title: "Questions Aléatoires", description: "Randomizer d'Interviews", icon: "Dice5", category: "STUDIO", link: "random-questions", permission: "news", baseColor: "cyan", columns: 2 },
         { title: "Générateur Fiches", description: "Interview Visual Cards", icon: "Columns", category: "STUDIO", link: "interview-generator", permission: "news", baseColor: "red", columns: 1 },
@@ -1789,7 +1789,7 @@ export function AdminDashboard() {
                 headers: { 'X-Admin-Password': adminPass }
             });
             if (res.ok) {
-                setGlobalAlert({ message: "Top 15 mis à jour avec succès ! (Rotation effectuée)", type: 'info' });
+                setGlobalAlert({ message: "Top 20 mis à jour avec succès ! (Rotation effectuée)", type: 'info' });
             } else {
                 const data = await res.json();
                 setGlobalAlert({ message: "Erreur: " + (data.error || "Inconnue"), type: 'danger' });
@@ -4927,7 +4927,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-cyan/30 group-hover:scale-110 transition-transform">
                                             {isUpdatingCharts ? <Loader2 className="w-6 h-6 text-neon-cyan animate-spin" /> : <RefreshCw className="w-6 h-6 text-neon-cyan" />}
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Mettre à jour Top 15</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Mettre à jour Top 20</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Forcer la rotation</p>
                                     </button>
                                 </div>
@@ -5322,7 +5322,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Playlists Accueil</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer le top 15 hebdo</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer le top 20 hebdo</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -9103,8 +9103,8 @@ export function AdminDashboard() {
             </div>
             <ConfirmModal
                 isOpen={isResetMusicConfirmOpen}
-                title="Reset & Shuffle Top 15"
-                message="⚠️ Êtes-vous sûr de vouloir réinitialiser les votes et piocher 15 nouveaux morceaux aléatoires dans les news ? Cette action est immédiate."
+                title="Reset & Shuffle Top 20"
+                message="⚠️ Êtes-vous sûr de vouloir réinitialiser les votes et piocher 20 nouveaux morceaux aléatoires dans les news ? Cette action est immédiate."
                 onConfirm={handleResetVotes}
                 onCancel={() => setIsResetMusicConfirmOpen(false)}
                 type="warning"
