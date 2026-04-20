@@ -63,11 +63,6 @@ export function TikTokWidget({ accentColor = 'cyan', resolvedColor, username }: 
                     />
                     TIKTOK
                 </h3>
-                <Share2
-                    className="w-4 h-4 text-gray-500 transition-colors cursor-pointer hover:text-white"
-                    onMouseOver={(e) => e.currentTarget.style.color = color}
-                    onMouseOut={(e) => e.currentTarget.style.color = 'rgb(107, 114, 128)'}
-                />
             </div>
 
             <motion.div
