@@ -113,9 +113,10 @@ export function Home() {
                 return (
                     <section key="social_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div 
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch"
+                            className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch"
                             style={{ 
-                                gridTemplateColumns: window.innerWidth > 1024 ? '0.75fr 0.75fr 1fr' : '1fr'
+                                display: 'grid',
+                                gridTemplateColumns: window.innerWidth > 1024 ? '1fr 1fr 1.25fr' : '1fr'
                             }}
                         >
                             <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
