@@ -2704,13 +2704,15 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                 }
 
                                                 return (
-                                                    <Link
+                                                    <a
                                                         key={`${loopIdx}-${idx}`}
-                                                        to={fullLink}
+                                                        href={fullLink.startsWith('/') ? fullLink : `/${fullLink}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
                                                         className={sharedClassName}
                                                     >
                                                         {content}
-                                                    </Link>
+                                                    </a>
                                                 );
                                             });
                                         })()}
