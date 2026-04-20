@@ -5455,7 +5455,7 @@ ${urls.map(u => `  <url>
                     if (found.length > 0) return found;
 
                     // Pattern 2: "Artist - Title [Label]" blocks (used in other music articles)
-                    const labelPattern = /([A-ZÀ-Za-zà-z][^.\[\]\n\r]{2,50}?)\s+-\s+([^.\[\]\n\r]{5,70}?)\s*\[([^\]\n\r]{2,40})\]/g;
+                    const labelPattern = /([A-Za-z\u00C0-\u00FFa-z][^.\[\]\n\r]{2,50}?)\s+-\s+([^.\[\]\n\r]{5,70}?)\s*\[([^\]\n\r]{2,40})\]/g;
                     while ((m = labelPattern.exec(text)) !== null) {
                         const artist = m[1].trim();
                         const title = m[2].trim();
