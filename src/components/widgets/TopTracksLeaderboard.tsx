@@ -19,109 +19,84 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const color = resolvedColor || '#ff1241';
 
     useEffect(() => {
+        const fallbackList = [
+            { title: "Anyma, LISA - Bad Angel", votes: 850 },
+            { title: "FISHER - FAVOUR", votes: 720 },
+            { title: "John Summit - ALL THE TIME", votes: 640 },
+            { title: "Mau P - Baddest Behaviour", votes: 590 },
+            { title: "David Guetta - Goin' Crazy", votes: 510 },
+            { title: "Martin Garrix - Catharina", votes: 480 },
+            { title: "Piem, CASSIMM - Ya Mon", votes: 420 },
+            { title: "Coskun Karaca - About Me", votes: 390 },
+            { title: "Rag - Stand Up!", votes: 350 },
+            { title: "Adam K - Rushing", votes: 310 },
+            { title: "Tiësto - Lay Low", votes: 290 },
+            { title: "Hardwell - Spaceman", votes: 260 },
+            { title: "Alesso - Words", votes: 240 },
+            { title: "Swedish House Mafia - Ray of Solar", votes: 220 },
+            { title: "DJ Snake - Disco Maghreb", votes: 200 }
+        ];
+
         const fetchTopTracks = async () => {
             try {
-                // 1. Try to fetch real votes
+                let realData: any[] = [];
                 const res = await fetch('/api/music/top-tracks');
-                let data = [];
                 if (res.ok) {
-                    data = await res.json();
+                    realData = await res.json();
                 }
 
-                if (data && data.length >= 5) {
-                    setTracks(data);
-                    if (data[0]?.title) setOpenTrackTitle(data[0].title);
-                } else {
-                    // 2. If no votes or too few, pick from articles
-                    const newsRes = await fetch('/api/news');
-                    if (newsRes.ok) {
-                        const news = await newsRes.json();
-                        const musicNews = news.filter((n: any) => 
-                            n.category === 'Musique' || 
-                            n.category === 'Music' || 
-                            n.title?.toLowerCase().includes('sorties')
-                        );
+                // Toujours fetcher les news pour avoir des tracks au cas où on n'en ait pas 15
+                let extractedTracks: Track[] = [];
+                const newsRes = await fetch('/api/news');
+                if (newsRes.ok) {
+                    const news = await newsRes.json();
+                    const musicNews = news.filter((n: any) => 
+                        n.category === 'Musique' || 
+                        n.category === 'Music' || 
+                        n.title?.toLowerCase().includes('sorties')
+                    );
+                    
+                    musicNews.forEach((article: any) => {
+                        const text = article.summary || '';
+                        if (!text) return;
                         
-                        // Extract tracks from summaries
-                        const extractedTracks: Track[] = [];
-                        
-                        musicNews.forEach((article: any) => {
-                            const text = article.summary || '';
-                            if (!text) return;
-                            
-                            const patterns = [
-                                /MUSIC\s+(.*?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi,
-                                /Music:\s+(.*?)(?=\n|$)/gi,
-                                /^\s*(.*?)\s+-\s+(.*?)\s*$/gm
-                            ];
+                        const patterns = [
+                            /MUSIC\s+(.*?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi,
+                            /Music:\s+(.*?)(?=\n|$)/gi,
+                            /^\s*(.*?)\s+-\s+(.*?)\s*$/gm
+                        ];
 
-                            patterns.forEach(regex => {
-                                let match;
-                                while ((match = regex.exec(text)) !== null) {
-                                    const title = (match[1] + (match[2] ? ` - ${match[2]}` : '')).trim();
-                                    if (title && title.length > 5 && title.length < 100 && !extractedTracks.find(t => t.title === title.toUpperCase())) {
-                                        extractedTracks.push({
-                                            title: title.toUpperCase(),
-                                            votes: Math.floor(Math.random() * 300) + 100 // Seed random votes for variety
-                                        });
-                                    }
+                        patterns.forEach(regex => {
+                            let match;
+                            while ((match = regex.exec(text)) !== null) {
+                                const title = (match[1] + (match[2] ? ` - ${match[2]}` : '')).trim();
+                                if (title && title.length > 5 && title.length < 100 && !extractedTracks.find(t => t.title === title.toUpperCase())) {
+                                    extractedTracks.push({
+                                        title: title.toUpperCase(),
+                                        votes: Math.floor(Math.random() * 300) + 100
+                                    });
                                 }
-                            });
+                            }
                         });
-
-                        if (extractedTracks.length > 0) {
-                            // Combine with existing data if any, or just use extracted
-                            const combined = [...data, ...extractedTracks];
-                            // Remove duplicates by title
-                            const unique = combined.filter((v, i, a) => a.findIndex(t => (t.title === v.title)) === i);
-                            // Sort and take top 15
-                            const shuffled = unique.sort(() => 0.5 - Math.random());
-                            setTracks(shuffled.slice(0, 15).sort((a, b) => b.votes - a.votes));
-                        } else if (data.length > 0) {
-                            setTracks(data);
-                        } else {
-                            // Last resort fallback if no tracks in articles found
-                            setTracks([
-                                { title: "Anyma, LISA - Bad Angel", votes: 850 },
-                                { title: "FISHER - FAVOUR", votes: 720 },
-                                { title: "John Summit - ALL THE TIME", votes: 640 },
-                                { title: "Mau P - Baddest Behaviour", votes: 590 },
-                                { title: "David Guetta - Goin' Crazy", votes: 510 },
-                                { title: "Martin Garrix - Catharina", votes: 480 },
-                                { title: "Piem, CASSIMM - Ya Mon", votes: 420 },
-                                { title: "Coskun Karaca - About Me", votes: 390 },
-                                { title: "Rag - Stand Up!", votes: 350 },
-                                { title: "Adam K - Rushing", votes: 310 },
-                                { title: "Tiësto - Lay Low", votes: 290 },
-                                { title: "Hardwell - Spaceman", votes: 260 },
-                                { title: "Alesso - Words", votes: 240 },
-                                { title: "Swedish House Mafia - Ray of Solar", votes: 220 },
-                                { title: "DJ Snake - Disco Maghreb", votes: 200 }
-                            ]);
-                        }
-                    } else {
-                        // If /api/news fails, keep hardcoded pool
-                        setTracks([
-                            { title: "Anyma, LISA - Bad Angel", votes: 850 },
-                            { title: "FISHER - FAVOUR", votes: 720 },
-                            { title: "John Summit - ALL THE TIME", votes: 640 },
-                            { title: "Mau P - Baddest Behaviour", votes: 590 },
-                            { title: "David Guetta - Goin' Crazy", votes: 510 },
-                            { title: "Martin Garrix - Catharina", votes: 480 },
-                            { title: "Piem, CASSIMM - Ya Mon", votes: 420 },
-                            { title: "Coskun Karaca - About Me", votes: 390 },
-                            { title: "Rag - Stand Up!", votes: 350 },
-                            { title: "Adam K - Rushing", votes: 310 },
-                            { title: "Tiësto - Lay Low", votes: 290 },
-                            { title: "Hardwell - Spaceman", votes: 260 },
-                            { title: "Alesso - Words", votes: 240 },
-                            { title: "Swedish House Mafia - Ray of Solar", votes: 220 },
-                            { title: "DJ Snake - Disco Maghreb", votes: 200 }
-                        ]);
-                    }
+                    });
                 }
+
+                const combined = [...(realData || []), ...extractedTracks, ...fallbackList];
+                const unique = combined.filter((v, i, a) => a.findIndex(t => (t.title?.toUpperCase() === v.title?.toUpperCase())) === i);
+                
+                // On garde les votes réels en priorité. S'il n'y a pas de vote, on trie de façon aléatoire pour les tracks extraites, mais on garde un tri par vote final
+                const processed = unique.map(t => ({
+                    ...t,
+                    title: t.title?.toUpperCase()
+                }));
+
+                const sorted = processed.sort((a, b) => b.votes - a.votes).slice(0, 15);
+                setTracks(sorted);
+                if (sorted[0]?.title) setOpenTrackTitle(sorted[0].title);
+
             } catch (err) {
                 console.error('Failed to fetch top tracks', err);
+                setTracks(fallbackList);
             } finally {
                 setLoading(false);
             }
