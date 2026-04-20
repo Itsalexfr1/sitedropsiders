@@ -71,12 +71,12 @@ export function Home() {
                 return <Hero key="hero" videoId={item.videoId} videoUrl={item.videoUrl} accentColor={accentColor} resolvedColor={color} />;
             case 'news_grid':
                 return (
-                    <section key="news_grid" className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
+                    <section key="news_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div 
-                            className="grid gap-12"
+                            className="grid grid-cols-1 gap-8 items-stretch"
                             style={{ 
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? '1.5fr 1fr' : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
                             }}
                         >
                             <FeaturedNews accentColor={accentColor} resolvedColor={color} />
@@ -86,20 +86,20 @@ export function Home() {
                 );
             case 'recap_agenda_grid':
                 return (
-                    <section key="recap_agenda_grid" className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
+                    <section key="recap_agenda_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div 
-                            className="grid gap-12"
+                            className="grid grid-cols-1 gap-8 items-start"
                             style={{ 
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? '1.5fr 1fr' : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
                             }}
                         >
-                            <div className="space-y-12">
+                            <div className="space-y-8">
                                 <RecapWidget accentColor={accentColor} resolvedColor={color} />
                                 <InstagramWidget accentColor="pink" resolvedColor="var(--color-neon-pink)" username={socials?.instagram} />
                                 <TikTokWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" username={socials?.tiktok} />
                             </div>
-                            <div className="space-y-12">
+                            <div className="space-y-8">
                                 <AgendaWidget maxItems={(item.maxAgendaItems || 8) - 1} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
                                 <TopTracksLeaderboard resolvedColor={color} />
                             </div>
