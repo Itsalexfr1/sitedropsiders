@@ -38,10 +38,10 @@ export function InstaFeed({ resolvedColor, username }: { accentColor?: string, r
                 whileHover={{ scale: 1.005 }}
                 onMouseEnter={playHoverSound}
                 className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
-                style={{ height: '400px' }}
+                style={{ height: '600px', background: 'rgba(0,0,0,0.4) !important' }}
             >
-                <div className="h-full w-full overflow-y-auto custom-scrollbar flex justify-center items-start">
-                    <div className="w-full" style={{ marginTop: '-50px' }}>
+                <div className="h-full w-full overflow-y-auto custom-scrollbar flex justify-center items-start bg-transparent">
+                    <div className="w-full" style={{ marginTop: '-80px' }}>
                         {isInView && (
                             <InstagramEmbed 
                                 url={instagramUrl} 
@@ -50,6 +50,21 @@ export function InstaFeed({ resolvedColor, username }: { accentColor?: string, r
                             />
                         )}
                     </div>
+                </div>
+
+                <div className="w-full p-4 sm:p-6 relative z-10 bg-gradient-to-t from-black/90 to-black/60 border-t border-white/10 flex-none flex flex-col justify-center items-center">
+                    <a
+                        href={instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group/btn relative px-8 py-3 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 overflow-hidden w-full text-center"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#ff1241] via-[#ff4066] to-[#ff8c00] opacity-100 group-hover/btn:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000" />
+                        <span className="relative z-10 text-white flex items-center justify-center gap-2">
+                            S'ABONNER À @{account}
+                        </span>
+                    </a>
                 </div>
             </motion.div>
         </div>
