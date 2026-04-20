@@ -37,16 +37,16 @@ export function InstagramWidget({ resolvedColor, username }: { accentColor?: str
             <motion.div
                 whileHover={{ scale: 1.005 }}
                 onMouseEnter={playHoverSound}
-                className="bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
-                style={{ height: '220px' }}
+                className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
+                style={{ height: '400px' }}
             >
-                <div className="h-full w-full overflow-y-auto custom-scrollbar p-2 bg-white/5 flex justify-center items-start">
-                    <div className="w-full max-w-[325px]">
+                <div className="h-full w-full overflow-y-auto custom-scrollbar flex justify-center items-start">
+                    <div className="w-full" style={{ marginTop: '-50px' }}>
                         {isInView && (
                             <InstagramEmbed 
                                 url={instagramUrl} 
                                 width="100%" 
-                                style={{ borderRadius: '12px' }}
+                                style={{ borderRadius: '0px' }}
                             />
                         )}
                     </div>

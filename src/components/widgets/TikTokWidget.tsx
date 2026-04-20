@@ -21,7 +21,6 @@ export function TikTokWidget({ resolvedColor, username }: { accentColor?: string
         return () => observer.disconnect();
     }, []);
 
-    // Load TikTok script when in view
     useEffect(() => {
         if (!isInView) return;
         const script = document.createElement('script');
@@ -29,7 +28,8 @@ export function TikTokWidget({ resolvedColor, username }: { accentColor?: string
         script.async = true;
         document.body.appendChild(script);
         return () => {
-            document.body.removeChild(script);
+            const existingScript = document.querySelector('script[src="https://www.tiktok.com/embed.js"]');
+            if (existingScript) document.body.removeChild(existingScript);
         };
     }, [isInView]);
 
@@ -48,11 +48,11 @@ export function TikTokWidget({ resolvedColor, username }: { accentColor?: string
             <motion.div
                 whileHover={{ scale: 1.005 }}
                 onMouseEnter={playHoverSound}
-                className="bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
-                style={{ height: '220px' }}
+                className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[1.5rem] overflow-hidden shadow-2xl transition-all duration-300"
+                style={{ height: '400px' }}
             >
-                <div className="h-full w-full overflow-y-auto custom-scrollbar p-2 flex justify-center items-start bg-white">
-                    <div className="w-full max-w-[325px]">
+                <div className="h-full w-full overflow-y-auto custom-scrollbar flex justify-center items-start">
+                    <div className="w-full" style={{ marginTop: '-20px' }}>
                         {isInView && (
                             <blockquote 
                                 className="tiktok-embed" 
