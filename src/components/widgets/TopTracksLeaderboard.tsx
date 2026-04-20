@@ -113,65 +113,14 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     };
 
     useEffect(() => {
-        const fetchTopTracksAndNews = async () => {
+        const fetchTopTracks = async () => {
             try {
-                // Fetch votes
-                let votedData: Track[] = [];
-                const votesRes = await fetch('/api/music/leaderboard').catch(() => null);
-                if (votesRes && votesRes.ok) {
-                    const data = await votesRes.json();
-                    votedData = Array.isArray(data) ? data : [];
+                const res = await fetch('/api/music/top-tracks');
+                if (res.ok) {
+                    const data = await res.json();
+                    const filteredData = Array.isArray(data) ? data : [];
+                    setTracks(filteredData.slice(0, 5));
                 }
-
-                // Fetch news for fallback
-                let newsData = [];
-                const newsRes = await fetch('/api/news').catch(() => null);
-                if (newsRes && newsRes.ok) {
-                    const data = await newsRes.json();
-                    newsData = Array.isArray(data) ? data : [];
-                }
-
-                // Extract music articles
-                const musicArticles = newsData
-                    .filter((item: any) => {
-                        const cat = (item.category || '').toLowerCase();
-                        return cat.includes('musique') || cat === 'music';
-                    })
-                    .map((item: any) => {
-                        let media = item.youtubeUrl || item.beatportUrl || item.spotifyUrl || item.title;
-                        let playerType = 'youtube';
-                        
-                        if (item.beatportUrl) playerType = 'beatport';
-                        else if (item.spotifyUrl) playerType = 'spotify';
-
-                        // Extract youtube ID if it's a youtube URL
-                        if (playerType === 'youtube' && typeof media === 'string' && media.includes('youtu')) {
-                            const match = media.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-                            if (match) media = match[1];
-                        }
-
-                        return {
-                            title: item.title,
-                            votes: 0,
-                            media: media || item.title,
-                            playerType: playerType,
-                            isArticle: true
-                        };
-                    });
-
-                // Merge: Voted data comes first, then append enough music articles to reach 10
-                const finalTracks: Track[] = [...votedData];
-                const existingTitles = new Set(votedData.map((t: Track) => t.title.toLowerCase()));
-
-                for (const article of musicArticles) {
-                    if (finalTracks.length >= 5) break;
-                    if (!existingTitles.has(article.title.toLowerCase())) {
-                        finalTracks.push(article);
-                        existingTitles.add(article.title.toLowerCase());
-                    }
-                }
-
-                setTracks(finalTracks.slice(0, 5));
             } catch (err) {
                 console.error('Failed to fetch top tracks', err);
             } finally {
@@ -179,8 +128,8 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
             }
         };
 
-        fetchTopTracksAndNews();
-        const interval = setInterval(fetchTopTracksAndNews, 30000);
+        fetchTopTracks();
+        const interval = setInterval(fetchTopTracks, 30000);
         return () => clearInterval(interval);
     }, []);
 
