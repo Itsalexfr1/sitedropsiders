@@ -5441,13 +5441,91 @@ ${urls.map(u => `  <url>
                     console.error('[AUTH] Music reset unauthorized. authenticated:', authenticated, 'adminToken provided:', !!adminToken);
                     return new Response(JSON.stringify({ error: 'Unauthorized: Admin authentication or token required' }), { status: 401, headers });
                 }
+
+                // Helper: extract track titles from a music article summary
+                const extractTracks = (text: string): string[] => {
+                    const found: string[] = [];
+                    // Pattern 1: "MUSIC Artist - Title VOTER POUR CE MORCEAU" (used in "Sorties de la Semaine" articles)
+                    const musicPattern = /MUSIC\s+(.+?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi;
+                    let m: RegExpExecArray | null;
+                    while ((m = musicPattern.exec(text)) !== null) {
+                        const t = m[1].trim();
+                        if (t.length > 3 && t.length < 120) found.push(t.toUpperCase());
+                    }
+                    if (found.length > 0) return found;
+
+                    // Pattern 2: "Artist - Title [Label]" blocks (used in other music articles)
+                    const labelPattern = /([A-ZÀ-Za-zà-z][^.\[\]\n\r]{2,50}?)\s+-\s+([^.\[\]\n\r]{5,70}?)\s*\[([^\]\n\r]{2,40})\]/g;
+                    while ((m = labelPattern.exec(text)) !== null) {
+                        const artist = m[1].trim();
+                        const title = m[2].trim();
+                        // Skip patterns that look like article titles or dates
+                        if (/^\d{2}[\/:]\d{2}/.test(artist)) continue;
+                        if (/^(les|la|le|un|une|de|du|des|sur)\s/i.test(artist)) continue;
+                        const trackTitle = `${artist} - ${title}`.toUpperCase();
+                        if (trackTitle.length > 10 && trackTitle.length < 120 && !found.includes(trackTitle)) {
+                            found.push(trackTitle);
+                        }
+                    }
+                    if (found.length > 0) return found;
+
+                    // Pattern 3: Simple "Artist - Title" (single-track articles)
+                    const p3 = /^([^-\n\r[\]]{5,50})\s+-\s+([^-\n\r[\]]{5,60}?)(?:\s*\[|$)/m;
+                    const m3 = text.match(p3);
+                    if (m3) {
+                        const candidate = `${m3[1].trim()} - ${m3[2].trim()}`.toUpperCase();
+                        if (candidate.length > 10 && candidate.length < 120) found.push(candidate);
+                    }
+                    return found;
+                };
+
+                // 1. Delete all existing tracks
                 const list = await env.CHAT_KV.list({ prefix: 'music_track:' });
                 await Promise.all(list.keys.map((k) => env.CHAT_KV.delete(k.name)));
-                return new Response(JSON.stringify({ success: true, deleted: list.keys.length }), { status: 200, headers });
+                console.log(`[MUSIC RESET] Deleted ${list.keys.length} existing tracks`);
+
+                // 2. Seed from news articles (best-effort)
+                let seededCount = 0;
+                try {
+                    const gitConfig = await getGitConfig(env);
+                    const newsFile = await fetchGitHubFile('src/data/news.json', gitConfig);
+                    if (newsFile?.content && Array.isArray(newsFile.content)) {
+                        const musicArticles = (newsFile.content as any[])
+                            .filter((n: any) => (n.category || '').toLowerCase().includes('musique'))
+                            .slice(0, 20);
+
+                        const pool: string[] = [];
+                        for (const article of musicArticles) {
+                            const tracks = extractTracks(article.summary || '');
+                            for (const t of tracks) {
+                                if (!pool.includes(t)) pool.push(t);
+                            }
+                        }
+
+                        const selected = pool.sort(() => Math.random() - 0.5).slice(0, 10);
+                        console.log(`[MUSIC RESET] Pool: ${pool.length} tracks → seeding ${selected.length}`);
+
+                        for (const trackTitle of selected) {
+                            const trackId = trackTitle.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                            await env.CHAT_KV.put(`music_track:${trackId}`, JSON.stringify({
+                                title: trackTitle,
+                                votes: 0,
+                                media: '',
+                                playerType: 'spotify'
+                            }));
+                            seededCount++;
+                        }
+                    }
+                } catch (seedErr: any) {
+                    console.error('[MUSIC RESET] Seeding error (non-fatal):', seedErr.message);
+                }
+
+                return new Response(JSON.stringify({ success: true, deleted: list.keys.length, seeded: seededCount }), { status: 200, headers });
             } catch (error: any) {
                 return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
             }
         }
+
 
         if (path === '/api/music/top-tracks' && request.method === 'GET') {
             try {

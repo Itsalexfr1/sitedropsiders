@@ -2039,71 +2039,26 @@ export function AdminDashboard() {
         setIsResetMusicConfirmOpen(false);
         setIsResettingVotes(true);
         try {
-            // 1. Reset existing votes
             const adminToken = import.meta.env.VITE_ADMIN_TOKEN || 'dropsiders_master_key_2024';
-            
-            // NOTE: On utilise fetch ici au lieu de apiFetch pour ne pas déconnecter l'utilisateur 
-            // si le token admin interne est invalide ou expiré.
+            // Le backend gère reset + seed directement depuis news.json sur GitHub
             const resetRes = await apiFetch('/api/music/reset', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ adminToken })
             });
 
-            if (!resetRes.ok) throw new Error('Reset failed');
-
-            // 2. Fetch News to seed random tracks from music articles
-            const newsRes = await fetch('/api/news');
-            const newsData = newsRes.ok ? await newsRes.json() : [];
-            
-            if (newsData && Array.isArray(newsData)) {
-                const musicNews = newsData.filter((n: any) => 
-                    (n.category || '').toLowerCase().includes('musique') || 
-                    (n.category || '').toLowerCase().includes('music')
-                );
-                
-                const pool: any[] = [];
-                musicNews.forEach((article: any) => {
-                    const text = (article.summary || article.content || '');
-                    
-                    const patterns = [
-                        /MUSIC\s+(.*?)\s+VOTER\s+POUR\s+CE\s+MORCEAU/gi,
-                        /Music:\s+(.*?)(?=\n|$)/gi,
-                        /^\s*(.*?)\s+-\s+(.*?)\s*$/gm
-                    ];
-
-                    patterns.forEach(regex => {
-                        let match;
-                        while ((match = regex.exec(text)) !== null) {
-                            const title = (match[1] + (match[2] ? ` - ${match[2]}` : '')).trim().toUpperCase();
-                            if (title && title.length > 5 && title.length < 100 && !pool.find(p => p.trackTitle === title)) {
-                                pool.push({ 
-                                    trackTitle: title,
-                                    media: '', 
-                                    playerType: 'spotify'
-                                });
-                            }
-                        }
-                    });
-                });
-
-                if (pool.length > 0) {
-                    // Pick 10 random tracks to populate the leaderboard
-                    const selected = pool.sort(() => 0.5 - Math.random()).slice(0, 10);
-                    
-                    for (const track of selected) {
-                        try {
-                            await apiFetch('/api/music/vote', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(track)
-                            });
-                        } catch (e) { /* silent skip */ }
-                    }
-                }
+            if (!resetRes.ok) {
+                const err = await resetRes.json().catch(() => ({}));
+                throw new Error(err.error || `Reset failed (${resetRes.status})`);
             }
 
-            setGlobalAlert({ message: "C'est fait ! Les votes sont à zéro et 10 nouveaux morceaux ont été piochés dans les news.", type: 'info' });
+            const data = await resetRes.json().catch(() => ({}));
+            const seeded = data.seeded ?? 0;
+            const deleted = data.deleted ?? 0;
+            setGlobalAlert({
+                message: `✅ Reset OK ! ${deleted} vote(s) effacé(s), ${seeded} morceau(x) pré-chargé(s) depuis les news musique.`,
+                type: 'info'
+            });
         } catch (err: any) {
             console.error('Reset votes error:', err);
             setGlobalAlert({ message: `❌ Erreur lors de la réinitialisation: ${err.message}`, type: 'danger' });
