@@ -202,7 +202,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                         TOP 15 TRACKS
                     </h3>
                 </div>
-                <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center justify-center gap-4">
+                <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-6 shadow-2xl flex flex-col items-center justify-center gap-4">
                     <Music className="w-12 h-12 text-gray-700" />
                     <p className="text-gray-600 font-black uppercase tracking-widest text-[10px] text-center leading-loose">
                         Aucun morceau Beatport disponible.<br />
@@ -216,7 +216,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     return (
         <div className="h-full flex flex-col">
             <div className="w-full flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                <h3 className="text-xl font-display font-bold text-white flex items-center gap-3">
                     <span
                         className="w-2.5 h-2.5 rounded-full animate-pulse"
                         style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
@@ -225,21 +225,13 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 </h3>
             </div>
 
-            <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 h-full shadow-2xl relative overflow-hidden group">
-                {/* Background Glow */}
+            <div className="flex-1 bg-dark-bg/50 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-6 h-full shadow-2xl relative overflow-hidden group">
                 <div
                     className="absolute top-0 right-0 w-64 h-64 opacity-5 blur-[100px] pointer-events-none transition-all duration-1000 group-hover:opacity-10"
                     style={{ backgroundColor: color }}
                 />
 
-                <div className="flex items-center justify-between mb-8 relative z-10 px-2">
-                    <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] italic">VOTES LIVE</span>
-                    </div>
-                </div>
-
-                <div className="space-y-3 relative z-10">
+                <div className="space-y-2 relative z-10">
                     <AnimatePresence mode="popLayout">
                         {loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
@@ -253,70 +245,43 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     transition={{ delay: index * 0.04 }}
-                                    className="flex flex-col gap-2"
+                                    className={`flex flex-col gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl transition-all cursor-pointer hover:bg-white/10 ${expandedTrack === track.title ? 'border-neon-cyan/30' : 'border-transparent'}`}
+                                    onClick={() => setExpandedTrack(expandedTrack === track.title ? null : track.title)}
                                 >
-                                    <div
-                                        onClick={() => setOpenTrackTitle(openTrackTitle === track.title ? null : track.title)}
-                                        className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-white/10 border border-white/5 rounded-2xl transition-all group/item ${openTrackTitle === track.title ? 'bg-white/10 border-white/20' : 'bg-white/5'}`}
-                                    >
-                                        <div className="w-8 flex-shrink-0 text-center">
-                                            <span className={`text-sm font-black italic ${index < 3 ? 'text-white' : 'text-gray-600'}`}>
-                                                #{index + 1}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className={`text-xs font-black uppercase truncate transition-colors ${openTrackTitle === track.title ? 'text-neon-cyan' : 'text-white group-hover/item:text-neon-cyan'}`}>
-                                                {track.title}
-                                            </h4>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <TrendingUp className="w-3 h-3 text-gray-600" />
-                                                <div className="h-1 bg-white/5 flex-1 rounded-full overflow-hidden">
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        animate={{
-                                                            width: tracks[0]?.votes > 0
-                                                                ? `${Math.min(100, ((track.votes || 0) / tracks[0].votes) * 100)}%`
-                                                                : '0%'
-                                                        }}
-                                                        className="h-full rounded-full"
-                                                        style={{ backgroundColor: color }}
-                                                    />
-                                                </div>
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-4 min-w-0">
+                                            <span className="text-xl font-display font-black italic text-white/20">#{index + 1}</span>
+                                            <div className="min-w-0">
+                                                <h4 className="text-sm font-bold text-white truncate uppercase tracking-tight">{track.title}</h4>
                                             </div>
                                         </div>
 
                                         <button
                                             onClick={(e) => handleVote(track.title, e, track.media)}
                                             disabled={votedTracks.includes(track.title)}
-                                            className={`p-2 rounded-xl transition-all flex items-center gap-2 group/heart ${votedTracks.includes(track.title) ? 'bg-white/5 text-neon-cyan' : 'bg-white/10 text-gray-400 hover:bg-white/20 hover:text-pink-500 active:scale-90'}`}
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${votedTracks.includes(track.title) ? 'bg-white/5 text-neon-cyan' : 'bg-white/10 text-gray-400 hover:bg-white/20 hover:text-pink-500'}`}
                                         >
-                                            <Heart className={`w-4 h-4 transition-colors ${votedTracks.includes(track.title) ? 'fill-current' : 'group-hover/heart:fill-current'}`} />
-                                            <span className="text-xs font-bold font-display">{track.votes || 0}</span>
+                                            <Heart className={`w-3 h-3 transition-colors ${votedTracks.includes(track.title) ? 'fill-current' : ''}`} />
+                                            <span className="text-[10px] font-black">{track.votes || 0}</span>
                                         </button>
                                     </div>
 
-                                    <AnimatePresence>
-                                        {openTrackTitle === track.title && track.media && (
-                                            <motion.div
-                                                initial={{ height: 0, opacity: 0 }}
-                                                animate={{ height: 'auto', opacity: 1 }}
-                                                exit={{ height: 0, opacity: 0 }}
-                                                className="overflow-hidden rounded-2xl border border-white/10 mb-2"
-                                            >
-                                                <div className="bg-black/60 p-2">
-                                                    {renderPlayer(track.media, track.playerType || 'beatport')}
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                    {expandedTrack === track.title && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            className="pt-2"
+                                        >
+                                            {renderPlayer(track.media, track.playerType || 'youtube')}
+                                        </motion.div>
+                                    )}
                                 </motion.div>
                             ))
                         )}
                     </AnimatePresence>
                 </div>
 
-                <div className="mt-8 flex flex-col gap-6 pt-6 border-t border-white/5">
+                <div className="mt-6 flex flex-col gap-4 pt-6 border-t border-white/5">
                     <button
                         onClick={() => setIsSearchOpen(true)}
                         className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 hover:border-white/40 transition-all group"
