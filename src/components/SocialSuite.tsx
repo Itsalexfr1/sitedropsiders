@@ -63,7 +63,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -131,7 +131,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const ffmpegRef = useRef<any>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
-    const [r2TargetType, setR2TargetType] = useState<'top5' | 'background' | 'logo' | null>(null);
+    const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | null>(null);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -3047,10 +3047,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const finalUrl = Array.isArray(url) ? url[0] : url;
                     if (!finalUrl) return;
 
-
+                    if ((r2TargetType === 'top5' || r2TargetType === 'top10') && r2TargetIdx !== null) {
                         const n = [...top5Items];
-                        n[r2TargetIdx].photo = finalUrl;
-                        setTop5Items(n);
+                        if (n[r2TargetIdx]) {
+                            n[r2TargetIdx].photo = finalUrl;
+                            setTop5Items(n);
+                        }
                     } else if (r2TargetType === 'background') {
                         const isVid = finalUrl.match(/\.(mp4|webm|mov|ogg)$/i) || finalUrl.includes('/video/upload/');
                         if (isVid) {
