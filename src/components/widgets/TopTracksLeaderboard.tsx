@@ -193,8 +193,9 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                                         </div>
 
                                         <button 
+                                            type="button"
                                             onClick={(e) => handleVote(track.title, e)}
-                                            className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-pink-500/20 hover:border-pink-500/40 transition-colors group/btn"
+                                            className="relative z-20 flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-pink-500/20 hover:border-pink-500/40 transition-all active:scale-95 group/btn"
                                         >
                                             <Heart className="w-3 h-3 text-pink-400 group-hover/btn:scale-125 transition-transform" />
                                             <span className="text-[10px] font-black text-white">{track.votes || 0}</span>
