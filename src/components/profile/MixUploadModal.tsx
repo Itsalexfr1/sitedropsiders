@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, CheckCircle2, Music2, Headphones, Disc, Activity, AlertCircle, FileAudio, Info, ListMusic, Plus, Trash2, Edit3, Save, DownloadCloud, Timer, PlayCircle } from 'lucide-react';
+import { X, Upload, CheckCircle2, Music2, Headphones, Disc, Activity, AlertCircle, FileAudio, Info, ListMusic, Plus, Trash2, Edit3, Save, DownloadCloud, Timer, PlayCircle, ClipboardList, Send } from 'lucide-react';
 
 interface Track {
     id: string;
@@ -20,6 +20,8 @@ interface MixUploadModalProps {
 export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUploadModalProps) {
     const [step, setStep] = useState<'uploading' | 'metadata' | 'success'>('uploading');
     const [metaTab, setMetaTab] = useState<'info' | 'tracklist'>('info');
+    const [showBulkImport, setShowBulkImport] = useState(false);
+    const [bulkText, setBulkText] = useState('');
     const [progress, setProgress] = useState(0);
     const [title, setTitle] = useState(file?.name.replace(/\.[^/.]+$/, "") || '');
     const [genre, setGenre] = useState('');
@@ -60,11 +62,54 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
 
     if (!isOpen) return null;
 
-    const parseSeratoCSV = (text: string): Track[] => {
+    const parseBulkText = (text: string): Track[] => {
         const lines = text.split('\n');
         const tracks: Track[] = [];
         
-        // Find header row to get column indices
+        // Match formats like: 00:00 - Artist - Title or 00:00 Artist - Title etc.
+        // We handle various separators: -, —, –, |
+        const regex = /^(\d{1,2}:\d{2}(?::\d{2})?)\s*[\—\–\-\|]\s*(.*?)\s*[\—\–\-\|]?\s*(.*)$/i;
+
+        lines.forEach(line => {
+            const cleanLine = line.trim();
+            if (!cleanLine) return;
+
+            const match = cleanLine.match(regex);
+            if (match) {
+                tracks.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    timestamp: match[1].trim(),
+                    artist: match[2].trim() || 'ARTISTE INCONNU',
+                    title: match[3].trim() || 'TITRE INCONNU'
+                });
+            } else if (cleanLine.includes('-') || cleanLine.includes('—') || cleanLine.includes('–')) {
+                // Fallback for lines without timestamps
+                const parts = cleanLine.split(/[\—\–\-]/);
+                if (parts.length >= 2) {
+                    tracks.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        artist: parts[0].trim().toUpperCase(),
+                        title: parts[1].trim(),
+                        timestamp: ''
+                    });
+                }
+            }
+        });
+        return tracks;
+    };
+
+    const handleBulkImport = () => {
+        const imported = parseBulkText(bulkText);
+        if (imported.length > 0) {
+            setTracklist(prev => [...prev, ...imported]);
+            setShowBulkImport(false);
+            setBulkText('');
+        }
+    };
+
+    const parseSeratoCSV = (text: string): Track[] => {
+        const lines = text.split('\n');
+        const tracks: Track[] = [];
         let headers: string[] = [];
         let headerIdx = -1;
         for (let i = 0; i < lines.length; i++) {
@@ -74,19 +119,15 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                 break;
             }
         }
-
         const nameIdx = headers.indexOf('Name');
         const artistIdx = headers.indexOf('Artist');
         const timeIdx = headers.indexOf('Start Time');
-
         lines.slice(headerIdx + 1).forEach(line => {
             const parts = line.split('","').map(p => p.replace(/"/g, '').trim());
             if (parts[nameIdx] && parts[artistIdx]) {
                 let timestamp = '';
                 if (timeIdx !== -1 && parts[timeIdx]) {
-                    // Start Time is often "HH:MM:SS PM/AM" or relative
-                    // We try to clean it up to "MM:SS" or just pass it as is for now
-                    timestamp = parts[timeIdx].split(' ')[0]; // Take only the time part
+                    timestamp = parts[timeIdx].split(' ')[0];
                 }
                 tracks.push({
                     id: Math.random().toString(36).substr(2, 9),
@@ -102,7 +143,6 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
     const parseRekordboxTXT = (text: string): Track[] => {
         const lines = text.split('\n');
         const tracks: Track[] = [];
-
         lines.forEach(line => {
             if (line.includes('\t')) {
                 const parts = line.split('\t');
@@ -111,7 +151,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                         id: Math.random().toString(36).substr(2, 9),
                         artist: parts[0],
                         title: parts[1],
-                        timestamp: '' // Rekordbox TXT usually doesn't have start time in simple exports
+                        timestamp: ''
                     });
                 }
             } else if (line.includes(' - ')) {
@@ -132,7 +172,6 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
     const handleImportTracklist = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (event) => {
             const text = event.target?.result as string;
@@ -266,13 +305,16 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                     <div className="flex gap-2 bg-white/5 p-1 rounded-2xl border border-white/10 shrink-0">
                                         <button 
                                             onClick={() => setMetaTab('info')}
-                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${metaTab === 'info' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
+                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${metaTab === 'info' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             <Info className="w-3 h-3" /> Info
                                         </button>
                                         <button 
-                                            onClick={() => setMetaTab('tracklist')}
-                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${metaTab === 'tracklist' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
+                                            onClick={() => {
+                                                setMetaTab('tracklist');
+                                                setShowBulkImport(false);
+                                            }}
+                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${metaTab === 'tracklist' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             <ListMusic className="w-3 h-3" /> Tracklist {tracklist.length > 0 && `(${tracklist.length})`}
                                         </button>
@@ -317,7 +359,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                         onClick={() => fileInputRef.current?.click()}
                                                         className="w-full bg-neon-purple/10 border border-neon-purple/30 rounded-2xl px-6 py-4 text-neon-purple font-black uppercase tracking-widest text-[10px] hover:bg-neon-purple/20 transition-all flex items-center justify-center gap-2"
                                                     >
-                                                        <DownloadCloud className="w-4 h-4" /> Importer Tracklist
+                                                        <DownloadCloud className="w-4 h-4" /> Importer Fichier
                                                     </button>
                                                 </div>
                                             </div>
@@ -339,105 +381,136 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Liste des Morceaux</h3>
-                                                <span className="px-2 py-0.5 bg-neon-purple/20 text-neon-purple text-[8px] font-black rounded uppercase border border-neon-purple/20">Sync Timecode Active</span>
                                             </div>
-                                            <button 
-                                                onClick={addTrack}
-                                                className="flex items-center gap-2 px-4 py-2 bg-neon-purple/20 text-neon-purple rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neon-purple/30 transition-all border border-neon-purple/30"
-                                            >
-                                                <Plus className="w-3 h-3" /> Ajouter manuellement
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => setShowBulkImport(!showBulkImport)}
+                                                    className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${showBulkImport ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-500 border-white/10 hover:bg-white/10'}`}
+                                                >
+                                                    <ClipboardList className="w-3 h-3" /> {showBulkImport ? 'Masquer Import' : 'Import en Masse'}
+                                                </button>
+                                                <button 
+                                                    onClick={addTrack}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-neon-purple/20 text-neon-purple rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neon-purple/30 transition-all border border-neon-purple/30"
+                                                >
+                                                    <Plus className="w-3 h-3" /> Ajouter manual
+                                                </button>
+                                            </div>
                                         </div>
 
-                                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                            {tracklist.length > 0 ? (
-                                                tracklist.map((track, idx) => (
-                                                    <div key={track.id} className="group p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all relative overflow-hidden">
-                                                        <div className="flex items-center gap-4 flex-1">
-                                                            <div className="w-8 h-8 bg-black/40 rounded-lg flex items-center justify-center text-[10px] font-black text-gray-600 border border-white/5 group-hover:text-neon-purple group-hover:border-neon-purple/30 transition-colors shrink-0">
-                                                                {idx + 1}
-                                                            </div>
-                                                            {editingTrackId === track.id ? (
-                                                                <div className="flex-1 flex gap-3">
-                                                                    <div className="flex-[2] space-y-1">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Artiste</label>
-                                                                        <input 
-                                                                            type="text" 
-                                                                            value={editArtist}
-                                                                            onChange={(e) => setEditArtist(e.target.value.toUpperCase())}
-                                                                            className="w-full bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-2 text-[11px] text-white font-bold uppercase tracking-widest outline-none"
-                                                                        />
-                                                                    </div>
-                                                                    <div className="flex-[2] space-y-1">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Titre</label>
-                                                                        <input 
-                                                                            type="text" 
-                                                                            value={editTitle}
-                                                                            onChange={(e) => setEditTitle(e.target.value.toUpperCase())}
-                                                                            className="w-full bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-2 text-[11px] text-white font-bold uppercase tracking-widest outline-none"
-                                                                        />
-                                                                    </div>
-                                                                    <div className="flex-1 space-y-1">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Time</label>
-                                                                        <input 
-                                                                            type="text" 
-                                                                            value={editTimestamp}
-                                                                            placeholder="00:00"
-                                                                            onChange={(e) => setEditTimestamp(e.target.value)}
-                                                                            className="w-full bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-2 text-[11px] text-neon-purple font-black uppercase tracking-widest outline-none text-center"
-                                                                        />
-                                                                    </div>
-                                                                    <button onClick={() => saveTrack(track.id)} className="mt-6 p-2 bg-neon-green/20 text-neon-green rounded-lg hover:bg-neon-green/30 transition-colors h-10 w-10 flex items-center justify-center shrink-0 border border-neon-green/20">
-                                                                        <Save className="w-5 h-5" />
-                                                                    </button>
+                                        {showBulkImport ? (
+                                            <div className="space-y-4 animate-in zoom-in-95 duration-200">
+                                                <div className="p-6 bg-white/5 border border-white/10 rounded-[32px] space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Colle ta tracklist ici (Format: 00:00 - Artiste - Titre)</label>
+                                                        <div className="px-2 py-1 bg-neon-purple/20 text-neon-purple text-[7px] font-black rounded uppercase">Détection Auto Active</div>
+                                                    </div>
+                                                    <textarea 
+                                                        value={bulkText}
+                                                        onChange={(e) => setBulkText(e.target.value)}
+                                                        rows={8}
+                                                        placeholder="00:00 — Intro – You & Me Innerbloom&#10;05:00 — ARKAD3 – Finder House"
+                                                        className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-gray-700 focus:outline-none focus:border-neon-purple transition-all resize-none font-mono"
+                                                    />
+                                                    <button 
+                                                        onClick={handleBulkImport}
+                                                        disabled={!bulkText.trim()}
+                                                        className="w-full py-4 bg-neon-purple text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-neon-purple/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
+                                                    >
+                                                        Lancer l'importation de {bulkText.split('\n').filter(l => l.trim()).length} lignes
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                                {tracklist.length > 0 ? (
+                                                    tracklist.map((track, idx) => (
+                                                        <div key={track.id} className="group p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all relative overflow-hidden">
+                                                            <div className="flex items-center gap-4 flex-1">
+                                                                <div className="w-8 h-8 bg-black/40 rounded-lg flex items-center justify-center text-[10px] font-black text-gray-600 border border-white/5 group-hover:text-neon-purple group-hover:border-neon-purple/30 transition-colors shrink-0">
+                                                                    {idx + 1}
                                                                 </div>
-                                                            ) : (
-                                                                <div className="flex-1 flex items-center justify-between">
-                                                                    <div>
-                                                                        <h4 className="text-[11px] font-black text-white uppercase tracking-widest italic">{track.artist}</h4>
-                                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">{track.title}</p>
+                                                                {editingTrackId === track.id ? (
+                                                                    <div className="flex-1 flex gap-3">
+                                                                        <div className="flex-[2] space-y-1">
+                                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Artiste</label>
+                                                                            <input 
+                                                                                type="text" 
+                                                                                value={editArtist}
+                                                                                onChange={(e) => setEditArtist(e.target.value.toUpperCase())}
+                                                                                className="w-full bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-2 text-[11px] text-white font-bold uppercase tracking-widest outline-none"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex-[2] space-y-1">
+                                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Titre</label>
+                                                                            <input 
+                                                                                type="text" 
+                                                                                value={editTitle}
+                                                                                onChange={(e) => setEditTitle(e.target.value.toUpperCase())}
+                                                                                className="w-full bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-2 text-[11px] text-white font-bold uppercase tracking-widest outline-none"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex-1 space-y-1">
+                                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Time</label>
+                                                                            <input 
+                                                                                type="text" 
+                                                                                value={editTimestamp}
+                                                                                placeholder="00:00"
+                                                                                onChange={(e) => setEditTimestamp(e.target.value)}
+                                                                                className="w-full bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-2 text-[11px] text-neon-purple font-black uppercase tracking-widest outline-none text-center"
+                                                                            />
+                                                                        </div>
+                                                                        <button onClick={() => saveTrack(track.id)} className="mt-6 p-2 bg-neon-green/20 text-neon-green rounded-lg hover:bg-neon-green/30 transition-colors h-10 w-10 flex items-center justify-center shrink-0 border border-neon-green/20">
+                                                                            <Save className="w-5 h-5" />
+                                                                        </button>
                                                                     </div>
-                                                                    <div className="flex items-center gap-3 pr-4">
-                                                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/5 rounded-lg group-hover:border-neon-purple/30 transition-all group-hover:bg-neon-purple/5">
-                                                                            <Timer className="w-3 h-3 text-gray-600 group-hover:text-neon-purple" />
-                                                                            <span className="text-[10px] font-black text-gray-500 group-hover:text-neon-purple">{track.timestamp || '--:--'}</span>
+                                                                ) : (
+                                                                    <div className="flex-1 flex items-center justify-between">
+                                                                        <div>
+                                                                            <h4 className="text-[11px] font-black text-white uppercase tracking-widest italic">{track.artist}</h4>
+                                                                            <p className="text-[10px] text-gray-500 font-bold uppercase">{track.title}</p>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-3 pr-4">
+                                                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/5 rounded-lg group-hover:border-neon-purple/30 transition-all group-hover:bg-neon-purple/5">
+                                                                                <Timer className="w-3 h-3 text-gray-600 group-hover:text-neon-purple" />
+                                                                                <span className="text-[10px] font-black text-gray-500 group-hover:text-neon-purple">{track.timestamp || '--:--'}</span>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
+                                                                )}
+                                                            </div>
+                                                            {editingTrackId !== track.id && (
+                                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <button 
+                                                                        onClick={() => {
+                                                                            setEditingTrackId(track.id);
+                                                                            setEditArtist(track.artist);
+                                                                            setEditTitle(track.title);
+                                                                            setEditTimestamp(track.timestamp || '');
+                                                                        }}
+                                                                        className="p-2 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-colors"
+                                                                    >
+                                                                        <Edit3 className="w-4 h-4" />
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => deleteTrack(track.id)}
+                                                                        className="p-2 hover:bg-red-500/10 rounded-lg text-gray-500 hover:text-red-500 transition-colors"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        
-                                                        {editingTrackId !== track.id && (
-                                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <button 
-                                                                    onClick={() => {
-                                                                        setEditingTrackId(track.id);
-                                                                        setEditArtist(track.artist);
-                                                                        setEditTitle(track.title);
-                                                                        setEditTimestamp(track.timestamp || '');
-                                                                    }}
-                                                                    className="p-2 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-colors"
-                                                                >
-                                                                    <Edit3 className="w-4 h-4" />
-                                                                </button>
-                                                                <button 
-                                                                    onClick={() => deleteTrack(track.id)}
-                                                                    className="p-2 hover:bg-red-500/10 rounded-lg text-gray-500 hover:text-red-500 transition-colors"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        )}
+                                                    ))
+                                                ) : (
+                                                    <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-[32px] bg-white/[0.02]">
+                                                        <ListMusic className="w-12 h-12 mx-auto mb-4 text-gray-800" />
+                                                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Tracklist vide</p>
+                                                        <p className="text-[9px] text-gray-700 font-bold uppercase tracking-widest mt-1">Colle du texte ou importe des fichiers .CSV/.TXT</p>
                                                     </div>
-                                                ))
-                                            ) : (
-                                                <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-[32px] bg-white/[0.02]">
-                                                    <ListMusic className="w-12 h-12 mx-auto mb-4 text-gray-800" />
-                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Tracklist vide</p>
-                                                    <p className="text-[9px] text-gray-700 font-bold uppercase tracking-widest mt-1">Importe un fichier .CSV de Serato ou .TXT de Rekordbox</p>
-                                                </div>
-                                            )}
-                                        </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -473,16 +546,14 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                     </div>
                                     <div className="absolute inset-0 bg-neon-green/20 blur-2xl rounded-full" />
                                 </div>
-                                
                                 <div className="space-y-4">
                                     <h2 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">Publication Réussie</h2>
                                     <div className="max-w-xs mx-auto">
                                         <p className="text-[12px] text-gray-400 font-medium leading-relaxed italic border-l-2 border-neon-green/30 pl-4 py-1">
-                                            "{title}" {tracklist.length > 0 && `avec ${tracklist.length} morceaux et timecodes`} est désormais en ligne.
+                                            "{title}" {tracklist.length > 0 && `avec ${tracklist.length} morceaux`} est désormais en ligne.
                                         </p>
                                     </div>
                                 </div>
-
                                 <div className="pt-6">
                                     <button 
                                         onClick={onClose}
