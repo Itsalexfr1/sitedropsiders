@@ -2163,13 +2163,14 @@ export function AdminDashboard() {
 
                             {/* Contest Mode Global Status */}
                             {(isAdminAcc || storedPermissions.includes('messages')) && (
-                                <div
-                                    title={isContestModeEnabled ? "Activé" : "Désactivé"}
-                                    className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase italic tracking-widest text-[10px] flex items-center gap-2 cursor-default opacity-50"
+                                <button
+                                    onClick={toggleContestMode}
+                                    title={isContestModeEnabled ? "Désactiver le concours" : "Activer le concours"}
+                                    className={`px-6 py-3 border rounded-2xl font-black uppercase italic tracking-widest text-[10px] flex items-center gap-2 transition-all cursor-pointer ${isContestModeEnabled ? 'bg-neon-red/20 text-neon-red border-neon-red/40 shadow-lg shadow-neon-red/20' : 'bg-white/5 text-gray-400 border-white/10 hover:text-white hover:bg-white/10'}`}
                                 >
                                     <Gamepad2 className="w-4 h-4" />
                                     <span className="hidden md:inline">{isContestModeEnabled ? 'CONCOURS ON' : 'CONCOURS OFF'}</span>
-                                </div>
+                                </button>
                             )}
                             {/* Boutons Admin : Bandeau et Takeover */}
                             {(isAdminAcc || storedPermissions.includes('takeover_modo')) && (
@@ -5337,7 +5338,7 @@ export function AdminDashboard() {
                                         </div>
                                     </Link>
 
-                                    {['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr'].includes(username.toLowerCase()) && (
+                                    {isSuperAdmin(username) && (
                                         <Link
                                             to="/admin/factures"
                                             onClick={() => setIsMessagesModalOpen(false)}

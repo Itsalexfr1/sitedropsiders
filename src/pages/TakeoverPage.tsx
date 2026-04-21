@@ -1935,7 +1935,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 const query = cmdParts.slice(1).join(' ');
                 messageText = query
                     ? `📸 INSTAGRAM : @${pseudo}, voici le profil de ${query} -> https://instagram.com/${query.replace('@', '')}`
-                    : `📸 INSTAGRAM : @${pseudo}, suis-nous sur @dropsiders.fr -> https://instagram.com/dropsiders.fr`;
+                    : `📸 INSTAGRAM : @${pseudo}, suis-nous sur @dropsiders.eu -> https://instagram.com/dropsiders.eu`;
             } else if (mainCmd === '!holo') {
                 if (userDrops < 3000) {
                     showNotification("Pas assez de Drops ! (3000 requis)", 'error');
@@ -2999,9 +2999,9 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 </div>
 
                                 {/* Instagram Button if available */}
-                                {(selectedProfile.pseudo === localStorage.getItem('chat_pseudo') ? userInstagram : "dropsiders.fr") && (
+                                {(selectedProfile.pseudo === localStorage.getItem('chat_pseudo') ? userInstagram : "dropsiders.eu") && (
                                     <button
-                                        onClick={() => window.open(`https://instagram.com/${(selectedProfile.pseudo === localStorage.getItem('chat_pseudo') ? userInstagram : "dropsiders.fr").replace('@', '')}`, '_blank')}
+                                        onClick={() => window.open(`https://instagram.com/${(selectedProfile.pseudo === localStorage.getItem('chat_pseudo') ? userInstagram : "dropsiders.eu").replace('@', '')}`, '_blank')}
                                         className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black uppercase rounded-xl flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-lg"
                                     >
                                         <Instagram className="w-4 h-4" /> Instagram
