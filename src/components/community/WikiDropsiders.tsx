@@ -147,8 +147,7 @@ export function WikiDropsiders({
         });
     }, [djData, sortMode, votes]);
 
-    const filtered = (search ? sortedData.filter((dj: DjEntry) => dj.name.toLowerCase().includes(search.toLowerCase())) : sortedData)
-        .filter((dj: DjEntry) => !brokenImages.has(dj.id));
+    const filtered = (search ? sortedData.filter((dj: DjEntry) => dj.name.toLowerCase().includes(search.toLowerCase())) : sortedData);
 
     const grouped: Record<string, DjEntry[]> = sortMode === 'votes' 
         ? (filtered.length > 0 ? { 'TOP DROPSIDERS': filtered } : {})
@@ -372,8 +371,6 @@ export function WikiDropsiders({
                                                         loading="lazy"
                                                         decoding="async"
                                                         onError={(e) => {
-                                                            setBrokenImages(prev => new Set([...prev, dj.id]));
-                                                            reportBrokenImage(dj.id);
                                                             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=2070&auto=format&fit=crop';
                                                         }}
                                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, Share2 } from 'lucide-react';
+import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, Share2, MessageSquare, Star, Send } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { ImageUploadModal } from '../components/ImageUploadModal';
+import wikiFestivals from '../data/wiki_festivals.json';
 const showNotification = (msg: string, type: 'success' | 'error' | 'info') => console.log(`[${type.toUpperCase()}] ${msg}`);
 
 export function Profile() {
@@ -13,8 +14,13 @@ export function Profile() {
     const [username, setUsername] = useState(user?.username || '');
     const [isEditingName, setIsEditingName] = useState(false);
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
-    const [activeTab, setActiveTab ] = useState<'overview' | 'mixes' | 'settings' | 'favorites'>('overview');
+    const [activeTab, setActiveTab ] = useState<'overview' | 'mixes' | 'reviews' | 'settings' | 'favorites'>('overview');
     const [uploadType, setUploadType] = useState<'Track' | 'Remix' | 'Edit' | 'Mix'>('Mix');
+    const [reviewRating, setReviewRating] = useState(0);
+    const [reviewText, setReviewText] = useState('');
+    const [selectedFestival, setSelectedFestival] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [customFestivalImage, setCustomFestivalImage] = useState<File | null>(null);
 
     useEffect(() => {
         if (!isLoggedIn) {
@@ -177,6 +183,7 @@ export function Profile() {
                             {[
                                 { id: 'overview', label: 'Vue d\'ensemble', icon: <User className="w-4 h-4" /> },
                                 { id: 'mixes', label: 'Mix Studio', icon: <Headphones className="w-4 h-4" /> },
+                                { id: 'reviews', label: 'Avis & Notes', icon: <MessageSquare className="w-4 h-4" /> },
                                 { id: 'favorites', label: 'Favoris', icon: <Music className="w-4 h-4" /> },
                                 { id: 'settings', label: 'Sécurité', icon: <Settings className="w-4 h-4" /> }
                             ].map(tab => (
@@ -307,6 +314,156 @@ export function Profile() {
                                             <div className="text-center py-10 opacity-50 bg-white/5 rounded-3xl border border-white/5 border-dashed">
                                                 <Headphones className="w-8 h-8 mx-auto mb-3 text-gray-600" />
                                                 <p className="text-[10px] text-gray-400 uppercase font-bold tracking-[0.2em]">Aucun mix mis en ligne pour le moment.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'reviews' && (
+                                    <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 space-y-8">
+                                        <div className="flex items-center gap-4 border-b border-white/5 pb-4">
+                                            <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                                                <MessageSquare className="w-5 h-5 text-yellow-500" />
+                                            </div>
+                                            <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Rédiger un Avis</h3>
+                                        </div>
+                                        
+                                        <div className="bg-black/40 border border-white/10 rounded-3xl p-6 space-y-4">
+                                            <div className="relative">
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Festival / Événement</label>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Ex: Tomorrowland 2026, Afterlife Paris..." 
+                                                    value={selectedFestival}
+                                                    onChange={(e) => {
+                                                        setSelectedFestival(e.target.value);
+                                                        setShowSuggestions(true);
+                                                    }}
+                                                    onFocus={() => setShowSuggestions(true)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-500 transition-colors"
+                                                />
+                                                {showSuggestions && selectedFestival && (
+                                                    <div className="absolute z-50 left-0 right-0 mt-2 bg-[#0a0a0a] border border-white/10 rounded-xl max-h-48 overflow-y-auto shadow-2xl backdrop-blur-xl">
+                                                        {wikiFestivals.filter(f => f.name.toLowerCase().includes(selectedFestival.toLowerCase())).length > 0 ? (
+                                                            wikiFestivals.filter(f => f.name.toLowerCase().includes(selectedFestival.toLowerCase())).map(f => (
+                                                                <button
+                                                                    key={f.id}
+                                                                    onClick={() => {
+                                                                        setSelectedFestival(f.name);
+                                                                        setShowSuggestions(false);
+                                                                    }}
+                                                                    className="w-full text-left px-4 py-3 hover:bg-yellow-500/10 hover:text-yellow-500 text-gray-300 text-sm font-bold uppercase transition-colors"
+                                                                >
+                                                                    {f.name}
+                                                                </button>
+                                                            ))
+                                                        ) : (
+                                                            <div className="px-4 py-3 text-xs text-gray-400 italic">
+                                                                Nouveau festival. Une photo sera requise !
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {selectedFestival && !wikiFestivals.some(f => f.name.toLowerCase() === selectedFestival.toLowerCase()) && (
+                                                <div className="p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-xl space-y-3">
+                                                    <p className="text-[10px] font-black text-yellow-500 uppercase tracking-widest flex items-center gap-2">
+                                                        <Camera className="w-3 h-3" /> Festival Inconnu
+                                                    </p>
+                                                    <p className="text-xs text-gray-400">Ce festival n'est pas dans notre base de données. Ajoute une photo du festival pour qu'il soit validé.</p>
+                                                    <input 
+                                                        type="file" 
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            if (e.target.files && e.target.files[0]) {
+                                                                setCustomFestivalImage(e.target.files[0]);
+                                                            }
+                                                        }}
+                                                        className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-yellow-500/20 file:text-yellow-500 hover:file:bg-yellow-500/30 transition-all cursor-pointer"
+                                                    />
+                                                </div>
+                                            )}
+                                            
+                                            <div>
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Ta Note</label>
+                                                <div className="flex gap-2">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <button 
+                                                            key={star} 
+                                                            onClick={() => setReviewRating(star)}
+                                                            className="p-1 hover:scale-110 transition-transform"
+                                                        >
+                                                            <Star className={`w-8 h-8 ${star <= reviewRating ? 'fill-yellow-500 text-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.5)]' : 'text-gray-600'}`} />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1 mb-2 block">Ton Avis Détaillé</label>
+                                                <textarea 
+                                                    rows={4}
+                                                    placeholder="L'organisation était top, le son incroyable..."
+                                                    value={reviewText}
+                                                    onChange={(e) => setReviewText(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-yellow-500 transition-colors resize-none"
+                                                />
+                                            </div>
+
+                                            <button 
+                                                onClick={async () => {
+                                                    if (!selectedFestival || !reviewRating || !reviewText) {
+                                                        alert("Merci de remplir tous les champs !");
+                                                        return;
+                                                    }
+                                                    if (!wikiFestivals.some(f => f.name.toLowerCase() === selectedFestival.toLowerCase())) {
+                                                        if (!customFestivalImage) {
+                                                            alert("Ce festival n'est pas répertorié. Vous devez ajouter une photo du festival pour l'envoyer !");
+                                                            return;
+                                                        }
+                                                    }
+                                                    try {
+                                                        const res = await fetch('/api/avis/submit', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                festival: selectedFestival,
+                                                                ratings: {
+                                                                    organization: reviewRating,
+                                                                    sound: reviewRating,
+                                                                    food: reviewRating
+                                                                },
+                                                                comment: reviewText,
+                                                                tips: '',
+                                                                author: user.username || 'Anonyme'
+                                                            })
+                                                        });
+                                                        if (res.ok) {
+                                                            alert("Avis envoyé avec succès ! Il apparaîtra sur la page Communauté.");
+                                                            setReviewRating(0);
+                                                            setReviewText('');
+                                                            setSelectedFestival('');
+                                                        } else {
+                                                            alert("Erreur lors de la soumission de l'avis.");
+                                                        }
+                                                    } catch (e) {
+                                                        console.error(e);
+                                                        alert("Erreur réseau.");
+                                                    }
+                                                }}
+                                                className="w-full py-4 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 text-yellow-500 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all group"
+                                            >
+                                                <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" /> Publier Cet Avis
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-4 pt-4 border-t border-white/5">
+                                            <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Historique de mes avis</h4>
+                                            
+                                            <div className="text-center py-10 opacity-50 bg-white/5 rounded-3xl border border-white/5 border-dashed">
+                                                <MessageSquare className="w-8 h-8 mx-auto mb-3 text-gray-600" />
+                                                <p className="text-[10px] text-gray-400 uppercase font-bold tracking-[0.2em]">Aucun avis publié pour le moment.</p>
                                             </div>
                                         </div>
                                     </div>

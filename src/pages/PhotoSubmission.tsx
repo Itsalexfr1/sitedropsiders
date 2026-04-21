@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Send, CheckCircle2, Upload, X, ArrowLeft } from 'lucide-react';
+import { Camera, Send, CheckCircle2, Upload, X, ArrowLeft, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import wikiFestivals from '../data/wiki_festivals.json';
 
 export function PhotoSubmission() {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
+    const [festivalName, setFestivalName] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -115,13 +118,45 @@ export function PhotoSubmission() {
                                         />
                                     </div>
                                     <div className="relative group">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 transition-colors group-focus-within:text-neon-red">
+                                            <Search className="w-4 h-4" />
+                                        </div>
                                         <input
                                             type="text"
                                             name="festivalName"
                                             required
+                                            value={festivalName}
+                                            onChange={(e) => {
+                                                setFestivalName(e.target.value);
+                                                setShowSuggestions(true);
+                                            }}
+                                            onFocus={() => setShowSuggestions(true)}
                                             placeholder="NOM DU FESTIVAL *"
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs font-black uppercase tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-neon-red transition-all"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-white text-xs font-black uppercase tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-neon-red transition-all"
                                         />
+                                        {showSuggestions && festivalName && (
+                                            <div className="absolute z-50 left-0 right-0 mt-2 bg-[#0a0a0a] border border-white/10 rounded-xl max-h-48 overflow-y-auto shadow-2xl backdrop-blur-xl">
+                                                {wikiFestivals.filter(f => f.name.toLowerCase().includes(festivalName.toLowerCase())).length > 0 ? (
+                                                    wikiFestivals.filter(f => f.name.toLowerCase().includes(festivalName.toLowerCase())).map(f => (
+                                                        <button
+                                                            key={f.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFestivalName(f.name);
+                                                                setShowSuggestions(false);
+                                                            }}
+                                                            className="w-full text-left px-4 py-3 hover:bg-neon-red/10 hover:text-neon-red text-gray-300 text-sm font-bold uppercase transition-colors"
+                                                        >
+                                                            {f.name}
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <div className="px-4 py-3 text-xs text-gray-400 italic">
+                                                        Nouveau festival. Il sera ajouté au Wiki !
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="relative group">
                                         <input

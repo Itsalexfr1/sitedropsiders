@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Shield, Trophy, Music, Calendar, Zap, Headphones, PlayCircle, Download, Camera, Info, ExternalLink } from 'lucide-react';
+import { User, Shield, Trophy, Music, Calendar, Zap, Headphones, PlayCircle, Download, Camera, Info, ExternalLink, MessageSquare, Star } from 'lucide-react';
 import { getEventColor } from '../utils/colors';
 
 export function PublicProfile() {
@@ -28,6 +28,10 @@ export function PublicProfile() {
                 mixes: [
                     { id: 1, title: 'Summer Vibes 2026', type: 'Mix', duration: '60:00', uploadDate: 'Il y a 2 jours' },
                     { id: 2, title: 'Dark Techno Edit - Underground', type: 'Edit', duration: '5:30', uploadDate: '1 semaine' }
+                ],
+                reviews: [
+                    { id: 1, festival: 'Tomorrowland 2026', rating: 5, date: 'Il y a 1 mois', text: 'Incroyable édition, la Mainstage était folle et l\'ambiance inégalable. À refaire absolument !' },
+                    { id: 2, festival: 'Afterlife Paris', rating: 4, date: 'Il y a 3 mois', text: 'Les visuels de Tale of Us toujours au top, même si l\'attente aux bars était un peu longue.' }
                 ],
                 agendaFavorites: ['evt-dummy-1', 'evt-dummy-2']
             };
@@ -227,6 +231,43 @@ export function PublicProfile() {
                             ) : (
                                 <div className="text-center py-6">
                                     <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Agenda privé ou vide</p>
+                                </div>
+                            )}
+                        </div>
+                        {/* User Reviews */}
+                        <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 backdrop-blur-sm">
+                            <div className="flex items-center gap-4 border-b border-white/5 pb-4 mb-6">
+                                <div className="w-10 h-10 bg-yellow-500/20 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                                    <MessageSquare className="w-5 h-5 text-yellow-500" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Ses Avis</h3>
+                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Festivals</p>
+                                </div>
+                            </div>
+
+                            {profile.reviews && profile.reviews.length > 0 ? (
+                                <div className="space-y-4">
+                                    {profile.reviews.map((review: any) => (
+                                        <div key={review.id} className="p-4 bg-black/40 border border-white/5 rounded-2xl">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h4 className="text-xs font-black text-white uppercase tracking-tighter">{review.festival}</h4>
+                                                <div className="flex gap-0.5">
+                                                    {[1, 2, 3, 4, 5].map((s) => (
+                                                        <Star key={s} className={`w-3 h-3 ${s <= review.rating ? 'fill-yellow-500 text-yellow-500' : 'text-gray-700'}`} />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <p className="text-[10px] text-gray-400 font-medium leading-relaxed italic border-l-2 border-yellow-500/30 pl-3">
+                                                "{review.text}"
+                                            </p>
+                                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2">{review.date}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Aucun avis publié</p>
                                 </div>
                             )}
                         </div>

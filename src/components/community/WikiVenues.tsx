@@ -133,8 +133,7 @@ export function WikiVenues({
 
     const filtered = allVenues.filter(v =>
         (v.name.toLowerCase().includes(search.toLowerCase()) ||
-        v.city.toLowerCase().includes(search.toLowerCase())) &&
-        !brokenImages.has(v.id)
+        v.city.toLowerCase().includes(search.toLowerCase()))
     );
 
     const grouped: Record<string, Venue[]> = sortMode === 'votes'
@@ -334,12 +333,7 @@ export function WikiVenues({
                                                 loading="lazy"
                                                 decoding="async"
                                                 onError={(e) => {
-                                                    const target = e.target as HTMLImageElement;
-                                                    if (!brokenImages.has(v.id)) {
-                                                        setBrokenImages(prev => new Set([...prev, v.id]));
-                                                        reportBrokenImage(v.id);
-                                                    }
-                                                    target.src = 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop';
+                                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop';
                                                 }}
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                                             />

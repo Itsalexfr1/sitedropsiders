@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Star, MessageSquare, Plus, CheckCircle2, Send, User } from 'lucide-react';
+import { Star, MessageSquare, Plus, CheckCircle2, Send, User, Camera } from 'lucide-react';
+import wikiFestivals from '../../data/wiki_festivals.json';
 
 interface Review {
     id: string;
@@ -33,6 +32,8 @@ export function AvisSection() {
         tips: '',
         author: ''
     });
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [customFestivalImage, setCustomFestivalImage] = useState<File | null>(null);
 
     useEffect(() => {
         fetchReviews();
@@ -55,6 +56,14 @@ export function AvisSection() {
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitStatus('loading');
+        if (!wikiFestivals.some(f => f.name.toLowerCase() === formData.festival.toLowerCase())) {
+            if (!customFestivalImage) {
+                alert("Ce festival n'est pas répertorié. Vous devez ajouter une photo du festival pour l'envoyer !");
+                setSubmitStatus('idle');
+                return;
+            }
+        }
+
         try {
             const res = await fetch('/api/avis/submit', {
                 method: 'POST',
@@ -202,17 +211,64 @@ export function AvisSection() {
                     </h2>
 
                     <form onSubmit={handleFormSubmit} className="space-y-6">
-                        <div>
+                        <div className="relative">
                             <label className="block text-[10px] font-black text-gray-500 uppercase mb-2">Festival</label>
                             <input
                                 type="text"
                                 required
                                 value={formData.festival}
-                                onChange={e => setFormData({ ...formData, festival: e.target.value })}
+                                onChange={e => {
+                                    setFormData({ ...formData, festival: e.target.value });
+                                    setShowSuggestions(true);
+                                }}
+                                onFocus={() => setShowSuggestions(true)}
                                 className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-neon-red transition-all"
                                 placeholder="Nom du festival"
                             />
+                            {showSuggestions && formData.festival && (
+                                <div className="absolute z-50 left-0 right-0 mt-2 bg-[#0a0a0a] border border-white/10 rounded-xl max-h-48 overflow-y-auto shadow-2xl backdrop-blur-xl">
+                                    {wikiFestivals.filter(f => f.name.toLowerCase().includes(formData.festival.toLowerCase())).length > 0 ? (
+                                        wikiFestivals.filter(f => f.name.toLowerCase().includes(formData.festival.toLowerCase())).map(f => (
+                                            <button
+                                                key={f.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData({ ...formData, festival: f.name });
+                                                    setShowSuggestions(false);
+                                                }}
+                                                className="w-full text-left px-4 py-3 hover:bg-neon-red/10 hover:text-neon-red text-gray-300 text-sm font-bold uppercase transition-colors"
+                                            >
+                                                {f.name}
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="px-4 py-3 text-xs text-gray-400 italic">
+                                            Nouveau festival. Une photo sera requise !
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
+
+                        {formData.festival && !wikiFestivals.some(f => f.name.toLowerCase() === formData.festival.toLowerCase()) && (
+                            <div className="p-4 bg-neon-red/5 border border-neon-red/20 rounded-xl space-y-3">
+                                <p className="text-[10px] font-black text-neon-red uppercase tracking-widest flex items-center gap-2">
+                                    <Camera className="w-3 h-3" /> Festival Inconnu
+                                </p>
+                                <p className="text-xs text-gray-400">Ce festival n'est pas dans notre base de données. Ajoute une photo du festival pour qu'il soit validé.</p>
+                                <input 
+                                    type="file" 
+                                    accept="image/*"
+                                    required
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                            setCustomFestivalImage(e.target.files[0]);
+                                        }
+                                    }}
+                                    className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:bg-neon-red/20 file:text-neon-red hover:file:bg-neon-red/30 transition-all cursor-pointer"
+                                />
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-black/20 rounded-2xl">
                             <RatingStars
