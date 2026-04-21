@@ -20,6 +20,8 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
     const [isSocialLoading, setIsSocialLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
     const [isAuthLoading, setIsAuthLoading] = useState(false);
+    const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+    const [error, setError] = useState<string | null>(null);
 
     const googleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
@@ -96,7 +98,13 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
         if (!username || !email) return;
+
+        if (authMode === 'register' && !avatar) {
+            setError('Une photo de profil est obligatoire pour la création de compte.');
+            return;
+        }
 
         setIsAuthLoading(true);
         let finalAvatar = avatar;
@@ -184,6 +192,23 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
+
+                            {!isLoggedIn && (
+                                <div className="flex bg-white/5 p-1 rounded-2xl mb-8 border border-white/5">
+                                    <button 
+                                        onClick={() => setAuthMode('login')}
+                                        className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'login' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        Connexion
+                                    </button>
+                                    <button 
+                                        onClick={() => setAuthMode('register')}
+                                        className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${authMode === 'register' ? 'bg-neon-red text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        Création
+                                    </button>
+                                </div>
+                            )}
 
                             {isLoggedIn ? (
                                 <div className="space-y-6">
@@ -296,11 +321,11 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                         {/* Avatar Upload */}
                                         <div className="flex flex-col items-center gap-4 mb-2">
                                             <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
-                                                <div className="w-24 h-24 rounded-full bg-white/5 border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden transition-all group-hover:border-neon-red/50">
+                                                <div className={`w-24 h-24 rounded-full bg-white/5 border-2 border-dashed flex items-center justify-center overflow-hidden transition-all group-hover:border-neon-red/50 ${authMode === 'register' && !avatar ? 'border-neon-red' : 'border-white/20'}`}>
                                                     {avatar ? (
                                                         <img src={avatar} alt="Preview" className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <Camera className="w-8 h-8 text-gray-600 group-hover:text-neon-red transition-all" />
+                                                        <Camera className={`w-8 h-8 transition-all ${authMode === 'register' ? 'text-neon-red animate-pulse' : 'text-gray-600 group-hover:text-neon-red'}`} />
                                                     )}
                                                 </div>
                                                 <div className="absolute -bottom-1 -right-1 bg-neon-red p-2 rounded-full shadow-lg">
@@ -314,8 +339,16 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                                     onChange={handleFileChange}
                                                 />
                                             </div>
-                                            <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest italic">Photo de Profil (Optionnel)</p>
+                                            <p className={`text-[9px] font-black uppercase tracking-widest italic ${authMode === 'register' ? 'text-neon-red' : 'text-gray-600'}`}>
+                                                {authMode === 'register' ? 'Photo de Profil Obligatoire *' : 'Photo de Profil (Optionnel)'}
+                                            </p>
                                         </div>
+
+                                        {error && (
+                                            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
+                                                <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest text-center">{error}</p>
+                                            </div>
+                                        )}
 
                                         <div className="group">
                                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1 italic">Pseudo <span className="text-neon-red">*</span></label>
@@ -355,8 +388,8 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                             className="w-full py-5 bg-white text-black rounded-2xl font-display font-black text-[10px] uppercase tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all shadow-xl shadow-white/5 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-3"
                                         >
                                             {isAuthLoading ? (
-                                                <><Loader2 className="w-4 h-4 animate-spin" /> Création...</>
-                                            ) : 'Créer mon compte'}
+                                                <><Loader2 className="w-4 h-4 animate-spin" /> {authMode === 'register' ? 'Création...' : 'Connexion...'}</>
+                                            ) : (authMode === 'register' ? 'Créer mon compte' : 'Me connecter')}
                                         </button>
                                         <p className="text-center text-[9px] text-gray-600 font-black uppercase tracking-widest mt-6">
                                             En créant un compte, vous acceptez nos <span className="text-gray-400 hover:text-white cursor-pointer transition-colors underline">CGU</span>
