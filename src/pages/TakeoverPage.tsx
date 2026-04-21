@@ -4132,7 +4132,14 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     <motion.div
                                         animate={{ width: `${(activeBoss.hp / activeBoss.maxHp) * 100}%` }}
                                         className="h-full bg-gradient-to-r from-red-600 to-red-400 shadow-[0_0_10px_rgba(255,0,0,0.5)]"
-                                       {/* HEIST OVERLAY */}
+                                    />
+                                </div>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence>
+
+                {/* HEIST OVERLAY */}
                 <AnimatePresence>
                     {
                         activeHeist && (
@@ -4204,6 +4211,24 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 </AnimatePresence >
 
                 {/* SLOT MACHINE JACKPOT OVERLAY */}
+                <AnimatePresence>
+                    {
+                        activeSlots && (
+                            <motion.div
+                                initial={{ y: 100, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: 100, opacity: 0 }}
+                                className="fixed bottom-24 right-4 z-[150] bg-black/90 backdrop-blur-2xl border-2 border-amber-500 p-6 rounded-[2.5rem] w-80 shadow-[0_0_50px_rgba(245,158,11,0.3)]"
+                            >
+                                <div className="flex flex-col items-center text-center space-y-4">
+                                    <div className="w-16 h-16 bg-amber-500/20 rounded-2xl flex items-center justify-center border border-amber-500/30">
+                                        <Sparkles className="w-8 h-8 text-amber-500 animate-pulse" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">JACKPOT SLOTS</h3>
+                                        <p className="text-[10px] text-amber-500 font-black uppercase tracking-[0.2em] animate-bounce">TENTE TA CHANCE !</p>
+                                    </div>
+
                                     <div className="flex gap-2 justify-center py-4">
                                         {['🎰', '🍒', '7️⃣'].map((emoji, i) => (
                                             <motion.div
@@ -4230,16 +4255,6 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         <button
                                             onClick={() => handleSendMessage("!ticket")}
                                             className="w-full py-3 bg-amber-500 text-black font-black uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/20"
-                                        >
-                                            Prendre un ticket !
-                                        </button>
-                                        <p className="text-[8px] text-amber-500/50 font-black uppercase tracking-tighter italic">FIN DANS {activeSlots.timeLeft}S</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence> transition-all shadow-lg shadow-amber-500/20"
                                         >
                                             Prendre un ticket !
                                         </button>
@@ -4284,21 +4299,6 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                         )}
                 </AnimatePresence>
 
-                <AnimatePresence>
-                    {toast.show && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 20 }}
-                            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[300]"
-                        >
-                            <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-                                {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                                <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
                 {/* ======= CUSTOM CONFIRM MODAL ======= */}
                 <AnimatePresence>
