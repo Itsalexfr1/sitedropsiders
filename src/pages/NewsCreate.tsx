@@ -237,6 +237,14 @@ export function NewsCreate() {
     const type = searchParams.get('type') || 'News'; // 'News' or 'Interview'
     const id = searchParams.get('id');
     const isEditing = !!id;
+
+    // Strip HTML tags from text (e.g. answers pasted from rich editors)
+    const stripHtml = (html: string): string => {
+        if (!html) return '';
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return (tmp.textContent || tmp.innerText || '').trim();
+    };
     const editingItem = location.state?.item;
 
     const [title, setTitle] = useState(editingItem?.title || '');
@@ -1483,8 +1491,8 @@ ${generateSocialsHtml()}
                     if (q.type === 'qa') {
                         const artistName = (q.artistName || 'ARTISTE').toUpperCase();
                         const artistColor = q.artistColor || '#ff1241';
-                        const questionText = (q.question || '').toUpperCase();
-                        const answerText = (q.answer || '').toUpperCase();
+                        const questionText = stripHtml(q.question || '').toUpperCase();
+                        const answerText = stripHtml(q.answer || '').toUpperCase();
                         return `<div class="article-section interview-qa-block" data-artist-name="${q.artistName || ''}" data-artist-color="${artistColor}">
     <p><span class="interview-q dropsiders-q"><span class="q-prefix" style="color:#ff1241">DROPSIDERS :</span> ${questionText}</span></p>
     <p><span class="interview-q artiste-q"><span class="q-prefix artiste-prefix" style="color:${artistColor};-webkit-text-fill-color:${artistColor}">${artistName} :</span> <span class="artiste-response" style="color:#ffffff;-webkit-text-fill-color:#ffffff">${answerText}</span></span></p>
@@ -3686,7 +3694,7 @@ ${generateSocialsHtml()}
                                                     <p>
                                                         <span className="interview-q dropsiders-q">
                                                             <span className="q-prefix" style={{ color: '#ff1241' }}>DROPSIDERS :</span>
-                                                            {' '}{(q.question || '').toUpperCase()}
+                                                            {' '}{stripHtml(q.question || '').toUpperCase()}
                                                         </span>
                                                     </p>
                                                     <p>
@@ -3695,7 +3703,7 @@ ${generateSocialsHtml()}
                                                                 {(q.artistName || 'ARTISTE').toUpperCase()} :
                                                             </span>
                                                             {' '}<span className="artiste-response" style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>
-                                                                {(q.answer || '').toUpperCase()}
+                                                                {stripHtml(q.answer || '').toUpperCase()}
                                                             </span>
                                                         </span>
                                                     </p>
