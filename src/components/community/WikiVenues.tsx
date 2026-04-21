@@ -75,7 +75,7 @@ export function WikiVenues({
     const [festVotes, setFestVotes] = useState<Set<string>>(() => loadVotes(VOTE_KEY_FESTIVALS));
     const [customClubs, setCustomClubs] = useState<Venue[]>(() => loadCustom(CUSTOM_KEY_CLUBS));
     const [customFests, setCustomFests] = useState<Venue[]>(() => loadCustom(CUSTOM_KEY_FESTIVALS));
-    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true';
     const [isSaving, setIsSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
     const [showImageModal, setShowImageModal] = useState(false);

@@ -1029,7 +1029,7 @@ export function AdminDashboard() {
 
 
     useEffect(() => {
-        const auth = localStorage.getItem('admin_auth');
+        const auth = localStorage.getItem('admin_auth_v2');
         if (auth === 'true') {
             setIsAuthenticated(true);
             const storedUser = localStorage.getItem('admin_user');
@@ -1745,7 +1745,7 @@ export function AdminDashboard() {
                 const data = await response.json();
                 if (data.success) {
                     setIsAuthenticated(true);
-                    localStorage.setItem('admin_auth', 'true');
+                    localStorage.setItem('admin_auth_v2', 'true');
                     localStorage.setItem('admin_password', password);
                     localStorage.setItem('admin_user', data.user || loginUsername);
                     localStorage.setItem('admin_permissions', JSON.stringify(data.permissions || []));
@@ -1772,7 +1772,7 @@ export function AdminDashboard() {
 
     const handleLogout = () => {
         setIsAuthenticated(false);
-        localStorage.removeItem('admin_auth');
+        localStorage.removeItem('admin_auth_v2');
         localStorage.removeItem('admin_password');
         localStorage.removeItem('admin_user');
         localStorage.removeItem('admin_permissions');
@@ -5728,19 +5728,6 @@ export function AdminDashboard() {
                                     </Link>
 
                                     <button
-                                        onClick={() => { setIsEditorsModalOpen(true); setIsTeamModalOpen(false); }}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
-                                    >
-                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                                            <Pencil className="w-6 h-6 text-neon-purple" />
-                                        </div>
-                                        <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Éditeurs</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Droits & Profils</p>
-                                        </div>
-                                    </button>
-
-                                    <button
                                         onClick={() => { setIsSettingsModalOpen(true); setIsTeamModalOpen(false); }}
                                         className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
                                     >
@@ -5748,6 +5735,26 @@ export function AdminDashboard() {
                                             <Shield className="w-6 h-6 text-neon-cyan" />
                                         </div>
                                         <div className="text-center">
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Sécurité</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Accès & Clés</p>
+                                        </div>
+                                    </button>
+
+
+                                     <Link
+                                        to="/admin/editors"
+                                        onClick={() => setIsTeamModalOpen(false)}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group lg:col-span-1 shadow-[0_0_20px_rgba(255,18,65,0.1)]"
+                                     >
+                                        <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                                            <UserPlus className="w-6 h-6 text-neon-red" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-lg font-bold text-white uppercase italic">COMPTE CRÉER</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Gérer les Permissions</p>
+                                        </div>
+                                     </Link>
+            <div className="text-center">
                                             <h3 className="text-lg font-bold text-white uppercase italic">Sécurité</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Accès & Clés</p>
                                         </div>

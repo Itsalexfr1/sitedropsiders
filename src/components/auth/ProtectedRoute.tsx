@@ -9,7 +9,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
     useEffect(() => {
-        const auth = localStorage.getItem('admin_auth');
+        const auth = localStorage.getItem('admin_auth_v2');
         setIsAuthenticated(auth === 'true');
     }, []);
 

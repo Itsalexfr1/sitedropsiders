@@ -53,7 +53,7 @@ export function WikiDropsiders({
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true';
 
     const fetchData = useCallback(async () => {
         try {

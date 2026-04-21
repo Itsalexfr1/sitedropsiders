@@ -19,7 +19,7 @@ export function MobileNavbar() {
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
 
     useEffect(() => {
-        const auth = localStorage.getItem('admin_auth');
+        const auth = localStorage.getItem('admin_auth_v2');
         setIsAdmin(auth === 'true');
 
         const fetchSettings = async () => {

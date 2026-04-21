@@ -102,8 +102,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             scores: {},
             trackIds: [],
             agendaFavorites: [],
-            xp: Number(localStorage.getItem('dropsiders_xp')) || 0,
-            drops: Number(localStorage.getItem('dropsiders_drops')) || 0,
+            xp: Number(localStorage.getItem('user_xp')) || 0,
+            drops: Number(localStorage.getItem('user_drops')) || 0,
             createdAt: new Date().toISOString()
         };
         setUser(newUser);
@@ -125,16 +125,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             scores: data.scores || found?.scores || {},
             trackIds: data.trackIds || found?.trackIds || [],
             agendaFavorites: data.agendaFavorites || found?.agendaFavorites || [],
-            xp: (data.xp !== undefined ? data.xp : found?.xp) || Number(localStorage.getItem('dropsiders_xp')) || 0,
-            drops: (data.drops !== undefined ? data.drops : found?.drops) || Number(localStorage.getItem('dropsiders_drops')) || 0,
+            xp: (data.xp !== undefined ? data.xp : found?.xp) || Number(localStorage.getItem('user_xp')) || 0,
+            drops: (data.drops !== undefined ? data.drops : found?.drops) || Number(localStorage.getItem('user_drops')) || 0,
             createdAt: data.createdAt || found?.createdAt || new Date().toISOString()
         };
         setUser(newUser);
         saveToRegisteredUsers(newUser);
         
         // Clean local "guest" points after sync
-        localStorage.removeItem('dropsiders_xp');
-        localStorage.removeItem('dropsiders_drops');
+        localStorage.removeItem('user_xp');
+        localStorage.removeItem('user_drops');
     };
 
     const logout = () => {

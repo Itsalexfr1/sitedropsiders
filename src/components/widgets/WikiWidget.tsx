@@ -299,7 +299,7 @@ export function WikiWidget({
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isGlobalAddOpen, setIsGlobalAddOpen] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
-    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true';
 
     const tabs = [
         { id: 'DJS' as const,       label: 'Wiki DJs',  icon: Disc   },

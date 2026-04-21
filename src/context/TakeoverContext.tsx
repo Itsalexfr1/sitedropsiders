@@ -163,7 +163,7 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
     const COLLECTION_CHAT = 'live_messages';
     const COLLECTION_BANS = 'bans';
 
-    const localIsAdmin = localStorage.getItem('admin_auth') === 'true';
+    const localIsAdmin = localStorage.getItem('admin_auth_v2') === 'true';
     const adminUser = localStorage.getItem('admin_user');
     const storedPseudo = localStorage.getItem('chat_pseudo');
     
@@ -192,10 +192,28 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
     const [quizTimeLeft, setQuizTimeLeft] = useState<number | null>(null);
     const [activeHeist, setActiveHeist] = useState<any>(null);
     const [activeBoss, setActiveBoss] = useState<any>(null);
-    const [userDrops, setUserDrops] = useState(() => {
+    const { user: globalUser, earnPoints, isLoggedIn: isGlobalLoggedIn } = useUser();
+    const [userDrops, setUserDropsLocal] = useState(() => {
         const saved = localStorage.getItem('user_drops');
         return saved ? Number(saved) : 0;
     });
+
+    // Synchronize local drops with global user drops when logged in
+    useEffect(() => {
+        if (isGlobalLoggedIn && globalUser) {
+            setUserDropsLocal(globalUser.drops);
+        }
+    }, [isGlobalLoggedIn, globalUser?.drops]);
+
+    const setUserDrops = useCallback((val: number | ((prev: number) => number)) => {
+        const nextValue = typeof val === 'function' ? val(userDrops) : val;
+        const diff = nextValue - userDrops;
+        if (diff !== 0) {
+            earnPoints(0, diff); // Assume XP 0 for simple drop adjustment, or handle separately
+        }
+        setUserDropsLocal(nextValue);
+    }, [userDrops, earnPoints]);
+
     const [wikiDjs, setWikiDjs] = useState<any[]>([]);
     const [wikiClubs, setWikiClubs] = useState<any[]>([]);
     const [wikiFestivals, setWikiFestivals] = useState<any[]>([]);

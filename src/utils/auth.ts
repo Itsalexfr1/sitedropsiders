@@ -37,7 +37,7 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
     if (response.status === 401) {
         console.error(`[AUTH] 401 Unauthorized detected for URL: ${url}. Logging out.`);
         // Clear local storage and force reload/redirect
-        localStorage.removeItem('admin_auth');
+        localStorage.removeItem('admin_auth_v2');
         localStorage.removeItem('admin_password');
         localStorage.removeItem('admin_user');
         localStorage.removeItem('admin_permissions');
@@ -58,6 +58,6 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
 export const isSuperAdmin = (user: string | null) => {
     if (!user) return false;
     const normalized = user.toLowerCase();
-    const admins = ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr', 'tanguy', 'tanguyf'];
+    const admins = ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr', 'alexflex30@gmail.com', 'tanguy', 'tanguyf'];
     return admins.includes(normalized);
 };

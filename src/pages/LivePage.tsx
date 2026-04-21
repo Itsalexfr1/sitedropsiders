@@ -29,7 +29,7 @@ export function LivePage() {
         fetchTakeover();
     }, []);
 
-    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true';
 
     if (loading) {
         return (

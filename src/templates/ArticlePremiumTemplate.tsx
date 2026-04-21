@@ -80,7 +80,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const [siteSocials, setSiteSocials] = useState<any>((settings as any).socials || {});
 
     useEffect(() => {
-        setIsAdmin(localStorage.getItem('admin_auth') === 'true');
+        setIsAdmin(localStorage.getItem('admin_auth_v2') === 'true');
         const fetchData = async () => {
             try {
                 const teamRes = await fetch('/api/team');

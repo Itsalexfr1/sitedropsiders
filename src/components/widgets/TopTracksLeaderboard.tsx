@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Music, TrendingUp, Heart, Search, X, Plus, Youtube, Trophy, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { useUser } from '../../context/UserContext';
+import { UserAuthModal } from '../auth/UserAuthModal';
 
 interface Track {
     title: string;
@@ -24,6 +26,8 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [searchError, setSearchError] = useState<string | null>(null);
     const [votedTracks, setVotedTracks] = useState<string[]>([]);
     const [previewVideo, setPreviewVideo] = useState<string | null>(null);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const { user } = useUser();
     const color = resolvedColor || 'var(--color-neon-cyan)';
     const searchTimeout = useRef<any>(null);
 
@@ -98,6 +102,10 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
     const handleVote = async (title: string, e: React.MouseEvent, media?: string, playerType: string = 'youtube') => {
         e.stopPropagation();
+        if (!user) {
+            setIsAuthModalOpen(true);
+            return;
+        }
         if (votedTracks.includes(title)) return;
 
         try {
@@ -124,7 +132,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
         }
     };
 
-    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true';
 
     const handleDelete = async (title: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -341,7 +349,13 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
 
                 <div className="mt-8 pt-6 border-t border-white/5 relative z-10">
                     <button
-                        onClick={() => setIsSearchOpen(true)}
+                        onClick={() => {
+                            if (!user) {
+                                setIsAuthModalOpen(true);
+                            } else {
+                                setIsSearchOpen(true);
+                            }
+                        }}
                         className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 hover:border-white/40 transition-all group"
                     >
                         <Youtube className="w-5 h-5 text-red-500 group-hover:scale-110 transition-transform" />
@@ -463,6 +477,8 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     </div>
                 )}
             </AnimatePresence>
+
+            <UserAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </div>
     );
 }

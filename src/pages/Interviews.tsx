@@ -36,7 +36,7 @@ export function Interviews() {
     const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
     useEffect(() => {
-        setIsAdmin(localStorage.getItem('admin_auth') === 'true');
+        setIsAdmin(localStorage.getItem('admin_auth_v2') === 'true');
         
         const fetchNews = async () => {
             try {

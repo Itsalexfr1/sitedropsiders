@@ -24,7 +24,7 @@ export function SocialStudioPage() {
         const storedPass = localStorage.getItem('admin_password') || '';
         if (password !== '' && password === storedPass) {
             setIsAuthenticated(true);
-            localStorage.setItem('admin_auth', 'true');
+            localStorage.setItem('admin_auth_v2', 'true');
         } else {
             setError('Code incorrect ou accès non autorisé');
         }

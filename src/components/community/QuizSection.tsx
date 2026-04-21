@@ -42,7 +42,7 @@ export function QuizSection() {
     const { isLoggedIn, user, updateScore, earnPoints } = useUser();
     useLanguage();
     const [activeTab, setActiveTab] = useState<'play' | 'submit' | 'manage'>('play');
-    const isAdmin = localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('editeur_auth') === 'true';
+    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true' || localStorage.getItem('editeur_auth') === 'true';
     const [gameState, setGameState] = useState<'selection' | 'playing' | 'results'>('selection');
     const [selectedMode, setSelectedMode] = useState<QuizType | 'ALL'>('ALL');
     const [selectedLength, setSelectedLength] = useState<GameLength>(5);
@@ -372,7 +372,7 @@ export function QuizSection() {
 
         try {
             // Check if admin or modo for auto-approval
-            const adminAuth = localStorage.getItem('admin_auth') === 'true';
+            const adminAuth = localStorage.getItem('admin_auth_v2') === 'true';
             const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
             const adminUser = localStorage.getItem('admin_user')?.toUpperCase() || '';
             const chatPseudo = localStorage.getItem('chat_pseudo')?.toUpperCase() || '';

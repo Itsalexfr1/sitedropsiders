@@ -50,7 +50,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const COLLECTION_CHAT = 'live_messages';
     const COLLECTION_BANS = 'bans';
 
-    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true';
     const adminUser = localStorage.getItem('admin_user');
     const storedPseudo = localStorage.getItem('chat_pseudo');
     
@@ -219,8 +219,25 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const [showViewersList, setShowViewersList] = useState(false);
     const [flashMessage, setFlashMessage] = useState<{ text: string, type: 'info' | 'warn' | 'success' } | null>(null);
     const [isMatrixActive, setIsMatrixActive] = useState(false);
-    const [userXP, setUserXP] = useState(() => parseInt(localStorage.getItem('user_xp') || '0'));
-    const [userLevel, setUserLevel] = useState(() => parseInt(localStorage.getItem('user_level') || '1'));
+    const { user: globalUser, earnPoints, isLoggedIn: isGlobalLoggedIn } = useUser();
+    const userXP = useMemo(() => globalUser?.xp || Number(localStorage.getItem('user_xp')) || 0, [globalUser?.xp]);
+    const userLevel = useMemo(() => Math.floor(Math.sqrt(userXP / 100)) + 1, [userXP]);
+    const [userDrops, setUserDropsLocal] = useState(() => Number(localStorage.getItem('user_drops')) || 0);
+
+    // Synchronize local drops with global user drops when logged in
+    useEffect(() => {
+        if (isGlobalLoggedIn && globalUser) {
+            setUserDropsLocal(globalUser.drops);
+        }
+    }, [isGlobalLoggedIn, globalUser?.drops]);
+
+    const setUserDrops = useCallback((val: number | ((prev: number) => number)) => {
+        const nextValue = typeof val === 'function' ? val(userDrops) : val;
+        const diff = nextValue - userDrops;
+        if (diff !== 0) earnPoints(0, diff);
+        setUserDropsLocal(nextValue);
+    }, [userDrops, earnPoints]);
+
     const [activeHeist, setActiveHeist] = useState<{ participants: { pseudo: string, bet: number }[], timeLeft: number } | null>(null);
     const [activeBoss, setActiveBoss] = useState<{ hp: number, maxHp: number, name: string } | null>(null);
     const [captchaChallenge, setCaptchaChallenge] = useState<{ q: string, a: number } | null>(null);
@@ -297,11 +314,21 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const [showAchievementPopup, setShowAchievementPopup] = useState<string | null>(null);
 
 
-    // ðŸŽ RECOMPENSE QUOTIDIENNE (Paliers)
+    // Auto-connect chat if logged in globally
+    useEffect(() => {
+        if (isLoggedIn && authUser) {
+            localStorage.setItem('chat_pseudo', authUser.username);
+            localStorage.setItem('chat_email', authUser.email);
+            if (authUser.avatar) localStorage.setItem('chat_avatar', authUser.avatar);
+            setIsConnected(true);
+        }
+    }, [isLoggedIn, authUser]);
+
+    // ⏱️ HEIST & BOSS TIMERS
     useEffect(() => {
         const lastLogin = localStorage.getItem('last_daily_reward');
         const today = new Date().toLocaleDateString();
-        if (lastLogin !== today && isConnected) {
+        if (lastLogin !== today && isLoggedIn) {
             let streak = parseInt(localStorage.getItem('login_streak') || '0');
             const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
 
@@ -324,7 +351,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             localStorage.setItem('last_daily_reward', today);
             showNotification(`🎁 CADEAU SUR LE LIVE (PALIER ${streak}) : +${totalReward} DROPS !`, 'success');
         }
-    }, [isConnected]);
+    }, [isLoggedIn]);
 
     // ⏱️ HEIST & BOSS TIMERS
     useEffect(() => {
@@ -3348,117 +3375,74 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                         </AnimatePresence>
 
                         <AnimatePresence mode="wait">
-                            {!isConnected ? (
+                            {!isLoggedIn ? (
+                                <div 
+                                    className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm cursor-pointer"
+                                    onClick={() => navigate('/')}
+                                >
+                                    <motion.div 
+                                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="max-w-md w-full bg-[#050510]/80 border-2 border-white/10 rounded-[3rem] p-10 md:p-14 text-center space-y-10 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative overflow-hidden cursor-default"
+                                    >
+                                        {/* Glows */}
+                                        <div className="absolute -top-24 -left-24 w-48 h-48 bg-neon-red/20 rounded-full blur-[80px] animate-pulse" />
+                                        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-neon-cyan/20 rounded-full blur-[80px] animate-pulse" />
+
+                                        <div className="relative space-y-6">
+                                            <div className="w-24 h-24 bg-neon-red/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-neon-red/20">
+                                                <Lock className="w-10 h-10 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.5)]" />
+                                            </div>
+                                            
+                                            <div className="space-y-4">
+                                                <h2 className="text-3xl md:text-4xl font-display font-black text-white italic uppercase tracking-tighter leading-none">
+                                                    LIVE <span className="text-neon-red">RÉSERVÉ</span>
+                                                </h2>
+                                                <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] leading-relaxed">
+                                                    Connectez-vous à votre compte Dropsiders pour accéder au Live et participer au Chat.
+                                                </p>
+                                            </div>
+
+                                            <div className="pt-6 space-y-4">
+                                                <button
+                                                    onClick={() => setIsAuthModalOpen(true)}
+                                                    className="w-full py-6 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-500 shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
+                                                >
+                                                    M'identifier
+                                                </button>
+                                                
+                                                <div className="pt-4 border-t border-white/5">
+                                                    <button
+                                                        onClick={() => navigate('/')}
+                                                        className="text-[9px] font-black text-gray-500 hover:text-white uppercase tracking-[0.4em] transition-all"
+                                                    >
+                                                        ← Retour sur le site
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                </div>
+                            ) : !isConnected ? (
                                 <motion.div
-                                    key="login-screen"
+                                    key="loading-chat"
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     className="absolute inset-0 z-[100] bg-[#0a0a0a]/95 backdrop-blur-xl flex items-center justify-center p-6"
                                 >
-                                    <div className="w-full max-w-md space-y-8">
-                                        <div className="text-center space-y-3">
-                                            <div className="w-20 h-20 bg-neon-red/10 border-2 border-neon-red rounded-[2.5rem] flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,0,51,0.2)]">
-                                                <MessageSquare className="w-10 h-10 text-neon-red animate-pulse" />
-                                            </div>
-                                            <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-black text-white uppercase italic tracking-tighter">Live Chat</h2>
-                                            <p className="text-gray-500 text-xs font-black uppercase tracking-[0.3em]">Connectez-vous pour participer</p>
-                                        </div>
-
-                                        <div className="space-y-6">
-                                            {isLoggedIn ? (
-                                                <div className="p-8 bg-white/5 border border-white/10 rounded-3xl text-center space-y-6">
-                                                    <div className="flex items-center gap-4 justify-center">
-                                                        {authUser?.avatar ? (
-                                                            <img src={authUser.avatar} alt="" className="w-12 h-12 rounded-full border-2 border-neon-red shadow-lg" />
-                                                        ) : (
-                                                            <div className="w-12 h-12 bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/40">
-                                                                <User className="w-6 h-6 text-neon-red" />
-                                                            </div>
-                                                        )}
-                                                        <div className="text-left">
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mb-1">Connecté en tant que</p>
-                                                            <p className="text-lg font-black text-white uppercase italic leading-none">{authUser?.username}</p>
-                                                        </div>
-                                                    </div>
-                                                    <button 
-                                                        onClick={() => handleConnect()}
-                                                        className="w-full bg-gradient-to-r from-neon-red to-pink-600 py-4 rounded-xl text-white font-black uppercase italic tracking-widest shadow-lg shadow-neon-red/20 hover:scale-[1.02] active:scale-95 transition-all"
-                                                    >
-                                                        Rejoindre maintenant
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-4">
-                                                    <button 
-                                                        onClick={() => setIsAuthModalOpen(true)}
-                                                        className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-xl font-black uppercase italic tracking-widest hover:bg-neon-red hover:text-white transition-all shadow-xl"
-                                                    >
-                                                        <Disc className="w-5 h-5" /> 
-                                                        <span>Connexion Membre</span>
-                                                    </button>
-                                                    
-                                                    <div className="relative py-4">
-                                                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
-                                                        <div className="relative flex justify-center text-[8px] font-black uppercase text-gray-600"><span className="bg-[#0a0a0a] px-4">Ou continuer en invité</span></div>
-                                                    </div>
-
-                                                    <form onSubmit={handleConnect} className="space-y-4">
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <input
-                                                                value={loginPseudo}
-                                                                onChange={e => setLoginPseudo(e.target.value)}
-                                                                className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700 text-xs"
-                                                                placeholder="Pseudo Invité"
-                                                            />
-                                                            <input
-                                                                value={loginInstagram}
-                                                                onChange={e => setLoginInstagram(e.target.value)}
-                                                                className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700 text-xs"
-                                                                placeholder="@Instagram (Optionnel)"
-                                                            />
-                                                        </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="bg-white/5 border border-white/10 rounded-xl px-5 py-3 flex items-center justify-between">
-                                                                <span className="text-[10px] font-black text-gray-500 uppercase">Couleur Pseudo</span>
-                                                                <input
-                                                                    type="color"
-                                                                    value={loginPseudoColor}
-                                                                    onChange={e => setLoginPseudoColor(e.target.value)}
-                                                                    className="w-8 h-8 rounded-full border-none p-0 cursor-pointer bg-transparent"
-                                                                />
-                                                            </div>
-                                                            <select
-                                                                value={loginCountry}
-                                                                onChange={e => setLoginCountry(e.target.value)}
-                                                                className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all text-xs"
-                                                            >
-                                                                {countries.map(c => (
-                                                                    <option key={c.code} value={c.code} className="bg-black">{c.name}</option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-
-                                                        {captchaChallenge && (
-                                                            <div className="p-4 bg-neon-red/10 border border-neon-red/20 rounded-xl space-y-3">
-                                                                <p className="text-[10px] font-black text-neon-red uppercase tracking-widest text-center">VÉRIFICATION BOT : {captchaChallenge.q}</p>
-                                                                <input
-                                                                    value={captchaInput}
-                                                                    onChange={e => setCaptchaInput(e.target.value)}
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-center text-white font-black outline-none focus:border-neon-red"
-                                                                    placeholder="RÉPONSE"
-                                                                />
-                                                            </div>
-                                                        )}
-
-                                                        <button type="submit" className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase rounded-xl hover:bg-white/10 transition-all">Rejoindre comme invité</button>
-                                                    </form>
-                                                </div>
-                                            )}
-                                        </div>
+                                    <div className="flex flex-col items-center gap-4">
+                                        <div className="w-12 h-12 border-4 border-neon-red border-t-transparent rounded-full animate-spin" />
+                                        <p className="text-xs font-black text-white uppercase tracking-widest animate-pulse">Initialisation du Live Chat...</p>
                                     </div>
                                 </motion.div>
-                            ) : activeChatTab === 'chat' ? (
+                            ) : (
+                                <div className="hidden" /> // Fallback handled by parent
+                            )}
+                        </AnimatePresence>
+
+                        {activeChatTab === 'chat' ? (
                                 <motion.div key="chat-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
                                     {pinnedMessage && (
                                         <div className="p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl relative overflow-hidden group">

@@ -22,7 +22,7 @@ const useAdminStatus = () => {
     const [permissions, setPermissions] = useState<string[]>([]);
 
     useEffect(() => {
-        const auth = localStorage.getItem('admin_auth') === 'true';
+        const auth = localStorage.getItem('admin_auth_v2') === 'true';
         const user = localStorage.getItem('admin_user');
         const perms: string[] = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
         setIsAdmin(auth && (user === 'alex' || perms.includes('all') || perms.length > 0));

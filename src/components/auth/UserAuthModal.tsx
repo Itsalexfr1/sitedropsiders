@@ -319,30 +319,32 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                     <form onSubmit={handleAuth} className="space-y-6">
                                     <div className="space-y-4">
                                         {/* Avatar Upload */}
-                                        <div className="flex flex-col items-center gap-4 mb-2">
-                                            <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
-                                                <div className={`w-24 h-24 rounded-full bg-white/5 border-2 border-dashed flex items-center justify-center overflow-hidden transition-all group-hover:border-neon-red/50 ${authMode === 'register' && !avatar ? 'border-neon-red' : 'border-white/20'}`}>
-                                                    {avatar ? (
-                                                        <img src={avatar} alt="Preview" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <Camera className={`w-8 h-8 transition-all ${authMode === 'register' ? 'text-neon-red animate-pulse' : 'text-gray-600 group-hover:text-neon-red'}`} />
-                                                    )}
+                                        {authMode === 'register' && (
+                                            <div className="flex flex-col items-center gap-4 mb-2">
+                                                <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-upload')?.click()}>
+                                                    <div className={`w-24 h-24 rounded-full bg-white/5 border-2 border-dashed flex items-center justify-center overflow-hidden transition-all group-hover:border-neon-red/50 ${!avatar ? 'border-neon-red' : 'border-white/20'}`}>
+                                                        {avatar ? (
+                                                            <img src={avatar} alt="Preview" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <Camera className="w-8 h-8 text-neon-red animate-pulse transition-all" />
+                                                        )}
+                                                    </div>
+                                                    <div className="absolute -bottom-1 -right-1 bg-neon-red p-2 rounded-full shadow-lg">
+                                                        <Upload className="w-3 h-3 text-white" />
+                                                    </div>
+                                                    <input
+                                                        id="avatar-upload"
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={handleFileChange}
+                                                    />
                                                 </div>
-                                                <div className="absolute -bottom-1 -right-1 bg-neon-red p-2 rounded-full shadow-lg">
-                                                    <Upload className="w-3 h-3 text-white" />
-                                                </div>
-                                                <input
-                                                    id="avatar-upload"
-                                                    type="file"
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    onChange={handleFileChange}
-                                                />
+                                                <p className="text-[9px] font-black uppercase tracking-widest italic text-neon-red">
+                                                    Photo de Profil Obligatoire *
+                                                </p>
                                             </div>
-                                            <p className={`text-[9px] font-black uppercase tracking-widest italic ${authMode === 'register' ? 'text-neon-red' : 'text-gray-600'}`}>
-                                                {authMode === 'register' ? 'Photo de Profil Obligatoire *' : 'Photo de Profil (Optionnel)'}
-                                            </p>
-                                        </div>
+                                        )}
 
                                         {error && (
                                             <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">

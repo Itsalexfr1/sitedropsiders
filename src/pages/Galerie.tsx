@@ -57,7 +57,7 @@ export function Galerie() {
     }, [activeSegment]);
 
     useEffect(() => {
-        setIsAdmin(localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('modo_auth') === 'true');
+        setIsAdmin(localStorage.getItem('admin_auth_v2') === 'true' || localStorage.getItem('modo_auth') === 'true');
     }, []);
 
     const filteredAlbums = useMemo(() => {

@@ -1,16 +1,17 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Trash2, Shield, User, Lock, ArrowLeft, Loader2, Save, X, Pencil, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { UserPlus, Trash2, Shield, User, Lock, ArrowLeft, Loader2, Save, X, Pencil, RefreshCw, CheckCircle2, AlertCircle, Search, Mail, ExternalLink } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { Link, useNavigate } from 'react-router-dom';
 import { getAuthHeaders, apiFetch, isSuperAdmin } from '../utils/auth';
 import { StarField } from '../components/ui/StarField';
 
 interface Editor {
+    email: string;
     username: string;
-    password?: string;
     name: string;
+    avatar?: string;
+    provider?: string;
     created: string;
     permissions?: string[];
 }
@@ -57,7 +58,6 @@ const PERMISSION_CATEGORIES = [
     }
 ];
 
-// Helper to get flat list for labels
 const ALL_PERMISSIONS_FLAT = PERMISSION_CATEGORIES.flatMap(cat => cat.permissions);
 
 const EDITOR_COLORS = [
@@ -75,24 +75,14 @@ const EDITOR_COLORS = [
 
 const getEditorColor = (username: string) => {
     const normalized = username.toLowerCase();
-    // Manual overrides for core team to provide unique colors
     if (normalized === 'alex') return '#FF1241';
     if (normalized === 'tanguy') return '#00FFFF';
     if (normalized === 'julien') return '#BF00FF';
-    if (normalized === 'tiffany') return '#39FF14';
-    if (normalized === 'kevin') return '#FFF01F';
-    if (normalized === 'guiyoome') return '#FF5E00';
-
-    let hash = 0;
-    for (let i = 0; i < normalized.length; i++) {
-        hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
-    }
+    const hash = normalized.split('').reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
     return EDITOR_COLORS[Math.abs(hash) % EDITOR_COLORS.length];
 };
 
-// Special style for Alex (Gradient)
 const getAuthorTextStyle = (username: string) => {
-    const color = getEditorColor(username);
     if (username.toLowerCase() === 'alex') {
         return {
             background: 'linear-gradient(to right, #FF1241, #FF0099, #BF00FF)',
@@ -101,7 +91,7 @@ const getAuthorTextStyle = (username: string) => {
             fontWeight: '950'
         };
     }
-    return { color };
+    return { color: getEditorColor(username) };
 };
 
 export function AdminEditors() {
@@ -110,19 +100,17 @@ export function AdminEditors() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [error, setError] = useState('');
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
-    // New Editor State
     const [newEditor, setNewEditor] = useState({
-        username: '',
-        password: '',
-        name: '',
+        email: '',
         permissions: [] as string[]
     });
     const [isEditing, setIsEditing] = useState(false);
+    const [foundUser, setFoundUser] = useState<any | null>(null);
+    const [isSearchingUser, setIsSearchingUser] = useState(false);
 
-    // Notification State
     const [toast, setToast] = useState<{
         show: boolean;
         message: string;
@@ -146,11 +134,11 @@ export function AdminEditors() {
     const fetchEditors = async () => {
         try {
             const response = await apiFetch('/api/editors', {
-                headers: getAuthHeaders(null)
+                headers: getAuthHeaders()
             });
             if (response.ok) {
                 const data = await response.json();
-                setEditors(data);
+                setEditors(Array.isArray(data) ? data : []);
             }
         } catch (err: any) {
             console.error('Failed to fetch editors', err);
@@ -159,27 +147,51 @@ export function AdminEditors() {
         }
     };
 
-    const handleAddEditor = async (e: React.FormEvent) => {
+    const searchUser = async (email: string) => {
+        if (!email || !email.includes('@')) return;
+        setIsSearchingUser(true);
+        setFoundUser(null);
+        try {
+            // Search in community users
+            const res = await apiFetch(`/api/users/search?q=${encodeURIComponent(email)}`, {
+                headers: getAuthHeaders()
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    setFoundUser(data[0]);
+                }
+            }
+        } catch (e) {
+            console.error('Failed to search user', e);
+        } finally {
+            setIsSearchingUser(false);
+        }
+    };
+
+    const handleSavePermissions = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
-        setError('');
 
         try {
-            const endpoint = isEditing ? '/api/editors/update' : '/api/editors/create';
-            const response = await apiFetch(endpoint, {
+            const response = await apiFetch('/api/editors/update-permissions', {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify(newEditor)
+                body: JSON.stringify({
+                    email: newEditor.email,
+                    permissions: newEditor.permissions
+                })
             });
 
             if (response.ok) {
                 await fetchEditors();
                 setShowAddModal(false);
-                setNewEditor({ username: '', password: '', name: '', permissions: [] });
-                showNotification(isEditing ? 'Compte mis à jour !' : 'Compte créé avec succès !', 'success');
+                setNewEditor({ email: '', permissions: [] });
+                setFoundUser(null);
+                showNotification('Permissions mises à jour avec succès !', 'success');
             } else {
                 const data = await response.json();
-                showNotification(data.error || 'Erreur lors de la création', 'error');
+                showNotification(data.error || 'Erreur lors de la mise à jour', 'error');
             }
         } catch (err: any) {
             showNotification('Erreur réseau', 'error');
@@ -188,67 +200,55 @@ export function AdminEditors() {
         }
     };
 
-    const handleDeleteEditor = async (targetUsername: string) => {
-
+    const handleDeleteEditor = async (email: string) => {
         try {
             const response = await apiFetch('/api/editors/delete', {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ username: targetUsername })
+                body: JSON.stringify({ email })
             });
 
             if (response.ok) {
-                setEditors(editors.filter(e => e.username !== targetUsername));
-                showNotification('Éditeur supprimé avec succès', 'success');
+                setEditors(editors.filter(e => e.email !== email));
+                showNotification('Permissions révoquées avec succès', 'success');
             } else {
-                showNotification('Erreur lors de la suppression', 'error');
+                showNotification('Erreur lors de la révocation', 'error');
             }
         } catch (err: any) {
             showNotification('Erreur réseau', 'error');
         }
     };
 
-    const handleRevokeEditorSession = async (targetUsername: string) => {
-        if (!confirm(`Voulez-vous vraiment révoquer toutes les sessions actives de @${targetUsername} ? L'utilisateur devra se reconnecter.`)) return;
-        try {
-            const res = await apiFetch('/api/auth/revoke-all', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ targetUsername })
-            });
-            if (res.ok) {
-                showNotification(`Sessions de @${targetUsername} révoquées avec succès !`, 'success');
-            } else {
-                const errorData = await res.json().catch(() => ({}));
-                showNotification(errorData.error || 'Erreur lors de la révocation', 'error');
-            }
-        } catch (err: any) {
-            showNotification('Erreur réseau lors de la révocation', 'error');
-        }
-    };
-
     const handleEditClick = (editor: Editor) => {
         setIsEditing(true);
         setNewEditor({
-            username: editor.username,
-            password: '', // On ne pré-remplit pas le mot de passe pour la sécurité
-            name: editor.name,
+            email: editor.email,
             permissions: editor.permissions || []
         });
+        setFoundUser(editor);
         setShowAddModal(true);
     };
 
     const handleOpenAddModal = () => {
         setIsEditing(false);
-        setNewEditor({ username: '', password: '', name: '', permissions: [] });
+        setNewEditor({ email: '', permissions: [] });
+        setFoundUser(null);
         setShowAddModal(true);
     };
+
+    const filteredEditors = useMemo(() => {
+        return editors.filter(e => 
+            e.username?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            e.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            e.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [editors, searchTerm]);
 
     return (
         <div className="min-h-screen bg-dark-bg py-32 relative overflow-hidden">
             <StarField />
-            <div className="max-w-full mx-auto px-4 md:px-12 relative z-10">
-                <Link to="/admin" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors group">
+            <div className="max-w-7xl mx-auto px-4 md:px-12 relative z-10">
+                <Link to="/admin" className="inline-flex items-center gap-2 text-gray-500 hover:text-white mb-8 transition-colors group uppercase text-[10px] font-black tracking-widest">
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     Retour au tableau de bord
                 </Link>
@@ -256,252 +256,262 @@ export function AdminEditors() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
                     <div>
                         <div className="flex items-center gap-4 mb-2">
-                            <div className="p-3 bg-neon-red/10 rounded-2xl">
+                            <div className="p-3 bg-neon-red/10 rounded-2xl border border-neon-red/20">
                                 <Shield className="w-8 h-8 text-neon-red" />
                             </div>
-                            <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                                Gestion des <span className="text-neon-red">Éditeurs</span>
+                            <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                                GESTION DES <span className="text-neon-red">ACCÈS</span>
                             </h1>
                         </div>
-                        <p className="text-gray-400">Gérez les accès de votre équipe de rédaction.</p>
+                        <p className="text-gray-400 font-medium uppercase text-[10px] tracking-widest">Assignez des permissions aux comptes Google, Discord ou Dropsiders.</p>
                     </div>
 
-                    <button
-                        onClick={handleOpenAddModal}
-                        className="px-6 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 active:scale-95"
-                    >
-                        <UserPlus className="w-5 h-5" />
-                        Nouvel Éditeur
-                    </button>
+                    <div className="flex gap-4 w-full md:w-auto">
+                        <div className="relative flex-1 md:w-64">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                            <input 
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Rechercher un éditeur..."
+                                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-xs font-bold focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all"
+                            />
+                        </div>
+                        <button
+                            onClick={handleOpenAddModal}
+                            className="px-6 py-3 bg-neon-red text-white rounded-xl font-black uppercase tracking-wider flex items-center gap-2 hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 active:scale-95 whitespace-nowrap text-xs"
+                        >
+                            <UserPlus className="w-5 h-5" />
+                            Assigner Permissions
+                        </button>
+                    </div>
                 </div>
 
                 {isLoading ? (
-                    <div className="flex justify-center py-20">
+                    <div className="flex flex-col items-center justify-center py-32 gap-4">
                         <Loader2 className="w-12 h-12 text-neon-red animate-spin" />
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Initialisation du système...</span>
                     </div>
                 ) : (
                     <div className="grid gap-4">
                         <AnimatePresence mode="popLayout">
-                            {editors.map((editor) => {
-                                const editorColor = getEditorColor(editor.username);
+                            {filteredEditors.map((editor) => {
+                                const editorColor = getEditorColor(editor.username || editor.email);
                                 return (
                                     <motion.div
-                                        key={editor.username}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 20 }}
-                                        className="bg-white/5 border border-white/10 rounded-2xl p-6 flex items-center justify-between group hover:bg-white/[0.08] transition-all"
-                                        style={{ borderLeft: `4px solid ${editorColor}` }}
+                                        key={editor.email}
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className="bg-white/5 border border-white/10 rounded-[2rem] p-8 flex flex-col md:flex-row items-center justify-between group hover:bg-white/[0.08] transition-all relative overflow-hidden"
                                     >
-                                        <div className="flex items-center gap-6">
-                                            <div
-                                                className="w-12 h-12 rounded-full flex items-center justify-center border transition-all"
-                                                style={{
-                                                    backgroundColor: `${editorColor}10`,
-                                                    borderColor: `${editorColor}40`,
-                                                    boxShadow: `0 0 15px ${editorColor}20`
-                                                }}
-                                            >
-                                                <User className="w-6 h-6" style={{ color: editorColor }} />
+                                        <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: editorColor }} />
+                                        
+                                        <div className="flex items-center gap-8 w-full md:w-auto">
+                                            <div className="relative">
+                                                <div
+                                                    className="w-20 h-20 rounded-2xl flex items-center justify-center border-2 overflow-hidden shadow-2xl transition-all group-hover:scale-105"
+                                                    style={{
+                                                        backgroundColor: `${editorColor}10`,
+                                                        borderColor: `${editorColor}30`,
+                                                        boxShadow: `0 0 30px ${editorColor}20`
+                                                    }}
+                                                >
+                                                    {editor.avatar ? (
+                                                        <img src={editor.avatar} alt={editor.username} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <User className="w-10 h-10" style={{ color: editorColor }} />
+                                                    )}
+                                                </div>
+                                                <div className="absolute -bottom-2 -right-2 p-2 bg-dark-bg border border-white/10 rounded-lg shadow-xl">
+                                                    {editor.provider === 'google' && <img src="https://www.google.com/favicon.ico" className="w-3 h-3" />}
+                                                    {editor.provider === 'discord' && <img src="https://discord.com/favicon.ico" className="w-3 h-3" />}
+                                                    {!editor.provider && <Shield className="w-3 h-3 text-neon-red" />}
+                                                </div>
                                             </div>
+
                                             <div>
-                                                <div className="flex items-center gap-3">
-                                                    <h3 className="text-lg font-bold uppercase italic" style={getAuthorTextStyle(editor.username)}>
-                                                        {editor.name || editor.username}
+                                                <div className="flex items-center gap-4 mb-2">
+                                                    <h3 className="text-2xl font-display font-black uppercase italic tracking-tight" style={getAuthorTextStyle(editor.username || 'Utilisateur')}>
+                                                        {editor.name || editor.username || 'Utilisateur'}
                                                     </h3>
                                                     {editor.permissions?.includes('all') && (
-                                                        <span
-                                                            className="px-2 py-0.5 text-[8px] font-black rounded uppercase tracking-widest animate-pulse border"
-                                                            style={{
-                                                                backgroundColor: `${editorColor}20`,
-                                                                borderColor: `${editorColor}40`,
-                                                                color: editorColor
-                                                            }}
-                                                        >
-                                                            Admin
+                                                        <span className="px-3 py-1 bg-neon-red text-white text-[8px] font-black rounded-lg uppercase tracking-widest shadow-[0_0_15px_rgba(255,18,65,0.4)]">
+                                                            Master Admin
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-3 text-sm">
-                                                    <span className="font-mono opacity-80" style={{ color: editorColor }}>@{editor.username}</span>
-                                                    <span className="w-1 h-1 bg-white/20 rounded-full" />
-                                                    <span className="text-gray-500">Ajouté le {new Date(editor.created).toLocaleDateString()}</span>
+                                                <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                                                    <div className="flex items-center gap-2 text-white/60">
+                                                        <Mail className="w-3 h-3" />
+                                                        {editor.email}
+                                                    </div>
+                                                    <div className="w-1 h-1 bg-white/10 rounded-full" />
+                                                    <span>Accès : {(editor.permissions?.length || 0)} modules</span>
                                                 </div>
-                                                {editor.permissions && editor.permissions.length > 0 && (
-                                                    <div className="flex flex-wrap gap-2 mt-3">
-                                                        {editor.permissions.map(p => (
-                                                            <span key={p} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                                                                {ALL_PERMISSIONS_FLAT.find(ap => ap.id === p)?.label || p}
+                                                
+                                                <div className="flex flex-wrap gap-2 mt-6">
+                                                    {editor.permissions?.map(p => {
+                                                        const perm = ALL_PERMISSIONS_FLAT.find(ap => ap.id === p);
+                                                        return (
+                                                            <span key={p} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[9px] text-gray-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                                                                <div className="w-1 h-1 rounded-full" style={{ backgroundColor: editorColor }} />
+                                                                {perm?.label || p}
                                                             </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                                {localStorage.getItem('admin_user') === 'alex' && editor.password && (
-                                                    <div className="mt-4 p-3 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between group/pw">
-                                                        <div className="flex items-center gap-3">
-                                                            <Lock className="w-3 h-3 text-gray-500" />
-                                                            <span className="text-xs font-mono text-gray-400">
-                                                                MDP: <span className="text-white bg-white/10 px-2 py-0.5 rounded">{editor.password}</span>
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                            <motion.button
-                                                whileHover={{ color: editorColor, backgroundColor: `${editorColor}10` }}
+                                        <div className="flex items-center gap-2 mt-8 md:mt-0 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                            <button
                                                 onClick={() => handleEditClick(editor)}
-                                                className="p-3 text-gray-400 rounded-xl transition-all"
-                                                title="Modifier"
+                                                className="p-4 bg-white/5 border border-white/10 text-gray-400 rounded-2xl hover:bg-white/10 hover:text-white transition-all"
+                                                title="Modifier les permissions"
                                             >
                                                 <Pencil className="w-5 h-5" />
-                                            </motion.button>
-                                            <motion.button
-                                                whileHover={{ color: editorColor, backgroundColor: `${editorColor}10` }}
-                                                onClick={() => handleRevokeEditorSession(editor.username)}
-                                                className="p-3 text-gray-400 rounded-xl transition-all"
-                                                title="Révoquer les sessions actives"
-                                            >
-                                                <RefreshCw className="w-5 h-5" />
-                                            </motion.button>
-                                            <motion.button
-                                                whileHover={{ color: '#ef4444', backgroundColor: '#ef444410' }}
-                                                onClick={() => setDeleteTarget(editor.username)}
-                                                className="p-3 text-gray-400 rounded-xl transition-all"
-                                                title="Supprimer"
+                                            </button>
+                                            <button
+                                                onClick={() => setDeleteTarget(editor.email)}
+                                                className="p-4 bg-white/5 border border-white/10 text-gray-400 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/30 hover:text-neon-red transition-all"
+                                                title="Révoquer tous les accès"
                                             >
                                                 <Trash2 className="w-5 h-5" />
-                                            </motion.button>
+                                            </button>
                                         </div>
                                     </motion.div>
                                 );
                             })}
 
-                            {editors.length === 0 && (
-                                <div className="text-center py-20 bg-white/5 rounded-3xl border border-dashed border-white/10">
-                                    <p className="text-gray-500 italic">Aucun éditeur configuré pour le moment.</p>
-                                </div>
+                            {filteredEditors.length === 0 && (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-32 bg-white/5 rounded-[3rem] border border-dashed border-white/10">
+                                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <Users className="w-10 h-10 text-gray-600" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-2">Aucun éditeur trouvé</h3>
+                                    <p className="text-gray-500 uppercase text-[10px] font-bold tracking-[0.2em] max-w-xs mx-auto">Utilisez le bouton "Assigner Permissions" pour ajouter des membres à l'équipe.</p>
+                                </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
                 )}
+                
+                <div className="mt-12 p-8 bg-neon-red/5 border border-neon-red/10 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-6">
+                        <div className="w-14 h-14 bg-neon-red/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <AlertCircle className="w-7 h-7 text-neon-red" />
+                        </div>
+                        <div>
+                            <h4 className="text-lg font-bold text-white uppercase italic mb-1">Système de sécurité unifié</h4>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-relaxed">
+                                Tous les anciens comptes éditeurs matériels ont été révoqués. <br/>
+                                L'accès se fait désormais exclusivement via l'authentification sociale sécurisée.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            {/* Modal Ajout */}
+            {/* Modal Assignation */}
             <AnimatePresence>
                 {showAddModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-3xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]"
                         >
-                            <div className="flex justify-between items-center mb-8">
-                                <h2 className="text-2xl font-display font-black text-white uppercase italic">
-                                    {isEditing ? 'Modifier l\'éditeur' : 'Ajouter un éditeur'}
-                                </h2>
-                                <button onClick={() => setShowAddModal(false)} className="text-gray-500 hover:text-white">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
+
+                            <div className="flex justify-between items-center mb-10">
+                                <div>
+                                    <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
+                                        {isEditing ? 'Modifier les' : 'Assigner de nouvelles'} <span className="text-neon-red">Permissions</span>
+                                    </h2>
+                                    <p className="text-gray-500 font-bold uppercase text-[9px] tracking-[0.3em] mt-1">Liez un compte communautaire à un rôle staff</p>
+                                </div>
+                                <button onClick={() => setShowAddModal(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-500 transition-all">
                                     <X className="w-6 h-6" />
                                 </button>
                             </div>
 
-                            <form onSubmit={handleAddEditor} className="space-y-6">
-                                <div className="space-y-4">
+                            <form onSubmit={handleSavePermissions} className="space-y-8 overflow-y-auto pr-4 custom-scrollbar">
+                                <div className="space-y-6">
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Nom Complet</label>
-                                        <div className="relative">
-                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
-                                            <input
-                                                required
-                                                type="text"
-                                                value={newEditor.name}
-                                                onChange={e => setNewEditor({ ...newEditor, name: e.target.value })}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-neon-red"
-                                                placeholder="Ex: Jean Dupont"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Nom d'utilisateur</label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 font-bold">@</span>
-                                            <input
-                                                required
-                                                disabled={isEditing}
-                                                type="text"
-                                                value={newEditor.username}
-                                                onChange={e => setNewEditor({ ...newEditor, username: e.target.value.toLowerCase().replace(/\s+/g, '') })}
-                                                className={`w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-neon-red ${isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                placeholder="utilisateur"
-                                            />
-                                        </div>
-                                        {isEditing && <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">L'identifiant ne peut pas être modifié</p>}
-                                    </div>
-                                    {isEditing && (
-                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl mb-6">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 block">Modification Sécurisée</label>
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Mot de passe actuel</label>
-                                                    <div className="relative">
-                                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
-                                                        <input
-                                                            type="text"
-                                                            readOnly
-                                                            value={editors.find(e => e.username === newEditor.username)?.password || ''}
-                                                            className="w-full bg-black/20 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-xs text-gray-400 focus:outline-none"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-[9px] font-bold text-neon-red uppercase tracking-widest mb-2 block">Nouveau mot de passe</label>
-                                                    <div className="relative">
-                                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50" />
-                                                        <input
-                                                            type="text"
-                                                            value={newEditor.password}
-                                                            onChange={e => setNewEditor({ ...newEditor, password: e.target.value })}
-                                                            className="w-full bg-neon-red/5 border border-neon-red/20 rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-neon-red"
-                                                            placeholder="Nouveau mot de passe"
-                                                        />
-                                                    </div>
-                                                </div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">Email du compte Dropsiders</label>
+                                        <div className="flex gap-3">
+                                            <div className="relative flex-1">
+                                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
+                                                <input
+                                                    required
+                                                    type="email"
+                                                    disabled={isEditing}
+                                                    value={newEditor.email}
+                                                    onChange={e => {
+                                                        setNewEditor({ ...newEditor, email: e.target.value.toLowerCase() });
+                                                        setFoundUser(null);
+                                                    }}
+                                                    className={`w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white text-sm font-bold focus:outline-none focus:border-neon-red transition-all ${isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    placeholder="jean.dupont@gmail.com"
+                                                />
                                             </div>
+                                            {!isEditing && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => searchUser(newEditor.email)}
+                                                    disabled={isSearchingUser || !newEditor.email.includes('@')}
+                                                    className="px-6 bg-white/5 border border-white/10 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest hover:bg-white/10 disabled:opacity-30 transition-all"
+                                                >
+                                                    {isSearchingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Vérifier'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {foundUser && (
+                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 bg-neon-red/10 border border-neon-red/20 rounded-3xl flex items-center gap-6">
+                                            <div className="w-14 h-14 rounded-xl border-2 border-neon-red/30 overflow-hidden shadow-lg">
+                                                {foundUser.avatar ? (
+                                                    <img src={foundUser.avatar} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full bg-neon-red/20 flex items-center justify-center"><User className="w-6 h-6 text-neon-red" /></div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-white font-black uppercase text-sm italic">{foundUser.username || foundUser.name}</span>
+                                                    <span className="px-2 py-0.5 bg-neon-red text-white text-[8px] font-black rounded uppercase tracking-widest">Compte Trouvé</span>
+                                                </div>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none">{foundUser.email}</p>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {!foundUser && !isEditing && newEditor.email.includes('@') && !isSearchingUser && (
+                                        <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl flex items-center gap-4">
+                                            <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                                            <p className="text-[10px] text-yellow-500/80 font-bold uppercase tracking-widest leading-tight">
+                                                Attention : Aucun compte utilisateur trouvé avec cet email. <br/>
+                                                L'utilisateur devra s'être connecté au moins une fois sur le site via Google/Discord.
+                                            </p>
                                         </div>
                                     )}
 
-                                    {!isEditing && (
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Mot de passe</label>
-                                            <div className="relative">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
-                                                <input
-                                                    required
-                                                    type="password"
-                                                    value={newEditor.password}
-                                                    onChange={e => setNewEditor({ ...newEditor, password: e.target.value })}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-neon-red"
-                                                    placeholder="********"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div className="pt-4 border-t border-white/5">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6 block">Permissions par Catégorie</label>
-                                        <div className="space-y-8">
+                                    <div className="pt-6 border-t border-white/5">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-6 block">Sélection des Modules Accessibles</label>
+                                        <div className="space-y-10">
                                             {PERMISSION_CATEGORIES.map((category) => (
                                                 <div key={category.id} className="space-y-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="h-px flex-1 bg-white/10" />
-                                                        <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none">{category.label}</span>
-                                                        <div className="h-px flex-1 bg-white/10" />
+                                                        <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none whitespace-nowrap">{category.label}</span>
+                                                        <div className="h-px w-full bg-white/10" />
                                                     </div>
-                                                    <div className="grid gap-3">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                         {category.permissions.map((perm) => (
-                                                            <label key={perm.id} className="flex items-start gap-3 p-4 bg-white/5 border border-white/5 rounded-2xl cursor-pointer hover:bg-white/10 transition-all group">
+                                                            <label key={perm.id} className={`flex items-start gap-4 p-5 rounded-2xl cursor-pointer hover:bg-white/10 transition-all group border ${newEditor.permissions.includes(perm.id) ? 'bg-neon-red/10 border-neon-red/30' : 'bg-white/5 border-white/5'}`}>
                                                                 <div className="mt-1">
                                                                     <input
                                                                         type="checkbox"
@@ -517,13 +527,13 @@ export function AdminEditors() {
                                                                         }}
                                                                         className="sr-only"
                                                                     />
-                                                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${newEditor.permissions.includes(perm.id) ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,24,24,0.3)]' : 'border-white/10'}`}>
-                                                                        {newEditor.permissions.includes(perm.id) && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><Save className="w-3.5 h-3.5 text-white" /></motion.div>}
+                                                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${newEditor.permissions.includes(perm.id) ? 'bg-neon-red border-neon-red shadow-[0_0_15px_rgba(255,18,65,0.4)]' : 'border-white/10'}`}>
+                                                                        {newEditor.permissions.includes(perm.id) && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 className="w-3.5 h-3.5 text-white" /></motion.div>}
                                                                     </div>
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-sm font-bold text-white uppercase italic tracking-tight">{perm.label}</p>
-                                                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest leading-tight mt-1">{perm.description}</p>
+                                                                    <p className="text-xs font-black text-white uppercase italic tracking-tight mb-1">{perm.label}</p>
+                                                                    <p className="text-[9px] text-gray-500 uppercase tracking-widest leading-tight font-medium">{perm.description}</p>
                                                                 </div>
                                                             </label>
                                                         ))}
@@ -534,15 +544,13 @@ export function AdminEditors() {
                                     </div>
                                 </div>
 
-                                {error && <p className="text-red-500 text-sm font-bold bg-red-500/10 p-3 rounded-lg border border-red-500/20">{error}</p>}
-
                                 <button
-                                    disabled={isSaving}
+                                    disabled={isSaving || !newEditor.email}
                                     type="submit"
-                                    className="w-full py-4 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-neon-red/80 disabled:opacity-50 transition-all shadow-lg shadow-neon-red/20"
+                                    className="w-full py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-neon-red/80 disabled:opacity-50 transition-all shadow-2xl shadow-neon-red/30 active:scale-95 text-xs"
                                 >
                                     {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                                    {isEditing ? 'Mettre à jour' : 'Créer le compte'}
+                                    {isEditing ? 'Mettre à jour les accès' : 'Confirmer l\'accès Staff'}
                                 </button>
                             </form>
                         </motion.div>
@@ -552,9 +560,9 @@ export function AdminEditors() {
 
             <ConfirmationModal
                 isOpen={deleteTarget !== null}
-                title="Supprimer l'éditeur"
-                message={`Êtes-vous sûr de vouloir supprimer l'éditeur ${deleteTarget} ?`}
-                confirmLabel="Supprimer"
+                title="Révoquer l'accès"
+                message={`Êtes-vous sûr de vouloir révoquer tous les accès de ${deleteTarget} ? L'utilisateur redeviendra un simple membre.`}
+                confirmLabel="Révoquer"
                 cancelLabel="Annuler"
                 onConfirm={() => {
                     if (deleteTarget) handleDeleteEditor(deleteTarget);
@@ -572,21 +580,21 @@ export function AdminEditors() {
                         exit={{ opacity: 0, y: 20, scale: 0.9, x: '-50%' }}
                         className="fixed bottom-12 left-1/2 z-[200]"
                     >
-                        <div className={`flex items-center gap-4 px-6 py-4 rounded-[2rem] shadow-2xl backdrop-blur-3xl border ${toast.type === 'success'
+                        <div className={`flex items-center gap-4 px-8 py-5 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl border ${toast.type === 'success'
                             ? 'bg-green-500/10 border-green-500/20 text-green-400'
                             : 'bg-red-500/10 border-red-500/20 text-red-500'
                             }`}>
                             <div className={`p-2 rounded-full ${toast.type === 'success' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
                                 {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                             </div>
-                            <span className="text-xs font-black uppercase tracking-widest whitespace-nowrap text-white">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap text-white">
                                 {toast.message}
                             </span>
                             <button
                                 onClick={() => setToast(prev => ({ ...prev, show: false }))}
-                                className="ml-2 p-1 hover:bg-white/10 rounded-full transition-colors"
+                                className="ml-4 p-1 hover:bg-white/10 rounded-full transition-colors"
                             >
-                                <X className="w-4 h-4 opacity-50 hover:opacity-100 text-white" />
+                                <X className="w-5 h-5 opacity-50 hover:opacity-100 text-white" />
                             </button>
                         </div>
                     </motion.div>
@@ -595,3 +603,9 @@ export function AdminEditors() {
         </div>
     );
 }
+
+const Users = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+);

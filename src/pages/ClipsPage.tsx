@@ -10,7 +10,7 @@ export function ClipsPage() {
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
-        setIsAdmin(localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('modo_auth') === 'true');
+        setIsAdmin(localStorage.getItem('admin_auth_v2') === 'true' || localStorage.getItem('modo_auth') === 'true');
         const fetchClips = async () => {
             try {
                 const res = await fetch('/api/clips');

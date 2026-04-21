@@ -61,7 +61,7 @@ export function Navbar() {
     useEffect(() => {
         if (isMobile) return;
         const checkAuth = () => {
-            const auth = localStorage.getItem('admin_auth');
+            const auth = localStorage.getItem('admin_auth_v2');
             setIsAdmin(auth === 'true');
         };
 
