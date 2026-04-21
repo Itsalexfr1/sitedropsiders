@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Video, Calendar, X, Users, ShoppingBag, Shield, Info, MoreHorizontal, Home, User, Plane, Newspaper } from 'lucide-react';
+import { Trophy, Video, Calendar, X, Users, Shield, Info, MoreHorizontal, Home, User, Plane, Newspaper } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
@@ -68,7 +68,12 @@ export function MobileNavbar() {
         { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
         { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
         { icon: Users, label: navLabels.team || t('nav.team'), path: '/team', color: 'text-neon-yellow' },
-        { icon: ShoppingBag, label: navLabels.shop || t('nav.shop'), path: '/shop', color: 'text-neon-red' },
+        { 
+            icon: () => <span className="text-[7px] font-black leading-none">SHOP</span>, 
+            label: navLabels.shop || t('nav.shop'), 
+            path: '/shop', 
+            color: 'text-neon-red' 
+        },
         { 
             icon: User, 
             label: isLoggedIn ? (user?.username || 'Compte') : 'Compte', 

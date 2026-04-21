@@ -7,7 +7,7 @@ import {
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
-    Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
+    Languages, Instagram, MapPin, Square, Sparkles,
     Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Camera, Check, Coins, Shield,
     Scan, Wand2, Globe, Volume2, VolumeX, Vote, Disc, Lock
 } from 'lucide-react';
