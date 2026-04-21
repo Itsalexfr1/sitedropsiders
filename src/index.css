@@ -206,19 +206,20 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* --- DYNAMIC HOUR THEMES --- */
 /* The dynamic color overrides have been disabled to preserve the branding red color. */
 
-/* Deep Night (2 AM - 6 AM): Purple & Midnight Blue */
+/* Deep Night (2 AM - 6 AM): Keep it Dark Black with Red Glows */
 body.theme-deep-night {
-    --color-dark-bg: #050510;
+    --bg-primary: #050505;
+    --neon-red: #ff0000;
 }
 
-/* Sunrise (6 AM - 10 AM): Gold & Soft Cyan */
+/* Sunrise (6 AM - 10 AM): Dark Black */
 body.theme-sunrise {
-    --color-dark-bg: #0f0a05;
+    --bg-primary: #080808;
 }
 
-/* Sunset (6 PM - 10 PM): Pink & Orange */
+/* Sunset (6 PM - 10 PM): Dark Black */
 body.theme-sunset {
-    --color-dark-bg: #10050a;
+    --bg-primary: #050505;
 }
 
 body {

@@ -165,8 +165,8 @@ export function Profile() {
             )}>
             {/* Background Effects */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-neon-red/5 rounded-full blur-[150px] animate-pulse" />
-                <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-neon-cyan/5 rounded-full blur-[150px] animate-pulse [animation-delay:2s]" />
+                <div className="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-neon-red/10 rounded-full blur-[150px] animate-pulse" />
+                <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-neon-red/5 rounded-full blur-[150px] animate-pulse [animation-delay:2s]" />
             </div>
 
             <div className="max-w-6xl mx-auto relative z-10">
