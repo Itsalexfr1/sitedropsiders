@@ -550,23 +550,49 @@ export function NewsCreate() {
 
             if (sections.length > 0) {
                 sections.forEach(section => {
-                    const html = section.innerHTML.trim();
                     if (section.classList.contains('interview-qa-block')) {
-                        const qaMatches = Array.from(html.matchAll(/(?:<strong[^>]*|<span[^>]*class=["']interview-q["'][^>]*)>(.*?)<\/(?:strong|span)>\s*(.*?)(?:<\/p|$)/gi));
-                        if (qaMatches.length >= 2) {
+                        // Parse new div-based structure
+                        const dropsidersDiv = section.querySelector('.dropsiders-q');
+                        const artisteDiv = section.querySelector('.artiste-q');
+                        const artisteResponse = section.querySelector('.artiste-response');
+                        const artistePrefixEl = section.querySelector('.artiste-prefix');
+
+                        // Extract question text: full text of dropsiders-q minus the prefix span
+                        let questionText = '';
+                        if (dropsidersDiv) {
+                            const prefixEl = dropsidersDiv.querySelector('.q-prefix');
+                            if (prefixEl) prefixEl.remove();
+                            questionText = dropsidersDiv.textContent?.trim() || '';
+                        }
+
+                        // Extract answer text from artiste-response span
+                        const answerText = artisteResponse?.textContent?.trim() || '';
+
+                        // Get artist name from data-attr or prefix span
+                        const artistName = section.getAttribute('data-artist-name') ||
+                            artistePrefixEl?.textContent?.replace(/\s*:\s*$/, '').trim() || '';
+                        const artistColor = section.getAttribute('data-artist-color') || '#ff1241';
+
+                        if (questionText || answerText) {
                             foundQuestions.push({
                                 id: Math.random().toString(36).substr(2, 9),
-                                type: 'qa', artistName: section.getAttribute('data-artist-name') || qaMatches[1][1].replace(/[:]/g, '').trim(),
-                                artistColor: section.getAttribute('data-artist-color') || '#ff1241',
-                                question: qaMatches[0][2].trim(), answer: qaMatches[1][2].trim()
+                                type: 'qa',
+                                artistName,
+                                artistColor,
+                                question: questionText,
+                                answer: answerText,
                             });
                         }
                     } else if (section.classList.contains('interview-image-block')) {
                         foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'image', mediaUrl: section.getAttribute('data-media-url') || section.querySelector('img')?.src || '' });
                     } else if (section.classList.contains('interview-video-block')) {
-                        foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'video', mediaUrl: section.getAttribute('data-media-url') || section.querySelector('iframe')?.src?.split('/embed/')[1] || '' });
-                    } else if (!html.includes('artist-socials-premium')) {
-                        foundWidgets.push({ id: Math.random().toString(36).substring(2, 11), content: html });
+                        foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'video', mediaUrl: section.getAttribute('data-media-url') || section.querySelector('iframe')?.src?.split('/embed/')[1]?.split('?')[0] || '' });
+                    } else if (section.classList.contains('interview-spotify-block')) {
+                        foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'spotify', mediaUrl: section.getAttribute('data-media-url') || '' });
+                    } else if (section.classList.contains('interview-beatport-block')) {
+                        foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'beatport', mediaUrl: section.getAttribute('data-media-url') || '' });
+                    } else if (!section.innerHTML.includes('artist-socials-premium')) {
+                        foundWidgets.push({ id: Math.random().toString(36).substring(2, 11), content: section.innerHTML.trim() });
                     }
                 });
             }
