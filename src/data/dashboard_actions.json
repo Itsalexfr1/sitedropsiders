@@ -12,16 +12,6 @@
     "columns": 1
   },
   {
-    "title": "Générateur Fiches",
-    "description": "Interview Visual Cards",
-    "icon": "Columns",
-    "category": "STUDIO",
-    "link": "interview-generator",
-    "permission": "news",
-    "baseColor": "#8951db",
-    "columns": 1
-  },
-  {
     "title": "Social Studio",
     "description": "Outils Réseaux Sociaux",
     "icon": "Instagram",
@@ -29,6 +19,16 @@
     "link": "social-studio",
     "permission": "news",
     "baseColor": "#fb00ff",
+    "columns": 1
+  },
+  {
+    "title": "Générateur Fiches",
+    "description": "Interview Visual Cards",
+    "icon": "Columns",
+    "category": "STUDIO",
+    "link": "interview-generator",
+    "permission": "news",
+    "baseColor": "#8951db",
     "columns": 1
   },
   {
@@ -174,13 +174,15 @@
     "columns": 1
   },
   {
-    "title": "Interview Studio",
-    "description": "Studio & Questions",
-    "icon": "MessageSquare",
-    "category": "STUDIO",
-    "link": "interview-studio",
-    "permission": "news",
-    "baseColor": "#ff0000",
+    "title": "Comptes Membres",
+    "description": "Registre Communauté",
+    "icon": "UserPlus",
+    "category": "TEAM",
+    "link": "#COMMUNITY_MEMBERS",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-neon-red/5",
+    "permission": "all",
+    "baseColor": "red",
     "columns": 1
   },
   {
