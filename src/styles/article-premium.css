@@ -389,11 +389,16 @@
 
 
 /* --- INTERVIEW QUESTIONS & RESPONSES --- */
-.article-body-premium .interview-qa-block {
-    margin: 2rem auto;
-    padding: 0;
+.article-body-premium .interview-qa-block,
+.article-body-premium .interview-spotify-block,
+.article-body-premium .interview-beatport-block,
+.article-body-premium .interview-image-block,
+.article-body-premium .interview-video-block {
+    margin: 0 auto !important;
+    padding: 6rem 0 !important; /* ESPACE ÉNORME FORCÉ */
     width: 100%;
     text-align: center;
+    display: block;
 }
 
 .article-body-premium .interview-q {
@@ -401,12 +406,12 @@
     width: 100%;
     font-family: var(--font-display, 'Orbitron', sans-serif);
     font-weight: 900;
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     text-transform: uppercase !important;
     color: #ffffff !important;
     text-align: center !important;
-    margin: 4.5rem auto !important; /* L'ESPACE MAGIQUE DE LA V1 - augmenté encore plus */
-    letter-spacing: 0.05em;
+    padding: 5rem 0 !important; /* ESPACE ÉNORME ENTRE Q et A AUSSI */
+    letter-spacing: 0.06em;
     line-height: 1.6;
 }
 
