@@ -42,6 +42,14 @@ export function Profile() {
         setIsEditingName(false);
     };
 
+    const handleDeleteMix = (id: string) => {
+        if (window.confirm("Es-tu sûr de vouloir supprimer ce contenu du Studio Dropsiders et du Cloud ?")) {
+            setUserMixes(prev => prev.filter(m => m.id !== id));
+            showNotification('Contenu supprimé avec succès.', 'success');
+            // Here we would call the API to delete from R2
+        }
+    };
+
     const handleAvatarSuccess = (url: string | string[]) => {
         const avatarUrl = Array.isArray(url) ? url[0] : url;
         updateUser({ avatar: avatarUrl });
@@ -321,8 +329,8 @@ export function Profile() {
                                                     {userMixes.map((mix) => (
                                                         <div key={mix.id} className="group p-4 bg-white/5 border border-white/5 hover:border-neon-purple/30 rounded-2xl flex items-center justify-between transition-all hover:bg-neon-purple/5">
                                                             <div className="flex items-center gap-4">
-                                                                <button className="w-10 h-10 bg-neon-purple/20 text-neon-purple rounded-xl flex items-center justify-center">
-                                                                    <PlayCircle className="w-5 h-5" />
+                                                                <button className="w-10 h-10 bg-neon-purple/20 text-neon-purple rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                                    <PlayCircle className="w-5 h-5 shadow-[0_0_10px_rgba(191,0,255,0.5)]" />
                                                                 </button>
                                                                 <div>
                                                                     <p className="text-[10px] font-black text-neon-purple uppercase tracking-widest">{mix.type}</p>
@@ -330,7 +338,16 @@ export function Profile() {
                                                                     <p className="text-[8px] text-gray-500 font-bold uppercase">{mix.genre ? `${mix.genre} · ` : ''}{mix.duration}</p>
                                                                 </div>
                                                             </div>
-                                                            <div className="text-[8px] text-gray-600 font-bold uppercase">{mix.uploadDate}</div>
+                                                            <div className="flex items-center gap-2">
+                                                                <button 
+                                                                    onClick={() => handleDeleteMix(mix.id)}
+                                                                    className="w-10 h-10 border border-red-500/10 bg-red-500/5 hover:bg-red-500/20 hover:border-red-500/30 rounded-xl flex items-center justify-center text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                                                                    title="Supprimer définitivement"
+                                                                >
+                                                                    <X className="w-4 h-4" />
+                                                                </button>
+                                                                <div className="text-[8px] text-gray-600 font-bold uppercase hidden sm:block">{mix.uploadDate}</div>
+                                                            </div>
                                                         </div>
                                                     ))}
                                                 </div>
