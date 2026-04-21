@@ -995,7 +995,7 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {activeTab === 'CONCOURS' && isContestActive && (
+                        {activeTab === 'CONCOURS' && (
                             <motion.div
                                 key="concours"
                                 initial={{ opacity: 0, scale: 0.95 }}

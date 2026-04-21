@@ -577,23 +577,21 @@ export function QuizSection() {
                                                         { id: 'QCM', label: 'QCM' },
                                                         { id: 'BLIND_TEST', label: `SON (${quizCounts.BLIND_TEST}/30)` },
                                                         { id: 'IMAGE', label: `PHOTO (${quizCounts.IMAGE}/30)` }
-                                                    ].map(opt => {
-                                                        const isBlindTestSoon = quizCounts.BLIND_TEST < 30;
-                                                        const isImageSoon = quizCounts.IMAGE < 30;
-                                                        const isSoon = (opt.id === 'BLIND_TEST' && isBlindTestSoon) || (opt.id === 'IMAGE' && isImageSoon);
-                                                        const isDisabled = isSoon;
+                                                    ].filter(opt => {
+                                                        if (opt.id === 'BLIND_TEST' && quizCounts.BLIND_TEST < 30) return false;
+                                                        if (opt.id === 'IMAGE' && quizCounts.IMAGE < 30) return false;
+                                                        return true;
+                                                    }).map(opt => {
+                                                        const isDisabled = false; // Plus besoin de disabled car filtré
 
                                                         return (
                                                             <button
                                                                 key={opt.id}
                                                                 disabled={isDisabled}
                                                                 onClick={() => setSelectedMode(opt.id as any)}
-                                                                className={`py-3 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : isDisabled ? 'bg-white/[0.02] text-gray-500 border-white/5 cursor-not-allowed' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'}`}
+                                                                className={`py-3 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'}`}
                                                             >
-                                                                <span className={isDisabled ? 'opacity-40' : ''}>{opt.label}</span>
-                                                                {isDisabled && opt.id !== 'ALL' && (
-                                                                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-gray-800 text-white rounded-full text-[6px]">SOON</div>
-                                                                )}
+                                                                <span className="">{opt.label}</span>
                                                             </button>
                                                         );
                                                     })}
