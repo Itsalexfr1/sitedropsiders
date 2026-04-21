@@ -64,9 +64,13 @@ export function AdminMessages() {
             const res = await apiFetch('/api/editors', { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
-                setEditors(data.editors || []);
+                // Standardize parsing across admin pages (robust handling of array vs object responses)
+                const editorArr = Array.isArray(data) ? data : (data.editors || data.content || []);
+                setEditors(editorArr);
             }
-        } catch(e) {}
+        } catch(e) {
+            console.error("Error fetching editors:", e);
+        }
     };
 
     const [selected, setSelected] = useState<ContactMessage | null>(null);
