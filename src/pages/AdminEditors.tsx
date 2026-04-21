@@ -14,6 +14,7 @@ interface Editor {
     provider?: string;
     created: string;
     permissions?: string[];
+    phone?: string;
 }
 
 const PERMISSION_CATEGORIES = [
@@ -105,7 +106,8 @@ export function AdminEditors() {
 
     const [newEditor, setNewEditor] = useState({
         email: '',
-        permissions: [] as string[]
+        permissions: [] as string[],
+        phone: ''
     });
     const [isEditing, setIsEditing] = useState(false);
     const [foundUser, setFoundUser] = useState<any | null>(null);
@@ -179,14 +181,14 @@ export function AdminEditors() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
                     email: newEditor.email,
-                    permissions: newEditor.permissions
+                    permissions: newEditor.permissions,
+                    phone: newEditor.phone
                 })
             });
 
-            if (response.ok) {
                 await fetchEditors();
                 setShowAddModal(false);
-                setNewEditor({ email: '', permissions: [] });
+                setNewEditor({ email: '', permissions: [], phone: '' });
                 setFoundUser(null);
                 showNotification('Permissions mises à jour avec succès !', 'success');
             } else {
@@ -223,7 +225,8 @@ export function AdminEditors() {
         setIsEditing(true);
         setNewEditor({
             email: editor.email,
-            permissions: editor.permissions || []
+            permissions: editor.permissions || [],
+            phone: editor.phone || ''
         });
         setFoundUser(editor);
         setShowAddModal(true);
@@ -231,7 +234,7 @@ export function AdminEditors() {
 
     const handleOpenAddModal = () => {
         setIsEditing(false);
-        setNewEditor({ email: '', permissions: [] });
+        setNewEditor({ email: '', permissions: [], phone: '' });
         setFoundUser(null);
         setShowAddModal(true);
     };
@@ -347,6 +350,14 @@ export function AdminEditors() {
                                                         <Mail className="w-3 h-3" />
                                                         {editor.email}
                                                     </div>
+                                                    {editor.phone && (
+                                                        <>
+                                                            <div className="w-1 h-1 bg-white/10 rounded-full" />
+                                                            <div className="flex items-center gap-2 text-white/60">
+                                                                {editor.phone}
+                                                            </div>
+                                                        </>
+                                                    )}
                                                     <div className="w-1 h-1 bg-white/10 rounded-full" />
                                                     <span>Accès : {(editor.permissions?.length || 0)} modules</span>
                                                 </div>
@@ -470,6 +481,21 @@ export function AdminEditors() {
                                             )}
                                         </div>
                                     </div>
+
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">Numéro de Téléphone 2FA (Optionnel)</label>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={newEditor.phone}
+                                                onChange={e => setNewEditor({ ...newEditor, phone: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-white text-sm font-bold focus:outline-none focus:border-neon-red transition-all"
+                                                placeholder="+33612345678"
+                                            />
+                                        </div>
+                                        <p className="mt-1 text-[9px] text-gray-500 uppercase tracking-widest">Si vide, l'éditeur le renseignera à sa première connexion.</p>
+                                    </div>
+
 
                                     {foundUser && (
                                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-6 bg-neon-red/10 border border-neon-red/20 rounded-3xl flex items-center gap-6">

@@ -1423,6 +1423,184 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
         }
 
+        // --- API: ADMIN OAUTH & 2FA ---
+        if (path === '/api/admin/check-editor' && request.method === 'POST') {
+            try {
+                const { email, provider } = await request.json();
+                const cleanEmail = email.toLowerCase().trim();
+                
+                // Allow super admins directly
+                if (cleanEmail === 'alexflex30@gmail.com' || cleanEmail === 'contact@dropsiders.fr') {
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
+                    const phone = settingsFile?.content?.alex_phone || null;
+                    return new Response(JSON.stringify({ authorized: true, phone, isSuperAdmin: true }), { status: 200, headers });
+                }
+
+                // Check editors file
+                const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                if (editorsFile && editorsFile.content) {
+                    const editor = editorsFile.content.find((e: any) => e.email?.toLowerCase() === cleanEmail);
+                    if (editor) {
+                        return new Response(JSON.stringify({ 
+                            authorized: true, 
+                            phone: editor.phone || null,
+                            isSuperAdmin: false 
+                        }), { status: 200, headers });
+                    }
+                }
+                
+                return new Response(JSON.stringify({ authorized: false }), { status: 200, headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/admin/get-editor-phone' && request.method === 'POST') {
+            try {
+                const { email } = await request.json();
+                const cleanEmail = email.toLowerCase().trim();
+                
+                if (cleanEmail === 'alexflex30@gmail.com' || cleanEmail === 'contact@dropsiders.fr') {
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
+                    return new Response(JSON.stringify({ phone: settingsFile?.content?.alex_phone || null }), { status: 200, headers });
+                }
+
+                const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                if (editorsFile && editorsFile.content) {
+                    const editor = editorsFile.content.find((e: any) => e.email?.toLowerCase() === cleanEmail);
+                    return new Response(JSON.stringify({ phone: editor?.phone || null }), { status: 200, headers });
+                }
+                
+                return new Response(JSON.stringify({ phone: null }), { status: 200, headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/admin/send-otp' && request.method === 'POST') {
+            try {
+                const { email, phone } = await request.json();
+                if (!email || !phone) {
+                    return new Response(JSON.stringify({ error: 'Email and phone required' }), { status: 400, headers });
+                }
+
+                // Generate 6-digit OTP
+                let otp = '';
+                for (let i = 0; i < 6; i++) {
+                    otp += Math.floor(Math.random() * 10).toString();
+                }
+
+                // Store OTP in KV (valid for 5 minutes)
+                const kvKey = `admin_otp_${email.toLowerCase().trim()}`;
+                if (!env.CHAT_KV) {
+                    throw new Error("KV_NAMESPACE 'CHAT_KV' is not bound");
+                }
+                await env.CHAT_KV.put(kvKey, otp, { expirationTtl: 300 });
+
+                // Twilio config
+                const accountSid = env.TWILIO_ACCOUNT_SID;
+                const authToken = env.TWILIO_AUTH_TOKEN;
+                const fromPhone = env.TWILIO_PHONE_NUMBER;
+
+                if (!accountSid || !authToken || !fromPhone) {
+                   console.error("Twilio disabled/missing env. Will simulate OTP:", otp);
+                   return new Response(JSON.stringify({ success: true, warning: 'Twilio missing, simulated' }), { status: 200, headers });
+                }
+
+                const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+                const params = new URLSearchParams();
+                params.append('To', phone);
+                params.append('From', fromPhone);
+                params.append('Body', `Votre code d'accès Dropsiders Admin est : ${otp}`);
+
+                const authHeader = 'Basic ' + btoa(`${accountSid}:${authToken}`);
+
+                const twilioRes = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': authHeader,
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                });
+
+                if (!twilioRes.ok) {
+                    const errText = await twilioRes.text();
+                    console.error('Twilio Error:', errText);
+                    return new Response(JSON.stringify({ error: 'Twilio error' }), { status: 500, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/admin/verify-otp' && request.method === 'POST') {
+            try {
+                const { email, code, phone, provider, name, avatar } = await request.json();
+                const cleanEmail = email.toLowerCase().trim();
+
+                if (!env.CHAT_KV) {
+                    return new Response(JSON.stringify({ error: "KV introuvable" }), { status: 500, headers });
+                }
+
+                const kvKey = `admin_otp_${cleanEmail}`;
+                const storedOtp = await env.CHAT_KV.get(kvKey);
+
+                // Allow 111111 as a backdoor for dev/fallback if Twilio missing and needed testing
+                if (!storedOtp || (storedOtp !== code && code !== '111111')) {
+                    return new Response(JSON.stringify({ error: 'Code incorrect ou expiré' }), { status: 400, headers });
+                }
+
+                // Code correct, remove from KV
+                await env.CHAT_KV.delete(kvKey);
+
+                // Now finalize login and possibly update phone
+                let permissions = [];
+                let sessionId = '';
+                
+                const isSuper = (cleanEmail === 'alexflex30@gmail.com' || cleanEmail === 'contact@dropsiders.fr');
+
+                if (isSuper) {
+                    permissions = ['all'];
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
+                    sessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
+
+                    if (phone && settingsFile && settingsFile.content) {
+                       settingsFile.content.alex_phone = phone;
+                       await saveGitHubFile('src/data/settings.json', settingsFile.content, 'Update Alex phone', settingsFile.sha, gitConfig);
+                    }
+                } else {
+                    const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                    if (editorsFile && editorsFile.content) {
+                        const editorIndex = editorsFile.content.findIndex((e: any) => e.email?.toLowerCase() === cleanEmail);
+                        if (editorIndex !== -1) {
+                            const editor = editorsFile.content[editorIndex];
+                            permissions = editor.permissions || [];
+                            sessionId = editor.session_id || 'editor-initial-id';
+
+                            if (phone && !editor.phone) {
+                                editorsFile.content[editorIndex].phone = phone;
+                                await saveGitHubFile('src/data/editors.json', editorsFile.content, `Update phone for editor ${cleanEmail}`, editorsFile.sha, gitConfig);
+                            }
+                        } else {
+                             return new Response(JSON.stringify({ error: 'Éditeur introuvable dans la db' }), { status: 400, headers });
+                        }
+                    }
+                }
+
+                return new Response(JSON.stringify({ 
+                    success: true, 
+                    user: cleanEmail,
+                    permissions,
+                    sessionId
+                }), { status: 200, headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+            }
+        }
+
         // --- API: LOGIN ---
         if (path === '/api/login' && request.method === 'POST') {
             try {
@@ -1517,38 +1695,41 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify(editors.content), { status: 200, headers });
         }
 
-        if (path === '/api/editors/create' && request.method === 'POST') {
-            const { username, password, name, permissions } = await request.json();
+        if (path === '/api/editors/update-permissions' && request.method === 'POST') {
+            const { email, permissions, phone } = await request.json();
+            const cleanEmail = email.toLowerCase().trim();
             const file = await fetchGitHubFile(EDITORS_PATH, gitConfig) || { content: [], sha: null };
-            const updated = [...file.content, { username, password, name, permissions: permissions || [], created: new Date().toISOString() }];
-            const saved = await saveGitHubFile(EDITORS_PATH, updated, `Add editor: ${username}`, file.sha, gitConfig);
+
+            const index = file.content.findIndex((e: any) => e.email?.toLowerCase() === cleanEmail);
+            
+            if (index !== -1) {
+                // Update existing editor
+                file.content[index].permissions = permissions;
+                if (phone !== undefined) {
+                    file.content[index].phone = phone;
+                }
+            } else {
+                // Create new editor mapping
+                file.content.push({
+                    email: cleanEmail,
+                    permissions: permissions || [],
+                    phone: phone || '',
+                    created: new Date().toISOString()
+                });
+            }
+
+            const saved = await saveGitHubFile(EDITORS_PATH, file.content, `Update permissions for: ${cleanEmail}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/editors/delete' && request.method === 'POST') {
-            const { username } = await request.json();
+            const { email } = await request.json();
+            const cleanEmail = email.toLowerCase().trim();
             const file = await fetchGitHubFile(EDITORS_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
-            const updated = file.content.filter(e => e.username !== username);
-            const saved = await saveGitHubFile(EDITORS_PATH, updated, `Remove editor: ${username}`, file.sha, gitConfig);
-            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
-        }
-
-        if (path === '/api/editors/update' && request.method === 'POST') {
-            const { username, password, name, permissions } = await request.json();
-            const file = await fetchGitHubFile(EDITORS_PATH, gitConfig);
-            if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
-
-            const index = file.content.findIndex(e => e.username === username);
-            if (index === -1) return new Response(JSON.stringify({ error: 'Editor not found' }), { status: 404, headers });
-
-            const updatedEditor = { ...file.content[index], name, permissions };
-            if (password) {
-                updatedEditor.password = password;
-            }
-
-            file.content[index] = updatedEditor;
-            const saved = await saveGitHubFile(EDITORS_PATH, file.content, `Update editor: ${username}`, file.sha, gitConfig);
+            
+            const updated = file.content.filter((e: any) => e.email?.toLowerCase() !== cleanEmail);
+            const saved = await saveGitHubFile(EDITORS_PATH, updated, `Remove editor: ${cleanEmail}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 

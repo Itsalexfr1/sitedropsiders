@@ -38,9 +38,7 @@ import { SocialGiveawayModal } from '../components/admin/modals/SocialGiveawayMo
 import { InterviewRandomizer } from '../components/admin/InterviewRandomizer';
 import { ScheduleVisualGenerator } from '../components/admin/modals/ScheduleVisualGenerator';
 import { LiveInteractivityModal } from '../components/admin/modals/LiveInteractivityModal';
-
-
-
+import { AdminLoginScreen } from '../components/admin/AdminLoginScreen';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -1727,48 +1725,13 @@ export function AdminDashboard() {
     ];
 
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-
-        const loginUsername = username.toLowerCase().trim();
-
-        try {
-            // Tentative de connexion via l'API (Production / Cloudflare)
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: loginUsername, password })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    setIsAuthenticated(true);
-                    localStorage.setItem('admin_auth_v2', 'true');
-                    localStorage.setItem('admin_password', password);
-                    localStorage.setItem('admin_user', data.user || loginUsername);
-                    localStorage.setItem('admin_permissions', JSON.stringify(data.permissions || []));
-                    localStorage.setItem('admin_session_id', data.sessionId || '');
-                    fetchActions();
-                    return;
-                }
-            }
-
-            // Si l'API répond avec une erreur explicite
-            if (response.status === 401) {
-                setError('Identifiants incorrects');
-                return;
-            }
-
-            throw new Error('API unreachable'); // Force fallback if not 401/200
-
-        } catch (err: any) {
-            console.error("Login attempt failed:", err);
-            setError('Erreur de connexion au serveur. Vérifiez votre mot de passe.');
-        }
+    const handleLoginSuccess = (user: string, permissions: string[], sessionId: string) => {
+        setIsAuthenticated(true);
+        setUsername(user);
+        fetchActions();
+        fetchSettings();
+        fetchR2Stats();
     };
-
 
     const handleLogout = () => {
         setIsAuthenticated(false);
@@ -1802,93 +1765,7 @@ export function AdminDashboard() {
     };
 
     if (!isAuthenticated) {
-        return (
-            <div className="min-h-screen py-32">
-                <div className="max-w-full mx-auto px-4 md:px-12 flex items-center justify-center">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="w-full max-w-md bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur-xl"
-                    >
-                        <div className="flex justify-center mb-8">
-                            <div className="p-4 bg-neon-red/10 rounded-full border border-neon-red/20">
-                                <Lock className="w-8 h-8 text-neon-red" />
-                            </div>
-                        </div>
-
-                        <h2 className="text-2xl font-display font-black text-white text-center mb-2 uppercase italic">
-                            Accès Restreint
-                        </h2>
-                        <p className="text-center text-gray-400 text-sm mb-8">
-                            Veuillez vous identifier pour accéder au tableau de bord.
-                        </p>
-
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <User className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="text"
-                                    name="username"
-                                    autoComplete="username"
-                                    placeholder="Identifiant"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red transition-all"
-                                />
-                            </div>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    autoComplete="current-password"
-                                    placeholder="Mot de passe"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red transition-all"
-                                />
-                            </div>
-
-                            {error && (
-                                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                                    <p className="text-red-400 text-xs text-center font-bold">{error}</p>
-                                </div>
-                            )}
-
-                            <button
-                                type="submit"
-                                className="w-full py-3 bg-neon-red hover:bg-neon-red/80 text-white font-bold uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center gap-2 group"
-                            >
-                                Se connecter
-                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        </form>
-
-                        <div className="mt-8 pt-6 border-t border-white/5">
-                            <p className="text-[9px] text-gray-400 uppercase tracking-[0.2em] text-center leading-relaxed">
-                                Espace d'administration réservé à l'équipe Dropsiders.
-                                Ce portail permet la gestion des actualités, des reportages festivals,
-                                de la billetterie et des statistiques d'audience du site.
-                            </p>
-                        </div>
-                    </motion.div>
-
-                    <div className="mt-6 text-center">
-                        <Link
-                            to="/"
-                            className="inline-flex items-center gap-2 text-gray-500 hover:text-white text-xs uppercase tracking-widest font-bold transition-all group"
-                        >
-                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                            Retour au site
-                        </Link>
-                    </div>
-                </div>
-            </div>
-        );
+        return <AdminLoginScreen onAuthenticated={handleLoginSuccess} />;
     }
 
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
