@@ -110,7 +110,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const login = (username: string, email: string) => {
+    const login = async (username: string, email: string) => {
         const newUser: UserProfile = {
             id: crypto.randomUUID(),
             username,
@@ -125,9 +125,20 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         };
         setUser(newUser);
         saveToRegisteredUsers(newUser);
+
+        // Sync with central registry
+        try {
+            await fetch('/api/users/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newUser)
+            });
+        } catch (e) {
+            console.error('Sync failed', e);
+        }
     };
 
-    const loginSocial = (data: Partial<UserProfile>) => {
+    const loginSocial = async (data: Partial<UserProfile>) => {
         // Find existing user if available
         const existing: UserProfile[] = JSON.parse(localStorage.getItem('dropsiders_registered_users') || '[]');
         const found = existing.find(u => u.email === data.email || u.id === data.id);
@@ -148,6 +159,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         };
         setUser(newUser);
         saveToRegisteredUsers(newUser);
+
+        // Sync with central registry
+        try {
+            fetch('/api/users/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newUser)
+            }).catch(e => console.error('Sync failed', e));
+        } catch (e) {}
 
         // Unified Auth: Check if this user is also an Admin/Editor
         if (newUser.email) {

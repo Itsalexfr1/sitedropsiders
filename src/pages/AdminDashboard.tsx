@@ -18,6 +18,8 @@ import { uploadFile } from '../utils/uploadService';
 import { translateText } from '../utils/translate';
 import { SocialSuite } from '../components/SocialSuite';
 import { ModerationModal } from '../components/admin/ModerationModal';
+import { AdminMembersList } from '../components/admin/AdminMembersList';
+
 import { PubliGenerator } from '../components/admin/PubliGenerator';
 import { TracklistModal } from '../components/admin/TracklistModal';
 import { QuickEditorWizard } from '../components/admin/QuickEditorWizard';
@@ -1709,6 +1711,7 @@ export function AdminDashboard() {
 
         // GESTION TEAM
         { title: "L'Équipe & Éditeurs", description: "Accès & Membres", icon: "Users", category: "TEAM", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 2 },
+        { title: "Comptes Membres", description: "Registre Communauté", icon: "UserPlus", category: "TEAM", link: "#COMMUNITY_MEMBERS", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 2 },
 
         // PDF & DOCUMENTS
         { title: "Documents PDF", description: "Hébergement & Partage", icon: "Download", category: "WIKI", link: "/admin/pdfs", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 1 },
@@ -2678,26 +2681,30 @@ export function AdminDashboard() {
                             </div>
                         </div>
                     ) : dashboardTab === 'COMMUNAUTÉ' ? (
-                        <div className="space-y-12 pb-20">
-                            {/* ACTIVATION SECTION */}
-                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
-                                <div className="relative z-10 text-center md:text-left">
-                                    <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
-                                        <div className={`p-3 rounded-2xl border ${isContestModeEnabled ? 'bg-neon-red/20 border-neon-red/40 animate-pulse' : 'bg-white/10 border-white/20'}`}>
-                                            <Gamepad2 className={`w-8 h-8 ${isContestModeEnabled ? 'text-neon-red' : 'text-gray-500'}`} />
+                        <div className="space-y-16 pb-20">
+                            {/* NEW: CENTRALIZED MEMBER LIST */}
+                            <AdminMembersList />
+
+                            {/* CONTESTS SECTION */}
+                            <div className="pt-16 border-t border-white/5 space-y-12">
+                                <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
+                                    <div className="relative z-10 text-center md:text-left">
+                                        <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
+                                            <div className={`p-3 rounded-2xl border ${isContestModeEnabled ? 'bg-neon-red/20 border-neon-red/40 animate-pulse' : 'bg-white/10 border-white/20'}`}>
+                                                <Gamepad2 className={`w-8 h-8 ${isContestModeEnabled ? 'text-neon-red' : 'text-gray-500'}`} />
+                                            </div>
+                                            <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
+                                                Concours <span className="text-neon-red">Instagram</span>
+                                            </h2>
                                         </div>
-                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                                            Gestion <span className="text-neon-red">Communauté</span>
-                                        </h2>
-                                    </div>
-                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 mt-4">
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Inscrits Concours</span>
-                                            <span className="text-2xl font-display font-black text-white italic">{contestResults.length}</span>
-                                        </div>
-                                        <div className="w-px h-8 bg-white/10" />
-                                        <div className="flex flex-col">
+                                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 mt-4">
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Inscrits Concours</span>
+                                                <span className="text-2xl font-display font-black text-white italic">{contestResults.length}</span>
+                                            </div>
+                                            <div className="w-px h-8 bg-white/10" />
+                                            <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Participation Instagram</span>
                                             <span className="text-2xl font-display font-black text-neon-red italic">{instagramParticipants.length}</span>
                                         </div>
@@ -3695,6 +3702,9 @@ export function AdminDashboard() {
                                                     } else if (action.title === 'L\'Équipe & Éditeurs') {
                                                         e.preventDefault();
                                                         setDashboardTab('TEAM');
+                                                    } else if (action.title === 'Comptes Membres' || action.link === '#COMMUNITY_MEMBERS') {
+                                                        e.preventDefault();
+                                                        setDashboardTab('COMMUNAUTÉ');
                                                     } else if (action.title === 'Concours Insta') {
                                                         e.preventDefault();
                                                         fetchInstagramParticipants();

@@ -603,6 +603,59 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify({ error: 'Données manquantes' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
         }
 
+        // --- API: COMMUNITY USER SYNC & SEARCH ---
+        if (path === '/api/users/sync' && request.method === 'POST') {
+            const body = await request.json();
+            const { id, username, email, avatar, provider } = body;
+            if (!email) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+            
+            const cleanEmail = email.toLowerCase().trim();
+            const key = `community_user_${cleanEmail}`;
+            const userData = {
+                id: id || crypto.randomUUID(),
+                username: username || 'Utilisateur',
+                email: cleanEmail,
+                avatar: avatar || null,
+                provider: provider || 'email',
+                lastSeen: new Date().toISOString()
+            };
+
+            await env.CHAT_KV.put(key, JSON.stringify(userData));
+            return new Response(JSON.stringify({ success: true, user: userData }), { headers });
+        }
+
+        if (path === '/api/users/search' && request.method === 'GET') {
+            const query = url.searchParams.get('q')?.toLowerCase().trim();
+            if (!query) return new Response(JSON.stringify([]), { headers });
+
+            const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
+            const results = [];
+            
+            // Limit search for performance if many users
+            const checkKeys = list.keys.slice(0, 500); 
+            
+            for (const key of checkKeys) {
+                if (key.name.includes(query)) {
+                    const data = await env.CHAT_KV.get(key.name);
+                    if (data) results.push(JSON.parse(data));
+                }
+            }
+            
+            return new Response(JSON.stringify(results), { headers });
+        }
+
+        if (path === '/api/users/list' && request.method === 'GET') {
+            // Permission check: only admin/super can list all users
+            // (We assume the calling code in Admin checks this via headers)
+            const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
+            const users = [];
+            for (const key of list.keys.slice(0, 100)) { // Limit to 100 for now
+                const data = await env.CHAT_KV.get(key.name);
+                if (data) users.push(JSON.parse(data));
+            }
+            return new Response(JSON.stringify(users), { headers });
+        }
+
         // --- API: COMMUNITY PLAYER XP ---
         if (path === '/api/community/sync-xp' && request.method === 'POST') {
             const body = await request.json();
