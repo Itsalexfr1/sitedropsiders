@@ -2933,8 +2933,9 @@ export function AdminDashboard() {
                                     })()}
                                 </div>
                             </div>
+                            </div>{/* closes pt-16 contests section */}
                         </div>
-                ) : dashboardTab === 'INTERVIEW' ? (
+                    ) : dashboardTab === 'INTERVIEW' ? (
                         <div className="space-y-12 pb-20">
                             <div className="flex items-center gap-4 mb-10">
                                 <div className="p-3 bg-neon-cyan/10 rounded-2xl border border-neon-cyan/20">
