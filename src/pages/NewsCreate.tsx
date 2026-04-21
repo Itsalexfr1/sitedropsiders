@@ -1491,11 +1491,14 @@ ${generateSocialsHtml()}
                     if (q.type === 'qa') {
                         const artistName = (q.artistName || 'ARTISTE').toUpperCase();
                         const artistColor = q.artistColor || '#ff1241';
-                        const questionText = stripHtml(q.question || '').toUpperCase();
-                        const answerText = stripHtml(q.answer || '').toUpperCase();
+                        // stripHtml decodes entities (&nbsp; -> U+00A0), then replace non-breaking spaces with regular spaces
+                        const cleanQ = stripHtml(q.question || '').replace(/\u00a0/g, ' ').replace(/&[a-z]+;/gi, ' ').trim();
+                        const cleanA = stripHtml(q.answer || '').replace(/\u00a0/g, ' ').replace(/&[a-z]+;/gi, ' ').trim();
+                        const questionText = cleanQ.toUpperCase();
+                        const answerText = cleanA.toUpperCase();
                         return `<div class="article-section interview-qa-block" data-artist-name="${q.artistName || ''}" data-artist-color="${artistColor}">
-    <p><span class="interview-q dropsiders-q"><span class="q-prefix" style="color:#ff1241">DROPSIDERS :</span> ${questionText}</span></p>
-    <p><span class="interview-q artiste-q"><span class="q-prefix artiste-prefix" style="color:${artistColor};-webkit-text-fill-color:${artistColor}">${artistName} :</span> <span class="artiste-response" style="color:#ffffff;-webkit-text-fill-color:#ffffff">${answerText}</span></span></p>
+<div class="interview-q dropsiders-q"><span class="q-prefix" style="color:#ff1241">DROPSIDERS :</span> ${questionText}</div>
+<div class="interview-q artiste-q"><span class="q-prefix artiste-prefix" style="color:${artistColor};-webkit-text-fill-color:${artistColor}">${artistName} :</span> <span class="artiste-response" style="color:#ffffff;-webkit-text-fill-color:#ffffff">${answerText}</span></div>
 </div>`;
                     } else if (q.type === 'image') {
                         return `<div class="article-section interview-image-block" data-media-url="${q.mediaUrl}">
@@ -3694,7 +3697,7 @@ ${generateSocialsHtml()}
                                                     <p>
                                                         <span className="interview-q dropsiders-q">
                                                             <span className="q-prefix" style={{ color: '#ff1241' }}>DROPSIDERS :</span>
-                                                            {' '}{stripHtml(q.question || '').toUpperCase()}
+                                                            {' '}{stripHtml(q.question || '').replace(/\u00a0/g, ' ').replace(/&[a-zA-Z]+;/g, ' ').trim().toUpperCase()}
                                                         </span>
                                                     </p>
                                                     <p>
@@ -3703,7 +3706,7 @@ ${generateSocialsHtml()}
                                                                 {(q.artistName || 'ARTISTE').toUpperCase()} :
                                                             </span>
                                                             {' '}<span className="artiste-response" style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>
-                                                                {stripHtml(q.answer || '').toUpperCase()}
+                                                                {stripHtml(q.answer || '').replace(/\u00a0/g, ' ').replace(/&[a-zA-Z]+;/g, ' ').trim().toUpperCase()}
                                                             </span>
                                                         </span>
                                                     </p>
