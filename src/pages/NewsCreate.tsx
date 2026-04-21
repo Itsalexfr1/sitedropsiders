@@ -3655,7 +3655,23 @@ ${generateSocialsHtml()}
                                                 <div className="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
                                                     <iframe src={`https://www.youtube.com/embed/${q.mediaUrl}`} className="absolute inset-0 w-full h-full" allowFullScreen />
                                                 </div>
-                                            ) : null}
+                                            ) : q.type === 'spotify' ? (() => {
+                                                const spId = q.mediaUrl || '';
+                                                const spType = spId.includes('playlist') ? 'playlist' : spId.includes('album') ? 'album' : 'track';
+                                                return (
+                                                    <div className="spotify-compact-widget bg-black/20 border border-white/5 rounded-2xl overflow-hidden shadow-2xl my-8">
+                                                        <iframe
+                                                            src={`https://open.spotify.com/embed/${spType}/${spId}?utm_source=generator&theme=0`}
+                                                            width="100%"
+                                                            height={spType === 'track' ? 80 : 152}
+                                                            frameBorder={0}
+                                                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                                            loading="lazy"
+                                                            style={{ borderRadius: '12px' }}
+                                                        />
+                                                    </div>
+                                                );
+                                            })() : null}
                                         </div>
                                     ))}
 
