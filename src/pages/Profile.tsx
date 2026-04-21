@@ -3,9 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, Share2, MessageSquare, Star, Send, Instagram } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { twMerge } from 'tailwind-merge';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { MixUploadModal } from '../components/profile/MixUploadModal';
 import wikiFestivals from '../data/wiki_festivals.json';
+import { UserAuthModal } from '../components/auth/UserAuthModal';
 const showNotification = (msg: string, type: 'success' | 'error' | 'info') => console.log(`[${type.toUpperCase()}] ${msg}`);
 
 export function Profile() {
@@ -28,9 +30,7 @@ export function Profile() {
     const [userMixes, setUserMixes] = useState<any[]>([]);
 
     useEffect(() => {
-        if (!isLoggedIn) {
-            navigate('/');
-        } else if (user?.email) {
+        if (user?.email) {
             // Load mixes from KV
             fetch(`/api/user/mixes?email=${encodeURIComponent(user.email)}`)
                 .then(res => res.json())
@@ -41,12 +41,14 @@ export function Profile() {
         }
     }, [isLoggedIn, navigate, user?.email]);
 
-    if (!user) return null;
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+    // No early return, we handle UI status below
 
     const handleUpdateName = () => {
         const updates: any = {};
-        if (username.trim() && username !== user.username) updates.username = username.trim();
-        if (instagram.trim() !== (user.instagram || '')) updates.instagram = instagram.trim();
+        if (username.trim() && username !== user?.username) updates.username = username.trim();
+        if (instagram.trim() !== (user?.instagram || '')) updates.instagram = instagram.trim();
         
         if (Object.keys(updates).length > 0) {
             updateUser(updates);
@@ -62,7 +64,7 @@ export function Profile() {
         if (window.confirm("Es-tu sûr de vouloir supprimer ce contenu du Studio Dropsiders et du Cloud ? Cette action est irréversible.")) {
             try {
                 // 1. Delete from Metadata (KV)
-                const resMeta = await fetch(`/api/user/mixes?email=${encodeURIComponent(user.email)}`, {
+                const resMeta = await fetch(`/api/user/mixes?email=${encodeURIComponent(user?.email || '')}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -107,11 +109,11 @@ export function Profile() {
     };
 
     const handleShareProfile = async () => {
-        const link = `${window.location.origin}/profil/${encodeURIComponent(user.username)}`;
+        const link = `${window.location.origin}/profil/${encodeURIComponent(user?.username || '')}`;
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: `Profil de ${user.username} - DROPSIDERS`,
+                    title: `Profil de ${user?.username || 'Utilisateur'} - DROPSIDERS`,
                     url: link
                 });
             } catch (err) {
@@ -124,15 +126,15 @@ export function Profile() {
     };
 
     const stats = [
-        { label: 'DROPS', value: user.scores?.drops || 0, icon: <Zap className="w-5 h-5 text-neon-cyan" />, color: 'from-neon-cyan/20 to-transparent' },
+        { label: 'DROPS', value: user?.drops || 0, icon: <Zap className="w-5 h-5 text-neon-cyan" />, color: 'from-neon-cyan/20 to-transparent' },
         { label: 'RANG', value: 'MEMBRE', icon: <Shield className="w-5 h-5 text-neon-red" />, color: 'from-neon-red/20 to-transparent' },
-        { label: 'XP', value: user.scores?.xp || 0, icon: <Trophy className="w-5 h-5 text-amber-500" />, color: 'from-amber-500/20 to-transparent' },
-        { label: 'FAVORIS', value: user.agendaFavorites?.length || 0, icon: <Calendar className="w-5 h-5 text-neon-cyan" />, color: 'from-neon-cyan/20 to-transparent' }
+        { label: 'XP', value: user?.xp || 0, icon: <Trophy className="w-5 h-5 text-amber-500" />, color: 'from-amber-500/20 to-transparent' },
+        { label: 'FAVORIS', value: user?.agendaFavorites?.length || 0, icon: <Calendar className="w-5 h-5 text-neon-cyan" />, color: 'from-neon-cyan/20 to-transparent' }
     ];
 
     const [favoriteEvents, setFavoriteEvents] = useState<any[]>([]);
     useEffect(() => {
-        if (user.agendaFavorites?.length > 0) {
+        if (user?.agendaFavorites && user.agendaFavorites.length > 0) {
             fetch('/api/agenda')
                 .then(res => res.json())
                 .then(data => {
@@ -141,7 +143,7 @@ export function Profile() {
                 })
                 .catch(err => console.error(err));
         }
-    }, [user.agendaFavorites]);
+    }, [user?.agendaFavorites]);
 
     const getEventColor = (genre: string, type: string) => {
         const g = (genre || '').toLowerCase().trim();
@@ -156,7 +158,11 @@ export function Profile() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] pt-32 pb-20 px-6 relative overflow-hidden">
+        <>
+            <div className={twMerge(
+                "min-h-screen bg-[#050505] pt-32 pb-20 px-6 relative transition-all duration-700",
+                !isLoggedIn && "blur-[40px] pointer-events-none select-none overflow-hidden max-h-screen"
+            )}>
             {/* Background Effects */}
             <div className="fixed inset-0 pointer-events-none">
                 <div className="absolute top-1/4 -left-20 w-[600px] h-[600px] bg-neon-red/5 rounded-full blur-[150px] animate-pulse" />
@@ -174,7 +180,7 @@ export function Profile() {
                             <div className="flex flex-col items-center text-center space-y-6">
                                 <div className="relative group/avatar">
                                     <div className="w-40 h-40 rounded-[40px] bg-gradient-to-br from-white/10 to-white/5 border border-white/10 p-1 relative overflow-hidden shadow-2xl transition-transform duration-500 group-hover/avatar:scale-105">
-                                        {user.avatar ? (
+                                        {user?.avatar ? (
                                             <img src={user.avatar} alt={user.username} className="w-full h-full object-cover rounded-[36px]" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-white/5 rounded-[36px]">
@@ -226,10 +232,10 @@ export function Profile() {
                                     ) : (
                                         <div className="flex flex-col items-center gap-2">
                                             <div className="flex items-center justify-center gap-3">
-                                                <h1 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">{user.username}</h1>
+                                                <h1 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">{user?.username}</h1>
                                                 <button onClick={() => setIsEditingName(true)} className="p-2 text-gray-500 hover:text-white transition-colors"><Edit2 className="w-4 h-4" /></button>
                                             </div>
-                                            {user.instagram && (
+                                            {user?.instagram && (
                                                 <a 
                                                     href={`https://instagram.com/${user.instagram.replace('@', '')}`}
                                                     target="_blank"
@@ -242,7 +248,7 @@ export function Profile() {
                                             )}
                                         </div>
                                     )}
-                                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">Membre depuis {(new Date(user.createdAt)).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
+                                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">Membre depuis {user ? (new Date(user.createdAt)).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '...'}</p>
                                 </div>
 
                                 <div className="pt-6 w-full border-t border-white/5 flex flex-col gap-3">
@@ -557,7 +563,7 @@ export function Profile() {
                                                                 },
                                                                 comment: reviewText,
                                                                 tips: '',
-                                                                author: user.username || 'Anonyme'
+                                                                author: user?.username || 'Anonyme'
                                                             })
                                                         });
                                                         if (res.ok) {
@@ -651,7 +657,57 @@ export function Profile() {
                     // Logic to actually save to DB could go here
                 }}
             />
-        </div>
+            </div>
+
+            {!isLoggedIn && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="max-w-md w-full bg-[#050510]/80 border-2 border-white/10 rounded-[3rem] p-10 md:p-14 text-center space-y-10 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative overflow-hidden"
+                    >
+                        {/* Glows */}
+                        <div className="absolute -top-24 -left-24 w-48 h-48 bg-neon-red/20 rounded-full blur-[80px] animate-pulse" />
+                        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-neon-cyan/20 rounded-full blur-[80px] animate-pulse" />
+
+                        <div className="relative space-y-6">
+                            <div className="w-24 h-24 bg-neon-red/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-neon-red/20 shadow-[0_0_30px_rgba(255,0,51,0.2)]">
+                                <LogOut className="w-10 h-10 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.5)]" />
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <h2 className="text-3xl md:text-4xl font-display font-black text-white italic uppercase tracking-tighter leading-none">
+                                    SESSION <span className="text-neon-red">TERMINÉE</span>
+                                </h2>
+                                <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] leading-relaxed">
+                                    Vous avez été déconnecté. Reconnectez-vous pour accéder à votre profil et vos statistiques.
+                                </p>
+                            </div>
+
+                            <div className="pt-6 space-y-4">
+                                <button
+                                    onClick={() => setIsAuthModalOpen(true)}
+                                    className="w-full py-6 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-500 shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
+                                >
+                                    Me reconnecter
+                                </button>
+                                <button
+                                    onClick={() => navigate('/')}
+                                    className="w-full py-4 bg-transparent text-white/40 hover:text-white rounded-2xl font-black text-[9px] uppercase tracking-[0.3em] transition-all"
+                                >
+                                    Retour à l'accueil
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            <UserAuthModal 
+                isOpen={isAuthModalOpen} 
+                onClose={() => setIsAuthModalOpen(false)} 
+            />
+        </>
     );
 }
 

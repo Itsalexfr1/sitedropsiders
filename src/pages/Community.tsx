@@ -386,8 +386,17 @@ export function Community() {
     }, []);
 
     // RPG State
-    const [promoterXP, setPromoterXP] = useState(() => Number(localStorage.getItem('dropsiders_xp')) || 0);
-    const [drops, setDrops] = useState(() => Number(localStorage.getItem('dropsiders_drops')) || 0);
+    const { earnPoints } = useUser();
+    const [promoterXP, setPromoterXP] = useState(() => (isLoggedIn && user?.xp !== undefined) ? user.xp : (Number(localStorage.getItem('dropsiders_xp')) || 0));
+    const [drops, setDrops] = useState(() => (isLoggedIn && user?.drops !== undefined) ? user.drops : (Number(localStorage.getItem('dropsiders_drops')) || 0));
+    
+    // Sync with Context when user changes
+    useEffect(() => {
+        if (isLoggedIn && user) {
+            setPromoterXP(user.xp);
+            setDrops(user.drops);
+        }
+    }, [isLoggedIn, user?.xp, user?.drops]);
     const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
     const [negotiatingDj, setNegotiatingDj] = useState<typeof DJ_POOL[0] | null>(null);
     const [aftermovieSummary, setAftermovieSummary] = useState('');
@@ -780,11 +789,10 @@ export function Community() {
             }
         });
 
-        // Calculate XP and Progress
-        const gainXpFinal = Math.max(0, Math.floor(profit / 5000) + Math.floor(attendance / 100) - sponsorPenalty);
-        const newTotalXp = promoterXP + gainXpFinal;
-        setPromoterXP(newTotalXp);
-        localStorage.setItem('dropsiders_xp', newTotalXp.toString());
+        // Calculate XP/Drops
+        const xpGain = Math.max(0, Math.floor(profit / 5000) + Math.floor(attendance / 100) - sponsorPenalty);
+        const dropGain = Math.floor(attendance / 1000);
+        earnPoints(xpGain, dropGain);
 
         // Save to Archives
         const newFestival = {
@@ -796,7 +804,7 @@ export function Community() {
             profit,
             rank: currentRank.name,
             date: selectedDate,
-            xpGained: gainXpFinal
+            xpGained: xpGain
         };
         const updatedArchives = [newFestival, ...archives].slice(0, 10);
         setArchives(updatedArchives);

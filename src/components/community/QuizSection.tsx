@@ -39,7 +39,7 @@ interface ScoreRecord {
 }
 
 export function QuizSection() {
-    const { isLoggedIn, user, updateScore } = useUser();
+    const { isLoggedIn, user, updateScore, earnPoints } = useUser();
     useLanguage();
     const [activeTab, setActiveTab] = useState<'play' | 'submit' | 'manage'>('play');
     const isAdmin = localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('editeur_auth') === 'true';
@@ -54,9 +54,9 @@ export function QuizSection() {
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [gamePseudo, setGamePseudo] = useState(user?.username || localStorage.getItem('user_pseudo') || '');
-    const [gameName, setGameName] = useState(user?.displayName || '');
+    const [gameName, setGameName] = useState(user?.username || '');
     const [gameEmail, setGameEmail] = useState(user?.email || '');
-    const [drops, setDrops] = useState(parseInt(localStorage.getItem('user_drops') || '0'));
+    const [drops, setDrops] = useState(() => isLoggedIn ? (user?.drops || 0) : (parseInt(localStorage.getItem('user_drops') || '0')));
     const [isSurvivalMode, setIsSurvivalMode] = useState(false);
     const [isGhostMode, setIsGhostMode] = useState(false);
 
@@ -321,11 +321,14 @@ export function QuizSection() {
     const finishGame = async () => {
         setGameState('results');
 
-        // Calculate and add Drops
+        // Calculate and add Points (XP + Drops)
         const earnedDrops = score * 5 + (score === gameQuizzes.length ? 50 : 0);
-        const newTotalDrops = drops + earnedDrops;
-        setDrops(newTotalDrops);
-        localStorage.setItem('user_drops', newTotalDrops.toString());
+        const earnedXP = score * 10 + (score === gameQuizzes.length ? 100 : 0);
+        
+        earnPoints(earnedXP, earnedDrops);
+        
+        // Sync local visual state
+        setDrops(prev => prev + earnedDrops);
 
         if (isLoggedIn) {
             updateScore('quiz', score);

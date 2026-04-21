@@ -10,6 +10,8 @@ interface UserProfile {
     trackIds: string[];
     agendaFavorites: number[];
     instagram?: string;
+    xp: number;
+    drops: number;
     createdAt: string;
 }
 
@@ -24,6 +26,7 @@ interface UserContextType {
     toggleTrackId: (trackId: string) => void;
     toggleAgendaFavorite: (eventId: number) => void;
     updateUser: (updates: Partial<UserProfile>) => void;
+    earnPoints: (xp: number, drops: number) => void;
     isAuthModalOpen: boolean;
     setIsAuthModalOpen: (open: boolean) => void;
 }
@@ -99,6 +102,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             scores: {},
             trackIds: [],
             agendaFavorites: [],
+            xp: Number(localStorage.getItem('dropsiders_xp')) || 0,
+            drops: Number(localStorage.getItem('dropsiders_drops')) || 0,
             createdAt: new Date().toISOString()
         };
         setUser(newUser);
@@ -106,19 +111,30 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
 
     const loginSocial = (data: Partial<UserProfile>) => {
+        // Find existing user if available
+        const existing: UserProfile[] = JSON.parse(localStorage.getItem('dropsiders_registered_users') || '[]');
+        const found = existing.find(u => u.email === data.email || u.id === data.id);
+        
         const newUser: UserProfile = {
-            id: data.id || crypto.randomUUID(),
-            username: data.username || 'Utilisateur',
-            email: data.email || '',
-            avatar: data.avatar,
-            provider: data.provider,
-            scores: data.scores || {},
-            trackIds: data.trackIds || [],
-            agendaFavorites: data.agendaFavorites || [],
-            createdAt: data.createdAt || new Date().toISOString()
+            id: data.id || found?.id || crypto.randomUUID(),
+            username: data.username || found?.username || 'Utilisateur',
+            email: data.email || found?.email || '',
+            avatar: data.avatar || found?.avatar,
+            instagram: data.instagram || found?.instagram,
+            provider: data.provider || found?.provider,
+            scores: data.scores || found?.scores || {},
+            trackIds: data.trackIds || found?.trackIds || [],
+            agendaFavorites: data.agendaFavorites || found?.agendaFavorites || [],
+            xp: (data.xp !== undefined ? data.xp : found?.xp) || Number(localStorage.getItem('dropsiders_xp')) || 0,
+            drops: (data.drops !== undefined ? data.drops : found?.drops) || Number(localStorage.getItem('dropsiders_drops')) || 0,
+            createdAt: data.createdAt || found?.createdAt || new Date().toISOString()
         };
         setUser(newUser);
         saveToRegisteredUsers(newUser);
+        
+        // Clean local "guest" points after sync
+        localStorage.removeItem('dropsiders_xp');
+        localStorage.removeItem('dropsiders_drops');
     };
 
     const logout = () => {
@@ -176,6 +192,24 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         saveToRegisteredUsers(updatedUser);
     };
 
+    const earnPoints = (xpAmount: number, dropsAmount: number) => {
+        if (user) {
+            const updatedUser = {
+                ...user,
+                xp: (user.xp || 0) + xpAmount,
+                drops: (user.drops || 0) + dropsAmount
+            };
+            setUser(updatedUser);
+            saveToRegisteredUsers(updatedUser);
+        } else {
+            // Unauthenticated: store in localStorage
+            const currentXp = Number(localStorage.getItem('dropsiders_xp')) || 0;
+            const currentDrops = Number(localStorage.getItem('dropsiders_drops')) || 0;
+            localStorage.setItem('dropsiders_xp', (currentXp + xpAmount).toString());
+            localStorage.setItem('dropsiders_drops', (currentDrops + dropsAmount).toString());
+        }
+    };
+
     return (
         <UserContext.Provider value={{
             user,
@@ -187,6 +221,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             toggleTrackId,
             toggleAgendaFavorite,
             updateUser,
+            earnPoints,
             isAuthModalOpen,
             setIsAuthModalOpen
         }}>

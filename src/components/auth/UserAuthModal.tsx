@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Mail, Trophy, Music, LogOut, ChevronRight, Heart, Camera, Upload, Loader2 } from 'lucide-react';
+import { X, User, Mail, Trophy, Music, LogOut, ChevronRight, Heart, Camera, Upload, Loader2, Zap } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
@@ -211,18 +211,18 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                                 <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Expérience Lab</span>
                                             </div>
                                             <div className="text-2xl font-black text-white italic">
-                                                {user?.scores.festival_producer || 0} <span className="text-[10px] text-gray-400 not-italic">XP</span>
+                                                {user?.xp || 0} <span className="text-[10px] text-gray-400 not-italic">XP</span>
                                             </div>
                                         </div>
                                         <div className="p-5 bg-white/5 border border-white/10 rounded-3xl group hover:border-neon-cyan/50 transition-all">
                                             <div className="flex items-center gap-3 mb-3">
                                                 <div className="p-2 bg-neon-cyan/20 rounded-xl">
-                                                    <Music className="w-4 h-4 text-neon-cyan" />
+                                                    <Zap className="w-4 h-4 text-neon-cyan" />
                                                 </div>
-                                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Quiz Score</span>
+                                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Drops</span>
                                             </div>
                                             <div className="text-2xl font-black text-white italic">
-                                                {user?.scores.quiz || 0} <span className="text-[10px] text-gray-400 not-italic">PTS</span>
+                                                {user?.drops || 0} <span className="text-[10px] text-gray-400 not-italic">DRP</span>
                                             </div>
                                         </div>
                                     </div>
