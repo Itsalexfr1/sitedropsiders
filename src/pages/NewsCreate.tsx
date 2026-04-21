@@ -1481,9 +1481,13 @@ ${generateSocialsHtml()}
 
                 const interviewHtml = interviewQuestions.map(q => {
                     if (q.type === 'qa') {
-                        return `<div class="article-section interview-qa-block" data-artist-name="${q.artistName || ''}" data-artist-color="${q.artistColor || '#ff1241'}">
-    <p><strong style="color: #ff1241 !important">DROPSIDERS :</strong> ${q.question}</p>
-    <p><strong style="color: ${q.artistColor || '#ff1241'} !important">${(q.artistName || '').toUpperCase()} :</strong> ${q.answer}</p>
+                        const artistName = (q.artistName || 'ARTISTE').toUpperCase();
+                        const artistColor = q.artistColor || '#ff1241';
+                        const questionText = (q.question || '').toUpperCase();
+                        const answerText = (q.answer || '').toUpperCase();
+                        return `<div class="article-section interview-qa-block" data-artist-name="${q.artistName || ''}" data-artist-color="${artistColor}">
+    <p><span class="interview-q dropsiders-q"><span class="q-prefix" style="color:#ff1241">DROPSIDERS :</span> ${questionText}</span></p>
+    <p><span class="interview-q artiste-q"><span class="q-prefix artiste-prefix" style="color:${artistColor};-webkit-text-fill-color:${artistColor}">${artistName} :</span> <span class="artiste-response" style="color:#ffffff;-webkit-text-fill-color:#ffffff">${answerText}</span></span></p>
 </div>`;
                     } else if (q.type === 'image') {
                         return `<div class="article-section interview-image-block" data-media-url="${q.mediaUrl}">
@@ -3625,9 +3629,23 @@ ${generateSocialsHtml()}
                                     {type === 'Interview' && interviewSubtype === 'written' && interviewQuestions.map((q) => (
                                         <div key={q.id} className="article-section">
                                             {q.type === 'qa' ? (
-                                                <div className="space-y-4">
-                                                    <p className="article-body-premium mb-4"><strong style={{ color: '#ff1241' }}>DROPSIDERS :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.question || '') }} /></p>
-                                                    <p className="article-body-premium" style={{ color: q.artistColor || '#ff1241' }}><strong style={{ color: q.artistColor || '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()} :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.answer || '') }} /></p>
+                                                <div className="space-y-6">
+                                                    <p>
+                                                        <span className="interview-q dropsiders-q">
+                                                            <span className="q-prefix" style={{ color: '#ff1241' }}>DROPSIDERS :</span>
+                                                            {' '}{(q.question || '').toUpperCase()}
+                                                        </span>
+                                                    </p>
+                                                    <p>
+                                                        <span className="interview-q artiste-q">
+                                                            <span className="q-prefix artiste-prefix" style={{ color: q.artistColor || '#ff1241', WebkitTextFillColor: q.artistColor || '#ff1241' }}>
+                                                                {(q.artistName || 'ARTISTE').toUpperCase()} :
+                                                            </span>
+                                                            {' '}<span className="artiste-response" style={{ color: '#ffffff', WebkitTextFillColor: '#ffffff' }}>
+                                                                {(q.answer || '').toUpperCase()}
+                                                            </span>
+                                                        </span>
+                                                    </p>
                                                 </div>
                                             ) : q.type === 'image' ? (
                                                 <div className="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
