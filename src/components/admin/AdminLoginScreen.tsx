@@ -268,6 +268,9 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
                 data.permissions || [],
                 data.sessionId || ''
             );
+
+            // Notify reactive components like AdminEditBar
+            window.dispatchEvent(new Event('admin-login'));
         } catch (e) {
             setError('Erreur réseau. Réessayez.');
             setOtpDigits(['', '', '', '', '', '']);

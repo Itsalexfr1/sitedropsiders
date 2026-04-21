@@ -1215,26 +1215,42 @@ ${urls.map(u => `  <url>
             const requestSessionId = request.headers.get('X-Session-ID');
 
             // MASTER AUTH BYPASS for Invoice & Critical Routes if password matches
-            const isMasterPass = requestPassword === adminPassword;
+            const isMasterPass = requestPassword && requestPassword === adminPassword;
 
             if (isMasterPass) {
                 // Master password bypasses all session checks
                 authenticated = true;
                 userPermissions = ['all'];
             }
-            else if (requestUsername) {
+            else {
+                // Check for Master Session ID (for super admins logging in via OTP/Social)
+                const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
+                const masterSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
+                
+                if (requestSessionId && requestSessionId === masterSessionId) {
+                    const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr');
+                    if (isSuperEmail || requestUsername === 'alex') {
+                        authenticated = true;
+                        userPermissions = ['all'];
+                    }
+                }
+            }
+
+            if (!authenticated && requestUsername) {
                 const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
                 if (editorsFile && editorsFile.content) {
-                    const editor = editorsFile.content.find(e => {
-                        const epass = decodePass((e.password || '').trim());
-                        return e.username === requestUsername && epass === requestPassword;
-                    });
-
+                    const editor = editorsFile.content.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
+                    
                     if (editor) {
-                        // For invoice route, we bypass the session check if password is correct
-                        if (path === '/api/facture/send' || path.startsWith('/api/invoices') || requestSessionId === (editor.session_id || 'editor-initial-id')) {
-                            authenticated = true;
-                            userPermissions = editor.permissions || [];
+                        const epass = decodePass((editor.password || '').trim());
+                        const isPasswordMatch = requestPassword && epass === requestPassword;
+                        const isSessionMatch = requestSessionId && requestSessionId === (editor.session_id || 'editor-initial-id');
+
+                        // Super admin special case or normal editor with session
+                        if (isPasswordMatch || isSessionMatch) {
+                             // For critical routes, maybe we want both or just session
+                             authenticated = true;
+                             userPermissions = editor.permissions || [];
                         }
                     }
                 }
@@ -1540,6 +1556,34 @@ ${urls.map(u => `  <url>
             } catch (err: any) {
                 return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
             }
+        }
+
+        if (path === '/api/admin/check-permissions' && request.method === 'GET') {
+            const email = url.searchParams.get('email');
+            if (!email) return new Response(JSON.stringify({ error: 'Email manquant' }), { status: 400, headers });
+            const cleanEmail = email.toLowerCase().trim();
+
+            const isSuper = (cleanEmail === 'alexflex30@gmail.com' || cleanEmail === 'contact@dropsiders.fr');
+            
+            if (isSuper) {
+                const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
+                const sessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
+                return new Response(JSON.stringify({ success: true, permissions: ['all'], sessionId }), { status: 200, headers });
+            }
+
+            const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+            if (editorsFile && editorsFile.content) {
+                const editor = editorsFile.content.find((e: any) => e.email?.toLowerCase() === cleanEmail);
+                if (editor) {
+                    return new Response(JSON.stringify({ 
+                        success: true, 
+                        permissions: editor.permissions || [], 
+                        sessionId: editor.session_id || 'editor-initial-id' 
+                    }), { status: 200, headers });
+                }
+            }
+
+            return new Response(JSON.stringify({ success: false, error: 'Pas un administrateur' }), { status: 403, headers });
         }
 
         if (path === '/api/admin/verify-otp' && request.method === 'POST') {

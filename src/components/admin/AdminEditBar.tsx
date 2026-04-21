@@ -21,12 +21,27 @@ const useAdminStatus = () => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [permissions, setPermissions] = useState<string[]>([]);
 
-    useEffect(() => {
+    const checkStatus = () => {
         const auth = localStorage.getItem('admin_auth_v2') === 'true';
         const user = localStorage.getItem('admin_user');
         const perms: string[] = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
         setIsAdmin(auth && (user === 'alex' || perms.includes('all') || perms.length > 0));
         setPermissions(perms);
+    };
+
+    useEffect(() => {
+        checkStatus();
+
+        const handleAuth = () => checkStatus();
+        window.addEventListener('admin-login', handleAuth);
+        window.addEventListener('admin-logout', handleAuth);
+        window.addEventListener('storage', handleAuth);
+
+        return () => {
+            window.removeEventListener('admin-login', handleAuth);
+            window.removeEventListener('admin-logout', handleAuth);
+            window.removeEventListener('storage', handleAuth);
+        };
     }, []);
 
     const hasPermission = (p?: string) => {

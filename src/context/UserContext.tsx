@@ -54,6 +54,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     // Sync with backend when email is available
     useEffect(() => {
         if (user?.email && user.email.includes('@')) {
+            const syncAdmin = async () => {
+                try {
+                    const res = await fetch(`/api/admin/check-permissions?email=${encodeURIComponent(user.email)}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.success) {
+                            localStorage.setItem('admin_auth_v2', 'true');
+                            localStorage.setItem('admin_user', user.email);
+                            localStorage.setItem('admin_permissions', JSON.stringify(data.permissions || []));
+                            localStorage.setItem('admin_session_id', data.sessionId || '');
+                            localStorage.setItem('admin_provider', user.provider || 'email');
+                        }
+                    }
+                } catch (e) { console.error('Failed to sync admin status', e); }
+            };
+            syncAdmin();
+
             const syncFavorites = async () => {
                 try {
                     const res = await fetch(`/api/agenda/favorites?email=${encodeURIComponent(user.email)}`);
@@ -131,6 +148,28 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         };
         setUser(newUser);
         saveToRegisteredUsers(newUser);
+
+        // Unified Auth: Check if this user is also an Admin/Editor
+        if (newUser.email) {
+            fetch(`/api/admin/check-permissions?email=${encodeURIComponent(newUser.email)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('[AUTH] Syncing admin status for', newUser.email);
+                        localStorage.setItem('admin_auth_v2', 'true');
+                        localStorage.setItem('admin_user', newUser.email);
+                        localStorage.setItem('admin_permissions', JSON.stringify(data.permissions || []));
+                        localStorage.setItem('admin_session_id', data.sessionId || '');
+                        localStorage.setItem('admin_provider', newUser.provider || 'email');
+                        // No password needed for session-based auth
+                        localStorage.removeItem('admin_password');
+                        
+                        // Notify other components if needed
+                        window.dispatchEvent(new Event('admin-login'));
+                    }
+                })
+                .catch(err => console.error('[AUTH] Admin check failed', err));
+        }
         
         // Clean local "guest" points after sync
         localStorage.removeItem('user_xp');
@@ -139,6 +178,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     const logout = () => {
         setUser(null);
+        localStorage.removeItem('admin_auth_v2');
+        localStorage.removeItem('admin_user');
+        localStorage.removeItem('admin_permissions');
+        localStorage.removeItem('admin_session_id');
+        localStorage.removeItem('admin_provider');
+        localStorage.removeItem('admin_password');
     };
 
     const updateScore = (gameId: string, score: number) => {

@@ -69,7 +69,7 @@ export function MobileNavbar() {
         { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
         { icon: Users, label: navLabels.team || t('nav.team'), path: '/team', color: 'text-neon-yellow' },
         { 
-            icon: () => <span className="text-[7px] font-black leading-none">SHOP</span>, 
+            icon: () => <span className="text-[10px] font-black leading-none">SHOP</span>, 
             label: navLabels.shop || t('nav.shop'), 
             path: '/shop', 
             color: 'text-neon-red' 
