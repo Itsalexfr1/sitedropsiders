@@ -13,6 +13,7 @@ interface UserProfile {
     xp: number;
     drops: number;
     createdAt: string;
+    newsletter?: boolean;
 }
 
 

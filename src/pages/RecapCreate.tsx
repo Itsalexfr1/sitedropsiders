@@ -143,14 +143,25 @@ export function RecapCreate() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [author, setAuthor] = useState(() => {
-        const stored = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
-        const found = (editorsData as any[]).find(e =>
-            e.name.toLowerCase() === stored.toLowerCase() ||
-            e.username.toLowerCase() === stored.toLowerCase()
-        );
-        return found ? found.name : 'Alex';
+        return localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
     });
     const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
+    
+    // Editors State
+    const [editors, setEditors] = useState<{username: string; color?: string; avatar?: string}[]>([]);
+
+    useEffect(() => {
+        const fetchEditors = async () => {
+            try {
+                const res = await apiFetch('/api/editors');
+                if (res.ok) {
+                    const data = await res.json();
+                    setEditors(data.editors || []);
+                }
+            } catch(e) {}
+        };
+        fetchEditors();
+    }, []);
     const [festivalSocials, setFestivalSocials] = useState({
         website: '',
         instagram: '',
@@ -1244,7 +1255,7 @@ export function RecapCreate() {
                                 <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
                                     <User className="w-3 h-3 text-gray-500" />
                                     <span className="text-[9px] font-black text-white uppercase tracking-widest">
-                                        Éditeur : <span style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span>
+                                        Éditeur : <span style={getAuthorTextStyle((editors.find(e => e.username === author)?.username || author).toLowerCase())}>{author}</span>
                                     </span>
                                     {isAuthorConfirmed ? (
                                         <Check className="w-3 h-3 text-neon-green" />
@@ -1364,7 +1375,7 @@ export function RecapCreate() {
                             </label>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                {(editorsData as any[]).map((editor: any) => {
+                                {editors.map((editor: any) => {
                                     const editorColor = getEditorColor(editor.username.toLowerCase());
                                     const isSelected = author === editor.name;
                                     return (
@@ -1430,7 +1441,7 @@ export function RecapCreate() {
                                         Confirmer l'Éditeur
                                     </span>
                                     <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                        Je certifie que <span className="font-black" style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span> est bien l'auteur de ce contenu
+                                        Je certifie que <span className="font-black" style={getAuthorTextStyle((editors.find(e => e.username === author)?.username || author).toLowerCase())}>{author}</span> est bien l'auteur de ce contenu
                                     </span>
                                 </div>
                             </div>

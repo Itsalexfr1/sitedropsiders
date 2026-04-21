@@ -2,8 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon } from 'lucide-react';
-import { getAuthHeaders, isSuperAdmin } from '../utils/auth';
-import editorsData from '../data/editors.json';
+import { getAuthHeaders, isSuperAdmin, apiFetch } from '../utils/auth';
 
 const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
 
@@ -49,7 +48,27 @@ export function AdminMessages() {
         }
     }, [canAccess, navigate]);
 
+    // Messages & Replies
     const [messages, setMessages] = useState<ContactMessage[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Editors state for signatures
+    const [editors, setEditors] = useState<{name: string; username: string}[]>([]);
+
+    useEffect(() => {
+        fetchEditors();
+    }, []);
+
+    const fetchEditors = async () => {
+        try {
+            const res = await apiFetch('/api/editors');
+            if (res.ok) {
+                const data = await res.json();
+                setEditors(data.editors || []);
+            }
+        } catch(e) {}
+    };
+
     const [selected, setSelected] = useState<ContactMessage | null>(null);
     const [loading, setLoading] = useState(true);
     const [replyModal, setReplyModal] = useState(false);
@@ -1004,7 +1023,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 <User className="w-3 h-3" /> Signé par : <span className="text-neon-red">*</span>
                                             </span>
                                             <div className="flex flex-wrap gap-2">
-                                                {(editorsData as any[]).map((editor: any) => {
+                                                {editors.map((editor: any) => {
                                                     const editorColor = getEditorColor(editor.username.toLowerCase());
                                                     const isSelected = signatureName === editor.name;
                                                     return (

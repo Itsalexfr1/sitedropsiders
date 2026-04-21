@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getAuthHeaders } from '../utils/auth';
-import editorsData from '../data/editors.json';
+import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Check, Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft, Trash2, Edit2, Film, Plus, X } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
@@ -73,15 +72,27 @@ export function GalerieCreate() {
     const [showRawLinks, setShowRawLinks] = useState(false);
 
     const [author, setAuthor] = useState(() => {
-        const stored = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
-        const found = (editorsData as any[]).find(e =>
-            e.name.toLowerCase() === stored.toLowerCase() ||
-            e.username.toLowerCase() === stored.toLowerCase()
-        );
-        return found ? found.name : 'Alex';
+        return localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
     });
     const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
+    
+    // Editors State
+    const [editors, setEditors] = useState<{username: string; color?: string; avatar?: string}[]>([]);
+
+    useEffect(() => {
+        fetchEditors();
+    }, []);
+
+    const fetchEditors = async () => {
+        try {
+            const res = await apiFetch('/api/editors');
+            if (res.ok) {
+                const data = await res.json();
+                setEditors(data.editors || []);
+            }
+        } catch(e) {}
+    };
 
     // Fetch item if missing from state but ID is present
     useEffect(() => {
@@ -292,7 +303,7 @@ export function GalerieCreate() {
                                 <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
                                     <User className="w-3 h-3 text-gray-500" />
                                     <span className="text-[9px] font-black text-white uppercase tracking-widest">
-                                        Éditeur : <span style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span>
+                                        Éditeur : <span style={getAuthorTextStyle((editors.find(e => e.username === author)?.username || author).toLowerCase())}>{author}</span>
                                     </span>
                                     {isAuthorConfirmed ? (
                                         <Check className="w-3 h-3 text-neon-green" />
@@ -345,7 +356,7 @@ export function GalerieCreate() {
                             </label>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                {(editorsData as any[]).map((editor: any) => {
+                                {editors.map((editor: any) => {
                                     const editorColor = getEditorColor(editor.username.toLowerCase());
                                     const isSelected = author === editor.name;
                                     return (
@@ -411,7 +422,7 @@ export function GalerieCreate() {
                                         Confirmer l'Éditeur
                                     </span>
                                     <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                        Je certifie que <span className="font-black" style={{ color: getEditorColor(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase()) }}>{author}</span> est bien l'auteur de cet album
+                                        Je certifie que <span className="font-black" style={{ color: getEditorColor((editors.find(e => e.username === author)?.username || author).toLowerCase()) }}>{author}</span> est bien l'auteur de cet album
                                     </span>
                                 </div>
                             </div>
