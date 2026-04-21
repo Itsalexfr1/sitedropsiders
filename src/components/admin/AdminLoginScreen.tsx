@@ -539,6 +539,7 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
                                             type="button"
                                             disabled={isSending}
                                             onClick={async () => {
+                                                if (!socialUser) return;
                                                 setOtpMethod('email');
                                                 const sent = await sendOtp(socialUser.email, null, 'email');
                                                 if (sent) setStep('sms_code');
