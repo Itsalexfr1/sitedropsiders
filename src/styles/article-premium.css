@@ -400,34 +400,32 @@
     margin: 3.5rem auto 1.5rem;
     letter-spacing: 0.05em;
     line-height: 1.4;
-    /* Override any inherited theme color */
-    -webkit-text-fill-color: #ffffff;
 }
 
-/* Prefix ARTISTE: garde la couleur choisie (theme) */
+/* Préfixe générique (DROPSIDERS) — couleur thème */
 .article-body-premium .interview-q .q-prefix {
     color: var(--theme-color, #ff0033) !important;
-    -webkit-text-fill-color: var(--theme-color, #ff0033);
-    margin-right: 0.75rem;
+    margin-right: 0.4rem;
     font-weight: 900;
-    text-shadow: 0 0 15px var(--theme-color, rgba(255, 0, 51, 0.4));
 }
 
-/* DROPSIDERS: prefix blanc comme le texte */
+/* DROPSIDERS: tout en blanc */
+.article-body-premium .interview-q.dropsiders-q,
 .article-body-premium .interview-q.dropsiders-q .q-prefix {
     color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
 }
 
-/* ARTISTE: prefix garde la couleur de l'artiste, texte forcé blanc */
+/* ARTISTE: le préfixe garde la couleur inline (via style attr),
+   la réponse est TOUJOURS blanche */
 .article-body-premium .interview-q.artiste-q {
     color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff;
 }
-.article-body-premium .interview-q.artiste-q .q-prefix {
-    color: var(--theme-color, #ff0033) !important;
-    -webkit-text-fill-color: var(--theme-color, #ff0033);
+
+/* La réponse de l'artiste : blanc forcé, écrase toute couleur inline */
+.article-body-premium .interview-q.artiste-q .artiste-response {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    text-shadow: none !important;
 }
 
 .article-body-premium .interview-q::before,

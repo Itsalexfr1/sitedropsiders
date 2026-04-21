@@ -383,19 +383,28 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         // Apply Premium Standardizer (Keywords, Links)
         finalHtml = standardizeText(finalHtml);
 
-        // Support Interviews (Bold questions)
+        // Support Interviews (Bold questions + responses)
         if (isInterview) {
-            finalHtml = finalHtml.replace(/<strong([^>]*)>(.*?)<\/strong>/gi, (match, attrs, content) => {
+            finalHtml = finalHtml.replace(/<strong([^>]*)>([\s\S]*?)<\/strong>/gi, (_match, attrs, content) => {
+                // Extract artist color from inline style if present (e.g. color: #ff0033)
+                const artistColorMatch = attrs.match(/color\s*:\s*([^;'"]+)/i);
+                const artistColor = artistColorMatch ? artistColorMatch[1].trim() : null;
+
                 const upper = content.toUpperCase();
+
                 if (upper.includes('DROPSIDERS:')) {
                     const parts = content.split(/DROPSIDERS:/i);
-                    return `<span class="interview-q dropsiders-q" ${attrs}><span class="q-prefix">DROPSIDERS:</span>${parts[1]}</span>`;
+                    const responseText = (parts[1] || '').trim().toUpperCase();
+                    return `<span class="interview-q dropsiders-q"><span class="q-prefix">DROPSIDERS :</span> ${responseText}</span>`;
                 }
-                if (upper.includes('ARTISTE:')) {
-                    const parts = content.split(/ARTISTE:/i);
-                    return `<span class="interview-q artiste-q" ${attrs}><span class="q-prefix">ARTISTE:</span>${parts[1]}</span>`;
+                if (upper.includes('ARTISTE:') || upper.match(/^[^:]+:/)) {
+                    const colonIdx = content.indexOf(':');
+                    const prefix = colonIdx !== -1 ? content.substring(0, colonIdx).trim().toUpperCase() : 'ARTISTE';
+                    const responseText = colonIdx !== -1 ? content.substring(colonIdx + 1).trim().toUpperCase() : content.toUpperCase();
+                    const colorStyle = artistColor ? `style="color:${artistColor};-webkit-text-fill-color:${artistColor}"` : '';
+                    return `<span class="interview-q artiste-q"><span class="q-prefix artiste-prefix" ${colorStyle}>${prefix} :</span> <span class="artiste-response">${responseText}</span></span>`;
                 }
-                return `<span class="interview-q" ${attrs}>${content}</span>`;
+                return `<span class="interview-q">${upper}</span>`;
             });
         }
 
