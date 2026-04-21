@@ -2127,11 +2127,15 @@ export function Community() {
             </div>
 
             {!isLoggedIn && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
+                <div 
+                    className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm cursor-pointer"
+                    onClick={() => navigate('/')}
+                >
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        className="max-w-md w-full bg-[#050510]/80 border-2 border-white/10 rounded-[3rem] p-10 md:p-14 text-center space-y-10 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                        className="max-w-md w-full bg-[#050510]/80 border-2 border-white/10 rounded-[3rem] p-10 md:p-14 text-center space-y-10 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative overflow-hidden cursor-default"
                     >
                         {/* Glows */}
                         <div className="absolute -top-24 -left-24 w-48 h-48 bg-neon-red/20 rounded-full blur-[80px] animate-pulse" />
@@ -2164,6 +2168,15 @@ export function Community() {
                                 >
                                     Déjà membre ? Me connecter
                                 </button>
+                                
+                                <div className="pt-4 border-t border-white/5">
+                                    <button
+                                        onClick={() => navigate('/')}
+                                        className="text-[9px] font-black text-gray-500 hover:text-white uppercase tracking-[0.4em] transition-all"
+                                    >
+                                        ← Retour sur le site
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
