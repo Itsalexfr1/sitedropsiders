@@ -1069,9 +1069,9 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                                     color: isSelected ? 'black' : editorColor
                                                                 }}
                                                             >
-                                                                {editor.name.charAt(0)}
+                                                                {displayName.charAt(0)}
                                                             </div>
-                                                            {editor.name}
+                                                            {displayName}
                                                         </button>
                                                     );
                                                 })}
