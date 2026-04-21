@@ -3283,9 +3283,33 @@ ${generateSocialsHtml()}
                                                 </button>
                                             </div>
                                         </div>
-                                    </Fragment>
                                 ))}
+
+                                {/* ── Barre d'ajout BAS – évite de remonter ── */}
+                                <div className="flex flex-wrap gap-2 pt-8 border-t border-white/5 justify-center">
+                                    <button
+                                        onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: interviewQuestions.find(q => q.type === 'qa')?.artistName || '', artistColor: interviewQuestions.find(q => q.type === 'qa')?.artistColor || '#ff1241', question: '', answer: '' }])}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-neon-purple text-white rounded-full hover:bg-neon-purple/80 transition-all font-black uppercase tracking-widest text-[10px] shadow-lg shadow-neon-purple/30"
+                                    ><Plus className="w-4 h-4" /> Question</button>
+                                    <button
+                                        onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'image', mediaUrl: '' }])}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/10 text-neon-cyan rounded-full hover:bg-white/10 transition-all font-black uppercase tracking-widest text-[10px]"
+                                    ><ImageIcon className="w-4 h-4" /> Photo</button>
+                                    <button
+                                        onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'video', mediaUrl: '' }])}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/10 text-red-600 rounded-full hover:bg-white/10 transition-all font-black uppercase tracking-widest text-[10px]"
+                                    ><Youtube className="w-4 h-4" /> Vidéo</button>
+                                    <button
+                                        onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'spotify', mediaUrl: '' }])}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/10 text-[#1DB954] rounded-full hover:bg-white/10 transition-all font-black uppercase tracking-widest text-[10px]"
+                                    ><Music className="w-4 h-4" /> Spotify</button>
+                                    <button
+                                        onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'beatport', mediaUrl: '' }])}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/10 text-[#02FF95] rounded-full hover:bg-white/10 transition-all font-black uppercase tracking-widest text-[10px]"
+                                    ><Music className="w-4 h-4" /> Beatport</button>
+                                </div>
                             </div>
+
                         </div>
                     )}
 
