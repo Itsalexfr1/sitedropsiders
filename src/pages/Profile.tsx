@@ -4,6 +4,7 @@ import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check,
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { ImageUploadModal } from '../components/ImageUploadModal';
+import { MixUploadModal } from '../components/profile/MixUploadModal';
 import wikiFestivals from '../data/wiki_festivals.json';
 const showNotification = (msg: string, type: 'success' | 'error' | 'info') => console.log(`[${type.toUpperCase()}] ${msg}`);
 
@@ -21,6 +22,9 @@ export function Profile() {
     const [selectedFestival, setSelectedFestival] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [customFestivalImage, setCustomFestivalImage] = useState<File | null>(null);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null);
+    const [userMixes, setUserMixes] = useState<any[]>([]);
 
     useEffect(() => {
         if (!isLoggedIn) {
@@ -297,7 +301,8 @@ export function Profile() {
                                                             alert("Le fichier est trop volumineux. La limite est de 150 Mo.");
                                                             return;
                                                         }
-                                                        alert(`Type de média : ${uploadType}\nL'upload vers R2 sera implémenté prochainement.\nFichier sélectionné : ${file.name}`);
+                                                        setSelectedAudioFile(file);
+                                                        setIsUploadModalOpen(true);
                                                     }
                                                 }}
                                             />
@@ -311,10 +316,30 @@ export function Profile() {
                                         <div className="space-y-4 pt-4 border-t border-white/5">
                                             <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Mes Mixes Publics</h4>
                                             
-                                            <div className="text-center py-10 opacity-50 bg-white/5 rounded-3xl border border-white/5 border-dashed">
-                                                <Headphones className="w-8 h-8 mx-auto mb-3 text-gray-600" />
-                                                <p className="text-[10px] text-gray-400 uppercase font-bold tracking-[0.2em]">Aucun mix mis en ligne pour le moment.</p>
-                                            </div>
+                                            {userMixes.length > 0 ? (
+                                                <div className="space-y-3">
+                                                    {userMixes.map((mix) => (
+                                                        <div key={mix.id} className="group p-4 bg-white/5 border border-white/5 hover:border-neon-purple/30 rounded-2xl flex items-center justify-between transition-all hover:bg-neon-purple/5">
+                                                            <div className="flex items-center gap-4">
+                                                                <button className="w-10 h-10 bg-neon-purple/20 text-neon-purple rounded-xl flex items-center justify-center">
+                                                                    <PlayCircle className="w-5 h-5" />
+                                                                </button>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-neon-purple uppercase tracking-widest">{mix.type}</p>
+                                                                    <h5 className="text-xs font-bold text-white uppercase italic">{mix.title}</h5>
+                                                                    <p className="text-[8px] text-gray-500 font-bold uppercase">{mix.genre ? `${mix.genre} · ` : ''}{mix.duration}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-[8px] text-gray-600 font-bold uppercase">{mix.uploadDate}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-10 opacity-50 bg-white/5 rounded-3xl border border-white/5 border-dashed">
+                                                    <Headphones className="w-8 h-8 mx-auto mb-3 text-gray-600" />
+                                                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-[0.2em]">Aucun mix mis en ligne pour le moment.</p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -518,6 +543,17 @@ export function Profile() {
                 onUploadSuccess={handleAvatarSuccess}
                 aspect={1}
                 accentColor="neon-red"
+            />
+
+            <MixUploadModal 
+                isOpen={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                file={selectedAudioFile}
+                type={uploadType}
+                onSuccess={(data) => {
+                    setUserMixes(prev => [data, ...prev]);
+                    // Logic to actually save to DB could go here
+                }}
             />
         </div>
     );
