@@ -3311,7 +3311,6 @@ ${generateSocialsHtml()}
                                     </div>
                                 </div>
                             </div>
-                        </div>
                     )}
 
                     {/* MUSIC TOP LIST EDITOR */}
