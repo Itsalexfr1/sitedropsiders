@@ -409,10 +409,14 @@
     font-weight: 900;
 }
 
-/* DROPSIDERS: tout en blanc */
-.article-body-premium .interview-q.dropsiders-q,
-.article-body-premium .interview-q.dropsiders-q .q-prefix {
+/* DROPSIDERS: préfixe en ROUGE, texte de la question en blanc */
+.article-body-premium .interview-q.dropsiders-q {
     color: #ffffff !important;
+}
+.article-body-premium .interview-q.dropsiders-q .q-prefix {
+    color: #ff1241 !important;
+    -webkit-text-fill-color: #ff1241 !important;
+    text-shadow: 0 0 15px rgba(255, 18, 65, 0.4);
 }
 
 /* ARTISTE: le préfixe garde la couleur inline (via style attr),
