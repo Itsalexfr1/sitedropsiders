@@ -385,7 +385,18 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
         // Support Interviews (Bold questions)
         if (isInterview) {
-            finalHtml = finalHtml.replace(/<strong([^>]*)>(.*?)<\/strong>/gi, '<span class="interview-q" $1>$2</span>');
+            finalHtml = finalHtml.replace(/<strong([^>]*)>(.*?)<\/strong>/gi, (match, attrs, content) => {
+                const upper = content.toUpperCase();
+                if (upper.includes('DROPSIDERS:')) {
+                    const parts = content.split(/DROPSIDERS:/i);
+                    return `<span class="interview-q dropsiders-q" ${attrs}><span class="q-prefix">DROPSIDERS:</span>${parts[1]}</span>`;
+                }
+                if (upper.includes('ARTISTE:')) {
+                    const parts = content.split(/ARTISTE:/i);
+                    return `<span class="interview-q artiste-q" ${attrs}><span class="q-prefix">ARTISTE:</span>${parts[1]}</span>`;
+                }
+                return `<span class="interview-q" ${attrs}>${content}</span>`;
+            });
         }
 
         return finalHtml;

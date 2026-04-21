@@ -383,9 +383,51 @@
     font-size: 0.75rem; /* Réduit de 40% (1.25rem * 0.6) */
     color: white;
     background: rgba(255, 255, 255, 0.03);
-    padding: 2rem;
     border-radius: 12px;
     text-align: center;
+}
+
+
+/* --- INTERVIEW QUESTIONS --- */
+.article-body-premium .interview-q {
+    display: block;
+    font-family: var(--font-display, 'Orbitron', monospace);
+    font-weight: 900;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    color: #ffffff !important;
+    text-align: center;
+    margin: 3.5rem auto 1.5rem;
+    letter-spacing: 0.05em;
+    line-height: 1.4;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.article-body-premium .interview-q .q-prefix {
+    color: var(--theme-color, #ff0033);
+    margin-right: 0.75rem;
+    text-shadow: 0 0 15px var(--theme-color, rgba(255, 0, 51, 0.4));
+}
+
+/* For DROPSIDERS, prefix and text are both white as requested */
+.article-body-premium .interview-q.dropsiders-q .q-prefix {
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+/* For ARTISTE, name keeps theme color, response is white */
+.article-body-premium .interview-q.artiste-q .q-prefix {
+    color: var(--theme-color, #ff0033);
+}
+
+.article-body-premium .interview-q::before {
+    content: '';
+    display: none;
+}
+
+.article-body-premium .interview-q::after {
+    content: '';
+    display: none;
 }
 
 

@@ -279,6 +279,7 @@ export function InterviewRandomizer() {
                             <div className="space-y-8 md:space-y-16 w-full px-4">
                                  <div className="space-y-4">
                                      <div className="inline-flex items-center gap-2 md:gap-4 px-5 md:px-8 py-2 md:py-3 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full">
+                                         <input type="color" className="hidden" /> {/* Placeholder for color choice if added later */}
                                          <Sparkles className="w-5 h-5 md:w-7 md:h-7 text-neon-cyan animate-pulse" />
                                          <span className="text-base md:text-2xl font-black text-neon-cyan uppercase tracking-[0.4em] md:tracking-[0.5em] italic">{selectedEntry.artist}</span>
                                      </div>
