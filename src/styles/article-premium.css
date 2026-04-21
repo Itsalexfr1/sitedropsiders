@@ -390,28 +390,31 @@
 
 /* --- INTERVIEW QUESTIONS & RESPONSES --- */
 .article-body-premium .interview-qa-block {
-    margin: 6rem auto;
+    margin: 4rem auto;
     padding: 0;
-    max-width: 950px;
-    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .article-body-premium .interview-q {
     display: block;
+    width: 100%;
+    max-width: 1100px;
     font-family: var(--font-display, 'Orbitron', sans-serif);
-    font-weight: 800;
-    font-size: 1.1rem;
+    font-weight: 900;
+    font-size: 1.25rem;
     text-transform: uppercase !important;
     color: #ffffff !important;
-    text-align: center;
+    text-align: center !important;
     letter-spacing: 0.05em;
-    line-height: 1.5;
-    margin: 0 auto;
+    line-height: 1.6;
+    margin: 3.5rem auto !important; /* Éspace ÉNORME entre chaque ligne */
 }
 
 /* Question DROPSIDERS */
 .article-body-premium .interview-q.dropsiders-q {
-    margin-bottom: 2rem;
     color: #ffffff !important;
 }
 
@@ -419,19 +422,17 @@
     color: #ff1241 !important;
     -webkit-text-fill-color: #ff1241 !important;
     text-shadow: 0 0 15px rgba(255, 18, 65, 0.4);
-    margin-right: 0.5rem;
+    margin-right: 0.6rem;
 }
 
 /* Réponse ARTISTE */
 .article-body-premium .interview-q.artiste-q {
-    font-weight: 500;
-    font-size: 1rem;
     color: #ffffff !important;
 }
 
 .article-body-premium .interview-q.artiste-q .artiste-prefix {
     font-weight: 900;
-    margin-right: 0.5rem;
+    margin-right: 0.6rem;
 }
 
 .article-body-premium .interview-q.artiste-q .artiste-response {
