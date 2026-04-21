@@ -10,11 +10,12 @@ interface Editor {
     email: string;
     username: string;
     name: string;
+    pseudo?: string;
     avatar?: string;
     provider?: string;
     created: string;
     permissions?: string[];
-    phone?: string;
+    verified?: boolean;
 }
 
 const PERMISSION_CATEGORIES = [
@@ -106,8 +107,8 @@ export function AdminEditors() {
 
     const [newEditor, setNewEditor] = useState({
         email: '',
+        pseudo: '',
         permissions: [] as string[],
-        phone: ''
     });
     const [isEditing, setIsEditing] = useState(false);
     const [foundUser, setFoundUser] = useState<any | null>(null);
@@ -181,17 +182,28 @@ export function AdminEditors() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
                     email: newEditor.email,
+                    pseudo: newEditor.pseudo,
                     permissions: newEditor.permissions,
-                    phone: newEditor.phone
                 })
             });
 
             if (response.ok) {
+                // Send invite email with code if it's a new editor
+                if (!isEditing) {
+                    await apiFetch('/api/editors/send-invite', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ email: newEditor.email, pseudo: newEditor.pseudo })
+                    });
+                }
                 await fetchEditors();
                 setShowAddModal(false);
-                setNewEditor({ email: '', permissions: [], phone: '' });
+                setNewEditor({ email: '', pseudo: '', permissions: [] });
                 setFoundUser(null);
-                showNotification('Permissions mises à jour avec succès !', 'success');
+                showNotification(
+                    isEditing ? 'Permissions mises à jour !' : `Invitation envoyée à ${newEditor.email} par email !`,
+                    'success'
+                );
             } else {
                 const data = await response.json();
                 showNotification(data.error || 'Erreur lors de la mise à jour', 'error');
@@ -226,8 +238,8 @@ export function AdminEditors() {
         setIsEditing(true);
         setNewEditor({
             email: editor.email,
+            pseudo: editor.pseudo || editor.username || '',
             permissions: editor.permissions || [],
-            phone: editor.phone || ''
         });
         setFoundUser(editor);
         setShowAddModal(true);
@@ -235,7 +247,7 @@ export function AdminEditors() {
 
     const handleOpenAddModal = () => {
         setIsEditing(false);
-        setNewEditor({ email: '', permissions: [], phone: '' });
+        setNewEditor({ email: '', pseudo: '', permissions: [] });
         setFoundUser(null);
         setShowAddModal(true);
     };
@@ -351,11 +363,11 @@ export function AdminEditors() {
                                                         <Mail className="w-3 h-3" />
                                                         {editor.email}
                                                     </div>
-                                                    {editor.phone && (
+                                                    {(editor.pseudo || editor.username) && (
                                                         <>
                                                             <div className="w-1 h-1 bg-white/10 rounded-full" />
                                                             <div className="flex items-center gap-2 text-white/60">
-                                                                {editor.phone}
+                                                                @{editor.pseudo || editor.username}
                                                             </div>
                                                         </>
                                                     )}
@@ -484,17 +496,22 @@ export function AdminEditors() {
                                     </div>
 
                                     <div>
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">Numéro de Téléphone 2FA (Optionnel)</label>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">
+                                            Pseudo Éditeur <span className="text-neon-red">*</span>
+                                        </label>
                                         <div className="relative">
                                             <input
                                                 type="text"
-                                                value={newEditor.phone}
-                                                onChange={e => setNewEditor({ ...newEditor, phone: e.target.value })}
+                                                value={newEditor.pseudo}
+                                                onChange={e => setNewEditor({ ...newEditor, pseudo: e.target.value })}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-white text-sm font-bold focus:outline-none focus:border-neon-red transition-all"
-                                                placeholder="+33612345678"
+                                                placeholder="Pseudo utilisé pour les articles..."
+                                                required
                                             />
                                         </div>
-                                        <p className="mt-1 text-[9px] text-gray-500 uppercase tracking-widest">Si vide, l'éditeur le renseignera à sa première connexion.</p>
+                                        <p className="mt-1 text-[9px] text-gray-500 uppercase tracking-widest">
+                                            Il sera utilisé pour signer les News et les e-mails. L'éditeur validera ensuite son compte grâce au code reçu par e-mail.
+                                        </p>
                                     </div>
 
 

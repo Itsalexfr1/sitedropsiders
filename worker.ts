@@ -1379,16 +1379,23 @@ ${urls.map(u => `  <url>
                 return new Response(JSON.stringify({ error: 'Permission refusée : administrateur requis' }), { status: 403, headers });
             }
 
-            // Editors Management: only Alex
-            if (path.startsWith('/api/editors') && requestUsername !== 'alex') {
+            // Editors Management: only Alex or Super Admins
+            if (path.startsWith('/api/editors') && requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr' && requestUsername !== 'alexflex30@gmail.com') {
                 return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur" }), { status: 403, headers });
             }
         }
 
         // --- DEPLOY: Trigger GitHub Actions workflow_dispatch ---
         if (path === '/api/deploy' && request.method === 'POST') {
-            // Only allow 'alex' (or 'contact@dropsiders.fr' or 'alexflex30@gmail.com') to access this page
-            if ((requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr' && requestUsername !== 'alexflex30@gmail.com') || requestPassword !== adminPassword) {
+            const requestSessionId = request.headers.get('X-Session-ID');
+            const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
+            const masterSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
+            const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr');
+            
+            const isAuthorizedSession = requestSessionId && requestSessionId === masterSessionId && (isSuperEmail || requestUsername === 'alex');
+            const isAuthorizedPassword = requestPassword === adminPassword && (isSuperEmail || requestUsername === 'alex');
+
+            if (!isAuthorizedSession && !isAuthorizedPassword) {
                 return new Response(JSON.stringify({ error: 'Accès réservé à l\'administrateur principal' }), { status: 403, headers });
             }
 
@@ -1751,14 +1758,15 @@ ${urls.map(u => `  <url>
                     return new Response(JSON.stringify({ error: 'Utilisateur non identifié' }), { status: 400, headers });
                 }
 
-                // Permission check: only alex can revoke others
-                if (targetUsername && targetUsername !== requestUsername && requestUsername !== 'alex') {
+                const isSuperReq = requestUsername === 'alex' || requestUsername === 'alexflex30@gmail.com' || requestUsername === 'contact@dropsiders.fr';
+                // Permission check: only superadmins can revoke others
+                if (targetUsername && targetUsername !== requestUsername && !isSuperReq) {
                     return new Response(JSON.stringify({ error: 'Permission refusée' }), { status: 403, headers });
                 }
 
                 let saved = { ok: true };
 
-                if (userToRevoke === 'alex' || userToRevoke === 'contact@dropsiders.fr') {
+                if (userToRevoke === 'alex' || userToRevoke === 'contact@dropsiders.fr' || userToRevoke === 'alexflex30@gmail.com') {
                     const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
                     if (settingsFile) {
                         settingsFile.content.master_session_id = newSessionId;
@@ -1799,7 +1807,7 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/editors/update-permissions' && request.method === 'POST') {
-            const { email, permissions, phone } = await request.json();
+            const { email, permissions, pseudo } = await request.json();
             const cleanEmail = email.toLowerCase().trim();
             const file = await fetchGitHubFile(EDITORS_PATH, gitConfig) || { content: [], sha: null };
 
@@ -1807,16 +1815,18 @@ ${urls.map(u => `  <url>
             
             if (index !== -1) {
                 // Update existing editor
-                file.content[index].permissions = permissions;
-                if (phone !== undefined) {
-                    file.content[index].phone = phone;
+                file.content[index].permissions = permissions || [];
+                if (pseudo !== undefined) {
+                    file.content[index].username = pseudo;
+                    file.content[index].pseudo = pseudo;
                 }
             } else {
                 // Create new editor mapping
                 file.content.push({
                     email: cleanEmail,
+                    username: pseudo || '',
+                    pseudo: pseudo || '',
                     permissions: permissions || [],
-                    phone: phone || '',
                     created: new Date().toISOString()
                 });
             }
@@ -1834,6 +1844,42 @@ ${urls.map(u => `  <url>
             const updated = file.content.filter((e: any) => e.email?.toLowerCase() !== cleanEmail);
             const saved = await saveGitHubFile(EDITORS_PATH, updated, `Remove editor: ${cleanEmail}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+        }
+
+        if (path === '/api/editors/send-invite' && request.method === 'POST') {
+            const { email, pseudo } = await request.json();
+            const cleanEmail = email.toLowerCase().trim();
+
+            const BREVO_KEY = env.BREVO_API_KEY;
+            if (BREVO_KEY) {
+                const payload = {
+                    sender: { name: 'Dropsiders', email: 'security@dropsiders.fr' },
+                    to: [{ email: cleanEmail }],
+                    subject: `Vos accès Dropsiders ont été activés !`,
+                    htmlContent: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #1a1a1a; background-color: #0d0d0d; color: #ffffff; border-radius: 20px;">
+                            <div style="text-align: center; margin-bottom: 30px;">
+                                <h1 style="color: #ff1241; font-style: italic; text-transform: uppercase;">DROPSIDERS STAFF</h1>
+                            </div>
+                            <h2 style="text-align: center; font-size: 24px; text-transform: uppercase; letter-spacing: 2px;">Accès Approuvé</h2>
+                            <p style="text-align: center; color: #888; font-size: 14px;">Bonjour <strong style="color: #fff;">${pseudo || 'Editeur'}</strong>, vos permissions ont été attribuées.</p>
+                            <p style="text-align: center; color: #888; font-size: 14px; margin-top: 20px;">Rendez-vous sur l'administration pour vous connecter via Google/Discord. Un code de sécurité vous sera envoyé par mail à chaque connexion sur un nouvel appareil.</p>
+                            <div style="text-align: center; margin: 40px 0;">
+                                <a href="https://dropsiders.fr/admin" style="background-color: #ff1241; color: #ffffff; padding: 15px 30px; text-decoration: none; font-weight: bold; border-radius: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">
+                                    Accéder au tableau de bord
+                                </a>
+                            </div>
+                        </div>
+                    `
+                };
+
+                await fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
         // --- API: SPOTIFY MANAGEMENT ---

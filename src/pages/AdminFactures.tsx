@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, Navigate } from 'react-router-dom';
+import { isSuperAdmin } from '../utils/auth';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { InvoiceGenerator } from '../components/InvoiceGenerator';
 import { InvoiceGeneratorMobile } from '../components/InvoiceGeneratorMobile';
@@ -12,7 +13,7 @@ export function AdminFactures() {
         setCurrentUser(localStorage.getItem('admin_user')?.toLowerCase() || '');
     }, []);
 
-    if (currentUser !== 'alex') {
+    if (!isSuperAdmin(currentUser)) {
         return <Navigate to="/admin" replace />;
     }
 
