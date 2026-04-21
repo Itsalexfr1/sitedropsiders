@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
-import { Shield, Phone, ArrowLeft, Loader2, AlertCircle, CheckCircle2, ChevronLeft, RefreshCw } from 'lucide-react';
+import { Shield, Phone, ArrowLeft, Loader2, AlertCircle, CheckCircle2, ChevronLeft, RefreshCw, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { isSuperAdmin } from '../../utils/auth';
 
@@ -35,6 +35,7 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
     const [isFirstTimeEditor, setIsFirstTimeEditor] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
+    const [otpMethod, setOtpMethod] = useState<'sms' | 'email'>('sms');
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // Countdown resend timer
@@ -142,7 +143,9 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
             if (data.phone) {
                 // Phone exists → send OTP directly
                 setIsFirstTimeEditor(false);
-                await sendOtp(user.email, data.phone);
+                // Default to email if Twilio might be an issue, or just keep SMS as default
+                await sendOtp(user.email, data.phone, 'sms');
+                setOtpMethod('sms');
                 setStep('sms_code');
             } else {
                 // First time OR no phone registered → ask for phone number
@@ -155,15 +158,15 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
         }
     };
 
-    // ─── Send OTP via Twilio ───────────────────────────────────────────────────
-    const sendOtp = async (email: string, phoneNumber: string) => {
+    // ─── Send OTP via Twilio or Brevo ─────────────────────────────────────────
+    const sendOtp = async (email: string, phoneNumber: string | null, method: 'sms' | 'email' = 'sms') => {
         setIsSending(true);
         setError('');
         try {
             const res = await fetch('/api/admin/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, phone: phoneNumber })
+                body: JSON.stringify({ email, phone: phoneNumber, method })
             });
 
             const data = await res.json();
@@ -188,13 +191,20 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
         e.preventDefault();
         if (!socialUser) return;
 
-        const cleanPhone = phone.replace(/\s/g, '').trim();
+        let cleanPhone = phone.replace(/\s/g, '').trim();
+        
+        // Auto-fix for French numbers starting with 0
+        if (cleanPhone.startsWith('0') && cleanPhone.length === 10) {
+            cleanPhone = '+33' + cleanPhone.substring(1);
+        }
+
         if (!cleanPhone.match(/^\+?[0-9]{8,15}$/)) {
             setError('Numéro de téléphone invalide. Format: +33612345678');
             return;
         }
 
-        const sent = await sendOtp(socialUser.email, cleanPhone);
+        const sent = await sendOtp(socialUser.email, cleanPhone, 'sms');
+        setOtpMethod('sms');
         if (sent) {
             setStep('sms_code');
         }
@@ -247,7 +257,7 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
         setError('');
 
         try {
-            const phoneToUse = isFirstTimeEditor ? phone.replace(/\s/g, '').trim() : undefined;
+            const phoneToUse = (isFirstTimeEditor && otpMethod === 'sms') ? phone.replace(/\s/g, '').trim() : undefined;
 
             const res = await fetch('/api/admin/verify-otp', {
                 method: 'POST',
@@ -315,8 +325,8 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
         });
         const d = await res.json();
         const pNum = phoneToUse || d.phone;
-        if (pNum) {
-            await sendOtp(socialUser.email, pNum);
+        if (pNum || otpMethod === 'email') {
+            await sendOtp(socialUser.email, pNum, otpMethod);
             setOtpDigits(['', '', '', '', '', '']);
             setTimeout(() => inputRefs.current[0]?.focus(), 100);
         }
@@ -513,17 +523,35 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
                                         </p>
                                     </div>
 
-                                    <button
-                                        type="submit"
-                                        disabled={isSending || !phone.trim()}
-                                        className="w-full py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] flex items-center justify-center gap-3 hover:bg-neon-red/80 disabled:opacity-50 transition-all shadow-2xl shadow-neon-red/30 active:scale-95"
-                                    >
-                                        {isSending ? (
-                                            <><Loader2 className="w-4 h-4 animate-spin" /> Envoi du SMS...</>
-                                        ) : (
-                                            <>Recevoir le code SMS</>
-                                        )}
-                                    </button>
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="submit"
+                                            disabled={isSending || !phone.trim()}
+                                            className="flex-1 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] flex items-center justify-center gap-3 hover:bg-neon-red/80 disabled:opacity-50 transition-all shadow-2xl shadow-neon-red/30 active:scale-95"
+                                        >
+                                            {isSending && otpMethod === 'sms' ? (
+                                                <><Loader2 className="w-4 h-4 animate-spin" /> Envoi...</>
+                                            ) : (
+                                                <>Par SMS</>
+                                            )}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={isSending}
+                                            onClick={async () => {
+                                                setOtpMethod('email');
+                                                const sent = await sendOtp(socialUser.email, null, 'email');
+                                                if (sent) setStep('sms_code');
+                                            }}
+                                            className="flex-1 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] flex items-center justify-center gap-3 hover:bg-white/10 disabled:opacity-50 transition-all active:scale-95"
+                                        >
+                                            {isSending && otpMethod === 'email' ? (
+                                                <><Loader2 className="w-4 h-4 animate-spin" /> Envoi...</>
+                                            ) : (
+                                                <><Mail className="w-4 h-4" /> Par Email</>
+                                            )}
+                                        </button>
+                                    </div>
                                 </form>
                             </div>
                         </motion.div>
@@ -552,22 +580,31 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
                                     Retour
                                 </button>
 
-                                {/* Phone display */}
+                                {/* Icon display */}
                                 <div className="flex justify-center mb-6">
                                     <div className="p-4 bg-green-500/10 rounded-2xl border border-green-500/20">
-                                        <CheckCircle2 className="w-8 h-8 text-green-400" />
+                                        {otpMethod === 'sms' ? (
+                                            <Phone className="w-8 h-8 text-green-400" />
+                                        ) : (
+                                            <Mail className="w-8 h-8 text-green-400" />
+                                        )}
                                     </div>
                                 </div>
 
                                 <h2 className="text-2xl font-display font-black text-white text-center mb-2 uppercase italic tracking-tighter">
-                                    Code <span className="text-neon-red">SMS</span>
+                                    Code <span className="text-neon-red">{otpMethod === 'sms' ? 'SMS' : 'EMAIL'}</span>
                                 </h2>
                                 <p className="text-center text-gray-500 text-[10px] font-black uppercase tracking-[0.15em] mb-2">
-                                    Un code à 6 chiffres a été envoyé par SMS
+                                    Un code à 6 chiffres a été envoyé par {otpMethod === 'sms' ? 'SMS' : 'EMAIL'}
                                 </p>
-                                {(isFirstTimeEditor ? phone : '') && (
+                                {otpMethod === 'sms' && (isFirstTimeEditor ? phone : '') && (
                                     <p className="text-center text-gray-400 text-xs font-bold mb-8">
                                         au numéro {phone}
+                                    </p>
+                                )}
+                                {otpMethod === 'email' && socialUser && (
+                                    <p className="text-center text-gray-400 text-xs font-bold mb-8">
+                                        à l'adresse {socialUser.email}
                                     </p>
                                 )}
 
