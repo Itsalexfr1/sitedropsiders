@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2 } from 'lucide-react';
+import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, Share2 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -13,7 +13,8 @@ export function Profile() {
     const [username, setUsername] = useState(user?.username || '');
     const [isEditingName, setIsEditingName] = useState(false);
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
-    const [activeTab, setActiveTab ] = useState<'overview' | 'settings' | 'favorites'>('overview');
+    const [activeTab, setActiveTab ] = useState<'overview' | 'mixes' | 'settings' | 'favorites'>('overview');
+    const [uploadType, setUploadType] = useState<'Track' | 'Remix' | 'Edit' | 'Mix'>('Mix');
 
     useEffect(() => {
         if (!isLoggedIn) {
@@ -36,6 +37,23 @@ export function Profile() {
         updateUser({ avatar: avatarUrl });
         showNotification('Avatar mis à jour !', 'success');
         setIsAvatarModalOpen(false);
+    };
+
+    const handleShareProfile = async () => {
+        const link = `${window.location.origin}/profil/${encodeURIComponent(user.username)}`;
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `Profil de ${user.username} - DROPSIDERS`,
+                    url: link
+                });
+            } catch (err) {
+                console.error("Partage annulé");
+            }
+        } else {
+            await navigator.clipboard.writeText(link);
+            alert("Lien du profil copié !");
+        }
     };
 
     const stats = [
@@ -131,6 +149,9 @@ export function Profile() {
                                 </div>
 
                                 <div className="pt-6 w-full border-t border-white/5 flex flex-col gap-3">
+                                    <button onClick={handleShareProfile} className="flex items-center justify-center gap-3 w-full py-4 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/20 text-neon-cyan rounded-2xl font-black uppercase tracking-widest transition-all text-xs group">
+                                        <Share2 className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" /> Partager mon profil
+                                    </button>
                                     <button onClick={() => logout()} className="flex items-center justify-center gap-3 w-full py-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 rounded-2xl font-black uppercase tracking-widest transition-all text-xs group">
                                         <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Se déconnecter
                                     </button>
@@ -155,6 +176,7 @@ export function Profile() {
                         <div className="flex gap-4 p-2 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md w-fit">
                             {[
                                 { id: 'overview', label: 'Vue d\'ensemble', icon: <User className="w-4 h-4" /> },
+                                { id: 'mixes', label: 'Mix Studio', icon: <Headphones className="w-4 h-4" /> },
                                 { id: 'favorites', label: 'Favoris', icon: <Music className="w-4 h-4" /> },
                                 { id: 'settings', label: 'Sécurité', icon: <Settings className="w-4 h-4" /> }
                             ].map(tab => (
@@ -232,6 +254,61 @@ export function Profile() {
                                                  )}
                                              </div>
                                          </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'mixes' && (
+                                    <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 space-y-8">
+                                        <div className="flex items-center gap-4 border-b border-white/5 pb-4">
+                                            <div className="w-10 h-10 bg-neon-purple/20 rounded-xl flex items-center justify-center">
+                                                <Headphones className="w-5 h-5 text-neon-purple" />
+                                            </div>
+                                            <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Mix Studio</h3>
+                                        </div>
+                                        
+                                        <div className="flex gap-2 justify-center mb-6">
+                                            {['Track', 'Remix', 'Edit', 'Mix'].map(type => (
+                                                <button 
+                                                    key={type}
+                                                    onClick={() => setUploadType(type as any)}
+                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${uploadType === type ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.4)]' : 'bg-white/5 text-gray-500 hover:text-white border border-white/10'}`}
+                                                >
+                                                    {type}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        
+                                        <div className="p-8 border-2 border-dashed border-neon-purple/30 bg-neon-purple/5 rounded-[32px] text-center hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all cursor-pointer group flex flex-col items-center gap-4 relative overflow-hidden">
+                                            <input 
+                                                type="file" 
+                                                accept="audio/mpeg" 
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        if (file.size > 150 * 1024 * 1024) {
+                                                            alert("Le fichier est trop volumineux. La limite est de 150 Mo.");
+                                                            return;
+                                                        }
+                                                        alert(`Type de média : ${uploadType}\nL'upload vers R2 sera implémenté prochainement.\nFichier sélectionné : ${file.name}`);
+                                                    }
+                                                }}
+                                            />
+                                            <UploadCloud className="w-12 h-12 text-neon-purple/50 group-hover:text-neon-purple transition-colors group-hover:-translate-y-1 transform duration-300" />
+                                            <div>
+                                                <p className="text-xs font-black text-white uppercase tracking-widest mb-1 group-hover:text-neon-purple transition-colors">Uploader un nouveau {uploadType}</p>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase italic">Format MP3 uniquement - Max 150 Mo</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-4 pt-4 border-t border-white/5">
+                                            <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Mes Mixes Publics</h4>
+                                            
+                                            <div className="text-center py-10 opacity-50 bg-white/5 rounded-3xl border border-white/5 border-dashed">
+                                                <Headphones className="w-8 h-8 mx-auto mb-3 text-gray-600" />
+                                                <p className="text-[10px] text-gray-400 uppercase font-bold tracking-[0.2em]">Aucun mix mis en ligne pour le moment.</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 

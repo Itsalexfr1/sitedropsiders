@@ -63,6 +63,7 @@ const TopDropsiders = lazyRetry(() => import('./pages/TopDropsiders').then(m => 
 const Profile = lazyRetry(() => import('./pages/Profile').then(m => m.Profile));
 const AdminPdfs = lazyRetry(() => import('./pages/AdminPdfs').then(m => m.AdminPdfs));
 const AdminInterviewQuestions = lazyRetry(() => import('./pages/AdminInterviewQuestions').then(m => m.AdminInterviewQuestions));
+const PublicProfile = lazyRetry(() => import('./pages/PublicProfile').then(m => m.PublicProfile));
 
 function ErrorFallback() {
   return (
@@ -158,6 +159,7 @@ const router = createBrowserRouter([
       { path: "communaute", element: <Community /> },
       { path: "top-dropsiders", element: <TopDropsiders /> },
       { path: "profil", element: <Profile /> },
+      { path: "profil/:username", element: <PublicProfile /> },
       { path: "communaute/partager", element: <PhotoSubmission /> },
       { path: "galerie/:id", element: <AlbumDetail /> },
       { path: "communaute/:id", element: <AlbumDetail /> },
