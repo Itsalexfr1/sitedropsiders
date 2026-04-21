@@ -281,6 +281,12 @@ export function NewsCreate() {
         category: string,
         articleId: string
     } | null>(null);
+    const [shareModalConfig, setShareModalConfig] = useState<{
+        show: boolean;
+        title: string;
+        url: string;
+        socialSuiteData: any;
+    } | null>(null);
     const [activeWidgetId, setActiveWidgetId] = useState<string | null>(null);
     const [isMobileEditorActive, setIsMobileEditorActive] = useState(false);
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -1556,15 +1562,20 @@ ${generateSocialsHtml()}
                 setStatus('success');
                 setIsDirty(false);
 
-                // Store data for Social Suite BEFORE resetting form
-                setSocialSuiteData({
+                // Show share modal before Social Suite
+                const newArticleId = isEditing ? (id || '') : (data.id || '');
+                setShareModalConfig({
+                    show: true,
                     title: fixEncoding(title),
-                    imageUrl: finalImageUrl,
-                    type: type,
-                    category: finalCategory,
-                    articleId: isEditing ? (id || '') : (data.id || '')
+                    url: `https://dropsiders.fr/article/${newArticleId}`,
+                    socialSuiteData: {
+                        title: fixEncoding(title),
+                        imageUrl: finalImageUrl,
+                        type: type,
+                        category: finalCategory,
+                        articleId: newArticleId
+                    }
                 });
-                setShowSocialSuite(true);
 
                 setMessage(isEditing ? 'Article mis à jour avec succès !' : (finalDate > new Date().toISOString().slice(0, 16) ? 'Article programmé avec succès !' : 'Article publié avec succès !'));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -4540,6 +4551,72 @@ ${generateSocialsHtml()}
                         </div>
                     )}
                 </AnimatePresence>
+
+            {/* Share Success Modal */}
+            <AnimatePresence>
+                {shareModalConfig?.show && (
+                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative text-center"
+                        >
+                            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center border border-green-500/40 mx-auto mb-6">
+                                <Check className="w-8 h-8 text-green-500" />
+                            </div>
+
+                            <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
+                                Article Publié !
+                            </h3>
+                            <p className="text-gray-400 text-xs uppercase tracking-widest font-bold mb-8">
+                                Partagez-le directement sur vos réseaux
+                            </p>
+
+                            <div className="space-y-3 mb-8">
+                                <a 
+                                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareModalConfig.url)}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center justify-center gap-3 w-full py-4 bg-[#1877F2]/10 border border-[#1877F2]/30 text-[#1877F2] rounded-xl font-black uppercase tracking-widest hover:bg-[#1877F2] hover:text-white transition-all text-[11px]"
+                                >
+                                    <Facebook className="w-5 h-5" />
+                                    Facebook
+                                </a>
+                                <a 
+                                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareModalConfig.url)}&text=${encodeURIComponent(shareModalConfig.title)}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center justify-center gap-3 w-full py-4 bg-white/5 border border-white/10 text-white rounded-xl font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all text-[11px]"
+                                >
+                                    <XIcon className="w-4 h-4 ml-1" />
+                                    X (Twitter)
+                                </a>
+                                <a 
+                                    href={`https://snapchat.com/scan?attachmentUrl=${encodeURIComponent(shareModalConfig.url)}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center justify-center gap-3 w-full py-4 bg-[#FFFC00]/10 border border-[#FFFC00]/30 text-[#FFFC00] rounded-xl font-black uppercase tracking-widest hover:bg-[#FFFC00] hover:text-black transition-all text-[11px]"
+                                >
+                                    <SnapchatIcon className="w-5 h-5" />
+                                    Snapchat
+                                </a>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    setSocialSuiteData(shareModalConfig.socialSuiteData);
+                                    setShowSocialSuite(true);
+                                    setShareModalConfig(null);
+                                }}
+                                className="w-full py-4 bg-neon-cyan text-black rounded-xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(0,255,243,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all text-[11px]"
+                            >
+                                Continuer vers le Social Studio
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* Schedule Modal */}
             <AnimatePresence>

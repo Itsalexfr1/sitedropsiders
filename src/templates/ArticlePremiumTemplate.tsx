@@ -50,6 +50,12 @@ const XIcon = (props: any) => (
     </svg>
 );
 
+const SnapchatIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12.115 1.554c-1.258-.095-2.617.2-3.805.811-1.784.92-3.056 2.658-3.328 4.672-.059.431-.059 1.134.004 1.558.114.777.308 1.488.586 2.155l.135.32-.128.026c-1.127.234-2.079.794-2.736 1.611a3.003 3.003 0 0 0-.585 2.154c.164.912.607 1.626 1.341 2.164.212.156.626.381.8.423l.119.03-.024.137c-.012.062-.053.13-.092.148-1.08.536-2.086 1.442-2.753 2.475-.245.38-.415.776-.566 1.319-.074.269-.1.536-.089.897.016.505.07.72.247.965.267.371.802.66 1.458.789.261.05.807.068 1.4.048 1.109-.033 1.954-.18 2.871-.5.337-.116.711-.275.753-.318.067-.068.745-.308 1.256-.445l.231-.061.272.235c.14.1.916 1.05-.289 1.983-.342.368-1.036 1.002-.53 1.002.502.001.99-.214 1.385-.567a5.558 5.558 0 0 0 1.242-2.147l.115-.316.321.115c.618.22 1.372.41 1.769.444.179.014.288-.046.288-.16s-.103-.172-.259-.147a4.116 4.116 0 0 1-1.636-.341l-.224-.082-.016-.088c-.015-.088-.002-.15.048-.22.141-.219.782-1.012 1.096-1.353.472-.511.954-.93 1.44-1.25l.288-.19.026-.145c.036-.184.28-.152 1.62-.02 1.042.102 1.968-.112 2.768-.642.6-.39 1.1-.96 1.135-2.203.029-.464-.2-.897-.565-1.428-.465-.678-1.127-1.205-1.93-1.536l-.328-.135.064-.131a4.912 4.912 0 0 0 .543-1.64c.052-.396.052-1.117.001-1.543-.325-1.957-1.47-3.69-3.265-4.829-1.284-.814-2.822-1.138-4.321-.904z" />
+    </svg>
+);
+
 
 interface ArticlePremiumTemplateProps {
     article: any;
@@ -707,6 +713,17 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     title="Partager sur X"
                                 >
                                     <XIcon className="w-4 h-4 text-white group-hover:text-gray-400 transition-colors" />
+                                </a>
+
+                                {/* Snapchat */}
+                                <a
+                                    href={`https://snapchat.com/scan?attachmentUrl=${encodeURIComponent(shareUrl)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
+                                    title="Partager sur Snapchat"
+                                >
+                                    <SnapchatIcon className="w-4 h-4 text-white group-hover:text-[#FFFC00] transition-colors" />
                                 </a>
 
                                 <div className="w-[1px] h-6 bg-white/10 mx-1" />
