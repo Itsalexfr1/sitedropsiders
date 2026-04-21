@@ -17,30 +17,20 @@ export function PublicProfile() {
         setIsLoading(true);
         // Simulate a small delay for fetching from backend
         const timer = setTimeout(() => {
-            // Mock data for the demonstration
+            // Mock data structure - now empty as requested
             const mockUser = {
                 username: username,
                 avatar: null,
                 createdAt: new Date().toISOString(),
-                scores: { drops: 450, xp: 1200 },
+                scores: { drops: 0, xp: 0 },
                 rank: "MEMBRE",
-                isVerified: username?.toLowerCase() === 'alex' || username?.toLowerCase() === 'tanguy',
-                mixes: [
-                    { id: 1, title: 'Summer Vibes 2026', type: 'Mix', duration: '60:00', uploadDate: 'Il y a 2 jours' },
-                    { id: 2, title: 'Dark Techno Edit - Underground', type: 'Edit', duration: '5:30', uploadDate: '1 semaine' }
-                ],
-                reviews: [
-                    { id: 1, festival: 'Tomorrowland 2026', rating: 5, date: 'Il y a 1 mois', text: 'Incroyable édition, la Mainstage était folle et l\'ambiance inégalable. À refaire absolument !' },
-                    { id: 2, festival: 'Afterlife Paris', rating: 4, date: 'Il y a 3 mois', text: 'Les visuels de Tale of Us toujours au top, même si l\'attente aux bars était un peu longue.' }
-                ],
-                agendaFavorites: ['evt-dummy-1', 'evt-dummy-2']
+                isVerified: false,
+                mixes: [],
+                reviews: [],
+                agendaFavorites: []
             };
             
-            // Mock fetching public events based on ID
-            setPublicEvents([
-                { id: 'evt-dummy-1', title: 'AFTERLIFE PARIS', date: '2026-08-15', image: '/festivals/3.jpg', genre: 'Melodic Techno', type: 'Festival' },
-                { id: 'evt-dummy-2', title: 'TOMORROWLAND WEEK 1', date: '2026-07-20', image: '/festivals/1.jpg', genre: 'Multistyle', type: 'Festival' }
-            ]);
+            setPublicEvents([]);
             
             setProfile(mockUser);
             setIsLoading(false);
