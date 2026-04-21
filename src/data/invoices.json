@@ -1,5 +1,16 @@
 [
   {
+    "number": "INV-2026-068",
+    "client": "CBG France",
+    "total": 2800,
+    "date": "2026-04-21",
+    "id": 1776796799251,
+    "sentDate": "2026-04-21T18:39:59.251Z",
+    "paid": false,
+    "emailTo": "contact@cbg-france.fr",
+    "pdfUrl": "/uploads/factures/1776796798917_Facture_INV-2026-068.pdf"
+  },
+  {
     "number": "INV-2026-070",
     "client": "CBG France ",
     "total": 2550,
