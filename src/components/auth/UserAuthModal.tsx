@@ -377,7 +377,7 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                                     value={email}
                                                     onChange={(e) => setEmail(e.target.value)}
                                                     className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm focus:outline-none focus:border-neon-red/50 transition-all"
-                                                    placeholder="alex@dropsiders.com"
+                                                    placeholder=".........@mail.com"
                                                 />
                                             </div>
                                         </div>
