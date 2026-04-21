@@ -100,7 +100,7 @@ export function Navbar() {
         { name: 'TOP', path: '/top-dropsiders', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
         { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-yellow' },
-        ...(shopEnabled && !shopPasswordProtected ? [{ name: '', path: '/shop', color: 'neon-red', icon: ShoppingBag, isIconOnly: true }] : []),
+        ...(shopEnabled && !shopPasswordProtected ? [{ name: 'SHOP', path: '/shop', color: 'neon-red' }] : []),
         ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{
             name: 'LIVE',
             path: '/live',
