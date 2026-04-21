@@ -1,6 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, CheckCircle2, Music2, Headphones, Disc, Activity, AlertCircle, FileAudio, Info } from 'lucide-react';
+import { X, Upload, CheckCircle2, Music2, Headphones, Disc, Activity, AlertCircle, FileAudio, Info, ListMusic, Plus, Trash2, Edit3, Save, DownloadCloud, FileJson, FileText } from 'lucide-react';
+
+interface Track {
+    id: string;
+    artist: string;
+    title: string;
+}
 
 interface MixUploadModalProps {
     isOpen: boolean;
@@ -12,11 +18,19 @@ interface MixUploadModalProps {
 
 export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUploadModalProps) {
     const [step, setStep] = useState<'uploading' | 'metadata' | 'success'>('uploading');
+    const [metaTab, setMetaTab] = useState<'info' | 'tracklist'>('info');
     const [progress, setProgress] = useState(0);
     const [title, setTitle] = useState(file?.name.replace(/\.[^/.]+$/, "") || '');
     const [genre, setGenre] = useState('');
     const [description, setDescription] = useState('');
+    const [tracklist, setTracklist] = useState<Track[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Track editing state
+    const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
+    const [editArtist, setEditArtist] = useState('');
+    const [editTitle, setEditTitle] = useState('');
 
     useEffect(() => {
         if (isOpen && step === 'uploading' && file) {
@@ -37,6 +51,99 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
 
     if (!isOpen) return null;
 
+    const parseSeratoCSV = (text: string): Track[] => {
+        // Simple CSV parser for Serato exports
+        // Format: "Name","Artist","Composer","Album","Grouping", etc.
+        const lines = text.split('\n');
+        const tracks: Track[] = [];
+        
+        lines.forEach(line => {
+            const parts = line.split('","').map(p => p.replace(/"/g, '').trim());
+            if (parts.length >= 2) {
+                // Heuristic: Serato CSV usually has Title as first col, Artist as second
+                if (parts[0] !== 'Name' && parts[1] !== 'Artist' && parts[0] && parts[1]) {
+                    tracks.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        title: parts[0],
+                        artist: parts[1]
+                    });
+                }
+            }
+        });
+        return tracks;
+    };
+
+    const parseRekordboxTXT = (text: string): Track[] => {
+        // Rekordbox History M3U or TXT often has "Artist - Title" or tab-separated
+        const lines = text.split('\n');
+        const tracks: Track[] = [];
+
+        lines.forEach(line => {
+            if (line.includes('\t')) {
+                const parts = line.split('\t');
+                if (parts.length >= 2 && parts[0] !== 'Artist' && parts[0] !== '#') {
+                    tracks.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        artist: parts[0],
+                        title: parts[1]
+                    });
+                }
+            } else if (line.includes(' - ')) {
+                const [artist, title] = line.split(' - ');
+                if (artist && title) {
+                    tracks.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        artist: artist.trim(),
+                        title: title.trim()
+                    });
+                }
+            }
+        });
+        return tracks;
+    };
+
+    const handleImportTracklist = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target?.result as string;
+            let imported: Track[] = [];
+            if (file.name.endsWith('.csv')) {
+                imported = parseSeratoCSV(text);
+            } else {
+                imported = parseRekordboxTXT(text);
+            }
+            if (imported.length > 0) {
+                setTracklist(prev => [...prev, ...imported]);
+                setMetaTab('tracklist');
+            }
+        };
+        reader.readAsText(file);
+    };
+
+    const addTrack = () => {
+        const newTrack: Track = {
+            id: Math.random().toString(36).substr(2, 9),
+            artist: 'NOUVEL ARTISTE',
+            title: 'NOUVEAU TITRE'
+        };
+        setTracklist(prev => [...prev, newTrack]);
+        setEditingTrackId(newTrack.id);
+        setEditArtist(newTrack.artist);
+        setEditTitle(newTrack.title);
+    };
+
+    const saveTrack = (id: string) => {
+        setTracklist(prev => prev.map(t => t.id === id ? { ...t, artist: editArtist, title: editTitle } : t));
+        setEditingTrackId(null);
+    };
+
+    const deleteTrack = (id: string) => {
+        setTracklist(prev => prev.filter(t => t.id !== id));
+    };
+
     const handleFinalize = () => {
         if (!title.trim()) {
             setError("Le titre est obligatoire");
@@ -48,9 +155,10 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
             genre,
             description,
             type,
+            tracklist,
             id: Math.random().toString(36).substr(2, 9),
             uploadDate: 'À l\'instant',
-            duration: 'Calcul...' // In a real app we'd get this from the audio file
+            duration: 'Calcul...'
         });
     };
 
@@ -69,7 +177,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[40px] overflow-hidden shadow-[0_0_100px_rgba(191,0,255,0.15)]"
+                    className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[40px] overflow-hidden shadow-[0_0_100px_rgba(191,0,255,0.15)] max-h-[90vh] flex flex-col"
                 >
                     {/* Header Bloom */}
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon-purple to-transparent opacity-50" />
@@ -82,7 +190,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                         <X className="w-5 h-5" />
                     </button>
 
-                    <div className="p-8 md:p-12">
+                    <div className="p-8 md:p-12 overflow-y-auto custom-scrollbar flex-1">
                         {step === 'uploading' && (
                             <div className="text-center space-y-8 py-10">
                                 <div className="relative inline-block">
@@ -98,7 +206,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                 </div>
 
                                 <div className="max-w-md mx-auto space-y-4">
-                                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 relative">
+                                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 relative">
                                         <motion.div 
                                             className="h-full bg-neon-purple shadow-[0_0_15px_rgba(191,0,255,0.8)]"
                                             initial={{ width: 0 }}
@@ -107,22 +215,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                     </div>
                                     <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
                                         <span className="text-neon-purple">{Math.round(progress)}%</span>
-                                        <span className="text-gray-600">Calcul du hash...</span>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-4 pt-10 border-t border-white/5">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Activity className="w-4 h-4 text-gray-700" />
-                                        <span className="text-[8px] text-gray-700 font-black uppercase">Chiffrement</span>
-                                    </div>
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Disc className="w-4 h-4 text-neon-purple animate-spin" />
-                                        <span className="text-[8px] text-neon-purple font-black uppercase">Processing</span>
-                                    </div>
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Headphones className="w-4 h-4 text-gray-700" />
-                                        <span className="text-[8px] text-gray-700 font-black uppercase">Validation</span>
+                                        <span className="text-gray-600">Sync R2 Cloud...</span>
                                     </div>
                                 </div>
                             </div>
@@ -130,58 +223,166 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
 
                         {step === 'metadata' && (
                             <div className="space-y-8">
-                                <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-                                    <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
-                                        <FileAudio className="w-6 h-6 text-neon-purple" />
+                                <div className="flex items-center justify-between border-b border-white/5 pb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center shrink-0">
+                                            <FileAudio className="w-6 h-6 text-neon-purple" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-display font-black text-white italic uppercase tracking-widest leading-none">Studio Finalisation</h2>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">{type}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h2 className="text-xl font-display font-black text-white italic uppercase tracking-widest leading-none">Studio Finalisation</h2>
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Configure ton {type}</p>
+
+                                    <div className="flex gap-2 bg-white/5 p-1 rounded-2xl border border-white/10 shrink-0">
+                                        <button 
+                                            onClick={() => setMetaTab('info')}
+                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${metaTab === 'info' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            <Info className="w-3 h-3" /> Info
+                                        </button>
+                                        <button 
+                                            onClick={() => setMetaTab('tracklist')}
+                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${metaTab === 'tracklist' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            <ListMusic className="w-3 h-3" /> Tracklist {tracklist.length > 0 && `(${tracklist.length})`}
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div className="grid gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Titre de l'œuvre</label>
-                                        <input 
-                                            type="text" 
-                                            value={title}
-                                            onChange={(e) => setTitle(e.target.value.toUpperCase())}
-                                            placeholder="TITRE DU MIX / TRACK..."
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold uppercase tracking-widest focus:outline-none focus:border-neon-purple transition-all italic text-sm"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {metaTab === 'info' ? (
+                                    <div className="grid gap-6 animate-in fade-in slide-in-from-right-4 duration-300">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Genre</label>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Titre de l'œuvre</label>
                                             <input 
                                                 type="text" 
-                                                value={genre}
-                                                onChange={(e) => setGenre(e.target.value.toUpperCase())}
-                                                placeholder="TECHNO, HOUSE, TRANCE..."
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold uppercase tracking-widest focus:outline-none focus:border-neon-purple transition-all italic text-xs"
+                                                value={title}
+                                                onChange={(e) => setTitle(e.target.value.toUpperCase())}
+                                                placeholder="TITRE DU MIX / TRACK..."
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold uppercase tracking-widest focus:outline-none focus:border-neon-purple transition-all italic text-sm"
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Catégorie</label>
-                                            <div className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-gray-400 font-black uppercase tracking-widest text-xs italic">
-                                                {type}
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Genre</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={genre}
+                                                    onChange={(e) => setGenre(e.target.value.toUpperCase())}
+                                                    placeholder="TECHNO, HOUSE..."
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold uppercase tracking-widest focus:outline-none focus:border-neon-purple transition-all italic text-xs"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Import Historique (Serato/Rekordbox)</label>
+                                                <div className="relative">
+                                                    <input 
+                                                        type="file" 
+                                                        ref={fileInputRef}
+                                                        onChange={handleImportTracklist}
+                                                        accept=".csv,.txt"
+                                                        className="hidden"
+                                                    />
+                                                    <button 
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        className="w-full bg-neon-purple/10 border border-neon-purple/30 rounded-2xl px-6 py-4 text-neon-purple font-black uppercase tracking-widest text-[10px] hover:bg-neon-purple/20 transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        <DownloadCloud className="w-4 h-4" /> Importer Tracklist
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Description (Optionnel)</label>
-                                        <textarea 
-                                            value={description}
-                                            onChange={(e) => setDescription(e.target.value)}
-                                            rows={3}
-                                            placeholder="Partage l'histoire de ce mix ou ta tracklist..."
-                                            className="w-full bg-white/5 border border-white/10 rounded-3xl px-6 py-4 text-white font-medium text-sm focus:outline-none focus:border-neon-purple transition-all resize-none"
-                                        />
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1">Description (Optionnel)</label>
+                                            <textarea 
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
+                                                rows={4}
+                                                placeholder="Partage l'histoire de ce mix..."
+                                                className="w-full bg-white/5 border border-white/10 rounded-3xl px-6 py-4 text-white font-medium text-sm focus:outline-none focus:border-neon-purple transition-all resize-none"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Liste des Morceaux</h3>
+                                            <button 
+                                                onClick={addTrack}
+                                                className="flex items-center gap-2 px-4 py-2 bg-neon-purple/20 text-neon-purple rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neon-purple/30 transition-all border border-neon-purple/30"
+                                            >
+                                                <Plus className="w-3 h-3" /> Ajouter manuellement
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                            {tracklist.length > 0 ? (
+                                                tracklist.map((track, idx) => (
+                                                    <div key={track.id} className="group p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all">
+                                                        <div className="flex items-center gap-4 flex-1">
+                                                            <div className="w-8 h-8 bg-black/40 rounded-lg flex items-center justify-center text-[10px] font-black text-gray-600 border border-white/5 group-hover:text-neon-purple group-hover:border-neon-purple/30 transition-colors">
+                                                                {idx + 1}
+                                                            </div>
+                                                            {editingTrackId === track.id ? (
+                                                                <div className="flex-1 flex gap-3">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={editArtist}
+                                                                        onChange={(e) => setEditArtist(e.target.value.toUpperCase())}
+                                                                        className="flex-1 bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-1 text-[11px] text-white font-bold uppercase tracking-widest outline-none"
+                                                                    />
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={editTitle}
+                                                                        onChange={(e) => setEditTitle(e.target.value.toUpperCase())}
+                                                                        className="flex-1 bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-1 text-[11px] text-white font-bold uppercase tracking-widest outline-none"
+                                                                    />
+                                                                    <button onClick={() => saveTrack(track.id)} className="p-2 bg-neon-green/20 text-neon-green rounded-lg hover:bg-neon-green/30 transition-colors">
+                                                                        <Save className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex-1">
+                                                                    <h4 className="text-[11px] font-black text-white uppercase tracking-widest italic">{track.artist}</h4>
+                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase">{track.title}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        
+                                                        {editingTrackId !== track.id && (
+                                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button 
+                                                                    onClick={() => {
+                                                                        setEditingTrackId(track.id);
+                                                                        setEditArtist(track.artist);
+                                                                        setEditTitle(track.title);
+                                                                    }}
+                                                                    className="p-2 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white"
+                                                                >
+                                                                    <Edit3 className="w-4 h-4" />
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => deleteTrack(track.id)}
+                                                                    className="p-2 hover:bg-red-500/10 rounded-lg text-gray-500 hover:text-red-500"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="py-12 text-center border-2 border-dashed border-white/5 rounded-[32px] bg-white/[0.02]">
+                                                    <ListMusic className="w-12 h-12 mx-auto mb-4 text-gray-800" />
+                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Tracklist vide</p>
+                                                    <p className="text-[9px] text-gray-700 font-bold uppercase tracking-widest mt-1">Importe un fichier .CSV de Serato ou .TXT de Rekordbox</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {error && (
                                     <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-500">
@@ -190,12 +391,12 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                     </div>
                                 )}
 
-                                <div className="flex gap-4 pt-4">
+                                <div className="flex gap-4 pt-4 border-t border-white/5">
                                     <button 
-                                        onClick={onClose}
+                                        onClick={() => metaTab === 'tracklist' ? setMetaTab('info') : onClose()}
                                         className="flex-1 py-4 bg-white/5 border border-white/10 text-gray-400 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
                                     >
-                                        Annuler
+                                        {metaTab === 'tracklist' ? 'Retour' : 'Annuler'}
                                     </button>
                                     <button 
                                         onClick={handleFinalize}
@@ -220,7 +421,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                     <h2 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">Publication Réussie</h2>
                                     <div className="max-w-xs mx-auto">
                                         <p className="text-[12px] text-gray-400 font-medium leading-relaxed italic border-l-2 border-neon-green/30 pl-4 py-1">
-                                            "{title}" est désormais disponible sur ton profil public et dans le Studio Dropsiders.
+                                            "{title}" {tracklist.length > 0 && `avec ${tracklist.length} morceaux`} est désormais en ligne.
                                         </p>
                                     </div>
                                 </div>
@@ -230,13 +431,8 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                         onClick={onClose}
                                         className="px-12 py-4 bg-neon-green text-black rounded-2xl font-black uppercase italic tracking-widest shadow-lg shadow-neon-green/20 hover:scale-105 transition-all"
                                     >
-                                        C'est parti
+                                        Voir mon profil
                                     </button>
-                                </div>
-
-                                <div className="mt-8 flex items-center justify-center gap-2 text-gray-700">
-                                    <Info className="w-4 h-4" />
-                                    <span className="text-[8px] font-black uppercase tracking-[0.3em]">Hébergé sur Cloudflare R2</span>
                                 </div>
                             </div>
                         )}
