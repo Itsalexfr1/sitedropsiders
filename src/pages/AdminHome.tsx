@@ -300,7 +300,7 @@ export function AdminHome() {
                 setLayout(data);
             }
 
-            const resSets = await apiFetch('/api/settings');
+            const resSets = await apiFetch('/api/settings', { headers: getAuthHeaders() });
             if (resSets.ok) {
                 const data = await resSets.json();
                 if (data.socials) setSocials(data.socials);
@@ -324,7 +324,7 @@ export function AdminHome() {
             });
 
             // Save Socials in Settings
-            const resSets = await apiFetch('/api/settings');
+            const resSets = await apiFetch('/api/settings', { headers: getAuthHeaders() });
             const currentSettings = resSets.ok ? await resSets.json() : {};
 
             await apiFetch('/api/settings/update', {

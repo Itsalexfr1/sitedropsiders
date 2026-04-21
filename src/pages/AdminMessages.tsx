@@ -61,7 +61,7 @@ export function AdminMessages() {
 
     const fetchEditors = async () => {
         try {
-            const res = await apiFetch('/api/editors');
+            const res = await apiFetch('/api/editors', { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
                 setEditors(data.editors || []);
