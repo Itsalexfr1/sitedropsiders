@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "email": "guillaume.chery.naumont@gmail.com",
+    "username": "Guillaume",
+    "pseudo": "Guillaume",
+    "permissions": [
+      "news_focus",
+      "social_studio"
+    ],
+    "created": "2026-04-21T14:31:24.322Z"
+  }
+]
