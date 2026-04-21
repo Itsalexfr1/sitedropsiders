@@ -421,7 +421,7 @@ export function NewsCreate() {
 
     const [interviewQuestions, setInterviewQuestions] = useState<{
         id: string,
-        type: 'qa' | 'image' | 'video' | 'spotify',
+        type: 'qa' | 'image' | 'video' | 'spotify' | 'beatport',
         artistName?: string,
         artistColor?: string,
         question?: string,
@@ -1507,6 +1507,18 @@ ${generateSocialsHtml()}
                         return `<div class="article-section interview-spotify-block my-8" data-media-url="${id}">
 <div class="spotify-compact-widget bg-black/20 border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
   <iframe src="https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;"></iframe>
+</div>
+</div>`;
+                    } else if (q.type === 'beatport') {
+                        const bpUrl = q.mediaUrl || '';
+                        const trackMatch = bpUrl.match(/\/track\/[^/]+\/(\d+)/);
+                        const releaseMatch = bpUrl.match(/\/release\/[^/]+\/(\d+)/);
+                        const bpId = trackMatch ? trackMatch[1] : releaseMatch ? releaseMatch[1] : null;
+                        const bpType = trackMatch ? 'track' : 'release';
+                        if (!bpId) return '';
+                        return `<div class="article-section interview-beatport-block my-8" data-media-url="${bpUrl}">
+<div class="beatport-compact-widget bg-black/20 border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
+  <iframe src="https://embed.beatport.com/?id=${bpId}&type=${bpType}" width="100%" height="162" frameBorder="0" scrolling="no" style="border-radius:12px;background:#111;"></iframe>
 </div>
 </div>`;
                     }
@@ -2882,6 +2894,12 @@ ${generateSocialsHtml()}
                                     >
                                         <Music className="w-3.5 h-3.5" /> Spotify
                                     </button>
+                                    <button
+                                        onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'beatport', mediaUrl: '' }])}
+                                        className="flex items-center gap-2 px-4 py-2 bg-[#02FF95]/10 border border-[#02FF95]/30 text-[#02FF95] rounded-full hover:bg-[#02FF95]/20 transition-all font-black uppercase tracking-widest text-[9px]"
+                                    >
+                                        <Music className="w-3.5 h-3.5" /> Beatport
+                                    </button>
                                 </div>
                             </div>
 
@@ -2890,11 +2908,11 @@ ${generateSocialsHtml()}
                                     <Fragment key={q.id}>
                                         <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 relative group">
                                             <div className="flex items-center gap-3 mb-6">
-                                                <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : q.type === 'spotify' ? 'bg-[#1DB954]/10 border border-[#1DB954]/20 text-[#1DB954]' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
+                                                <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : q.type === 'spotify' ? 'bg-[#1DB954]/10 border border-[#1DB954]/20 text-[#1DB954]' : q.type === 'beatport' ? 'bg-[#02FF95]/10 border border-[#02FF95]/20 text-[#02FF95]' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
                                                     {idx + 1}
                                                 </span>
                                                 <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                                                    {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : q.type === 'spotify' ? 'Bloc Spotify' : 'Bloc Vidéo'}
+                                                    {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : q.type === 'spotify' ? 'Bloc Spotify' : q.type === 'beatport' ? 'Bloc Beatport' : 'Bloc Vidéo'}
                                                 </h4>
 
                                                 {/* Movement Arrows */}
@@ -3079,6 +3097,41 @@ ${generateSocialsHtml()}
                                                                 <p className="mt-2 text-[9px] text-gray-500 italic">* Pour les albums/playlists, le type sera détecté automatiquement lors de la publication.</p>
                                                             </div>
                                                         )}
+                                                    </div>
+                                                ) : q.type === 'beatport' ? (
+                                                    <div className="space-y-4">
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-[#02FF95] uppercase tracking-widest ml-1">Lien Beatport (Track ou Release)</label>
+                                                            <input
+                                                                type="text"
+                                                                value={q.mediaUrl}
+                                                                onChange={(e) => {
+                                                                    const val = e.target.value.trim();
+                                                                    setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: val } : item));
+                                                                }}
+                                                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-[#02FF95] outline-none"
+                                                                placeholder="Ex: https://www.beatport.com/track/name/12345678"
+                                                            />
+                                                        </div>
+                                                        {q.mediaUrl && (() => {
+                                                            const trackMatch = q.mediaUrl.match(/\/track\/[^/]+\/(\d+)/);
+                                                            const releaseMatch = q.mediaUrl.match(/\/release\/[^/]+\/(\d+)/);
+                                                            const bpId = trackMatch ? trackMatch[1] : releaseMatch ? releaseMatch[1] : null;
+                                                            const bpType = trackMatch ? 'track' : releaseMatch ? 'release' : 'track';
+                                                            return bpId ? (
+                                                                <div className="bg-black/40 rounded-2xl p-4 border border-white/5">
+                                                                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Aperçu Beatport</div>
+                                                                    <iframe
+                                                                        src={`https://embed.beatport.com/?id=${bpId}&type=${bpType}`}
+                                                                        width="100%"
+                                                                        height="162"
+                                                                        frameBorder={0}
+                                                                        scrolling="no"
+                                                                        style={{ background: '#111', borderRadius: '12px' }}
+                                                                    />
+                                                                </div>
+                                                            ) : <p className="text-[10px] text-gray-500 italic">URL non reconnue. Format attendu : beatport.com/track/nom/ID</p>;
+                                                        })()}
                                                     </div>
                                                 ) : (
                                                     <div className="space-y-2">
@@ -3671,6 +3724,24 @@ ${generateSocialsHtml()}
                                                         />
                                                     </div>
                                                 );
+                                            })() : q.type === 'beatport' ? (() => {
+                                                const bpUrl = q.mediaUrl || '';
+                                                const trackMatch = bpUrl.match(/\/track\/[^/]+\/(\d+)/);
+                                                const releaseMatch = bpUrl.match(/\/release\/[^/]+\/(\d+)/);
+                                                const bpId = trackMatch ? trackMatch[1] : releaseMatch ? releaseMatch[1] : null;
+                                                const bpType = trackMatch ? 'track' : 'release';
+                                                return bpId ? (
+                                                    <div className="beatport-compact-widget bg-black/20 border border-[#02FF95]/10 rounded-2xl overflow-hidden shadow-2xl my-8">
+                                                        <iframe
+                                                            src={`https://embed.beatport.com/?id=${bpId}&type=${bpType}`}
+                                                            width="100%"
+                                                            height={162}
+                                                            frameBorder={0}
+                                                            scrolling="no"
+                                                            style={{ background: '#111', borderRadius: '12px' }}
+                                                        />
+                                                    </div>
+                                                ) : null;
                                             })() : null}
                                         </div>
                                     ))}
