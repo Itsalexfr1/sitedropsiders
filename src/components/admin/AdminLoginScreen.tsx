@@ -282,6 +282,7 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
 
     // ─── Resend OTP ───────────────────────────────────────────────────────────
     const handleResend = async () => {
+        if (!socialUser) return;
         await sendOtp(socialUser.email);
         setOtpDigits(['', '', '', '', '', '']);
         setTimeout(() => inputRefs.current[0]?.focus(), 100);
