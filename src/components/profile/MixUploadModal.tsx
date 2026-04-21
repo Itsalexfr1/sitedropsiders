@@ -27,6 +27,13 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Auto-fill title from filename
+    useEffect(() => {
+        if (file) {
+            setTitle(file.name.replace(/\.[^/.]+$/, "").toUpperCase());
+        }
+    }, [file]);
+
     // Track editing state
     const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
     const [editArtist, setEditArtist] = useState('');
