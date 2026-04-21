@@ -72,13 +72,28 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
         }
     });
 
-    // ─── Discord OAuth ─────────────────────────────────────────────────────────
+    // 🔄 Checkout if mobile redirect happened and returned
+    useEffect(() => {
+        const temp = localStorage.getItem('temp_admin_social_user');
+        if (temp) {
+            try {
+                const data = JSON.parse(temp);
+                localStorage.removeItem('temp_admin_social_user');
+                localStorage.removeItem('social_auth_mode');
+                handleSocialAuth(data);
+            } catch (e) {}
+        }
+    }, []);
+
+    // 🌟🌟🌟 Discord OAuth 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
     const handleDiscordLogin = () => {
         setDiscordLoading(true);
         setError('');
 
         const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (isMobile) {
+            localStorage.setItem('social_auth_mode', 'admin');
+            localStorage.setItem('social_auth_redirect', '/admin');
             window.location.href = '/auth/discord';
             return;
         }
@@ -141,6 +156,18 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
             if (!data.authorized) {
                 setError("Votre compte n'est pas autorisé. Contactez l'administrateur.");
                 setStep('social');
+                return;
+            }
+
+            // 👑👑👑 SUPER-ADMIN BYPASS OTP 👑👑👑
+            if (isSuperAdmin(user.email)) {
+                console.log("[AUTH] Super-admin detected, bypassing OTP...");
+                localStorage.setItem('admin_auth_v2', 'true');
+                localStorage.setItem('admin_user', user.email);
+                localStorage.setItem('admin_permissions', JSON.stringify(['all']));
+                localStorage.setItem('admin_provider', user.provider);
+                onAuthenticated(user.email, ['all'], 'super-admin-bypass-' + Date.now());
+                window.dispatchEvent(new Event('admin-login'));
                 return;
             }
 

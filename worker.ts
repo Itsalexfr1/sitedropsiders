@@ -274,11 +274,17 @@ export default {
                         <script>
                             try {
                                 const userData = ${JSON.stringify(userData)};
-                                localStorage.setItem('temp_social_user', JSON.stringify(userData));
+                                const authMode = localStorage.getItem('social_auth_mode');
+                                if (authMode === 'admin') {
+                                    localStorage.setItem('temp_admin_social_user', JSON.stringify(userData));
+                                } else {
+                                    localStorage.setItem('temp_social_user', JSON.stringify(userData));
+                                }
+                                
                                 if (window.opener && !window.opener.closed) {
                                     window.opener.postMessage({ type: 'DISCORD_AUTH_SUCCESS', user: userData }, '*');
                                 } else {
-                                    window.location.href = '/';
+                                    window.location.href = localStorage.getItem('social_auth_redirect') || '/';
                                 }
                             } catch(e) {
                                 window.location.href = '/';

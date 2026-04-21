@@ -180,7 +180,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'common.min_read': { fr: 'MIN DE LECTURE', en: 'MIN READ' },
 
     'agenda.title': { fr: 'AGENDA', en: 'AGENDA' },
-    'agenda.title_span': { fr: '2024', en: '2024' },
+    'agenda.title_span': { fr: '2026', en: '2026' },
     'agenda.badge': { fr: '\u00c9v\u00e9nements', en: 'Events' },
     'agenda.subtitle': { fr: 'D\u00e9couvrez les \u00e9v\u00e9nements \u00e0 venir. Des festivals massifs aux sets de clubs intimes.', en: 'Discover upcoming events. From massive festivals to intimate club sets.' },
     'agenda.filter_all': { fr: 'TOUT', en: 'ALL' },

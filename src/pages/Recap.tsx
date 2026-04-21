@@ -91,7 +91,7 @@ export function Recap() {
                     const yearA = Number(a.year) || new Date(a.date).getFullYear();
                     const yearB = Number(b.year) || new Date(b.date).getFullYear();
                     if (yearB !== yearA) return yearB - yearA;
-                    // Sort by date inside year? galerie dates are often just "2024" or full ISO.
+                    // Sort by date inside year? galerie dates are often just "2026" or full ISO.
                     // If it's just a year string, sorting might be less precise.
                     return new Date(b.date).getTime() - new Date(a.date).getTime();
                 });
@@ -106,7 +106,7 @@ export function Recap() {
             groups[y].push(item);
         });
 
-        // Convert to sorted array of objects [{year: 2024, items: [...]}, ...]
+        // Convert to sorted array of objects [{year: 2026, items: [...]}, ...]
         return Object.keys(groups)
             .map(y => Number(y))
             .sort((a, b) => b - a)

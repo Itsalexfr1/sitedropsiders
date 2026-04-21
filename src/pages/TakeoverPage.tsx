@@ -9,7 +9,7 @@ import {
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, Square, Sparkles,
     Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Camera, Check, Coins, Shield,
-    Scan, Wand2, Globe, Volume2, VolumeX, Vote, Disc, Lock
+    Scan, Wand2, Globe, Volume2, VolumeX, Vote, Disc, Lock, Radio
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { UserAuthModal } from '../components/auth/UserAuthModal';
@@ -195,7 +195,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 if (Array.isArray(data) && data.length > 0) {
                     const items = data.slice(0, 8).map((n: any) => ({
                         text: n.title || n.name || '',
-                        link: n.slug ? `/news/${n.slug}` : (n.url || '')
+                        link: n.id ? `/news/${n.id}` : (n.url || '')
                     })).filter(i => i.text);
                     if (items.length > 0) {
                         setMarqueeItems(items);
@@ -242,7 +242,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const [activeBoss, setActiveBoss] = useState<{ hp: number, maxHp: number, name: string } | null>(null);
     const [captchaChallenge, setCaptchaChallenge] = useState<{ q: string, a: number } | null>(null);
     const [captchaInput, setCaptchaInput] = useState('');
-    const [userCity, setUserCity] = useState('ðŸ“ PARIS');
+    const [userCity, setUserCity] = useState('📍 PARIS');
     const [hypeTrain, setHypeTrain] = useState({ active: false, level: 0, progress: 0 });
     const [isMuted, setIsMuted] = useState(false);
     const [muteTimeLeft, setMuteTimeLeft] = useState(0);
@@ -423,7 +423,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         setTimeout(() => setIsMatrixActive(false), 8000);
     };
 
-    // â±ï¸ Hourly Slot Machine (Jackpot) Timer
+    // 🎰 Hourly Slot Machine (Jackpot) Timer
     // Désactivé à la demande du client pour éviter l'apparition aléatoire. 
     // Peut toujours être déclenché via !jackpot par les modérateurs.
     /*
@@ -468,7 +468,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         }
     }, [activeSlots]);
 
-    // â±ï¸ Clock & Time on Site
+    // ⏱️ Clock & Time on Site
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentTime(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
@@ -507,7 +507,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 return next;
             });
             localStorage.setItem('last_jackpot', today);
-            showNotification(`JACKPOT QUOTIDIEN : +${bonus} DROPS ! ðŸŽ`, 'success');
+            showNotification(`JACKPOT QUOTIDIEN : +${bonus} DROPS ! 💰`, 'success');
         }
     }, [isConnected]);
 
@@ -671,7 +671,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         }
     };
 
-    // userDrops state removed here as it is already declared globally in the componentâ€‹
+    // userDrops state removed here as it is already declared globally in the component
 
     // 🎆 Special Effects Logic
     const triggerConfetti = () => {
@@ -790,14 +790,14 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         setLineupItems((prev: any) => prev.map((item: any) => 
             item.day === bulkDateFrom ? { ...item, day: bulkDateTo } : item
         ));
-        setToast({ show: true, message: `âœ… ${count} artistes déplacés du ${bulkDateFrom} au ${bulkDateTo}`, type: 'success' });
+        setToast({ show: true, message: `✅ ${count} artistes déplacés du ${bulkDateFrom} au ${bulkDateTo}`, type: 'success' });
         setBulkDateFrom('');
         setBulkDateTo('');
     };
 
 
     const timezonePresets = [
-        { id: 'fr', label: '🇫🇷 Heure Française (pas de conversion)', tz: 'Europe/Paris', group: 'ðŸŒ Europe' },
+        { id: 'fr', label: '🇫🇷 Heure Française (pas de conversion)', tz: 'Europe/Paris', group: '🇪🇺 Europe' },
         { id: 'uk', label: 'Londres / Creamfields / Drumsheds', tz: 'Europe/London', group: '🇬🇧 Royaume-Uni' },
         { id: 'us-east-miami', label: 'Ultra Music Festival Miami / NY', tz: 'America/New_York', group: '🌴 US - Côte Est' },
         { id: 'us-east-lost', label: 'Lost Lands (Ohio)', tz: 'America/New_York', group: '🌴 US - Côte Est' },
@@ -841,7 +841,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
         const results: { startTime: string; endTime?: string; artist: string }[] = [];
         // Matches "16:00 - 17:00 - Artist" or "16:00 - Artist"
-        const regex = /^(\d{1,2})[:\s.h]?(\d{2})?\s*(am|pm)?\s*[-â€“â€”]\s*(?:(\d{1,2})[:\s.h]?(\d{2})?\s*(am|pm)?\s*)?[-â€“â€”]?\s*(.+)$/i;
+        const regex = /^(\d{1,2})[:\s.h]?(\d{2})?\s*(am|pm)?\s*[-–—]\s*(?:(\d{1,2})[:\s.h]?(\d{2})?\s*(am|pm)?\s*)?[-–—]?\s*(.+)$/i;
         
         for (const line of lines) {
             const m = line.match(regex);
@@ -879,14 +879,14 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         }
         const missingPhotos = bulkPreview.filter(e => !e.image);
         if (missingPhotos.length > 0) {
-            showNotification(`ðŸ“· Photo obligatoire â€” ${missingPhotos.length} artiste(s) sans photo`, 'error');
+            showNotification(`📸 Photo obligatoire — ${missingPhotos.length} artiste(s) sans photo`, 'error');
             return;
         }
 
         if (bulkRequireEndTime) {
             const missingEndTimes = bulkPreview.filter(e => !e.endTime);
             if (missingEndTimes.length > 0) {
-                showNotification(`â° Heure de fin manquante pour ${missingEndTimes.length} artiste(s)`, 'error');
+                showNotification(`⏰ Heure de fin manquante pour ${missingEndTimes.length} artiste(s)`, 'error');
                 return;
             }
         }
@@ -940,13 +940,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             };
         });
         setLineupItems((prev: any) => [...prev, ...newItems]);
-        showNotification(`âœ… ${newItems.length} artiste(s) importé(s) !`, 'success');
+        showNotification(`✅ ${newItems.length} artiste(s) importé(s) !`, 'success');
         setBulkText('');
         setBulkPreview([]);
         setShowBulkImport(false);
     };
 
-    // â° Auto-remove finished artists & Persist
+    // ⏰ Auto-remove finished artists & Persist
     useEffect(() => {
         if (!autoRemoveFinished || !isAdmin) return;
         
@@ -1257,7 +1257,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 if (!prev) return null;
                                 const nextHp = Math.max(0, prev.hp - dmg);
                                 if (nextHp === 0 && prev.hp > 0) {
-                                    showNotification("VICTOIRE ! PLUIE DE DROPS (+500) ! ðŸ†", 'success');
+                                    showNotification("VICTOIRE ! PLUIE DE DROPS (+500) ! 🏆", 'success');
                                     triggerFireworks();
                                     setUserDrops((d: number) => d + 500);
                                 }
@@ -1369,7 +1369,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         return () => unsubscribe();
     }, []);
 
-    // â±ï¸ Quiz Auto-Timer (30s)
+    // ⏰ Quiz Auto-Timer (30s)
     useEffect(() => {
         if (activeQuiz && activeQuiz.question) {
             const timer = setTimeout(() => {
@@ -1379,57 +1379,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         }
     }, [activeQuiz]);
 
-    // ðŸ—“ï¸ Auto-Cleanup Planning (DÉSACTIVÉ : On garde tout l'historique de la journée)
-    /*
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const now = new Date();
-            
-            setLineupItems((prev: any) => {
-                let shouldUpdate = false;
-                const filtered = prev.filter(item => {
-                    if (!item.endTime || !item.day) return true;
-                    
-                    try {
-                        const normalizedEnd = item.endTime.toLowerCase().replace('h', ':').replace(' ', '').replace('.', ':');
-                        const endParts = normalizedEnd.split(':');
-                        const endH = parseInt(endParts[0] || "0", 10);
-                        const endM = parseInt(endParts[1] || "0", 10);
-                        
-                        let startH = 12;
-                        if (item.startTime) {
-                            const startStr = item.startTime.toLowerCase().replace('h', ':').replace(' ', '').replace('.', ':');
-                            startH = parseInt(startStr.split(':')[0] || "12", 10);
-                        }
-
-                        const dateParts = item.day.split('-');
-                        const year = parseInt(dateParts[0], 10);
-                        const month = parseInt(dateParts[1], 10) - 1; 
-                        const day = parseInt(dateParts[2], 10);
-                        
-                        const endDateTime = new Date(year, month, day, endH, endM, 0);
-
-                        if (!isNaN(startH) && endH < startH) {
-                            endDateTime.setDate(endDateTime.getDate() + 1);
-                        }
-                        
-                        const isFuture = endDateTime > now;
-                        if (!isFuture) shouldUpdate = true;
-                        
-                        return isFuture;
-                    } catch (e) {
-                        return true;
-                    }
-                });
-                
-                return shouldUpdate ? filtered : prev;
-            });
-        }, 60000); 
-        return () => clearInterval(interval);
-    }, []);
-    */
-
-    // ðŸ† Top Talkers Tracking
+    // 👑 Top Talkers Tracking
     useEffect(() => {
         const counts: { [pseudo: string]: number } = {};
         chatMessages.forEach(m => {
@@ -1455,7 +1405,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             const res = await fetch('https://ipapi.co/json/');
             const data = await res.json();
             if (data.country_code) setUserCountry(data.country_code);
-            if (data.city) setUserCity(`ðŸ“ ${data.city.toUpperCase()}`);
+            if (data.city) setUserCity(`📍 ${data.city.toUpperCase()}`);
         } catch (e) { console.error("Could not fetch country", e); }
     };
 
@@ -1637,7 +1587,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
             const lines = text.split('\n');
             const foundArtists: string[] = [];
-            const timeRangeRegex = /(\d{1,2}:\d{2})\s*([-â€“\Dâ€”]+)\s*(\d{1,2}:\d{2})/; // Improved regex for various dashes
+            const timeRangeRegex = /(\d{1,2}:\d{2})\s*([-–\D—]+)\s*(\d{1,2}:\d{2})/; // Improved regex for various dashes
 
             let currentText = '';
             lines.forEach((line: string) => {
@@ -1855,7 +1805,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     return;
                 }
 
-                showNotification(`ALERTE : Langage inapproprié (${warnings}/3) âš ï¸`, 'error');
+                showNotification(`ALERTE : Langage inapproprié (${warnings}/3) ⚠️`, 'error');
                 return;
             }
             if (/(https?:\/\/[^\s]+|www\.[^\s]+|[a-z0-9-]+\.[a-z]{2,10}(\/|$))/gi.test(messageText)) {
@@ -1873,7 +1823,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             if (slowModeEnabled) {
                 const diff = (now - lastMessageTime) / 1000;
                 if (diff < 10) {
-                    showNotification(`MODE LENT : Attendez ${Math.ceil(10 - diff)}s âž¡ï¸`, 'error');
+                    showNotification(`MODE LENT : Attendez ${Math.ceil(10 - diff)}s ➡️ `, 'error');
                     return;
                 }
             }
@@ -1921,15 +1871,15 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     const streamMatch = settings.streams?.find((s: any) => s.name.toLowerCase().includes(artistQuery));
 
                     if (match) {
-                        messageText = `ðŸ—“ï¸ LINEUP : @${pseudo}, ${match.artist} passera sur ${match.stage} à ${match.startTime} (${match.day}).`;
+                        messageText = `📅 LINEUP : @${pseudo}, ${match.artist} passera sur ${match.stage} à ${match.startTime} (${match.day}).`;
                     } else if (streamMatch) {
-                        messageText = `ðŸ—“ï¸ LIVE : @${pseudo}, ${streamMatch.name} est disponible dans la liste des flux !`;
+                        messageText = `📅 LIVE : @${pseudo}, ${streamMatch.name} est disponible dans la liste des flux !`;
                     } else {
                         showNotification(`Artiste "${artistQuery}" non trouvé dans la lineup.`, 'error');
                         return;
                     }
                 } else {
-                    messageText = `ðŸ—“ï¸ LINEUP : @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation !`;
+                    messageText = `📅 LINEUP : @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation !`;
                 }
             } else if (mainCmd === '!insta') {
                 const query = cmdParts.slice(1).join(' ');
@@ -1943,8 +1893,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 }
                 setUserDrops((prev: any) => prev - 3000);
                 localStorage.setItem('user_holo_pseudo', 'true');
-                showNotification("PSEUDO HOLOGRAPHIQUE ACTIVÉ ! âœ¨", 'success');
-                messageText = `âœ¨ @${pseudo} vient de débloquer le PSEUDO HOLOGRAPHIQUE !`;
+                showNotification("PSEUDO HOLOGRAPHIQUE ACTIVÉ ! ✨", 'success');
+                messageText = `✨ @${pseudo} vient de débloquer le PSEUDO HOLOGRAPHIQUE !`;
             } else if (mainCmd === '!purge' && isMod) {
                 const target = cmdParts[1]?.replace('@', '') || '';
                 if (target) {
@@ -2004,14 +1954,14 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     messageText = `💸 @${pseudo} a volé ${amount} DROPS à @${target} !`;
                 } else {
                     setUserDrops((prev: any) => Math.max(0, prev - amount));
-                    messageText = `âŒ @${pseudo} a été attrapé ! Retrait de ${amount} DROPS.`;
+                    messageText = `❌ @${pseudo} a été attrapé ! Retrait de ${amount} DROPS.`;
                 }
             } else if (mainCmd === '!dons') {
                 const target = cmdParts[1]?.replace('@', '');
                 const amount = parseInt(cmdParts[2]);
                 if (target && !isNaN(amount) && amount > 0 && userDrops >= amount) {
                     setUserDrops((prev: any) => prev - amount);
-                    messageText = `ðŸŽ @${pseudo} a donné ${amount} DROPS à @${target} !`;
+                    messageText = `🎁 @${pseudo} a donné ${amount} DROPS à @${target} !`;
                 } else {
                     showNotification("Don invalide ou fonds insuffisants", "error");
                     return;
@@ -2025,7 +1975,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     const draw = userChoice === botChoice;
                     const result = draw ? 'ÉGALITÉ' : win ? 'GAGNÉ (+50 DROPS)' : 'PERDU';
                     if (win) setUserDrops((prev: any) => prev + 50);
-                    messageText = `âœŠ @${pseudo} joue ${userChoice} vs BOT ${botChoice} -> ${result}`;
+                    messageText = `✊ @${pseudo} joue ${userChoice} vs BOT ${botChoice} -> ${result}`;
                 } else {
                     showNotification("Usage: !rps [pierre|papier|ciseau]", "error");
                     return;
@@ -2071,7 +2021,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     return;
                 }
             } else if (mainCmd === '!pacman') {
-                messageText = `ðŸ‘¾ WAKA WAKA ! [PACMAN INCOMING]`;
+                messageText = `👾 WAKA WAKA ! [PACMAN INCOMING]`;
                 triggerPACMAN();
             } else if (mainCmd === '!jackpot' && isMod) {
                 messageText = `[SYSTEM]:JACKPOT_SPAWN`;
@@ -2087,7 +2037,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 const roll = Math.floor(Math.random() * 6) + 1;
                 const outcomes = [
                     { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et gagne 100 DROPS !`, action: () => setUserDrops((prev: number) => prev + 100) },
-                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et perd 50 DROPS ! ðŸ“‰`, action: () => setUserDrops((prev: number) => Math.max(0, prev - 50)) },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et perd 50 DROPS ! 📉`, action: () => setUserDrops((prev: number) => Math.max(0, prev - 50)) },
                     { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et se fait MUTE 10s pour l'audace ! 👮`, action: () => { setIsMuted(true); setMuteTimeLeft(10); } },
                     { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et obtient un bonus d'XP ! 📈`, action: () => earnPoints(50, 0) },
                     { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et ne gagne absolument rien. Dommage !`, action: () => { } },
@@ -2113,13 +2063,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             setTimeout(async () => {
                 let botReply = '';
                 if (lowMsg.includes('blague') || lowMsg.includes('joke')) {
-                    botReply = "Pourquoi les plongeurs plongent-ils toujours en arrière et jamais en avant ? Parce que sinon ils tombent dans le bateau ! ðŸ˜‚";
+                    botReply = "Pourquoi les plongeurs plongent-ils toujours en arrière et jamais en avant ? Parce que sinon ils tombent dans le bateau ! 😂";
                 } else if (lowMsg.includes('festival') || lowMsg.includes('ambiance')) {
                     botReply = "L'ambiance est au max ici ! On est les Dropsiders ou on l'est pas ? 🔥";
                 } else if (lowMsg.includes('qui es-tu')) {
                     botReply = "Je suis BotDrops-4, ton IA préférée, plus rapide qu'un mix d'AlexFR ! 🤖";
                 } else {
-                    botReply = "Bip Boup... Je t'écoute ! Dis-moi tout. ðŸ’¬";
+                    botReply = "Bip Boup... Je t'écoute ! Dis-moi tout. 💬";
                 }
 
                 await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -2133,7 +2083,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             }, 1000);
         }
 
-        // ðŸ’¡ Intelligent FAQ Assistant
+        // 💡 Intelligent FAQ Assistant
         const faqTriggers = ['quand', 'heure', 'artist', 'dj', 'lineup', 'programme'];
         if (faqTriggers.some(t => messageText.toLowerCase().includes(t)) && !messageText.startsWith('!')) {
             setTimeout(async () => {
@@ -2150,7 +2100,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             }, 2000);
         }
 
-        // ðŸ‘¾ Pixel Art PACMAN trigger
+        // 👾 Pixel Art PACMAN trigger
         if (messageText.toLowerCase().includes('pacman')) {
             triggerPACMAN();
         }
@@ -2173,7 +2123,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 earnPoints(0, reward);
                 showNotification(`BRAVO ! +${reward} DROPS !`, 'success');
             } else {
-                showNotification(`MAUVAISE RÉPONSE ! C'était le nÂ°${activeQuiz.correct}`, 'error');
+                showNotification(`MAUVAISE RÉPONSE ! C'était le n°${activeQuiz.correct}`, 'error');
             }
         }
 
@@ -2718,7 +2668,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                 return (
                                                     <a
                                                         key={`${loopIdx}-${idx}`}
-                                                        href={fullLink.startsWith('/') ? fullLink : `/${fullLink}`}
+                                                        href={fullLink.startsWith('/') ? fullLink : `/news/${fullLink}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
                                                         className={sharedClassName}
@@ -2855,9 +2805,9 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 ) : (
                                     <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-4">
                                         <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center animate-pulse">
-                                            <span className="text-2xl">ðŸ“º</span>
+                                            <Radio className="w-8 h-8 text-white/50" />
                                         </div>
-                                        <p className="text-white/30 text-xs font-black uppercase tracking-[0.3em]">Stream bientôt en ligne</p>
+                                        <p className="text-white/30 text-xs font-black uppercase tracking-[0.3em] mt-4">Stream bientôt en ligne</p>
                                     </div>
                                 );
                             })()
@@ -3093,7 +3043,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             )}
                         </AnimatePresence>
 
-                        {/* âš¡ Clash Poll Banner */}
+                        {/* ⚡ Clash Poll Banner */}
                         <AnimatePresence>
                             {clashPoll && clashPoll.active && (
                                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="sticky top-0 z-[45] bg-black/95 border-2 border-white/20 rounded-3xl p-6 mb-6 shadow-2xl relative overflow-hidden">
@@ -3121,7 +3071,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             )}
                         </AnimatePresence>
 
-                        {/* âš¡ Quick Time Event (QTE) */}
+                        {/* ⚡ Quick Time Event (QTE) */}
                         <AnimatePresence>
                             {qteActive && (
                                 <motion.div initial={{ scale: 0, rotate: -20, x: '-50%', y: '-50%' }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 z-[200]">
@@ -3207,7 +3157,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             )}
                         </AnimatePresence>
 
-                        {/* âš¡ Quick Time Event (QTE) */}
+                        {/* ⚡ Quick Time Event (QTE) */}
                         <AnimatePresence>
                             {qteActive && (
                                 <motion.div initial={{ scale: 0, rotate: -20, x: '-50%', y: '-50%' }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 z-[200]">
@@ -3312,7 +3262,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             )}
                         </AnimatePresence>
 
-                        {/* â­ Artist Rating Prompt */}
+                        {/* ⭐ Artist Rating Prompt */}
                         <AnimatePresence>
                             {showRatingPrompt && (
                                 <motion.div
@@ -3548,7 +3498,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                                 ) : renderMessageContent(msg.message || msg.text)}
                                                             </p>
                                                             <div className="flex gap-1 mt-2">
-                                                                {['ðŸ‘', '🔥', 'ðŸ˜‚', 'ðŸ‘€', 'ðŸ’Ž'].map(emoji => (
+                                                                {['👍', '🔥', '😂', '👀', '💎'].map(emoji => (
                                                                     <button
                                                                         key={emoji}
                                                                         onClick={async (e) => {
@@ -3695,7 +3645,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                                     className="p-4 space-y-3 overflow-hidden border-t border-white/5"
                                                                 >
                                                                     {set.tracks.length === 0 ? (
-                                                                        <p className="text-[9px] text-gray-600 font-black uppercase italic text-center py-4">Soyez le premier àÂ  indiquer un titre !</p>
+                                                                        <p className="text-[9px] text-gray-600 font-black uppercase italic text-center py-4">Soyez le premier à indiquer un titre !</p>
                                                                     ) : (
                                                                         set.tracks.map(track => (
                                                                             <motion.div initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} key={track.id} className="flex items-center justify-between gap-4 p-3 bg-black/40 rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
@@ -3740,7 +3690,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     {lineupItems.length === 0 ? (
                                         <div className="flex flex-col items-center justify-center py-20 bg-white/5 border border-white/5 rounded-[2.5rem] border-dashed">
                                             <Calendar className="w-12 h-12 text-gray-700 mb-4" />
-                                            <p className="text-gray-500 font-black uppercase text-[10px] tracking-widest italic">Aucun planning programm&#233;</p>
+                                            <p className="text-gray-500 font-black uppercase text-[10px] tracking-widest italic">Aucun planning programmé</p>
                                         </div>
                                     ) : (
                                         <>
@@ -3823,13 +3773,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                             <div className="flex-1 flex flex-col justify-between">
                                                                 <div>
                                                                     <p className="text-[9px] lg:text-[10px] font-black text-white uppercase mb-1 leading-tight">{item.name}</p>
-                                                                    <p className="text-[11px] font-black text-neon-cyan">{item.price} â‚¬</p>
+                                                                    <p className="text-[11px] font-black text-neon-cyan">{item.price} €</p>
                                                                 </div>
                                                                 <button 
                                                                     onClick={() => item.url ? window.open(item.url, '_blank') : showNotification(`ACHETER : ${item.name}`, 'success')} 
                                                                     className="w-full mt-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black uppercase rounded-lg hover:bg-white/10 text-white transition-all"
                                                                 >
-                                                                    {item.url ? 'VOIR/ACHETER' : 'BIENTÃ”T'}
+                                                                    {item.url ? 'VOIR/ACHETER' : 'BIENTÔT'}
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -3848,7 +3798,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop des Drops</h3>
                                     <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-8">Améliorez votre profil avec vos drops</p>
 
-                                    {/* ðŸ† Leaderboard Section */}
+                                    {/* 🏆 Leaderboard Section */}
                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 text-left space-y-4">
                                         <div className="flex items-center gap-2 mb-2">
                                             <Trophy className="w-5 h-5 text-amber-500" />
@@ -4182,18 +4132,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     <motion.div
                                         animate={{ width: `${(activeBoss.hp / activeBoss.maxHp) * 100}%` }}
                                         className="h-full bg-gradient-to-r from-red-600 to-red-400 shadow-[0_0_10px_rgba(255,0,0,0.5)]"
-                                    />
-                                </div>
-                                <div className="flex justify-between mt-1">
-                                    <span className="text-[9px] font-black text-white/50">{activeBoss.hp} HP</span>
-                                    <span className="text-[9px] font-black text-neon-red uppercase">TAPEZ !HIT</span>
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence>
-
-                {/* HEIST OVERLAY */}
+                                       {/* HEIST OVERLAY */}
                 <AnimatePresence>
                     {
                         activeHeist && (
@@ -4230,10 +4169,10 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         const isVipReward = Math.random() > 0.8;
                                         if (isVipReward) {
                                             setVipsList((prev: any) => [...prev, localStorage.getItem('chat_pseudo') || '']);
-                                            showNotification(`âš¡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! ðŸ‘€`, 'success');
+                                            showNotification(`⚡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! 👀`, 'success');
                                         } else {
                                             setUserDrops((prev: number) => prev + reward);
-                                            showNotification(`âš¡ FAST CLICK ! +${reward} DROPS ! âš¡`, 'success');
+                                            showNotification(`⚡ FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
                                         }
                                         setActiveQTE(null);
                                     }}
@@ -4265,28 +4204,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 </AnimatePresence >
 
                 {/* SLOT MACHINE JACKPOT OVERLAY */}
-                <AnimatePresence>
-                    {
-                        activeSlots && (
-                            <motion.div
-                                initial={{ y: 100, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                exit={{ y: 100, opacity: 0 }}
-                                className="fixed bottom-24 right-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-amber-500 p-6 rounded-3xl w-72 shadow-[0_0_40px_rgba(245,158,11,0.3)]"
-                            >
-                                <div className="flex flex-col items-center text-center space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
-                                            <Star className="w-6 h-6 text-black animate-spin" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">MINI-JEU JACKPOT</p>
-                                            <p className="text-xl font-black text-white italic">LOTERIE !</p>
-                                        </div>
-                                    </div>
-
                                     <div className="flex gap-2 justify-center py-4">
-                                        {['🎰', 'ðŸ’', '7ï¸âƒ£'].map((emoji, i) => (
+                                        {['🎰', '🍒', '7️⃣'].map((emoji, i) => (
                                             <motion.div
                                                 key={i}
                                                 animate={{ y: [0, -10, 0] }}
@@ -4300,7 +4219,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
                                     <div className="space-y-2 w-full">
                                         <p className="text-[10px] text-gray-400 font-bold uppercase">
-                                            {activeSlots.participants.length} JOUEURS â€¢ TICKET 50 DROPS
+                                            {activeSlots.participants.length} JOUEURS • TICKET 50 DROPS
                                         </p>
                                         <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                                             <motion.div
@@ -4311,6 +4230,16 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         <button
                                             onClick={() => handleSendMessage("!ticket")}
                                             className="w-full py-3 bg-amber-500 text-black font-black uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/20"
+                                        >
+                                            Prendre un ticket !
+                                        </button>
+                                        <p className="text-[8px] text-amber-500/50 font-black uppercase tracking-tighter italic">FIN DANS {activeSlots.timeLeft}S</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence> transition-all shadow-lg shadow-amber-500/20"
                                         >
                                             Prendre un ticket !
                                         </button>

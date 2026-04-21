@@ -257,6 +257,30 @@ export function InvoiceGeneratorMobile() {
         } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
     };
 
+    const handleSaveOnly = async () => {
+        setSendStatus('sending'); setSendError('');
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            
+            const res = await fetch('/api/facture/send', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, 
+                body: JSON.stringify({ 
+                    to: clientEmail || 'Archive Mobile', 
+                    skipEmail: true,
+                    invoiceData: { number: formattedNumber, client: clientName, total, date } 
+                }) 
+            });
+            if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur'); }
+            setSendStatus('success');
+            fetchHistory();
+            setInvoiceNumber(n => n + 1);
+            setTimeout(() => { setSendStatus('idle'); setSheet('none'); }, 2500);
+        } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
+    };
+
     const dueDateLabel = dueDate ? new Date(dueDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Aucune';
     const eventLabel = eventClub || eventDate ? [eventClub, eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : ''].filter(Boolean).join(' – ') : 'Aucun';
 
@@ -372,10 +396,15 @@ export function InvoiceGeneratorMobile() {
                             </div>
                             
                             {/* Send Action */}
-                            <div className="p-4 mt-4">
+                            <div className="p-4 mt-4 space-y-3">
                                 <button onClick={openEmail}
                                     className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:bg-indigo-700 transition-colors">
                                     <Send className="w-4 h-4" /> Envoyer la facture
+                                </button>
+                                <button onClick={handleSaveOnly}
+                                    className="w-full py-4 bg-white/5 border border-white/10 text-white/50 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:bg-white/10 transition-colors">
+                                    {sendStatus === 'sending' ? <Loader className="w-4 h-4 animate-spin text-indigo-400" /> : <Save className="w-4 h-4 text-indigo-400" />}
+                                    Archiver sans envoyer
                                 </button>
                             </div>
                         </motion.div>
@@ -572,7 +601,7 @@ export function InvoiceGeneratorMobile() {
                 </Field>
                 <div className="flex gap-3 pt-2">
                     <button onClick={() => { saveClient(); setSheet('none'); }} className="flex-1 py-3.5 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/60 flex items-center justify-center gap-2">
-                        <Save className="w-3.5 h-3.5" />  Sauvegarder
+                        <Save className="w-3.5 h-3.5" /> ENREGISTRER CLIENT
                     </button>
                 </div>
             </Sheet>

@@ -272,21 +272,27 @@ export function NewsCreate() {
         fetch('/api/editors', { headers: getAuthHeaders() })
             .then(res => res.json())
             .then(data => {
-                const arr = Array.isArray(data) ? data : (data.content || []);
+                let arr = Array.isArray(data) ? data : (data.editors || data.content || []);
+                
+                // Ensure 'Alex' is in the list if current user is Alex or if list is empty
+                const currentAdmin = (localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex').toLowerCase();
+                const hasAlex = arr.some((e: any) => (e.username || e.name || '').toLowerCase() === 'alex');
+                
+                if (!hasAlex && (currentAdmin === 'alex' || currentAdmin.includes('alexflex30'))) {
+                    arr = [{ email: 'alexflex30@gmail.com', username: 'Alex', name: 'Alex' }, ...arr];
+                }
+                
                 setEditorsList(arr);
                 
-                // Si l'auteur actuel est une adresse email, on essaie de le remplacer par son pseudo
-                const currentAuthor = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
+                // Try to match current author to a pseudo in the list
                 const found = arr.find((e: any) => 
-                    e.email?.toLowerCase() === currentAuthor.toLowerCase() || 
-                    e.username?.toLowerCase() === currentAuthor.toLowerCase() ||
-                    e.name?.toLowerCase() === currentAuthor.toLowerCase()
+                    e.email?.toLowerCase() === currentAdmin || 
+                    e.username?.toLowerCase() === currentAdmin ||
+                    e.name?.toLowerCase() === currentAdmin
                 );
                 
-                if (found && found.username) {
-                    setAuthor(found.username); // Toujours utiliser le pseudo
-                } else if (found && found.name) {
-                    setAuthor(found.name);
+                if (found) {
+                    setAuthor(found.username || found.name); 
                 }
             })
             .catch(err => console.error("Could not fetch editors", err));
@@ -2043,7 +2049,7 @@ ${generateSocialsHtml()}
                                         type="number"
                                         value={year}
                                         onChange={(e) => setYear(e.target.value)}
-                                        placeholder="Ex: 2024"
+                                        placeholder="Ex: 2026"
                                         min="1900"
                                         max="2100"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
@@ -4410,7 +4416,7 @@ ${generateSocialsHtml()}
                                 <div className="space-y-8">
                                     {/* Titre du Groupe */}
                                     <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl">
-                                        <label className="block text-[10px] font-black text-neon-cyan uppercase tracking-[0.2em] mb-4">Titre Principal du Groupe (ex: TOMORROWLAND 2024)</label>
+                                        <label className="block text-[10px] font-black text-neon-cyan uppercase tracking-[0.2em] mb-4">Titre Principal du Groupe (ex: TOMORROWLAND 2026)</label>
                                         <input
                                             type="text"
                                             value={videoGroupModal.title}

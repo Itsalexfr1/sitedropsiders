@@ -371,6 +371,35 @@ export function InvoiceGenerator() {
         } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
     };
 
+    const handleSaveOnly = async () => {
+        try {
+            setSendStatus('sending');
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            
+            const res = await fetch('/api/facture/send', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-Admin-Username': adminUser, 
+                    'X-Admin-Password': adminPass, 
+                    'X-Session-ID': sessionId 
+                },
+                body: JSON.stringify({ 
+                    to: clientEmail || 'Archive Locale', 
+                    skipEmail: true,
+                    invoiceData: { number: formattedNumber, client: clientName, total, date } 
+                })
+            });
+            if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur serveur'); }
+            setSendStatus('success');
+            fetchHistory();
+            setInvoiceNumber(n => n + 1);
+            setTimeout(() => { setSendStatus('idle'); }, 3000);
+        } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
+    };
+
     const togglePaid = async (id: number, paid: boolean) => {
         try {
             const adminUser = localStorage.getItem('admin_user') || '';
@@ -424,6 +453,9 @@ export function InvoiceGenerator() {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button onClick={handleSaveOnly} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400/80 flex items-center gap-2 transition-all">
+                        <Save className="w-4 h-4" /> Enregistrer (Archives)
+                    </button>
                     <button onClick={handleDownload} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-2 transition-all">
                         <Download className="w-4 h-4" /> Télécharger HTML
                     </button>
@@ -507,7 +539,7 @@ export function InvoiceGenerator() {
                                         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Client</h3>
                                         <div className="flex gap-2">
                                             <button onClick={saveClient} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-1 transition-all">
-                                                <Save className="w-3 h-3" /> Sauvegarder
+                                                <Save className="w-3 h-3" /> ENREGISTRER CLIENT
                                             </button>
                                             {savedClients.length > 0 && (
                                                 <button onClick={() => setShowClientPicker(true)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-1 transition-all">

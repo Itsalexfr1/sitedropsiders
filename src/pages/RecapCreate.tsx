@@ -156,7 +156,26 @@ export function RecapCreate() {
                 const res = await apiFetch('/api/editors');
                 if (res.ok) {
                     const data = await res.json();
-                    setEditors(data.editors || []);
+                    let arr = Array.isArray(data) ? data : (data.editors || data.content || []);
+                    
+                    const currentAdmin = (localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex').toLowerCase();
+                    const hasAlex = arr.some((e: any) => (e.username || e.name || '').toLowerCase() === 'alex');
+                    
+                    if (!hasAlex && (currentAdmin === 'alex' || currentAdmin.includes('alexflex30'))) {
+                        arr = [{ email: 'alexflex30@gmail.com', username: 'Alex', name: 'Alex' }, ...arr];
+                    }
+                    
+                    setEditors(arr);
+
+                    const found = arr.find((e: any) => 
+                        e.email?.toLowerCase() === currentAdmin || 
+                        e.username?.toLowerCase() === currentAdmin ||
+                        e.name?.toLowerCase() === currentAdmin
+                    );
+                    
+                    if (found) {
+                        setAuthor(found.username || found.name);
+                    }
                 }
             } catch(e) {}
         };
@@ -1457,7 +1476,7 @@ export function RecapCreate() {
                                         type="text"
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
-                                        placeholder="Ex: Récap : Tomorrowland 2024"
+                                        placeholder="Ex: Récap : Tomorrowland 2026"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                         required
                                     />

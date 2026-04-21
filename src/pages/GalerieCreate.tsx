@@ -89,7 +89,26 @@ export function GalerieCreate() {
             const res = await apiFetch('/api/editors');
             if (res.ok) {
                 const data = await res.json();
-                setEditors(data.editors || []);
+                let arr = Array.isArray(data) ? data : (data.editors || data.content || []);
+                
+                const currentAdmin = (localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex').toLowerCase();
+                const hasAlex = arr.some((e: any) => (e.username || e.name || '').toLowerCase() === 'alex');
+                
+                if (!hasAlex && (currentAdmin === 'alex' || currentAdmin.includes('alexflex30'))) {
+                    arr = [{ email: 'alexflex30@gmail.com', username: 'Alex', name: 'Alex' }, ...arr];
+                }
+                
+                setEditors(arr);
+
+                const found = arr.find((e: any) => 
+                    e.email?.toLowerCase() === currentAdmin || 
+                    e.username?.toLowerCase() === currentAdmin ||
+                    e.name?.toLowerCase() === currentAdmin
+                );
+                
+                if (found) {
+                    setAuthor(found.username || found.name);
+                }
             }
         } catch(e) {}
     };
@@ -436,7 +455,7 @@ export function GalerieCreate() {
                                     type="text"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="Ex: TOMORROWLAND 2024"
+                                    placeholder="Ex: TOMORROWLAND 2026"
                                     className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red focus:ring-1 focus:ring-neon-red transition-all"
                                     required
                                 />
@@ -807,7 +826,7 @@ export function GalerieCreate() {
                                             type="number"
                                             value={date}
                                             onChange={(e) => setDate(e.target.value)}
-                                            placeholder="2024"
+                                            placeholder="2026"
                                             className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:border-neon-red outline-none transition-all"
                                         />
                                     </div>

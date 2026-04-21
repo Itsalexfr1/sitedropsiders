@@ -66,7 +66,7 @@ const KitMedia = () => {
             }
         } catch (e: any) {
             // fallback to admin if API fails
-            if (password.toUpperCase() === '2024') {
+            if (password.toUpperCase() === '2026') {
                 setIsAuthenticated(true);
                 setError('');
                 localStorage.setItem('kit_media_auth', 'true');
@@ -95,7 +95,7 @@ const KitMedia = () => {
         "Tomorrowland Winter (depuis 2019)",
         "Tomorrowland Belgium",
         "EDC Las Vegas",
-        "Burning Man 2024/2025",
+        "Burning Man 2026/2025",
         "Ultra Miami & Europe",
         "Elrow (Ibiza, Barcelona, Las Vegas)",
         "Untold Festival",
@@ -106,7 +106,7 @@ const KitMedia = () => {
         "Tomorrowland Winter (since 2019)",
         "Tomorrowland Belgium",
         "EDC Las Vegas",
-        "Burning Man 2024/2025",
+        "Burning Man 2026/2025",
         "Ultra Miami & Europe",
         "Elrow (Ibiza, Barcelona, Las Vegas)",
         "Untold Festival",
@@ -722,7 +722,7 @@ const KitMedia = () => {
 
                 <footer className="py-12 border-t border-white/5 text-center px-6">
                     <div className="flex justify-center gap-8 mb-6">
-                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">© 2024 DROPSIDERS MEDIA GROUP</p>
+                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">© 2026 DROPSIDERS MEDIA GROUP</p>
                         <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em]">CONFIDENTIAL DOCUMENT</p>
                     </div>
                 </footer>

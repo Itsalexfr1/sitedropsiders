@@ -1084,7 +1084,7 @@ export function AdminDashboard() {
                         forceHomepage: data.takeover.forceHomepage !== false,
                         customCommands: data.takeover.customCommands || '',
                         isSecret: data.takeover.isSecret || false,
-                        password: data.takeover.password || '2024',
+                        password: data.takeover.password || '2026',
                         channels: data.takeover.channels || '',
                         autoMessage: data.takeover.autoMessage || '',
                         autoMessageInterval: data.takeover.autoMessageInterval || 60,
@@ -1919,7 +1919,7 @@ export function AdminDashboard() {
         setIsResetMusicConfirmOpen(false);
         setIsResettingVotes(true);
         try {
-            const adminToken = import.meta.env.VITE_ADMIN_TOKEN || 'dropsiders_master_key_2024';
+            const adminToken = import.meta.env.VITE_ADMIN_TOKEN || 'dropsiders_master_key_2026';
             // Le backend gère reset + seed directement depuis news.json sur GitHub
             const resetRes = await apiFetch('/api/music/reset', {
                 method: 'POST',
@@ -3685,7 +3685,7 @@ export function AdminDashboard() {
                                                     } else if (action.title === 'Tracklists') {
                                                         e.preventDefault();
                                                         setIsTracklistModalOpen(true);
-                                                    } else if (action.title === 'Messagerie') {
+                                                    } else if (action.title === 'Messagerie' || action.title === 'Messages') {
 
                                                         e.preventDefault();
                                                         setIsMessagesModalOpen(true);
