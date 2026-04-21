@@ -98,35 +98,45 @@ export function MemoryWall({ galerieData }: MemoryWallProps) {
     return (
         <div className="space-y-12">
             {/* Search & Filters */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-md">
-                <div className="relative w-full md:w-96 group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-neon-red transition-colors" />
-                    <input
-                        type="text"
-                        placeholder={t('communaute.wall_search_placeholder')}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-6 py-4 bg-black/40 border border-white/10 rounded-2xl text-white placeholder:text-gray-600 focus:outline-none focus:border-neon-red/50 transition-all text-sm uppercase font-bold tracking-wider"
-                    />
-                </div>
-
-                <div className="flex items-center gap-4 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-hide">
-                    <div className="flex items-center gap-2 text-gray-500 mr-2 flex-shrink-0">
-                        <Calendar className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('common.date')}</span>
+            <div className="relative z-20 mb-16">
+                <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 bg-white/5 p-4 rounded-[2rem] border border-white/10 backdrop-blur-xl shadow-2xl">
+                    {/* Search Input */}
+                    <div className="relative flex-1 group">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-red transition-all duration-300" />
+                        <input
+                            type="text"
+                            placeholder={t('communaute.wall_search_placeholder')}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-16 pr-6 py-5 bg-black/20 border border-white/5 rounded-2xl text-white placeholder:text-gray-600 focus:outline-none focus:border-neon-red/30 focus:bg-black/40 transition-all text-[11px] font-black uppercase tracking-widest outline-none"
+                        />
                     </div>
-                    {availableYears.map(year => (
-                        <button
-                            key={year}
-                            onClick={() => setSelectedYear(year)}
-                            className={`px-6 py-2 rounded-full text-[10px] font-black tracking-widest transition-all duration-300 border uppercase flex-shrink-0 ${selectedYear === year
-                                ? 'bg-neon-red border-transparent text-white shadow-[0_0_20px_rgba(255,17,17,0.4)]'
-                                : 'bg-white/5 border-white/10 text-white/40 hover:border-neon-red/40 hover:text-white'
-                                }`}
-                        >
-                            {year}
-                        </button>
-                    ))}
+
+                    {/* Vertical Divider (Desktop) */}
+                    <div className="hidden lg:block w-[1px] h-10 bg-white/10 mx-2" />
+
+                    {/* Years Filter */}
+                    <div className="flex items-center gap-4 px-2 overflow-hidden">
+                        <div className="hidden sm:flex items-center gap-2 text-gray-500 shrink-0">
+                            <Calendar className="w-4 h-4" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em]">{t('common.date')}</span>
+                        </div>
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2 px-1">
+                            {availableYears.map(year => (
+                                <button
+                                    key={year}
+                                    onClick={() => setSelectedYear(year)}
+                                    className={`px-6 py-3 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all duration-500 border uppercase shrink-0 whitespace-nowrap
+                                        ${selectedYear === year
+                                            ? 'bg-neon-red border-transparent text-white shadow-[0_0_25px_rgba(255,0,51,0.4)]'
+                                            : 'bg-white/5 border-white/10 text-white/30 hover:bg-white/10 hover:text-white hover:border-white/20'
+                                        }`}
+                                >
+                                    {year}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
 

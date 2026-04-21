@@ -877,7 +877,14 @@ ${urls.map(u => `  <url>
                 const cleanName = filename.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
 
                 // Final Key in R2
-                const targetFolder = subFolder || (type && type.startsWith('audio/') ? 'mp3' : 'uploads');
+                // Force specialized folders for Dropsiders v2 architecture
+                let targetFolder = subFolder;
+                if (!targetFolder) {
+                    if (type && type.startsWith('audio/')) targetFolder = 'SONS';
+                    else if (type && type.startsWith('video/')) targetFolder = 'VIDEOS';
+                    else targetFolder = 'uploads';
+                }
+                
                 const key = `${targetFolder}/${hashHex}-${cleanName}.${extension}`;
 
                 await env.R2.put(key, bytes, {
@@ -886,11 +893,52 @@ ${urls.map(u => `  <url>
 
                 return new Response(JSON.stringify({
                     success: true,
-                    url: `/uploads/${key}`
+                    url: `/uploads/${key}`,
+                    key: key
                 }), { headers });
             } catch (e) {
                 console.error('Upload error:', e);
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: USER MIXES PERSISTENCE ---
+        if (path === '/api/user/mixes') {
+            const userEmail = url.searchParams.get('email');
+            if (!userEmail) return new Response(JSON.stringify({ error: 'Email required' }), { status: 400, headers });
+            const kvKey = `user_mixes:${userEmail.toLowerCase().trim()}`;
+
+            if (request.method === 'GET') {
+                const data = await env.CHAT_KV.get(kvKey) || "[]";
+                return new Response(data, { headers });
+            }
+
+            if (request.method === 'POST') {
+                if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+                const mixData = await request.json();
+                const existingRaw = await env.CHAT_KV.get(kvKey) || "[]";
+                const existing = JSON.parse(existingRaw);
+                
+                // If update (exists by id), replace it
+                const idx = existing.findIndex(m => m.id === mixData.id);
+                if (idx !== -1) {
+                    existing[idx] = { ...existing[idx], ...mixData };
+                } else {
+                    existing.unshift(mixData);
+                }
+                
+                await env.CHAT_KV.put(kvKey, JSON.stringify(existing));
+                return new Response(JSON.stringify({ success: true }), { headers });
+            }
+
+            if (request.method === 'DELETE') {
+                if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+                const { id } = await request.json();
+                const existingRaw = await env.CHAT_KV.get(kvKey) || "[]";
+                const existing = JSON.parse(existingRaw);
+                const updated = existing.filter(m => m.id !== id);
+                await env.CHAT_KV.put(kvKey, JSON.stringify(updated));
+                return new Response(JSON.stringify({ success: true }), { headers });
             }
         }
 
@@ -1063,6 +1111,7 @@ ${urls.map(u => `  <url>
             path === '/api/facture/send' ||
             path.startsWith('/api/invoices') ||
             path === '/api/upload' ||
+            path === '/api/user/mixes' ||
             path.startsWith('/api/pdfs') ||
             path.startsWith('/api/instagram-contest') ||
             path.startsWith('/api/quiz/contest') ||

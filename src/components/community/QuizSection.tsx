@@ -41,7 +41,8 @@ interface ScoreRecord {
 export function QuizSection() {
     const { isLoggedIn, user, updateScore } = useUser();
     useLanguage();
-    const [activeTab, setActiveTab] = useState<'play' | 'submit'>('play');
+    const [activeTab, setActiveTab] = useState<'play' | 'submit' | 'manage'>('play');
+    const isAdmin = localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('editeur_auth') === 'true';
     const [gameState, setGameState] = useState<'selection' | 'playing' | 'results'>('selection');
     const [selectedMode, setSelectedMode] = useState<QuizType | 'ALL'>('ALL');
     const [selectedLength, setSelectedLength] = useState<GameLength>(5);
@@ -53,6 +54,8 @@ export function QuizSection() {
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [gamePseudo, setGamePseudo] = useState(user?.username || localStorage.getItem('user_pseudo') || '');
+    const [gameName, setGameName] = useState(user?.displayName || '');
+    const [gameEmail, setGameEmail] = useState(user?.email || '');
     const [drops, setDrops] = useState(parseInt(localStorage.getItem('user_drops') || '0'));
     const [isSurvivalMode, setIsSurvivalMode] = useState(false);
     const [isGhostMode, setIsGhostMode] = useState(false);
@@ -100,6 +103,7 @@ export function QuizSection() {
     const [uploading, setUploading] = useState(false);
 
     const [isContestModeActive, setIsContestModeActive] = useState(false);
+    const [gameType, setGameType] = useState<'NORMAL' | 'CONCOURS'>('NORMAL');
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [isContestValidationOpen, setIsContestValidationOpen] = useState(false);
 
@@ -110,7 +114,11 @@ export function QuizSection() {
         // Fetch contest mode setting
         fetch('/api/settings')
             .then(res => res.json())
-            .then(data => setIsContestModeActive(data.contest_mode === true))
+            .then(data => {
+                const isActive = data.contest_mode === true;
+                setIsContestModeActive(isActive);
+                if (isActive) setGameType('CONCOURS');
+            })
             .catch(() => setIsContestModeActive(false));
     }, []);
 
@@ -164,19 +172,31 @@ export function QuizSection() {
             return;
         }
 
-        if (!gamePseudo.trim()) {
-            alert("Veuillez entrer votre prénom / pseudo pour participer !");
+        if (!gamePseudo.trim() || !gameName.trim()) {
+            alert("Veuillez entrer votre nom et prénom pour participer !");
+            return;
+        }
+
+        if (gameType === 'CONCOURS' && (!gameEmail.trim() || !gameEmail.includes('@'))) {
+            alert("Une adresse email valide est obligatoire pour participer au concours !");
             return;
         }
 
         let filtered = quizzes;
         
-        // Force CONCOURS category if contest mode is active
-        if (isContestModeActive) {
+        // Logic for game type
+        if (gameType === 'CONCOURS') {
             const contestQuizzes = quizzes.filter(q => q.category === 'CONCOURS');
             if (contestQuizzes.length > 0) {
                 filtered = contestQuizzes;
+            } else {
+                // Fallback to festivals if no contest quiz found but mode active
+                filtered = quizzes.filter(q => q.category === 'Festivals' || q.category === 'CONCOURS');
             }
+        } else {
+            // Training mode: exclude contest quizzes to keep them special? 
+            // Or just allow everything except specific contest ones.
+            filtered = quizzes.filter(q => q.category !== 'CONCOURS');
         }
 
         if (selectedMode !== 'ALL') {
@@ -411,7 +431,7 @@ export function QuizSection() {
     };
 
     const themes = [
-        'ALL', 'Blind Test', 'Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Festivals', 'DJs', 'Classics', 'Production'
+        'ALL', 'CONCOURS', 'Blind Test', 'Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Festivals', 'DJs', 'Classics', 'Production'
     ];
 
     if (loading) {
@@ -468,43 +488,81 @@ export function QuizSection() {
                                     <div className="flex justify-between items-start mb-8">
                                         <h3 className="text-3xl font-display font-black text-white italic uppercase flex items-center gap-4">
                                             <Gamepad2 className="w-8 h-8 text-neon-red" />
-                                            Quizz
-                                            {isContestModeActive && (
-                                                <motion.span 
-                                                    initial={{ scale: 0.8 }}
-                                                    animate={{ scale: [0.8, 1.1, 0.8] }}
-                                                    transition={{ duration: 2, repeat: Infinity }}
-                                                    className="ml-2 px-3 py-1 bg-neon-red text-white text-[8px] font-black rounded-full italic shadow-lg shadow-neon-red/20"
-                                                >
-                                                    JEU CONCOURS ACTIF
-                                                </motion.span>
-                                            )}
+                                            Quizz & <span className="text-neon-red">Concours</span>
                                         </h3>
-                                        <div className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-2xl">
-                                            <Zap className="w-4 h-4 text-neon-cyan animate-pulse" />
-                                            <span className="text-sm font-black text-white tabular-nums">{drops} DROPS</span>
+                                        <div className="flex items-center gap-4">
+                                            <button 
+                                                onClick={() => setActiveTab('submit')}
+                                                className="px-4 py-2 bg-white/5 border border-white/10 rounded-2xl text-[8px] font-black text-white hover:bg-neon-red transition-all uppercase tracking-widest"
+                                            >
+                                                + Créer Quizz
+                                            </button>
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-2xl">
+                                                <Zap className="w-4 h-4 text-neon-cyan animate-pulse" />
+                                                <span className="text-sm font-black text-white tabular-nums">{drops} DROPS</span>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div className="space-y-6 relative z-10">
-                                        <div className="space-y-4">
-                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Pseudo / Prénom</label>
-                                            <div className="relative">
-                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                                <input
-                                                    type="text"
-                                                    value={gamePseudo}
-                                                    disabled={isContestModeActive && isLoggedIn}
-                                                    onChange={e => setGamePseudo(e.target.value.toUpperCase())}
-                                                    placeholder={isContestModeActive && !isLoggedIn ? "CONNEXION REQUISE POUR LE CONCOURS..." : "COMMENCE PAR TON NOM..."}
-                                                    className={`w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-black uppercase tracking-wider focus:outline-none focus:border-neon-red transition-all ${isContestModeActive && isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                />
-                                                {isContestModeActive && !isLoggedIn && (
-                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                                        <Shield className="w-4 h-4 text-neon-red animate-pulse" />
-                                                    </div>
-                                                )}
+                                        {isContestModeActive && (
+                                            <div className="flex gap-2 p-1.5 bg-black/40 border border-white/10 rounded-2xl">
+                                                <button
+                                                    onClick={() => setGameType('CONCOURS')}
+                                                    className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${gameType === 'CONCOURS' ? 'bg-neon-red text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                                >
+                                                    Défi Concours
+                                                </button>
+                                                <button
+                                                    onClick={() => setGameType('NORMAL')}
+                                                    className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${gameType === 'NORMAL' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                                >
+                                                    Entraînement
+                                                </button>
                                             </div>
+                                        )}
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Prénom / Pseudo</label>
+                                                    <div className="relative">
+                                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <input
+                                                            type="text"
+                                                            value={gamePseudo}
+                                                            onChange={e => setGamePseudo(e.target.value)}
+                                                            placeholder="EX: ALEX"
+                                                            className="w-full bg-black/40 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-wider focus:border-neon-red outline-none transition-all"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Nom de famille</label>
+                                                    <input
+                                                        type="text"
+                                                        value={gameName}
+                                                        onChange={e => setGameName(e.target.value)}
+                                                        placeholder="EX: DUPONT"
+                                                        className="w-full bg-black/40 border border-white/10 rounded-2xl py-3 px-5 text-white font-black uppercase tracking-wider focus:border-neon-red outline-none transition-all"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {gameType === 'CONCOURS' && (
+                                                <div className="space-y-2">
+                                                    <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest">Email (Obligatoire pour le concours)</label>
+                                                    <div className="relative">
+                                                        <Send className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <input
+                                                            type="email"
+                                                            value={gameEmail}
+                                                            onChange={e => setGameEmail(e.target.value)}
+                                                            placeholder="EX: CONTACT@DROPSIDERS.FR"
+                                                            className="w-full bg-black/40 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-wider focus:border-neon-red outline-none transition-all"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="grid grid-cols-2 gap-4">
@@ -514,8 +572,8 @@ export function QuizSection() {
                                                     {[
                                                         { id: 'ALL', label: 'TOUT' },
                                                         { id: 'QCM', label: 'QCM' },
-                                                        { id: 'BLIND_TEST', label: 'SON' },
-                                                        { id: 'IMAGE', label: 'PHOTO' }
+                                                        { id: 'BLIND_TEST', label: `SON (${quizCounts.BLIND_TEST}/30)` },
+                                                        { id: 'IMAGE', label: `PHOTO (${quizCounts.IMAGE}/30)` }
                                                     ].map(opt => {
                                                         const isBlindTestSoon = quizCounts.BLIND_TEST < 30;
                                                         const isImageSoon = quizCounts.IMAGE < 30;
@@ -527,9 +585,12 @@ export function QuizSection() {
                                                                 key={opt.id}
                                                                 disabled={isDisabled}
                                                                 onClick={() => setSelectedMode(opt.id as any)}
-                                                                className={`py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : isDisabled ? 'bg-white/[0.02] text-gray-500 border-white/5 cursor-not-allowed' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'}`}
+                                                                className={`py-3 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : isDisabled ? 'bg-white/[0.02] text-gray-500 border-white/5 cursor-not-allowed' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'}`}
                                                             >
                                                                 <span className={isDisabled ? 'opacity-40' : ''}>{opt.label}</span>
+                                                                {isDisabled && opt.id !== 'ALL' && (
+                                                                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-gray-800 text-white rounded-full text-[6px]">SOON</div>
+                                                                )}
                                                             </button>
                                                         );
                                                     })}
@@ -580,20 +641,36 @@ export function QuizSection() {
 
                                         <button
                                             onClick={startNewGame}
-                                            className={`w-full py-5 rounded-3xl font-black uppercase tracking-[0.3em] text-[10px] md:text-xs transition-all shadow-2xl flex items-center justify-center gap-4 group ${isContestModeActive && !isLoggedIn ? 'bg-neon-red text-white hover:bg-white hover:text-black' : 'bg-white text-black hover:bg-neon-red hover:text-white'}`}
+                                            className={`w-full py-5 rounded-3xl font-black uppercase tracking-[0.3em] text-[10px] md:text-xs transition-all shadow-2xl flex items-center justify-center gap-4 group ${gameType === 'CONCOURS' && !isLoggedIn ? 'bg-neon-red text-white hover:bg-white hover:text-black' : 'bg-white text-black hover:bg-neon-red hover:text-white'}`}
                                         >
-                                            {isContestModeActive && !isLoggedIn ? (
+                                            {gameType === 'CONCOURS' && !isLoggedIn ? (
                                                 <>
                                                     <User className="w-5 h-5" />
-                                                    SE CONNECTER POUR PARTICIPER
+                                                    SE CONNECTER POUR LE CONCOURS
                                                 </>
                                             ) : (
                                                 <>
-                                                    {isSurvivalMode ? 'LANCER LE DÉFI SURVIE' : 'COMMENCER LE JEU'}
+                                                    {gameType === 'CONCOURS' ? 'LANCER LE DÉFI CONCOURS' : isSurvivalMode ? 'LANCER LE DÉFI SURVIE' : 'DÉMARRER ENTRAÎNEMENT'}
                                                     <Play className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                                 </>
                                             )}
                                         </button>
+
+                                        {/* Notice for Blind Test */}
+                                        {(quizCounts.BLIND_TEST < 30 || quizCounts.IMAGE < 30) && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-4"
+                                            >
+                                                <Headphones className="w-5 h-5 text-amber-500 shrink-0" />
+                                                <p className="text-[9px] font-black uppercase text-amber-500 tracking-widest leading-relaxed">
+                                                    Modes <span className="text-white">SON</span> et <span className="text-white">PHOTO</span> 
+                                                    indisponibles (Min. 30 titres requis). <br/>
+                                                    Actuel : <span className="text-white">{quizCounts.BLIND_TEST} Sons</span> / <span className="text-white">{quizCounts.IMAGE} Photos</span>
+                                                </p>
+                                            </motion.div>
+                                        )}
                                     </div>
                                 </motion.div>
                             )}

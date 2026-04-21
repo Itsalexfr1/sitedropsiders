@@ -23,6 +23,7 @@ import { InstagramContest } from '../components/community/InstagramContest';
 import confetti from 'canvas-confetti';
 import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
+import { UserAuthModal } from '../components/auth/UserAuthModal';
 
 // --- STAGE & LOCATION DATA ---
 const FESTIVAL_LOCATIONS = [
@@ -424,6 +425,7 @@ export function Community() {
     const [priceSort, setPriceSort] = useState<'ASC' | 'DESC' | 'NONE'>('NONE');
     const [advisorTip, setAdvisorTip] = useState<{ name: string, tip: string, avatar: string } | null>(null);
     const [posterStyle, setPosterStyle] = useState<'ULTRA' | 'TOMORROWLAND' | 'EDC'>('ULTRA');
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     const currentRank = useMemo(() => {
         return [...PROM_RANKS].reverse().find(r => promoterXP >= r.minXp) || PROM_RANKS[0];
@@ -848,9 +850,10 @@ export function Community() {
                 description="Rejoignez la communauté Dropsiders. Jouez au Festival Producer, consultez le Wiki, partagez vos playlists et profitez de l'entraide entre festivaliers."
             />
             <div className={twMerge(
-                "min-h-screen transition-colors duration-1000 pb-20 pt-16",
+                "min-h-screen transition-all duration-700 pb-20 pt-16 relative z-10",
                 "bg-dark-bg",
-                "text-white"
+                "text-white",
+                !isLoggedIn && "blur-[30px] pointer-events-none select-none max-h-screen overflow-hidden"
             )}>
                 {/* Background Ambient Glows */}
                 <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -926,7 +929,7 @@ export function Community() {
                                 { id: 'WALL',          icon: Star,         label: 'Souvenirs',         multiline: false },
                                 { id: 'UPLOADS',       icon: Camera,       label: 'Vos Photos',        multiline: false },
                                 { id: 'AVIS',          icon: MessageSquare,label: 'Avis & Votes',      multiline: false },
-                                { id: 'CONCOURS',      icon: Trophy,       label: 'Jeux Concours',     multiline: false, hidden: !isContestActive },
+                                { id: 'CONCOURS',      icon: Trophy,       label: 'Quizz & Concours',  multiline: false },
                                 { id: 'GAME',          icon: Sparkles,     label: 'PRODUCER',          multiline: false, iconClass: 'text-amber-400' },
 
                                 { id: 'TRACK_ID',      icon: Music,        label: 'TrackID',           multiline: false },
@@ -2114,6 +2117,57 @@ export function Community() {
 
                 </div>
             </div>
+            </div>
+
+            {!isLoggedIn && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="max-w-md w-full bg-[#050510]/80 border-2 border-white/10 rounded-[3rem] p-10 md:p-14 text-center space-y-10 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative overflow-hidden"
+                    >
+                        {/* Glows */}
+                        <div className="absolute -top-24 -left-24 w-48 h-48 bg-neon-red/20 rounded-full blur-[80px] animate-pulse" />
+                        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-neon-cyan/20 rounded-full blur-[80px] animate-pulse" />
+
+                        <div className="relative space-y-6">
+                            <div className="w-24 h-24 bg-neon-red/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-neon-red/20">
+                                <Lock className="w-10 h-10 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.5)]" />
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <h2 className="text-3xl md:text-4xl font-display font-black text-white italic uppercase tracking-tighter leading-none">
+                                    EXPÉRIENCE <span className="text-neon-red">RÉSERVÉE</span>
+                                </h2>
+                                <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] leading-relaxed">
+                                    Rejoignez la communauté Dropsiders pour accéder aux concours, au jeu Producer et au mur de souvenirs.
+                                </p>
+                            </div>
+
+                            <div className="pt-6 space-y-4">
+                                <button
+                                    onClick={() => setIsAuthModalOpen(true)}
+                                    className="w-full py-6 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-500 shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
+                                >
+                                    Créer mon compte
+                                </button>
+                                <button
+                                    onClick={() => setIsAuthModalOpen(true)}
+                                    className="w-full py-4 bg-transparent text-white/40 hover:text-white rounded-2xl font-black text-[9px] uppercase tracking-[0.3em] transition-all"
+                                >
+                                    Déjà membre ? Me connecter
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            <UserAuthModal 
+                isOpen={isAuthModalOpen} 
+                onClose={() => setIsAuthModalOpen(false)} 
+            />
+
             <AdminEditBar
                 pageName="Communauté"
                 pageActions={[

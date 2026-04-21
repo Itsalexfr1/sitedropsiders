@@ -9,6 +9,7 @@ interface UserProfile {
     scores: Record<string, number>;
     trackIds: string[];
     agendaFavorites: number[];
+    instagram?: string;
     createdAt: string;
 }
 

@@ -46,17 +46,56 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
     useEffect(() => {
         if (isOpen && step === 'uploading' && file) {
             setProgress(0);
-            const interval = setInterval(() => {
-                setProgress(prev => {
-                    if (prev >= 100) {
-                        clearInterval(interval);
+            
+            // Start real upload
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64 = reader.result as string;
+                
+                // Simulation of progress while fetch is running
+                const interval = setInterval(() => {
+                    setProgress(prev => {
+                        if (prev >= 95) return prev;
+                        return prev + (100 - prev) * 0.1;
+                    });
+                }, 500);
+
+                try {
+                    const res = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
+                            'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
+                        },
+                        body: JSON.stringify({
+                            filename: file.name,
+                            content: base64,
+                            type: file.type,
+                            path: file.type.startsWith('audio/') ? 'SONS' : (file.type.startsWith('video/') ? 'VIDEOS' : 'uploads')
+                        })
+                    });
+                    
+                    clearInterval(interval);
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        setProgress(100);
+                        // Store the URL for later
+                        (window as any).uploadedMediaUrl = data.url;
+                        (window as any).uploadedMediaKey = data.key;
                         setTimeout(() => setStep('metadata'), 500);
-                        return 100;
+                    } else {
+                        setError(data.error || "Erreur lors de l'upload");
+                        setStep('metadata'); // Still go to metadata to allow retry or show error
                     }
-                    return prev + Math.random() * 15;
-                });
-            }, 300);
-            return () => clearInterval(interval);
+                } catch (e: any) {
+                    clearInterval(interval);
+                    setError(e.message || "Erreur réseau");
+                    setStep('metadata');
+                }
+            };
         }
     }, [isOpen, step, file]);
 
@@ -212,22 +251,49 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
         setTracklist(prev => prev.filter(t => t.id !== id));
     };
 
-    const handleFinalize = () => {
+    const handleFinalize = async () => {
         if (!title.trim()) {
             setError("Le titre est obligatoire");
             return;
         }
-        setStep('success');
-        onSuccess({
+        
+        const mixData = {
+            id: Math.random().toString(36).substr(2, 9),
             title,
             genre,
             description,
             type,
             tracklist,
-            id: Math.random().toString(36).substr(2, 9),
-            uploadDate: 'À l\'instant',
-            duration: 'Calcul...'
-        });
+            audioUrl: (window as any).uploadedMediaUrl,
+            audioKey: (window as any).uploadedMediaKey,
+            uploadDate: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            duration: '00:00' // Should be calculated if possible
+        };
+
+        try {
+            const user = JSON.parse(localStorage.getItem('dropsiders_user') || '{}');
+            if (!user.email) throw new Error("Utilisateur non connecté");
+
+            const res = await fetch(`/api/user/mixes?email=${encodeURIComponent(user.email)}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
+                    'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
+                },
+                body: JSON.stringify(mixData)
+            });
+
+            if (res.ok) {
+                setStep('success');
+                onSuccess(mixData);
+            } else {
+                const err = await res.json();
+                setError(err.error || "Erreur lors de la sauvegarde");
+            }
+        } catch (e: any) {
+            setError(e.message || "Erreur de connexion");
+        }
     };
 
     return (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, Share2, MessageSquare, Star, Send } from 'lucide-react';
+import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, Share2, MessageSquare, Star, Send, Instagram } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -13,6 +13,7 @@ export function Profile() {
     const navigate = useNavigate();
     
     const [username, setUsername] = useState(user?.username || '');
+    const [instagram, setInstagram] = useState(user?.instagram || '');
     const [isEditingName, setIsEditingName] = useState(false);
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
     const [activeTab, setActiveTab ] = useState<'overview' | 'mixes' | 'reviews' | 'settings' | 'favorites'>('overview');
@@ -29,24 +30,72 @@ export function Profile() {
     useEffect(() => {
         if (!isLoggedIn) {
             navigate('/');
+        } else if (user?.email) {
+            // Load mixes from KV
+            fetch(`/api/user/mixes?email=${encodeURIComponent(user.email)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) setUserMixes(data);
+                })
+                .catch(err => console.error("Failed to load mixes", err));
         }
-    }, [isLoggedIn, navigate]);
+    }, [isLoggedIn, navigate, user?.email]);
 
     if (!user) return null;
 
     const handleUpdateName = () => {
-        if (username.trim() && username !== user.username) {
-            updateUser({ username: username.trim() });
-            showNotification('Pseudo mis à jour !', 'success');
+        const updates: any = {};
+        if (username.trim() && username !== user.username) updates.username = username.trim();
+        if (instagram.trim() !== (user.instagram || '')) updates.instagram = instagram.trim();
+        
+        if (Object.keys(updates).length > 0) {
+            updateUser(updates);
+            showNotification('Profil mis à jour !', 'success');
         }
         setIsEditingName(false);
     };
 
-    const handleDeleteMix = (id: string) => {
-        if (window.confirm("Es-tu sûr de vouloir supprimer ce contenu du Studio Dropsiders et du Cloud ?")) {
-            setUserMixes(prev => prev.filter(m => m.id !== id));
-            showNotification('Contenu supprimé avec succès.', 'success');
-            // Here we would call the API to delete from R2
+    const handleDeleteMix = async (id: string) => {
+        const mixToDelete = userMixes.find(m => m.id === id);
+        if (!mixToDelete) return;
+
+        if (window.confirm("Es-tu sûr de vouloir supprimer ce contenu du Studio Dropsiders et du Cloud ? Cette action est irréversible.")) {
+            try {
+                // 1. Delete from Metadata (KV)
+                const resMeta = await fetch(`/api/user/mixes?email=${encodeURIComponent(user.email)}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
+                        'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
+                    },
+                    body: JSON.stringify({ id })
+                });
+
+                if (resMeta.ok) {
+                    // 2. Delete from Cloud (R2)
+                    if (mixToDelete.audioKey) {
+                        await fetch('/api/r2/delete', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
+                                'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
+                            },
+                            body: JSON.stringify({ key: mixToDelete.audioKey })
+                        });
+                    }
+
+                    setUserMixes(prev => prev.filter(m => m.id !== id));
+                    showNotification('Contenu supprimé avec succès.', 'success');
+                } else {
+                    const err = await resMeta.json();
+                    showNotification(err.error || 'Erreur lors de la suppression', 'error');
+                }
+            } catch (e: any) {
+                console.error(e);
+                showNotification(e.message || 'Erreur réseau', 'error');
+            }
         }
     };
 
@@ -146,21 +195,51 @@ export function Profile() {
 
                                 <div className="space-y-4 w-full">
                                     {isEditingName ? (
-                                        <div className="flex items-center gap-2">
-                                            <input 
-                                                type="text" 
-                                                value={username} 
-                                                onChange={(e) => setUsername(e.target.value.toUpperCase())}
-                                                className="w-full bg-black/40 border-2 border-neon-red rounded-2xl px-4 py-3 text-white font-display font-black uppercase italic outline-none"
-                                                autoFocus
-                                            />
-                                            <button onClick={handleUpdateName} className="p-3 bg-neon-green/20 text-neon-green rounded-xl hover:bg-neon-green/40 transition-all"><Check className="w-5 h-5" /></button>
-                                            <button onClick={() => setIsEditingName(false)} className="p-3 bg-white/5 text-gray-500 rounded-xl hover:bg-white/10 transition-all"><X className="w-5 h-5" /></button>
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <input 
+                                                    type="text" 
+                                                    value={username} 
+                                                    onChange={(e) => setUsername(e.target.value.toUpperCase())}
+                                                    className="w-full bg-black/40 border-2 border-neon-red rounded-2xl px-4 py-3 text-white font-display font-black uppercase italic outline-none"
+                                                    placeholder="PSEUDO"
+                                                    autoFocus
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="relative w-full">
+                                                    <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                    <input 
+                                                        type="text" 
+                                                        value={instagram} 
+                                                        onChange={(e) => setInstagram(e.target.value)}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 py-3 text-white font-bold outline-none focus:border-neon-red transition-all"
+                                                        placeholder="@INSTAGRAM"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={handleUpdateName} className="flex-1 py-3 bg-neon-green/20 text-neon-green rounded-xl hover:bg-neon-green/40 transition-all font-black text-[10px] uppercase">Enregistrer</button>
+                                                <button onClick={() => setIsEditingName(false)} className="px-4 py-3 bg-white/5 text-gray-500 rounded-xl hover:bg-white/10 transition-all font-black text-[10px] uppercase">Annuler</button>
+                                            </div>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center justify-center gap-3">
-                                            <h1 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">{user.username}</h1>
-                                            <button onClick={() => setIsEditingName(true)} className="p-2 text-gray-500 hover:text-white transition-colors"><Edit2 className="w-4 h-4" /></button>
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="flex items-center justify-center gap-3">
+                                                <h1 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">{user.username}</h1>
+                                                <button onClick={() => setIsEditingName(true)} className="p-2 text-gray-500 hover:text-white transition-colors"><Edit2 className="w-4 h-4" /></button>
+                                            </div>
+                                            {user.instagram && (
+                                                <a 
+                                                    href={`https://instagram.com/${user.instagram.replace('@', '')}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-white/10 rounded-full hover:scale-105 transition-all group"
+                                                >
+                                                    <Instagram className="w-3.5 h-3.5 text-pink-400" />
+                                                    <span className="text-[10px] font-black text-white/60 group-hover:text-white transition-colors">{user.instagram.startsWith('@') ? user.instagram : `@${user.instagram}`}</span>
+                                                </a>
+                                            )}
                                         </div>
                                     )}
                                     <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em]">Membre depuis {(new Date(user.createdAt)).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</p>
