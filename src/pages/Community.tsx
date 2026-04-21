@@ -2117,7 +2117,6 @@ export function Community() {
 
                 </div>
             </div>
-            </div>
 
             {!isLoggedIn && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
