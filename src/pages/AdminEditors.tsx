@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Trash2, Shield, User, Lock, ArrowLeft, Loader2, Save, X, Pencil, RefreshCw, CheckCircle2, AlertCircle, Search, Mail, ExternalLink } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { getAuthHeaders, apiFetch, isSuperAdmin } from '../utils/auth';
 import { StarField } from '../components/ui/StarField';
 
@@ -104,12 +104,22 @@ export function AdminEditors() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchParams] = useSearchParams();
+    const initialEmail = searchParams.get('email') || '';
 
-    const [newEditor, setNewEditor] = useState({
-        email: '',
+    const [newEditor, setNewEditor] = useState<{ email: string; pseudo: string; permissions: string[] }>({
+        email: initialEmail || '',
         pseudo: '',
-        permissions: [] as string[],
+        permissions: []
     });
+
+    // Update email if initialEmail changes
+    useEffect(() => {
+        if (initialEmail) {
+            setNewEditor(prev => ({ ...prev, email: initialEmail }));
+        }
+    }, [initialEmail]);
+
     const [isEditing, setIsEditing] = useState(false);
     const [foundUser, setFoundUser] = useState<any | null>(null);
     const [isSearchingUser, setIsSearchingUser] = useState(false);

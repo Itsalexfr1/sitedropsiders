@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Search, RefreshCw, Mail, Calendar, ExternalLink, ShieldCheck, User, Trash2 } from 'lucide-react';
+import { Users, Search, RefreshCw, Mail, Calendar, ExternalLink, ShieldCheck, User, Trash2, ShieldAlert } from 'lucide-react';
 
 interface CommunityUser {
     id: string;
@@ -11,7 +11,7 @@ interface CommunityUser {
     lastSeen: string;
 }
 
-export function AdminMembersList() {
+export function AdminMembersList({ onEditPermissions }: { onEditPermissions?: (email: string) => void }) {
     const [users, setUsers] = useState<CommunityUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -145,10 +145,11 @@ export function AdminMembersList() {
                                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                     {/* Link for future profile editing or stats */}
                                     <button 
-                                        className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-all shadow-xl"
-                                        title="Voir Profile"
+                                        className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-neon-red hover:text-white transition-all shadow-xl"
+                                        title="Donner/Modifier les accès admin"
+                                        onClick={() => onEditPermissions && onEditPermissions(user.email)}
                                     >
-                                        <ExternalLink className="w-3.5 h-3.5" />
+                                        <ShieldAlert className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
                             </motion.div>

@@ -274,10 +274,15 @@ export default {
                         <script>
                             try {
                                 const userData = ${JSON.stringify(userData)};
-                                if (window.opener) {
+                                localStorage.setItem('temp_social_user', JSON.stringify(userData));
+                                if (window.opener && !window.opener.closed) {
                                     window.opener.postMessage({ type: 'DISCORD_AUTH_SUCCESS', user: userData }, '*');
+                                } else {
+                                    window.location.href = '/';
                                 }
-                            } catch(e) {}
+                            } catch(e) {
+                                window.location.href = '/';
+                            }
                             setTimeout(() => window.close(), 1000);
                         </script>
                     </body></html>`, { status: 200, headers: {'Content-Type': 'text/html'} });
@@ -606,11 +611,16 @@ ${urls.map(u => `  <url>
         // --- API: COMMUNITY USER SYNC & SEARCH ---
         if (path === '/api/users/sync' && request.method === 'POST') {
             const body = await request.json();
-            const { id, username, email, avatar, provider } = body;
+            const { id, username, email, avatar, provider, newsletter: bodynewsletter } = body;
             if (!email) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
             
             const cleanEmail = email.toLowerCase().trim();
             const key = `community_user_${cleanEmail}`;
+            
+            // Check if user already exists
+            const existingUser = await env.CHAT_KV.get(key);
+            const isNewUser = !existingUser;
+
             const userData = {
                 id: id || crypto.randomUUID(),
                 username: username || 'Utilisateur',
@@ -621,6 +631,56 @@ ${urls.map(u => `  <url>
             };
 
             await env.CHAT_KV.put(key, JSON.stringify(userData));
+
+            // Newsletter auto-subscription if new and (oauth OR checkbox checked)
+            if (isNewUser && (provider !== 'email' || bodynewsletter === true)) {
+                try {
+                    const gitConfigSub = { OWNER: env.GITHUB_OWNER || 'Itsalexfr1', REPO: env.GITHUB_REPO || 'sitedropsiders', TOKEN: env.GITHUB_TOKEN };
+                    const subPath = env.GITHUB_FILE_PATH || 'src/data/subscribers.json';
+                    const fileData = await fetchGitHubFile(subPath, gitConfigSub);
+                    
+                    let subs = [];
+                    if (fileData && fileData.content) subs = fileData.content;
+                    
+                    if (!subs.find(s => s.email.toLowerCase() === cleanEmail)) {
+                        subs.push({
+                            id: userData.id,
+                            email: cleanEmail,
+                            date: new Date().toISOString(),
+                            source: provider || 'site_creation'
+                        });
+                        await updateGitHubFile(subPath, subs, 'Auto-subscribe from new account creation', fileData?.sha, gitConfigSub);
+                    }
+                } catch(e) {
+                    console.error('Newsletter auto-sub error', e);
+                }
+            }
+
+            // Send notification to Admin if new user
+            if (isNewUser && env.BREVO_API_KEY) {
+                const payload = {
+                    sender: { name: 'Dropsiders System', email: 'security@dropsiders.fr' },
+                    to: [{ email: 'contact@dropsiders.fr' }],
+                    subject: `[NOUVEAU COMPTE] ${userData.username}`,
+                    htmlContent: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px;">
+                            <h2>Nouveau membre inscrit !</h2>
+                            <p><strong>Pseudo:</strong> ${userData.username}</p>
+                            <p><strong>Email:</strong> ${userData.email}</p>
+                            <p><strong>Méthode:</strong> ${userData.provider}</p>
+                            <p><strong>Date:</strong> ${userData.lastSeen}</p>
+                        </div>
+                    `
+                };
+
+                // Non-blocking fetch
+                fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: { 'accept': 'application/json', 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(e => console.error('Brevo notification error', e));
+            }
+
             return new Response(JSON.stringify({ success: true, user: userData }), { headers });
         }
 
@@ -1281,7 +1341,7 @@ ${urls.map(u => `  <url>
                 const masterSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
                 
                 if (requestSessionId && requestSessionId === masterSessionId) {
-                    const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr');
+                    const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
                     if (isSuperEmail || requestUsername === 'alex') {
                         authenticated = true;
                         userPermissions = ['all'];
@@ -1380,7 +1440,7 @@ ${urls.map(u => `  <url>
             }
 
             // Editors Management: only Alex or Super Admins
-            if (path.startsWith('/api/editors') && requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr' && requestUsername !== 'alexflex30@gmail.com') {
+            if (path.startsWith('/api/editors') && requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr' && requestUsername !== 'alexflex30@gmail.com' && requestUsername !== 'alex@dropsiders.fr') {
                 return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur" }), { status: 403, headers });
             }
         }
@@ -1390,7 +1450,7 @@ ${urls.map(u => `  <url>
             const requestSessionId = request.headers.get('X-Session-ID');
             const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
             const masterSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
-            const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr');
+            const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
             
             const isAuthorizedSession = requestSessionId && requestSessionId === masterSessionId && (isSuperEmail || requestUsername === 'alex');
             const isAuthorizedPassword = requestPassword === adminPassword && (isSuperEmail || requestUsername === 'alex');

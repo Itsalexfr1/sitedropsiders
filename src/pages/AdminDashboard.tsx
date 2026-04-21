@@ -2683,7 +2683,7 @@ export function AdminDashboard() {
                     ) : dashboardTab === 'COMMUNAUTÉ' ? (
                         <div className="space-y-16 pb-20">
                             {/* NEW: CENTRALIZED MEMBER LIST */}
-                            <AdminMembersList />
+                            <AdminMembersList onEditPermissions={(email) => navigate(`/admin/editors?email=${encodeURIComponent(email)}`)} />
 
                             {/* CONTESTS SECTION */}
                             <div className="pt-16 border-t border-white/5 space-y-12">

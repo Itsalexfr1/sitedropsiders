@@ -14,7 +14,7 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import { SocialSuite } from '../components/SocialSuite';
 // LARGE JSON DATA IMPORTS REMOVED TO FIX CLOUDFLARE ERROR 10013
-import editorsData from '../data/editors.json';
+// STATIC IMPORT REMOVED: Editors are fetched live from API
 
 import '../styles/article-premium.css';
 
@@ -262,14 +262,36 @@ export function NewsCreate() {
     const [interviewSubtype, setInterviewSubtype] = useState<'written' | 'video'>((searchParams.get('subtype') as 'written' | 'video') || 'written');
     const [interviewTheme, setInterviewTheme] = useState('');
     const interviewThemes = ["Interview", "Fast Quizz", "La Playlist", "Drop & Talk"];
+    const [editorsList, setEditorsList] = useState<any[]>([]);
+
     const [author, setAuthor] = useState(() => {
-        const stored = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
-        const found = (editorsData as any[]).find(e =>
-            e.name.toLowerCase() === stored.toLowerCase() ||
-            e.username.toLowerCase() === stored.toLowerCase()
-        );
-        return found ? found.name : stored;
+        return localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
     });
+    
+    useEffect(() => {
+        fetch('/api/editors', { headers: getAuthHeaders() })
+            .then(res => res.json())
+            .then(data => {
+                const arr = Array.isArray(data) ? data : (data.content || []);
+                setEditorsList(arr);
+                
+                // Si l'auteur actuel est une adresse email, on essaie de le remplacer par son pseudo
+                const currentAuthor = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
+                const found = arr.find((e: any) => 
+                    e.email?.toLowerCase() === currentAuthor.toLowerCase() || 
+                    e.username?.toLowerCase() === currentAuthor.toLowerCase() ||
+                    e.name?.toLowerCase() === currentAuthor.toLowerCase()
+                );
+                
+                if (found && found.username) {
+                    setAuthor(found.username); // Toujours utiliser le pseudo
+                } else if (found && found.name) {
+                    setAuthor(found.name);
+                }
+            })
+            .catch(err => console.error("Could not fetch editors", err));
+    }, []);
+    
     const [artistNameLabel, setArtistNameLabel] = useState('');
     // Push notification options removed
     const [showSocialSuite, setShowSocialSuite] = useState(false);
@@ -1685,7 +1707,7 @@ ${generateSocialsHtml()}
                                     <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full backdrop-blur-md">
                                         <User className="w-3 h-3 text-gray-500" />
                                         <span className="text-[9px] font-black text-white/60 uppercase tracking-widest">
-                                            Éditeur : <span style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author || '').toLowerCase())}>{author}</span>
+                                            Éditeur : <span style={getAuthorTextStyle(((editorsList as any[]).find(e => (e.name === author || e.username === author))?.username || author || '').toLowerCase())}>{author}</span>
                                         </span>
                                         {isAuthorConfirmed ? (
                                             <CheckCircle2 className="w-3 h-3 text-neon-green ml-1" />
@@ -1864,15 +1886,16 @@ ${generateSocialsHtml()}
                             </label>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                                {(editorsData as any[]).map((editor: any) => {
-                                    const editorColor = getEditorColor(editor.username.toLowerCase());
-                                    const isSelected = author === editor.name;
+                                {editorsList.map((editor: any) => {
+                                    const editorDisplay = editor.username || editor.name || editor.email;
+                                    const editorColor = getEditorColor(editorDisplay.toLowerCase());
+                                    const isSelected = author === editorDisplay || author === editor.name || author === editor.username || author === editor.email;
                                     return (
                                         <button
-                                            key={editor.username}
+                                            key={editor.email || editor.username}
                                             type="button"
                                             onClick={() => {
-                                                setAuthor(editor.name);
+                                                setAuthor(editorDisplay);
                                                 setIsAuthorConfirmed(false);
                                             }}
                                             className={`relative group p-4 rounded-3xl border transition-all duration-300 flex flex-col items-center gap-3 active:scale-95 ${isSelected
@@ -1891,7 +1914,7 @@ ${generateSocialsHtml()}
                                             </div>
                                             <div className="text-center">
                                                 <p className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? 'text-white' : 'text-white/30'}`}>
-                                                    {editor.name}
+                                                    {editorDisplay}
                                                 </p>
                                                 <p className="text-[8px] font-bold text-white/20 uppercase tracking-tighter">@{editor.username}</p>
                                             </div>

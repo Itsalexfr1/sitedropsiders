@@ -76,6 +76,13 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
     const handleDiscordLogin = () => {
         setDiscordLoading(true);
         setError('');
+
+        const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            window.location.href = '/auth/discord';
+            return;
+        }
+
         const popup = window.open(
             '/auth/discord',
             'discord-oauth',

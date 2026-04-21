@@ -8,7 +8,7 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import recapsData from '../data/recaps.json';
 import agendaData from '../data/agenda.json';
-import editorsData from '../data/editors.json';
+import { apiFetch } from '../utils/auth';
 
 import '../styles/article-premium.css';
 

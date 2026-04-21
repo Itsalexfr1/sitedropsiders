@@ -22,6 +22,7 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
     const [isAuthLoading, setIsAuthLoading] = useState(false);
     const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
     const [error, setError] = useState<string | null>(null);
+    const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
 
     const googleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
@@ -51,6 +52,14 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
 
     const handleDiscordLogin = () => {
         setDiscordLoading(true);
+
+        const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+            window.location.href = '/auth/discord';
+            return;
+        }
+
         const popup = window.open(
             '/auth/discord',
             'discord-oauth',
@@ -133,7 +142,8 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                 username,
                 email,
                 avatar: finalAvatar || undefined,
-                provider: 'email'
+                provider: 'email',
+                newsletter: authMode === 'register' ? subscribeNewsletter : undefined
             });
             onClose();
         } catch (error) {
@@ -381,6 +391,18 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                                 />
                                             </div>
                                         </div>
+
+                                        {authMode === 'register' && (
+                                            <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/10 transition-colors" onClick={() => setSubscribeNewsletter(!subscribeNewsletter)}>
+                                                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${subscribeNewsletter ? 'bg-neon-red border-neon-red' : 'border-gray-500'}`}>
+                                                    {subscribeNewsletter && <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">M'inscrire à la Newsletter Dropsiders</span>
+                                                    <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-none mt-1">Reçois nos exclusivités par email !</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="pt-2">

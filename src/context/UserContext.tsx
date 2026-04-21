@@ -49,6 +49,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 console.error('Failed to parse user data', e);
             }
         }
+
+        // --- NEW: Mobile Redirect Auth Catch ---
+        const tempUserStr = localStorage.getItem('temp_social_user');
+        if (tempUserStr) {
+            try {
+                const tempUser = JSON.parse(tempUserStr);
+                loginSocial(tempUser);
+                localStorage.removeItem('temp_social_user');
+            } catch(e) {}
+        }
     }, []);
 
     // Sync with backend when email is available
