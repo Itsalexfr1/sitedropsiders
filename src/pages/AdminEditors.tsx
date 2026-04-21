@@ -186,6 +186,7 @@ export function AdminEditors() {
                 })
             });
 
+            if (response.ok) {
                 await fetchEditors();
                 setShowAddModal(false);
                 setNewEditor({ email: '', permissions: [], phone: '' });

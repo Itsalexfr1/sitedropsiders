@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database, Smartphone, Columns, Trophy, Dice5
+    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database, Smartphone, Columns, Trophy, Dice5, UserPlus
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -5616,8 +5616,6 @@ export function AdminDashboard() {
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Accès & Clés</p>
                                         </div>
                                     </button>
-
-
                                      <Link
                                         to="/admin/editors"
                                         onClick={() => setIsTeamModalOpen(false)}
@@ -5631,11 +5629,9 @@ export function AdminDashboard() {
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Gérer les Permissions</p>
                                         </div>
                                      </Link>
-            <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Sécurité</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Accès & Clés</p>
-                                        </div>
-                                    </button>
+
+
+                                    
                                 </div>
                             </motion.div>
                         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -9,7 +9,7 @@ import {
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
     Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Camera, Check, Coins, Shield,
-    Scan, Wand2, Globe, Volume2, VolumeX, Vote, Disc
+    Scan, Wand2, Globe, Volume2, VolumeX, Vote, Disc, Lock
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { UserAuthModal } from '../components/auth/UserAuthModal';
@@ -153,7 +153,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 setActiveQuiz(null);
                 setQuizTimeLeft(null);
             } else {
-                setQuizTimeLeft(prev => prev! - 1);
+                setQuizTimeLeft((prev: any) => prev! - 1);
             }
         }, 1000);
         return () => clearTimeout(timer);
@@ -343,7 +343,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             const streakBonus = Math.min(streak * 50, 1000);
             const totalReward = baseReward + streakBonus;
 
-            setUserDrops(prev => {
+            setUserDrops((prev: any) => {
                 const next = prev + totalReward;
                 localStorage.setItem('user_drops', next.toString());
                 return next;
@@ -357,7 +357,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     useEffect(() => {
         if (activeHeist && activeHeist.timeLeft > 0) {
             const timer = setTimeout(() => {
-                setActiveHeist(prev => prev ? { ...prev, timeLeft: prev.timeLeft - 1 } : null);
+                setActiveHeist((prev: any) => prev ? { ...prev, timeLeft: prev.timeLeft - 1 } : null);
             }, 1000);
             return () => clearTimeout(timer);
         } else if (activeHeist && activeHeist.timeLeft === 0) {
@@ -373,7 +373,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 const myParticipation = activeHeist.participants.find(p => p?.pseudo === myPseudo);
                 if (myParticipation) {
                     const myShare = Math.floor((myParticipation.bet / totalBet) * totalPrize);
-                    setUserDrops(prev => prev + myShare);
+                    setUserDrops((prev: any) => prev + myShare);
                     showNotification(`💰 BRAQUAGE RÉUSSI ! Tu gagnes ${myShare} DROPS !`, 'success');
                 }
 
@@ -408,7 +408,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     useEffect(() => {
         if (activeBoss && activeBoss.hp === 0) {
             showNotification(`🎉 BOSS VAINCU ! +500 DROPS POUR TOUS !`, 'success');
-            setUserDrops(prev => prev + 500);
+            setUserDrops((prev: any) => prev + 500);
             setActiveBoss(null);
         }
     }, [activeBoss]);
@@ -444,7 +444,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     useEffect(() => {
         if (activeSlots && activeSlots.timeLeft > 0) {
             const timer = setTimeout(() => {
-                setActiveSlots(prev => prev ? { ...prev, timeLeft: prev.timeLeft - 1 } : null);
+                setActiveSlots((prev: any) => prev ? { ...prev, timeLeft: prev.timeLeft - 1 } : null);
             }, 1000);
             return () => clearTimeout(timer);
         } else if (activeSlots && activeSlots.timeLeft === 0) {
@@ -453,7 +453,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 const winner = activeSlots.participants[Math.floor(Math.random() * activeSlots.participants.length)];
                 const prize = activeSlots.participants.length * 50 * 2; // Double the pool
                 if (winner === localStorage.getItem('chat_pseudo')) {
-                    setUserDrops(prev => prev + prize);
+                    setUserDrops((prev: any) => prev + prize);
                     showNotification(`🎰 TU AS GAGNÉ LE JACKPOT : +${prize} DROPS !`, 'success');
                 }
                 databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -473,7 +473,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         const timer = setInterval(() => {
             setCurrentTime(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
             if (isConnected) {
-                setTimeOnSite(prev => {
+                setTimeOnSite((prev: any) => {
                     const next = prev + 60;
                     localStorage.setItem('time_on_site', next.toString());
                     return next;
@@ -501,7 +501,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         const today = new Date().toDateString();
         if (lastJackpot !== today) {
             const bonus = 500;
-            setUserDrops(prev => {
+            setUserDrops((prev: any) => {
                 const next = prev + bonus;
                 localStorage.setItem('user_drops', next.toString());
                 return next;
@@ -535,7 +535,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             if (now >= start && now <= end) {
                 if (editStatus !== 'live') {
                     setEditStatus('live');
-                    setSettings(prev => ({ ...prev, status: 'live' }));
+                    setSettings((prev: any) => ({ ...prev, status: 'live' }));
                     setHasAutoTriggered(true);
                     showNotification("🚀 PROGRAMMATION : LE LIVE PASSE EN DIRECT !", 'success');
                 }
@@ -662,7 +662,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 body: JSON.stringify({ artistId: targetId, userId: authUser?.id, type })
             });
             if (res.ok) {
-                setHasVotedToday(prev => new Set([...prev, targetId]));
+                setHasVotedToday((prev: any) => new Set([...prev, targetId]));
                 showNotification(`VOTE ENREGISTRÉ POUR ${label} ! ❤️`, 'success');
                 triggerConfetti();
             }
@@ -671,10 +671,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         }
     };
 
-    const [userDrops, setUserDrops] = useState(() => {
-        const saved = localStorage.getItem('user_drops');
-        return saved ? Number(saved) : 0;
-    });
+    // userDrops state removed here as it is already declared globally in the componentâ€‹
 
     // 🎆 Special Effects Logic
     const triggerConfetti = () => {
@@ -740,7 +737,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         if (!isConnected) return;
         const intervalMs = (settings.dropsInterval || 5) * 60 * 1000;
         const timer = setInterval(() => {
-            setUserDrops(prev => {
+            setUserDrops((prev: any) => {
                 const next = prev + (settings.dropsAmount || 10);
                 localStorage.setItem('user_drops', next.toString());
                 return next;
@@ -790,7 +787,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             setToast({ show: true, message: 'Aucun artiste trouvé à cette date', type: 'error' });
             return;
         }
-        setLineupItems(prev => prev.map(item => 
+        setLineupItems((prev: any) => prev.map((item: any) => 
             item.day === bulkDateFrom ? { ...item, day: bulkDateTo } : item
         ));
         setToast({ show: true, message: `âœ… ${count} artistes déplacés du ${bulkDateFrom} au ${bulkDateTo}`, type: 'success' });
@@ -942,7 +939,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 image: entry.image || ''
             };
         });
-        setLineupItems(prev => [...prev, ...newItems]);
+        setLineupItems((prev: any) => [...prev, ...newItems]);
         showNotification(`âœ… ${newItems.length} artiste(s) importé(s) !`, 'success');
         setBulkText('');
         setBulkPreview([]);
@@ -1142,13 +1139,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             const parts = msgText.replace('[SYSTEM]:REACTION:', '').split(':');
                             const msgId = parts[0];
                             const emoji = parts[1];
-                            setChatMessages(prev => prev.map(m =>
+                            setChatMessages((prev: any) => prev.map((m: any) =>
                                 m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m
                             ));
                         }
                     } else {
-                        setChatMessages(prev => {
-                            if (prev.find(m => m.id === response.payload.$id)) return prev;
+                        setChatMessages((prev: any) => {
+                            if (prev.find((m: any) => m.id === response.payload.$id)) return prev;
                             return [...prev, {
                                 id: response.payload.$id,
                                 pseudo: response.payload.pseudo,
@@ -1173,7 +1170,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     }
 
                     // Update Hype Train
-                    setHypeTrain(prev => {
+                    setHypeTrain((prev: any) => {
                         let boost = 2; // Default per message
                         if (msgText.includes('donné') && msgText.includes('DROPS')) boost = 25; // Donation boost
 
@@ -1250,19 +1247,19 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             triggerFlash(cmd.replace('FLASH:', ''), 'warn');
                         } else if (cmd.startsWith('BOSS_SPAWN')) {
                             setActiveBoss({ hp: 1000, maxHp: 1000, name: 'MEGABOT 3000' });
-                            setTimeout(() => setActiveBoss(prev => {
+                            setTimeout(() => setActiveBoss((prev: any) => {
                                 if (prev && prev.hp > 0) showNotification("LE BOSS S'EST ÉCHAPPÉ ! 🚨", 'error');
                                 return null;
                             }), 60000);
                         } else if (cmd.startsWith('BOSS_HIT:')) {
                             const dmg = parseInt(cmd.replace('BOSS_HIT:', ''));
-                            setActiveBoss(prev => {
+                            setActiveBoss((prev: any) => {
                                 if (!prev) return null;
                                 const nextHp = Math.max(0, prev.hp - dmg);
                                 if (nextHp === 0 && prev.hp > 0) {
                                     showNotification("VICTOIRE ! PLUIE DE DROPS (+500) ! ðŸ†", 'success');
                                     triggerFireworks();
-                                    setUserDrops(d => d + 500);
+                                    setUserDrops((d: number) => d + 500);
                                 }
                                 return { ...prev, hp: nextHp };
                             });
@@ -1282,7 +1279,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             setShowHeistOverlay(true);
                         } else if (cmd.startsWith('HEIST_JOIN:')) {
                             const data = JSON.parse(cmd.replace('HEIST_JOIN:', ''));
-                            setActiveHeist(prev => prev ? { ...prev, participants: [...prev.participants, data] } : null);
+                            setActiveHeist((prev: any) => prev ? { ...prev, participants: [...prev.participants, data] } : null);
                         } else if (cmd.startsWith('TTS:')) {
                             const [v, ...t] = cmd.replace('TTS:', '').split(':');
                             const voice = ['robot', 'monster', 'echo'].includes(v) ? v as any : 'normal';
@@ -1294,10 +1291,10 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             setTimeout(() => setActiveQTE(null), 10000);
                         } else if (cmd.startsWith('REACTION:')) {
                             const [msgId, emoji] = cmd.replace('REACTION:', '').split(':');
-                            setChatMessages(prev => prev.map(m => m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m));
+                            setChatMessages((prev: any) => prev.map((m: any) => m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m));
                         } else if (cmd.startsWith('PURGE:')) {
                             const target = cmd.replace('PURGE:', '');
-                            setChatMessages(prev => prev.filter(m => m.pseudo !== target));
+                            setChatMessages((prev: any) => prev.filter((m: any) => m.pseudo !== target));
                         } else if (cmd.startsWith('TAKEOVER_ALERT:')) {
                             const text = cmd.replace('TAKEOVER_ALERT:', '');
                             setTakeoverAlert({ text, type: 'alert' });
@@ -1311,13 +1308,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             setActiveSlots({ id: Math.random().toString(), participants: [], timeLeft: 60 });
                         } else if (cmd.startsWith('JACKPOT_JOIN:')) {
                             const joiner = cmd.replace('JACKPOT_JOIN:', '');
-                            setActiveSlots(prev => prev ? { ...prev, participants: Array.from(new Set([...prev.participants, joiner])) } : null);
+                            setActiveSlots((prev: any) => prev ? { ...prev, participants: Array.from(new Set([...prev.participants, joiner])) } : null);
                         } else if (cmd.startsWith('CLASH_START:')) {
                             const data = JSON.parse(cmd.replace('CLASH_START:', ''));
                             setClashPoll({ active: true, teamA: data.teamA, teamB: data.teamB, votesA: [], votesB: [] });
                         } else if (cmd.startsWith('CLASH_VOTE:')) {
                             const [team, ps] = cmd.replace('CLASH_VOTE:', '').split(':');
-                            setClashPoll(prev => {
+                            setClashPoll((prev: any) => {
                                 if (!prev) return null;
                                 const next = { ...prev };
                                 if (team === 'A') next.votesA = Array.from(new Set([...next.votesA, ps]));
@@ -1327,12 +1324,12 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                         } else if (cmd.startsWith('TRACKLIST_SET_NEW:')) {
                             try {
                                 const nextSet = JSON.parse(cmd.replace('TRACKLIST_SET_NEW:', ''));
-                                setTracklist(prev => [nextSet, ...prev]);
+                                setTracklist((prev: any) => [nextSet, ...prev]);
                             } catch (e) { }
                         } else if (cmd.startsWith('TRACKLIST_TRACK_NEW:')) {
                             try {
                                 const { setId, track } = JSON.parse(cmd.replace('TRACKLIST_TRACK_NEW:', ''));
-                                setTracklist(prev => prev.map(s => s.id === setId ? { ...s, tracks: [...s.tracks, track] } : s));
+                                setTracklist((prev: any) => prev.map((s: any) => s.id === setId ? { ...s, tracks: [...s.tracks, track] } : s));
                             } catch (e) { }
                         }
                         else if (cmd === 'LEGENDS_WALL') {
@@ -1364,7 +1361,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 }
 
                 if (response.events.includes('databases.*.collections.*.documents.*.delete')) {
-                    setChatMessages(prev => prev.filter(m => m.id !== response.payload.$id));
+                    setChatMessages((prev: any) => prev.filter((m: any) => m.id !== response.payload.$id));
                 }
             }
         );
@@ -1388,7 +1385,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         const interval = setInterval(() => {
             const now = new Date();
             
-            setLineupItems(prev => {
+            setLineupItems((prev: any) => {
                 let shouldUpdate = false;
                 const filtered = prev.filter(item => {
                     if (!item.endTime || !item.day) return true;
@@ -1798,7 +1795,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
     const showNotification = (message: string, type: 'success' | 'error') => {
         setToast({ show: true, message, type });
-        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
+        setTimeout(() => setToast((prev: any) => ({ ...prev, show: false })), 3000);
     };
 
 
@@ -1850,7 +1847,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             const badWords = ['pd', 'fdp', 'salope', 'connard', 'pute', 'enculé', 'merde', 'tg', 'ta gueule', 'hitler', 'nazi'];
             if (badWords.some(w => messageText.toLowerCase().includes(w))) {
                 const warnings = (userWarnings[pseudo] || 0) + 1;
-                setUserWarnings(prev => ({ ...prev, [pseudo]: warnings }));
+                setUserWarnings((prev: any) => ({ ...prev, [pseudo]: warnings }));
 
                 if (warnings >= 3) {
                     handleBanUser(pseudo);
@@ -1910,7 +1907,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             } else if (mainCmd === '!dé') {
                 const res = Math.floor(Math.random() * 20) + 1;
                 if (res === 20) {
-                    setUserDrops(prev => prev + 1000);
+                    setUserDrops((prev: any) => prev + 1000);
                     messageText = `🎲 DÉ DE LA DESTINÉE : CRITIQUE ! @${pseudo} gagne 1000 DROPS !`;
                 } else if (res === 1) {
                     messageText = `🎲 DÉ DE LA DESTINÉE : ÉCHEC CRITIQUE ! @${pseudo} est banni... (nan je rigole)`;
@@ -1944,7 +1941,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     showNotification("Pas assez de Drops ! (3000 requis)", 'error');
                     return;
                 }
-                setUserDrops(prev => prev - 3000);
+                setUserDrops((prev: any) => prev - 3000);
                 localStorage.setItem('user_holo_pseudo', 'true');
                 showNotification("PSEUDO HOLOGRAPHIQUE ACTIVÉ ! âœ¨", 'success');
                 messageText = `âœ¨ @${pseudo} vient de débloquer le PSEUDO HOLOGRAPHIQUE !`;
@@ -1967,7 +1964,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     showNotification("Pas assez de Drops !", 'error');
                     return;
                 }
-                setUserDrops(prev => prev - amount);
+                setUserDrops((prev: any) => prev - amount);
                 messageText = `[SYSTEM]:HEIST_JOIN:${JSON.stringify({ pseudo, bet: amount })}`;
             } else if (mainCmd === '!heist' && isMod) {
                 messageText = `[SYSTEM]:HEIST_START`;
@@ -1977,7 +1974,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             } else if (mainCmd === '!vip' && isMod) {
                 const userVIP = cmdParts[1]?.replace('@', '').trim();
                 if (userVIP) {
-                    setVipsList(prev => [...prev.filter(u => u !== userVIP), userVIP]);
+                    setVipsList((prev: any) => [...prev.filter((u: any) => u !== userVIP), userVIP]);
                     showNotification(`${userVIP} a été promu VIP !`, 'success');
                 }
                 setNewMessage('');
@@ -1985,7 +1982,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             } else if (mainCmd === '!unvip' && isMod) {
                 const userVIP = cmdParts[1]?.replace('@', '').trim();
                 if (userVIP) {
-                    setVipsList(prev => prev.filter(u => u !== userVIP));
+                    setVipsList((prev: any) => prev.filter((u: any) => u !== userVIP));
                     showNotification(`${userVIP} n'est plus VIP.`, 'success');
                 }
                 setNewMessage('');
@@ -2003,17 +2000,17 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 const success = Math.random() > 0.6;
                 const amount = Math.floor(Math.random() * 200) + 50;
                 if (success) {
-                    setUserDrops(prev => prev + amount);
+                    setUserDrops((prev: any) => prev + amount);
                     messageText = `💸 @${pseudo} a volé ${amount} DROPS à @${target} !`;
                 } else {
-                    setUserDrops(prev => Math.max(0, prev - amount));
+                    setUserDrops((prev: any) => Math.max(0, prev - amount));
                     messageText = `âŒ @${pseudo} a été attrapé ! Retrait de ${amount} DROPS.`;
                 }
             } else if (mainCmd === '!dons') {
                 const target = cmdParts[1]?.replace('@', '');
                 const amount = parseInt(cmdParts[2]);
                 if (target && !isNaN(amount) && amount > 0 && userDrops >= amount) {
-                    setUserDrops(prev => prev - amount);
+                    setUserDrops((prev: any) => prev - amount);
                     messageText = `ðŸŽ @${pseudo} a donné ${amount} DROPS à @${target} !`;
                 } else {
                     showNotification("Don invalide ou fonds insuffisants", "error");
@@ -2027,7 +2024,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     const win = (userChoice === 'pierre' && botChoice === 'ciseau') || (userChoice === 'papier' && botChoice === 'pierre') || (userChoice === 'ciseau' && botChoice === 'papier');
                     const draw = userChoice === botChoice;
                     const result = draw ? 'ÉGALITÉ' : win ? 'GAGNÉ (+50 DROPS)' : 'PERDU';
-                    if (win) setUserDrops(prev => prev + 50);
+                    if (win) setUserDrops((prev: any) => prev + 50);
                     messageText = `âœŠ @${pseudo} joue ${userChoice} vs BOT ${botChoice} -> ${result}`;
                 } else {
                     showNotification("Usage: !rps [pierre|papier|ciseau]", "error");
@@ -2066,7 +2063,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 const target = cmdParts[1]?.replace('@', '').trim();
                 const cost = 5000;
                 if (target && userDrops >= cost) {
-                    setUserDrops(prev => prev - cost);
+                    setUserDrops((prev: any) => prev - cost);
                     messageText = `[SYSTEM]:MUTE_USER:${target}`;
                     showNotification(`MUTE ACHETÉ pour @${target} ! (-5000 Drops)`, 'success');
                 } else {
@@ -2083,16 +2080,16 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     showNotification("Pas assez de Drops ! (50 requis)", 'error');
                     return;
                 }
-                setUserDrops(prev => prev - 50);
+                setUserDrops((prev: number) => prev - 50);
                 messageText = `[SYSTEM]:JACKPOT_JOIN:${pseudo}`;
                 showNotification("Ticket de Jackpot acheté ! 🎰", 'success');
             } else if (mainCmd === '!dé') {
                 const roll = Math.floor(Math.random() * 6) + 1;
                 const outcomes = [
-                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et gagne 100 DROPS !`, action: () => setUserDrops(prev => prev + 100) },
-                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et perd 50 DROPS ! ðŸ“‰`, action: () => setUserDrops(prev => Math.max(0, prev - 50)) },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et gagne 100 DROPS !`, action: () => setUserDrops((prev: number) => prev + 100) },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et perd 50 DROPS ! ðŸ“‰`, action: () => setUserDrops((prev: number) => Math.max(0, prev - 50)) },
                     { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et se fait MUTE 10s pour l'audace ! 👮`, action: () => { setIsMuted(true); setMuteTimeLeft(10); } },
-                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et obtient un bonus d'XP ! ðŸ“ˆ`, action: () => setUserXP(prev => prev + 50) },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et obtient un bonus d'XP ! 📈`, action: () => earnPoints(50, 0) },
                     { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et ne gagne absolument rien. Dommage !`, action: () => { } },
                     { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et déclenche des CONFETTIS ! 🥳`, action: () => triggerConfetti() }
                 ];
@@ -2173,11 +2170,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
             if (messageText === activeQuiz.correct) {
                 const reward = 100;
-                setUserDrops(prev => {
-                    const next = prev + reward;
-                    localStorage.setItem('user_drops', next.toString());
-                    return next;
-                });
+                earnPoints(0, reward);
                 showNotification(`BRAVO ! +${reward} DROPS !`, 'success');
             } else {
                 showNotification(`MAUVAISE RÉPONSE ! C'était le nÂ°${activeQuiz.correct}`, 'error');
@@ -2186,14 +2179,19 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
         try {
             if (isHighlightChecked) {
-                setUserDrops(prev => prev - price);
+                setUserDrops((prev: number) => prev - price);
                 localStorage.setItem('user_drops', (userDrops - price).toString());
-                setHypeTrain(prev => ({ ...prev, progress: Math.min(100, prev.progress + 10), active: true }));
+                setHypeTrain((prev: any) => ({ ...prev, progress: Math.min(100, prev.progress + 10), active: true }));
             }
 
             // Award PREMS badge locally (Logic retained for notification, but not sent to DB)
             if (!isPremsAwarded && chatMessages.length === 0) {
                 setIsPremsAwarded(true);
+            }
+
+            // Leveling System
+            if (!isMod) {
+                earnPoints(10, 0);
             }
 
             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -2206,20 +2204,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 isModOnly: isModChat
             });
 
-            // Leveling System
-            if (!isMod) {
-                const xpGain = 10;
-                const nextXP = userXP + xpGain;
-                const nextLevel = Math.floor(Math.sqrt(nextXP / 100)) + 1;
-                setUserXP(nextXP);
-                localStorage.setItem('user_xp', nextXP.toString());
-                if (nextLevel > userLevel) {
-                    setUserLevel(nextLevel);
-                    localStorage.setItem('user_level', nextLevel.toString());
-                    showNotification(`ðŸŒŸ NIVEAU SUPÉRIEUR ! Niveau ${nextLevel} !`, 'success');
-                    unlockAchievement(`Niveau ${nextLevel}`);
-                }
-            }
+
 
             setNewMessage('');
             setIsHighlightChecked(false);
@@ -2342,7 +2327,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
     const handlePurgeTarget = async (target: string) => {
         if (!isMod) return;
-        setChatMessages(prev => prev.filter(m => m.pseudo !== target));
+        setChatMessages((prev: any) => prev.filter((m: any) => m.pseudo !== target));
         try {
             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                 pseudo: "BOT_SYSTEM",
@@ -2487,7 +2472,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             onChange={(e) => {
                                                 const sId = e.target.value;
                                                 const idx = settings.streams!.findIndex((s: any) => s.id === sId);
-                                                setSettings(prev => ({ ...prev, activeStreamId: sId }));
+                                                setSettings((prev: any) => ({ ...prev, activeStreamId: sId }));
                                                 setActiveStage(`stage${idx + 1}` as any);
                                             }}
                                             className="bg-transparent px-3 py-1.5 text-[8px] font-black uppercase text-neon-cyan outline-none appearance-none cursor-pointer hover:text-white transition-all text-center pr-6"
@@ -2570,7 +2555,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         <button
                                             key={s.id}
                                             onClick={() => {
-                                                setSettings(prev => ({ ...prev, activeStreamId: s.id }));
+                                                setSettings((prev: any) => ({ ...prev, activeStreamId: s.id }));
                                                 setActiveStage(`stage${idx + 1}` as any);
                                             }}
                                             className={`relative px-3 py-2 lg:px-5 lg:py-3 text-[7px] lg:text-[10px] font-black uppercase flex items-center gap-1.5 shrink-0 border-b-2 transition-colors duration-150 ${isActive ? 'text-white border-neon-red' : 'text-gray-500 border-transparent hover:text-gray-300 hover:border-white/20'}`}
@@ -2789,10 +2774,10 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                     <button
                                                         onClick={() => {
                                                             if (vipsList.includes(viewer)) {
-                                                                setVipsList(prev => prev.filter(u => u !== viewer));
+                                                                setVipsList((prev: any) => prev.filter((u: any) => u !== viewer));
                                                                 showNotification(`${viewer} n'est plus VIP`, 'success');
                                                             } else {
-                                                                setVipsList(prev => [...prev, viewer]);
+                                                                setVipsList((prev: any) => [...prev, viewer]);
                                                                 showNotification(`${viewer} promu VIP`, 'success');
                                                             }
                                                         }}
@@ -3080,7 +3065,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             onClick={() => setActiveChatTab(tab === 'SHOP' ? 'shop' : tab === 'DROPS' ? 'drops' : tab.toLowerCase())}
                                             className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'SHOP' ? 'shop' : tab === 'DROPS' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                         >
-                                            {tab === 'SHOP' ? 'SHOP OFFICIEL' : tab === 'DROPS' ? 'BOUTIQUE DROPS' : tab}
+                                            {tab === 'SHOP' ? 'SHOP' : tab === 'DROPS' ? 'BOUTIQUE DROPS' : tab}
                                         </button>
                                     ))}
                                 </div>
@@ -3146,7 +3131,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             setQteActive(false);
                                             showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
                                             triggerConfetti();
-                                            setUserDrops(prev => prev + 500);
+                                            setUserDrops((prev: number) => prev + 500);
                                             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                                                 pseudo: "BOT_SYSTEM",
                                                 message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
@@ -3232,7 +3217,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             setQteActive(false);
                                             showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
                                             triggerConfetti();
-                                            setUserDrops(prev => prev + 500);
+                                            setUserDrops((prev: number) => prev + 500);
                                             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                                                 pseudo: "BOT_SYSTEM",
                                                 message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
@@ -3348,7 +3333,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                 key={star}
                                                 onClick={async () => {
                                                     if (!activeLiveItem) return;
-                                                    setSetRatings(prev => ({ ...prev, [activeLiveItem.artist]: star }));
+                                                    setSetRatings((prev: any) => ({ ...prev, [activeLiveItem.artist]: star }));
                                                     setShowRatingPrompt(false);
                                                     showNotification(`VOTE ENREGISTRÉ : ${star}/5 ⭐`, 'success');
 
@@ -3442,7 +3427,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             )}
                         </AnimatePresence>
 
-                        {activeChatTab === 'chat' ? (
+                        <AnimatePresence mode="wait">
+                            {activeChatTab === 'chat' ? (
                                 <motion.div key="chat-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
                                     {pinnedMessage && (
                                         <div className="p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl relative overflow-hidden group">
@@ -3589,7 +3575,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    setChatMessages(prev => prev.map(m => m.id === msg.id ? { ...m, translated: `[Traduction simulée]: ${m.message}` } : m));
+                                                                    setChatMessages((prev: any) => prev.map((m: any) => m.id === msg.id ? { ...m, translated: `[Traduction simulée]: ${m.message}` } : m));
                                                                 }}
                                                                 title="Traduire"
                                                                 className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"
@@ -3674,7 +3660,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                         <button 
                                                             onClick={() => {
                                                                 if (!isCurrent) {
-                                                                    setExpandedSets(prev => prev.includes(set.id) ? prev.filter(id => id !== set.id) : [...prev, set.id]);
+                                                                    setExpandedSets((prev: any) => prev.includes(set.id) ? prev.filter((id: any) => id !== set.id) : [...prev, set.id]);
                                                                 }
                                                             }}
                                                             className="w-full p-4 flex items-center justify-between bg-white/[0.02] cursor-pointer"
@@ -3816,7 +3802,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             ) : activeChatTab === 'shop' ? (
                                 <motion.div key="shop-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto space-y-6 py-6 px-4 custom-scrollbar">
                                     <div className="text-center mb-8">
-                                        <ShoppingBag className="w-12 h-12 text-neon-cyan mx-auto mb-4" />
+                                        <div className="text-4xl font-display font-black text-neon-cyan mx-auto mb-4 italic tracking-tighter">SHOP</div>
                                         <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop Officiel Dropsiders</h3>
                                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Merchandising & Accessoires</p>
                                     </div>
@@ -3925,7 +3911,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                             showNotification(`Pas assez de DROPS (${lot.price} requis)`, 'error');
                                                             return;
                                                         }
-                                                        setUserDrops(prev => {
+                                                        setUserDrops((prev: number) => {
                                                             const next = prev - lot.price;
                                                             localStorage.setItem('user_drops', next.toString());
                                                             return next;
@@ -3966,9 +3952,10 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     </div>
                                 </motion.div>
                             ) : null}
-                        </AnimatePresence>
-                    </div>
+                            </AnimatePresence>
 
+
+                        </div>
                     {
                         isConnected && activeChatTab === 'chat' && (
                             <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
@@ -4242,10 +4229,10 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         const reward = activeQTE?.reward || 0;
                                         const isVipReward = Math.random() > 0.8;
                                         if (isVipReward) {
-                                            setVipsList(prev => [...prev, localStorage.getItem('chat_pseudo') || '']);
+                                            setVipsList((prev: any) => [...prev, localStorage.getItem('chat_pseudo') || '']);
                                             showNotification(`âš¡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! ðŸ‘€`, 'success');
                                         } else {
-                                            setUserDrops(prev => prev + reward);
+                                            setUserDrops((prev: number) => prev + reward);
                                             showNotification(`âš¡ FAST CLICK ! +${reward} DROPS ! âš¡`, 'success');
                                         }
                                         setActiveQTE(null);
@@ -4451,7 +4438,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                             setEditFestivalLogo(croppedImage);
                             setEditingLineupId(null);
                         } else if (bulkCropIndex !== null) {
-                            setBulkPreview(prev => prev.map((item, i) => i === bulkCropIndex ? { ...item, image: croppedImage } : item));
+                            setBulkPreview((prev: any) => prev.map((item: any, i: number) => i === bulkCropIndex ? { ...item, image: croppedImage } : item));
                             setBulkCropIndex(null);
                         } else {
                             setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', image: croppedImage });
@@ -4572,7 +4559,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                             <h4 className="text-xs font-black text-white uppercase italic">{activeLiveItem.artist}</h4>
                                         </div>
                                     </div>
-                                    <button onClick={() => setHasVotedToday(prev => new Set(Array.from(prev).concat([activeLiveItem.wikiId || activeLiveItem.id])))} className="text-gray-500 hover:text-white transition-colors">
+                                    <button onClick={() => setHasVotedToday((prev: Set<string>) => new Set<string>(Array.from(prev).concat([activeLiveItem.wikiId || activeLiveItem.id])))} className="text-gray-500 hover:text-white transition-colors">
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
