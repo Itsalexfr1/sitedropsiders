@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Shield, Trophy, Music, Calendar, Zap, Headphones, PlayCircle, Download, Camera, Info, ExternalLink, MessageSquare, Star } from 'lucide-react';
-import { getEventColor } from '../utils/colors';
+// Removed broken import: import { getEventColor } from '../utils/colors';
 
 export function PublicProfile() {
     const { username } = useParams<{ username: string }>();

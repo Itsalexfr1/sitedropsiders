@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Star, MessageSquare, Plus, CheckCircle2, Send, User, Camera } from 'lucide-react';
 import wikiFestivals from '../../data/wiki_festivals.json';
 
