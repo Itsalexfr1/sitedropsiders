@@ -389,43 +389,54 @@
 
 
 /* --- INTERVIEW QUESTIONS & RESPONSES --- */
+/* --- INTERVIEW QUESTIONS & RESPONSES --- */
+.article-body-premium .interview-qa-block {
+    margin: 4rem 0;
+    padding: 0;
+}
+
 .article-body-premium .interview-q {
     display: block;
-    font-family: var(--font-display, 'Orbitron', monospace);
-    font-weight: 900;
-    font-size: 1.1rem;
+    font-family: var(--font-display, 'Orbitron', sans-serif);
+    font-weight: 800;
+    font-size: 1.05rem;
     text-transform: uppercase !important;
     color: #ffffff !important;
-    text-align: center;
-    margin: 3.5rem auto 1.5rem;
-    letter-spacing: 0.05em;
-    line-height: 1.4;
+    text-align: left;
+    letter-spacing: 0.03em;
+    line-height: 1.6;
+    max-width: 900px;
 }
 
-/* Préfixe générique (DROPSIDERS) — couleur thème */
-.article-body-premium .interview-q .q-prefix {
-    color: var(--theme-color, #ff0033) !important;
-    margin-right: 0.4rem;
-    font-weight: 900;
-}
-
-/* DROPSIDERS: préfixe en ROUGE, texte de la question en blanc */
+/* Question DROPSIDERS */
 .article-body-premium .interview-q.dropsiders-q {
+    margin-bottom: 1.2rem;
     color: #ffffff !important;
+    border-left: 3px solid #ff1241;
+    padding-left: 1.5rem;
 }
+
 .article-body-premium .interview-q.dropsiders-q .q-prefix {
     color: #ff1241 !important;
     -webkit-text-fill-color: #ff1241 !important;
-    text-shadow: 0 0 15px rgba(255, 18, 65, 0.4);
+    text-shadow: 0 0 15px rgba(255, 18, 65, 0.3);
+    margin-right: 0.5rem;
 }
 
-/* ARTISTE: le préfixe garde la couleur inline (via style attr),
-   la réponse est TOUJOURS blanche */
+/* Réponse ARTISTE */
 .article-body-premium .interview-q.artiste-q {
-    color: #ffffff !important;
+    margin-left: 2rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.9) !important;
 }
 
-/* La réponse de l'artiste : blanc forcé, écrase toute couleur inline */
+.article-body-premium .interview-q.artiste-q .artiste-prefix {
+    font-weight: 900;
+    margin-right: 0.5rem;
+    font-family: var(--font-display, 'Orbitron', sans-serif);
+}
+
 .article-body-premium .interview-q.artiste-q .artiste-response {
     color: #ffffff !important;
     -webkit-text-fill-color: #ffffff !important;
