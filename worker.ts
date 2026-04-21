@@ -1479,7 +1479,7 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/admin/send-otp' && request.method === 'POST') {
             try {
-                const { email, phone, method } = await request.json();
+                const { email } = await request.json();
                 if (!email) {
                     return new Response(JSON.stringify({ error: 'Email required' }), { status: 400, headers });
                 }
@@ -1497,95 +1497,43 @@ ${urls.map(u => `  <url>
                 }
                 await env.CHAT_KV.put(kvKey, otp, { expirationTtl: 300 });
 
-                // --- METHOD: EMAIL ---
-                if (method === 'email') {
-                    const BREVO_KEY = env.BREVO_API_KEY;
-                    if (!BREVO_KEY) {
-                        console.error("Brevo API Key missing. Simulation mode.");
-                        return new Response(JSON.stringify({ success: true, warning: 'Brevo missing, simulated' }), { status: 200, headers });
-                    }
+                // --- SEND VIA EMAIL (BREVO) ---
+                const BREVO_KEY = env.BREVO_API_KEY;
+                if (!BREVO_KEY) {
+                    // Fallback to simulation/backdoor if key is missing
+                    console.error("Brevo API Key missing. Simulated OTP: ", otp);
+                    return new Response(JSON.stringify({ success: true, warning: 'Email service missing, using backdoor' }), { status: 200, headers });
+                }
 
-                    const payload = {
-                        sender: { name: 'Dropsiders Security', email: 'security@dropsiders.fr' },
-                        to: [{ email: email.toLowerCase().trim() }],
-                        subject: `Votre code d'accès Admin : ${otp}`,
-                        htmlContent: `
-                            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #1a1a1a; background-color: #0d0d0d; color: #ffffff; border-radius: 20px;">
-                                <div style="text-align: center; margin-bottom: 30px;">
-                                    <h1 style="color: #ff1241; font-style: italic; text-transform: uppercase;">DROPSIDERS</h1>
-                                </div>
-                                <h2 style="text-align: center; font-size: 24px; text-transform: uppercase; letter-spacing: 2px;">Code de Vérification</h2>
-                                <p style="text-align: center; color: #888; font-size: 14px;">Utilisez le code suivant pour accéder à votre espace administrateur :</p>
-                                <div style="background-color: #1a1a1a; border: 2px solid #ff1241; padding: 20px; text-align: center; margin: 30px 0; border-radius: 15px;">
-                                    <span style="font-size: 40px; font-weight: bold; letter-spacing: 12px; color: #ff1241;">${otp}</span>
-                                </div>
-                                <p style="text-align: center; color: #555; font-size: 11px; margin-top: 40px;">Ce code est valable pendant 5 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.</p>
+                const payload = {
+                    sender: { name: 'Dropsiders Security', email: 'security@dropsiders.fr' },
+                    to: [{ email: email.toLowerCase().trim() }],
+                    subject: `Votre code d'accès Admin : ${otp}`,
+                    htmlContent: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #1a1a1a; background-color: #0d0d0d; color: #ffffff; border-radius: 20px;">
+                            <div style="text-align: center; margin-bottom: 30px;">
+                                <h1 style="color: #ff1241; font-style: italic; text-transform: uppercase;">DROPSIDERS</h1>
                             </div>
-                        `
-                    };
+                            <h2 style="text-align: center; font-size: 24px; text-transform: uppercase; letter-spacing: 2px;">Code de Vérification</h2>
+                            <p style="text-align: center; color: #888; font-size: 14px;">Utilisez le code suivant pour accéder à votre espace administrateur :</p>
+                            <div style="background-color: #1a1a1a; border: 2px solid #ff1241; padding: 20px; text-align: center; margin: 30px 0; border-radius: 15px;">
+                                <span style="font-size: 40px; font-weight: bold; letter-spacing: 12px; color: #ff1241;">${otp}</span>
+                            </div>
+                            <p style="text-align: center; color: #555; font-size: 11px; margin-top: 40px;">Ce code est valable pendant 5 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.</p>
+                        </div>
+                    `
+                };
 
-                    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
-                        method: 'POST',
-                        headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!brevoRes.ok) {
-                        const errText = await brevoRes.text();
-                        console.error('Brevo API Error (OTP):', errText);
-                        return new Response(JSON.stringify({ error: 'Brevo error ' + errText }), { status: 500, headers });
-                    }
-
-                    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-                }
-
-                // --- METHOD: SMS (Twilio) ---
-                if (!phone) {
-                    return new Response(JSON.stringify({ error: 'Phone required for SMS method' }), { status: 400, headers });
-                }
-
-                const accountSid = env.TWILIO_ACCOUNT_SID;
-                const authToken = env.TWILIO_AUTH_TOKEN;
-                const fromPhone = env.TWILIO_PHONE_NUMBER;
-
-                if (!accountSid || !authToken || !fromPhone) {
-                   console.error("Twilio disabled/missing env. Will simulate OTP:", otp);
-                   return new Response(JSON.stringify({ success: true, warning: 'Twilio missing, simulated' }), { status: 200, headers });
-                }
-
-                let targetPhone = phone.replace(/\s/g, '').trim();
-                // Auto-fix for French numbers
-                if (targetPhone.startsWith('0') && targetPhone.length === 10) {
-                    targetPhone = '+33' + targetPhone.substring(1);
-                }
-
-                const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-                const params = new URLSearchParams();
-                params.append('To', targetPhone);
-                params.append('From', fromPhone);
-                params.append('Body', `Votre code d'accès Dropsiders Admin est : ${otp}`);
-
-                const authHeader = 'Basic ' + btoa(`${accountSid}:${authToken}`);
-
-                const twilioRes = await fetch(url, {
+                const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
                     method: 'POST',
-                    headers: {
-                        'Authorization': authHeader,
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: params
+                    headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
-                if (!twilioRes.ok) {
-                    const errText = await twilioRes.text();
-                    console.error('Twilio Error:', errText);
-                    
-                    const isSuper = (email.toLowerCase().trim() === 'alexflex30@gmail.com' || email.toLowerCase().trim() === 'contact@dropsiders.fr');
-                    if (isSuper) {
-                         return new Response(JSON.stringify({ success: true, warning: 'Twilio error, using backdoor mode' }), { status: 200, headers });
-                    }
-                    
-                    return new Response(JSON.stringify({ error: 'Twilio error' }), { status: 500, headers });
+                if (!brevoRes.ok) {
+                    const errText = await brevoRes.text();
+                    console.error('Brevo API Error:', errText);
+                    return new Response(JSON.stringify({ error: "Erreur d'envoi mail" }), { status: 500, headers });
                 }
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
