@@ -551,27 +551,47 @@ export function NewsCreate() {
             if (sections.length > 0) {
                 sections.forEach(section => {
                     if (section.classList.contains('interview-qa-block')) {
-                        // Parse new div-based structure
+                        // 1. Try NEW div-based structure first
                         const dropsidersDiv = section.querySelector('.dropsiders-q');
                         const artisteDiv = section.querySelector('.artiste-q');
                         const artisteResponse = section.querySelector('.artiste-response');
                         const artistePrefixEl = section.querySelector('.artiste-prefix');
 
-                        // Extract question text: full text of dropsiders-q minus the prefix span
                         let questionText = '';
-                        if (dropsidersDiv) {
-                            const prefixEl = dropsidersDiv.querySelector('.q-prefix');
-                            if (prefixEl) prefixEl.remove();
-                            questionText = dropsidersDiv.textContent?.trim() || '';
+                        let answerText = '';
+                        let artistName = section.getAttribute('data-artist-name') || '';
+                        let artistColor = section.getAttribute('data-artist-color') || '#ff1241';
+
+                        if (dropsidersDiv || artisteDiv) {
+                            if (dropsidersDiv) {
+                                // Clone to avoid modifying the actual document during parse
+                                const clone = dropsidersDiv.cloneNode(true) as HTMLElement;
+                                const prefixEl = clone.querySelector('.q-prefix');
+                                if (prefixEl) prefixEl.remove();
+                                questionText = clone.textContent?.trim() || '';
+                            }
+                            if (artisteResponse) {
+                                answerText = artisteResponse.textContent?.trim() || '';
+                            } else if (artisteDiv) {
+                                const clone = artisteDiv.cloneNode(true) as HTMLElement;
+                                const prefixEl = clone.querySelector('.q-prefix');
+                                if (prefixEl) prefixEl.remove();
+                                answerText = clone.textContent?.trim() || '';
+                            }
+                            
+                            if (!artistName) {
+                                artistName = artistePrefixEl?.textContent?.replace(/\s*:\s*$/, '').trim() || '';
+                            }
+                        } else {
+                            // 2. FALLBACK: Legacy strong/span parser for older articles
+                            const html = section.innerHTML.trim();
+                            const qaMatches = Array.from(html.matchAll(/(?:<strong[^>]*|<span[^>]*class=["']interview-q["'][^>]*)>(.*?)<\/(?:strong|span)>\s*(.*?)(?:<\/p|<\/div|$)/gi));
+                            if (qaMatches.length >= 2) {
+                                questionText = qaMatches[0][2].replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                answerText = qaMatches[1][2].replace(/<\/?[^>]+(>|$)/g, "").trim();
+                                artistName = qaMatches[1][1].replace(/[:]/g, '').trim();
+                            }
                         }
-
-                        // Extract answer text from artiste-response span
-                        const answerText = artisteResponse?.textContent?.trim() || '';
-
-                        // Get artist name from data-attr or prefix span
-                        const artistName = section.getAttribute('data-artist-name') ||
-                            artistePrefixEl?.textContent?.replace(/\s*:\s*$/, '').trim() || '';
-                        const artistColor = section.getAttribute('data-artist-color') || '#ff1241';
 
                         if (questionText || answerText) {
                             foundQuestions.push({
