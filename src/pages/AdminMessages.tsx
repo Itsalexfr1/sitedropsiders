@@ -65,8 +65,23 @@ export function AdminMessages() {
             if (res.ok) {
                 const data = await res.json();
                 // Standardize parsing across admin pages (robust handling of array vs object responses)
-                const editorArr = Array.isArray(data) ? data : (data.editors || data.content || []);
-                setEditors(editorArr);
+                let arr = Array.isArray(data) ? data : (data.editors || data.content || []);
+                
+                // Ensure array contains valid objects
+                if (!Array.isArray(arr)) arr = [];
+                
+                // Filter out any potential invalid data
+                arr = arr.filter((e: any) => e && typeof e === 'object');
+
+                // Standardized: Ensure 'Alex' is in the list for the super admin
+                const currentAdmin = (localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex').toLowerCase();
+                const hasAlex = arr.some((e: any) => (e.username || e.name || '').toLowerCase() === 'alex');
+                
+                if (!hasAlex && (currentAdmin === 'alex' || currentAdmin.includes('alexflex30'))) {
+                    arr = [{ email: 'alexflex30@gmail.com', username: 'Alex', name: 'Alex' }, ...arr];
+                }
+
+                setEditors(arr);
             }
         } catch(e) {
             console.error("Error fetching editors:", e);
@@ -1027,14 +1042,16 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 <User className="w-3 h-3" /> Signé par : <span className="text-neon-red">*</span>
                                             </span>
                                             <div className="flex flex-wrap gap-2">
-                                                {editors.map((editor: any) => {
-                                                    const editorColor = getEditorColor(editor.username.toLowerCase());
-                                                    const isSelected = signatureName === editor.name;
+                                                {editors.filter((e: any) => e && (e.username || e.name)).map((editor: any) => {
+                                                    const uname = editor.username || editor.name || 'Admin';
+                                                    const displayName = editor.name || editor.username || 'Admin';
+                                                    const editorColor = getEditorColor(uname.toLowerCase());
+                                                    const isSelected = signatureName === displayName;
                                                     return (
                                                         <button
-                                                            key={editor.username}
+                                                            key={uname}
                                                             type="button"
-                                                            onClick={() => setSignatureName(editor.name)}
+                                                            onClick={() => setSignatureName(displayName)}
                                                             className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${isSelected
                                                                 ? 'text-black shadow-lg'
                                                                 : 'bg-black/40 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
