@@ -174,7 +174,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const numDays = schedule.length;
         
         // Dynamic sizing
-        let dayHeight = viewMode === 'timetable' ? 110 : 210; // Plus serré en mode heure
+        let dayHeight = viewMode === 'timetable' ? 110 : 260; // Augmenté à 260 pour éviter les chevauchements
         let dateFontSize = 65; 
         let eventFontSize = 40; // Passé à 40
         let eventSpacing = 70;
@@ -272,15 +272,32 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 // Planning format: Separate lines for Day and Night with Locations
                 const renderEvent = (artist: string, location: string, icon: string, yOffset: number) => {
                     if (!artist) return;
-                    ctx.textAlign = 'center';
-                    ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(icon + artist.toUpperCase(), width / 2, eventBaseY + yOffset);
                     
+                    const artistText = (icon + artist).toUpperCase();
+                    const locText = location ? ` @ ${location.toUpperCase()}` : '';
+                    
+                    ctx.textAlign = 'center';
+                    
+                    // Calculate total width to center both
+                    ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
+                    const artistWidth = ctx.measureText(artistText).width;
+                    ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
+                    const locWidth = ctx.measureText(locText).width;
+                    
+                    const totalW = artistWidth + locWidth;
+                    let startX = (width - totalW) / 2;
+                    
+                    // Draw Artist
+                    ctx.textAlign = 'left';
+                    ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(artistText, startX, eventBaseY + yOffset);
+                    
+                    // Draw Location
                     if (location) {
                         ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                        ctx.fillText(location.toUpperCase(), width / 2, eventBaseY + yOffset + (eventFontSize * 0.9));
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                        ctx.fillText(locText, startX + artistWidth, eventBaseY + yOffset);
                     }
                 };
 
@@ -547,15 +564,15 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                         {viewMode === 'planning' ? (
                                                             <div className="space-y-2">
                                                                 {day.dayArtist && (
-                                                                    <div className="flex flex-col items-center">
+                                                                    <div className="flex items-center justify-center gap-2">
                                                                         <div className="text-[12px] text-white font-bold uppercase tracking-wide">☀️ {day.dayArtist}</div>
-                                                                        {day.dayLocation && <div className="text-[9px] text-white/40 italic uppercase">{day.dayLocation}</div>}
+                                                                        {day.dayLocation && <div className="text-[9px] text-white/40 italic uppercase">@ {day.dayLocation}</div>}
                                                                     </div>
                                                                 )}
                                                                 {day.nightArtist && (
-                                                                    <div className="flex flex-col items-center">
+                                                                    <div className="flex items-center justify-center gap-2">
                                                                         <div className="text-[12px] text-white font-bold uppercase tracking-wide">🌒 {day.nightArtist}</div>
-                                                                        {day.nightLocation && <div className="text-[9px] text-white/40 italic uppercase">{day.nightLocation}</div>}
+                                                                        {day.nightLocation && <div className="text-[9px] text-white/40 italic uppercase">@ {day.nightLocation}</div>}
                                                                     </div>
                                                                 )}
                                                             </div>
