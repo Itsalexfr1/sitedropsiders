@@ -708,6 +708,7 @@ ${urls.map(u => `  <url>
             const expectedSignature = 'sha256=' + Array.from(new Uint8Array(sigBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
             if (signature !== expectedSignature) {
+                console.error('[TWITCH WEBHOOK] Invalid signature');
                 return new Response('Invalid signature', { status: 403 });
             }
 
@@ -715,8 +716,11 @@ ${urls.map(u => `  <url>
 
             // Handle Verification Challenge
             if (data.challenge) {
+                console.log('[TWITCH WEBHOOK] Responding to challenge:', data.challenge);
                 return new Response(data.challenge, { status: 200 });
             }
+
+            console.log('[TWITCH WEBHOOK] Received event:', data.subscription.type);
 
             // Handle Chat Message
             if (data.subscription.type === 'channel.chat.message') {
@@ -764,10 +768,13 @@ ${urls.map(u => `  <url>
             }
 
             // Get User ID
+            let USER_TOKEN = env.TWITCH_BOT_TOKEN;
+            if (USER_TOKEN && USER_TOKEN.startsWith('oauth:')) USER_TOKEN = USER_TOKEN.replace('oauth:', '');
+
             const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
                 headers: {
                     'Client-ID': env.TWITCH_CLIENT_ID,
-                    'Authorization': `Bearer ${await getTwitchToken(env)}`
+                    'Authorization': `Bearer ${USER_TOKEN || await getTwitchToken(env)}`
                 }
             });
             const userData = await userRes.json();
@@ -779,7 +786,7 @@ ${urls.map(u => `  <url>
                 method: 'POST',
                 headers: {
                     'Client-ID': env.TWITCH_CLIENT_ID,
-                    'Authorization': `Bearer ${await getTwitchToken(env)}`,
+                    'Authorization': `Bearer ${USER_TOKEN}`, // MUST BE USER TOKEN for Chat Message scope
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
