@@ -173,11 +173,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const availableHeight = height - startY - footerHeight;
         const numDays = schedule.length;
         
-        // Base sizes
-        let dateFontSize = 60; 
-        let eventFontSize = 38;
-        let eventSpacing = 60;
-        let eventNightSpacing = 110;
+        // Base sizes - Booseted for better readability
+        let dateFontSize = 75; 
+        let eventFontSize = 50;
+        let eventSpacing = 75;
+        let eventNightSpacing = 135;
         
         // Dynamic scaling based on number of days to fit perfectly
         let dayHeight = availableHeight / numDays;
@@ -207,11 +207,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 ctx.fillStyle = '#ff1241';
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = 'rgba(255, 18, 65, 0.5)';
-                ctx.fillText(day.date.toUpperCase(), width / 2, y + (dayHeight * 0.1));
+                ctx.fillText(day.date.toUpperCase(), width / 2, y + (dayHeight * 0.05));
                 ctx.shadowBlur = 0;
             }
 
-            const eventBaseY = viewMode === 'planning' ? y + (dayHeight * 0.1) : y - (dateFontSize * 0.2);
+            const eventBaseY = viewMode === 'planning' ? y + (dayHeight * 0.1) : y - (dateFontSize * 0.1);
             const iconDay = viewMode === 'planning' ? '☀️ ' : '';
             const iconNight = viewMode === 'planning' ? '🌒 ' : '';
 
