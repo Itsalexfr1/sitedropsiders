@@ -209,12 +209,72 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             const iconNight = viewMode === 'planning' ? '🌒 ' : '';
 
             if (viewMode === 'timetable') {
-                // Combined format: HEURE - ARTISTE - STAGE
-                const parts = [day.dayEvent, day.nightEvent, day.stage].filter(Boolean);
-                if (parts.length > 0) {
-                    ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
+                // Combined format: HEURE (Red) - ARTISTE (Orbitron) - STAGE (Montserrat)
+                const hourText = (day.dayEvent || '').toUpperCase();
+                const artistText = (day.nightEvent || '').toUpperCase();
+                const stageText = (day.stage || '').toUpperCase();
+                
+                const separator = ' - ';
+                ctx.textAlign = 'center';
+                
+                // We'll calculate the total width to center it properly
+                ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
+                const sepWidth = ctx.measureText(separator).width;
+                
+                ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
+                const hourWidth = hourText ? ctx.measureText(hourText).width : 0;
+                
+                ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
+                const artistWidth = artistText ? ctx.measureText(artistText).width : 0;
+                
+                ctx.font = `500 ${eventFontSize * 0.8}px "Montserrat", sans-serif`;
+                const stageWidth = stageText ? ctx.measureText(stageText).width : 0;
+
+                const totalWidth = hourWidth + (hourText && artistText ? sepWidth : 0) + artistWidth + (artistText && stageText ? sepWidth : 0) + stageWidth;
+                let currentX = (width - totalWidth) / 2;
+
+                // 1. Draw Hour
+                if (hourText) {
+                    ctx.textAlign = 'left';
+                    ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = '#ff1241'; // ROUGE
+                    ctx.fillText(hourText, currentX, eventBaseY + eventSpacing);
+                    currentX += hourWidth;
+                }
+
+                // 2. Draw Sep 1
+                if (hourText && artistText) {
+                    ctx.textAlign = 'left';
+                    ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(parts.join(' - ').toUpperCase(), width / 2, eventBaseY + eventSpacing);
+                    ctx.fillText(separator, currentX, eventBaseY + eventSpacing);
+                    currentX += sepWidth;
+                }
+
+                // 3. Draw Artist
+                if (artistText) {
+                    ctx.textAlign = 'left';
+                    ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(artistText, currentX, eventBaseY + eventSpacing);
+                    currentX += artistWidth;
+                }
+
+                // 4. Draw Sep 2
+                if (artistText && stageText) {
+                    ctx.textAlign = 'left';
+                    ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(separator, currentX, eventBaseY + eventSpacing);
+                    currentX += sepWidth;
+                }
+
+                // 5. Draw Stage
+                if (stageText) {
+                    ctx.textAlign = 'left';
+                    ctx.font = `500 ${eventFontSize * 0.8}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                    ctx.fillText(stageText, currentX, eventBaseY + eventSpacing);
                 }
             } else {
                 // Planning format: Separate lines
@@ -493,8 +553,12 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                                 {day.stage && <div className="text-[9px] text-white/40 italic uppercase">{day.stage}</div>}
                                                             </>
                                                         ) : (
-                                                            <div className="text-[11px] text-gray-300 font-bold uppercase tracking-wide">
-                                                                {[day.dayEvent, day.nightEvent, day.stage].filter(Boolean).join(' - ')}
+                                                            <div className="flex items-center justify-center gap-1 text-[11px] font-bold uppercase tracking-wide">
+                                                                {day.dayEvent && <span className="text-neon-red italic">{day.dayEvent}</span>}
+                                                                {day.dayEvent && day.nightEvent && <span className="text-white/20">-</span>}
+                                                                {day.nightEvent && <span className="font-display text-white">{day.nightEvent}</span>}
+                                                                {day.nightEvent && day.stage && <span className="text-white/20">-</span>}
+                                                                {day.stage && <span className="text-[9px] text-white/40 font-normal">{day.stage}</span>}
                                                             </div>
                                                         )}
                                                     </div>
