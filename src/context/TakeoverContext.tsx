@@ -157,7 +157,6 @@ interface TakeoverContextType {
     // Handlers
     handleGlobalSave: (data?: TakeoverSettings) => Promise<void>;
     triggerConfetti: () => void;
-    showNotification: (msg: string, type: 'success' | 'error' | 'info') => void;
 }
 
 export const TakeoverContext = createContext<TakeoverContextType | undefined>(undefined);
