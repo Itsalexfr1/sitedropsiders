@@ -139,6 +139,62 @@ async function sendTwitchMessage(env, channelName, message) {
     }
 }
 
+// --- TWITCH BOT MULTIFUNCTION HELPERS ---
+async function twitchBotRequest(env, method, endpoint, body = null) {
+    const CLIENT_ID = env.TWITCH_CLIENT_ID;
+    let TOKEN = env.TWITCH_BOT_TOKEN;
+    if (TOKEN && TOKEN.startsWith('oauth:')) TOKEN = TOKEN.replace('oauth:', '');
+    const hdrs: any = { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` };
+    if (body) hdrs['Content-Type'] = 'application/json';
+    const res = await fetch(`https://api.twitch.tv/helix/${endpoint}`, { method, headers: hdrs, body: body ? JSON.stringify(body) : undefined });
+    const isJson = res.headers.get('content-type')?.includes('application/json');
+    return { ok: res.ok, status: res.status, data: isJson ? await res.json() : null };
+}
+async function getBotId(env) {
+    const CLIENT_ID = env.TWITCH_CLIENT_ID;
+    let TOKEN = env.TWITCH_BOT_TOKEN;
+    if (TOKEN && TOKEN.startsWith('oauth:')) TOKEN = TOKEN.replace('oauth:', '');
+    const res = await fetch('https://api.twitch.tv/helix/users', { headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` } });
+    const d = await res.json();
+    return d.data?.[0] || null;
+}
+async function getTwitchUserId(env, login) {
+    const CLIENT_ID = env.TWITCH_CLIENT_ID;
+    let TOKEN = env.TWITCH_BOT_TOKEN;
+    if (TOKEN && TOKEN.startsWith('oauth:')) TOKEN = TOKEN.replace('oauth:', '');
+    const res = await fetch(`https://api.twitch.tv/helix/users?login=${login}`, { headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` } });
+    const d = await res.json();
+    return d.data?.[0] || null;
+}
+async function createTwitchClip(env, broadcasterId) { return twitchBotRequest(env, 'POST', `clips?broadcaster_id=${broadcasterId}`, null); }
+async function addTwitchVip(env, broadcasterId, userId) { return twitchBotRequest(env, 'POST', `channels/vips?broadcaster_id=${broadcasterId}&user_id=${userId}`, null); }
+async function removeTwitchVip(env, broadcasterId, userId) { return twitchBotRequest(env, 'DELETE', `channels/vips?broadcaster_id=${broadcasterId}&user_id=${userId}`, null); }
+async function addTwitchModerator(env, broadcasterId, userId) { return twitchBotRequest(env, 'POST', `moderation/moderators?broadcaster_id=${broadcasterId}&user_id=${userId}`, null); }
+async function timeoutTwitchUser(env, broadcasterId, userId, durationSeconds = 600, reason = '') {
+    const bot = await getBotId(env);
+    if (!bot) return { ok: false };
+    return twitchBotRequest(env, 'POST', `moderation/bans?broadcaster_id=${broadcasterId}&moderator_id=${bot.id}`, { data: { user_id: userId, duration: durationSeconds, reason } });
+}
+async function getTwitchGameId(env, gameName) {
+    const CLIENT_ID = env.TWITCH_CLIENT_ID;
+    let TOKEN = env.TWITCH_BOT_TOKEN;
+    if (TOKEN && TOKEN.startsWith('oauth:')) TOKEN = TOKEN.replace('oauth:', '');
+    const res = await fetch(`https://api.twitch.tv/helix/games?name=${encodeURIComponent(gameName)}`, { headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` } });
+    const d = await res.json();
+    return d.data?.[0]?.id || null;
+}
+async function updateTwitchStream(env, broadcasterId, opts) {
+    const body: any = {};
+    if (opts.title) body.title = opts.title;
+    if (opts.game_id) body.game_id = opts.game_id;
+    return twitchBotRequest(env, 'PATCH', `channels?broadcaster_id=${broadcasterId}`, body);
+}
+async function setChatSettings(env, broadcasterId, settings) {
+    const bot = await getBotId(env);
+    if (!bot) return { ok: false };
+    return twitchBotRequest(env, 'PATCH', `chat/settings?broadcaster_id=${broadcasterId}&moderator_id=${bot.id}`, settings);
+}
+
 const SETTINGS_PATH = 'src/data/settings.json';
 const NEWS_PATH = 'src/data/news.json';
 const RECAPS_PATH = 'src/data/recaps.json';
@@ -758,6 +814,7 @@ ${urls.map(u => `  <url>
                         await sendTwitchMessage(env, broadcasterLogin, `@${sender} ${match.response}`);
                     } else {
                         // Built-in commands
+                        const isMod = data.event.chatter_is_broadcaster || data.event.source_broadcaster_user_id === broadcasterId;
                         switch (cmd) {
                             case '!site':
                                 await sendTwitchMessage(env, broadcasterLogin, `@${sender} 🌐 Retrouve tout le contenu Dropsiders sur https://dropsiders.eu`);
@@ -771,9 +828,76 @@ ${urls.map(u => `  <url>
                             case '!discord':
                                 await sendTwitchMessage(env, broadcasterLogin, `@${sender} 🎮 Rejoins notre Discord : https://discord.gg/dropsiders`);
                                 break;
+                            case '!clip':
+                                const clipRes = await createTwitchClip(env, broadcasterId);
+                                if (clipRes.ok) {
+                                    const clipUrl = `https://clips.twitch.tv/${clipRes.data?.data?.[0]?.id || ''}`;
+                                    await sendTwitchMessage(env, broadcasterLogin, `🎬 Clip créé ! ${clipUrl}`);
+                                } else {
+                                    await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Impossible de créer le clip.`);
+                                }
+                                break;
+                            case '!vip': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const target = args[0]?.replace('@', '');
+                                if (!target) { await sendTwitchMessage(env, broadcasterLogin, `Usage : !vip @pseudo`); break; }
+                                const tUser = await getTwitchUserId(env, target);
+                                if (tUser) { await addTwitchVip(env, broadcasterId, tUser.id); await sendTwitchMessage(env, broadcasterLogin, `✅ @${target} est maintenant VIP !`); }
+                                break;
+                            }
+                            case '!unvip': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const target = args[0]?.replace('@', '');
+                                const tUser = await getTwitchUserId(env, target);
+                                if (tUser) { await removeTwitchVip(env, broadcasterId, tUser.id); await sendTwitchMessage(env, broadcasterLogin, `✅ @${target} n'est plus VIP.`); }
+                                break;
+                            }
+                            case '!mod': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const target = args[0]?.replace('@', '');
+                                const tUser = await getTwitchUserId(env, target);
+                                if (tUser) { await addTwitchModerator(env, broadcasterId, tUser.id); await sendTwitchMessage(env, broadcasterLogin, `✅ @${target} est maintenant modérateur !`); }
+                                break;
+                            }
+                            case '!timeout': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const target = args[0]?.replace('@', '');
+                                const duration = parseInt(args[1]) || 600;
+                                const tUser = await getTwitchUserId(env, target);
+                                if (tUser) { await timeoutTwitchUser(env, broadcasterId, tUser.id, duration); await sendTwitchMessage(env, broadcasterLogin, `✅ @${target} timeout ${duration}s.`); }
+                                break;
+                            }
+                            case '!jeu': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const gameName = args.join(' ');
+                                const gameId = await getTwitchGameId(env, gameName);
+                                if (gameId) { await updateTwitchStream(env, broadcasterId, { game_id: gameId }); await sendTwitchMessage(env, broadcasterLogin, `✅ Jeu mis à jour : ${gameName}`); }
+                                else { await sendTwitchMessage(env, broadcasterLogin, `❌ Jeu introuvable : ${gameName}`); }
+                                break;
+                            }
+                            case '!titre': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const title = args.join(' ');
+                                await updateTwitchStream(env, broadcasterId, { title });
+                                await sendTwitchMessage(env, broadcasterLogin, `✅ Titre mis à jour : ${title}`);
+                                break;
+                            }
+                            case '!lent': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const delay = parseInt(args[0]) || 30;
+                                await setChatSettings(env, broadcasterId, { slow_mode: true, slow_mode_wait_time: delay });
+                                await sendTwitchMessage(env, broadcasterLogin, `✅ Mode lent activé (${delay}s).`);
+                                break;
+                            }
+                            case '!emotesonly': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                await setChatSettings(env, broadcasterId, { emote_mode: true });
+                                await sendTwitchMessage(env, broadcasterLogin, `✅ Mode émotes uniquement activé.`);
+                                break;
+                            }
                             case '!commandes':
                                 const customCmds = commands.map((c: any) => c.command).join(', ');
-                                await sendTwitchMessage(env, broadcasterLogin, `📋 Commandes dispo : !site, !insta, !drops, !discord${customCmds ? ', ' + customCmds : ''}`);
+                                await sendTwitchMessage(env, broadcasterLogin, `📋 Commandes : !site !insta !drops !discord !clip !vip !mod !timeout !jeu !titre !lent !emotesonly${customCmds ? ' ' + customCmds : ''}`);
                                 break;
                         }
                     }
