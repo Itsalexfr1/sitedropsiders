@@ -8,7 +8,7 @@ import { LanguageProvider } from './context/LanguageContext'
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "762584383630-nc4f3eaqnvnkus7lk793n2n22qjdpdv3.apps.googleusercontent.com";
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "160350942941-s68rjkhbs57l04jool8lbj1a0qdcblge.apps.googleusercontent.com";
 
 import { ThemeProvider } from './context/ThemeContext'
 
