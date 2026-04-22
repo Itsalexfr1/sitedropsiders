@@ -3184,12 +3184,20 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 <span className="text-[10px] font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
                             </button>
                              <div className="flex items-center gap-2">
-                                <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">Bulle</span>
-                                <input type="color" title="Couleur de bulle" value={accentColor} onChange={(e) => { setAccentColor(e.target.value); localStorage.setItem('chat_accent_color', e.target.value); }} className="w-5 h-5 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent" />
-                             </div>
-                             <div className="flex items-center gap-2">
-                                <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">Pseudo</span>
-                                <input type="color" title="Couleur du pseudo" value={pseudoColor} onChange={(e) => { setPseudoColor(e.target.value); localStorage.setItem('user_pseudo_color', e.target.value); }} className="w-5 h-5 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent" />
+                                <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">Ma Couleur</span>
+                                <input 
+                                    type="color" 
+                                    title="Choisir ma couleur" 
+                                    value={pseudoColor} 
+                                    onChange={(e) => { 
+                                        const color = e.target.value;
+                                        setPseudoColor(color); 
+                                        setAccentColor(color);
+                                        localStorage.setItem('user_pseudo_color', color); 
+                                        localStorage.setItem('chat_accent_color', color);
+                                    }} 
+                                    className="w-5 h-5 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent" 
+                                />
                              </div>
                             {isMod && (
                                 <button onClick={() => setIsModChat(!isModChat)} className={`px-2 py-1 rounded-md text-[8px] font-black uppercase flex items-center gap-1.5 transition-all ${isModChat ? 'bg-amber-500 text-black' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
