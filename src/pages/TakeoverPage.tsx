@@ -34,6 +34,8 @@ export const TakeoverPage = (props: any) => {
     );
 };
 
+const twitchAvatarCache: Record<string, string> = {};
+
 const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const navigate = useNavigate();
     const takeover = useTakeover();
@@ -1399,19 +1401,35 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             if (self) return;
             
             const msgId = `twitch-${tags.id || Date.now()}`;
+            const pseudo = tags['display-name'] || tags.username;
+            
+            // Background avatar fetch
+            if (!twitchAvatarCache[pseudo] && pseudo) {
+                twitchAvatarCache[pseudo] = 'loading';
+                fetch(`https://decapi.me/twitch/avatar/${pseudo}`)
+                    .then(r => r.text())
+                    .then(url => {
+                        if (url && url.startsWith('http')) {
+                            twitchAvatarCache[pseudo] = url;
+                            setChatMessages((prev: any) => prev.map((m: any) => m.pseudo === pseudo ? { ...m, avatar: url } : m));
+                        }
+                    }).catch(() => { twitchAvatarCache[pseudo] = ''; });
+            }
+
             setChatMessages((prev: any) => {
                 if (prev.find((m: any) => m.id === msgId)) return prev;
                 
                 // Cap messages to avoid lag
                 const next = [...prev, {
                     id: msgId,
-                    pseudo: tags['display-name'] || tags.username,
+                    pseudo: pseudo,
                     message: message,
                     color: tags.color || '#9146FF',
                     time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                     country: 'TWITCH',
                     isTwitch: true,
-                    profileBorder: 'solid 2px #9146FF'
+                    profileBorder: 'solid 2px #9146FF',
+                    avatar: twitchAvatarCache[pseudo] !== 'loading' ? twitchAvatarCache[pseudo] : undefined
                 }];
                 return next.slice(-100); 
             });
@@ -3080,9 +3098,17 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                         >
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple" />
                             <div className="flex flex-col items-center gap-4 text-center">
-                                <div className={`w-20 h-20 rounded-3xl border-2 flex items-center justify-center bg-white/5 relative overflow-hidden`} style={{ borderColor: selectedProfile.color || '#fff' }}>
-                                    <FlagIcon location={selectedProfile.country} className="absolute inset-0 w-full h-full opacity-30 object-cover" />
-                                    <span className="text-3xl font-black text-white relative z-10">{selectedProfile.pseudo[0]}</span>
+                                <div className={`w-20 h-20 rounded-3xl border-2 flex items-center justify-center bg-white/5 relative overflow-hidden shrink-0`} style={{ borderColor: selectedProfile.color || '#fff' }}>
+                                    {selectedProfile.avatar ? (
+                                        <img src={selectedProfile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : selectedProfile.isTwitch ? (
+                                        <svg className="w-10 h-10 fill-[#9146FF]" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
+                                    ) : (
+                                        <>
+                                            <FlagIcon location={selectedProfile.country} className="absolute inset-0 w-full h-full opacity-30 object-cover" />
+                                            <span className="text-3xl font-black text-white relative z-10">{selectedProfile.pseudo[0]}</span>
+                                        </>
+                                    )}
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">{selectedProfile.pseudo}</h3>
@@ -3157,12 +3183,19 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 <Users className="w-4 h-4 text-neon-cyan" />
                                 <span className="text-[10px] font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
                             </button>
+                             <div className="flex items-center gap-2">
+                                <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">Bulle</span>
+                                <input type="color" title="Couleur de bulle" value={accentColor} onChange={(e) => { setAccentColor(e.target.value); localStorage.setItem('chat_accent_color', e.target.value); }} className="w-5 h-5 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent" />
+                             </div>
+                             <div className="flex items-center gap-2">
+                                <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">Pseudo</span>
+                                <input type="color" title="Couleur du pseudo" value={pseudoColor} onChange={(e) => { setPseudoColor(e.target.value); localStorage.setItem('user_pseudo_color', e.target.value); }} className="w-5 h-5 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent" />
+                             </div>
                             {isMod && (
                                 <button onClick={() => setIsModChat(!isModChat)} className={`px-2 py-1 rounded-md text-[8px] font-black uppercase flex items-center gap-1.5 transition-all ${isModChat ? 'bg-amber-500 text-black' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
                                     <ShieldCheck className="w-3 h-3" /> CANAL MODOS
                                 </button>
                             )}
-                            <input type="color" value={accentColor} onChange={(e) => { setAccentColor(e.target.value); localStorage.setItem('chat_accent_color', e.target.value); }} className="w-6 h-6 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent" />
                         </div>
                     </div>
 
@@ -3578,7 +3611,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                     }}
                                                     onMouseEnter={() => setHoveredMessageId(msg.id)}
                                                     onMouseLeave={() => setHoveredMessageId(null)}
-                                                    onDoubleClick={() => setSelectedProfile({ pseudo: msg.pseudo, country: msg.country, color: msg.color })}
+                                                    onDoubleClick={() => setSelectedProfile({ pseudo: msg.pseudo, country: msg.country, color: msg.color, avatar: msg.avatar, isTwitch: msg.isTwitch })}
+                                                    onClick={() => setSelectedProfile({ pseudo: msg.pseudo, country: msg.country, color: msg.color, avatar: msg.avatar, isTwitch: msg.isTwitch })}
                                                     className={`group flex flex-col gap-0.5 relative px-2 py-0.5 lg:p-3 rounded-xl transition-all duration-300 cursor-pointer ${clashPoll?.active
                                                         ? (clashPoll.votesA.includes(msg.pseudo) ? 'mr-12 border-l-2 border-red-500' : clashPoll.votesB.includes(msg.pseudo) ? 'ml-12 border-r-2 border-blue-500 text-right items-end' : 'hover:bg-white/[0.02]')
                                                         : (msg.pseudo === localStorage.getItem('chat_pseudo') ? 'bg-white/5 ml-4 lg:ml-8' : 'hover:bg-white/[0.02]')
@@ -3616,12 +3650,11 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 {(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? <FlagIcon location="FR" className="w-3 h-2" /> : (msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />)}
-                                                                {(msg.geo || userCity) && (
-                                                                    <span className="text-[7px] font-black text-gray-500 bg-white/5 px-1 rounded flex items-center gap-0.5">
-                                                                        <MapPin className="w-2 h-2" /> {msg.geo || userCity}
+                                                                {msg.country && msg.country !== 'TWITCH' && (
+                                                                    <span className="text-[7px] font-black text-gray-500 bg-white/5 px-1 rounded flex items-center gap-0.5 uppercase tracking-widest">
+                                                                        <MapPin className="w-2 h-2" /> {countries.find(c => c.code === msg.country)?.name || msg.country}
                                                                     </span>
                                                                 )}
-                                                                <span className="text-[9px] font-black text-neon-cyan/60 shrink-0 uppercase tracking-tighter mr-1 text-xs">[Lvl {Math.floor(Math.sqrt((msg.xp || 0) / 100)) + 1}]</span>
                                                                 <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.isHolo ? 'holo-pseudo' : (msg.xp > 5000 ? 'bg-gradient-to-r from-red-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent animate-gradient' : msg.color || 'text-white')}`}>{msg.pseudo || msg.user}</span>
                                                                 {msg.isPrems && (
                                                                     <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-neon-red text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(255,0,51,0.5)] animate-pulse flex items-center gap-1">
