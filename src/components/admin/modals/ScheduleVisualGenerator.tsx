@@ -147,7 +147,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 const baseWidth = festivalLogo ? 350 : 300;
                 const logoW = baseWidth * logoScale;
                 const logoH = (logo.height / logo.width) * logoW;
-                ctx.drawImage(logo, width / 2 - logoW / 2, 80, logoW, logoH); // Remonté (was 120)
+                ctx.drawImage(logo, width / 2 - logoW / 2, 60, logoW, logoH); // Encore plus haut (was 80)
                 logoHeightOffset = logoH + 20;
             }
         }
@@ -403,7 +403,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         <div className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-[8px] font-black text-neon-cyan uppercase tracking-widest">Story 9:16</div>
                                     </div>
 
-                                    <div className="aspect-[9/16] w-full max-w-[320px] mx-auto bg-black rounded-[2.5rem] border-[10px] border-gray-800 shadow-2xl relative overflow-hidden flex flex-col p-6 text-white scale-[0.85] origin-top">
+                                    <div className="aspect-[9/16] w-full max-w-[320px] mx-auto bg-black rounded-[2.5rem] border-[10px] border-gray-800 shadow-2xl relative overflow-hidden flex flex-col p-6 text-white scale-[0.75] origin-top">
                                         {/* Fake Story Background */}
                                         {backgroundImage || backgroundVideo ? (
                                             <div className="absolute inset-0">
