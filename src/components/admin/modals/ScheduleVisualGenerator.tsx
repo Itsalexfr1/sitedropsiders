@@ -147,7 +147,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 const baseWidth = festivalLogo ? 350 : 300;
                 const logoW = baseWidth * logoScale;
                 const logoH = (logo.height / logo.width) * logoW;
-                ctx.drawImage(logo, width / 2 - logoW / 2, 60, logoW, logoH); // Encore plus haut (was 80)
+                ctx.drawImage(logo, width / 2 - logoW / 2, 40, logoW, logoH); // Encore plus haut (was 60)
                 logoHeightOffset = logoH + 20;
             }
         }
