@@ -322,16 +322,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 renderEvent(day.dayArtist, day.dayLocation, iconDay, eventSpacing);
                 renderEvent(day.nightArtist, day.nightLocation, iconNight, day.dayArtist ? eventNightSpacing : eventSpacing);
             }
-
-            // Divider - exactly between entries
-            if (index < numDays - 1) {
-                ctx.beginPath();
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-                ctx.lineWidth = 2;
-                ctx.moveTo(width * 0.15, y + dayHeight);
-                ctx.lineTo(width * 0.85, y + dayHeight);
-                ctx.stroke();
-            }
         });
 
         // 5. Footer
