@@ -22,6 +22,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
     const [backgroundVideo, setBackgroundVideo] = useState<string | null>(null);
     const [logoScale, setLogoScale] = useState(1.0);
+    const [showDates, setShowDates] = useState(true);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const bgInputRef = useRef<HTMLInputElement>(null);
@@ -192,26 +193,30 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             const y = startY + index * dayHeight;
             
             // Date Header
-            ctx.textAlign = 'center';
-            ctx.font = `900 italic ${dateFontSize}px "Orbitron", sans-serif`;
-            ctx.fillStyle = '#ff1241';
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = 'rgba(255, 18, 65, 0.5)';
-            ctx.fillText(day.date.toUpperCase(), width / 2, y);
-            ctx.shadowBlur = 0;
+            if (showDates && day.date) {
+                ctx.textAlign = 'center';
+                ctx.font = `900 italic ${dateFontSize}px "Orbitron", sans-serif`;
+                ctx.fillStyle = '#ff1241';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = 'rgba(255, 18, 65, 0.5)';
+                ctx.fillText(day.date.toUpperCase(), width / 2, y);
+                ctx.shadowBlur = 0;
+            }
+
+            const eventBaseY = showDates ? y : y - (dateFontSize * 0.5);
 
             // Day Event
             if (day.dayEvent) {
                 ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText('☀️ ' + day.dayEvent.toUpperCase(), width / 2, y + eventSpacing);
+                ctx.fillText('☀️ ' + day.dayEvent.toUpperCase(), width / 2, eventBaseY + eventSpacing);
             }
 
             // Night Event
             if (day.nightEvent) {
                 ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText('🌒 ' + day.nightEvent.toUpperCase(), width / 2, y + (day.dayEvent ? eventNightSpacing : eventSpacing));
+                ctx.fillText('🌒 ' + day.nightEvent.toUpperCase(), width / 2, eventBaseY + (day.dayEvent ? eventNightSpacing : eventSpacing));
             }
 
             // Divider
@@ -283,6 +288,12 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-black uppercase transition-all ${showWebsite ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
                                             >
                                                 <Smartphone className={`w-4 h-4 ${showWebsite ? 'text-neon-cyan' : ''}`} /> Site: {showWebsite ? 'OUI' : 'NON'}
+                                            </button>
+                                            <button 
+                                                onClick={() => setShowDates(!showDates)}
+                                                className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-black uppercase transition-all ${showDates ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
+                                            >
+                                                <Calendar className={`w-4 h-4 ${showDates ? 'text-neon-cyan' : ''}`} /> Dates: {showDates ? 'OUI' : 'NON'}
                                             </button>
                                             <button onClick={addDay} disabled={schedule.length >= 8} className="flex items-center gap-2 px-4 py-2 bg-neon-cyan text-black text-[10px] font-black uppercase rounded-xl hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100">
                                                 <Plus className="w-4 h-4" /> Ajouter ({schedule.length}/8)
@@ -448,7 +459,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                             <div className={`space-y-4 text-center ${!showLogo ? 'mt-6' : ''}`}>
                                                 {schedule.map(day => (
                                                     <div key={day.id} className="space-y-1">
-                                                        <div className="text-[15px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>
+                                                        {showDates && <div className="text-[15px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>}
                                                         {day.dayEvent && <div className="text-[12px] text-gray-300 font-bold uppercase tracking-wide">☀️ {day.dayEvent}</div>}
                                                         {day.nightEvent && <div className="text-[12px] text-gray-300 font-bold uppercase tracking-wide">🌒 {day.nightEvent}</div>}
                                                     </div>
