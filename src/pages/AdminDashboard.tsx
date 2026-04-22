@@ -12764,8 +12764,8 @@ export function AdminDashboard() {
                                       ctx.measureText(
                                         artItem.name.toUpperCase(),
                                       ).width >
-                                        W - (padX * 2 + 180) &&
-                                      fs > 50
+                                        W - (padX * 2 + 250) &&
+                                      fs > 40
                                     ) {
                                       fs -= 4;
                                       ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
@@ -12781,10 +12781,10 @@ export function AdminDashboard() {
                                     ctx.restore();
 
                                     // Rank badge
-                                    const bp = 16,
+                                    const bp = isStory ? 45 : 35,
                                       bh = nameBarH - bp * 2,
                                       bw = bh * 1.1,
-                                      bx = W - padX - bw - 8,
+                                      bx = W - padX - bw - 4,
                                       by = bp;
                                     ctx.save();
                                     ctx.fillStyle = mainColor;
@@ -13028,14 +13028,13 @@ export function AdminDashboard() {
                           </div>
                         </div>
                       )}
-                    
-                      </>
-                    );
-                  })()}
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
+                    </>
+                  )
+                })()}
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
 
           {/* MODAL RANDOMIZER (fixed nesting) */}
