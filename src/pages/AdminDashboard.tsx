@@ -6956,6 +6956,9 @@ export function AdminDashboard() {
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
                           Focus Semaine
                         </p>
+                      </div>
+                    </Link>
+
                     <button
                       onClick={() => {
                         setIsInterviewGeneratorOpen(true);
@@ -13025,8 +13028,6 @@ export function AdminDashboard() {
                           </div>
                         </div>
                       )}
-                    </div>
-
                     
                       </>
                     );
