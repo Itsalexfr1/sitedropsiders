@@ -173,7 +173,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const numDays = schedule.length;
         
         // Dynamic sizing
-        let dayHeight = 210; // Encore un peu plus d'espace
+        let dayHeight = viewMode === 'timetable' ? 110 : 210; // Plus serré en mode heure
         let dateFontSize = 65; 
         let eventFontSize = 40; // Passé à 40
         let eventSpacing = 70;
@@ -542,7 +542,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 </div>
                                             )}
 
-                                            <div className={`space-y-4 text-center ${!showLogo ? 'mt-6' : ''}`}>
+                                            <div className={`${viewMode === 'timetable' ? 'space-y-1' : 'space-y-4'} text-center ${!showLogo ? 'mt-6' : ''}`}>
                                                 {schedule.map(day => (
                                                     <div key={day.id} className="space-y-1">
                                                         {viewMode === 'planning' && <div className="text-[15px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>}
