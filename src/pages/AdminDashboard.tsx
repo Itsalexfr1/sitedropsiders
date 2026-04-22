@@ -103,6 +103,7 @@ import { InterviewRandomizer } from "../components/admin/InterviewRandomizer";
 import { ScheduleVisualGenerator } from "../components/admin/modals/ScheduleVisualGenerator";
 import { LiveInteractivityModal } from "../components/admin/modals/LiveInteractivityModal";
 import { AdminLoginScreen } from "../components/admin/AdminLoginScreen";
+import { InterviewVisualGenerator } from "./InterviewVisualGenerator";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -197,6 +198,7 @@ export function AdminDashboard() {
   const [isTeamManagementModalOpen, setIsTeamManagementModalOpen] =
     useState(false);
   const [isQuizzConcoursModalOpen, setIsQuizzConcoursModalOpen] = useState(false);
+  const [isInterviewVisualsModalOpen, setIsInterviewVisualsModalOpen] = useState(false);
 
   const [isLoadingSocial, setIsLoadingSocial] = useState(false);
   const [bannerState, setBannerState] = useState({
@@ -6999,7 +7001,7 @@ export function AdminDashboard() {
 
                     <button
                       onClick={() => {
-                        navigate("/interview-visuals");
+                        setIsInterviewVisualsModalOpen(true);
                         setIsContenuModalOpen(false);
                       }}
                       className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
@@ -10782,6 +10784,10 @@ export function AdminDashboard() {
               setSelectedSocialArticle({ title: text, image: img });
               setIsPubliModalOpen(false);
             }}
+          />
+          <InterviewVisualGenerator
+            isOpen={isInterviewVisualsModalOpen}
+            onClose={() => setIsInterviewVisualsModalOpen(false)}
           />
           <ModerationModal
             isOpen={isModerationModalOpen}

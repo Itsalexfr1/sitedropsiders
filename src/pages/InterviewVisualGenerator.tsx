@@ -19,11 +19,18 @@ const FORMATS = {
 /* ─────────────────────────────────────────
    Main Component
 ───────────────────────────────────────── */
-export function InterviewVisualGenerator() {
+interface InterviewVisualGeneratorProps {
+    isOpen?: boolean;
+    onClose?: () => void;
+}
+
+export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGeneratorProps) {
     const navigate = useNavigate();
     const adminUser = localStorage.getItem('admin_user');
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
     const isAuthorized = storedPermissions.includes('all') || storedPermissions.includes('social') || isSuperAdmin(adminUser);
+
+    const isModal = isOpen !== undefined;
 
     // Form state
     const [artistName, setArtistName]     = useState('');
@@ -491,10 +498,10 @@ export function InterviewVisualGenerator() {
         );
     }
 
-    const fmt = FORMATS[activeFormat];
+    if (isModal && !isOpen) return null;
 
-    return (
-        <div className="min-h-screen bg-[#050505] text-white">
+    const content = (
+        <div className={`${isModal ? 'relative w-full max-w-7xl mx-auto bg-[#050505] rounded-[3rem] overflow-hidden shadow-2xl border border-white/10 flex flex-col' : 'min-h-screen bg-[#050505] text-white'}`} style={isModal ? { maxHeight: '92vh' } : {}}>
             <canvas ref={canvasRef} className="hidden" />
 
             {/* Cropper Modal */}
@@ -549,28 +556,30 @@ export function InterviewVisualGenerator() {
             </AnimatePresence>
 
             {/* Nav */}
-            <div className="flex fixed top-4 right-4 lg:top-8 lg:right-8 z-[210] items-center gap-6">
+            <div className={`${isModal ? 'absolute' : 'fixed'} top-4 right-4 lg:top-8 lg:right-8 z-[210] items-center gap-6 flex`}>
                 <button
-                    onClick={() => navigate('/admin')}
+                    onClick={() => isModal ? onClose?.() : navigate('/admin')}
                     className="p-3 lg:p-4 bg-white/10 hover:bg-neon-red/20 text-white rounded-2xl border border-white/20 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(255,0,51,0.1)]"
                 >
-                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    TABLEAU ADMIN
+                    {isModal ? <X className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />}
+                    {isModal ? 'FERMER' : 'TABLEAU ADMIN'}
                 </button>
             </div>
             
-            <div className="flex fixed top-4 left-4 lg:top-8 lg:left-8 z-[210] items-center gap-6">
-                <button
-                    onClick={() => navigate('/')}
-                    className="p-3 lg:p-4 bg-black/60 lg:bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/20 lg:border-white/10 backdrop-blur-3xl lg:backdrop-blur-md transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(0,0,0,0.5)] lg:shadow-none"
-                >
-                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    RETOUR AU SITE
-                </button>
-            </div>
+            {!isModal && (
+                <div className="flex fixed top-4 left-4 lg:top-8 lg:left-8 z-[210] items-center gap-6">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="p-3 lg:p-4 bg-black/60 lg:bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/20 lg:border-white/10 backdrop-blur-3xl lg:backdrop-blur-md transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(0,0,0,0.5)] lg:shadow-none"
+                    >
+                        <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        RETOUR AU SITE
+                    </button>
+                </div>
+            )}
 
 
-            <div className="max-w-7xl mx-auto px-4 py-20 lg:py-16">
+            <div className={`${isModal ? 'flex-1 overflow-y-auto custom-scrollbar p-6 lg:p-12' : 'max-w-7xl mx-auto px-4 py-20 lg:py-16'}`}>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 text-center">
                     <div className="inline-flex items-center gap-3 px-5 py-2 bg-neon-red/10 border border-neon-red/20 rounded-full mb-6">
                         <Image className="w-4 h-4 text-neon-red" />
@@ -582,6 +591,7 @@ export function InterviewVisualGenerator() {
                 </motion.div>
 
                 <div className="grid lg:grid-cols-[400px_1fr] gap-8">
+                    {/* (existing content remains here, I am just changing the parent div classes) */}
                     {/* ─── LEFT : CONTROLS ─── */}
                     <div className="space-y-6">
                         {/* Creation Type */}
@@ -961,4 +971,32 @@ export function InterviewVisualGenerator() {
             </div>
         </div>
     );
+
+    if (isModal) {
+        return (
+            <AnimatePresence>
+                {isOpen && (
+                    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 md:p-8">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={onClose}
+                            className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="relative w-full h-full flex flex-col"
+                        >
+                            {content}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        );
+    }
+
+    return content;
 }
