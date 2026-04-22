@@ -104,6 +104,8 @@ import { ScheduleVisualGenerator } from "../components/admin/modals/ScheduleVisu
 import { LiveInteractivityModal } from "../components/admin/modals/LiveInteractivityModal";
 import { AdminLoginScreen } from "../components/admin/AdminLoginScreen";
 
+const MEDALS = ["🥇", "🥈", "🥉"];
+
 export function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");
@@ -655,6 +657,16 @@ export function AdminDashboard() {
   );
   const [wikiSortMode, setWikiSortMode] = useState<"alpha" | "votes">("alpha");
   const [isTop100GeneratorModalOpen, setIsTop100GeneratorModalOpen] = useState(false);
+  const top100Data = useMemo(() => {
+    const tab = wikiFilter.toLowerCase();
+    const all = tab === "djs" ? wikiDjs : tab === "clubs" ? wikiClubs : wikiFestivals;
+    return {
+      tab,
+      all,
+      ranked: isWikiExpanded ? all : all.slice(0, 5),
+    };
+  }, [wikiFilter, wikiDjs, wikiClubs, wikiFestivals, isWikiExpanded]);
+
   const [isEditWikiModalOpen, setIsEditWikiModalOpen] = useState(false);
   const [isNewWikiModalOpen, setIsNewWikiModalOpen] = useState(false);
   const [newWikiEntry, setNewWikiEntry] = useState<any>({
@@ -12105,13 +12117,7 @@ export function AdminDashboard() {
                      <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Générateur Top 100</h2>
                      <button onClick={() => setIsTop100GeneratorModalOpen(false)} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all"><X className="w-6 h-6" /></button>
                   </div>
-                  {(() => {
-                    const wikiTab = wikiFilter.toLowerCase();
-                    const allRanked = wikiTab === 'djs' ? wikiDjs : wikiTab === 'clubs' ? wikiClubs : wikiFestivals;
-                    const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
-                    const medals = ['🥇', '🥈', '🥉'];
-                    return (
-                      <div className="space-y-8">
+                  <div className="space-y-8">
 {/* INLINE TOP 100 GENERATOR (MOVED TO TOP) */}
                     <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
@@ -12126,12 +12132,12 @@ export function AdminDashboard() {
                                 Générer Top 100
                               </h3>
                               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-                                {wikiTab === "djs"
+                                {top100Data.tab === "djs"
                                   ? "🎧 DJs"
-                                  : wikiTab === "clubs"
+                                  : top100Data.tab === "clubs"
                                     ? "🏛️ Clubs"
                                     : "🎪 Festivals"}{" "}
-                                — {allRanked.length} entrées
+                                — {top100Data.all.length} entrées
                               </p>
                             </div>
                           </div>
@@ -12234,9 +12240,9 @@ export function AdminDashboard() {
                                 canvas.height = 1350;
                                 const ctx = canvas.getContext("2d")!;
                                 const label =
-                                  wikiTab === "clubs"
+                                  top100Data.tab === "clubs"
                                     ? "CLUBS"
-                                    : wikiTab === "festivals"
+                                    : top100Data.tab === "festivals"
                                       ? "FESTIVALS"
                                       : "DJS";
                                 // BG
@@ -12284,7 +12290,7 @@ export function AdminDashboard() {
                                 const listTop = 210;
                                 ctx.textAlign = "left";
                                 ctx.textBaseline = "middle";
-                                allRanked
+                                top100Data.all
                                   .slice(0, 100)
                                   .forEach((item: any, i: number) => {
                                     const col = Math.floor(i / rows),
@@ -12339,9 +12345,9 @@ export function AdminDashboard() {
                                 canvas.height = 1920;
                                 const ctx = canvas.getContext("2d")!;
                                 const label =
-                                  wikiTab === "clubs"
+                                  top100Data.tab === "clubs"
                                     ? "CLUBS"
-                                    : wikiTab === "festivals"
+                                    : top100Data.tab === "festivals"
                                       ? "FESTIVALS"
                                       : "DJS";
                                 // BG
@@ -12389,7 +12395,7 @@ export function AdminDashboard() {
                                 const startX = 540 - (colW * cols) / 2;
                                 ctx.textAlign = "left";
                                 ctx.textBaseline = "middle";
-                                allRanked
+                                top100Data.all
                                   .slice(0, 100)
                                   .forEach((item: any, i: number) => {
                                     const col = Math.floor(i / rows),
@@ -12447,9 +12453,9 @@ export function AdminDashboard() {
                         <p className="text-[10px] text-gray-600 uppercase tracking-widest">
                           ⚡ Génération directe en PNG — sans Social Studio —
                           basé sur le classement actif (
-                          {wikiTab === "djs"
+                          {top100Data.tab === "djs"
                             ? "DJs"
-                            : wikiTab === "clubs"
+                            : top100Data.tab === "clubs"
                               ? "Clubs"
                               : "Festivals"}
                           )
@@ -12477,8 +12483,8 @@ export function AdminDashboard() {
                               (id) => (
                                 <button
                                   key={id}
-                                  onClick={() => setWikiTab(id)}
-                                  className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${wikiTab === id ? "bg-neon-red text-white shadow-lg shadow-neon-red/20" : "text-gray-500 hover:text-gray-300"}`}
+                                  onClick={() => setWikiFilter(id.toUpperCase() as any)}
+                                  className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${top100Data.tab === id ? "bg-neon-red text-white shadow-lg shadow-neon-red/20" : "text-gray-500 hover:text-gray-300"}`}
                                 >
                                   {id === "djs"
                                     ? "🎧 DJs"
@@ -12503,12 +12509,12 @@ export function AdminDashboard() {
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {ranked.length === 0 ? (
+                        {top100Data.ranked.length === 0 ? (
                           <div className="col-span-full py-20 text-center text-gray-600 font-black uppercase tracking-widest italic opacity-50">
                             Aucun vote enregistré
                           </div>
                         ) : (
-                          ranked.map((item: any, idx: number) => (
+                          top100Data.ranked.map((item: any, idx: number) => (
                             <div
                               key={item.id}
                               className="flex items-center gap-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-3xl p-4 transition-all group"
@@ -12516,7 +12522,7 @@ export function AdminDashboard() {
                               <div className="w-10 h-10 bg-black/40 rounded-2xl flex items-center justify-center shrink-0 border border-white/5 relative">
                                 {idx < 3 ? (
                                   <span className="text-xl relative z-10">
-                                    {medals[idx]}
+                                    {MEDALS[idx]}
                                   </span>
                                 ) : (
                                   <span className="text-xs font-black text-gray-500">
@@ -12543,7 +12549,7 @@ export function AdminDashboard() {
                                 onClick={async () => {
                                   const artItem = item;
                                   const artIdx = idx;
-                                  const cat = wikiTab;
+                                  const cat = top100Data.tab;
                                   setArtistPreview({
                                     item: artItem,
                                     idx: artIdx,
@@ -13027,14 +13033,12 @@ export function AdminDashboard() {
                             </div>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  );
-                })()}
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+                        )}
+                      </div>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
 
 
           {/* MODAL RANDOMIZER (fixed nesting) */}
