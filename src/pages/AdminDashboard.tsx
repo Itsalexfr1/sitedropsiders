@@ -12111,7 +12111,7 @@ export function AdminDashboard() {
                     const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
                     const medals = ['🥇', '🥈', '🥉'];
                     return (
-                      <>
+                      <div className="space-y-8">
 {/* INLINE TOP 100 GENERATOR (MOVED TO TOP) */}
                     <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
@@ -13028,8 +13028,8 @@ export function AdminDashboard() {
                           </div>
                         </div>
                       )}
-                    </>
-                  )
+                    </div>
+                  );
                 })()}
               </motion.div>
             </div>
