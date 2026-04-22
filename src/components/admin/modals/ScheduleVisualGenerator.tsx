@@ -531,6 +531,18 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         </motion.div>
                                     ))}
                                 </div>
+
+                                {/* Bottom Add Button */}
+                                <div className="mt-8 mb-4 flex justify-center">
+                                    <button 
+                                        onClick={addDay} 
+                                        disabled={schedule.length >= 25} 
+                                        className="flex items-center gap-3 px-8 py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-sm font-black uppercase rounded-2xl hover:bg-neon-cyan hover:text-black hover:scale-105 transition-all disabled:opacity-30 shadow-[0_0_20px_rgba(0,255,255,0.1)] group"
+                                    >
+                                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                                        Ajouter une ligne ({schedule.length}/25)
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Preview */}
