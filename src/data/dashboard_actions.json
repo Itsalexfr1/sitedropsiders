@@ -1,5 +1,17 @@
 [
   {
+    "title": "Quizz & CONCOURS",
+    "description": "Tirages, Quizz, Participants",
+    "icon": "Gamepad2",
+    "category": "ALL",
+    "link": "#QUIZZ_CONCOURS_MODAL",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-neon-red/5",
+    "permission": "all",
+    "baseColor": "#ff0033",
+    "columns": 1
+  },
+  {
     "title": "Contenu",
     "description": "News, Musique, Interviews...",
     "icon": "FileText",
