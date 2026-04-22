@@ -1377,14 +1377,18 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         const activeStream = (settings.streams && !isNaN(streamIdx)) ? settings.streams[streamIdx] : settings.streams?.find(s => s.id === settings.activeStreamId);
         
         const twitchChannel = settings.twitchChannel || activeStream?.twitchChannel;
-        const streamSource = settings.streamSource || activeStream?.streamSource || 'youtube';
+        // Keep bridge active even if source is youtube, as long as we have a channel
+        if (!twitchChannel) return;
 
-        if (streamSource !== 'twitch' || !twitchChannel) return;
+        let cleanChannel = twitchChannel;
+        if (cleanChannel.includes('twitch.tv/')) {
+            cleanChannel = cleanChannel.split('twitch.tv/')[1].split('/')[0].split('?')[0];
+        }
 
-        console.log(`[TWITCH] Connecting to channel: ${twitchChannel}...`);
+        console.log(`[TWITCH] Connecting to channel: ${cleanChannel}...`);
         const twitchClient = new tmi.Client({
             connection: { secure: true, reconnect: true },
-            channels: [twitchChannel]
+            channels: [cleanChannel]
         });
 
         twitchClient.connect().catch(console.error);
