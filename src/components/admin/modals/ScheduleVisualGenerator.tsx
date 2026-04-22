@@ -304,7 +304,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     if (location) {
                         ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                        ctx.fillText(locText, startX + artistWidth, eventBaseY + yOffset);
+                        ctx.fillText(location.toUpperCase(), startX + artistWidth + 20, eventBaseY + yOffset);
                     }
                 };
 
@@ -575,13 +575,13 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                                 {day.dayArtist && (
                                                                     <div className="flex items-center justify-center gap-2">
                                                                         <div className="text-[12px] text-white font-bold uppercase tracking-wide">☀️ {day.dayArtist}</div>
-                                                                        {day.dayLocation && <div className="text-[9px] text-white/40 italic uppercase">{day.dayLocation}</div>}
+                                                                        {day.dayLocation && <div className="text-[9px] text-white/40 italic uppercase ml-2">{day.dayLocation}</div>}
                                                                     </div>
                                                                 )}
                                                                 {day.nightArtist && (
                                                                     <div className="flex items-center justify-center gap-2">
                                                                         <div className="text-[12px] text-white font-bold uppercase tracking-wide">🌒 {day.nightArtist}</div>
-                                                                        {day.nightLocation && <div className="text-[9px] text-white/40 italic uppercase">{day.nightLocation}</div>}
+                                                                        {day.nightLocation && <div className="text-[9px] text-white/40 italic uppercase ml-2">{day.nightLocation}</div>}
                                                                     </div>
                                                                 )}
                                                             </div>
