@@ -395,7 +395,7 @@
 .article-body-premium .interview-beatport-block,
 .article-body-premium .interview-image-block,
 .article-body-premium .interview-video-block {
-    margin: 7rem auto !important; /* ESPACE GIGANTESQUE POUR LE LOOK PREMIUM */
+    margin: 4.2rem auto !important; /* ESPACE PREMIUM AJUSTÉ (-40%) */
     text-align: center !important;
     font-family: var(--font-display, 'Orbitron', sans-serif);
     font-weight: 900;
