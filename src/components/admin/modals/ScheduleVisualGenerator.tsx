@@ -169,6 +169,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         }
 
         // 4. Calculate Available Space and Center Schedule
+        const startY = headerY + (customTitle?.trim() ? 100 : 40);
         const footerHeight = 150;
         const availableHeight = height - startY - footerHeight;
         const numDays = schedule.length;
