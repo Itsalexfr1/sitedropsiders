@@ -6985,14 +6985,34 @@ export function AdminDashboard() {
                       className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
                     >
                       <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                        <Columns className="w-6 h-6 text-neon-red" />
+                        <FileText className="w-6 h-6 text-neon-red" />
                       </div>
                       <div className="text-center">
                         <h3 className="text-lg font-bold text-white uppercase italic">
                           Fiches
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Générateur Visuels
+                          Générateur Questions
+                        </p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        navigate("/interview-visuals");
+                        setIsContenuModalOpen(false);
+                      }}
+                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
+                    >
+                      <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                        <ImageIcon className="w-6 h-6 text-neon-cyan" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-white uppercase italic">
+                          Visuels
+                        </h3>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
+                          Générateur Interview
                         </p>
                       </div>
                     </button>
