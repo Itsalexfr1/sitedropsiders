@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, Image as ImageIcon, Sparkles, ChevronRight } from 'lucide-react';
+import { X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, Image as ImageIcon, Sparkles, ChevronRight, Type, Upload } from 'lucide-react';
 
 interface DaySchedule {
     id: string;
@@ -15,10 +15,15 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         { id: '2', date: '14 Mai', dayEvent: 'Porter Robinson at Tao Beach', nightEvent: 'Dom Dolla at Liv Nightclub' }
     ]);
     const [showLogo, setShowLogo] = useState(true);
+    const [showWebsite, setShowWebsite] = useState(true);
+    const [customTitle, setCustomTitle] = useState('PLANNING LIVETAKEOVER');
+    const [festivalLogo, setFestivalLogo] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const addDay = () => {
+        if (schedule.length >= 8) return;
         setSchedule([...schedule, { id: Math.random().toString(), date: '', dayEvent: '', nightEvent: '' }]);
     };
 
@@ -28,6 +33,17 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
     const updateDay = (id: string, field: keyof DaySchedule, value: string) => {
         setSchedule(schedule.map(d => d.id === id ? { ...d, [field]: value } : d));
+    };
+
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setFestivalLogo(event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const generateImage = async () => {
@@ -56,14 +72,16 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         ctx.globalAlpha = 1.0;
 
         // 2. Logo
+        let logoHeightOffset = 0;
         if (showLogo) {
             const logo = new Image();
-            logo.src = '/Logo.png';
+            logo.src = festivalLogo || '/Logo.png';
             await new Promise((resolve) => { logo.onload = resolve; logo.onerror = resolve; });
             if (logo.complete) {
-                const logoW = 300;
+                const logoW = festivalLogo ? 350 : 300;
                 const logoH = (logo.height / logo.width) * logoW;
                 ctx.drawImage(logo, width / 2 - logoW / 2, 120, logoW, logoH);
+                logoHeightOffset = logoH + 20;
             }
         }
 
@@ -71,11 +89,30 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         ctx.textAlign = 'center';
         ctx.font = '900 italic 30px "Montserrat", sans-serif';
         ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.fillText('PLANNING LIVETAKEOVER', width / 2, showLogo ? 280 : 180);
+        const headerY = showLogo ? 140 + logoHeightOffset : 180;
+        ctx.fillText(customTitle.toUpperCase(), width / 2, headerY);
 
         // 4. Render Days
-        const startY = showLogo ? 400 : 300;
-        const dayHeight = 180;
+        const startY = headerY + 100;
+        const availableHeight = height - startY - 200; // 200 for footer margin
+        const numDays = schedule.length;
+        
+        // Dynamic sizing
+        let dayHeight = 180;
+        let dateFontSize = 50;
+        let eventFontSize = 30;
+        let eventSpacing = 50;
+        let eventNightSpacing = 95;
+
+        if (numDays > 4) {
+            const scale = Math.max(0.6, 1 - (numDays - 4) * 0.1);
+            dayHeight = 180 * scale;
+            dateFontSize = 50 * scale;
+            eventFontSize = 30 * scale;
+            eventSpacing = 50 * scale;
+            eventNightSpacing = 95 * scale;
+        }
+
         const marginX = 80;
 
         schedule.forEach((day, index) => {
@@ -83,7 +120,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             
             // Date Header
             ctx.textAlign = 'left';
-            ctx.font = '900 italic 50px "Orbitron", sans-serif';
+            ctx.font = `900 italic ${dateFontSize}px "Orbitron", sans-serif`;
             ctx.fillStyle = '#ff1241';
             ctx.shadowBlur = 15;
             ctx.shadowColor = 'rgba(255, 18, 65, 0.5)';
@@ -92,33 +129,35 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
             // Day Event
             if (day.dayEvent) {
-                ctx.font = '700 30px "Montserrat", sans-serif';
+                ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText('☀️ ' + day.dayEvent, marginX + 20, y + 50);
+                ctx.fillText('☀️ ' + day.dayEvent, marginX + 20, y + eventSpacing);
             }
 
             // Night Event
             if (day.nightEvent) {
-                ctx.font = '700 30px "Montserrat", sans-serif';
+                ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText('🌒 ' + day.nightEvent, marginX + 20, y + (day.dayEvent ? 95 : 50));
+                ctx.fillText('🌒 ' + day.nightEvent, marginX + 20, y + (day.dayEvent ? eventNightSpacing : eventSpacing));
             }
 
             // Divider
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(marginX, y + 130);
-            ctx.lineTo(width - marginX, y + 130);
+            ctx.moveTo(marginX, y + (dayHeight * 0.7));
+            ctx.lineTo(width - marginX, y + (dayHeight * 0.7));
             ctx.stroke();
         });
 
         // 5. Footer
-        ctx.textAlign = 'center';
-        ctx.font = '900 24px "Orbitron", sans-serif';
-        ctx.fillStyle = '#ffffff';
-        ctx.letterSpacing = '10px';
-        ctx.fillText('DROPSIDERS.EU', width / 2, height - 100);
+        if (showWebsite) {
+            ctx.textAlign = 'center';
+            ctx.font = '900 24px "Orbitron", sans-serif';
+            ctx.fillStyle = '#ffffff';
+            ctx.letterSpacing = '10px';
+            ctx.fillText('DROPSIDERS.EU', width / 2, height - 100);
+        }
 
         // Export
         const link = document.createElement('a');
@@ -134,7 +173,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         <AnimatePresence>
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-4xl bg-gray-900 border border-white/10 rounded-[2.5rem] flex flex-col max-h-[90vh] overflow-hidden shadow-2xl">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-5xl bg-gray-900 border border-white/10 rounded-[2.5rem] flex flex-col max-h-[95vh] overflow-hidden shadow-2xl">
                     
                     {/* Header */}
                     <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
@@ -156,30 +195,76 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             {/* Editor */}
                             <div className="space-y-6">
-                                <div className="flex items-center justify-between mb-2">
-                                    <h3 className="text-sm font-black text-white uppercase italic tracking-widest">Édition du Planning</h3>
-                                    <div className="flex items-center gap-4">
-                                        <button 
-                                            onClick={() => setShowLogo(!showLogo)}
-                                            className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-black uppercase transition-all ${showLogo ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
-                                        >
-                                            <Sparkles className={`w-4 h-4 ${showLogo ? 'text-neon-cyan' : ''}`} /> Logo: {showLogo ? 'OUI' : 'NON'}
-                                        </button>
-                                        <button onClick={addDay} className="flex items-center gap-2 px-4 py-2 bg-neon-cyan text-black text-[10px] font-black uppercase rounded-xl hover:scale-105 transition-all">
-                                            <Plus className="w-4 h-4" /> Ajouter
-                                        </button>
+                                <div className="flex flex-col gap-4 mb-6">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-sm font-black text-white uppercase italic tracking-widest">Options du Visuel</h3>
+                                        <div className="flex items-center gap-4">
+                                            <button 
+                                                onClick={() => setShowLogo(!showLogo)}
+                                                className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-black uppercase transition-all ${showLogo ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
+                                            >
+                                                <Sparkles className={`w-4 h-4 ${showLogo ? 'text-neon-cyan' : ''}`} /> Logo: {showLogo ? 'OUI' : 'NON'}
+                                            </button>
+                                            <button 
+                                                onClick={() => setShowWebsite(!showWebsite)}
+                                                className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-black uppercase transition-all ${showWebsite ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
+                                            >
+                                                <Smartphone className={`w-4 h-4 ${showWebsite ? 'text-neon-cyan' : ''}`} /> Site: {showWebsite ? 'OUI' : 'NON'}
+                                            </button>
+                                            <button onClick={addDay} disabled={schedule.length >= 8} className="flex items-center gap-2 px-4 py-2 bg-neon-cyan text-black text-[10px] font-black uppercase rounded-xl hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100">
+                                                <Plus className="w-4 h-4" /> Ajouter ({schedule.length}/8)
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                                <Type className="w-3 h-3 text-neon-cyan" /> Titre du Planning
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                value={customTitle} 
+                                                onChange={(e) => setCustomTitle(e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all font-bold italic"
+                                                placeholder="PLANNING LIVETAKEOVER"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                                <ImageIcon className="w-3 h-3 text-neon-cyan" /> Logo du Festival
+                                            </label>
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase"
+                                                >
+                                                    <Upload className="w-4 h-4 text-neon-cyan" /> {festivalLogo ? 'Changer Logo' : 'Upload Logo'}
+                                                </button>
+                                                {festivalLogo && (
+                                                    <button 
+                                                        onClick={() => setFestivalLogo(null)}
+                                                        className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
+                                <h3 className="text-sm font-black text-white uppercase italic tracking-widest mb-4">Dates & Événements</h3>
                                 <div className="space-y-4">
                                     {schedule.map((day, idx) => (
                                         <motion.div layout key={day.id} className="bg-white/5 border border-white/10 rounded-3xl p-6 relative group">
-                                            <button onClick={() => removeDay(day.id)} className="absolute -top-2 -right-2 w-8 h-8 bg-neon-red text-white flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:scale-110">
+                                            <button onClick={() => removeDay(day.id)} className="absolute -top-2 -right-2 w-8 h-8 bg-neon-red text-white flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:scale-110 shadow-lg">
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                             <div className="grid grid-cols-1 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Date (ex: 13 Mai)</label>
+                                                    <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Jour {idx + 1} - Date (ex: 13 Mai)</label>
                                                     <input 
                                                         type="text" value={day.date} onChange={(e) => updateDay(day.id, 'date', e.target.value)}
                                                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all italic font-bold"
@@ -215,33 +300,44 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         <div className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-[8px] font-black text-neon-cyan uppercase tracking-widest">Story 9:16</div>
                                     </div>
 
-                                    <div className="aspect-[9/16] w-full max-w-[320px] mx-auto bg-black rounded-[2rem] border-[8px] border-gray-800 shadow-2xl relative overflow-hidden flex flex-col p-6 text-white scale-95 origin-top">
+                                    <div className="aspect-[9/16] w-full max-w-[320px] mx-auto bg-black rounded-[2.5rem] border-[10px] border-gray-800 shadow-2xl relative overflow-hidden flex flex-col p-6 text-white scale-95 origin-top">
                                         {/* Fake Story Background */}
-                                        <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-950" />
+                                        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0b12] via-[#1a0510] to-[#050a0f]" />
                                         
                                         <div className="relative z-10 flex flex-col h-full">
-                                            <div className="w-16 h-1 bg-white/10 rounded-full mx-auto mb-6" />
+                                            <div className="w-16 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
                                             
                                             {showLogo && (
-                                                <div className="flex flex-col items-center mb-8">
-                                                    <div className="w-24 h-6 bg-white/10 rounded-lg mb-2" />
-                                                    <div className="w-40 h-3 bg-white/5 rounded-full" />
+                                                <div className="flex flex-col items-center mb-6">
+                                                    {festivalLogo ? (
+                                                        <img src={festivalLogo} alt="Logo" className="h-12 object-contain" />
+                                                    ) : (
+                                                        <div className="w-24 h-6 bg-white/10 rounded-lg mb-2" />
+                                                    )}
                                                 </div>
                                             )}
 
-                                            <div className={`space-y-6 ${!showLogo ? 'mt-10' : ''}`}>
-                                                {schedule.slice(0, 5).map(day => (
+                                            <div className="text-center mb-6">
+                                                <div className="text-[10px] font-black text-white/40 italic uppercase tracking-widest">{customTitle || 'PLANNING'}</div>
+                                            </div>
+
+                                            <div className={`space-y-4 ${!showLogo ? 'mt-6' : ''}`}>
+                                                {schedule.map(day => (
                                                     <div key={day.id} className="space-y-1">
-                                                        <div className="text-[14px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>
-                                                        {day.dayEvent && <div className="text-[10px] text-gray-300 font-bold">☀️ {day.dayEvent}</div>}
-                                                        {day.nightEvent && <div className="text-[10px] text-gray-300 font-bold">🌒 {day.nightEvent}</div>}
+                                                        <div className="text-[12px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>
+                                                        {day.dayEvent && <div className="text-[8px] text-gray-300 font-bold">☀️ {day.dayEvent}</div>}
+                                                        {day.nightEvent && <div className="text-[8px] text-gray-300 font-bold">🌒 {day.nightEvent}</div>}
                                                     </div>
                                                 ))}
                                             </div>
 
                                             <div className="mt-auto pt-8 flex flex-col items-center">
-                                                <div className="w-32 h-2 bg-white/10 rounded-full mb-2" />
-                                                <div className="w-20 h-1 bg-neon-cyan/20 rounded-full" />
+                                                {showWebsite && (
+                                                    <>
+                                                        <div className="text-[10px] font-black text-white uppercase tracking-[0.5em]">DROPSIDERS.EU</div>
+                                                        <div className="w-16 h-0.5 bg-neon-cyan/40 mt-2" />
+                                                    </>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
