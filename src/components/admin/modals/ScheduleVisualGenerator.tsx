@@ -21,6 +21,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
     const [isGenerating, setIsGenerating] = useState(false);
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
     const [backgroundVideo, setBackgroundVideo] = useState<string | null>(null);
+    const [logoScale, setLogoScale] = useState(1.0);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const bgInputRef = useRef<HTMLInputElement>(null);
@@ -143,7 +144,8 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             logo.src = festivalLogo || '/Logo.png';
             await new Promise((resolve) => { logo.onload = resolve; logo.onerror = resolve; });
             if (logo.complete) {
-                const logoW = festivalLogo ? 350 : 300;
+                const baseWidth = festivalLogo ? 350 : 300;
+                const logoW = baseWidth * logoScale;
                 const logoH = (logo.height / logo.width) * logoW;
                 ctx.drawImage(logo, width / 2 - logoW / 2, 120, logoW, logoH);
                 logoHeightOffset = logoH + 20;
@@ -298,16 +300,22 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {/* Festival Logo Upload */}
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                            <ImageIcon className="w-3 h-3 text-neon-cyan" /> Logo du Festival
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                                            <span className="flex items-center gap-2"><ImageIcon className="w-3 h-3 text-neon-cyan" /> Logo du Festival</span>
+                                            <span className="text-neon-cyan">{Math.round(logoScale * 100)}%</span>
                                         </label>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-3">
                                             <button 
                                                 onClick={() => fileInputRef.current?.click()}
                                                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase"
                                             >
-                                                <Upload className="w-4 h-4 text-neon-cyan" /> {festivalLogo ? 'Changer Logo' : 'Upload Logo'}
+                                                <Upload className="w-4 h-4 text-neon-cyan" /> {festivalLogo ? 'Changer' : 'Upload'}
                                             </button>
+                                            <input 
+                                                type="range" min="0.5" max="2.0" step="0.1" 
+                                                value={logoScale} onChange={(e) => setLogoScale(parseFloat(e.target.value))}
+                                                className="w-24 accent-neon-cyan"
+                                            />
                                             {festivalLogo && (
                                                 <button 
                                                     onClick={() => setFestivalLogo(null)}
@@ -410,9 +418,9 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                             {showLogo && (
                                                 <div className="flex flex-col items-center mb-6">
                                                     {festivalLogo ? (
-                                                        <img src={festivalLogo} alt="Logo" className="h-12 object-contain" />
+                                                        <img src={festivalLogo} alt="Logo" className="h-12 object-contain" style={{ transform: `scale(${logoScale})` }} />
                                                     ) : (
-                                                        <div className="w-24 h-6 bg-white/10 rounded-lg mb-2" />
+                                                        <div className="w-24 h-6 bg-white/10 rounded-lg mb-2" style={{ transform: `scale(${logoScale})` }} />
                                                     )}
                                                 </div>
                                             )}
