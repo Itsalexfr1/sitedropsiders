@@ -2298,18 +2298,6 @@ export function AdminDashboard() {
 
     // MODÉRATION WIKI (Isolée)
     {
-      title: "Vérifier Photos",
-      description: "Modération Wiki Photos",
-      icon: "Camera",
-      category: "WIKI",
-      link: "#",
-      color: "border-neon-cyan/20 hover:border-neon-cyan",
-      bg: "bg-neon-cyan/5",
-      permission: "community_mod",
-      baseColor: "cyan",
-      columns: 2,
-    },
-    {
       title: "Top Dropsiders",
       description: "Résultats des votes",
       icon: "Star",
