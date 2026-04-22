@@ -5489,12 +5489,12 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsGiveawayModalOpen(true);
-                            } else if (
-                              action.title === "Newsletter" ||
-                              action.title === "Messagerie"
-                            ) {
+                            } else if (action.title === "Messagerie") {
                               e.preventDefault();
-                              setIsMessagesNewsletterModalOpen(true);
+                              setIsMessagesModalOpen(true);
+                            } else if (action.title === "Newsletter") {
+                              e.preventDefault();
+                              setIsNewsletterModalOpen(true);
                             } else if (
                               action.title === "Statistiques"
                             ) {
