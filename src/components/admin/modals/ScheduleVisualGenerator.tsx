@@ -504,13 +504,15 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
                                                         />
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Nuit 🌒 - Lieu' : 'Inutilisé'}</label>
-                                                        <input 
-                                                            type="text" value={day.nightLocation} onChange={(e) => updateDay(day.id, 'nightLocation', e.target.value)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
-                                                        />
-                                                    </div>
+                                                    {viewMode === 'planning' && (
+                                                        <div className="space-y-1">
+                                                            <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Nuit 🌒 - Lieu</label>
+                                                            <input 
+                                                                type="text" value={day.nightLocation} onChange={(e) => updateDay(day.id, 'nightLocation', e.target.value)}
+                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
+                                                            />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </motion.div>
