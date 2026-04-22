@@ -654,6 +654,7 @@ export function AdminDashboard() {
     "DJS",
   );
   const [wikiSortMode, setWikiSortMode] = useState<"alpha" | "votes">("alpha");
+  const [isTop100GeneratorModalOpen, setIsTop100GeneratorModalOpen] = useState(false);
   const [isEditWikiModalOpen, setIsEditWikiModalOpen] = useState(false);
   const [isNewWikiModalOpen, setIsNewWikiModalOpen] = useState(false);
   const [newWikiEntry, setNewWikiEntry] = useState<any>({
@@ -2182,18 +2183,6 @@ export function AdminDashboard() {
       columns: 1,
     },
     {
-      title: "Spotify",
-      description: "Top 20 Hebdo",
-      icon: "Music",
-      category: "STUDIO",
-      link: "#",
-      color: "border-neon-green/20 hover:border-neon-green",
-      bg: "bg-neon-green/5",
-      permission: "musique_releases",
-      baseColor: "green",
-      columns: 1,
-    },
-    {
       title: "Social Studio",
       description: "Outils Réseaux Sociaux",
       icon: "Instagram",
@@ -2238,20 +2227,8 @@ export function AdminDashboard() {
       columns: 2,
     },
     {
-      title: "Newsletter",
-      description: "Campagnes Mail",
-      icon: "Mail",
-      category: "SHOP",
-      link: "#",
-      color: "border-green-400/20 hover:border-green-400",
-      bg: "bg-green-400/5",
-      permission: "push_newsletter",
-      baseColor: "green",
-      columns: 1,
-    },
-    {
-      title: "Messagerie",
-      description: "Emails & Contact",
+      title: "Messagerie & Newsletter",
+      description: "Emails, Contact & Newsletter",
       icon: "Mail",
       category: "SHOP",
       link: "#",
@@ -2275,18 +2252,6 @@ export function AdminDashboard() {
       baseColor: "purple",
       columns: 2,
     },
-    {
-      title: "Comptes Membres",
-      description: "Registre Communauté",
-      icon: "UserPlus",
-      category: "TEAM",
-      link: "#",
-      color: "border-neon-red/20 hover:border-neon-red",
-      bg: "bg-neon-red/5",
-      permission: "all",
-      baseColor: "red",
-      columns: 2,
-    },
 
     // PDF & DOCUMENTS
     {
@@ -2302,19 +2267,6 @@ export function AdminDashboard() {
       columns: 1,
     },
 
-    // TOP 100 GENERATOR
-    {
-      title: "Top 100 DJs Clubs Festivals",
-      description: "Générateur de classements",
-      icon: "Sparkles",
-      category: "WIKI",
-      link: "#TOP100_GENERATOR",
-      color: "border-neon-red/20 hover:border-neon-red",
-      bg: "bg-neon-red/5",
-      permission: "community_mod",
-      baseColor: "red",
-      columns: 2,
-    },
 
     // SYSTÈME
     {
@@ -2327,18 +2279,6 @@ export function AdminDashboard() {
       bg: "bg-neon-orange/5",
       permission: "superadmin",
       baseColor: "orange",
-      columns: 1,
-    },
-    {
-      title: "Tirage au Sort",
-      description: "Instagram & Facebook",
-      icon: "Trophy",
-      category: "SOCIAL_STUDIO",
-      link: "#",
-      color: "border-pink-500/20 hover:border-pink-500",
-      bg: "bg-pink-500/5",
-      permission: "community_mod",
-      baseColor: "pink",
       columns: 1,
     },
     {
@@ -4192,924 +4132,6 @@ export function AdminDashboard() {
 
                 return (
                   <div className="space-y-12">
-                    {/* INLINE TOP 100 GENERATOR (MOVED TO TOP) */}
-                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
-                      <div className="relative z-10">
-                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
-                          <div className="flex items-center gap-6">
-                            <div className="p-4 bg-neon-red/10 rounded-[1.5rem] border border-neon-red/30">
-                              <Sparkles className="w-10 h-10 text-neon-red" />
-                            </div>
-                            <div>
-                              <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">
-                                Générer Top 100
-                              </h3>
-                              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-                                {wikiTab === "djs"
-                                  ? "🎧 DJs"
-                                  : wikiTab === "clubs"
-                                    ? "🏛️ Clubs"
-                                    : "🎪 Festivals"}{" "}
-                                — {allRanked.length} entrées
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-4 flex-wrap">
-                            <button
-                              onClick={async () => {
-                                const newState =
-                                  !takeoverState.wikiVotesEnabled;
-                                setTakeoverState({
-                                  ...takeoverState,
-                                  wikiVotesEnabled: newState,
-                                });
-                                try {
-                                  const res = await apiFetch("/api/settings", {
-                                    headers: getAuthHeaders(),
-                                  });
-                                  const data = res.ok ? await res.json() : {};
-                                  const newSettings = {
-                                    ...data,
-                                    takeover: {
-                                      ...data.takeover,
-                                      wikiVotesEnabled: newState,
-                                    },
-                                  };
-                                  await apiFetch("/api/settings/update", {
-                                    method: "POST",
-                                    headers: getAuthHeaders(),
-                                    body: JSON.stringify(newSettings),
-                                  });
-                                  setGlobalAlert({
-                                    type: "info",
-                                    title: "VOTES",
-                                    message: newState
-                                      ? "Les votes sont ACTIVÉS."
-                                      : "Les votes sont DÉSACTIVÉS.",
-                                  });
-                                } catch (e) {
-                                  console.error(e);
-                                }
-                              }}
-                              className={`px-8 py-4 border rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all flex items-center gap-2 ${takeoverState.wikiVotesEnabled ? "bg-white/10 border-white/20 text-white" : "bg-neon-green/20 border-neon-green text-neon-green"}`}
-                            >
-                              <Activity className="w-4 h-4" />
-                              {takeoverState.wikiVotesEnabled
-                                ? "DÉSACTIVER LES VOTES"
-                                : "ACTIVER LES VOTES"}
-                            </button>
-                            <button
-                              onClick={() => {
-                                setConfirmModal({
-                                  isOpen: true,
-                                  title: "RÉINITIALISER LES VOTES",
-                                  message:
-                                    "Êtes-vous sûr de vouloir remettre tous les votes (DJs, Clubs, Festivals) à zéro ? Cette action est irréversible et écrasera les données sur GitHub.",
-                                  type: "danger",
-                                  confirmText: "OUI, RÉINITIALISER",
-                                  onConfirm: async () => {
-                                    setConfirmModal((prev) => ({
-                                      ...prev,
-                                      isOpen: false,
-                                    }));
-                                    try {
-                                      const res = await apiFetch(
-                                        "/api/admin/reset-leaderboards",
-                                        {
-                                          method: "POST",
-                                          headers: getAuthHeaders(),
-                                          body: JSON.stringify({
-                                            type: "wiki",
-                                          }),
-                                        },
-                                      );
-                                      if (res.ok) {
-                                        setGlobalAlert({
-                                          type: "info",
-                                          title: "VOTES RÉINITIALISÉS",
-                                          message:
-                                            "Tous les compteurs sont revenus à zéro.",
-                                        });
-                                        setTimeout(
-                                          () => window.location.reload(),
-                                          1500,
-                                        );
-                                      }
-                                    } catch (e) {
-                                      console.error(e);
-                                    }
-                                  },
-                                });
-                              }}
-                              className="px-8 py-4 bg-red-500/10 border border-red-500 text-red-500 rounded-2xl text-[11px] font-black uppercase hover:scale-105 hover:bg-red-500 hover:text-white transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,0,0,0.2)]"
-                            >
-                              <RotateCcw className="w-4 h-4" /> RAZ DES VOTES
-                            </button>
-
-                            <button
-                              onClick={async () => {
-                                const canvas = document.createElement("canvas");
-                                canvas.width = 1080;
-                                canvas.height = 1350;
-                                const ctx = canvas.getContext("2d")!;
-                                const label =
-                                  wikiTab === "clubs"
-                                    ? "CLUBS"
-                                    : wikiTab === "festivals"
-                                      ? "FESTIVALS"
-                                      : "DJS";
-                                // BG
-                                ctx.fillStyle = "#080b10";
-                                ctx.fillRect(0, 0, 1080, 1350);
-                                const bg = ctx.createLinearGradient(
-                                  0,
-                                  0,
-                                  1080,
-                                  1350,
-                                );
-                                bg.addColorStop(0, "rgba(40,10,20,0.9)");
-                                bg.addColorStop(1, "rgba(10,5,15,0.9)");
-                                ctx.fillStyle = bg;
-                                ctx.fillRect(0, 0, 1080, 1350);
-                                // Title
-                                ctx.textAlign = "center";
-                                ctx.fillStyle = "#ffffff";
-                                ctx.font =
-                                  '900 italic 80px "Orbitron", sans-serif';
-                                ctx.shadowColor = "#ff1272";
-                                ctx.shadowBlur = 20;
-                                ctx.fillText("DROPSIDERS", 540, 90);
-                                ctx.font =
-                                  '900 italic 55px "Montserrat", sans-serif';
-                                const grad = ctx.createLinearGradient(
-                                  300,
-                                  130,
-                                  700,
-                                  130,
-                                );
-                                grad.addColorStop(0, "#ffd700");
-                                grad.addColorStop(0.5, "#fff1a8");
-                                grad.addColorStop(1, "#ffd700");
-                                ctx.fillStyle = grad;
-                                ctx.shadowBlur = 10;
-                                ctx.fillText(`TOP 100 ${label}`, 540, 160);
-                                ctx.shadowBlur = 0;
-                                // List — 4 cols x 25 rows
-                                const cols = 4,
-                                  rows = 25,
-                                  colW = 240,
-                                  rowH = 43;
-                                const startX = 540 - (colW * cols) / 2;
-                                const listTop = 210;
-                                ctx.textAlign = "left";
-                                ctx.textBaseline = "middle";
-                                allRanked
-                                  .slice(0, 100)
-                                  .forEach((item: any, i: number) => {
-                                    const col = Math.floor(i / rows),
-                                      row = i % rows;
-                                    const x = startX + col * colW,
-                                      y = listTop + row * rowH;
-                                    ctx.fillStyle =
-                                      i < 3 ? "#ffd700" : "#ff1272";
-                                    ctx.font =
-                                      '900 16px "Montserrat", sans-serif';
-                                    ctx.fillText(`#${i + 1}`, x, y);
-                                    ctx.fillStyle = "#ffffff";
-                                    ctx.font =
-                                      '600 15px "Montserrat", sans-serif';
-                                    let name = (item.name || "").toUpperCase();
-                                    while (
-                                      ctx.measureText(name).width > 185 &&
-                                      name.length > 3
-                                    )
-                                      name = name.slice(0, -1);
-                                    if (
-                                      name !== (item.name || "").toUpperCase()
-                                    )
-                                      name += "…";
-                                    ctx.fillText(name, x + 42, y);
-                                  });
-                                // Footer
-                                ctx.fillStyle = "#ff1272";
-                                ctx.fillRect(0, 1310, 1080, 3);
-                                ctx.fillStyle = "rgba(15,22,32,0.95)";
-                                ctx.fillRect(0, 1313, 1080, 37);
-                                ctx.fillStyle = "#ffffff";
-                                ctx.font = '700 18px "Orbitron", sans-serif';
-                                ctx.textAlign = "center";
-                                ctx.letterSpacing = "6px";
-                                ctx.fillText("DROPSIDERS.FR", 540, 1335);
-                                // Download
-                                const a = document.createElement("a");
-                                a.href = canvas.toDataURL("image/png");
-                                a.download = `dropsiders-top100-${label.toLowerCase()}-post.png`;
-                                a.click();
-                              }}
-                              className="px-8 py-4 bg-neon-red text-white rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,18,114,0.3)]"
-                            >
-                              <ImageIcon className="w-4 h-4" />⬇ POST
-                              (1080×1350)
-                            </button>
-                            <button
-                              onClick={async () => {
-                                const canvas = document.createElement("canvas");
-                                canvas.width = 1080;
-                                canvas.height = 1920;
-                                const ctx = canvas.getContext("2d")!;
-                                const label =
-                                  wikiTab === "clubs"
-                                    ? "CLUBS"
-                                    : wikiTab === "festivals"
-                                      ? "FESTIVALS"
-                                      : "DJS";
-                                // BG
-                                ctx.fillStyle = "#080b10";
-                                ctx.fillRect(0, 0, 1080, 1920);
-                                const bg = ctx.createLinearGradient(
-                                  0,
-                                  0,
-                                  1080,
-                                  1920,
-                                );
-                                bg.addColorStop(0, "rgba(40,10,20,0.9)");
-                                bg.addColorStop(1, "rgba(10,5,15,0.9)");
-                                ctx.fillStyle = bg;
-                                ctx.fillRect(0, 0, 1080, 1920);
-                                // Title
-                                ctx.textAlign = "center";
-                                ctx.fillStyle = "#ffffff";
-                                ctx.font =
-                                  '900 italic 100px "Orbitron", sans-serif';
-                                ctx.shadowColor = "#ff1272";
-                                ctx.shadowBlur = 25;
-                                ctx.fillText("DROPSIDERS", 540, 120);
-                                ctx.font =
-                                  '900 italic 70px "Montserrat", sans-serif';
-                                const grad = ctx.createLinearGradient(
-                                  300,
-                                  180,
-                                  700,
-                                  180,
-                                );
-                                grad.addColorStop(0, "#ffd700");
-                                grad.addColorStop(0.5, "#ffffff");
-                                grad.addColorStop(1, "#ffd700");
-                                ctx.fillStyle = grad;
-                                ctx.shadowBlur = 12;
-                                ctx.fillText(`TOP 100 ${label}`, 540, 210);
-                                ctx.shadowBlur = 0;
-                                // List
-                                const cols = 2,
-                                  rows = 50,
-                                  colW = 490,
-                                  rowH = 33,
-                                  listTop = 270;
-                                const startX = 540 - (colW * cols) / 2;
-                                ctx.textAlign = "left";
-                                ctx.textBaseline = "middle";
-                                allRanked
-                                  .slice(0, 100)
-                                  .forEach((item: any, i: number) => {
-                                    const col = Math.floor(i / rows),
-                                      row = i % rows;
-                                    const x = startX + col * colW,
-                                      y = listTop + row * rowH;
-                                    ctx.fillStyle =
-                                      i === 0
-                                        ? "#ffd700"
-                                        : i === 1
-                                          ? "#c0c0c0"
-                                          : i === 2
-                                            ? "#cd7f32"
-                                            : "#ff1272";
-                                    ctx.font =
-                                      '900 15px "Montserrat", sans-serif';
-                                    ctx.fillText(`#${i + 1}`, x + 4, y);
-                                    ctx.fillStyle = "#ffffff";
-                                    ctx.font =
-                                      '600 14px "Montserrat", sans-serif';
-                                    let name = (item.name || "").toUpperCase();
-                                    while (
-                                      ctx.measureText(name).width > 380 &&
-                                      name.length > 3
-                                    )
-                                      name = name.slice(0, -1);
-                                    if (
-                                      name !== (item.name || "").toUpperCase()
-                                    )
-                                      name += "…";
-                                    ctx.fillText(name, x + 46, y);
-                                  });
-                                // Footer
-                                ctx.fillStyle = "#ff1272";
-                                ctx.fillRect(0, 1870, 1080, 3);
-                                ctx.fillStyle = "rgba(15,22,32,0.95)";
-                                ctx.fillRect(0, 1873, 1080, 47);
-                                ctx.fillStyle = "#ffffff";
-                                ctx.font = '700 22px "Orbitron", sans-serif';
-                                ctx.textAlign = "center";
-                                ctx.letterSpacing = "6px";
-                                ctx.fillText("DROPSIDERS.FR", 540, 1900);
-                                const a = document.createElement("a");
-                                a.href = canvas.toDataURL("image/png");
-                                a.download = `dropsiders-top100-${label.toLowerCase()}-story.png`;
-                                a.click();
-                              }}
-                              className="px-8 py-4 bg-white/10 border border-neon-red/40 text-neon-red rounded-2xl text-[11px] font-black uppercase hover:scale-105 hover:bg-neon-red/10 transition-all flex items-center gap-2"
-                            >
-                              <Smartphone className="w-4 h-4" />⬇ STORY
-                              (1080×1920)
-                            </button>
-                          </div>
-                        </div>
-                        <p className="text-[10px] text-gray-600 uppercase tracking-widest">
-                          ⚡ Génération directe en PNG — sans Social Studio —
-                          basé sur le classement actif (
-                          {wikiTab === "djs"
-                            ? "DJs"
-                            : wikiTab === "clubs"
-                              ? "Clubs"
-                              : "Festivals"}
-                          )
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* RANKING SUMMARY (TOP) */}
-                    <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <Star className="w-4 h-4 text-neon-red fill-current" />
-                            <span className="text-neon-red font-black tracking-[0.3em] text-[9px] uppercase">
-                              Classement Wiki
-                            </span>
-                          </div>
-                          <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">
-                            Top Votes Communauté
-                          </h2>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-6">
-                          <div className="flex items-center bg-black/40 border border-white/10 rounded-2xl p-1.5 gap-1.5">
-                            {(["djs", "clubs", "festivals"] as const).map(
-                              (id) => (
-                                <button
-                                  key={id}
-                                  onClick={() => setWikiTab(id)}
-                                  className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${wikiTab === id ? "bg-neon-red text-white shadow-lg shadow-neon-red/20" : "text-gray-500 hover:text-gray-300"}`}
-                                >
-                                  {id === "djs"
-                                    ? "🎧 DJs"
-                                    : id === "clubs"
-                                      ? "🏛️ Clubs"
-                                      : "🎪 Festivals"}
-                                </button>
-                              ),
-                            )}
-                          </div>
-                          <button
-                            onClick={() => setIsWikiExpanded(!isWikiExpanded)}
-                            className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2"
-                          >
-                            {isWikiExpanded ? (
-                              <ChevronUp className="w-4 h-4" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4" />
-                            )}
-                            {isWikiExpanded ? "Réduire" : "Voir Top 50"}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {ranked.length === 0 ? (
-                          <div className="col-span-full py-20 text-center text-gray-600 font-black uppercase tracking-widest italic opacity-50">
-                            Aucun vote enregistré
-                          </div>
-                        ) : (
-                          ranked.map((item: any, idx: number) => (
-                            <div
-                              key={item.id}
-                              className="flex items-center gap-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-3xl p-4 transition-all group"
-                            >
-                              <div className="w-10 h-10 bg-black/40 rounded-2xl flex items-center justify-center shrink-0 border border-white/5 relative">
-                                {idx < 3 ? (
-                                  <span className="text-xl relative z-10">
-                                    {medals[idx]}
-                                  </span>
-                                ) : (
-                                  <span className="text-xs font-black text-gray-500">
-                                    #{idx + 1}
-                                  </span>
-                                )}
-                                <div className="absolute inset-0 bg-neon-red/5 blur-xl group-hover:bg-neon-red/10 transition-colors rounded-full" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-[11px] font-black text-white uppercase tracking-tighter truncate group-hover:text-neon-red transition-colors">
-                                  {item.name}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Heart className="w-3 h-3 text-neon-red fill-current opacity-50" />
-                                  <span className="text-xs font-display font-black text-neon-red italic tracking-tighter">
-                                    {item.tv}{" "}
-                                    <span className="text-[8px] font-bold text-gray-600 uppercase italic">
-                                      votes
-                                    </span>
-                                  </span>
-                                </div>
-                              </div>
-                              <button
-                                onClick={async () => {
-                                  const artItem = item;
-                                  const artIdx = idx;
-                                  const cat = wikiTab;
-                                  setArtistPreview({
-                                    item: artItem,
-                                    idx: artIdx,
-                                    category: cat,
-                                    loading: true,
-                                  });
-
-                                  const generateCard = async (
-                                    W: number,
-                                    H: number,
-                                  ): Promise<string> => {
-                                    const canvas =
-                                      document.createElement("canvas");
-                                    canvas.width = W;
-                                    canvas.height = H;
-                                    const ctx = canvas.getContext("2d")!;
-                                    const isStory = H === 1920;
-                                    const rank = artIdx + 1;
-                                    const label =
-                                      cat === "clubs"
-                                        ? "CLUBS"
-                                        : cat === "festivals"
-                                          ? "FESTIVALS"
-                                          : "DJS";
-                                    const C_RED = "#ff0033",
-                                      C_DARK = "#080b10",
-                                      C_MID = "#0f1620",
-                                      C_STRIPE = "#1a0a10";
-                                    const C_GOLD = "#ffd700",
-                                      C_SILVER = "#c0c0c0",
-                                      C_BRONZE = "#cd7f32";
-                                    const mainColor =
-                                      rank === 1
-                                        ? C_GOLD
-                                        : rank === 2
-                                          ? C_SILVER
-                                          : rank === 3
-                                            ? C_BRONZE
-                                            : C_RED;
-
-                                    // Load Logo
-                                    const logoImg =
-                                      await new Promise<HTMLImageElement | null>(
-                                        (res) => {
-                                          const img = new Image();
-                                          img.crossOrigin = "anonymous";
-                                          img.src = "/Logo.png";
-                                          img.onload = () => res(img);
-                                          img.onerror = () => res(null);
-                                        },
-                                      );
-
-                                    // BG
-                                    ctx.fillStyle = C_DARK;
-                                    ctx.fillRect(0, 0, W, H);
-                                    ctx.save();
-                                    for (let i = -H; i < W + H; i += 28) {
-                                      ctx.fillStyle = C_STRIPE;
-                                      ctx.beginPath();
-                                      ctx.moveTo(i, 0);
-                                      ctx.lineTo(i + 14, 0);
-                                      ctx.lineTo(i + 14 + H, H);
-                                      ctx.lineTo(i + H, H);
-                                      ctx.closePath();
-                                      ctx.fill();
-                                    }
-                                    ctx.restore();
-                                    const radH = isStory ? H * 0.8 : H * 0.7;
-                                    const radG = ctx.createRadialGradient(
-                                      W / 2,
-                                      H / 2,
-                                      0,
-                                      W / 2,
-                                      H / 2,
-                                      radH,
-                                    );
-                                    radG.addColorStop(
-                                      0,
-                                      rank === 1
-                                        ? "rgba(255,215,0,0.08)"
-                                        : rank === 2
-                                          ? "rgba(192,192,192,0.08)"
-                                          : rank === 3
-                                            ? "rgba(205,127,50,0.08)"
-                                            : "rgba(255,0,51,0.08)",
-                                    );
-                                    radG.addColorStop(1, "rgba(0,0,0,0.6)");
-                                    ctx.fillStyle = radG;
-                                    ctx.fillRect(0, 0, W, H);
-                                    ctx.fillStyle = mainColor;
-                                    ctx.fillRect(0, 0, 8, H);
-                                    ctx.fillRect(W - 8, 0, 8, H);
-
-                                    const padX = 30,
-                                      nameBarH = isStory ? 200 : 160,
-                                      footerH = isStory ? 170 : 140;
-                                    const photoY = nameBarH,
-                                      photoH = H - nameBarH - footerH,
-                                      photoW = W - padX * 2;
-
-                                    // Try to load photo
-                                    const resolvedImgUrl = resolveImageUrl(
-                                      artItem.image,
-                                    );
-                                    if (resolvedImgUrl) {
-                                      await new Promise<void>((res) => {
-                                        const img = new Image();
-                                        if (resolvedImgUrl.startsWith("http"))
-                                          img.crossOrigin = "anonymous";
-                                        img.src = resolvedImgUrl;
-                                        img.onload = () => {
-                                          ctx.save();
-                                          ctx.beginPath();
-                                          ctx.rect(
-                                            padX,
-                                            photoY,
-                                            photoW,
-                                            photoH,
-                                          );
-                                          ctx.clip();
-                                          const s = Math.max(
-                                            photoW / img.width,
-                                            photoH / img.height,
-                                          );
-                                          ctx.drawImage(
-                                            img,
-                                            padX + (photoW - img.width * s) / 2,
-                                            photoY +
-                                              (photoH - img.height * s) / 2,
-                                            img.width * s,
-                                            img.height * s,
-                                          );
-                                          const fade = ctx.createLinearGradient(
-                                            0,
-                                            photoY + photoH * 0.6,
-                                            0,
-                                            photoY + photoH,
-                                          );
-                                          fade.addColorStop(0, "transparent");
-                                          fade.addColorStop(
-                                            1,
-                                            "rgba(8,11,16,0.85)",
-                                          );
-                                          ctx.fillStyle = fade;
-                                          ctx.fillRect(
-                                            padX,
-                                            photoY,
-                                            photoW,
-                                            photoH,
-                                          );
-                                          ctx.restore();
-                                          res();
-                                        };
-                                        img.onerror = () => {
-                                          ctx.fillStyle = C_MID;
-                                          ctx.fillRect(
-                                            padX,
-                                            photoY,
-                                            photoW,
-                                            photoH,
-                                          );
-                                          res();
-                                        };
-                                        setTimeout(res, 3000);
-                                      });
-                                    } else {
-                                      ctx.fillStyle = C_MID;
-                                      ctx.fillRect(
-                                        padX,
-                                        photoY,
-                                        photoW,
-                                        photoH,
-                                      );
-                                    }
-
-                                    // Photo border
-                                    ctx.save();
-                                    ctx.strokeStyle = mainColor;
-                                    ctx.lineWidth = 3;
-                                    ctx.shadowColor = mainColor;
-                                    ctx.shadowBlur = 15;
-                                    ctx.strokeRect(
-                                      padX,
-                                      photoY,
-                                      photoW,
-                                      photoH,
-                                    );
-                                    const cL = 40;
-                                    ctx.lineWidth = 6;
-                                    ctx.lineCap = "square";
-                                    [
-                                      [padX, photoY],
-                                      [padX + photoW, photoY],
-                                      [padX, photoY + photoH],
-                                      [padX + photoW, photoY + photoH],
-                                    ].forEach(([cx, cy], ci) => {
-                                      const sx = ci % 2 === 0 ? 1 : -1,
-                                        sy = ci < 2 ? 1 : -1;
-                                      ctx.beginPath();
-                                      ctx.moveTo(cx + sx * cL, cy);
-                                      ctx.lineTo(cx, cy);
-                                      ctx.lineTo(cx, cy + sy * cL);
-                                      ctx.stroke();
-                                    });
-                                    ctx.restore();
-
-                                    // Name bar (No more top logo text, just name)
-                                    ctx.fillStyle = C_MID;
-                                    ctx.fillRect(0, 0, W, nameBarH);
-                                    ctx.fillStyle = mainColor;
-                                    ctx.fillRect(0, nameBarH - 4, W, 4);
-                                    ctx.save();
-                                    ctx.textAlign = "left";
-                                    ctx.textBaseline = "middle";
-                                    let fs = isStory ? 115 : 90;
-                                    ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
-                                    while (
-                                      ctx.measureText(
-                                        artItem.name.toUpperCase(),
-                                      ).width >
-                                        W - (padX * 2 + 180) &&
-                                      fs > 50
-                                    ) {
-                                      fs -= 4;
-                                      ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
-                                    }
-                                    ctx.fillStyle = "#fff";
-                                    ctx.shadowColor = "rgba(0,0,0,0.8)";
-                                    ctx.shadowBlur = 15;
-                                    ctx.fillText(
-                                      artItem.name.toUpperCase(),
-                                      padX + 12,
-                                      nameBarH / 2,
-                                    );
-                                    ctx.restore();
-
-                                    // Rank badge
-                                    const bp = 16,
-                                      bh = nameBarH - bp * 2,
-                                      bw = bh * 1.1,
-                                      bx = W - padX - bw - 8,
-                                      by = bp;
-                                    ctx.save();
-                                    ctx.fillStyle = mainColor;
-                                    ctx.shadowColor = mainColor;
-                                    ctx.shadowBlur = 25;
-                                    ctx.beginPath();
-                                    ctx.roundRect(bx, by, bw, bh, 10);
-                                    ctx.fill();
-                                    ctx.fillStyle = C_DARK;
-                                    ctx.font = `900 italic ${bh * 0.6}px "Montserrat", sans-serif`;
-                                    ctx.textAlign = "center";
-                                    ctx.textBaseline = "middle";
-                                    ctx.shadowBlur = 0;
-                                    ctx.fillText(
-                                      `${rank}`,
-                                      bx + bw / 2,
-                                      by + bh / 2 + 4,
-                                    );
-                                    ctx.restore();
-
-                                    // Footer
-                                    const footerY = H - footerH;
-                                    ctx.fillStyle = C_MID;
-                                    ctx.fillRect(0, footerY, W, footerH);
-                                    ctx.fillStyle = mainColor;
-                                    ctx.fillRect(0, footerY, W, 4);
-                                    const bigFs = isStory ? 140 : 110;
-                                    ctx.save();
-                                    ctx.font = `900 italic ${bigFs}px "Montserrat", sans-serif`;
-                                    ctx.textAlign = "left";
-                                    ctx.textBaseline = "middle";
-                                    ctx.fillStyle = mainColor;
-                                    ctx.shadowColor = mainColor;
-                                    ctx.shadowBlur = 30;
-                                    const rankStr = `${rank}`,
-                                      rkW = ctx.measureText(rankStr).width;
-                                    ctx.fillText(
-                                      rankStr,
-                                      padX + 12,
-                                      footerY + footerH / 2 + 6,
-                                    );
-                                    ctx.restore();
-                                    const sepX =
-                                      padX + 12 + rkW + (isStory ? 30 : 20);
-                                    ctx.fillStyle =
-                                      rank === 1
-                                        ? "rgba(255,215,0,0.3)"
-                                        : rank === 2
-                                          ? "rgba(192,192,192,0.3)"
-                                          : rank === 3
-                                            ? "rgba(205,127,50,0.3)"
-                                            : "rgba(255,0,51,0.3)";
-                                    ctx.fillRect(
-                                      sepX,
-                                      footerY + 20,
-                                      2,
-                                      footerH - 40,
-                                    );
-
-                                    // Footer Text & Logo
-                                    const logoW = isStory ? 220 : 160;
-                                    const logoH = logoImg
-                                      ? (logoImg.height * logoW) / logoImg.width
-                                      : 0;
-                                    const tx = sepX + (isStory ? 24 : 18);
-                                    const textY = footerY + footerH * 0.32;
-
-                                    ctx.save();
-                                    ctx.textAlign = "left";
-                                    ctx.textBaseline = "middle";
-                                    ctx.font = `900 ${isStory ? 36 : 28}px "Orbitron", sans-serif`;
-                                    ctx.fillStyle = "#fff";
-                                    ctx.letterSpacing = "2px";
-                                    ctx.fillText(`TOP 100 ${label}`, tx, textY);
-
-                                    if (logoImg) {
-                                      ctx.drawImage(
-                                        logoImg,
-                                        tx,
-                                        textY + (isStory ? 35 : 28),
-                                        logoW,
-                                        logoH,
-                                      );
-                                    }
-                                    ctx.restore();
-
-                                    // Right Side: Domain
-                                    ctx.save();
-                                    ctx.font = `800 ${isStory ? 22 : 18}px "Montserrat", sans-serif`;
-                                    ctx.fillStyle = "#ffffff";
-                                    ctx.textAlign = "right";
-                                    ctx.textBaseline = "middle";
-                                    ctx.letterSpacing = "2px";
-                                    ctx.fillText(
-                                      "DROPSIDERS.FR",
-                                      W - padX - 12,
-                                      textY,
-                                    );
-                                    ctx.restore();
-
-                                    return canvas.toDataURL("image/png");
-                                  };
-
-                                  const [postUrl, storyUrl] = await Promise.all(
-                                    [
-                                      generateCard(1080, 1350),
-                                      generateCard(1080, 1920),
-                                    ],
-                                  );
-                                  setArtistPreview({
-                                    item: artItem,
-                                    idx: artIdx,
-                                    category: cat,
-                                    loading: false,
-                                    postUrl,
-                                    storyUrl,
-                                  });
-                                }}
-                                className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-[#c8ff00] transition-all group/btn"
-                                title="Prévisualiser le post"
-                              >
-                                <Eye className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-
-                      {/* ARTIST PREVIEW MODAL */}
-                      {artistPreview && (
-                        <div
-                          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md"
-                          onClick={() => setArtistPreview(null)}
-                        >
-                          <div
-                            className="bg-[#080b10] border border-white/10 rounded-[2.5rem] p-0 max-w-4xl w-full mx-4 relative overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-auto"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <button
-                              onClick={() => setArtistPreview(null)}
-                              className="absolute top-6 right-6 z-50 p-2 bg-black/50 rounded-full text-gray-400 hover:text-white transition-colors"
-                            >
-                              <X className="w-5 h-5" />
-                            </button>
-
-                            {/* Sidebar / Info */}
-                            <div className="w-full md:w-80 bg-white/[0.02] border-r border-white/5 p-8 flex flex-col">
-                              <div className="flex items-center gap-3 mb-8">
-                                <div
-                                  className={`w-3 h-3 rounded-full ${artistPreview.idx < 1 ? "bg-[#ffd700]" : "bg-[#ff1272]"}`}
-                                />
-                                <h3 className="text-white font-black uppercase tracking-widest text-sm">
-                                  {artistPreview.item.name}
-                                </h3>
-                              </div>
-
-                              <div className="space-y-1 mb-8">
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                                  Classement actuel
-                                </p>
-                                <p className="text-2xl font-display font-black text-white italic">
-                                  #{artistPreview.idx + 1}
-                                </p>
-                              </div>
-
-                              <div className="flex flex-col gap-2 mb-auto">
-                                <button
-                                  onClick={() => setPreviewMode("POST")}
-                                  className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${previewMode === "POST" ? "bg-neon-red/10 border-neon-red/40 text-white" : "border-white/5 text-gray-500 hover:bg-white/5"}`}
-                                >
-                                  <ImageIcon className="w-4 h-4" />
-                                  <div className="text-left">
-                                    <p className="text-[10px] font-black uppercase tracking-widest">
-                                      Format POST
-                                    </p>
-                                    <p className="text-[9px] opacity-50">
-                                      1080 × 1350 (4:5)
-                                    </p>
-                                  </div>
-                                </button>
-                                <button
-                                  onClick={() => setPreviewMode("STORY")}
-                                  className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${previewMode === "STORY" ? "bg-neon-red/10 border-neon-red/40 text-white" : "border-white/5 text-gray-500 hover:bg-white/5"}`}
-                                >
-                                  <Smartphone className="w-4 h-4" />
-                                  <div className="text-left">
-                                    <p className="text-[10px] font-black uppercase tracking-widest">
-                                      Format STORY
-                                    </p>
-                                    <p className="text-[9px] opacity-50">
-                                      1080 × 1920 (9:16)
-                                    </p>
-                                  </div>
-                                </button>
-                              </div>
-
-                              <div className="mt-8">
-                                <a
-                                  href={
-                                    previewMode === "POST"
-                                      ? artistPreview.postUrl
-                                      : artistPreview.storyUrl
-                                  }
-                                  download={`dropsiders-${artistPreview.item.name.toLowerCase().replace(/\s+/g, "-")}-${previewMode.toLowerCase()}.png`}
-                                  className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-neon-red to-[#ff3b8d] text-white rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-neon-red/20"
-                                >
-                                  <Download className="w-4 h-4" /> Télécharger
-                                  PNG
-                                </a>
-                              </div>
-                            </div>
-
-                            {/* Preview Stage */}
-                            <div className="flex-1 bg-black/40 p-8 flex items-center justify-center overflow-hidden">
-                              {artistPreview.loading ? (
-                                <div className="flex flex-col items-center gap-4">
-                                  <Loader2 className="w-12 h-12 text-neon-red animate-spin" />
-                                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                                    Génération des visuels...
-                                  </p>
-                                </div>
-                              ) : (
-                                <motion.div
-                                  key={previewMode}
-                                  initial={{ opacity: 0, scale: 0.95 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  className={`relative shadow-2xl rounded-lg overflow-hidden border border-white/10 ${previewMode === "POST" ? "aspect-[4/5] h-full max-h-[600px]" : "aspect-[9/16] h-full max-h-[650px]"}`}
-                                >
-                                  <img
-                                    src={
-                                      previewMode === "POST"
-                                        ? artistPreview.postUrl
-                                        : artistPreview.storyUrl
-                                    }
-                                    alt="Preview"
-                                    className="w-full h-full object-contain bg-black"
-                                  />
-                                </motion.div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
                     {/* WIKI WIDGET (EXPLORER) */}
                     <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-4">
                       <WikiWidget showResults={true} hideTitle={true} />
@@ -5489,7 +4511,7 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsGiveawayModalOpen(true);
-                            } else if (action.title === "Messagerie") {
+                            } else if (action.title === "Messagerie & Newsletter" || action.title === "Messagerie") {
                               e.preventDefault();
                               setIsMessagesModalOpen(true);
                             } else if (action.title === "Newsletter") {
@@ -5505,7 +4527,7 @@ export function AdminDashboard() {
                               action.link === "#TOP100_GENERATOR"
                             ) {
                               e.preventDefault();
-                              setDashboardTab("WIKI");
+                              setIsTop100GeneratorModalOpen(true);
                             } else if (
                               action.title === "Bandeau"
                             ) {
@@ -5575,7 +4597,7 @@ export function AdminDashboard() {
                                     </span>
                                   </div>
                                 )}
-                              {action.title === "Messagerie" &&
+                              {(action.title === "Messagerie & Newsletter" || action.title === "Messagerie") &&
                                 pendingMessagesCount > 0 && (
                                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                     <span className="text-[9px] font-black text-white">
@@ -12923,12 +11945,11 @@ export function AdminDashboard() {
                         key={card.id}
                         onClick={() => {
                           if (card.id === "GENERATOR") {
-                            // If they just want the generator, default to DJS list
-                            setWikiFilter("djs" as any);
+                            setIsTop100GeneratorModalOpen(true);
                           } else {
                             setWikiFilter(card.id as any);
+                            setDashboardTab("WIKI");
                           }
-                          setDashboardTab("WIKI");
                           setIsTopDropsidersModalOpen(false);
                         }}
                         className="p-8 rounded-[2rem] border border-white/10 bg-white/5 hover:bg-white/10 transition-all flex flex-col items-center gap-4 group"
@@ -13043,6 +12064,963 @@ export function AdminDashboard() {
               </div>
             )}
           </AnimatePresence>
+
+
+          {/* MODAL TOP 100 GENERATOR */}
+          <AnimatePresence>
+            {isTop100GeneratorModalOpen && (
+              <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsTop100GeneratorModalOpen(false)}
+                  className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="relative w-full max-w-7xl max-h-[90vh] bg-[#0a0a0a] rounded-[2.5rem] border border-white/10 z-10 overflow-y-auto custom-scrollbar p-10"
+                >
+                  <div className="flex justify-between items-center mb-4">
+                     <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Générateur Top 100</h2>
+                     <button onClick={() => setIsTop100GeneratorModalOpen(false)} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all"><X className="w-6 h-6" /></button>
+                  </div>
+                  {(() => {
+                    const wikiTab = wikiFilter.toLowerCase();
+                    const allRanked = wikiTab === 'djs' ? wikiDjs : wikiTab === 'clubs' ? wikiClubs : wikiFestivals;
+                    const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
+                    const medals = ['🥇', '🥈', '🥉'];
+                    return (
+                      <>
+{/* INLINE TOP 100 GENERATOR (MOVED TO TOP) */}
+                    <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
+                      <div className="relative z-10">
+                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+                          <div className="flex items-center gap-6">
+                            <div className="p-4 bg-neon-red/10 rounded-[1.5rem] border border-neon-red/30">
+                              <Sparkles className="w-10 h-10 text-neon-red" />
+                            </div>
+                            <div>
+                              <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">
+                                Générer Top 100
+                              </h3>
+                              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                                {wikiTab === "djs"
+                                  ? "🎧 DJs"
+                                  : wikiTab === "clubs"
+                                    ? "🏛️ Clubs"
+                                    : "🎪 Festivals"}{" "}
+                                — {allRanked.length} entrées
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-4 flex-wrap">
+                            <button
+                              onClick={async () => {
+                                const newState =
+                                  !takeoverState.wikiVotesEnabled;
+                                setTakeoverState({
+                                  ...takeoverState,
+                                  wikiVotesEnabled: newState,
+                                });
+                                try {
+                                  const res = await apiFetch("/api/settings", {
+                                    headers: getAuthHeaders(),
+                                  });
+                                  const data = res.ok ? await res.json() : {};
+                                  const newSettings = {
+                                    ...data,
+                                    takeover: {
+                                      ...data.takeover,
+                                      wikiVotesEnabled: newState,
+                                    },
+                                  };
+                                  await apiFetch("/api/settings/update", {
+                                    method: "POST",
+                                    headers: getAuthHeaders(),
+                                    body: JSON.stringify(newSettings),
+                                  });
+                                  setGlobalAlert({
+                                    type: "info",
+                                    title: "VOTES",
+                                    message: newState
+                                      ? "Les votes sont ACTIVÉS."
+                                      : "Les votes sont DÉSACTIVÉS.",
+                                  });
+                                } catch (e) {
+                                  console.error(e);
+                                }
+                              }}
+                              className={`px-8 py-4 border rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all flex items-center gap-2 ${takeoverState.wikiVotesEnabled ? "bg-white/10 border-white/20 text-white" : "bg-neon-green/20 border-neon-green text-neon-green"}`}
+                            >
+                              <Activity className="w-4 h-4" />
+                              {takeoverState.wikiVotesEnabled
+                                ? "DÉSACTIVER LES VOTES"
+                                : "ACTIVER LES VOTES"}
+                            </button>
+                            <button
+                              onClick={() => {
+                                setConfirmModal({
+                                  isOpen: true,
+                                  title: "RÉINITIALISER LES VOTES",
+                                  message:
+                                    "Êtes-vous sûr de vouloir remettre tous les votes (DJs, Clubs, Festivals) à zéro ? Cette action est irréversible et écrasera les données sur GitHub.",
+                                  type: "danger",
+                                  confirmText: "OUI, RÉINITIALISER",
+                                  onConfirm: async () => {
+                                    setConfirmModal((prev) => ({
+                                      ...prev,
+                                      isOpen: false,
+                                    }));
+                                    try {
+                                      const res = await apiFetch(
+                                        "/api/admin/reset-leaderboards",
+                                        {
+                                          method: "POST",
+                                          headers: getAuthHeaders(),
+                                          body: JSON.stringify({
+                                            type: "wiki",
+                                          }),
+                                        },
+                                      );
+                                      if (res.ok) {
+                                        setGlobalAlert({
+                                          type: "info",
+                                          title: "VOTES RÉINITIALISÉS",
+                                          message:
+                                            "Tous les compteurs sont revenus à zéro.",
+                                        });
+                                        setTimeout(
+                                          () => window.location.reload(),
+                                          1500,
+                                        );
+                                      }
+                                    } catch (e) {
+                                      console.error(e);
+                                    }
+                                  },
+                                });
+                              }}
+                              className="px-8 py-4 bg-red-500/10 border border-red-500 text-red-500 rounded-2xl text-[11px] font-black uppercase hover:scale-105 hover:bg-red-500 hover:text-white transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,0,0,0.2)]"
+                            >
+                              <RotateCcw className="w-4 h-4" /> RAZ DES VOTES
+                            </button>
+
+                            <button
+                              onClick={async () => {
+                                const canvas = document.createElement("canvas");
+                                canvas.width = 1080;
+                                canvas.height = 1350;
+                                const ctx = canvas.getContext("2d")!;
+                                const label =
+                                  wikiTab === "clubs"
+                                    ? "CLUBS"
+                                    : wikiTab === "festivals"
+                                      ? "FESTIVALS"
+                                      : "DJS";
+                                // BG
+                                ctx.fillStyle = "#080b10";
+                                ctx.fillRect(0, 0, 1080, 1350);
+                                const bg = ctx.createLinearGradient(
+                                  0,
+                                  0,
+                                  1080,
+                                  1350,
+                                );
+                                bg.addColorStop(0, "rgba(40,10,20,0.9)");
+                                bg.addColorStop(1, "rgba(10,5,15,0.9)");
+                                ctx.fillStyle = bg;
+                                ctx.fillRect(0, 0, 1080, 1350);
+                                // Title
+                                ctx.textAlign = "center";
+                                ctx.fillStyle = "#ffffff";
+                                ctx.font =
+                                  '900 italic 80px "Orbitron", sans-serif';
+                                ctx.shadowColor = "#ff1272";
+                                ctx.shadowBlur = 20;
+                                ctx.fillText("DROPSIDERS", 540, 90);
+                                ctx.font =
+                                  '900 italic 55px "Montserrat", sans-serif';
+                                const grad = ctx.createLinearGradient(
+                                  300,
+                                  130,
+                                  700,
+                                  130,
+                                );
+                                grad.addColorStop(0, "#ffd700");
+                                grad.addColorStop(0.5, "#fff1a8");
+                                grad.addColorStop(1, "#ffd700");
+                                ctx.fillStyle = grad;
+                                ctx.shadowBlur = 10;
+                                ctx.fillText(`TOP 100 ${label}`, 540, 160);
+                                ctx.shadowBlur = 0;
+                                // List — 4 cols x 25 rows
+                                const cols = 4,
+                                  rows = 25,
+                                  colW = 240,
+                                  rowH = 43;
+                                const startX = 540 - (colW * cols) / 2;
+                                const listTop = 210;
+                                ctx.textAlign = "left";
+                                ctx.textBaseline = "middle";
+                                allRanked
+                                  .slice(0, 100)
+                                  .forEach((item: any, i: number) => {
+                                    const col = Math.floor(i / rows),
+                                      row = i % rows;
+                                    const x = startX + col * colW,
+                                      y = listTop + row * rowH;
+                                    ctx.fillStyle =
+                                      i < 3 ? "#ffd700" : "#ff1272";
+                                    ctx.font =
+                                      '900 16px "Montserrat", sans-serif';
+                                    ctx.fillText(`#${i + 1}`, x, y);
+                                    ctx.fillStyle = "#ffffff";
+                                    ctx.font =
+                                      '600 15px "Montserrat", sans-serif';
+                                    let name = (item.name || "").toUpperCase();
+                                    while (
+                                      ctx.measureText(name).width > 185 &&
+                                      name.length > 3
+                                    )
+                                      name = name.slice(0, -1);
+                                    if (
+                                      name !== (item.name || "").toUpperCase()
+                                    )
+                                      name += "…";
+                                    ctx.fillText(name, x + 42, y);
+                                  });
+                                // Footer
+                                ctx.fillStyle = "#ff1272";
+                                ctx.fillRect(0, 1310, 1080, 3);
+                                ctx.fillStyle = "rgba(15,22,32,0.95)";
+                                ctx.fillRect(0, 1313, 1080, 37);
+                                ctx.fillStyle = "#ffffff";
+                                ctx.font = '700 18px "Orbitron", sans-serif';
+                                ctx.textAlign = "center";
+                                ctx.letterSpacing = "6px";
+                                ctx.fillText("DROPSIDERS.FR", 540, 1335);
+                                // Download
+                                const a = document.createElement("a");
+                                a.href = canvas.toDataURL("image/png");
+                                a.download = `dropsiders-top100-${label.toLowerCase()}-post.png`;
+                                a.click();
+                              }}
+                              className="px-8 py-4 bg-neon-red text-white rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(255,18,114,0.3)]"
+                            >
+                              <ImageIcon className="w-4 h-4" />⬇ POST
+                              (1080×1350)
+                            </button>
+                            <button
+                              onClick={async () => {
+                                const canvas = document.createElement("canvas");
+                                canvas.width = 1080;
+                                canvas.height = 1920;
+                                const ctx = canvas.getContext("2d")!;
+                                const label =
+                                  wikiTab === "clubs"
+                                    ? "CLUBS"
+                                    : wikiTab === "festivals"
+                                      ? "FESTIVALS"
+                                      : "DJS";
+                                // BG
+                                ctx.fillStyle = "#080b10";
+                                ctx.fillRect(0, 0, 1080, 1920);
+                                const bg = ctx.createLinearGradient(
+                                  0,
+                                  0,
+                                  1080,
+                                  1920,
+                                );
+                                bg.addColorStop(0, "rgba(40,10,20,0.9)");
+                                bg.addColorStop(1, "rgba(10,5,15,0.9)");
+                                ctx.fillStyle = bg;
+                                ctx.fillRect(0, 0, 1080, 1920);
+                                // Title
+                                ctx.textAlign = "center";
+                                ctx.fillStyle = "#ffffff";
+                                ctx.font =
+                                  '900 italic 100px "Orbitron", sans-serif';
+                                ctx.shadowColor = "#ff1272";
+                                ctx.shadowBlur = 25;
+                                ctx.fillText("DROPSIDERS", 540, 120);
+                                ctx.font =
+                                  '900 italic 70px "Montserrat", sans-serif';
+                                const grad = ctx.createLinearGradient(
+                                  300,
+                                  180,
+                                  700,
+                                  180,
+                                );
+                                grad.addColorStop(0, "#ffd700");
+                                grad.addColorStop(0.5, "#ffffff");
+                                grad.addColorStop(1, "#ffd700");
+                                ctx.fillStyle = grad;
+                                ctx.shadowBlur = 12;
+                                ctx.fillText(`TOP 100 ${label}`, 540, 210);
+                                ctx.shadowBlur = 0;
+                                // List
+                                const cols = 2,
+                                  rows = 50,
+                                  colW = 490,
+                                  rowH = 33,
+                                  listTop = 270;
+                                const startX = 540 - (colW * cols) / 2;
+                                ctx.textAlign = "left";
+                                ctx.textBaseline = "middle";
+                                allRanked
+                                  .slice(0, 100)
+                                  .forEach((item: any, i: number) => {
+                                    const col = Math.floor(i / rows),
+                                      row = i % rows;
+                                    const x = startX + col * colW,
+                                      y = listTop + row * rowH;
+                                    ctx.fillStyle =
+                                      i === 0
+                                        ? "#ffd700"
+                                        : i === 1
+                                          ? "#c0c0c0"
+                                          : i === 2
+                                            ? "#cd7f32"
+                                            : "#ff1272";
+                                    ctx.font =
+                                      '900 15px "Montserrat", sans-serif';
+                                    ctx.fillText(`#${i + 1}`, x + 4, y);
+                                    ctx.fillStyle = "#ffffff";
+                                    ctx.font =
+                                      '600 14px "Montserrat", sans-serif';
+                                    let name = (item.name || "").toUpperCase();
+                                    while (
+                                      ctx.measureText(name).width > 380 &&
+                                      name.length > 3
+                                    )
+                                      name = name.slice(0, -1);
+                                    if (
+                                      name !== (item.name || "").toUpperCase()
+                                    )
+                                      name += "…";
+                                    ctx.fillText(name, x + 46, y);
+                                  });
+                                // Footer
+                                ctx.fillStyle = "#ff1272";
+                                ctx.fillRect(0, 1870, 1080, 3);
+                                ctx.fillStyle = "rgba(15,22,32,0.95)";
+                                ctx.fillRect(0, 1873, 1080, 47);
+                                ctx.fillStyle = "#ffffff";
+                                ctx.font = '700 22px "Orbitron", sans-serif';
+                                ctx.textAlign = "center";
+                                ctx.letterSpacing = "6px";
+                                ctx.fillText("DROPSIDERS.FR", 540, 1900);
+                                const a = document.createElement("a");
+                                a.href = canvas.toDataURL("image/png");
+                                a.download = `dropsiders-top100-${label.toLowerCase()}-story.png`;
+                                a.click();
+                              }}
+                              className="px-8 py-4 bg-white/10 border border-neon-red/40 text-neon-red rounded-2xl text-[11px] font-black uppercase hover:scale-105 hover:bg-neon-red/10 transition-all flex items-center gap-2"
+                            >
+                              <Smartphone className="w-4 h-4" />⬇ STORY
+                              (1080×1920)
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-gray-600 uppercase tracking-widest">
+                          ⚡ Génération directe en PNG — sans Social Studio —
+                          basé sur le classement actif (
+                          {wikiTab === "djs"
+                            ? "DJs"
+                            : wikiTab === "clubs"
+                              ? "Clubs"
+                              : "Festivals"}
+                          )
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* RANKING SUMMARY (TOP) */}
+                    <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <Star className="w-4 h-4 text-neon-red fill-current" />
+                            <span className="text-neon-red font-black tracking-[0.3em] text-[9px] uppercase">
+                              Classement Wiki
+                            </span>
+                          </div>
+                          <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">
+                            Top Votes Communauté
+                          </h2>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-6">
+                          <div className="flex items-center bg-black/40 border border-white/10 rounded-2xl p-1.5 gap-1.5">
+                            {(["djs", "clubs", "festivals"] as const).map(
+                              (id) => (
+                                <button
+                                  key={id}
+                                  onClick={() => setWikiTab(id)}
+                                  className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${wikiTab === id ? "bg-neon-red text-white shadow-lg shadow-neon-red/20" : "text-gray-500 hover:text-gray-300"}`}
+                                >
+                                  {id === "djs"
+                                    ? "🎧 DJs"
+                                    : id === "clubs"
+                                      ? "🏛️ Clubs"
+                                      : "🎪 Festivals"}
+                                </button>
+                              ),
+                            )}
+                          </div>
+                          <button
+                            onClick={() => setIsWikiExpanded(!isWikiExpanded)}
+                            className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2"
+                          >
+                            {isWikiExpanded ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
+                            {isWikiExpanded ? "Réduire" : "Voir Top 50"}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {ranked.length === 0 ? (
+                          <div className="col-span-full py-20 text-center text-gray-600 font-black uppercase tracking-widest italic opacity-50">
+                            Aucun vote enregistré
+                          </div>
+                        ) : (
+                          ranked.map((item: any, idx: number) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center gap-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-3xl p-4 transition-all group"
+                            >
+                              <div className="w-10 h-10 bg-black/40 rounded-2xl flex items-center justify-center shrink-0 border border-white/5 relative">
+                                {idx < 3 ? (
+                                  <span className="text-xl relative z-10">
+                                    {medals[idx]}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs font-black text-gray-500">
+                                    #{idx + 1}
+                                  </span>
+                                )}
+                                <div className="absolute inset-0 bg-neon-red/5 blur-xl group-hover:bg-neon-red/10 transition-colors rounded-full" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[11px] font-black text-white uppercase tracking-tighter truncate group-hover:text-neon-red transition-colors">
+                                  {item.name}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Heart className="w-3 h-3 text-neon-red fill-current opacity-50" />
+                                  <span className="text-xs font-display font-black text-neon-red italic tracking-tighter">
+                                    {item.tv}{" "}
+                                    <span className="text-[8px] font-bold text-gray-600 uppercase italic">
+                                      votes
+                                    </span>
+                                  </span>
+                                </div>
+                              </div>
+                              <button
+                                onClick={async () => {
+                                  const artItem = item;
+                                  const artIdx = idx;
+                                  const cat = wikiTab;
+                                  setArtistPreview({
+                                    item: artItem,
+                                    idx: artIdx,
+                                    category: cat,
+                                    loading: true,
+                                  });
+
+                                  const generateCard = async (
+                                    W: number,
+                                    H: number,
+                                  ): Promise<string> => {
+                                    const canvas =
+                                      document.createElement("canvas");
+                                    canvas.width = W;
+                                    canvas.height = H;
+                                    const ctx = canvas.getContext("2d")!;
+                                    const isStory = H === 1920;
+                                    const rank = artIdx + 1;
+                                    const label =
+                                      cat === "clubs"
+                                        ? "CLUBS"
+                                        : cat === "festivals"
+                                          ? "FESTIVALS"
+                                          : "DJS";
+                                    const C_RED = "#ff0033",
+                                      C_DARK = "#080b10",
+                                      C_MID = "#0f1620",
+                                      C_STRIPE = "#1a0a10";
+                                    const C_GOLD = "#ffd700",
+                                      C_SILVER = "#c0c0c0",
+                                      C_BRONZE = "#cd7f32";
+                                    const mainColor =
+                                      rank === 1
+                                        ? C_GOLD
+                                        : rank === 2
+                                          ? C_SILVER
+                                          : rank === 3
+                                            ? C_BRONZE
+                                            : C_RED;
+
+                                    // Load Logo
+                                    const logoImg =
+                                      await new Promise<HTMLImageElement | null>(
+                                        (res) => {
+                                          const img = new Image();
+                                          img.crossOrigin = "anonymous";
+                                          img.src = "/Logo.png";
+                                          img.onload = () => res(img);
+                                          img.onerror = () => res(null);
+                                        },
+                                      );
+
+                                    // BG
+                                    ctx.fillStyle = C_DARK;
+                                    ctx.fillRect(0, 0, W, H);
+                                    ctx.save();
+                                    for (let i = -H; i < W + H; i += 28) {
+                                      ctx.fillStyle = C_STRIPE;
+                                      ctx.beginPath();
+                                      ctx.moveTo(i, 0);
+                                      ctx.lineTo(i + 14, 0);
+                                      ctx.lineTo(i + 14 + H, H);
+                                      ctx.lineTo(i + H, H);
+                                      ctx.closePath();
+                                      ctx.fill();
+                                    }
+                                    ctx.restore();
+                                    const radH = isStory ? H * 0.8 : H * 0.7;
+                                    const radG = ctx.createRadialGradient(
+                                      W / 2,
+                                      H / 2,
+                                      0,
+                                      W / 2,
+                                      H / 2,
+                                      radH,
+                                    );
+                                    radG.addColorStop(
+                                      0,
+                                      rank === 1
+                                        ? "rgba(255,215,0,0.08)"
+                                        : rank === 2
+                                          ? "rgba(192,192,192,0.08)"
+                                          : rank === 3
+                                            ? "rgba(205,127,50,0.08)"
+                                            : "rgba(255,0,51,0.08)",
+                                    );
+                                    radG.addColorStop(1, "rgba(0,0,0,0.6)");
+                                    ctx.fillStyle = radG;
+                                    ctx.fillRect(0, 0, W, H);
+                                    ctx.fillStyle = mainColor;
+                                    ctx.fillRect(0, 0, 8, H);
+                                    ctx.fillRect(W - 8, 0, 8, H);
+
+                                    const padX = 30,
+                                      nameBarH = isStory ? 200 : 160,
+                                      footerH = isStory ? 170 : 140;
+                                    const photoY = nameBarH,
+                                      photoH = H - nameBarH - footerH,
+                                      photoW = W - padX * 2;
+
+                                    // Try to load photo
+                                    const resolvedImgUrl = resolveImageUrl(
+                                      artItem.image,
+                                    );
+                                    if (resolvedImgUrl) {
+                                      await new Promise<void>((res) => {
+                                        const img = new Image();
+                                        if (resolvedImgUrl.startsWith("http"))
+                                          img.crossOrigin = "anonymous";
+                                        img.src = resolvedImgUrl;
+                                        img.onload = () => {
+                                          ctx.save();
+                                          ctx.beginPath();
+                                          ctx.rect(
+                                            padX,
+                                            photoY,
+                                            photoW,
+                                            photoH,
+                                          );
+                                          ctx.clip();
+                                          const s = Math.max(
+                                            photoW / img.width,
+                                            photoH / img.height,
+                                          );
+                                          ctx.drawImage(
+                                            img,
+                                            padX + (photoW - img.width * s) / 2,
+                                            photoY +
+                                              (photoH - img.height * s) / 2,
+                                            img.width * s,
+                                            img.height * s,
+                                          );
+                                          const fade = ctx.createLinearGradient(
+                                            0,
+                                            photoY + photoH * 0.6,
+                                            0,
+                                            photoY + photoH,
+                                          );
+                                          fade.addColorStop(0, "transparent");
+                                          fade.addColorStop(
+                                            1,
+                                            "rgba(8,11,16,0.85)",
+                                          );
+                                          ctx.fillStyle = fade;
+                                          ctx.fillRect(
+                                            padX,
+                                            photoY,
+                                            photoW,
+                                            photoH,
+                                          );
+                                          ctx.restore();
+                                          res();
+                                        };
+                                        img.onerror = () => {
+                                          ctx.fillStyle = C_MID;
+                                          ctx.fillRect(
+                                            padX,
+                                            photoY,
+                                            photoW,
+                                            photoH,
+                                          );
+                                          res();
+                                        };
+                                        setTimeout(res, 3000);
+                                      });
+                                    } else {
+                                      ctx.fillStyle = C_MID;
+                                      ctx.fillRect(
+                                        padX,
+                                        photoY,
+                                        photoW,
+                                        photoH,
+                                      );
+                                    }
+
+                                    // Photo border
+                                    ctx.save();
+                                    ctx.strokeStyle = mainColor;
+                                    ctx.lineWidth = 3;
+                                    ctx.shadowColor = mainColor;
+                                    ctx.shadowBlur = 15;
+                                    ctx.strokeRect(
+                                      padX,
+                                      photoY,
+                                      photoW,
+                                      photoH,
+                                    );
+                                    const cL = 40;
+                                    ctx.lineWidth = 6;
+                                    ctx.lineCap = "square";
+                                    [
+                                      [padX, photoY],
+                                      [padX + photoW, photoY],
+                                      [padX, photoY + photoH],
+                                      [padX + photoW, photoY + photoH],
+                                    ].forEach(([cx, cy], ci) => {
+                                      const sx = ci % 2 === 0 ? 1 : -1,
+                                        sy = ci < 2 ? 1 : -1;
+                                      ctx.beginPath();
+                                      ctx.moveTo(cx + sx * cL, cy);
+                                      ctx.lineTo(cx, cy);
+                                      ctx.lineTo(cx, cy + sy * cL);
+                                      ctx.stroke();
+                                    });
+                                    ctx.restore();
+
+                                    // Name bar (No more top logo text, just name)
+                                    ctx.fillStyle = C_MID;
+                                    ctx.fillRect(0, 0, W, nameBarH);
+                                    ctx.fillStyle = mainColor;
+                                    ctx.fillRect(0, nameBarH - 4, W, 4);
+                                    ctx.save();
+                                    ctx.textAlign = "left";
+                                    ctx.textBaseline = "middle";
+                                    let fs = isStory ? 115 : 90;
+                                    ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                                    while (
+                                      ctx.measureText(
+                                        artItem.name.toUpperCase(),
+                                      ).width >
+                                        W - (padX * 2 + 180) &&
+                                      fs > 50
+                                    ) {
+                                      fs -= 4;
+                                      ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                                    }
+                                    ctx.fillStyle = "#fff";
+                                    ctx.shadowColor = "rgba(0,0,0,0.8)";
+                                    ctx.shadowBlur = 15;
+                                    ctx.fillText(
+                                      artItem.name.toUpperCase(),
+                                      padX + 12,
+                                      nameBarH / 2,
+                                    );
+                                    ctx.restore();
+
+                                    // Rank badge
+                                    const bp = 16,
+                                      bh = nameBarH - bp * 2,
+                                      bw = bh * 1.1,
+                                      bx = W - padX - bw - 8,
+                                      by = bp;
+                                    ctx.save();
+                                    ctx.fillStyle = mainColor;
+                                    ctx.shadowColor = mainColor;
+                                    ctx.shadowBlur = 25;
+                                    ctx.beginPath();
+                                    ctx.roundRect(bx, by, bw, bh, 10);
+                                    ctx.fill();
+                                    ctx.fillStyle = C_DARK;
+                                    ctx.font = `900 italic ${bh * 0.6}px "Montserrat", sans-serif`;
+                                    ctx.textAlign = "center";
+                                    ctx.textBaseline = "middle";
+                                    ctx.shadowBlur = 0;
+                                    ctx.fillText(
+                                      `${rank}`,
+                                      bx + bw / 2,
+                                      by + bh / 2 + 4,
+                                    );
+                                    ctx.restore();
+
+                                    // Footer
+                                    const footerY = H - footerH;
+                                    ctx.fillStyle = C_MID;
+                                    ctx.fillRect(0, footerY, W, footerH);
+                                    ctx.fillStyle = mainColor;
+                                    ctx.fillRect(0, footerY, W, 4);
+                                    const bigFs = isStory ? 140 : 110;
+                                    ctx.save();
+                                    ctx.font = `900 italic ${bigFs}px "Montserrat", sans-serif`;
+                                    ctx.textAlign = "left";
+                                    ctx.textBaseline = "middle";
+                                    ctx.fillStyle = mainColor;
+                                    ctx.shadowColor = mainColor;
+                                    ctx.shadowBlur = 30;
+                                    const rankStr = `${rank}`,
+                                      rkW = ctx.measureText(rankStr).width;
+                                    ctx.fillText(
+                                      rankStr,
+                                      padX + 12,
+                                      footerY + footerH / 2 + 6,
+                                    );
+                                    ctx.restore();
+                                    const sepX =
+                                      padX + 12 + rkW + (isStory ? 30 : 20);
+                                    ctx.fillStyle =
+                                      rank === 1
+                                        ? "rgba(255,215,0,0.3)"
+                                        : rank === 2
+                                          ? "rgba(192,192,192,0.3)"
+                                          : rank === 3
+                                            ? "rgba(205,127,50,0.3)"
+                                            : "rgba(255,0,51,0.3)";
+                                    ctx.fillRect(
+                                      sepX,
+                                      footerY + 20,
+                                      2,
+                                      footerH - 40,
+                                    );
+
+                                    // Footer Text & Logo
+                                    const logoW = isStory ? 220 : 160;
+                                    const logoH = logoImg
+                                      ? (logoImg.height * logoW) / logoImg.width
+                                      : 0;
+                                    const tx = sepX + (isStory ? 24 : 18);
+                                    const textY = footerY + footerH * 0.32;
+
+                                    ctx.save();
+                                    ctx.textAlign = "left";
+                                    ctx.textBaseline = "middle";
+                                    ctx.font = `900 ${isStory ? 36 : 28}px "Orbitron", sans-serif`;
+                                    ctx.fillStyle = "#fff";
+                                    ctx.letterSpacing = "2px";
+                                    ctx.fillText(`TOP 100 ${label}`, tx, textY);
+
+                                    if (logoImg) {
+                                      ctx.drawImage(
+                                        logoImg,
+                                        tx,
+                                        textY + (isStory ? 35 : 28),
+                                        logoW,
+                                        logoH,
+                                      );
+                                    }
+                                    ctx.restore();
+
+                                    // Right Side: Domain
+                                    ctx.save();
+                                    ctx.font = `800 ${isStory ? 22 : 18}px "Montserrat", sans-serif`;
+                                    ctx.fillStyle = "#ffffff";
+                                    ctx.textAlign = "right";
+                                    ctx.textBaseline = "middle";
+                                    ctx.letterSpacing = "2px";
+                                    ctx.fillText(
+                                      "DROPSIDERS.FR",
+                                      W - padX - 12,
+                                      textY,
+                                    );
+                                    ctx.restore();
+
+                                    return canvas.toDataURL("image/png");
+                                  };
+
+                                  const [postUrl, storyUrl] = await Promise.all(
+                                    [
+                                      generateCard(1080, 1350),
+                                      generateCard(1080, 1920),
+                                    ],
+                                  );
+                                  setArtistPreview({
+                                    item: artItem,
+                                    idx: artIdx,
+                                    category: cat,
+                                    loading: false,
+                                    postUrl,
+                                    storyUrl,
+                                  });
+                                }}
+                                className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-[#c8ff00] transition-all group/btn"
+                                title="Prévisualiser le post"
+                              >
+                                <Eye className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* ARTIST PREVIEW MODAL */}
+                      {artistPreview && (
+                        <div
+                          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md"
+                          onClick={() => setArtistPreview(null)}
+                        >
+                          <div
+                            className="bg-[#080b10] border border-white/10 rounded-[2.5rem] p-0 max-w-4xl w-full mx-4 relative overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-auto"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => setArtistPreview(null)}
+                              className="absolute top-6 right-6 z-50 p-2 bg-black/50 rounded-full text-gray-400 hover:text-white transition-colors"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+
+                            {/* Sidebar / Info */}
+                            <div className="w-full md:w-80 bg-white/[0.02] border-r border-white/5 p-8 flex flex-col">
+                              <div className="flex items-center gap-3 mb-8">
+                                <div
+                                  className={`w-3 h-3 rounded-full ${artistPreview.idx < 1 ? "bg-[#ffd700]" : "bg-[#ff1272]"}`}
+                                />
+                                <h3 className="text-white font-black uppercase tracking-widest text-sm">
+                                  {artistPreview.item.name}
+                                </h3>
+                              </div>
+
+                              <div className="space-y-1 mb-8">
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                                  Classement actuel
+                                </p>
+                                <p className="text-2xl font-display font-black text-white italic">
+                                  #{artistPreview.idx + 1}
+                                </p>
+                              </div>
+
+                              <div className="flex flex-col gap-2 mb-auto">
+                                <button
+                                  onClick={() => setPreviewMode("POST")}
+                                  className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${previewMode === "POST" ? "bg-neon-red/10 border-neon-red/40 text-white" : "border-white/5 text-gray-500 hover:bg-white/5"}`}
+                                >
+                                  <ImageIcon className="w-4 h-4" />
+                                  <div className="text-left">
+                                    <p className="text-[10px] font-black uppercase tracking-widest">
+                                      Format POST
+                                    </p>
+                                    <p className="text-[9px] opacity-50">
+                                      1080 × 1350 (4:5)
+                                    </p>
+                                  </div>
+                                </button>
+                                <button
+                                  onClick={() => setPreviewMode("STORY")}
+                                  className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${previewMode === "STORY" ? "bg-neon-red/10 border-neon-red/40 text-white" : "border-white/5 text-gray-500 hover:bg-white/5"}`}
+                                >
+                                  <Smartphone className="w-4 h-4" />
+                                  <div className="text-left">
+                                    <p className="text-[10px] font-black uppercase tracking-widest">
+                                      Format STORY
+                                    </p>
+                                    <p className="text-[9px] opacity-50">
+                                      1080 × 1920 (9:16)
+                                    </p>
+                                  </div>
+                                </button>
+                              </div>
+
+                              <div className="mt-8">
+                                <a
+                                  href={
+                                    previewMode === "POST"
+                                      ? artistPreview.postUrl
+                                      : artistPreview.storyUrl
+                                  }
+                                  download={`dropsiders-${artistPreview.item.name.toLowerCase().replace(/\s+/g, "-")}-${previewMode.toLowerCase()}.png`}
+                                  className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-neon-red to-[#ff3b8d] text-white rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-neon-red/20"
+                                >
+                                  <Download className="w-4 h-4" /> Télécharger
+                                  PNG
+                                </a>
+                              </div>
+                            </div>
+
+                            {/* Preview Stage */}
+                            <div className="flex-1 bg-black/40 p-8 flex items-center justify-center overflow-hidden">
+                              {artistPreview.loading ? (
+                                <div className="flex flex-col items-center gap-4">
+                                  <Loader2 className="w-12 h-12 text-neon-red animate-spin" />
+                                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                                    Génération des visuels...
+                                  </p>
+                                </div>
+                              ) : (
+                                <motion.div
+                                  key={previewMode}
+                                  initial={{ opacity: 0, scale: 0.95 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  className={`relative shadow-2xl rounded-lg overflow-hidden border border-white/10 ${previewMode === "POST" ? "aspect-[4/5] h-full max-h-[600px]" : "aspect-[9/16] h-full max-h-[650px]"}`}
+                                >
+                                  <img
+                                    src={
+                                      previewMode === "POST"
+                                        ? artistPreview.postUrl
+                                        : artistPreview.storyUrl
+                                    }
+                                    alt="Preview"
+                                    className="w-full h-full object-contain bg-black"
+                                  />
+                                </motion.div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    
+                      </>
+                    );
+                  })()}
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
 
           {/* MODAL RANDOMIZER (fixed nesting) */}
           <AnimatePresence>
