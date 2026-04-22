@@ -168,31 +168,37 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             headerY -= 40;
         }
 
-        // 4. Render Days
-        const startY = headerY + (customTitle?.trim() ? 100 : 40);
-        const availableHeight = height - startY - 200; // 200 for footer margin
+        // 4. Calculate Available Space and Center Schedule
+        const footerHeight = 150;
+        const availableHeight = height - startY - footerHeight;
         const numDays = schedule.length;
         
-        // Dynamic sizing
-        let dayHeight = viewMode === 'timetable' ? 110 : 260; // Augmenté à 260 pour éviter les chevauchements
-        let dateFontSize = 65; 
-        let eventFontSize = 40; // Passé à 40
-        let eventSpacing = 70;
-        let eventNightSpacing = 125;
-
-        if (numDays > 4) {
-            const scale = Math.max(0.6, 1 - (numDays - 4) * 0.1);
-            dayHeight = 180 * scale;
-            dateFontSize = 50 * scale;
-            eventFontSize = 30 * scale;
-            eventSpacing = 50 * scale;
-            eventNightSpacing = 95 * scale;
+        // Base sizes
+        let dateFontSize = 60; 
+        let eventFontSize = 38;
+        let eventSpacing = 60;
+        let eventNightSpacing = 110;
+        
+        // Dynamic scaling based on number of days to fit perfectly
+        let dayHeight = availableHeight / numDays;
+        const maxDayHeight = 220;
+        if (dayHeight > maxDayHeight) dayHeight = maxDayHeight;
+        
+        // If days are cramped, scale fonts down
+        if (dayHeight < 180) {
+            const scale = Math.max(0.7, dayHeight / 200);
+            dateFontSize *= scale;
+            eventFontSize *= scale;
+            eventSpacing *= scale;
+            eventNightSpacing *= scale;
         }
 
-        const marginX = 80;
+        // Center the whole block vertically in the available space
+        const totalScheduleHeight = dayHeight * numDays;
+        const finalStartY = startY + (availableHeight - totalScheduleHeight) / 2;
 
         schedule.forEach((day, index) => {
-            const y = startY + index * dayHeight;
+            const y = finalStartY + index * dayHeight;
             
             // Date Header
             if (viewMode === 'planning' && day.date) {
@@ -201,11 +207,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 ctx.fillStyle = '#ff1241';
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = 'rgba(255, 18, 65, 0.5)';
-                ctx.fillText(day.date.toUpperCase(), width / 2, y);
+                ctx.fillText(day.date.toUpperCase(), width / 2, y + (dayHeight * 0.1));
                 ctx.shadowBlur = 0;
             }
 
-            const eventBaseY = viewMode === 'planning' ? y : y - (dateFontSize * 0.5);
+            const eventBaseY = viewMode === 'planning' ? y + (dayHeight * 0.1) : y - (dateFontSize * 0.2);
             const iconDay = viewMode === 'planning' ? '☀️ ' : '';
             const iconNight = viewMode === 'planning' ? '🌒 ' : '';
 
@@ -238,35 +244,35 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     ctx.textAlign = 'left';
                     ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ff1241';
-                    ctx.fillText(hourText, currentX, eventBaseY + eventSpacing);
+                    ctx.fillText(hourText, currentX, y + (dayHeight / 2));
                     currentX += hourWidth;
                 }
                 if (hourText && artistText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(separator, currentX, eventBaseY + eventSpacing);
+                    ctx.fillText(separator, currentX, y + (dayHeight / 2));
                     currentX += sepWidth;
                 }
                 if (artistText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(artistText, currentX, eventBaseY + eventSpacing);
+                    ctx.fillText(artistText, currentX, y + (dayHeight / 2));
                     currentX += artistWidth;
                 }
                 if (artistText && stageText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(separator, currentX, eventBaseY + eventSpacing);
+                    ctx.fillText(separator, currentX, y + (dayHeight / 2));
                     currentX += sepWidth;
                 }
                 if (stageText) {
                     ctx.textAlign = 'left';
                     ctx.font = `500 ${eventFontSize * 0.8}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                    ctx.fillText(stageText, currentX, eventBaseY + eventSpacing);
+                    ctx.fillText(stageText, currentX, y + (dayHeight / 2));
                 }
             } else {
                 // Planning format: Separate lines for Day and Night with Locations
@@ -302,16 +308,18 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 };
 
                 renderEvent(day.dayArtist, day.dayLocation, iconDay, eventSpacing);
-                renderEvent(day.nightArtist, day.nightLocation, iconNight, day.dayArtist ? eventNightSpacing + 20 : eventSpacing);
+                renderEvent(day.nightArtist, day.nightLocation, iconNight, day.dayArtist ? eventNightSpacing : eventSpacing);
             }
 
-            // Divider
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(marginX, y + (dayHeight * 0.7));
-            ctx.lineTo(width - marginX, y + (dayHeight * 0.7));
-            ctx.stroke();
+            // Divider - exactly between entries
+            if (index < numDays - 1) {
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                ctx.lineWidth = 2;
+                ctx.moveTo(width * 0.15, y + dayHeight);
+                ctx.lineTo(width * 0.85, y + dayHeight);
+                ctx.stroke();
+            }
         });
 
         // 5. Footer
