@@ -4,8 +4,16 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Trophy, Music, LogOut, ChevronRight, Heart, Camera, Upload, Loader2, Zap } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
+
+const parseJwt = (token: string) => {
+    try {
+        return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+        return null;
+    }
+};
 
 interface UserAuthModalProps {
     isOpen: boolean;
@@ -24,44 +32,8 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
     const [error, setError] = useState<string | null>(null);
     const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
 
-    const googleLogin = useGoogleLogin({
-        onSuccess: async (tokenResponse) => {
-            setIsSocialLoading(true);
-            try {
-                const res = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                });
-                
-                const googleUser = res.data;
-                loginSocial({
-                    username: googleUser.name,
-                    email: googleUser.email,
-                    avatar: googleUser.picture,
-                    id: googleUser.sub,
-                    provider: 'google'
-                });
-                onClose();
-            } catch (error) {
-                console.error('Google login failed', error);
-            } finally {
-                setIsSocialLoading(false);
-            }
-        },
-        onError: () => console.error('Google login error'),
-    });
-
-    const handleGoogleMobileFriendlyLogin = () => {
-        const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        if (isMobile) {
-            setIsSocialLoading(true);
-            const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "762584383630-nc4f3eaqnvnkus7lk793n2n22qjdpdv3.apps.googleusercontent.com";
-            const redirectUri = window.location.origin; // ex: https://dropsiders.fr
-            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile`;
-            window.location.href = url;
-        } else {
-            googleLogin();
-        }
-    };
+    // L'authentification Google via Iframe est gérée directement par le composant <GoogleLogin> plus bas
+    // car il offre une meilleure compatibilité mobile (sans popups ni redirection bloquées).
 
     const handleDiscordLogin = () => {
         setDiscordLoading(true);
@@ -308,23 +280,41 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                 <div className="space-y-6">
                                     {/* Social Login Buttons */}
                                     <div className="grid grid-cols-2 gap-4">
-                                        <button
-                                            onClick={handleGoogleMobileFriendlyLogin}
-                                            disabled={isSocialLoading}
-                                            className="flex items-center justify-center gap-3 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
-                                        >
-                                            <svg className="w-5 h-5" viewBox="0 0 24 24">
-                                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.26 1.07-3.71 1.07-2.87 0-5.3-1.94-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-                                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.17-4.53z" />
-                                            </svg>
-                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">Google</span>
-                                        </button>
+                                        <div className="flex items-center justify-center overflow-hidden rounded-2xl border border-white/10 hover:border-white/20 transition-all bg-white/5 relative">
+                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+                                                {isSocialLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <div className="text-[10px] font-black text-white uppercase tracking-widest text-center">Google<br/><span className="text-[7px] text-gray-500 lowercase">(Sécurisé)</span></div>}
+                                            </div>
+                                            <div className="opacity-0 w-full h-full absolute inset-0 z-10 flex items-center justify-center">
+                                                <GoogleLogin
+                                                    onSuccess={(credentialResponse) => {
+                                                        setIsSocialLoading(true);
+                                                        if (credentialResponse.credential) {
+                                                            const decoded = parseJwt(credentialResponse.credential);
+                                                            if (decoded) {
+                                                                loginSocial({
+                                                                    username: decoded.name,
+                                                                    email: decoded.email,
+                                                                    avatar: decoded.picture,
+                                                                    id: decoded.sub,
+                                                                    provider: 'google'
+                                                                });
+                                                                setIsSocialLoading(false);
+                                                                onClose();
+                                                            }
+                                                        }
+                                                    }}
+                                                    onError={() => {
+                                                        console.error('Google login failed via component');
+                                                        setIsSocialLoading(false);
+                                                    }}
+                                                    useOneTap
+                                                />
+                                            </div>
+                                        </div>
                                         <button
                                             onClick={handleDiscordLogin}
                                             disabled={discordLoading}
-                                            className="flex items-center justify-center gap-3 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-[#5865F2] hover:border-[#5865F2] transition-all group disabled:opacity-50 disabled:cursor-wait"
+                                            className="flex items-center justify-center gap-3 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-[#5865F2] hover:border-[#5865F2] transition-all group disabled:opacity-50 disabled:cursor-wait relative z-10"
                                         >
                                             <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
                                                 <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037 19.736 19.736 0 0 0-4.885 1.515.069.069 0 0 0-.032.027C.533 9.048-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.419-2.157 2.419z" />
