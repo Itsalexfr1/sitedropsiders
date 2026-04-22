@@ -389,8 +389,13 @@
 
 
 /* --- INTERVIEW QUESTIONS & RESPONSES --- */
-.article-body-premium .interview-qa-block p {
-    margin: 4rem auto !important;
+.article-body-premium .interview-qa-block > p,
+.article-body-premium .interview-qa-block > div,
+.article-body-premium .interview-spotify-block,
+.article-body-premium .interview-beatport-block,
+.article-body-premium .interview-image-block,
+.article-body-premium .interview-video-block {
+    margin: 7rem auto !important; /* ESPACE GIGANTESQUE POUR LE LOOK PREMIUM */
     text-align: center !important;
     font-family: var(--font-display, 'Orbitron', sans-serif);
     font-weight: 900;
@@ -400,14 +405,6 @@
     letter-spacing: 0.05em;
     line-height: 1.6;
     width: 100%;
-}
-
-.article-body-premium .interview-spotify-block,
-.article-body-premium .interview-beatport-block,
-.article-body-premium .interview-image-block,
-.article-body-premium .interview-video-block {
-    margin: 4rem auto !important;
-    text-align: center;
 }
 
 .article-body-premium .interview-q::before,
