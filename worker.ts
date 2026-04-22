@@ -742,7 +742,13 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/twitch/test' && request.method === 'POST') {
             const settings = await env.KV.get('settings', 'json') || {};
-            const channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
+            let channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
+            
+            // Clean channel name (remove URL parts if any)
+            if (channel.includes('twitch.tv/')) {
+                channel = channel.split('twitch.tv/')[1].split('/')[0].split('?')[0];
+            }
+
             const result = await sendTwitchMessage(env, channel, "🤖 Test du Bot Dropsiders réussi ! Je suis prêt à mettre l'ambiance. 🔥");
             console.log(`[TWITCH TEST] Channel: ${channel}, Result:`, result);
             return new Response(JSON.stringify({ success: result.ok, error: result.error }), { headers: { 'Content-Type': 'application/json' } });
@@ -750,8 +756,12 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/twitch/sync' && request.method === 'POST') {
             const settings = await env.KV.get('settings', 'json') || {};
-            const channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
-            if (!channel) return new Response('Channel not set', { status: 400 });
+            let channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
+
+            // Clean channel name
+            if (channel.includes('twitch.tv/')) {
+                channel = channel.split('twitch.tv/')[1].split('/')[0].split('?')[0];
+            }
 
             // Get User ID
             const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
