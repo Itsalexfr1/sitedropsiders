@@ -80,6 +80,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         canvas.height = height;
         const ctx = canvas.getContext('2d')!;
 
+        // 0. Filter active days to avoid wasting space
+        const activeSchedule = schedule.filter(d => d.date || d.dayArtist || d.dayLocation || d.nightArtist || d.nightLocation);
+        const numDays = activeSchedule.length;
+        if (numDays === 0) return;
+
         // 1. Background
         if (backgroundImage || backgroundVideo) {
             if (backgroundImage) {
@@ -204,7 +209,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const totalScheduleHeight = dayHeight * numDays;
         const finalStartY = startY + (availableHeight - totalScheduleHeight) / 2;
 
-        activeSchedule.forEach((day, index) => {
+        activeSchedule.forEach((day: DaySchedule, index: number) => {
             const y = finalStartY + index * dayHeight;
             
             // Date Header
