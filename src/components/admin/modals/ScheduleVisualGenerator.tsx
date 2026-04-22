@@ -403,7 +403,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         <div className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-[8px] font-black text-neon-cyan uppercase tracking-widest">Story 9:16</div>
                                     </div>
 
-                                    <div className="aspect-[9/16] w-full max-w-[320px] mx-auto bg-black rounded-[2.5rem] border-[10px] border-gray-800 shadow-2xl relative overflow-hidden flex flex-col p-6 text-white scale-[0.75] origin-top">
+                                    {/* iPhone 17 Pro Max Style Frame */}
+                                    <div className="aspect-[9/19.5] w-full max-w-[340px] mx-auto bg-black rounded-[3.5rem] border-[6px] border-[#2a2a2a] shadow-[0_0_50px_rgba(0,0,0,0.5),inset_0_0_2px_rgba(255,255,255,0.2)] relative overflow-hidden flex flex-col p-6 text-white scale-[0.7] origin-top transition-all duration-700 hover:scale-[0.72] group">
+                                        {/* Titanium Frame Highlight */}
+                                        <div className="absolute inset-0 border-[2px] border-white/5 rounded-[3.3rem] pointer-events-none" />
+                                        
                                         {/* Fake Story Background */}
                                         {backgroundImage || backgroundVideo ? (
                                             <div className="absolute inset-0">
@@ -419,7 +423,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         )}
                                         
                                         <div className="relative z-10 flex flex-col h-full">
-                                            <div className="w-16 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
+                                            {/* Dynamic Island 2026 */}
+                                            <div className="w-20 h-6 bg-black rounded-full mx-auto mb-6 flex items-center justify-center border border-white/5 shadow-inner">
+                                                <div className="w-2 h-2 bg-[#1a1a1a] rounded-full mr-2 border border-white/5" />
+                                                <div className="w-8 h-1 bg-[#1a1a1a] rounded-full" />
+                                            </div>
                                             
                                             {showLogo && (
                                                 <div className="flex flex-col items-center mb-6">
