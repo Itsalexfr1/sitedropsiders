@@ -28,7 +28,31 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit"
+    "status": "edit",
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
+    "streams": [
+      {
+        "id": "sdvrt4xzp",
+        "name": "STAGE 1",
+        "youtubeId": "",
+        "streamSource": "twitch",
+        "twitchChannel": "dropsiders_live"
+      }
+    ],
+    "activeStreamId": "sdvrt4xzp",
+    "tickerMode": "news",
+    "instagramLink": "",
+    "tiktokLink": "",
+    "youtubeLink": "",
+    "twitterLink": "",
+    "sponsorText": "",
+    "sponsorLink": "",
+    "showSponsorBanner": true,
+    "festivalLogo": "",
+    "twitchChannel": "",
+    "streamSource": "youtube",
+    "twitchBotAutoMessage": "",
+    "twitchBotAutoMessageInterval": 30
   },
   "socials": {
     "instagram": "dropsiders.eu",
