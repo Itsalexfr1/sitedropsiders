@@ -152,9 +152,9 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
         // 3. Header
         ctx.textAlign = 'center';
-        ctx.font = '900 italic 30px "Montserrat", sans-serif';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        const headerY = showLogo ? 140 + logoHeightOffset : 180;
+        ctx.font = '900 italic 45px "Montserrat", sans-serif'; // Agrandi (was 30px)
+        ctx.fillStyle = '#ffffff'; // Blanc pur (was 0.4 opacity)
+        const headerY = showLogo ? 100 + logoHeightOffset : 140; // Remonté (was 140/180)
         ctx.fillText(customTitle.toUpperCase(), width / 2, headerY);
 
         // 4. Render Days
@@ -416,8 +416,8 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 </div>
                                             )}
 
-                                            <div className="text-center mb-6">
-                                                <div className="text-[10px] font-black text-white/40 italic uppercase tracking-widest">{customTitle || 'PLANNING'}</div>
+                                            <div className="text-center mb-4 -mt-2">
+                                                <div className="text-[14px] font-black text-white italic uppercase tracking-widest">{customTitle || 'PLANNING'}</div>
                                             </div>
 
                                             <div className={`space-y-4 text-center ${!showLogo ? 'mt-6' : ''}`}>
