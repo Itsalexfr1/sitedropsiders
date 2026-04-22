@@ -724,19 +724,58 @@ ${urls.map(u => `  <url>
 
             // Handle Chat Message
             if (data.subscription.type === 'channel.chat.message') {
-                const chatMsg = data.event.message.text;
+                const chatMsg = data.event.message.text?.trim() || '';
                 const sender = data.event.chatter_user_name;
+                const senderId = data.event.chatter_user_id;
+                const broadcasterId = data.event.broadcaster_user_id;
+                const broadcasterLogin = data.event.broadcaster_user_login;
+                const messageId = data.event.message_id;
 
-                if (chatMsg.startsWith('!')) {
-                    const settings = await env.CHAT_KV.get('settings', 'json') || {};
-                    const commands = settings.botCommands || [];
+                const settings = await env.CHAT_KV.get('settings', 'json') || {};
+
+                // 1. Check banned words (auto-delete)
+                const bannedWords: string[] = settings.bannedWords
+                    ? settings.bannedWords.split(',').map((w: string) => w.trim().toLowerCase()).filter(Boolean)
+                    : [];
+                const msgLower = chatMsg.toLowerCase();
+                const hasBannedWord = bannedWords.some(w => msgLower.includes(w));
+
+                if (hasBannedWord && messageId) {
+                    await deleteTwitchMessage(env, broadcasterId, messageId);
+                    await sendTwitchMessage(env, broadcasterLogin, `@${sender} ⚠️ Ton message a été supprimé car il contient un mot interdit.`);
+                    console.log(`[BOT] Deleted message from ${sender} (banned word)`);
+                }
+
+                // 2. Handle commands (!) 
+                else if (chatMsg.startsWith('!')) {
                     const cmd = chatMsg.split(' ')[0].toLowerCase();
+                    const args = chatMsg.split(' ').slice(1);
+                    const commands = settings.botCommands || [];
                     const match = commands.find((c: any) => c.command === cmd);
 
                     if (match) {
-                        await sendTwitchMessage(env, data.event.broadcaster_user_login, `@${sender} ${match.response}`);
-                    } else if (cmd === '!drops') {
-                        await sendTwitchMessage(env, data.event.broadcaster_user_login, `@${sender} Tu as actuellement X Drops ! (Lien: https://dropsiders.fr)`);
+                        // Custom command from admin
+                        await sendTwitchMessage(env, broadcasterLogin, `@${sender} ${match.response}`);
+                    } else {
+                        // Built-in commands
+                        switch (cmd) {
+                            case '!site':
+                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 🌐 Retrouve tout le contenu Dropsiders sur https://dropsiders.eu`);
+                                break;
+                            case '!insta':
+                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 📸 Suis-nous sur Instagram : https://instagram.com/dropsiders.fr`);
+                                break;
+                            case '!drops':
+                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 💰 Connecte-toi sur https://dropsiders.eu pour voir tes Drops !`);
+                                break;
+                            case '!discord':
+                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 🎮 Rejoins notre Discord : https://discord.gg/dropsiders`);
+                                break;
+                            case '!commandes':
+                                const customCmds = commands.map((c: any) => c.command).join(', ');
+                                await sendTwitchMessage(env, broadcasterLogin, `📋 Commandes dispo : !site, !insta, !drops, !discord${customCmds ? ', ' + customCmds : ''}`);
+                                break;
+                        }
                     }
                 }
             }
