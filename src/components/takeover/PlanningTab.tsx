@@ -666,6 +666,7 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                 }}
                 accentColor="neon-cyan"
                 aspect={16/9}
+                forceCrop={true}
             />
         </div>
     );

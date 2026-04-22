@@ -19,8 +19,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
     const [customTitle, setCustomTitle] = useState('PLANNING LIVETAKEOVER');
     const [festivalLogo, setFestivalLogo] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+    const [backgroundVideo, setBackgroundVideo] = useState<string | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const bgInputRef = useRef<HTMLInputElement>(null);
 
     const addDay = () => {
         if (schedule.length >= 8) return;
@@ -46,6 +49,24 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         }
     };
 
+    const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const isVideo = file.type.startsWith('video/');
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                if (isVideo) {
+                    setBackgroundVideo(event.target?.result as string);
+                    setBackgroundImage(null);
+                } else {
+                    setBackgroundImage(event.target?.result as string);
+                    setBackgroundVideo(null);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const generateImage = async () => {
         setIsGenerating(true);
         const width = 1080;
@@ -56,20 +77,64 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const ctx = canvas.getContext('2d')!;
 
         // 1. Background
-        const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-        bgGrad.addColorStop(0, '#0a0b12');
-        bgGrad.addColorStop(0.5, '#1a0510');
-        bgGrad.addColorStop(1, '#050a0f');
-        ctx.fillStyle = bgGrad;
-        ctx.fillRect(0, 0, width, height);
+        if (backgroundImage || backgroundVideo) {
+            if (backgroundImage) {
+                const bgImg = new Image();
+                bgImg.src = backgroundImage;
+                await new Promise((resolve) => { bgImg.onload = resolve; bgImg.onerror = resolve; });
+                if (bgImg.complete) {
+                    // Cover logic
+                    const scale = Math.max(width / bgImg.width, height / bgImg.height);
+                    const w = bgImg.width * scale;
+                    const h = bgImg.height * scale;
+                    ctx.drawImage(bgImg, (width - w) / 2, (height - h) / 2, w, h);
+                }
+            } else if (backgroundVideo) {
+                const video = document.createElement('video');
+                video.src = backgroundVideo;
+                await new Promise((resolve) => { 
+                    video.onloadeddata = resolve; 
+                    video.onerror = resolve; 
+                    video.currentTime = 0;
+                });
+                // Cover logic for video
+                const scale = Math.max(width / video.videoWidth, height / video.videoHeight);
+                const w = video.videoWidth * scale;
+                const h = video.videoHeight * scale;
+                ctx.drawImage(video, (width - w) / 2, (height - h) / 2, w, h);
+            }
 
-        // Subtle texture/noise
-        ctx.globalAlpha = 0.05;
-        for (let i = 0; i < 5000; i++) {
-            ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#ff1241';
-            ctx.fillRect(Math.random() * width, Math.random() * height, 1, 1);
+            // Stylish Dark Overlay (Gradient for depth)
+            const overlay = ctx.createLinearGradient(0, 0, 0, height);
+            overlay.addColorStop(0, 'rgba(0, 0, 0, 0.85)');    // Darker top for logo
+            overlay.addColorStop(0.3, 'rgba(0, 0, 0, 0.6)');  // Lighter middle
+            overlay.addColorStop(0.7, 'rgba(0, 0, 0, 0.6)');  // Lighter middle
+            overlay.addColorStop(1, 'rgba(0, 0, 0, 0.9)');    // Darker bottom for website
+            ctx.fillStyle = overlay;
+            ctx.fillRect(0, 0, width, height);
+
+            // Add subtle vignette
+            const vignette = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, height);
+            vignette.addColorStop(0, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, width, height);
+        } else {
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+            bgGrad.addColorStop(0, '#0a0b12');
+            bgGrad.addColorStop(0.5, '#1a0510');
+            bgGrad.addColorStop(1, '#050a0f');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, width, height);
+
+            // Subtle texture/noise
+            ctx.globalAlpha = 0.05;
+            for (let i = 0; i < 5000; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#ff1241';
+                ctx.fillRect(Math.random() * width, Math.random() * height, 1, 1);
+            }
+            ctx.globalAlpha = 1.0;
         }
-        ctx.globalAlpha = 1.0;
 
         // 2. Logo
         let logoHeightOffset = 0;
@@ -215,41 +280,65 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 <Plus className="w-4 h-4" /> Ajouter ({schedule.length}/8)
                                             </button>
                                         </div>
-                                    </div>
+                                </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                                <Type className="w-3 h-3 text-neon-cyan" /> Titre du Planning
-                                            </label>
-                                            <input 
-                                                type="text" 
-                                                value={customTitle} 
-                                                onChange={(e) => setCustomTitle(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all font-bold italic"
-                                                placeholder="PLANNING LIVETAKEOVER"
-                                            />
+                                <div className="space-y-2 mb-6">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Type className="w-3 h-3 text-neon-cyan" /> Titre du Planning
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        value={customTitle} 
+                                        onChange={(e) => setCustomTitle(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all font-bold italic"
+                                        placeholder="PLANNING LIVETAKEOVER"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    {/* Festival Logo Upload */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                            <ImageIcon className="w-3 h-3 text-neon-cyan" /> Logo du Festival
+                                        </label>
+                                        <div className="flex items-center gap-2">
+                                            <button 
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase"
+                                            >
+                                                <Upload className="w-4 h-4 text-neon-cyan" /> {festivalLogo ? 'Changer Logo' : 'Upload Logo'}
+                                            </button>
+                                            {festivalLogo && (
+                                                <button 
+                                                    onClick={() => setFestivalLogo(null)}
+                                                    className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                                         </div>
+                                    </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                                <ImageIcon className="w-3 h-3 text-neon-cyan" /> Logo du Festival
+                                                <ImageIcon className="w-3 h-3 text-neon-cyan" /> Fond (Image/Vidéo)
                                             </label>
                                             <div className="flex items-center gap-2">
                                                 <button 
-                                                    onClick={() => fileInputRef.current?.click()}
-                                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase"
+                                                    onClick={() => bgInputRef.current?.click()}
+                                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase ${backgroundImage || backgroundVideo ? 'border-neon-cyan/50' : ''}`}
                                                 >
-                                                    <Upload className="w-4 h-4 text-neon-cyan" /> {festivalLogo ? 'Changer Logo' : 'Upload Logo'}
+                                                    <Upload className="w-4 h-4 text-neon-cyan" /> {backgroundImage || backgroundVideo ? 'Changer Fond' : 'Upload Fond'}
                                                 </button>
-                                                {festivalLogo && (
+                                                {(backgroundImage || backgroundVideo) && (
                                                     <button 
-                                                        onClick={() => setFestivalLogo(null)}
+                                                        onClick={() => { setBackgroundImage(null); setBackgroundVideo(null); }}
                                                         className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 )}
-                                                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                                                <input ref={bgInputRef} type="file" accept="image/*,video/*" onChange={handleBackgroundUpload} className="hidden" />
                                             </div>
                                         </div>
                                     </div>
@@ -302,7 +391,18 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
                                     <div className="aspect-[9/16] w-full max-w-[320px] mx-auto bg-black rounded-[2.5rem] border-[10px] border-gray-800 shadow-2xl relative overflow-hidden flex flex-col p-6 text-white scale-95 origin-top">
                                         {/* Fake Story Background */}
-                                        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0b12] via-[#1a0510] to-[#050a0f]" />
+                                        {backgroundImage || backgroundVideo ? (
+                                            <div className="absolute inset-0">
+                                                {backgroundImage ? (
+                                                    <img src={backgroundImage} alt="Background" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <video src={backgroundVideo} autoPlay muted loop className="w-full h-full object-cover" />
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/60 to-black/90" />
+                                            </div>
+                                        ) : (
+                                            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0b12] via-[#1a0510] to-[#050a0f]" />
+                                        )}
                                         
                                         <div className="relative z-10 flex flex-col h-full">
                                             <div className="w-16 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />

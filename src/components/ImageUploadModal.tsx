@@ -17,6 +17,7 @@ interface ImageUploadModalProps {
     allowMultiple?: boolean;
     watermark?: boolean;   // Automatically add DROPSIDERS logo
     forceFilename?: string; // Force upload filename
+    forceCrop?: boolean;    // Force open cropper automatically
 }
 
 export function ImageUploadModal({ 
@@ -29,7 +30,8 @@ export function ImageUploadModal({
     initialImage,
     allowMultiple = false,
     watermark = false,
-    forceFilename
+    forceFilename,
+    forceCrop = false
 }: ImageUploadModalProps) {
     const [isUploading, setIsUploading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -149,8 +151,7 @@ export function ImageUploadModal({
             if (initialImage) {
                 setSelectedImages([{ file: null, preview: initialImage }]);
                 setStep('preview');
-                // Auto-open crop for existing images to allow immediate re-cropping
-                setIsCropOpen(true);
+                if (forceCrop) setIsCropOpen(true);
             }
         } else if (!isOpen) {
             document.body.style.overflow = 'unset';
@@ -293,8 +294,7 @@ export function ImageUploadModal({
         if (images.length > 0) {
             setSelectedImages(images);
             setStep('preview');
-            // Auto-open crop if aspect is provided (e.g. for card mode)
-            if (aspect && images.length === 1 && (!images[0].file || images[0].file.type.startsWith('image/'))) {
+            if (forceCrop && aspect && images.length === 1 && (!images[0].file || images[0].file.type.startsWith('image/'))) {
                 setIsCropOpen(true);
             }
         }
