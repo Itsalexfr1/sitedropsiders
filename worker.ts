@@ -728,7 +728,7 @@ ${urls.map(u => `  <url>
                 const sender = data.event.chatter_user_name;
 
                 if (chatMsg.startsWith('!')) {
-                    const settings = await env.KV.get('settings', 'json') || {};
+                    const settings = await env.CHAT_KV.get('settings', 'json') || {};
                     const commands = settings.botCommands || [];
                     const cmd = chatMsg.split(' ')[0].toLowerCase();
                     const match = commands.find((c: any) => c.command === cmd);
@@ -745,7 +745,7 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/twitch/test' && request.method === 'POST') {
-            const settings = await env.KV.get('settings', 'json') || {};
+            const settings = await env.CHAT_KV.get('settings', 'json') || {};
             let channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
             
             // Clean channel name (remove URL parts if any)
@@ -765,7 +765,7 @@ ${urls.map(u => `  <url>
             };
 
             try {
-                const settings = await env.KV.get('settings', 'json') || {};
+                const settings = await env.CHAT_KV.get('settings', 'json') || {};
                 let channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
 
                 // Clean channel name
