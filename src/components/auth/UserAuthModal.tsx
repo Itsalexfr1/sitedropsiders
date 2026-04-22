@@ -50,6 +50,19 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
         onError: () => console.error('Google login error'),
     });
 
+    const handleGoogleMobileFriendlyLogin = () => {
+        const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            setIsSocialLoading(true);
+            const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "762584383630-nc4f3eaqnvnkus7lk793n2n22qjdpdv3.apps.googleusercontent.com";
+            const redirectUri = window.location.origin; // ex: https://dropsiders.fr
+            const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=email%20profile`;
+            window.location.href = url;
+        } else {
+            googleLogin();
+        }
+    };
+
     const handleDiscordLogin = () => {
         setDiscordLoading(true);
 
@@ -296,7 +309,7 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                     {/* Social Login Buttons */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <button
-                                            onClick={() => googleLogin()}
+                                            onClick={handleGoogleMobileFriendlyLogin}
                                             disabled={isSocialLoading}
                                             className="flex items-center justify-center gap-3 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
                                         >

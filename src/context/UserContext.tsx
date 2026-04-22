@@ -60,6 +60,33 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 localStorage.removeItem('temp_social_user');
             } catch(e) {}
         }
+
+        // --- NEW: Handle Google OAuth Implicit Redirect (Mobile) ---
+        if (window.location.hash.includes('access_token=')) {
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            if (accessToken) {
+                // Remove hash from URL for security/cleanliness
+                window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+                
+                fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                })
+                .then(res => res.json())
+                .then(googleUser => {
+                    if (googleUser && googleUser.sub) {
+                        loginSocial({
+                            username: googleUser.name,
+                            email: googleUser.email,
+                            avatar: googleUser.picture,
+                            id: googleUser.sub,
+                            provider: 'google'
+                        });
+                    }
+                })
+                .catch(err => console.error('Failed to fetch google user info from redirect', err));
+            }
+        }
     }, []);
 
     // Sync with backend when email is available
