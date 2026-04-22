@@ -2202,16 +2202,6 @@ export function AdminDashboard() {
       baseColor: "cyan",
       columns: 2,
     },
-    {
-      title: "Générateur Fiches",
-      description: "Interview Visual Cards",
-      icon: "Columns",
-      category: "STUDIO",
-      link: "interview-generator",
-      permission: "news",
-      baseColor: "red",
-      columns: 1,
-    },
 
     // SHOP & CONTACT
     {
@@ -6871,7 +6861,7 @@ export function AdminDashboard() {
                         </span>
                       </h2>
                       <p className="text-gray-400 font-medium">
-                        Contrôle des articles et médias
+                        Contrôle des articles, médias et générateur de fiches
                       </p>
                     </div>
                     <button
@@ -6978,8 +6968,25 @@ export function AdminDashboard() {
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
                           Focus Semaine
                         </p>
+                    <button
+                      onClick={() => {
+                        setIsInterviewGeneratorOpen(true);
+                        setIsContenuModalOpen(false);
+                      }}
+                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                    >
+                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                        <Columns className="w-6 h-6 text-neon-red" />
                       </div>
-                    </Link>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-white uppercase italic">
+                          Fiches
+                        </h3>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
+                          Générateur Visuels
+                        </p>
+                      </div>
+                    </button>
                   </div>
                 </motion.div>
               </div>
