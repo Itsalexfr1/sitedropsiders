@@ -394,9 +394,9 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         {backgroundImage || backgroundVideo ? (
                                             <div className="absolute inset-0">
                                                 {backgroundImage ? (
-                                                    <img src={backgroundImage} alt="Background" className="w-full h-full object-cover" />
+                                                    <img src={backgroundImage || undefined} alt="Background" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <video src={backgroundVideo} autoPlay muted loop className="w-full h-full object-cover" />
+                                                    <video src={backgroundVideo || undefined} autoPlay muted loop className="w-full h-full object-cover" />
                                                 )}
                                                 <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/60 to-black/90" />
                                             </div>
