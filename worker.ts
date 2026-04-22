@@ -103,7 +103,8 @@ async function sendTwitchMessage(env, channelName, message) {
             headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` }
         });
         const userData = await userRes.json();
-        if (!userData.data || userData.data.length === 0) return { ok: false, error: 'Channel not found' };
+        if (!userRes.ok) return { ok: false, error: `Helix User Error: ${userData.message || userRes.statusText}` };
+        if (!userData.data || userData.data.length === 0) return { ok: false, error: `Channel '${channelName}' introuvable sur Twitch` };
         const broadcasterId = userData.data[0].id;
 
         // 2. Get Bot ID (User ID from token)
@@ -111,6 +112,7 @@ async function sendTwitchMessage(env, channelName, message) {
             headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` }
         });
         const botData = await botRes.json();
+        if (!botRes.ok) return { ok: false, error: `Helix Bot Error: ${botData.message || botRes.statusText}` };
         const botId = botData.data[0].id;
 
         // 3. Send message
@@ -128,9 +130,12 @@ async function sendTwitchMessage(env, channelName, message) {
             })
         });
 
-        return { ok: sendRes.ok, status: sendRes.status };
+        const sendData = await sendRes.json();
+        if (!sendRes.ok) return { ok: false, error: `Helix Send Error: ${sendData.message || sendRes.statusText}` };
+
+        return { ok: true, status: sendRes.status };
     } catch (e) {
-        return { ok: false, error: e.message };
+        return { ok: false, error: `Exception: ${e.message}` };
     }
 }
 
