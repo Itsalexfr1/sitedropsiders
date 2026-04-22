@@ -171,11 +171,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const numDays = schedule.length;
         
         // Dynamic sizing
-        let dayHeight = 200; // Un peu plus d'espace pour le gros texte
-        let dateFontSize = 65; // +15% (was 55)
-        let eventFontSize = 38; // +15% (was 33)
-        let eventSpacing = 65;
-        let eventNightSpacing = 115;
+        let dayHeight = 210; // Encore un peu plus d'espace
+        let dateFontSize = 65; 
+        let eventFontSize = 40; // Passé à 40
+        let eventSpacing = 70;
+        let eventNightSpacing = 125;
 
         if (numDays > 4) {
             const scale = Math.max(0.6, 1 - (numDays - 4) * 0.1);
@@ -441,8 +441,8 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 {schedule.map(day => (
                                                     <div key={day.id} className="space-y-1">
                                                         <div className="text-[15px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>
-                                                        {day.dayEvent && <div className="text-[11px] text-gray-300 font-bold uppercase tracking-wide">☀️ {day.dayEvent}</div>}
-                                                        {day.nightEvent && <div className="text-[11px] text-gray-300 font-bold uppercase tracking-wide">🌒 {day.nightEvent}</div>}
+                                                        {day.dayEvent && <div className="text-[12px] text-gray-300 font-bold uppercase tracking-wide">☀️ {day.dayEvent}</div>}
+                                                        {day.nightEvent && <div className="text-[12px] text-gray-300 font-bold uppercase tracking-wide">🌒 {day.nightEvent}</div>}
                                                     </div>
                                                 ))}
                                             </div>
