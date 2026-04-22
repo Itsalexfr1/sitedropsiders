@@ -12888,7 +12888,7 @@ export function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[
                       {
                         id: "DJS",
@@ -12911,11 +12911,23 @@ export function AdminDashboard() {
                         color: "text-neon-pink",
                         bg: "bg-neon-pink/10",
                       },
+                      {
+                        id: "GENERATOR",
+                        title: "Générateur Top 100",
+                        icon: Sparkles,
+                        color: "text-neon-yellow",
+                        bg: "bg-neon-yellow/10",
+                      },
                     ].map((card) => (
                       <button
                         key={card.id}
                         onClick={() => {
-                          setWikiFilter(card.id as any);
+                          if (card.id === "GENERATOR") {
+                            // If they just want the generator, default to DJS list
+                            setWikiFilter("djs" as any);
+                          } else {
+                            setWikiFilter(card.id as any);
+                          }
                           setDashboardTab("WIKI");
                           setIsTopDropsidersModalOpen(false);
                         }}
@@ -12931,7 +12943,7 @@ export function AdminDashboard() {
                             {card.title}
                           </h3>
                           <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-                            Gérer la liste
+                            {card.id === "GENERATOR" ? "Générer les classements" : "Gérer la liste"}
                           </p>
                         </div>
                       </button>
@@ -13032,6 +13044,7 @@ export function AdminDashboard() {
             )}
           </AnimatePresence>
 
+          {/* MODAL RANDOMIZER (fixed nesting) */}
           <AnimatePresence>
             {isRandomizerModalOpen && (
               <div className="fixed inset-0 z-[200] flex items-center justify-center">
@@ -13048,6 +13061,22 @@ export function AdminDashboard() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   className="relative w-full h-full bg-black flex flex-col p-0 overflow-hidden"
                 >
+                  <div className="absolute top-6 left-6 md:top-10 md:left-10 z-[120]">
+                    <button
+                      onClick={() => setIsRandomizerModalOpen(false)}
+                      className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-500 hover:text-white transition-all shadow-2xl group flex items-center justify-center"
+                    >
+                      <ChevronLeft className="w-8 h-8 group-hover:-translate-x-1 transition-transform" />
+                    </button>
+                  </div>
+                  <div className="flex-1 w-full h-full">
+                    <InterviewRandomizer />
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
           {/* QUIZZ & CONCOURS MODAL */}
           <AnimatePresence>
             {isQuizzConcoursModalOpen && (
@@ -13169,22 +13198,6 @@ export function AdminDashboard() {
                       </div>
                     </button>
 
-                  </div>
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
-
-                  <div className="absolute top-6 left-6 md:top-10 md:left-10 z-[120]">
-                    <button
-                      onClick={() => setIsRandomizerModalOpen(false)}
-                      className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-500 hover:text-white transition-all shadow-2xl group flex items-center justify-center"
-                    >
-                      <ChevronLeft className="w-8 h-8 group-hover:-translate-x-1 transition-transform" />
-                    </button>
-                  </div>
-                  <div className="flex-1 w-full h-full">
-                    <InterviewRandomizer />
                   </div>
                 </motion.div>
               </div>

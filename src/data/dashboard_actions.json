@@ -9,7 +9,7 @@
     "bg": "bg-neon-red/5",
     "permission": "all",
     "baseColor": "#ff0033",
-    "columns": 2
+    "columns": 1
   },
   {
     "title": "Contenu",
@@ -20,43 +20,19 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "news_focus",
-    "baseColor": "#00ccff",
-    "columns": 2
+    "baseColor": "#ffae00",
+    "columns": 1
   },
   {
-    "title": "Social Studio",
-    "description": "Outils Réseaux Sociaux",
-    "icon": "Instagram",
+    "title": "GENERATEURS",
+    "description": "Fiches, Posts, Planning, Interviews",
+    "icon": "Zap",
     "category": "SOCIAL_STUDIO",
-    "link": "social-studio",
-    "color": "border-pink-500/20 hover:border-pink-500",
-    "bg": "bg-pink-500/5",
+    "link": "#GENERATORS",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
     "permission": "news",
-    "baseColor": "#ff00a0",
-    "columns": 1
-  },
-  {
-    "title": "Questions Aléatoires",
-    "description": "Randomizer d'Interviews",
-    "icon": "Dice5",
-    "category": "STUDIO",
-    "link": "random-questions",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "news",
-    "baseColor": "#00ffff",
-    "columns": 1
-  },
-  {
-    "title": "Générateur Fiches",
-    "description": "Interview Visual Cards",
-    "icon": "Columns",
-    "category": "STUDIO",
-    "link": "interview-generator",
-    "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-neon-red/5",
-    "permission": "news",
-    "baseColor": "#ff0000",
+    "baseColor": "#fb00ff",
     "columns": 1
   },
   {
@@ -65,8 +41,8 @@
     "icon": "LayoutDashboard",
     "category": "ALL",
     "link": "#",
-    "color": "border-neon-orange/20 hover:border-neon-orange",
-    "bg": "bg-neon-orange/5",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
     "permission": "superadmin",
     "baseColor": "#ff7300",
     "columns": 1
@@ -84,75 +60,15 @@
     "columns": 1
   },
   {
-    "title": "Messagerie",
-    "description": "Emails & Contact",
+    "title": "Message & Newsletter",
+    "description": "Emails & Campagnes",
     "icon": "Mail",
     "category": "SHOP",
-    "link": "#",
+    "link": "#MESSAGES_NEWSLETTER",
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
-    "baseColor": "#ffa500",
-    "columns": 1
-  },
-  {
-    "title": "Newsletter",
-    "description": "Campagnes Mail",
-    "icon": "Mail",
-    "category": "SHOP",
-    "link": "#",
-    "color": "border-green-400/20 hover:border-green-400",
-    "bg": "bg-green-400/5",
-    "permission": "push_newsletter",
-    "baseColor": "#00ff00",
-    "columns": 1
-  },
-  {
-    "title": "L'Équipe & Éditeurs",
-    "description": "Accès & Permissions",
-    "icon": "ShieldCheck",
-    "category": "TEAM",
-    "link": "#TEAM_MANAGEMENT_MODAL",
-    "color": "border-neon-purple/20 hover:border-neon-purple",
-    "bg": "bg-neon-purple/5",
-    "permission": "all",
-    "baseColor": "#8a2be2",
-    "columns": 1
-  },
-  {
-    "title": "Comptes Membres",
-    "description": "Registre Communauté",
-    "icon": "UserPlus",
-    "category": "TEAM",
-    "link": "#TEAM_MANAGEMENT_MODAL",
-    "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-neon-red/5",
-    "permission": "all",
-    "baseColor": "#ff0033",
-    "columns": 1
-  },
-  {
-    "title": "Statistiques",
-    "description": "Analyse Audience",
-    "icon": "BarChart3",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "stats_analytics",
-    "baseColor": "#00ccff",
-    "columns": 1
-  },
-  {
-    "title": "Communauté",
-    "description": "Modération & Galerie",
-    "icon": "MessageSquare",
-    "category": "COMMUNAUTÉ",
-    "link": "#COMMUNITY_CENTER",
-    "color": "border-neon-purple/20 hover:border-neon-purple",
-    "bg": "bg-neon-purple/5",
-    "permission": "community_mod",
-    "baseColor": "#fb00ff",
+    "baseColor": "#00bfff",
     "columns": 1
   },
   {
@@ -164,7 +80,43 @@
     "color": "border-neon-yellow/20 hover:border-neon-yellow",
     "bg": "bg-neon-yellow/5",
     "permission": "community_mod",
-    "baseColor": "#ffff00",
+    "baseColor": "#e7f708",
+    "columns": 1
+  },
+  {
+    "title": "Communauté",
+    "description": "Modération & Galerie",
+    "icon": "MessageSquare",
+    "category": "COMMUNAUTÉ",
+    "link": "#COMMUNITY_CENTER",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
+    "permission": "community_mod",
+    "baseColor": "#0033ff",
+    "columns": 1
+  },
+  {
+    "title": "Statistiques",
+    "description": "Analyse Audience",
+    "icon": "BarChart3",
+    "category": "STUDIO",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "stats_analytics",
+    "baseColor": "#f0d7ad",
+    "columns": 1
+  },
+  {
+    "title": "L'ÉQUIPE",
+    "description": "Team, Éditeurs & Membres",
+    "icon": "Users",
+    "category": "TEAM",
+    "link": "#TEAM_MANAGEMENT_MODAL",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
+    "permission": "all",
+    "baseColor": "#ff0000",
     "columns": 1
   },
   {
@@ -176,7 +128,7 @@
     "color": "border-neon-pink/20 hover:border-neon-pink",
     "bg": "bg-neon-pink/5",
     "permission": "shop",
-    "baseColor": "#ff1493",
+    "baseColor": "#ffae00",
     "columns": 1
   },
   {
