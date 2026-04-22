@@ -2857,7 +2857,7 @@ export function AdminDashboard() {
                 Retour au site
               </Link>
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => setDashboardTab("ALL")}
                 className="inline-flex items-center gap-2 text-neon-cyan hover:text-white text-xs uppercase tracking-widest font-black transition-all group bg-neon-cyan/10 px-3 py-1.5 rounded-lg border border-neon-cyan/20"
               >
                 <LayoutDashboard className="w-3.5 h-3.5" />
@@ -3139,7 +3139,32 @@ export function AdminDashboard() {
           </div>
         </motion.div>
 
-
+        {/* Dashboard Tabs - Hidden but kept for state logic */}
+        <div className="hidden">
+          <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 w-max mx-auto md:mx-0">
+            {DASHBOARD_TABS.map((tab) => {
+              const isActive = dashboardTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    if (tab.id === "SOCIAL_STUDIO") {
+                      setIsSocialModalOpen(true);
+                    }
+                    setDashboardTab(tab.id as any);
+                  }}
+                  className={`px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all whitespace-nowrap ${
+                    isActive
+                      ? "bg-white/10 text-white border border-white/20 shadow-lg"
+                      : "text-gray-500 hover:text-gray-300"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="space-y-16 relative">
           {dashboardTab === "TEAM" ? (
