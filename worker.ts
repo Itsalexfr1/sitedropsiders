@@ -92,8 +92,10 @@ async function getTwitchToken(env) {
 // --- TWITCH HELIX HELPERS ---
 async function sendTwitchMessage(env, channelName, message) {
     const CLIENT_ID = env.TWITCH_CLIENT_ID;
-    const TOKEN = env.TWITCH_BOT_TOKEN; // OAuth token
-    if (!CLIENT_ID || !TOKEN) return { ok: false, error: 'Missing Twitch credentials' };
+    let TOKEN = env.TWITCH_BOT_TOKEN;
+    if (TOKEN && TOKEN.startsWith('oauth:')) TOKEN = TOKEN.replace('oauth:', '');
+    
+    if (!CLIENT_ID || !TOKEN) return { ok: false, error: 'Missing Twitch credentials (CLIENT_ID or BOT_TOKEN)' };
 
     try {
         // 1. Get Broadcaster ID from channel name
@@ -735,14 +737,15 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/twitch/test' && request.method === 'POST') {
             const settings = await env.KV.get('settings', 'json') || {};
-            const channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders";
-            const success = await sendTwitchMessage(env, channel, "🤖 Test du Bot Dropsiders réussi ! Je suis prêt à mettre l'ambiance. 🔥");
-            return new Response(JSON.stringify({ success }), { headers: { 'Content-Type': 'application/json' } });
+            const channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
+            const result = await sendTwitchMessage(env, channel, "🤖 Test du Bot Dropsiders réussi ! Je suis prêt à mettre l'ambiance. 🔥");
+            console.log(`[TWITCH TEST] Channel: ${channel}, Result:`, result);
+            return new Response(JSON.stringify({ success: result.ok, error: result.error }), { headers: { 'Content-Type': 'application/json' } });
         }
 
         if (path === '/api/twitch/sync' && request.method === 'POST') {
             const settings = await env.KV.get('settings', 'json') || {};
-            const channel = settings.twitchChannel || env.TWITCH_CHANNEL;
+            const channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
             if (!channel) return new Response('Channel not set', { status: 400 });
 
             // Get User ID
