@@ -178,7 +178,7 @@
     "description": "Registre Communauté",
     "icon": "UserPlus",
     "category": "TEAM",
-    "link": "#COMMUNITY_MEMBERS",
+    "link": "#",
     "color": "border-neon-red/20 hover:border-neon-red",
     "bg": "bg-neon-red/5",
     "permission": "all",

@@ -1711,7 +1711,7 @@ export function AdminDashboard() {
 
         // GESTION TEAM
         { title: "L'Équipe & Éditeurs", description: "Accès & Membres", icon: "Users", category: "TEAM", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 2 },
-        { title: "Comptes Membres", description: "Registre Communauté", icon: "UserPlus", category: "TEAM", link: "#COMMUNITY_MEMBERS", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 2 },
+        { title: "Comptes Membres", description: "Registre Communauté", icon: "UserPlus", category: "TEAM", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 2 },
 
         // PDF & DOCUMENTS
         { title: "Documents PDF", description: "Hébergement & Partage", icon: "Download", category: "WIKI", link: "/admin/pdfs", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 1 },
@@ -2000,8 +2000,6 @@ export function AdminDashboard() {
                    title === 'Modération' ||
                    title === 'Vérifier Photos' ||
                    title === 'Wiki' ||
-                   title === 'Comptes Membres' ||
-                   title === 'Membres' ||
                    title === 'Utilisateurs' ||
                    action.icon === 'MessageSquare' ||
                    action.icon === 'Globe' ||
@@ -2329,6 +2327,10 @@ export function AdminDashboard() {
                 <div className="space-y-16 relative">
                     {dashboardTab === 'TEAM' ? (
                         <div className="space-y-12 pb-20">
+                            {/* CENTRALIZED MEMBER LIST */}
+                            <AdminMembersList onEditPermissions={(email) => navigate(`/admin/editors?email=${encodeURIComponent(email)}`)} />
+                            
+                            <div className="border-t border-white/5 pt-12">
                             {/* ÉDITEURS */}
                             <div>
                                 <div className="flex justify-between items-center mb-8">
@@ -2683,9 +2685,6 @@ export function AdminDashboard() {
                         </div>
                     ) : dashboardTab === 'COMMUNAUTÉ' ? (
                         <div className="space-y-16 pb-20">
-                            {/* NEW: CENTRALIZED MEMBER LIST */}
-                            <AdminMembersList onEditPermissions={(email) => navigate(`/admin/editors?email=${encodeURIComponent(email)}`)} />
-
                             {/* CONTESTS SECTION */}
                             <div className="pt-16 border-t border-white/5 space-y-12">
                                 <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
@@ -3706,7 +3705,7 @@ export function AdminDashboard() {
                                                         setDashboardTab('TEAM');
                                                     } else if (action.title === 'Comptes Membres' || action.link === '#COMMUNITY_MEMBERS') {
                                                         e.preventDefault();
-                                                        setDashboardTab('COMMUNAUTÉ');
+                                                        setDashboardTab('TEAM');
                                                     } else if (action.title === 'Concours Insta') {
                                                         e.preventDefault();
                                                         fetchInstagramParticipants();
