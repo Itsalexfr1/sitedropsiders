@@ -147,7 +147,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 const baseWidth = festivalLogo ? 350 : 300;
                 const logoW = baseWidth * logoScale;
                 const logoH = (logo.height / logo.width) * logoW;
-                ctx.drawImage(logo, width / 2 - logoW / 2, 120, logoW, logoH);
+                ctx.drawImage(logo, width / 2 - logoW / 2, 80, logoW, logoH); // Remonté (was 120)
                 logoHeightOffset = logoH + 20;
             }
         }
@@ -171,11 +171,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const numDays = schedule.length;
         
         // Dynamic sizing
-        let dayHeight = 180;
-        let dateFontSize = 55; // +10% (was 50)
-        let eventFontSize = 33; // +10% (was 30)
-        let eventSpacing = 55;
-        let eventNightSpacing = 105;
+        let dayHeight = 200; // Un peu plus d'espace pour le gros texte
+        let dateFontSize = 65; // +15% (was 55)
+        let eventFontSize = 38; // +15% (was 33)
+        let eventSpacing = 65;
+        let eventNightSpacing = 115;
 
         if (numDays > 4) {
             const scale = Math.max(0.6, 1 - (numDays - 4) * 0.1);
@@ -440,9 +440,9 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                             <div className={`space-y-4 text-center ${!showLogo ? 'mt-6' : ''}`}>
                                                 {schedule.map(day => (
                                                     <div key={day.id} className="space-y-1">
-                                                        <div className="text-[13px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>
-                                                        {day.dayEvent && <div className="text-[9px] text-gray-300 font-bold uppercase tracking-wide">☀️ {day.dayEvent}</div>}
-                                                        {day.nightEvent && <div className="text-[9px] text-gray-300 font-bold uppercase tracking-wide">🌒 {day.nightEvent}</div>}
+                                                        <div className="text-[15px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>
+                                                        {day.dayEvent && <div className="text-[11px] text-gray-300 font-bold uppercase tracking-wide">☀️ {day.dayEvent}</div>}
+                                                        {day.nightEvent && <div className="text-[11px] text-gray-300 font-bold uppercase tracking-wide">🌒 {day.nightEvent}</div>}
                                                     </div>
                                                 ))}
                                             </div>
