@@ -163,6 +163,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const numDays = schedule.length;
         
         // Dynamic sizing
+        let dayHeight = 180;
         let dateFontSize = 55; // +10% (was 50)
         let eventFontSize = 33; // +10% (was 30)
         let eventSpacing = 55;
