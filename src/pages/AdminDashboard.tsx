@@ -2115,6 +2115,19 @@ export function AdminDashboard() {
   };
 
   const getFallbackActions = () => [
+    // QUIZZ & CONCOURS
+    {
+      title: "Quizz & CONCOURS",
+      description: "Tirages, Quizz, Participants",
+      icon: "Gamepad2",
+      category: "ALL",
+      link: "#QUIZZ_CONCOURS_MODAL",
+      color: "border-neon-red/20 hover:border-neon-red",
+      bg: "bg-neon-red/5",
+      permission: "all",
+      baseColor: "red",
+      columns: 1,
+    },
     // CONTENU & ÉDITORIAL
     {
       title: "Contenu",
@@ -2287,6 +2300,20 @@ export function AdminDashboard() {
       permission: "news",
       baseColor: "cyan",
       columns: 1,
+    },
+
+    // TOP 100 GENERATOR
+    {
+      title: "Top 100 DJs Clubs Festivals",
+      description: "Générateur de classements",
+      icon: "Sparkles",
+      category: "WIKI",
+      link: "#TOP100_GENERATOR",
+      color: "border-neon-red/20 hover:border-neon-red",
+      bg: "bg-neon-red/5",
+      permission: "community_mod",
+      baseColor: "red",
+      columns: 2,
     },
 
     // SYSTÈME
@@ -3919,8 +3946,7 @@ export function AdminDashboard() {
 
                         <button
                           onClick={() => {
-                            fetchInstagramParticipants();
-                            setIsInstagramContestModalOpen(true);
+                            setIsGiveawayModalOpen(true);
                           }}
                           className="w-full p-6 bg-white/5 border border-white/10 rounded-[2rem] hover:bg-neon-red/10 hover:border-neon-red/50 transition-all text-left flex items-center gap-6 group"
                         >
@@ -5383,6 +5409,9 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsShopModalOpen(true);
+                            } else if (action.title === "Agenda") {
+                              e.preventDefault();
+                              setIsAgendaModalOpen(true);
                             } else if (
                               action.title === "Contenu" ||
                               action.icon === "FileText"
@@ -5403,7 +5432,8 @@ export function AdminDashboard() {
                               setIsMessagesNewsletterModalOpen(true);
                             } else if (
                               action.title === "TOP DROPSIDERS" ||
-                              action.link === "#TOP_DROPSIDERS_MODAL"
+                              action.link === "#TOP_DROPSIDERS_MODAL" ||
+                              action.title === "Top Dropsiders"
                             ) {
                               e.preventDefault();
                               setIsTopDropsidersModalOpen(true);
@@ -5412,7 +5442,9 @@ export function AdminDashboard() {
                               setIsScheduleModalOpen(true);
                             } else if (
                               action.title === "L'ÉQUIPE" ||
-                              action.link === "#TEAM_MANAGEMENT_MODAL"
+                              action.link === "#TEAM_MANAGEMENT_MODAL" ||
+                              action.title === "L'Équipe & Éditeurs" ||
+                              action.title === "Comptes Membres"
                             ) {
                               e.preventDefault();
                               setIsTeamManagementModalOpen(true);
@@ -5433,6 +5465,52 @@ export function AdminDashboard() {
                             } else if (action.title === "Studio Création") {
                               e.preventDefault();
                               setIsCreatorStudioOpen(true);
+                            } else if (
+                              action.title === "Social Studio" ||
+                              action.link === "social-studio"
+                            ) {
+                              e.preventDefault();
+                              setIsSocialModalOpen(true);
+                            } else if (
+                              action.title === "Questions Aléatoires" ||
+                              action.link === "random-questions"
+                            ) {
+                              e.preventDefault();
+                              setIsRandomizerModalOpen(true);
+                            } else if (
+                              action.title === "Générateur Fiches" ||
+                              action.link === "interview-generator"
+                            ) {
+                              e.preventDefault();
+                              setIsInterviewGeneratorOpen(true);
+                            } else if (
+                              action.title === "Tirage au Sort" ||
+                              action.title === "Tirage au Sort Insta"
+                            ) {
+                              e.preventDefault();
+                              setIsGiveawayModalOpen(true);
+                            } else if (
+                              action.title === "Newsletter" ||
+                              action.title === "Messagerie"
+                            ) {
+                              e.preventDefault();
+                              setIsMessagesNewsletterModalOpen(true);
+                            } else if (
+                              action.title === "Statistiques"
+                            ) {
+                              e.preventDefault();
+                              setIsStatsModalOpen(true);
+                            } else if (
+                              action.title === "Top 100 DJs Clubs Festivals" ||
+                              action.link === "#TOP100_GENERATOR"
+                            ) {
+                              e.preventDefault();
+                              setDashboardTab("WIKI");
+                            } else if (
+                              action.title === "Bandeau"
+                            ) {
+                              e.preventDefault();
+                              setIsBannerModalOpen(true);
                             }
                           }}
                           className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -12906,7 +12984,7 @@ export function AdminDashboard() {
                         icon: Users,
                         color: "text-neon-cyan",
                         bg: "bg-neon-cyan/10",
-                        tab: "COMMUNAUTÉ",
+                        tab: "TEAM",
                       },
                       {
                         id: "TEAM",
@@ -13009,8 +13087,7 @@ export function AdminDashboard() {
                     <button
                       onClick={() => {
                         setIsQuizzConcoursModalOpen(false);
-                        fetchInstagramParticipants();
-                        setIsInstagramContestModalOpen(true);
+                        setIsGiveawayModalOpen(true);
                       }}
                       className="p-6 rounded-[2rem] border border-white/10 bg-white/5 hover:bg-white/10 transition-all flex flex-col items-center gap-4 group hover:border-neon-yellow/50"
                     >
@@ -13053,8 +13130,7 @@ export function AdminDashboard() {
                     <button
                       onClick={() => {
                         setIsQuizzConcoursModalOpen(false);
-                        fetchInstagramParticipants();
-                        setIsGiveawayModalOpen(true);
+                        setDashboardTab("TEAM");
                       }}
                       className="p-6 rounded-[2rem] border border-white/10 bg-white/5 hover:bg-white/10 transition-all flex flex-col items-center gap-4 group hover:border-neon-cyan/50"
                     >
