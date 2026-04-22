@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database, Smartphone, Columns, Trophy, Dice5, UserPlus
+    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, Database, Smartphone, Columns, Trophy, Dice5, UserPlus, Home, Tent, ShieldCheck
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -110,6 +110,10 @@ export function AdminDashboard() {
     const [isGiveawayModalOpen, setIsGiveawayModalOpen] = useState(false);
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
     const [isLiveInteractivityModalOpen, setIsLiveInteractivityModalOpen] = useState(false);
+    const [isMessagesNewsletterModalOpen, setIsMessagesNewsletterModalOpen] = useState(false);
+    const [isGeneratorsModalOpen, setIsGeneratorsModalOpen] = useState(false);
+    const [isTopDropsidersModalOpen, setIsTopDropsidersModalOpen] = useState(false);
+    const [isTeamManagementModalOpen, setIsTeamManagementModalOpen] = useState(false);
 
     const [isLoadingSocial, setIsLoadingSocial] = useState(false);
     const [bannerState, setBannerState] = useState({
@@ -2997,7 +3001,6 @@ export function AdminDashboard() {
                                 </div>
                             </div>
                         </div>
-                ) : dashboardTab === 'TOP_DROPSIDERS' ? (
                         <div className="space-y-12 pb-20">
                             {/* WIKI VOTES SUMMARY & GENERATION AT TOP */}
                             {(() => {
@@ -3474,6 +3477,29 @@ export function AdminDashboard() {
                                     </div>
                                 );
                             })()}
+
+                            {/* INDIVIDUAL TOP 100 CARDS (New Request) */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+                                {[
+                                    { id: 'djs', title: 'Top 100 DJs', icon: Music, color: 'text-neon-red', bg: 'bg-neon-red/10' },
+                                    { id: 'clubs', title: 'Top 100 Clubs', icon: Home, color: 'text-neon-cyan', bg: 'bg-neon-cyan/10' },
+                                    { id: 'festivals', title: 'Top 100 Festivals', icon: Tent, color: 'text-neon-pink', bg: 'bg-neon-pink/10' }
+                                ].map(card => (
+                                    <button
+                                        key={card.id}
+                                        onClick={() => setWikiTab(card.id as any)}
+                                        className={`p-10 rounded-[3rem] border border-white/10 transition-all flex flex-col items-center gap-6 group hover:scale-105 ${wikiTab === card.id ? 'bg-white/10 border-white/20' : 'bg-white/5 hover:bg-white/10'}`}
+                                    >
+                                        <div className={`w-20 h-20 ${card.bg} rounded-3xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform shadow-2xl shadow-black/50`}>
+                                            <card.icon className={`w-10 h-10 ${card.color}`} />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">{card.title}</h3>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Accéder au classement</p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-12">
@@ -3634,100 +3660,44 @@ export function AdminDashboard() {
                                                 onClick={(e) => {
                                                     if (editMode) {
                                                         e.preventDefault();
-                                                    } else if (action.title === 'Bandeau') {
-                                                        e.preventDefault();
-                                                        setIsBannerModalOpen(true);
-                                                    } else if (action.title === 'Agenda') {
-                                                        e.preventDefault();
-                                                        setIsAgendaModalOpen(true);
                                                     } else if (action.title === 'Communauté' || action.icon === 'MessageSquare') {
                                                         e.preventDefault();
                                                         setIsCommunauteModalOpen(true);
+                                                    } else if (action.title === 'Accueil') {
+                                                        e.preventDefault();
+                                                        setIsAccueilModalOpen(true);
                                                     } else if (action.title === 'Shop' || action.title === 'Boutique' || action.icon === 'ShoppingBag') {
                                                         e.preventDefault();
                                                         setIsShopModalOpen(true);
                                                     } else if (action.title === 'Contenu' || action.icon === 'FileText') {
                                                         e.preventDefault();
                                                         setIsContenuModalOpen(true);
-                                                    } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
+                                                    } else if (action.title === 'GENERATEURS' || action.link === '#GENERATORS') {
                                                         e.preventDefault();
-                                                        setIsNewsletterModalOpen(true);
-
-                                                    } else if (action.link === 'social-studio' || action.title === 'Social Studio') {
+                                                        setIsGeneratorsModalOpen(true);
+                                                    } else if (action.title === 'Message & Newsletter' || action.link === '#MESSAGES_NEWSLETTER') {
                                                         e.preventDefault();
-                                                        setIsSocialModalOpen(true);
-                                                    } else if (action.link === '/interview-visuals' || action.title === 'Visuels Interviews') {
+                                                        setIsMessagesNewsletterModalOpen(true);
+                                                    } else if (action.title === 'TOP DROPSIDERS' || action.link === '#TOP_DROPSIDERS_MODAL') {
                                                         e.preventDefault();
-                                                        navigate('/interview-visuals');
-                                                    } else if (action.link === 'interview-generator' || action.title === 'Générateur Fiches') {
-                                                        e.preventDefault();
-                                                        setIsInterviewGeneratorOpen(true);
-
-                                                    } else if (action.link === 'downloader' || action.title === 'Downloader') {
-                                                        e.preventDefault();
-                                                        setIsDownloaderOpen(true);
-                                                    } else if (action.link === 'push-notifications' || action.title === 'Notifications') {
-                                                        e.preventDefault();
-                                                        setIsNotificationModalOpen(true);
-                                                    } else if (action.title === 'Accueil') {
-                                                        e.preventDefault();
-                                                        setIsAccueilModalOpen(true);
-                                                    } else if (action.title === 'Statistiques') {
-                                                        e.preventDefault();
-                                                        setIsStatsModalOpen(true);
-                                                    } else if (action.title === 'Toutes les Photos') {
-                                                        e.preventDefault();
-                                                        setIsR2PhotosModalOpen(true);
-                                                    } else if (action.title === 'Spotify') {
-                                                        e.preventDefault();
-                                                        setIsSpotifyModalOpen(true);
-                                                    } else if (action.title === 'Tracklists') {
-                                                        e.preventDefault();
-                                                        setIsTracklistModalOpen(true);
-                                                    } else if (action.title === 'Messagerie' || action.title === 'Messages') {
-
-                                                        e.preventDefault();
-                                                        setIsMessagesModalOpen(true);
-                                                    } else if (action.title === 'Quiz & Blind Test') {
-                                                        e.preventDefault();
-                                                        setIsQuizModalOpen(true);
-                                                    } else if (action.link === 'random-questions' || action.title === 'Questions Aléatoires') {
-                                                        e.preventDefault();
-                                                        setIsRandomizerModalOpen(true);
-                                                    } else if (action.title === 'Tirage au Sort') {
-                                                        e.preventDefault();
-                                                        setIsGiveawayModalOpen(true);
+                                                        setIsTopDropsidersModalOpen(true);
                                                     } else if (action.title === 'Planning Story') {
                                                         e.preventDefault();
                                                         setIsScheduleModalOpen(true);
-                                                    } else if (action.title === 'L\'Équipe & Éditeurs') {
+                                                    } else if (action.title === 'L\'ÉQUIPE' || action.link === '#TEAM_MANAGEMENT_MODAL') {
                                                         e.preventDefault();
-                                                        setDashboardTab('TEAM');
-                                                    } else if (action.title === 'Comptes Membres' || action.link === '#COMMUNITY_MEMBERS') {
-                                                        e.preventDefault();
-                                                        setDashboardTab('TEAM');
-                                                    } else if (action.title === 'Concours Insta') {
-                                                        e.preventDefault();
-                                                        fetchInstagramParticipants();
-                                                        setIsInstagramContestModalOpen(true);
+                                                        setIsTeamManagementModalOpen(true);
                                                     } else if (action.title === 'Vérifier Photos') {
                                                         e.preventDefault();
                                                         setModerationTab('wiki');
                                                         setDashboardTab('COMMUNAUTÉ');
                                                         setIsModerationModalOpen(true);
-                                                    } else if (action.title === 'Communauté') {
+                                                    } else if (action.title === 'Spotify') {
                                                         e.preventDefault();
-                                                        setModerationTab('photos');
-                                                        setDashboardTab('COMMUNAUTÉ');
-                                                        if (pendingPhotosCount > 0) {
-                                                            setIsModerationModalOpen(true);
-                                                        }
+                                                        setIsSpotifyModalOpen(true);
                                                     } else if (action.title === 'Studio Création') {
                                                         e.preventDefault();
                                                         setIsCreatorStudioOpen(true);
-                                                    } else if (action.title === 'Top Dropsiders') {
-                                                        e.preventDefault();
-                                                        setDashboardTab('TOP_DROPSIDERS');
                                                     }
                                                 }}
                                                 className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -3977,6 +3947,158 @@ export function AdminDashboard() {
                                 onPubli={() => setIsPubliModalOpen(true)}
                                 onDownloader={() => setIsDownloaderOpen(true)}
                             />
+
+                            {/* Modal Message & Newsletter */}
+                            <AnimatePresence>
+                                {isMessagesNewsletterModalOpen && (
+                                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
+                                        >
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-orange via-white to-neon-orange" />
+                                            <div className="flex justify-between items-start mb-12">
+                                                <div>
+                                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">MESSAGE & <span className="text-neon-orange">NEWSLETTER</span></h2>
+                                                    <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Gestion des communications</p>
+                                                </div>
+                                                <button onClick={() => setIsMessagesNewsletterModalOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"><X className="w-6 h-6" /></button>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <button onClick={() => { setIsMessagesNewsletterModalOpen(false); setIsMessagesModalOpen(true); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-orange/10 hover:border-neon-orange/50 transition-all group">
+                                                    <div className="w-20 h-20 bg-neon-orange/20 rounded-3xl flex items-center justify-center border border-neon-orange/30 group-hover:scale-110 transition-transform"><Mail className="w-10 h-10 text-neon-orange" /></div>
+                                                    <div className="text-center"><h3 className="text-xl font-bold text-white uppercase italic">MESSAGERIE</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Emails & Contact</p></div>
+                                                </button>
+                                                <button onClick={() => { setIsMessagesNewsletterModalOpen(false); setIsNewsletterModalOpen(true); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-green-500/10 hover:border-green-500/50 transition-all group">
+                                                    <div className="w-20 h-20 bg-green-500/20 rounded-3xl flex items-center justify-center border border-green-500/30 group-hover:scale-110 transition-transform"><Megaphone className="w-10 h-10 text-green-500" /></div>
+                                                    <div className="text-center"><h3 className="text-xl font-bold text-white uppercase italic">NEWSLETTER</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Campagnes Mail</p></div>
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    </div>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Modal GENERATEURS */}
+                            <AnimatePresence>
+                                {isGeneratorsModalOpen && (
+                                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-5xl w-full shadow-2xl relative overflow-hidden"
+                                        >
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-white to-neon-purple" />
+                                            <div className="flex justify-between items-start mb-12">
+                                                <div>
+                                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">STUDIO <span className="text-neon-purple">GENERATEURS</span></h2>
+                                                    <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Outils de création visuelle</p>
+                                                </div>
+                                                <button onClick={() => setIsGeneratorsModalOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"><X className="w-6 h-6" /></button>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                <button onClick={() => { setIsGeneratorsModalOpen(false); setIsInterviewGeneratorOpen(true); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform"><Columns className="w-8 h-8 text-neon-purple" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">FICHES</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Interview Visual Cards</p></div>
+                                                </button>
+                                                <button onClick={() => { setIsGeneratorsModalOpen(false); setIsSocialModalOpen(true); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-pink-500/10 hover:border-pink-500/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-pink-500/20 rounded-2xl flex items-center justify-center border border-pink-500/30 group-hover:scale-110 transition-transform"><Instagram className="w-8 h-8 text-pink-500" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">SOCIAL POST</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Outils Réseaux Sociaux</p></div>
+                                                </button>
+                                                <button onClick={() => { setIsGeneratorsModalOpen(false); setIsScheduleModalOpen(true); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform"><Calendar className="w-8 h-8 text-neon-cyan" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">PLANNING</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Visuel Programme</p></div>
+                                                </button>
+                                                <button onClick={() => { setIsGeneratorsModalOpen(false); setIsRandomizerModalOpen(true); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform"><Dice5 className="w-8 h-8 text-neon-red" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">VISUELS INTERVIEWS</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Randomizer Questions</p></div>
+                                                </button>
+                                                <button onClick={() => { setIsGeneratorsModalOpen(false); fetchInstagramParticipants(); setIsInstagramContestModalOpen(true); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-yellow/10 hover:border-neon-yellow/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-neon-yellow/20 rounded-2xl flex items-center justify-center border border-neon-yellow/30 group-hover:scale-110 transition-transform"><Trophy className="w-8 h-8 text-neon-yellow" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">TIRAGE AU SORT</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Concours Insta & FB</p></div>
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    </div>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Modal TOP DROPSIDERS */}
+                            <AnimatePresence>
+                                {isTopDropsidersModalOpen && (
+                                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
+                                        >
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-yellow via-white to-neon-yellow" />
+                                            <div className="flex justify-between items-start mb-12">
+                                                <div>
+                                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">TOP <span className="text-neon-yellow">DROPSIDERS</span></h2>
+                                                    <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Classements & Votes de la communauté</p>
+                                                </div>
+                                                <button onClick={() => setIsTopDropsidersModalOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"><X className="w-6 h-6" /></button>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                <button onClick={() => { setIsTopDropsidersModalOpen(false); setDashboardTab('TOP_DROPSIDERS'); setWikiTab('djs'); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-yellow/10 hover:border-neon-yellow/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-neon-yellow/20 rounded-2xl flex items-center justify-center border border-neon-yellow/30 group-hover:scale-110 transition-transform"><Music className="w-8 h-8 text-neon-yellow" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">TOP 100 DJS</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Votes Artistes</p></div>
+                                                </button>
+                                                <button onClick={() => { setIsTopDropsidersModalOpen(false); setDashboardTab('TOP_DROPSIDERS'); setWikiTab('clubs'); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform"><Home className="w-8 h-8 text-neon-cyan" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">TOP 100 CLUBS</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Votes Établissements</p></div>
+                                                </button>
+                                                <button onClick={() => { setIsTopDropsidersModalOpen(false); setDashboardTab('TOP_DROPSIDERS'); setWikiTab('festivals'); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform"><Tent className="w-8 h-8 text-neon-pink" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">TOP 100 FESTIVALS</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Classement Événements</p></div>
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    </div>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Modal GESTION ÉQUIPE */}
+                            <AnimatePresence>
+                                {isTeamManagementModalOpen && (
+                                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
+                                        >
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
+                                            <div className="flex justify-between items-start mb-12">
+                                                <div>
+                                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">GESTION <span className="text-neon-red">ÉQUIPE</span></h2>
+                                                    <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Membres, Team & Éditeurs</p>
+                                                </div>
+                                                <button onClick={() => setIsTeamManagementModalOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"><X className="w-6 h-6" /></button>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                <button onClick={() => { setIsTeamManagementModalOpen(false); setDashboardTab('TEAM'); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform"><UserPlus className="w-8 h-8 text-neon-red" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">MEMBRES</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Registre Communauté</p></div>
+                                                </button>
+                                                <button onClick={() => { setIsTeamManagementModalOpen(false); setDashboardTab('TEAM'); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform"><Users className="w-8 h-8 text-neon-purple" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">LA TEAM</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Membres Officiels</p></div>
+                                                </button>
+                                                <button onClick={() => { setIsTeamManagementModalOpen(false); setDashboardTab('TEAM'); }} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group">
+                                                    <div className="w-16 h-16 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform"><ShieldCheck className="w-8 h-8 text-neon-cyan" /></div>
+                                                    <div className="text-center"><h3 className="text-lg font-bold text-white uppercase italic">ÉDITEURS</h3><p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">Droits & Accès</p></div>
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    </div>
+                                )}
+                            </AnimatePresence>
 
                             <AnimatePresence>
                                 {isBannerModalOpen && (
@@ -4951,6 +5073,22 @@ export function AdminDashboard() {
                                         </div>
                                     </button>
 
+                                    <button
+                                        onClick={() => {
+                                            setIsSpotifyModalOpen(true);
+                                            setIsAccueilModalOpen(false);
+                                        }}
+                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
+                                    >
+                                        <div className="w-12 h-12 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                            <Music className="w-6 h-6 text-neon-green" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Spotify</h3>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Top 10 Hebdo & Releases</p>
+                                        </div>
+                                    </button>
+
                                     <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-6">
                                         <div className="flex items-center gap-3 mb-2">
                                             <Instagram className="w-5 h-5 text-neon-red" />
@@ -5533,39 +5671,19 @@ export function AdminDashboard() {
                                     </button>
 
 
-                                    {/* Modération Photos Visiteurs */}
+                                    {/* Vérifier Photos (Wiki) */}
                                     <button
-                                        onClick={() => { setModerationTab('photos'); setIsModerationModalOpen(true); setIsCommunauteModalOpen(false); }}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
+                                        onClick={() => { setModerationTab('wiki'); setIsModerationModalOpen(true); setIsCommunauteModalOpen(false); }}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group relative lg:col-span-1"
                                     >
-                                        <div className="w-14 h-14 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                                            <ShieldAlert className="w-7 h-7 text-neon-red" />
+                                        <div className="w-14 h-14 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                                            <Camera className="w-7 h-7 text-neon-cyan" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Modération</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">Photos Visiteurs</p>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Vérifier Photos</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">Wiki & Galeries</p>
                                         </div>
-                                        {pendingPhotosCount > 0 && (
-                                            <div className="absolute top-3 right-3 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
-                                                <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
-                                            </div>
-                                        )}
                                     </button>
-
-                                    {/* Comptes Membres */}
-                                    <Link
-                                        to="/admin/manage?tab=Communaut\u00e9"
-                                        onClick={() => setIsCommunauteModalOpen(false)}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
-                                    >
-                                        <div className="w-14 h-14 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                                            <Users className="w-7 h-7 text-neon-purple" />
-                                        </div>
-                                        <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Membres</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">Comptes créés</p>
-                                        </div>
-                                    </Link>
 
                                 </div>
                             </motion.div>

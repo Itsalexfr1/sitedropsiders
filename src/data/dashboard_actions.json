@@ -12,28 +12,20 @@
     "columns": 1
   },
   {
-    "title": "Social Studio",
-    "description": "Outils Réseaux Sociaux",
-    "icon": "Instagram",
+    "title": "GENERATEURS",
+    "description": "Fiches, Posts, Planning, Interviews",
+    "icon": "Zap",
     "category": "SOCIAL_STUDIO",
-    "link": "social-studio",
+    "link": "#GENERATORS",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
     "permission": "news",
     "baseColor": "#fb00ff",
     "columns": 1
   },
   {
-    "title": "Générateur Fiches",
-    "description": "Interview Visual Cards",
-    "icon": "Columns",
-    "category": "STUDIO",
-    "link": "interview-generator",
-    "permission": "news",
-    "baseColor": "#8951db",
-    "columns": 1
-  },
-  {
     "title": "Accueil",
-    "description": "Sections & Vues",
+    "description": "Spotify, Sections & Vues",
     "icon": "LayoutDashboard",
     "category": "ALL",
     "link": "#",
@@ -56,11 +48,11 @@
     "columns": 1
   },
   {
-    "title": "Messagerie",
-    "description": "Emails & Contact",
+    "title": "Message & Newsletter",
+    "description": "Emails & Campagnes",
     "icon": "Mail",
     "category": "SHOP",
-    "link": "#",
+    "link": "#MESSAGES_NEWSLETTER",
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
@@ -68,11 +60,11 @@
     "columns": 1
   },
   {
-    "title": "Top Dropsiders",
-    "description": "Résultats des votes",
-    "icon": "Star",
+    "title": "TOP DROPSIDERS",
+    "description": "DJs, Clubs & Festivals",
+    "icon": "Trophy",
     "category": "WIKI",
-    "link": "#",
+    "link": "#TOP_DROPSIDERS_MODAL",
     "color": "border-neon-yellow/20 hover:border-neon-yellow",
     "bg": "bg-neon-yellow/5",
     "permission": "community_mod",
@@ -84,23 +76,11 @@
     "description": "Modération & Galerie",
     "icon": "MessageSquare",
     "category": "COMMUNAUTÉ",
-    "link": "#",
+    "link": "#COMMUNITY_CENTER",
     "color": "border-neon-purple/20 hover:border-neon-purple",
     "bg": "bg-neon-purple/5",
     "permission": "community_mod",
     "baseColor": "#0033ff",
-    "columns": 1
-  },
-  {
-    "title": "Newsletter",
-    "description": "Campagnes Mail",
-    "icon": "Mail",
-    "category": "SHOP",
-    "link": "#",
-    "color": "border-green-400/20 hover:border-green-400",
-    "bg": "bg-green-400/5",
-    "permission": "push_newsletter",
-    "baseColor": "#e1a9e5",
     "columns": 1
   },
   {
@@ -116,23 +96,11 @@
     "columns": 1
   },
   {
-    "title": "Spotify",
-    "description": "Top 10 Hebdo",
-    "icon": "Music",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-green/20 hover:border-neon-green",
-    "bg": "bg-neon-green/5",
-    "permission": "musique_releases",
-    "baseColor": "#1eff00",
-    "columns": 1
-  },
-  {
-    "title": "L'Équipe & Éditeurs",
-    "description": "Accès & Membres",
+    "title": "L'ÉQUIPE",
+    "description": "Team, Éditeurs & Membres",
     "icon": "Users",
     "category": "TEAM",
-    "link": "#",
+    "link": "#TEAM_MANAGEMENT_MODAL",
     "color": "border-neon-purple/20 hover:border-neon-purple",
     "bg": "bg-neon-purple/5",
     "permission": "all",
@@ -152,40 +120,6 @@
     "columns": 1
   },
   {
-    "title": "Vérifier Photos",
-    "description": "Modération Wiki Photos",
-    "icon": "Camera",
-    "category": "WIKI",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "community_mod",
-    "baseColor": "#a36262",
-    "columns": 1
-  },
-  {
-    "title": "Questions Aléatoires",
-    "description": "Randomizer d'Interviews",
-    "icon": "Dice5",
-    "category": "STUDIO",
-    "link": "random-questions",
-    "permission": "news",
-    "baseColor": "#2b00ff",
-    "columns": 1
-  },
-  {
-    "title": "Comptes Membres",
-    "description": "Registre Communauté",
-    "icon": "UserPlus",
-    "category": "TEAM",
-    "link": "#",
-    "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-neon-red/5",
-    "permission": "all",
-    "baseColor": "red",
-    "columns": 1
-  },
-  {
     "title": "Documents PDF",
     "description": "Hébergement & Partage",
     "icon": "Download",
@@ -195,30 +129,6 @@
     "bg": "bg-neon-cyan/5",
     "permission": "news",
     "baseColor": "#00ccff",
-    "columns": 1
-  },
-  {
-    "title": "Tirage au Sort",
-    "description": "Instagram & Facebook",
-    "icon": "Trophy",
-    "category": "SOCIAL_STUDIO",
-    "link": "#",
-    "color": "border-pink-500/20 hover:border-pink-500",
-    "bg": "bg-pink-500/5",
-    "permission": "community_mod",
-    "baseColor": "#ff0000",
-    "columns": 1
-  },
-  {
-    "title": "Planning Story",
-    "description": "Visuel Programme",
-    "icon": "Calendar",
-    "category": "SOCIAL_STUDIO",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "news",
-    "baseColor": "#4dff00",
     "columns": 1
   }
 ]
