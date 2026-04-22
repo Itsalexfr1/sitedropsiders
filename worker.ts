@@ -757,7 +757,7 @@ ${urls.map(u => `  <url>
             });
             const userData = await userRes.json();
             const userId = userData.data?.[0]?.id;
-            if (!userId) return new Response('User not found on Twitch', { status: 404 });
+            if (!userId) return new Response(JSON.stringify({ success: false, error: 'Compte Twitch introuvable' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
 
             // Subscribe to Chat Messages
             const subRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
@@ -783,7 +783,7 @@ ${urls.map(u => `  <url>
             });
 
             const subData = await subRes.json();
-            return new Response(JSON.stringify({ success: subRes.ok, userId, subData }), { headers: { 'Content-Type': 'application/json' } });
+            return new Response(JSON.stringify({ success: subRes.ok, userId, subData, error: subRes.ok ? null : subData.message }), { headers: { 'Content-Type': 'application/json' } });
         }
 
         if (path === '/api/users/sync' && request.method === 'POST') {

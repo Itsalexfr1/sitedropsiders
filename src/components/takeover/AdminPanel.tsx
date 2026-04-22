@@ -650,8 +650,9 @@ export function AdminPanel() {
                                                 onClick={async () => {
                                                     try {
                                                         const res = await fetch('/api/twitch/sync', { method: 'POST' });
+                                                        const data = await res.json();
                                                         if (res.ok) showNotification('Bot Twitch synchronisé !', 'success');
-                                                        else showNotification('Erreur de synchro', 'error');
+                                                        else showNotification(`Erreur sync : ${data.error || 'Inconnue'}`, 'error');
                                                     } catch (e) {
                                                         showNotification('Erreur réseau', 'error');
                                                     }
@@ -666,7 +667,7 @@ export function AdminPanel() {
                                                         const res = await fetch('/api/twitch/test', { method: 'POST' });
                                                         const data = await res.json();
                                                         if (data.success) showNotification('Message de test envoyé !', 'success');
-                                                        else showNotification('Erreur d\'envoi test', 'error');
+                                                        else showNotification(`Erreur test : ${data.error || 'Inconnue'}`, 'error');
                                                     } catch (e) {
                                                         showNotification('Erreur réseau', 'error');
                                                     }
