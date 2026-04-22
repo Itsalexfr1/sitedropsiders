@@ -9,7 +9,12 @@ import axios from 'axios';
 
 const parseJwt = (token: string) => {
     try {
-        return JSON.parse(atob(token.split('.')[1]));
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
     } catch (e) {
         return null;
     }
@@ -280,11 +285,8 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                 <div className="space-y-6">
                                     {/* Social Login Buttons */}
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex items-center justify-center overflow-hidden rounded-2xl border border-white/10 hover:border-white/20 transition-all bg-white/5 relative">
-                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                                                {isSocialLoading ? <Loader2 className="w-5 h-5 animate-spin text-white" /> : <div className="text-[10px] font-black text-white uppercase tracking-widest text-center">Google<br/><span className="text-[7px] text-gray-500 lowercase">(Sécurisé)</span></div>}
-                                            </div>
-                                            <div className="opacity-0 w-full h-full absolute inset-0 z-10 flex items-center justify-center">
+                                        <div className="flex items-center justify-center overflow-hidden rounded-2xl bg-black relative">
+                                            <div className="w-full flex justify-center py-1">
                                                 <GoogleLogin
                                                     onSuccess={(credentialResponse) => {
                                                         setIsSocialLoading(true);
@@ -300,14 +302,21 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                                                 });
                                                                 setIsSocialLoading(false);
                                                                 onClose();
+                                                            } else {
+                                                                console.error('Failed to decode JWT');
+                                                                setIsSocialLoading(false);
                                                             }
+                                                        } else {
+                                                            setIsSocialLoading(false);
                                                         }
                                                     }}
                                                     onError={() => {
                                                         console.error('Google login failed via component');
                                                         setIsSocialLoading(false);
                                                     }}
-                                                    useOneTap
+                                                    theme="filled_black"
+                                                    shape="rectangular"
+                                                    text="signin_with"
                                                 />
                                             </div>
                                         </div>
