@@ -759,53 +759,87 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/twitch/sync' && request.method === 'POST') {
-            const settings = await env.KV.get('settings', 'json') || {};
-            let channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
+            const corsHeaders = {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            };
 
-            // Clean channel name
-            if (channel.includes('twitch.tv/')) {
-                channel = channel.split('twitch.tv/')[1].split('/')[0].split('?')[0];
-            }
+            try {
+                const settings = await env.KV.get('settings', 'json') || {};
+                let channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
 
-            // Get User ID
-            let USER_TOKEN = env.TWITCH_BOT_TOKEN;
-            if (USER_TOKEN && USER_TOKEN.startsWith('oauth:')) USER_TOKEN = USER_TOKEN.replace('oauth:', '');
-
-            const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
-                headers: {
-                    'Client-ID': env.TWITCH_CLIENT_ID,
-                    'Authorization': `Bearer ${USER_TOKEN || await getTwitchToken(env)}`
+                // Clean channel name
+                if (channel.includes('twitch.tv/')) {
+                    channel = channel.split('twitch.tv/')[1].split('/')[0].split('?')[0];
                 }
-            });
-            const userData = await userRes.json();
-            const userId = userData.data?.[0]?.id;
-            if (!userId) return new Response(JSON.stringify({ success: false, error: 'Compte Twitch introuvable' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
 
-            // Subscribe to Chat Messages
-            const subRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
-                method: 'POST',
-                headers: {
-                    'Client-ID': env.TWITCH_CLIENT_ID,
-                    'Authorization': `Bearer ${USER_TOKEN}`, // MUST BE USER TOKEN for Chat Message scope
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    type: 'channel.chat.message',
-                    version: '1',
-                    condition: {
-                        broadcaster_user_id: userId,
-                        user_id: userId
-                    },
-                    transport: {
-                        method: 'webhook',
-                        callback: `${new URL(request.url).origin}/api/twitch/eventsub`,
-                        secret: env.TWITCH_EVENTSUB_SECRET
+                // Use App Access Token (Client Credentials) for EventSub — no user scopes needed
+                const appToken = await getTwitchToken(env);
+                if (!appToken) {
+                    return new Response(JSON.stringify({ success: false, error: 'Impossible d\'obtenir un App Token Twitch. Vérifiez TWITCH_CLIENT_ID et TWITCH_CLIENT_SECRET.' }), { status: 500, headers: corsHeaders });
+                }
+
+                // Get broadcaster user ID
+                const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
+                    headers: {
+                        'Client-ID': env.TWITCH_CLIENT_ID,
+                        'Authorization': `Bearer ${appToken}`
                     }
-                })
-            });
+                });
+                const userData = await userRes.json();
+                const broadcasterId = userData.data?.[0]?.id;
+                if (!broadcasterId) {
+                    return new Response(JSON.stringify({ success: false, error: `Chaîne '${channel}' introuvable sur Twitch` }), { status: 404, headers: corsHeaders });
+                }
 
-            const subData = await subRes.json();
-            return new Response(JSON.stringify({ success: subRes.ok, userId, subData, error: subRes.ok ? null : subData.message }), { headers: { 'Content-Type': 'application/json' } });
+                // Get bot user ID from bot token
+                let USER_TOKEN = env.TWITCH_BOT_TOKEN || appToken;
+                if (USER_TOKEN.startsWith('oauth:')) USER_TOKEN = USER_TOKEN.replace('oauth:', '');
+                const botRes = await fetch('https://api.twitch.tv/helix/users', {
+                    headers: {
+                        'Client-ID': env.TWITCH_CLIENT_ID,
+                        'Authorization': `Bearer ${USER_TOKEN}`
+                    }
+                });
+                const botData = await botRes.json();
+                const botId = botData.data?.[0]?.id || broadcasterId;
+
+                // Subscribe to Chat Messages via EventSub
+                const callbackUrl = `${new URL(request.url).origin}/api/twitch/eventsub`;
+                const subRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+                    method: 'POST',
+                    headers: {
+                        'Client-ID': env.TWITCH_CLIENT_ID,
+                        'Authorization': `Bearer ${appToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'channel.chat.message',
+                        version: '1',
+                        condition: {
+                            broadcaster_user_id: broadcasterId,
+                            user_id: botId
+                        },
+                        transport: {
+                            method: 'webhook',
+                            callback: callbackUrl,
+                            secret: env.TWITCH_EVENTSUB_SECRET || 'dropsiders-secret'
+                        }
+                    })
+                });
+
+                const subData = await subRes.json();
+                console.log('[TWITCH SYNC] Status:', subRes.status, JSON.stringify(subData));
+
+                // 409 = already subscribed, that's fine
+                const ok = subRes.ok || subRes.status === 409;
+                const errorMsg = ok ? null : (subData.message || `Erreur Twitch: ${subRes.status}`);
+
+                return new Response(JSON.stringify({ success: ok, broadcasterId, botId, callbackUrl, error: errorMsg }), { headers: corsHeaders });
+            } catch (e) {
+                console.error('[TWITCH SYNC ERROR]', e);
+                return new Response(JSON.stringify({ success: false, error: `Exception: ${e.message}` }), { status: 500, headers: corsHeaders });
+            }
         }
 
         if (path === '/api/users/sync' && request.method === 'POST') {
