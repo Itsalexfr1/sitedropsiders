@@ -163,11 +163,10 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const numDays = schedule.length;
         
         // Dynamic sizing
-        let dayHeight = 180;
-        let dateFontSize = 50;
-        let eventFontSize = 30;
-        let eventSpacing = 50;
-        let eventNightSpacing = 95;
+        let dateFontSize = 55; // +10% (was 50)
+        let eventFontSize = 33; // +10% (was 30)
+        let eventSpacing = 55;
+        let eventNightSpacing = 105;
 
         if (numDays > 4) {
             const scale = Math.max(0.6, 1 - (numDays - 4) * 0.1);
@@ -184,26 +183,26 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             const y = startY + index * dayHeight;
             
             // Date Header
-            ctx.textAlign = 'left';
+            ctx.textAlign = 'center';
             ctx.font = `900 italic ${dateFontSize}px "Orbitron", sans-serif`;
             ctx.fillStyle = '#ff1241';
             ctx.shadowBlur = 15;
             ctx.shadowColor = 'rgba(255, 18, 65, 0.5)';
-            ctx.fillText(day.date.toUpperCase(), marginX, y);
+            ctx.fillText(day.date.toUpperCase(), width / 2, y);
             ctx.shadowBlur = 0;
 
             // Day Event
             if (day.dayEvent) {
                 ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText('☀️ ' + day.dayEvent, marginX + 20, y + eventSpacing);
+                ctx.fillText('☀️ ' + day.dayEvent.toUpperCase(), width / 2, y + eventSpacing);
             }
 
             // Night Event
             if (day.nightEvent) {
                 ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText('🌒 ' + day.nightEvent, marginX + 20, y + (day.dayEvent ? eventNightSpacing : eventSpacing));
+                ctx.fillText('🌒 ' + day.nightEvent.toUpperCase(), width / 2, y + (day.dayEvent ? eventNightSpacing : eventSpacing));
             }
 
             // Divider
@@ -389,7 +388,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         <div className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-[8px] font-black text-neon-cyan uppercase tracking-widest">Story 9:16</div>
                                     </div>
 
-                                    <div className="aspect-[9/16] w-full max-w-[320px] mx-auto bg-black rounded-[2.5rem] border-[10px] border-gray-800 shadow-2xl relative overflow-hidden flex flex-col p-6 text-white scale-95 origin-top">
+                                    <div className="aspect-[9/16] w-full max-w-[320px] mx-auto bg-black rounded-[2.5rem] border-[10px] border-gray-800 shadow-2xl relative overflow-hidden flex flex-col p-6 text-white scale-[0.85] origin-top">
                                         {/* Fake Story Background */}
                                         {backgroundImage || backgroundVideo ? (
                                             <div className="absolute inset-0">
@@ -421,12 +420,12 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 <div className="text-[10px] font-black text-white/40 italic uppercase tracking-widest">{customTitle || 'PLANNING'}</div>
                                             </div>
 
-                                            <div className={`space-y-4 ${!showLogo ? 'mt-6' : ''}`}>
+                                            <div className={`space-y-4 text-center ${!showLogo ? 'mt-6' : ''}`}>
                                                 {schedule.map(day => (
                                                     <div key={day.id} className="space-y-1">
-                                                        <div className="text-[12px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>
-                                                        {day.dayEvent && <div className="text-[8px] text-gray-300 font-bold">☀️ {day.dayEvent}</div>}
-                                                        {day.nightEvent && <div className="text-[8px] text-gray-300 font-bold">🌒 {day.nightEvent}</div>}
+                                                        <div className="text-[13px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>
+                                                        {day.dayEvent && <div className="text-[9px] text-gray-300 font-bold uppercase tracking-wide">☀️ {day.dayEvent}</div>}
+                                                        {day.nightEvent && <div className="text-[9px] text-gray-300 font-bold uppercase tracking-wide">🌒 {day.nightEvent}</div>}
                                                     </div>
                                                 ))}
                                             </div>
