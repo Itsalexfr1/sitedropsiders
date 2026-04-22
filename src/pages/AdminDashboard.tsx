@@ -656,16 +656,6 @@ export function AdminDashboard() {
     "DJS",
   );
   const [wikiSortMode, setWikiSortMode] = useState<"alpha" | "votes">("alpha");
-  const [isTop100GeneratorModalOpen, setIsTop100GeneratorModalOpen] = useState(false);
-  const top100Data = useMemo(() => {
-    const tab = wikiFilter.toLowerCase();
-    const all = tab === "djs" ? wikiDjs : tab === "clubs" ? wikiClubs : wikiFestivals;
-    return {
-      tab,
-      all,
-      ranked: isWikiExpanded ? all : all.slice(0, 5),
-    };
-  }, [wikiFilter, wikiDjs, wikiClubs, wikiFestivals, isWikiExpanded]);
 
   const [isEditWikiModalOpen, setIsEditWikiModalOpen] = useState(false);
   const [isNewWikiModalOpen, setIsNewWikiModalOpen] = useState(false);
@@ -782,6 +772,22 @@ export function AdminDashboard() {
   >("ALL");
   const [isWikiExpanded, setIsWikiExpanded] = useState(false);
   const [wikiTab, setWikiTab] = useState<"djs" | "clubs" | "festivals">("djs");
+  const [isTop100GeneratorModalOpen, setIsTop100GeneratorModalOpen] = useState(false);
+
+  const top100Data = useMemo(() => {
+    const tab = wikiFilter.toLowerCase();
+    const all =
+      tab === "djs"
+        ? wikiDjs
+        : tab === "clubs"
+          ? wikiClubs
+          : wikiFestivals;
+    return {
+      tab,
+      all,
+      ranked: isWikiExpanded ? all : all.slice(0, 5),
+    };
+  }, [wikiFilter, wikiDjs, wikiClubs, wikiFestivals, isWikiExpanded]);
 
   const DASHBOARD_TABS = [
     { id: "ALL", label: "Tout" },
