@@ -5,15 +5,16 @@ import { X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, Image as Im
 interface DaySchedule {
     id: string;
     date: string;
-    dayEvent: string;
-    nightEvent: string;
-    stage: string;
+    dayArtist: string;
+    dayLocation: string;
+    nightArtist: string;
+    nightLocation: string;
 }
 
 export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const [schedule, setSchedule] = useState<DaySchedule[]>([
-        { id: '1', date: '13 Mai', dayEvent: '14:00', nightEvent: 'Mau P', stage: 'Encore Beach' },
-        { id: '2', date: '14 Mai', dayEvent: '22:00', nightEvent: 'Dom Dolla', stage: 'Liv Nightclub' }
+        { id: '1', date: '13 Mai', dayArtist: 'Mau P', dayLocation: 'Encore Beach', nightArtist: 'Mau P', nightLocation: 'Encore Beach' },
+        { id: '2', date: '14 Mai', dayArtist: 'Dom Dolla', dayLocation: 'Liv Nightclub', nightArtist: 'Dom Dolla', nightLocation: 'Liv Nightclub' }
     ]);
     const [showLogo, setShowLogo] = useState(true);
     const [showWebsite, setShowWebsite] = useState(true);
@@ -30,7 +31,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
     const addDay = () => {
         if (schedule.length >= 8) return;
-        setSchedule([...schedule, { id: Math.random().toString(), date: '', dayEvent: '', nightEvent: '', stage: '' }]);
+        setSchedule([...schedule, { id: Math.random().toString(), date: '', dayArtist: '', dayLocation: '', nightArtist: '', nightLocation: '' }]);
     };
 
     const removeDay = (id: string) => {
@@ -210,14 +211,14 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
             if (viewMode === 'timetable') {
                 // Combined format: HEURE (Red) - ARTISTE (Orbitron) - STAGE (Montserrat)
-                const hourText = (day.dayEvent || '').toUpperCase();
-                const artistText = (day.nightEvent || '').toUpperCase();
-                const stageText = (day.stage || '').toUpperCase();
+                // In timetable mode: dayArtist=Heure, dayLocation=Artiste, nightArtist=Stage
+                const hourText = (day.dayArtist || '').toUpperCase();
+                const artistText = (day.dayLocation || '').toUpperCase();
+                const stageText = (day.nightArtist || '').toUpperCase();
                 
                 const separator = ' - ';
                 ctx.textAlign = 'center';
                 
-                // We'll calculate the total width to center it properly
                 ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                 const sepWidth = ctx.measureText(separator).width;
                 
@@ -233,16 +234,13 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 const totalWidth = hourWidth + (hourText && artistText ? sepWidth : 0) + artistWidth + (artistText && stageText ? sepWidth : 0) + stageWidth;
                 let currentX = (width - totalWidth) / 2;
 
-                // 1. Draw Hour
                 if (hourText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = '#ff1241'; // ROUGE
+                    ctx.fillStyle = '#ff1241';
                     ctx.fillText(hourText, currentX, eventBaseY + eventSpacing);
                     currentX += hourWidth;
                 }
-
-                // 2. Draw Sep 1
                 if (hourText && artistText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
@@ -250,8 +248,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     ctx.fillText(separator, currentX, eventBaseY + eventSpacing);
                     currentX += sepWidth;
                 }
-
-                // 3. Draw Artist
                 if (artistText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
@@ -259,8 +255,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     ctx.fillText(artistText, currentX, eventBaseY + eventSpacing);
                     currentX += artistWidth;
                 }
-
-                // 4. Draw Sep 2
                 if (artistText && stageText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
@@ -268,8 +262,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     ctx.fillText(separator, currentX, eventBaseY + eventSpacing);
                     currentX += sepWidth;
                 }
-
-                // 5. Draw Stage
                 if (stageText) {
                     ctx.textAlign = 'left';
                     ctx.font = `500 ${eventFontSize * 0.8}px "Montserrat", sans-serif`;
@@ -277,24 +269,23 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     ctx.fillText(stageText, currentX, eventBaseY + eventSpacing);
                 }
             } else {
-                // Planning format: Separate lines
-                if (day.dayEvent) {
+                // Planning format: Separate lines for Day and Night with Locations
+                const renderEvent = (artist: string, location: string, icon: string, yOffset: number) => {
+                    if (!artist) return;
+                    ctx.textAlign = 'center';
                     ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(iconDay + day.dayEvent.toUpperCase(), width / 2, eventBaseY + eventSpacing);
-                }
-                if (day.nightEvent) {
-                    ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    const nightY = day.dayEvent ? eventNightSpacing : eventSpacing;
-                    ctx.fillText(iconNight + day.nightEvent.toUpperCase(), width / 2, eventBaseY + nightY);
+                    ctx.fillText(icon + artist.toUpperCase(), width / 2, eventBaseY + yOffset);
                     
-                    if (day.stage) {
+                    if (location) {
                         ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                        ctx.fillText(day.stage.toUpperCase(), width / 2, eventBaseY + nightY + (eventFontSize * 0.9));
+                        ctx.fillText(location.toUpperCase(), width / 2, eventBaseY + yOffset + (eventFontSize * 0.9));
                     }
-                }
+                };
+
+                renderEvent(day.dayArtist, day.dayLocation, iconDay, eventSpacing);
+                renderEvent(day.nightArtist, day.nightLocation, iconNight, day.dayArtist ? eventNightSpacing + 20 : eventSpacing);
             }
 
             // Divider
@@ -463,25 +454,32 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all italic font-bold"
                                                     />
                                                 </div>
-                                                <div className="grid grid-cols-3 gap-4">
+                                                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                                                     <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Jour ☀️' : 'Heure'}</label>
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Jour ☀️ - Artiste' : 'Heure'}</label>
                                                         <input 
-                                                            type="text" value={day.dayEvent} onChange={(e) => updateDay(day.id, 'dayEvent', e.target.value)}
+                                                            type="text" value={day.dayArtist} onChange={(e) => updateDay(day.id, 'dayArtist', e.target.value)}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Nuit 🌒' : 'Artiste'}</label>
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Jour ☀️ - Lieu' : 'Artiste'}</label>
                                                         <input 
-                                                            type="text" value={day.nightEvent} onChange={(e) => updateDay(day.id, 'nightEvent', e.target.value)}
+                                                            type="text" value={day.dayLocation} onChange={(e) => updateDay(day.id, 'dayLocation', e.target.value)}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Stage / Scène</label>
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Nuit 🌒 - Artiste' : 'Stage / Scène'}</label>
                                                         <input 
-                                                            type="text" value={day.stage} onChange={(e) => updateDay(day.id, 'stage', e.target.value)}
+                                                            type="text" value={day.nightArtist} onChange={(e) => updateDay(day.id, 'nightArtist', e.target.value)}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Nuit 🌒 - Lieu' : 'Inutilisé'}</label>
+                                                        <input 
+                                                            type="text" value={day.nightLocation} onChange={(e) => updateDay(day.id, 'nightLocation', e.target.value)}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
                                                         />
                                                     </div>
@@ -547,18 +545,27 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                     <div key={day.id} className="space-y-1">
                                                         {viewMode === 'planning' && <div className="text-[15px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>}
                                                         {viewMode === 'planning' ? (
-                                                            <>
-                                                                {day.dayEvent && <div className="text-[12px] text-gray-300 font-bold uppercase tracking-wide">☀️ {day.dayEvent}</div>}
-                                                                {day.nightEvent && <div className="text-[12px] text-gray-300 font-bold uppercase tracking-wide">🌒 {day.nightEvent}</div>}
-                                                                {day.stage && <div className="text-[9px] text-white/40 italic uppercase">{day.stage}</div>}
-                                                            </>
+                                                            <div className="space-y-2">
+                                                                {day.dayArtist && (
+                                                                    <div className="flex flex-col items-center">
+                                                                        <div className="text-[12px] text-white font-bold uppercase tracking-wide">☀️ {day.dayArtist}</div>
+                                                                        {day.dayLocation && <div className="text-[9px] text-white/40 italic uppercase">{day.dayLocation}</div>}
+                                                                    </div>
+                                                                )}
+                                                                {day.nightArtist && (
+                                                                    <div className="flex flex-col items-center">
+                                                                        <div className="text-[12px] text-white font-bold uppercase tracking-wide">🌒 {day.nightArtist}</div>
+                                                                        {day.nightLocation && <div className="text-[9px] text-white/40 italic uppercase">{day.nightLocation}</div>}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         ) : (
                                                             <div className="flex items-center justify-center gap-1 text-[11px] font-bold uppercase tracking-wide">
-                                                                {day.dayEvent && <span className="text-neon-red italic">{day.dayEvent}</span>}
-                                                                {day.dayEvent && day.nightEvent && <span className="text-white/20">-</span>}
-                                                                {day.nightEvent && <span className="font-display text-white">{day.nightEvent}</span>}
-                                                                {day.nightEvent && day.stage && <span className="text-white/20">-</span>}
-                                                                {day.stage && <span className="text-[9px] text-white/40 font-normal">{day.stage}</span>}
+                                                                {day.dayArtist && <span className="text-neon-red italic">{day.dayArtist}</span>}
+                                                                {day.dayArtist && day.dayLocation && <span className="text-white/20">-</span>}
+                                                                {day.dayLocation && <span className="font-display text-white">{day.dayLocation}</span>}
+                                                                {day.dayLocation && day.nightArtist && <span className="text-white/20">-</span>}
+                                                                {day.nightArtist && <span className="text-[9px] text-white/40 font-normal">{day.nightArtist}</span>}
                                                             </div>
                                                         )}
                                                     </div>
