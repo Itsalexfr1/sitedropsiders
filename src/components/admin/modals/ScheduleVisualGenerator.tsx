@@ -30,7 +30,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
     const bgInputRef = useRef<HTMLInputElement>(null);
 
     const addDay = () => {
-        if (schedule.length >= 8) return;
+        if (schedule.length >= 25) return; // Limite augmentée à 25 pour les timetables denses
         setSchedule([...schedule, { id: Math.random().toString(), date: '', dayArtist: '', dayLocation: '', nightArtist: '', nightLocation: '' }]);
     };
 
@@ -391,8 +391,8 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 {viewMode === 'planning' ? <Calendar className="w-3 h-3" /> : <Calendar className="w-3 h-3 text-black" />}
                                                 Mode: {viewMode === 'planning' ? 'DATE' : 'HEURE'}
                                             </button>
-                                            <button onClick={addDay} disabled={schedule.length >= 8} className="flex items-center gap-2 px-3 py-1.5 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-[0_0_15px_rgba(0,255,255,0.3)]">
-                                                <Plus className="w-3 h-3" /> Ajouter ({schedule.length}/8)
+                                            <button onClick={addDay} disabled={schedule.length >= 25} className="flex items-center gap-2 px-3 py-1.5 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-[0_0_15px_rgba(0,255,255,0.3)]">
+                                                <Plus className="w-3 h-3" /> Ajouter ({schedule.length}/25)
                                             </button>
                                         </div>
                                 </div>
@@ -473,13 +473,15 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                             <div className="grid grid-cols-1 gap-4">
-                                                <div className="space-y-1">
-                                                    <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Jour {idx + 1} - Date (ex: 13 Mai)</label>
-                                                    <input 
-                                                        type="text" value={day.date} onChange={(e) => updateDay(day.id, 'date', e.target.value)}
-                                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all italic font-bold"
-                                                    />
-                                                </div>
+                                                {viewMode === 'planning' && (
+                                                    <div className="space-y-1">
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Jour {idx + 1} - Date (ex: 13 Mai)</label>
+                                                        <input 
+                                                            type="text" value={day.date} onChange={(e) => updateDay(day.id, 'date', e.target.value)}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all italic font-bold"
+                                                        />
+                                                    </div>
+                                                )}
                                                 <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                                                     <div className="space-y-1">
                                                         <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Jour ☀️ - Artiste' : 'Heure'}</label>
