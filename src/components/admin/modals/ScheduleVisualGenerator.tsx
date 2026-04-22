@@ -251,41 +251,48 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
                 const totalWidth = hourWidth + (hourText && artistText ? sepWidth : 0) + artistWidth + (artistText && stageText ? sepWidth : 0) + stageWidth;
                 let currentX = (width - totalWidth) / 2;
+                const textY = y + (dayHeight / 2);
+
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetY = 2;
 
                 if (hourText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ff1241';
-                    ctx.fillText(hourText, currentX, y + (dayHeight / 2));
+                    ctx.fillText(hourText, currentX, textY);
                     currentX += hourWidth;
                 }
                 if (hourText && artistText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(separator, currentX, y + (dayHeight / 2));
+                    ctx.fillText(separator, currentX, textY);
                     currentX += sepWidth;
                 }
                 if (artistText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(artistText, currentX, y + (dayHeight / 2));
+                    ctx.fillText(artistText, currentX, textY);
                     currentX += artistWidth;
                 }
                 if (artistText && stageText) {
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(separator, currentX, y + (dayHeight / 2));
+                    ctx.fillText(separator, currentX, textY);
                     currentX += sepWidth;
                 }
                 if (stageText) {
                     ctx.textAlign = 'left';
                     ctx.font = `500 ${eventFontSize * 0.8}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                    ctx.fillText(stageText, currentX, y + (dayHeight / 2));
+                    ctx.fillText(stageText, currentX, textY);
                 }
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetY = 0;
             } else {
                 // Planning format: Separate lines for Day and Night with Locations
                 const renderEvent = (artist: string, location: string, icon: string, yOffset: number) => {
@@ -305,6 +312,10 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     const totalW = artistWidth + locWidth;
                     let startX = (width - totalW) / 2;
                     
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                    ctx.shadowBlur = 12;
+                    ctx.shadowOffsetY = 3;
+
                     // Draw Artist
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
@@ -317,6 +328,8 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                         ctx.fillText(location.toUpperCase(), startX + artistWidth + 20, eventBaseY + yOffset);
                     }
+                    ctx.shadowBlur = 0;
+                    ctx.shadowOffsetY = 0;
                 };
 
                 renderEvent(day.dayArtist, day.dayLocation, iconDay, eventSpacing);
