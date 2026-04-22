@@ -777,33 +777,46 @@ ${urls.map(u => `  <url>
             }
         }
 
-        // --- API: GOOGLE IMAGE SEARCH PROXY ---
+        // --- API: DUCKDUCKGO IMAGE SEARCH (No Key Required) ---
         if (path === '/api/google-image-search' && request.method === 'GET') {
             const q = url.searchParams.get('q');
-            const start = url.searchParams.get('start') || '1';
             if (!q) return new Response(JSON.stringify({ error: 'Query manquante' }), { status: 400, headers });
 
             try {
-                const settingsFile = await fetchGitHubFile('src/data/settings.json', { OWNER, REPO, TOKEN });
-                const settings = settingsFile?.content || {};
-                const googleKey = settings.google_search_key || env.GOOGLE_SEARCH_KEY || '';
-                const googleCx = settings.google_cx || env.GOOGLE_CX || '';
+                // 1. Get VQD Token (Required by DDG)
+                const ddgMain = await fetch(`https://duckduckgo.com/?q=${encodeURIComponent(q)}`);
+                const html = await ddgMain.text();
+                const vqdMatch = html.match(/vqd=['"]([^'"]+)['"]/);
+                const vqd = vqdMatch ? vqdMatch[1] : null;
 
-                if (!googleKey || !googleCx) {
-                    return new Response(JSON.stringify({ error: 'Clés API Google manquantes dans les réglages.' }), { status: 500, headers });
+                if (!vqd) {
+                    return new Response(JSON.stringify({ error: 'Impossible de récupérer le token DuckDuckGo' }), { status: 500, headers });
                 }
 
-                const searchUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(q)}&cx=${googleCx}&key=${googleKey}&searchType=image&num=10&imgSize=large&start=${start}`;
+                // 2. Fetch Images from DuckDuckGo
+                const searchUrl = `https://duckduckgo.com/i.js?q=${encodeURIComponent(q)}&o=json&vqd=${vqd}&f=,,,`;
                 const res = await fetch(searchUrl, {
-                    headers: { 'User-Agent': 'Cloudflare-Worker/1.0' }
+                    headers: { 
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                        'Accept': 'application/json'
+                    }
                 });
-                const data = await res.json();
+                
+                const data = await res.json() as any;
+                
+                // 3. Map results to our standard format
+                const results = {
+                    items: (data.results || []).map((r: any) => ({
+                        link: r.image,
+                        title: r.title,
+                        displayLink: r.source,
+                        image: {
+                            thumbnailLink: r.thumbnail
+                        }
+                    }))
+                };
 
-                if (!res.ok) {
-                    return new Response(JSON.stringify({ error: data.error?.message || 'Erreur Google API' }), { status: res.status, headers });
-                }
-
-                return new Response(JSON.stringify(data), { headers });
+                return new Response(JSON.stringify(results), { headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }

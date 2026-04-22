@@ -603,7 +603,7 @@ export function ImageUploadModal({
                                                     </button>
                                                     <button onClick={() => setLibTab('unsplash')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${libTab === 'unsplash' ? 'bg-neon-cyan text-black font-black' : 'text-white hover:bg-white/10'}`}>
                                                         <Globe className="w-4 h-4" />
-                                                        <span className="font-black text-[10px] uppercase tracking-widest">Google Images</span>
+                                                        <span className="font-black text-[10px] uppercase tracking-widest">Recherche Web</span>
                                                     </button>
                                                 </div>
                                                 
@@ -640,7 +640,7 @@ export function ImageUploadModal({
                                                     <form onSubmit={searchWeb} className="flex gap-2 relative">
                                                         <input 
                                                             type="text" 
-                                                            placeholder="Rechercher une image sur Google..."
+                                                            placeholder="Rechercher une image sur le web..."
                                                             value={webQuery}
                                                             onChange={e => setWebQuery(e.target.value)}
                                                             className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-black text-white hover:border-white/30 focus:border-neon-cyan outline-none transition-all uppercase placeholder:italic"
