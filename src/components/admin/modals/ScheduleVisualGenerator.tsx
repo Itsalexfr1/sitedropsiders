@@ -114,10 +114,13 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             overlay.addColorStop(0.3, 'rgba(0, 0, 0, 0.6)');  // Lighter middle
             overlay.addColorStop(0.7, 'rgba(0, 0, 0, 0.6)');  // Lighter middle
             overlay.addColorStop(1, 'rgba(0, 0, 0, 0.9)');    // Darker bottom for website
+            overlay.addColorStop(0, 'rgba(0, 0, 0, 0.85)');
+            overlay.addColorStop(0.3, 'rgba(0, 0, 0, 0.6)');
+            overlay.addColorStop(0.7, 'rgba(0, 0, 0, 0.6)');
+            overlay.addColorStop(1, 'rgba(0, 0, 0, 0.9)');
             ctx.fillStyle = overlay;
             ctx.fillRect(0, 0, width, height);
 
-            // Add subtle vignette
             const vignette = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, height);
             vignette.addColorStop(0, 'rgba(0,0,0,0)');
             vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
@@ -131,7 +134,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, width, height);
 
-            // Subtle texture/noise
             ctx.globalAlpha = 0.05;
             for (let i = 0; i < 5000; i++) {
                 ctx.fillStyle = Math.random() > 0.5 ? '#fff' : '#ff1241';
@@ -140,65 +142,69 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             ctx.globalAlpha = 1.0;
         }
 
-        // 2. Logo
+        // 3. Logo & Scaling Logic
+        let currentLogoScale = logoScale;
+        if (numDays > 5) {
+            currentLogoScale = Math.min(logoScale, 1.4 - (numDays - 5) * 0.1);
+        }
+
+        // 4. Header & Vertical Placement
         let logoHeightOffset = 0;
         if (showLogo) {
             const logo = new Image();
             logo.src = festivalLogo || '/Logo.png';
             await new Promise((resolve) => { logo.onload = resolve; logo.onerror = resolve; });
             if (logo.complete) {
-                const baseWidth = festivalLogo ? 350 : 300;
-                const logoW = baseWidth * logoScale;
+                const baseWidth = 350;
+                const logoW = baseWidth * currentLogoScale;
                 const logoH = (logo.height / logo.width) * logoW;
-                ctx.drawImage(logo, width / 2 - logoW / 2, 40, logoW, logoH); // Encore plus haut (was 60)
+                ctx.drawImage(logo, width / 2 - logoW / 2, 40, logoW, logoH);
                 logoHeightOffset = logoH + 20;
             }
         }
 
-        // 3. Header
         ctx.textAlign = 'center';
-        let headerY = showLogo ? 100 + logoHeightOffset : 140;
+        let headerY = showLogo ? 40 + logoHeightOffset + 40 : 140;
         
         if (customTitle && customTitle.trim()) {
-            ctx.font = '900 italic 45px "Montserrat", sans-serif'; // Agrandi (was 30px)
-            ctx.fillStyle = '#ffffff'; // Blanc pur (was 0.4 opacity)
+            ctx.font = '900 italic 45px "Montserrat", sans-serif';
+            ctx.fillStyle = '#ffffff';
             ctx.fillText(customTitle.toUpperCase(), width / 2, headerY);
         } else {
-            // If no title, pull content up
             headerY -= 40;
         }
 
         // 4. Calculate Available Space and Center Schedule
-        const startY = headerY + (customTitle?.trim() ? 100 : 40);
         const footerHeight = 150;
+        const startYOffset = (customTitle?.trim() ? 100 : 20);
+        const startY = headerY + startYOffset;
         const availableHeight = height - startY - footerHeight;
-        const numDays = schedule.length;
         
-        // Base sizes - Booseted for better readability
+        // Base sizes (XL)
         let dateFontSize = 75; 
         let eventFontSize = 50;
-        let eventSpacing = 75;
-        let eventNightSpacing = 135;
+        let eventSpacing = 70;
+        let eventNightSpacing = 125;
         
         // Dynamic scaling based on number of days to fit perfectly
         let dayHeight = availableHeight / numDays;
-        const maxDayHeight = 220;
+        const maxDayHeight = 280;
         if (dayHeight > maxDayHeight) dayHeight = maxDayHeight;
         
-        // If days are cramped, scale fonts down
-        if (dayHeight < 180) {
-            const scale = Math.max(0.7, dayHeight / 200);
+        // Safety: If dayHeight is too small for XL fonts, we MUST scale down
+        // Minimum required height for XL is roughly 220px
+        if (dayHeight < 230) {
+            const scale = Math.max(0.5, dayHeight / 240);
             dateFontSize *= scale;
             eventFontSize *= scale;
             eventSpacing *= scale;
             eventNightSpacing *= scale;
         }
 
-        // Center the whole block vertically in the available space
         const totalScheduleHeight = dayHeight * numDays;
         const finalStartY = startY + (availableHeight - totalScheduleHeight) / 2;
 
-        schedule.forEach((day, index) => {
+        activeSchedule.forEach((day, index) => {
             const y = finalStartY + index * dayHeight;
             
             // Date Header
@@ -212,7 +218,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 ctx.shadowBlur = 0;
             }
 
-            const eventBaseY = viewMode === 'planning' ? y + (dayHeight * 0.1) : y - (dateFontSize * 0.1);
+            const eventBaseY = viewMode === 'planning' ? y + (dayHeight * 0.05) : y - (dateFontSize * 0.1);
             const iconDay = viewMode === 'planning' ? '☀️ ' : '';
             const iconNight = viewMode === 'planning' ? '🌒 ' : '';
 
