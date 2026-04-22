@@ -6750,7 +6750,7 @@ export function AdminDashboard() {
                         <span className="text-neon-orange">Messages</span>
                       </h2>
                       <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">
-                        Messagerie, contact et facturation
+                        Messagerie, contact, newsletter et facturation
                       </p>
                     </div>
                     <button
@@ -6761,7 +6761,7 @@ export function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <Link
                       to="/admin/messages"
                       onClick={() => setIsMessagesModalOpen(false)}
@@ -6804,6 +6804,26 @@ export function AdminDashboard() {
                         </p>
                       </div>
                     </Link>
+
+                    <button
+                      onClick={() => {
+                        setIsMessagesModalOpen(false);
+                        setIsNewsletterModalOpen(true);
+                      }}
+                      className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group relative"
+                    >
+                      <div className="w-16 h-16 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
+                        <Mail className="w-8 h-8 text-neon-green" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-xl font-bold text-white uppercase italic">
+                          Newsletter
+                        </h3>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
+                          Campagnes & Mail
+                        </p>
+                      </div>
+                    </button>
 
                     {isSuperAdmin(username) && (
                       <Link
