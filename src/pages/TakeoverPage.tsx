@@ -1166,7 +1166,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 profileBorder: response.payload.profileBorder || 'none',
                                 pseudoColor: response.payload.pseudoColor || '#ffffff',
                                 specialFontStyle: response.payload.specialFontStyle || 'normal',
-                                instagram: response.payload.instagram || ''
+                                instagram: response.payload.instagram || '',
+                                avatar: response.payload.avatar || ''
                             }];
                         });
                     }
@@ -2217,7 +2218,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                 country: userCountry || "FR",
                 stage: activeStage,
-                isModOnly: isModChat
+                isModOnly: isModChat,
+                avatar: localStorage.getItem('chat_avatar') || ''
             });
 
 
