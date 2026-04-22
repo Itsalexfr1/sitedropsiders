@@ -65,19 +65,6 @@
     "description_en": "Sónar est le festival pionnier dédié à la musique avancée, à la créativité et à la technologie, se tenant chaque année à Barcelone. Divisé entre le Sónar de Jour et le Sónar de Nuit, il propose un équilibre parfait entre expérimentation artistique et hédonisme clubbing. Au-delà des concerts, son volet Sónar+D explore les liens entre art numérique et innovation technologique. C'est un carrefour incontournable pour les professionnels et les fans en quête de nouvelles tendances sonores et visuelles."
   },
   {
-    "id": "f6",
-    "name": "Awakenings Festival",
-    "city": "Amsterdam",
-    "country": "NL",
-    "djmag_rank": 6,
-    "description": "Awakenings est l'organisation techno la plus puissante au monde, et son festival estival près d'Amsterdam en est l'apogée. Réunissant plus de 100 000 fans sur plusieurs jours, il offre une programmation techno exhaustive, des légendes aux nouveaux talents. Le festival est célèbre pour sa production technique impeccable, ses jeux de lumières lasers synchronisés et ses scènes aux atmosphères variées. C'est le pèlerinage annuel indispensable pour tout 'techno head' souhaitant vivre l'expérience ultime du genre.",
-    "image": "https://www.dropsiders.fr/uploads/uploads/73eeb0e4e1e3f048-20250711_1939_AWAKE_BRADAMEDIA.jpg",
-    "website": "https://www.awakenings.com",
-    "instagram": "https://www.instagram.com/awakenings",
-    "votes": 0,
-    "description_en": "Awakenings est l'organisation techno la plus puissante au monde, et son festival estival près d'Amsterdam en est l'apogée. Réunissant plus de 100 000 fans sur plusieurs jours, il offre une programmation techno exhaustive, des légendes aux nouveaux talents. Le festival est célèbre pour sa production technique impeccable, ses jeux de lumières lasers synchronisés et ses scènes aux atmosphères variées. C'est le pèlerinage annuel indispensable pour tout 'techno head' souhaitant vivre l'expérience ultime du genre."
-  },
-  {
     "id": "f7",
     "name": "Defqon.1",
     "city": "Biddinghuizen",
@@ -1185,23 +1172,6 @@
     "votes": 0
   },
   {
-    "id": "306",
-    "name": "Coachella",
-    "bio": "Incontournable de la scène mondiale, Coachella est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://www.dropsiders.fr/uploads/uploads/401409affa26d1dd-cropped_1773907223954.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/Coachella",
-    "instagram": "https://www.instagram.com/coachella",
-    "facebook": "https://facebook.com/coachella",
-    "soundcloud": "https://soundcloud.com/coachella",
-    "beatport": "https://www.beatport.com/search?q=Coachella",
-    "bio_en": "A major figure on the global scene, Coachella is a key player in today's electronic culture.",
-    "status": "verified",
-    "website": "https://www.coachella.com",
-    "votes": 0
-  },
-  {
     "id": "308",
     "name": "Sziget",
     "bio": "Incontournable de la scène mondiale, Sziget est une figure majeure de la culture électronique actuelle.",
@@ -1720,22 +1690,6 @@
     "votes": 0
   },
   {
-    "id": "345",
-    "name": "AVA Festival",
-    "bio": "Incontournable de la scène mondiale, AVA Festival est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://www.dropsiders.fr/uploads/uploads/0e37ae5796d87245-ava_320.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/AVA%20Festival",
-    "instagram": "https://instagram.com/avafestival",
-    "facebook": "https://facebook.com/avafestival",
-    "soundcloud": "https://soundcloud.com/avafestival",
-    "beatport": "https://www.beatport.com/search?q=AVA%20Festival",
-    "bio_en": "A major figure on the global scene, AVA Festival is a key player in today's electronic culture.",
-    "status": "verified",
-    "votes": 0
-  },
-  {
     "id": "346",
     "name": "Neopop",
     "bio": "Incontournable de la scène mondiale, Neopop est une figure majeure de la culture électronique actuelle.",
@@ -2025,22 +1979,6 @@
     "votes": 0
   },
   {
-    "id": "365",
-    "name": "ARC Chicago",
-    "bio": "Incontournable de la scène mondiale, ARC Chicago est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://www.dropsiders.fr/uploads/uploads/a252b28229075ed1-arc_festival_2023_chicago_skyl.jpeg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/ARC%20Chicago",
-    "instagram": "https://instagram.com/arcchicago",
-    "facebook": "https://facebook.com/arcchicago",
-    "soundcloud": "https://soundcloud.com/arcchicago",
-    "beatport": "https://www.beatport.com/search?q=ARC%20Chicago",
-    "bio_en": "A major figure on the global scene, ARC Chicago is a key player in today's electronic culture.",
-    "status": "verified",
-    "votes": 0
-  },
-  {
     "id": "366",
     "name": "Portola",
     "bio": "Incontournable de la scène mondiale, Portola est une figure majeure de la culture électronique actuelle.",
@@ -2165,22 +2103,6 @@
     "soundcloud": "https://soundcloud.com/ultrajapan",
     "beatport": "https://www.beatport.com/search?q=Ultra%20Japan",
     "bio_en": "A major figure on the global scene, Ultra Japan is a key player in today's electronic culture.",
-    "status": "verified",
-    "votes": 0
-  },
-  {
-    "id": "375",
-    "name": "Epizode",
-    "bio": "Incontournable de la scène mondiale, Epizode est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://www.dropsiders.fr/uploads/uploads/f29c9950ac63d8c8-483101500_3219806514825188_151.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/Epizode",
-    "instagram": "https://instagram.com/epizode",
-    "facebook": "https://facebook.com/epizode",
-    "soundcloud": "https://soundcloud.com/epizode",
-    "beatport": "https://www.beatport.com/search?q=Epizode",
-    "bio_en": "A major figure on the global scene, Epizode is a key player in today's electronic culture.",
     "status": "verified",
     "votes": 0
   },
