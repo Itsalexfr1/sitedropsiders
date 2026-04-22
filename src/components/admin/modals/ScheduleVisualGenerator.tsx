@@ -154,13 +154,19 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
         // 3. Header
         ctx.textAlign = 'center';
-        ctx.font = '900 italic 45px "Montserrat", sans-serif'; // Agrandi (was 30px)
-        ctx.fillStyle = '#ffffff'; // Blanc pur (was 0.4 opacity)
-        const headerY = showLogo ? 100 + logoHeightOffset : 140; // Remonté (was 140/180)
-        ctx.fillText(customTitle.toUpperCase(), width / 2, headerY);
+        let headerY = showLogo ? 100 + logoHeightOffset : 140;
+        
+        if (customTitle && customTitle.trim()) {
+            ctx.font = '900 italic 45px "Montserrat", sans-serif'; // Agrandi (was 30px)
+            ctx.fillStyle = '#ffffff'; // Blanc pur (was 0.4 opacity)
+            ctx.fillText(customTitle.toUpperCase(), width / 2, headerY);
+        } else {
+            // If no title, pull content up
+            headerY -= 40;
+        }
 
         // 4. Render Days
-        const startY = headerY + 100;
+        const startY = headerY + (customTitle?.trim() ? 100 : 40);
         const availableHeight = height - startY - 200; // 200 for footer margin
         const numDays = schedule.length;
         
@@ -312,7 +318,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 <Upload className="w-4 h-4 text-neon-cyan" /> {festivalLogo ? 'Changer' : 'Upload'}
                                             </button>
                                             <input 
-                                                type="range" min="0.5" max="2.0" step="0.1" 
+                                                type="range" min="0.5" max="2.5" step="0.1" 
                                                 value={logoScale} onChange={(e) => setLogoScale(parseFloat(e.target.value))}
                                                 className="w-24 accent-neon-cyan"
                                             />
@@ -425,9 +431,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 </div>
                                             )}
 
-                                            <div className="text-center mb-4 -mt-2">
-                                                <div className="text-[14px] font-black text-white italic uppercase tracking-widest">{customTitle || 'PLANNING'}</div>
-                                            </div>
+                                            {customTitle && customTitle.trim() && (
+                                                <div className="text-center mb-4 -mt-2">
+                                                    <div className="text-[14px] font-black text-white italic uppercase tracking-widest">{customTitle}</div>
+                                                </div>
+                                            )}
 
                                             <div className={`space-y-4 text-center ${!showLogo ? 'mt-6' : ''}`}>
                                                 {schedule.map(day => (
