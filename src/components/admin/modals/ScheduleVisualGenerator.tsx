@@ -7,12 +7,13 @@ interface DaySchedule {
     date: string;
     dayEvent: string;
     nightEvent: string;
+    stage: string;
 }
 
 export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const [schedule, setSchedule] = useState<DaySchedule[]>([
-        { id: '1', date: '13 Mai', dayEvent: 'Musee Titanic at Louxor', nightEvent: 'Mau P at Encore Beach At Night' },
-        { id: '2', date: '14 Mai', dayEvent: 'Porter Robinson at Tao Beach', nightEvent: 'Dom Dolla at Liv Nightclub' }
+        { id: '1', date: '13 Mai', dayEvent: '14:00', nightEvent: 'Mau P', stage: 'Encore Beach' },
+        { id: '2', date: '14 Mai', dayEvent: '22:00', nightEvent: 'Dom Dolla', stage: 'Liv Nightclub' }
     ]);
     const [showLogo, setShowLogo] = useState(true);
     const [showWebsite, setShowWebsite] = useState(true);
@@ -29,7 +30,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
     const addDay = () => {
         if (schedule.length >= 8) return;
-        setSchedule([...schedule, { id: Math.random().toString(), date: '', dayEvent: '', nightEvent: '' }]);
+        setSchedule([...schedule, { id: Math.random().toString(), date: '', dayEvent: '', nightEvent: '', stage: '' }]);
     };
 
     const removeDay = (id: string) => {
@@ -207,18 +208,33 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             const iconDay = viewMode === 'planning' ? '☀️ ' : '';
             const iconNight = viewMode === 'planning' ? '🌒 ' : '';
 
-            // Day Event
-            if (day.dayEvent) {
-                ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(iconDay + day.dayEvent.toUpperCase(), width / 2, eventBaseY + eventSpacing);
-            }
-
-            // Night Event
-            if (day.nightEvent) {
-                ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(iconNight + day.nightEvent.toUpperCase(), width / 2, eventBaseY + (day.dayEvent ? eventNightSpacing : eventSpacing));
+            if (viewMode === 'timetable') {
+                // Combined format: HEURE - ARTISTE - STAGE
+                const parts = [day.dayEvent, day.nightEvent, day.stage].filter(Boolean);
+                if (parts.length > 0) {
+                    ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(parts.join(' - ').toUpperCase(), width / 2, eventBaseY + eventSpacing);
+                }
+            } else {
+                // Planning format: Separate lines
+                if (day.dayEvent) {
+                    ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(iconDay + day.dayEvent.toUpperCase(), width / 2, eventBaseY + eventSpacing);
+                }
+                if (day.nightEvent) {
+                    ctx.font = `700 ${eventFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    const nightY = day.dayEvent ? eventNightSpacing : eventSpacing;
+                    ctx.fillText(iconNight + day.nightEvent.toUpperCase(), width / 2, eventBaseY + nightY);
+                    
+                    if (day.stage) {
+                        ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                        ctx.fillText(day.stage.toUpperCase(), width / 2, eventBaseY + nightY + (eventFontSize * 0.9));
+                    }
+                }
             }
 
             // Divider
@@ -387,18 +403,25 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all italic font-bold"
                                                     />
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-3 gap-4">
                                                     <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Evénement Jour ☀️</label>
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Jour ☀️' : 'Heure'}</label>
                                                         <input 
                                                             type="text" value={day.dayEvent} onChange={(e) => updateDay(day.id, 'dayEvent', e.target.value)}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Evénement Nuit 🌒</label>
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Nuit 🌒' : 'Artiste'}</label>
                                                         <input 
                                                             type="text" value={day.nightEvent} onChange={(e) => updateDay(day.id, 'nightEvent', e.target.value)}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Stage / Scène</label>
+                                                        <input 
+                                                            type="text" value={day.stage} onChange={(e) => updateDay(day.id, 'stage', e.target.value)}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
                                                         />
                                                     </div>
@@ -463,8 +486,17 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 {schedule.map(day => (
                                                     <div key={day.id} className="space-y-1">
                                                         {viewMode === 'planning' && <div className="text-[15px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>}
-                                                        {day.dayEvent && <div className="text-[12px] text-gray-300 font-bold uppercase tracking-wide">{viewMode === 'planning' ? '☀️ ' : ''}{day.dayEvent}</div>}
-                                                        {day.nightEvent && <div className="text-[12px] text-gray-300 font-bold uppercase tracking-wide">{viewMode === 'planning' ? '🌒 ' : ''}{day.nightEvent}</div>}
+                                                        {viewMode === 'planning' ? (
+                                                            <>
+                                                                {day.dayEvent && <div className="text-[12px] text-gray-300 font-bold uppercase tracking-wide">☀️ {day.dayEvent}</div>}
+                                                                {day.nightEvent && <div className="text-[12px] text-gray-300 font-bold uppercase tracking-wide">🌒 {day.nightEvent}</div>}
+                                                                {day.stage && <div className="text-[9px] text-white/40 italic uppercase">{day.stage}</div>}
+                                                            </>
+                                                        ) : (
+                                                            <div className="text-[11px] text-gray-300 font-bold uppercase tracking-wide">
+                                                                {[day.dayEvent, day.nightEvent, day.stage].filter(Boolean).join(' - ')}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>
