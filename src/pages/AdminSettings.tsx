@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle, Share2, Youtube, Globe, Facebook, Music, Instagram, Bell, Send, Info, RefreshCw, Trophy, Search } from 'lucide-react';
+import { XIcon } from '../components/ui/XIcon';
+
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -468,7 +470,7 @@ export function AdminSettings() {
                                 { id: 'instagram', label: 'Instagram', color: 'text-pink-500', icon: Instagram, placeholder: 'dropsiders.fr' },
                                 { id: 'tiktok', label: 'TikTok', color: 'text-white', icon: Share2, placeholder: 'dropsiders.fr' },
                                 { id: 'youtube', label: 'YouTube', color: 'text-red-500', icon: Youtube, placeholder: 'dropsiders' },
-                                { id: 'twitter', label: 'X (Twitter)', color: 'text-blue-400', icon: Globe, placeholder: 'dropsidersfr' },
+                                { id: 'twitter', label: 'X', color: 'text-white', icon: XIcon, placeholder: 'dropsidersfr' },
                                 { id: 'facebook', label: 'Facebook', color: 'text-blue-600', icon: Facebook, placeholder: 'dropsidersfr' },
                                 { id: 'spotify', label: 'Spotify', color: 'text-green-500', icon: Music, placeholder: 'dropsiders' }
                             ].map((social: any) => (

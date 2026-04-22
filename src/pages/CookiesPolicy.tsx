@@ -141,7 +141,7 @@ export function CookiesPolicy() {
                             <div className="bg-white/5 rounded-lg p-4">
                                 <h4 className="font-semibold text-white mb-1">Social Networks</h4>
                                 <p className="text-sm leading-relaxed">
-                                    Facebook, Instagram, TikTok, YouTube, and Twitter may place cookies when you interact with their widgets on our site.
+                                    Facebook, Instagram, TikTok, YouTube, and X may place cookies when you interact with their widgets on our site.
                                 </p>
                             </div>
                             <div className="bg-white/5 rounded-lg p-4">
@@ -423,7 +423,7 @@ export function CookiesPolicy() {
                         <div className="bg-white/5 rounded-lg p-4">
                             <h4 className="font-semibold text-white mb-1">Réseaux sociaux</h4>
                             <p className="text-sm leading-relaxed">
-                                Facebook, Instagram, TikTok, YouTube et Twitter peuvent placer des cookies lorsque vous interagissez avec leurs widgets sur notre site.
+                                Facebook, Instagram, TikTok, YouTube et X peuvent placer des cookies lorsque vous interagissez avec leurs widgets sur notre site.
                             </p>
                         </div>
                         <div className="bg-white/5 rounded-lg p-4">

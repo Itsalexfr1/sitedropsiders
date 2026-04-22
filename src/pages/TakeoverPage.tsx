@@ -21,6 +21,7 @@ import { ModerationModal } from '../components/admin/ModerationModal';
 import { ImageCropper } from '../components/ImageCropper';
 import { resolveImageUrl } from '../utils/image';
 import settingsData from '../data/settings.json';
+import * as tmi from 'tmi.js';
 
 import { TakeoverProvider, useTakeover, type TakeoverSettings, type StreamItem, type LineupItem, type TracklistSet, type TrackItem } from '../context/TakeoverContext';
 import { AdminPanel } from '../components/takeover/AdminPanel';
@@ -571,7 +572,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const [editInsta, setEditInsta] = useState(settings.instagramLink || '');
     const [editTiktok, setEditTiktok] = useState(settings.tiktokLink || '');
     const [editYoutube, setEditYoutube] = useState(settings.youtubeLink || '');
-    const [editTwitter, setEditTwitter] = useState(settings.twitterLink || '');
+    const [editX, setEditX] = useState(settings.twitterLink || '');
     const [editFestivalLogo, setEditFestivalLogo] = useState(settings.festivalLogo || '');
     const [isSaving, setIsSaving] = useState(false);
 
@@ -1369,6 +1370,52 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         return () => unsubscribe();
     }, []);
 
+    // 🟣 Twitch Chat Bridge
+    useEffect(() => {
+        // Find twitch channel from settings or active stream
+        const streamIdx = parseInt(activeStage.replace('stage', '')) - 1;
+        const activeStream = (settings.streams && !isNaN(streamIdx)) ? settings.streams[streamIdx] : settings.streams?.find(s => s.id === settings.activeStreamId);
+        
+        const twitchChannel = settings.twitchChannel || activeStream?.twitchChannel;
+        const streamSource = settings.streamSource || activeStream?.streamSource || 'youtube';
+
+        if (streamSource !== 'twitch' || !twitchChannel) return;
+
+        console.log(`[TWITCH] Connecting to channel: ${twitchChannel}...`);
+        const twitchClient = new tmi.Client({
+            connection: { secure: true, reconnect: true },
+            channels: [twitchChannel]
+        });
+
+        twitchClient.connect().catch(console.error);
+
+        twitchClient.on('message', (channel, tags, message, self) => {
+            if (self) return;
+            
+            const msgId = `twitch-${tags.id || Date.now()}`;
+            setChatMessages((prev: any) => {
+                if (prev.find((m: any) => m.id === msgId)) return prev;
+                
+                // Cap messages to avoid lag
+                const next = [...prev, {
+                    id: msgId,
+                    pseudo: tags['display-name'] || tags.username,
+                    message: message,
+                    color: tags.color || '#9146FF',
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    country: 'TWITCH',
+                    isTwitch: true,
+                    profileBorder: 'solid 2px #9146FF'
+                }];
+                return next.slice(-100); 
+            });
+        });
+
+        return () => {
+            twitchClient.disconnect();
+        };
+    }, [settings.twitchChannel, settings.streamSource, activeStage, settings.streams]);
+
     // ⏰ Quiz Auto-Timer (30s)
     useEffect(() => {
         if (activeQuiz && activeQuiz.question) {
@@ -1497,7 +1544,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     if (data.instagramLink) setEditInsta(data.instagramLink);
                     if (data.tiktokLink) setEditTiktok(data.tiktokLink);
                     if (data.youtubeLink) setEditYoutube(data.youtubeLink);
-                    if (data.twitterLink) setEditTwitter(data.twitterLink);
+                    if (data.twitterLink) setEditX(data.twitterLink);
                     if (data.botCommands) setBotCommands(data.botCommands);
                     if (data.tracklist) {
                         try {
@@ -2053,7 +2100,21 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             // Dynamic Bot Commands
             const customCmd = botCommands.find(c => c.command.toLowerCase() === mainCmd);
             if (customCmd) {
-                messageText = `[BOT]: ${customCmd.response}`;
+                // We let the user's message go through, then the bot replies
+                setTimeout(async () => {
+                    try {
+                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                            pseudo: "BOT_SYSTEM",
+                            message: `🤖 @${pseudo} : ${customCmd.response}`,
+                            color: "text-neon-cyan",
+                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                            country: "FR",
+                            stage: activeStage
+                        });
+                    } catch (e) {
+                        console.error("Bot reply failed:", e);
+                    }
+                }, 800);
             }
         }
 
@@ -2794,6 +2855,16 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     );
                                 }
 
+                                if (activeStream?.streamSource === 'twitch' && activeStream?.twitchChannel) {
+                                    return (
+                                        <iframe
+                                            src={`https://player.twitch.tv/?channel=${activeStream.twitchChannel}&parent=${window.location.hostname}`}
+                                            className="w-full h-full border-none"
+                                            allowFullScreen
+                                        />
+                                    );
+                                }
+
                                 return activeYtId ? (
                                     <iframe 
                                         className="w-full h-full border-none" 
@@ -2803,11 +2874,86 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         referrerPolicy="strict-origin-when-cross-origin"
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-4">
-                                        <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center animate-pulse">
-                                            <Radio className="w-8 h-8 text-white/50" />
+                                    <div className="w-full h-full relative overflow-hidden bg-[#050505] flex flex-col items-center justify-center">
+                                        {/* Animated Cyber Grid Background */}
+                                        <div className="absolute inset-0 z-0">
+                                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+                                            <motion.div 
+                                                animate={{ 
+                                                    backgroundPosition: ['0px 0px', '40px 40px'],
+                                                }}
+                                                transition={{ 
+                                                    duration: 4,
+                                                    repeat: Infinity,
+                                                    ease: "linear"
+                                                }}
+                                                className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,#00ffff10_1px,transparent_1px),linear-gradient(to_bottom,#00ffff10_1px,transparent_1px)] bg-[size:80px_80px]" 
+                                            />
                                         </div>
-                                        <p className="text-white/30 text-xs font-black uppercase tracking-[0.3em] mt-4">Stream bientôt en ligne</p>
+
+                                        {/* Noise Overlay */}
+                                        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
+                                        {/* Scanline Effect */}
+                                        <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
+                                            <motion.div 
+                                                animate={{ y: ['-100%', '100%'] }}
+                                                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                                className="w-full h-20 bg-gradient-to-b from-transparent via-white/[0.03] to-transparent"
+                                            />
+                                        </div>
+
+                                        <div className="relative z-20 flex flex-col items-center gap-8">
+                                            <motion.div 
+                                                animate={{ 
+                                                    scale: [1, 1.05, 1],
+                                                    filter: [
+                                                        'drop-shadow(0 0 0px #ff0033)',
+                                                        'drop-shadow(0 0 20px #ff0033)',
+                                                        'drop-shadow(0 0 0px #ff0033)'
+                                                    ]
+                                                }}
+                                                transition={{ duration: 4, repeat: Infinity }}
+                                                className="relative"
+                                            >
+                                                <img src="/Logo.png" className="w-32 lg:w-48 opacity-90 brightness-110" alt="Dropsiders" />
+                                                <div className="absolute -inset-4 bg-neon-red/10 blur-3xl rounded-full animate-pulse" />
+                                            </motion.div>
+
+                                            <div className="text-center space-y-4">
+                                                <div className="flex items-center justify-center gap-3">
+                                                    <div className="h-px w-8 bg-gradient-to-r from-transparent to-neon-red" />
+                                                    <span className="text-[10px] lg:text-xs font-black text-white uppercase tracking-[0.5em] italic">SIGNAL INTERROMPU</span>
+                                                    <div className="h-px w-8 bg-gradient-to-l from-transparent to-neon-red" />
+                                                </div>
+                                                
+                                                <h3 className="text-3xl lg:text-5xl font-display font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/20 uppercase italic tracking-tighter">
+                                                    STREAMING <span className="text-neon-red">OFFLINE</span>
+                                                </h3>
+
+                                                <div className="flex items-center justify-center gap-6 pt-4">
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <span className="text-[8px] font-black text-gray-500 uppercase">Status</span>
+                                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                                            <div className="w-1.5 h-1.5 bg-gray-600 rounded-full" />
+                                                            <span className="text-[9px] font-bold text-gray-400 uppercase">EN ATTENTE</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-px h-8 bg-white/10" />
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <span className="text-[8px] font-black text-gray-500 uppercase">Fréquence</span>
+                                                        <span className="text-[10px] font-bold text-neon-cyan">88.5 MHz</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Bottom Glitch Bar */}
+                                        <div className="absolute bottom-0 left-0 right-0 h-1 flex">
+                                            <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 0.1, repeat: Infinity }} className="flex-1 bg-neon-red" />
+                                            <div className="flex-1 bg-neon-cyan" />
+                                            <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 0.1, repeat: Infinity }} className="flex-1 bg-neon-purple" />
+                                        </div>
                                     </div>
                                 );
                             })()
@@ -2839,6 +2985,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                     </div>
                                                 ) : (
                                                     <>
+                                                    {s.streamSource === 'twitch' && s.twitchChannel ? (
+                                                        <iframe
+                                                            src={`https://player.twitch.tv/?channel=${s.twitchChannel}&parent=${window.location.hostname}&autoplay=${idx === activeAudioIdx ? 'true' : 'false'}&muted=${idx === activeAudioIdx ? 'false' : 'true'}`}
+                                                            className="w-full h-full border-none"
+                                                            allowFullScreen
+                                                        />
+                                                    ) : (
                                                         <iframe
                                                             className="w-full h-full border-none"
                                                             src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
@@ -2846,6 +2999,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                             allowFullScreen
                                                             referrerPolicy="strict-origin-when-cross-origin"
                                                         />
+                                                    )}
                                                         <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
                                                             {s.name}
                                                         </div>
@@ -3466,6 +3620,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                                 {showBadgesAdmin && msg.isMod && <Sword className="w-2.5 h-2.5 text-neon-red" />}
                                                                 {showBadgesAdmin && msg.isVip && <Crown className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />}
                                                                 {showBadgesAdmin && msg.pseudo === 'ALEX_FR1' && <Star className="w-2.5 h-2.5 text-neon-cyan fill-neon-cyan" />}
+
+                                                                {msg.isTwitch && (
+                                                                    <span className="bg-[#9146FF] text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(145,70,255,0.4)] flex items-center gap-1 ml-1 animate-in fade-in zoom-in duration-300">
+                                                                        <svg className="w-2 h-2 fill-current" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
+                                                                        TWITCH
+                                                                    </span>
+                                                                )}
 
                                                                 {/* Animated Badges */}
                                                                 {showBadgesAdmin && (msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') && (

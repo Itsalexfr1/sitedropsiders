@@ -6794,7 +6794,7 @@ export function AdminDashboard() {
                                                 <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
                                                     Social <span className="text-neon-cyan">Downloader</span>
                                                 </h2>
-                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Instagram • TikTok • YouTube • Twitter</p>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Instagram • TikTok • YouTube • X</p>
                                             </div>
                                         </div>
                                         <button

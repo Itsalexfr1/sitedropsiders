@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Edit2, Instagram, Facebook, Globe, Youtube, Link2 } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X as XIconLucide, Edit2, Instagram, Facebook, Globe, Youtube, Link2 } from 'lucide-react';
+import { XIcon as XIconShared } from '../components/ui/XIcon';
+
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { standardizeContent as standardizeText } from '../utils/standardizer';
@@ -44,11 +46,7 @@ const BeatportIcon = (props: any) => (
     </svg>
 );
 
-const XIcon = (props: any) => (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-        <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
-    </svg>
-);
+const XIcon = (props: any) => <XIconShared {...props} />;
 
 const SnapchatIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -701,7 +699,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     <Instagram className="w-4 h-4 text-white group-hover:text-pink-500 transition-colors" />
                                 </button>
 
-                                {/* X (Twitter) */}
+                                {/* X */}
                                 <a
                                     href={shareLinks.x}
                                     target="_blank"

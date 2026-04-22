@@ -40,6 +40,8 @@ export function AdminPanel() {
     const [editTitle, setEditTitle] = useState(settings.title);
     const [editStreams, setEditStreams] = useState<StreamItem[]>(settings.streams || []);
     const [editActiveStreamId, setEditActiveStreamId] = useState(settings.activeStreamId || '');
+    const [editTwitchChannel, setEditTwitchChannel] = useState(settings.twitchChannel || '');
+    const [editStreamSource, setEditStreamSource] = useState<'youtube' | 'twitch'>(settings.streamSource || 'youtube');
     const [editAnnText, setEditAnnText] = useState(settings.tickerText);
     const [editAnnEnabled, setEditAnnEnabled] = useState(settings.showTickerBanner);
     const [editTickerMode, setEditTickerMode] = useState<'news' | 'custom'>(settings.tickerMode || 'news');
@@ -51,12 +53,14 @@ export function AdminPanel() {
     const [editInsta, setEditInsta] = useState(settings.instagramLink || '');
     const [editTiktok, setEditTiktok] = useState(settings.tiktokLink || '');
     const [editYoutube, setEditYoutube] = useState(settings.youtubeLink || '');
-    const [editTwitter, setEditTwitter] = useState(settings.twitterLink || '');
+    const [editX, setEditX] = useState(settings.twitterLink || '');
     const [editFestivalLogo, setEditFestivalLogo] = useState(settings.festivalLogo || '');
     const [isUploadingLogo, setIsUploadingLogo] = useState(false);
     const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText || '');
     const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink || '');
     const [editShowSponsorBanner, setEditShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
+    const [editTwitchBotAutoMessage, setEditTwitchBotAutoMessage] = useState(settings.twitchBotAutoMessage || '');
+    const [editTwitchBotAutoMessageInterval, setEditTwitchBotAutoMessageInterval] = useState(settings.twitchBotAutoMessageInterval || 30);
 
     // Tracklist States
     const [newSetArtist, setNewSetArtist] = useState('');
@@ -74,6 +78,19 @@ export function AdminPanel() {
     const [editLineup, setEditLineup] = useState<LineupItem[]>(() => {
         try { return JSON.parse(settings.lineup || '[]'); } catch (e) { return []; }
     });
+
+    const extractTwitchChannel = (input: string) => {
+        if (!input) return '';
+        const match = input.match(/(?:https?:\/\/)?(?:www\.)?twitch\.tv\/([a-zA-Z0-9_]{4,25})/i);
+        return match ? match[1] : input.trim().toLowerCase();
+    };
+
+    const extractYoutubeId = (url: string) => {
+        if (!url) return '';
+        const match = url.match(/(?:https?:)?\/\/(?:www\.|m\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/)?([\w-]{11})/);
+        if (match) return match[1];
+        return url.trim();
+    };
 
     const onSave = async () => {
         // VALIDATION: Check for missing images in lineup
@@ -101,12 +118,16 @@ export function AdminPanel() {
             instagramLink: editInsta,
             tiktokLink: editTiktok,
             youtubeLink: editYoutube,
-            twitterLink: editTwitter,
+            twitterLink: editX,
             sponsorText: editSponsorText,
             sponsorLink: editSponsorLink,
             showSponsorBanner: editShowSponsorBanner,
             festivalLogo: editFestivalLogo,
-            lineup: JSON.stringify(editLineup)
+            twitchChannel: editTwitchChannel,
+            streamSource: editStreamSource,
+            lineup: JSON.stringify(editLineup),
+            twitchBotAutoMessage: editTwitchBotAutoMessage,
+            twitchBotAutoMessageInterval: editTwitchBotAutoMessageInterval
         };
         setSettings(updated);
         await handleGlobalSave(updated);
@@ -225,17 +246,46 @@ export function AdminPanel() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-1">ID YouTube / URL Live</label>
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-1">Source du Flux</label>
+                                                        <div className="flex gap-2 p-1 bg-black/40 rounded-xl border border-white/5">
+                                                            <button 
+                                                                onClick={() => {
+                                                                    const ns = [...editStreams];
+                                                                    ns[idx].streamSource = 'youtube';
+                                                                    setEditStreams(ns);
+                                                                }}
+                                                                className={`flex-1 py-1.5 rounded-lg text-[7px] font-black uppercase transition-all ${stream.streamSource === 'youtube' || !stream.streamSource ? 'bg-red-600 text-white' : 'text-gray-500 hover:text-white'}`}
+                                                            >
+                                                                YouTube
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => {
+                                                                    const ns = [...editStreams];
+                                                                    ns[idx].streamSource = 'twitch';
+                                                                    setEditStreams(ns);
+                                                                }}
+                                                                className={`flex-1 py-1.5 rounded-lg text-[7px] font-black uppercase transition-all ${stream.streamSource === 'twitch' ? 'bg-purple-600 text-white' : 'text-gray-500 hover:text-white'}`}
+                                                            >
+                                                                Twitch
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-1">{stream.streamSource === 'twitch' ? 'Chaîne Twitch' : 'ID YouTube'}</label>
                                                         <input 
                                                             type="text" 
-                                                            value={stream.youtubeId} 
+                                                            value={stream.streamSource === 'twitch' ? (stream.twitchChannel || '') : stream.youtubeId} 
                                                             onChange={e => {
                                                                 const ns = [...editStreams];
-                                                                ns[idx].youtubeId = e.target.value;
+                                                                if (stream.streamSource === 'twitch') {
+                                                                    ns[idx].twitchChannel = extractTwitchChannel(e.target.value);
+                                                                } else {
+                                                                    ns[idx].youtubeId = extractYoutubeId(e.target.value);
+                                                                }
                                                                 setEditStreams(ns);
                                                             }}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-blue"
-                                                            placeholder="ID YouTube (11 chars) ou URL"
+                                                            placeholder={stream.streamSource === 'twitch' ? "Lien ou Nom Twitch" : "Lien ou ID YouTube"}
                                                         />
                                                     </div>
                                                 </div>
@@ -402,8 +452,8 @@ export function AdminPanel() {
                                                 <input type="text" value={editYoutube} onChange={e => setEditYoutube(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="channel/..." />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[8px] font-black text-gray-500 uppercase">Twitter / X</label>
-                                                <input type="text" value={editTwitter} onChange={e => setEditTwitter(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="dropsiders" />
+                                                <label className="text-[8px] font-black text-gray-500 uppercase">X</label>
+                                                <input type="text" value={editX} onChange={e => setEditX(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="dropsiders" />
                                             </div>
                                         </div>
                                     </div>
@@ -569,6 +619,64 @@ export function AdminPanel() {
                                             className="w-full h-32 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white resize-none"
                                             placeholder="pd, fdp, salope..."
                                         />
+                                    </div>
+                                </div>
+                                <div className="bg-white/5 border border-purple-500/20 rounded-3xl p-8 space-y-6">
+                                    <h3 className="text-sm font-black text-white uppercase tracking-widest italic border-b border-white/5 pb-4 flex items-center gap-2">
+                                        <Globe className="w-4 h-4 text-purple-500" />
+                                        Twitch Bot Automatique
+                                    </h3>
+                                    <div className="space-y-4">
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-gray-500 uppercase">Message Automatique (Twitch)</label>
+                                            <textarea 
+                                                value={editTwitchBotAutoMessage} 
+                                                onChange={e => setEditTwitchBotAutoMessage(e.target.value)}
+                                                className="w-full h-24 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white resize-none"
+                                                placeholder="N'oubliez pas de nous suivre..."
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[10px] font-black text-gray-500 uppercase">Intervalle (minutes)</label>
+                                            <input 
+                                                type="number" 
+                                                value={editTwitchBotAutoMessageInterval} 
+                                                onChange={e => setEditTwitchBotAutoMessageInterval(parseInt(e.target.value))}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" 
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await fetch('/api/twitch/sync', { method: 'POST' });
+                                                        if (res.ok) showNotification('Bot Twitch synchronisé !', 'success');
+                                                        else showNotification('Erreur de synchro', 'error');
+                                                    } catch (e) {
+                                                        showNotification('Erreur réseau', 'error');
+                                                    }
+                                                }}
+                                                className="flex-1 py-3 bg-purple-600/20 text-purple-400 border border-purple-600/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-600 hover:text-white transition-all"
+                                            >
+                                                Sync Twitch EventSub
+                                            </button>
+                                            <button 
+                                                onClick={async () => {
+                                                    try {
+                                                        const res = await fetch('/api/twitch/test', { method: 'POST' });
+                                                        const data = await res.json();
+                                                        if (data.success) showNotification('Message de test envoyé !', 'success');
+                                                        else showNotification('Erreur d\'envoi test', 'error');
+                                                    } catch (e) {
+                                                        showNotification('Erreur réseau', 'error');
+                                                    }
+                                                }}
+                                                className="px-4 py-3 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center gap-2"
+                                            >
+                                                <Send className="w-3.5 h-3.5" />
+                                                TEST
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                              </div>

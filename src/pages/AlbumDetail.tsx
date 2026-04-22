@@ -1,6 +1,8 @@
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Calendar, Share2, Download, Maximize2, Check, Edit2, Facebook, Instagram, X } from 'lucide-react';
+import { ArrowLeft, Calendar, Share2, Download, Maximize2, Check, Edit2, Facebook, Instagram, X as XIconLucide } from 'lucide-react';
+import { XIcon } from '../components/ui/XIcon';
+
 import { useState, useEffect } from 'react';
 import galerieData from '../data/galerie.json';
 import { useLanguage } from '../context/LanguageContext';
@@ -149,7 +151,7 @@ export function AlbumDetail() {
                                         <Instagram className="w-4 h-4 text-white hover:text-pink-500 transition-colors" />
                                     </a>
 
-                                    {/* X (Twitter) */}
+                                    {/* X */}
                                     <a
                                         href={shareLinks.x}
                                         target="_blank"
@@ -157,7 +159,7 @@ export function AlbumDetail() {
                                         className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
                                         title="Partager sur X"
                                     >
-                                        <X className="w-4 h-4 text-white hover:text-gray-400 transition-colors" />
+                                        <XIcon className="w-4 h-4 text-white hover:text-gray-400 transition-colors" />
                                     </a>
 
                                     <div className="w-[1px] h-6 bg-white/10 mx-1" />

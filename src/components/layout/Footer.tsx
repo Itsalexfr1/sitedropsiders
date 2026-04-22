@@ -1,4 +1,4 @@
-import { Mail, Lock, Globe, Instagram, Youtube, Facebook, Twitter } from 'lucide-react';
+import { Mail, Lock, Globe, Instagram, Youtube, Facebook } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
@@ -15,6 +15,12 @@ const TiktokIcon = (props: any) => (
 const SpotifyIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
         <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.2.3-.6.4-.9.2-2.8-1.7-6.4-2.1-10.6-1.1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 4.7-1.1 8.7-.6 11.8 1.3.2.2.3.5.1.8zm1.5-3.3c-.3.4-.8.5-1.2.3-3.2-2-8.2-2.6-12-1.4-.4.1-.9-.1-1-.5-.1-.4.1-.9.5-1 4.4-1.3 9.9-.7 13.6 1.6.3.3.4.8.1 1zM19.2 10.6c-3.9-2.3-10.3-2.5-14.1-1.4-.6.2-1.2-.2-1.4-.8-.2-.6.2-1.2.8-1.4 4.3-1.3 11.4-1.1 16 1.6.5.3.7 1 .4 1.5-.3.5-1 .7-1.5.4v.1z" />
+    </svg>
+);
+
+const XIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
 );
 
@@ -77,7 +83,7 @@ export function Footer() {
         { name: 'TikTok', icon: <TiktokIcon className="w-5 h-5 fill-current" />, href: getSocialUrl(socials.tiktok, 'tiktok'), color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
         { name: 'Spotify', icon: <SpotifyIcon className="w-5 h-5 fill-current" />, href: `https://open.spotify.com/user/dropsiders`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
         { name: 'YouTube', icon: <Youtube className="w-6 h-6" />, href: `https://www.youtube.com/@dropsiders`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
-        { name: 'X', icon: <Twitter className="w-6 h-6" />, href: `https://x.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
+        { name: 'X', icon: <XIcon className="w-5 h-5" />, href: `https://x.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
         { name: 'Facebook', icon: <Facebook className="w-6 h-6" />, href: `https://www.facebook.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' }
     ];
 

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    X, Sparkles, Copy, Check, Instagram, Facebook, Twitter,
+    Sparkles, Copy, Check, Instagram, Facebook,
     RefreshCw, Pencil, Image as ImageIcon, Upload, Trash2,
     Layout, Heart, MessageCircle, Repeat2, Bookmark, Share2,
     ThumbsUp, Globe, ChevronDown, MoreHorizontal
 } from 'lucide-react';
+import { XIcon } from '../ui/XIcon';
 import { uploadFile } from '../../utils/uploadService';
 import { fixEncoding } from '../../utils/standardizer';
 import { R2PhotosMenuModal } from './modals/R2PhotosMenuModal';
@@ -16,7 +17,7 @@ interface PubliGeneratorProps {
     onOpenSocialStudio?: (text: string, imageUrl: string) => void;
 }
 
-type Platform = 'instagram' | 'facebook' | 'twitter';
+type Platform = 'instagram' | 'facebook' | 'x';
 
 const platformConfig = {
     instagram: {
@@ -33,11 +34,11 @@ const platformConfig = {
         accent: '#1877f2',
         charLimit: 63206,
     },
-    twitter: {
-        icon: <Twitter className="w-4 h-4" />,
-        label: 'X / Twitter',
-        color: 'from-sky-400 to-sky-600',
-        accent: '#1d9bf0',
+    x: {
+        icon: <XIcon className="w-4 h-4" />,
+        label: 'X',
+        color: 'from-gray-700 to-black',
+        accent: '#ffffff',
         charLimit: 280,
     },
 };
@@ -157,15 +158,15 @@ function FacebookPreview({ text, imageUrl }: { text: string; imageUrl: string })
     );
 }
 
-function TwitterPreview({ text, imageUrl }: { text: string; imageUrl: string }) {
+function XPreview({ text, imageUrl }: { text: string; imageUrl: string }) {
     const [liked, setLiked] = useState(false);
     const [retweeted, setRetweeted] = useState(false);
     const truncated = text.length > 280 ? text.substring(0, 280) : text;
     return (
         <div className="bg-black border border-white/10 rounded-2xl p-4 font-sans">
             <div className="flex gap-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center flex-shrink-0">
-                    <span className="text-[10px] font-black text-white">DS</span>
+                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                    <XIcon className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-1">
@@ -210,7 +211,7 @@ function TwitterPreview({ text, imageUrl }: { text: string; imageUrl: string }) 
 const previews: Record<Platform, React.FC<{ text: string; imageUrl: string }>> = {
     instagram: InstagramPreview,
     facebook: FacebookPreview,
-    twitter: TwitterPreview,
+    x: XPreview,
 };
 
 export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGeneratorProps) {
@@ -226,7 +227,7 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
     const [editedTexts, setEditedTexts] = useState<Record<Platform, string>>({
         instagram: '',
         facebook: '',
-        twitter: '',
+        x: '',
     });
 
     // Live preview updates as user types, before generation
@@ -243,11 +244,11 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
         setTimeout(() => {
             const cleanText = fixEncoding(sourceText.trim());
             setSourceText(cleanText);
-            const twitterText = cleanText.length > 280 ? `${cleanText.substring(0, 280)}` : cleanText;
+            const xText = cleanText.length > 280 ? `${cleanText.substring(0, 280)}` : cleanText;
             setEditedTexts({
                 instagram: cleanText,
                 facebook: cleanText,
-                twitter: twitterText,
+                x: xText,
             });
             setLiveText(cleanText);
             setGenerated(true);
@@ -345,7 +346,7 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                                     </span>
                                     {sourceText.length > 280 && (
                                         <span className="text-[9px] text-amber-500 font-bold">
-                                            ⚠ Trop long pour X/Twitter
+                                            ⚠ Trop long pour X
                                         </span>
                                     )}
                                 </div>
@@ -443,7 +444,7 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                                                                         onChange={(e) => setEditedTexts(prev => ({ ...prev, [p]: e.target.value }))}
                                                                         rows={4}
                                                                         className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-[11px] focus:outline-none focus:border-white/30 transition-all resize-none font-medium leading-relaxed"
-                                                                        maxLength={p === 'twitter' ? 280 : undefined}
+                                                                        maxLength={p === 'x' ? 280 : undefined}
                                                                     />
                                                                     <button
                                                                         onClick={() => copyToClipboard(editedTexts[p], p)}

@@ -20,7 +20,9 @@
 	"vars": {
 		"GITHUB_OWNER": "Itsalexfr1",
 		"GITHUB_REPO": "sitedropsiders",
-		"GITHUB_FILE_PATH": "src/data/subscribers.json"
+		"GITHUB_FILE_PATH": "src/data/subscribers.json",
+		"TWITCH_CLIENT_ID": "dvqq2ycivd22zlm43giy7liklktvqo",
+		"TWITCH_EVENTSUB_SECRET": "Drop_Bot_Twitch"
 	},
 	"kv_namespaces": [
 		{

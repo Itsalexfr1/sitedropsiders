@@ -67,6 +67,71 @@ const utf8Decode = (base64) => {
     return new TextDecoder().decode(bytes);
 };
 
+async function getTwitchToken(env) {
+    const cached = await env.CHAT_KV.get('twitch_access_token');
+    if (cached) return cached;
+
+    const res = await fetch('https://id.twitch.tv/oauth2/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            client_id: env.TWITCH_CLIENT_ID,
+            client_secret: env.TWITCH_CLIENT_SECRET,
+            grant_type: 'client_credentials'
+        })
+    });
+
+    const data = await res.json();
+    if (data.access_token) {
+        await env.CHAT_KV.put('twitch_access_token', data.access_token, { expirationTtl: data.expires_in - 60 });
+        return data.access_token;
+    }
+    return env.TWITCH_BOT_TOKEN; // Fallback to env token if App Token fails
+}
+
+// --- TWITCH HELIX HELPERS ---
+async function sendTwitchMessage(env, channelName, message) {
+    const CLIENT_ID = env.TWITCH_CLIENT_ID;
+    const TOKEN = env.TWITCH_BOT_TOKEN; // OAuth token
+    if (!CLIENT_ID || !TOKEN) return { ok: false, error: 'Missing Twitch credentials' };
+
+    try {
+        // 1. Get Broadcaster ID from channel name
+        const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channelName}`, {
+            headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` }
+        });
+        const userData = await userRes.json();
+        if (!userData.data || userData.data.length === 0) return { ok: false, error: 'Channel not found' };
+        const broadcasterId = userData.data[0].id;
+
+        // 2. Get Bot ID (User ID from token)
+        const botRes = await fetch('https://api.twitch.tv/helix/users', {
+            headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` }
+        });
+        const botData = await botRes.json();
+        const botId = botData.data[0].id;
+
+        // 3. Send message
+        const sendRes = await fetch('https://api.twitch.tv/helix/chat/messages', {
+            method: 'POST',
+            headers: {
+                'Client-Id': CLIENT_ID,
+                'Authorization': `Bearer ${TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                broadcaster_id: broadcasterId,
+                sender_id: botId,
+                message: message
+            })
+        });
+
+        return { ok: sendRes.ok, status: sendRes.status };
+    } catch (e) {
+        return { ok: false, error: e.message };
+    }
+}
+
 const SETTINGS_PATH = 'src/data/settings.json';
 const NEWS_PATH = 'src/data/news.json';
 const RECAPS_PATH = 'src/data/recaps.json';
@@ -615,6 +680,109 @@ ${urls.map(u => `  <url>
         }
 
         // --- API: COMMUNITY USER SYNC & SEARCH ---
+        // --- TWITCH: EVENTSUB WEBHOOK ---
+        if (path === '/api/twitch/eventsub' && request.method === 'POST') {
+            const signature = request.headers.get('Twitch-Eventsub-Message-Signature');
+            const timestamp = request.headers.get('Twitch-Eventsub-Message-Timestamp');
+            const messageId = request.headers.get('Twitch-Eventsub-Message-Id');
+            const secret = env.TWITCH_EVENTSUB_SECRET;
+
+            if (!signature || !timestamp || !messageId || !secret) {
+                return new Response('Missing headers or secret', { status: 400 });
+            }
+
+            const body = await request.text();
+            
+            // Verification (HMAC SHA256)
+            const hmacMessage = messageId + timestamp + body;
+            const encoder = new TextEncoder();
+            const key = await crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+            const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(hmacMessage));
+            const expectedSignature = 'sha256=' + Array.from(new Uint8Array(sigBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+            if (signature !== expectedSignature) {
+                return new Response('Invalid signature', { status: 403 });
+            }
+
+            const data = JSON.parse(body);
+
+            // Handle Verification Challenge
+            if (data.challenge) {
+                return new Response(data.challenge, { status: 200 });
+            }
+
+            // Handle Chat Message
+            if (data.subscription.type === 'channel.chat.message') {
+                const chatMsg = data.event.message.text;
+                const sender = data.event.chatter_user_name;
+
+                if (chatMsg.startsWith('!')) {
+                    const settings = await env.KV.get('settings', 'json') || {};
+                    const commands = settings.botCommands || [];
+                    const cmd = chatMsg.split(' ')[0].toLowerCase();
+                    const match = commands.find((c: any) => c.command === cmd);
+
+                    if (match) {
+                        await sendTwitchMessage(env, data.event.broadcaster_user_login, `@${sender} ${match.response}`);
+                    } else if (cmd === '!drops') {
+                        await sendTwitchMessage(env, data.event.broadcaster_user_login, `@${sender} Tu as actuellement X Drops ! (Lien: https://dropsiders.fr)`);
+                    }
+                }
+            }
+
+            return new Response('OK', { status: 200 });
+        }
+
+        if (path === '/api/twitch/test' && request.method === 'POST') {
+            const settings = await env.KV.get('settings', 'json') || {};
+            const channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders";
+            const success = await sendTwitchMessage(env, channel, "🤖 Test du Bot Dropsiders réussi ! Je suis prêt à mettre l'ambiance. 🔥");
+            return new Response(JSON.stringify({ success }), { headers: { 'Content-Type': 'application/json' } });
+        }
+
+        if (path === '/api/twitch/sync' && request.method === 'POST') {
+            const settings = await env.KV.get('settings', 'json') || {};
+            const channel = settings.twitchChannel || env.TWITCH_CHANNEL;
+            if (!channel) return new Response('Channel not set', { status: 400 });
+
+            // Get User ID
+            const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
+                headers: {
+                    'Client-ID': env.TWITCH_CLIENT_ID,
+                    'Authorization': `Bearer ${await getTwitchToken(env)}`
+                }
+            });
+            const userData = await userRes.json();
+            const userId = userData.data?.[0]?.id;
+            if (!userId) return new Response('User not found on Twitch', { status: 404 });
+
+            // Subscribe to Chat Messages
+            const subRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+                method: 'POST',
+                headers: {
+                    'Client-ID': env.TWITCH_CLIENT_ID,
+                    'Authorization': `Bearer ${await getTwitchToken(env)}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: 'channel.chat.message',
+                    version: '1',
+                    condition: {
+                        broadcaster_user_id: userId,
+                        user_id: userId
+                    },
+                    transport: {
+                        method: 'webhook',
+                        callback: `${new URL(request.url).origin}/api/twitch/eventsub`,
+                        secret: env.TWITCH_EVENTSUB_SECRET
+                    }
+                })
+            });
+
+            const subData = await subRes.json();
+            return new Response(JSON.stringify({ success: subRes.ok, userId, subData }), { headers: { 'Content-Type': 'application/json' } });
+        }
+
         if (path === '/api/users/sync' && request.method === 'POST') {
             const body = await request.json();
             const { id, username, email, avatar, provider, newsletter: bodynewsletter } = body;
@@ -6819,6 +6987,34 @@ ${urls.map(u => `  <url>
         if (newArtistsToNotify.length === 0) return;
 
         await env.CHAT_KV.put('last_notified_artists', JSON.stringify(lastNotified), { expirationTtl: 86400 });
+
+        // --- TWITCH AUTO-MESSAGES & NEWS ALERTS ---
+        if (content.takeover && content.takeover.twitchChannel) {
+            const channel = content.takeover.twitchChannel;
+            
+            // 1. News Alerts
+            const newsRes = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/main/src/data/news.json`);
+            if (newsRes.ok) {
+                const news = await newsRes.json();
+                if (news.length > 0) {
+                    const lastNewsId = await env.CHAT_KV.get('last_twitch_news_id');
+                    if (lastNewsId && lastNewsId !== news[0].id.toString()) {
+                        const article = news[0];
+                        await sendTwitchMessage(env, channel, `🚀 NOUVEAUTÉ : ${article.title} -> https://dropsiders.fr/news/${article.id}`);
+                    }
+                    await env.CHAT_KV.put('last_twitch_news_id', news[0].id.toString());
+                }
+            }
+
+            // 2. Auto-Messages
+            const lastAuto = await env.CHAT_KV.get('last_twitch_auto_time');
+            const interval = content.takeover.autoMessageInterval || 60;
+            const now = Date.now();
+            if (content.takeover.autoMessage && (!lastAuto || (now - parseInt(lastAuto)) > interval * 60 * 1000)) {
+                await sendTwitchMessage(env, channel, content.takeover.autoMessage);
+                await env.CHAT_KV.put('last_twitch_auto_time', now.toString());
+            }
+        }
 
         // Send one notification per artist to subscribers who have them as favorites
         for (const artist of newArtistsToNotify) {

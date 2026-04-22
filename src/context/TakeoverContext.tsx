@@ -23,6 +23,8 @@ export interface StreamItem {
     id: string;
     name: string;
     youtubeId: string;
+    twitchChannel?: string;
+    streamSource?: 'youtube' | 'twitch';
     currentTrack?: string;
     overrideArtist?: string;
     isExternalLink?: boolean;
@@ -32,6 +34,8 @@ export interface StreamItem {
 export interface TakeoverSettings {
     title: string;
     youtubeId: string;
+    twitchChannel?: string;
+    streamSource?: 'youtube' | 'twitch';
     mainFluxName: string;
     currentTrack: string;
     tickerText: string;
@@ -68,6 +72,8 @@ export interface TakeoverSettings {
     festivalLogo?: string;
     moderators?: string[];
     bannedPseudos?: string[];
+    twitchBotAutoMessage?: string;
+    twitchBotAutoMessageInterval?: number;
 }
 
 export interface TrackItem {
@@ -221,6 +227,8 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
     const [settings, setSettings] = useState<TakeoverSettings>({
         title: initialSettings?.title || 'LIVESTREAM',
         youtubeId: initialSettings?.youtubeId || '',
+        twitchChannel: initialSettings?.twitchChannel || '',
+        streamSource: initialSettings?.streamSource || 'youtube',
         mainFluxName: initialSettings?.mainFluxName || 'MAIN STAGE',
         currentTrack: initialSettings?.currentTrack || 'ID - UNRELEASED',
         tickerText: initialSettings?.tickerText || 'BIENVENUE SUR LE LIVE DROPSIDERS !',
