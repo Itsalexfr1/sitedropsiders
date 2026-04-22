@@ -36,11 +36,12 @@ export const TakeoverPage = (props: any) => {
 
 const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const navigate = useNavigate();
+    const takeover = useTakeover();
     const { 
         showAdminPanel, setShowAdminPanel, 
         settings, setSettings, 
         handleGlobalSave 
-    } = useTakeover();
+    } = takeover;
 
     // Appwrite Config
     const client = new Client()
@@ -4674,6 +4675,37 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     )}
                                 </button>
                             </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Notifications UI */}
+            <AnimatePresence mode="wait">
+                {takeover?.notification?.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, scale: 0.9, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
+                        exit={{ opacity: 0, y: 20, scale: 0.9, x: '-50%' }}
+                        className="fixed bottom-24 left-1/2 z-[200]"
+                    >
+                        <div className={`flex items-center gap-4 px-6 py-4 rounded-[2rem] shadow-2xl backdrop-blur-3xl border ${
+                            takeover.notification.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 
+                            takeover.notification.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
+                            'bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan'
+                        }`}>
+                            <div className={`p-2 rounded-full ${
+                                takeover.notification.type === 'success' ? 'bg-green-500/20' : 
+                                takeover.notification.type === 'error' ? 'bg-red-500/20' : 
+                                'bg-neon-cyan/20'
+                            }`}>
+                                {takeover.notification.type === 'success' ? <Check className="w-5 h-5" /> : 
+                                 takeover.notification.type === 'error' ? <AlertCircle className="w-5 h-5" /> : 
+                                 <Megaphone className="w-5 h-5" />}
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap text-white">
+                                {takeover.notification.message}
+                            </span>
                         </div>
                     </motion.div>
                 )}

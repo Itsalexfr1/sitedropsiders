@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { Client, Databases, ID, Query } from 'appwrite';
 import { useUser } from './UserContext';
-const showNotification = (msg: string, type: 'success' | 'error' | 'info') => console.log(`[${type.toUpperCase()}] ${msg}`);
+
 
 // --- Interfaces ---
 export interface LineupItem {
@@ -128,6 +128,10 @@ interface TakeoverContextType {
     pinnedMessage: any;
     setPinnedMessage: (m: any) => void;
     
+    // Notifications
+    notification: { show: boolean, message: string, type: 'success' | 'error' | 'info' };
+    showNotification: (msg: string, type?: 'success' | 'error' | 'info') => void;
+    
     // Interactive
     activePoll: any;
     setActivePoll: (p: any) => void;
@@ -198,6 +202,17 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
     const [quizTimeLeft, setQuizTimeLeft] = useState<number | null>(null);
     const [activeHeist, setActiveHeist] = useState<any>(null);
     const [activeBoss, setActiveBoss] = useState<any>(null);
+    const [notification, setNotification] = useState<{ show: boolean, message: string, type: 'success' | 'error' | 'info' }>({
+        show: false,
+        message: '',
+        type: 'info'
+    });
+
+    const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => setNotification(prev => ({ ...prev, show: false })), 4000);
+    }, []);
+
     const { user: globalUser, earnPoints, isLoggedIn: isGlobalLoggedIn } = useUser();
     const [userDrops, setUserDropsLocal] = useState(() => {
         const saved = localStorage.getItem('user_drops');
@@ -342,6 +357,7 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
         COLLECTION_CHAT,
         handleGlobalSave,
         triggerConfetti,
+        notification,
         showNotification
     };
 
