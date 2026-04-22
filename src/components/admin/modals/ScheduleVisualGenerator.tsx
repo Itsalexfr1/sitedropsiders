@@ -362,28 +362,28 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                 <div className="flex flex-col gap-4 mb-6">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-sm font-black text-white uppercase italic tracking-widest">Options du Visuel</h3>
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-2">
                                             <button 
                                                 onClick={() => setShowLogo(!showLogo)}
-                                                className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-black uppercase transition-all ${showLogo ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
+                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${showLogo ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
                                             >
-                                                <Sparkles className={`w-4 h-4 ${showLogo ? 'text-neon-cyan' : ''}`} /> Logo: {showLogo ? 'OUI' : 'NON'}
+                                                <ImageIcon className={`w-3 h-3 ${showLogo ? 'text-neon-cyan' : ''}`} /> Logo: {showLogo ? 'OUI' : 'NON'}
                                             </button>
                                             <button 
                                                 onClick={() => setShowWebsite(!showWebsite)}
-                                                className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-black uppercase transition-all ${showWebsite ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
+                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${showWebsite ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
                                             >
-                                                <Smartphone className={`w-4 h-4 ${showWebsite ? 'text-neon-cyan' : ''}`} /> Site: {showWebsite ? 'OUI' : 'NON'}
+                                                <Smartphone className={`w-3 h-3 ${showWebsite ? 'text-neon-cyan' : ''}`} /> Site: {showWebsite ? 'OUI' : 'NON'}
                                             </button>
                                             <button 
                                                 onClick={() => setViewMode(viewMode === 'planning' ? 'timetable' : 'planning')}
-                                                className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-[10px] font-black uppercase transition-all ${viewMode === 'planning' ? 'bg-white/10 border-white/20 text-white' : 'bg-neon-cyan border-neon-cyan text-black'}`}
+                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${viewMode === 'planning' ? 'bg-white/10 border-white/20 text-white' : 'bg-neon-cyan border-neon-cyan text-black'}`}
                                             >
-                                                {viewMode === 'planning' ? <Calendar className="w-4 h-4" /> : <Calendar className="w-4 h-4 text-black" />}
+                                                {viewMode === 'planning' ? <Calendar className="w-3 h-3" /> : <Calendar className="w-3 h-3 text-black" />}
                                                 Mode: {viewMode === 'planning' ? 'DATE' : 'HEURE'}
                                             </button>
-                                            <button onClick={addDay} disabled={schedule.length >= 8} className="flex items-center gap-2 px-4 py-2 bg-neon-cyan text-black text-[10px] font-black uppercase rounded-xl hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100">
-                                                <Plus className="w-4 h-4" /> Ajouter ({schedule.length}/8)
+                                            <button onClick={addDay} disabled={schedule.length >= 8} className="flex items-center gap-2 px-3 py-1.5 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-[0_0_15px_rgba(0,255,255,0.3)]">
+                                                <Plus className="w-3 h-3" /> Ajouter ({schedule.length}/8)
                                             </button>
                                         </div>
                                 </div>
@@ -515,8 +515,8 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         <div className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-[8px] font-black text-neon-cyan uppercase tracking-widest">Story 9:16</div>
                                     </div>
 
-                                    {/* iPhone 17 Pro Max Style Frame */}
-                                    <div className="aspect-[9/19.5] w-full max-w-[340px] mx-auto bg-black rounded-[3.5rem] border-[6px] border-[#2a2a2a] shadow-[0_0_50px_rgba(0,0,0,0.5),inset_0_0_2px_rgba(255,255,255,0.2)] relative overflow-hidden flex flex-col p-6 text-white scale-[0.7] origin-top transition-all duration-700 hover:scale-[0.72] group">
+                                    {/* iPhone 17 Pro Max Style Frame - Dezoomed for full visibility */}
+                                    <div className="aspect-[9/19.2] w-full max-w-[380px] mx-auto bg-black rounded-[3.5rem] border-[8px] border-[#1a1a1a] shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden flex flex-col p-6 text-white scale-[0.55] origin-top transition-all duration-700 hover:scale-[0.58] group">
                                         {/* Titanium Frame Highlight */}
                                         <div className="absolute inset-0 border-[2px] border-white/5 rounded-[3.3rem] pointer-events-none" />
                                         
