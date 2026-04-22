@@ -6,7 +6,7 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "",
-    "title": "",
+    "title": "EDC LAS VEGAS ",
     "moderators": "",
     "lineup": "[]",
     "tickerType": "news",
@@ -30,16 +30,8 @@
     "endDate": "",
     "status": "edit",
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
-    "streams": [
-      {
-        "id": "0v3y6w6v3",
-        "name": "STAGE 1",
-        "youtubeId": "",
-        "streamSource": "twitch",
-        "twitchChannel": "dropsiders_live"
-      }
-    ],
-    "activeStreamId": "0v3y6w6v3",
+    "streams": [],
+    "activeStreamId": "",
     "tickerMode": "news",
     "instagramLink": "",
     "tiktokLink": "",
@@ -48,7 +40,7 @@
     "sponsorText": "",
     "sponsorLink": "",
     "showSponsorBanner": true,
-    "festivalLogo": "",
+    "festivalLogo": "https://dropsiders.fr/uploads/festivals/9d105c3e8b63a7e1-EDCLV_2026_logo_1.webp",
     "twitchChannel": "",
     "streamSource": "youtube",
     "twitchBotAutoMessage": "",
