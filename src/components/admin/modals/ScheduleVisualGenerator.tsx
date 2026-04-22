@@ -13,8 +13,7 @@ interface DaySchedule {
 
 export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const [schedule, setSchedule] = useState<DaySchedule[]>([
-        { id: '1', date: '13 Mai', dayArtist: 'Mau P', dayLocation: 'Encore Beach', nightArtist: 'Mau P', nightLocation: 'Encore Beach' },
-        { id: '2', date: '14 Mai', dayArtist: 'Dom Dolla', dayLocation: 'Liv Nightclub', nightArtist: 'Dom Dolla', nightLocation: 'Liv Nightclub' }
+        { id: '1', date: '', dayArtist: '', dayLocation: '', nightArtist: '', nightLocation: '' }
     ]);
     const [showLogo, setShowLogo] = useState(true);
     const [showWebsite, setShowWebsite] = useState(true);
