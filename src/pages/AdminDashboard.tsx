@@ -5937,6 +5937,7 @@ export function AdminDashboard() {
                       </div>
                     </button>
 
+                  </div>
                 </motion.div>
               </div>
             )}
