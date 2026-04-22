@@ -3594,11 +3594,21 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                     )}
                                                     <div className="flex gap-3 relative">
                                                         <div className={`w-9 h-9 rounded-xl border border-white/10 shrink-0 flex items-center justify-center bg-white/5 relative overflow-hidden group-hover:border-neon-red/30 transition-all ${(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? 'border-neon-red/50 shadow-[0_0_10px_rgba(255,0,51,0.2)]' : ''}`}>
-                                                            <FlagIcon 
-                                                                location={(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? 'FR' : msg.country} 
-                                                                className={`absolute inset-0 w-full h-full object-cover ${(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? '' : 'grayscale'}`} 
-                                                            />
-                                                            <div className="absolute inset-0 bg-black/20" />
+                                                            {msg.avatar ? (
+                                                                <img src={msg.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                                            ) : msg.isTwitch ? (
+                                                                <div className="w-full h-full bg-[#9146FF]/20 flex items-center justify-center">
+                                                                    <svg className="w-5 h-5 fill-[#9146FF]" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
+                                                                </div>
+                                                            ) : (
+                                                                <>
+                                                                    <FlagIcon 
+                                                                        location={(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? 'FR' : msg.country} 
+                                                                        className={`absolute inset-0 w-full h-full object-cover ${(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? '' : 'grayscale opacity-50'}`} 
+                                                                    />
+                                                                    <div className="absolute inset-0 bg-black/20" />
+                                                                </>
+                                                            )}
                                                             {isHovered && <motion.div layoutId="bg-glow" className="absolute inset-0 bg-neon-red/5 blur-md" />}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
