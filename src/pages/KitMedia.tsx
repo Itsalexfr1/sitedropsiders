@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { SpotifyWidget } from '../components/widgets/SpotifyWidget';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import settings from '../data/settings.json';
+import { XIcon } from '../components/ui/XIcon';
 
 interface StatItem {
     label: string;

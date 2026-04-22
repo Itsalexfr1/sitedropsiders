@@ -1389,7 +1389,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
         twitchClient.connect().catch(console.error);
 
-        twitchClient.on('message', (channel, tags, message, self) => {
+        twitchClient.on('message', (channel: string, tags: any, message: string, self: boolean) => {
             if (self) return;
             
             const msgId = `twitch-${tags.id || Date.now()}`;

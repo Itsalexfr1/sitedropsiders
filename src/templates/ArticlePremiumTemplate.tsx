@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X as XIconLucide, Edit2, Instagram, Facebook, Globe, Youtube, Link2 } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Edit2, Instagram, Facebook, Globe, Youtube, Link2 } from 'lucide-react';
 import { XIcon as XIconShared } from '../components/ui/XIcon';
 
 import { useHoverSound } from '../hooks/useHoverSound';

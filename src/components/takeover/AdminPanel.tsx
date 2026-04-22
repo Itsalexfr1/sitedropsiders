@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
     X, Settings, Zap, Edit3, ChevronLeft, Save, Timer, 
     AlertCircle, Trash2, Plus, Music, Camera, Scan, Globe,
-    ChevronRight, Calendar, RefreshCcw
+    ChevronRight, Calendar, RefreshCcw, Send
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTakeover } from '../../context/TakeoverContext';
