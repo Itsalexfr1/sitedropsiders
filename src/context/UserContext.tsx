@@ -60,6 +60,34 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 localStorage.removeItem('temp_social_user');
             } catch(e) {}
         }
+        
+        // --- NEW: Handle Mobile/Universal Google Auth via Pre-React Interceptor ---
+        const mobileGoogleToken = localStorage.getItem('dropsiders_google_mobile_token');
+        if (mobileGoogleToken) {
+            localStorage.removeItem('dropsiders_google_mobile_token');
+            fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${mobileGoogleToken}` }
+            })
+            .then(res => res.json())
+            .then(googleUser => {
+                if (googleUser && googleUser.sub) {
+                    loginSocial({
+                        username: googleUser.name,
+                        email: googleUser.email,
+                        avatar: googleUser.picture,
+                        id: googleUser.sub,
+                        provider: 'google'
+                    });
+                    setTimeout(() => {
+                        window.alert(`Succès! Vous êtes connecté via Google en tant que ${googleUser.name}.`);
+                        window.location.reload(); // Force la fermeture de potentielles fenêtres et l'update
+                    }, 500);
+                }
+            })
+            .catch(err => {
+                console.error('Failed to fetch google user info from mobile interceptor', err);
+            });
+        }
     }, []);
 
     // Sync with backend when email is available
