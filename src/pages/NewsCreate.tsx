@@ -1543,8 +1543,8 @@ ${generateSocialsHtml()}
                         const questionText = cleanQ.toUpperCase();
                         const answerText = cleanA.toUpperCase();
                         return `<div class="article-section interview-qa-block" data-artist-name="${q.artistName || ''}" data-artist-color="${artistColor}">
-<div class="interview-q dropsiders-q"><span class="q-prefix" style="color:#ff1241">DROPSIDERS :</span> ${questionText}</div>
-<div class="interview-q artiste-q"><span class="q-prefix artiste-prefix" style="color:${artistColor};-webkit-text-fill-color:${artistColor}">${artistName} :</span> <span class="artiste-response" style="color:#ffffff;-webkit-text-fill-color:#ffffff">${answerText}</span></div>
+<p><strong style="color:#ff1241">DROPSIDERS :</strong> ${questionText}</p>
+<p><strong style="color:${artistColor}">${artistName} :</strong> ${answerText}</p>
 </div>`;
                     } else if (q.type === 'image') {
                         return `<div class="article-section interview-image-block" data-media-url="${q.mediaUrl}">

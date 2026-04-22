@@ -389,49 +389,25 @@
 
 
 /* --- INTERVIEW QUESTIONS & RESPONSES --- */
-.article-body-premium .interview-qa-block,
-.article-body-premium .interview-spotify-block,
-.article-body-premium .interview-beatport-block,
-.article-body-premium .interview-image-block,
-.article-body-premium .interview-video-block {
-    margin: 0 auto !important;
-    padding: 6rem 0 !important; /* ESPACE ÉNORME FORCÉ */
-    width: 100%;
-    text-align: center;
-    display: block;
-}
-
-.article-body-premium .interview-q {
-    display: block;
-    width: 100%;
+.article-body-premium .interview-qa-block p {
+    margin: 4rem auto !important;
+    text-align: center !important;
     font-family: var(--font-display, 'Orbitron', sans-serif);
     font-weight: 900;
     font-size: 1.2rem;
     text-transform: uppercase !important;
     color: #ffffff !important;
-    text-align: center !important;
-    padding: 5rem 0 !important; /* ESPACE ÉNORME ENTRE Q et A AUSSI */
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     line-height: 1.6;
+    width: 100%;
 }
 
-/* Question DROPSIDERS */
-.article-body-premium .interview-q.dropsiders-q .q-prefix {
-    color: #ff1241 !important;
-    -webkit-text-fill-color: #ff1241 !important;
-    text-shadow: 0 0 15px rgba(255, 18, 65, 0.4);
-    margin-right: 0.5rem;
-}
-
-/* Réponse ARTISTE */
-.article-body-premium .interview-q.artiste-q .artiste-prefix {
-    font-weight: 900;
-    margin-right: 0.5rem;
-}
-
-.article-body-premium .interview-q.artiste-q .artiste-response {
-    color: #ffffff !important;
-    -webkit-text-fill-color: #ffffff !important;
+.article-body-premium .interview-spotify-block,
+.article-body-premium .interview-beatport-block,
+.article-body-premium .interview-image-block,
+.article-body-premium .interview-video-block {
+    margin: 4rem auto !important;
+    text-align: center;
 }
 
 .article-body-premium .interview-q::before,
