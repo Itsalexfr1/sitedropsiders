@@ -1,41 +1,5 @@
 [
   {
-    "title": "Quizz & CONCOURS",
-    "description": "Tirages, Quizz, Participants",
-    "icon": "Gamepad2",
-    "category": "ALL",
-    "link": "#QUIZZ_CONCOURS_MODAL",
-    "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-neon-red/5",
-    "permission": "all",
-    "baseColor": "#ff0033",
-    "columns": 1
-  },
-  {
-    "title": "Contenu",
-    "description": "News, Musique, Interviews...",
-    "icon": "FileText",
-    "category": "NEWS",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "news_focus",
-    "baseColor": "#ffae00",
-    "columns": 1
-  },
-  {
-    "title": "GENERATEURS",
-    "description": "Fiches, Posts, Planning, Interviews",
-    "icon": "Zap",
-    "category": "SOCIAL_STUDIO",
-    "link": "#GENERATORS",
-    "color": "border-neon-purple/20 hover:border-neon-purple",
-    "bg": "bg-neon-purple/5",
-    "permission": "news",
-    "baseColor": "#fb00ff",
-    "columns": 1
-  },
-  {
     "title": "Accueil",
     "description": "Spotify, Sections & Vues",
     "icon": "LayoutDashboard",
@@ -48,6 +12,40 @@
     "columns": 1
   },
   {
+    "title": "Contenu",
+    "description": "News, Musique, Interviews...",
+    "icon": "FileText",
+    "category": "NEWS",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "news_focus",
+    "baseColor": "#37ff00",
+    "columns": 1
+  },
+  {
+    "title": "Social Studio",
+    "description": "Outils Réseaux Sociaux",
+    "icon": "Instagram",
+    "category": "SOCIAL_STUDIO",
+    "link": "social-studio",
+    "permission": "news",
+    "baseColor": "#ff00bb",
+    "columns": 1
+  },
+  {
+    "title": "Quizz & CONCOURS",
+    "description": "Tirages, Quizz, Participants",
+    "icon": "Gamepad2",
+    "category": "ALL",
+    "link": "#QUIZZ_CONCOURS_MODAL",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-neon-red/5",
+    "permission": "all",
+    "baseColor": "#00fffb",
+    "columns": 1
+  },
+  {
     "title": "Agenda",
     "description": "Programmation",
     "icon": "Calendar",
@@ -56,31 +54,19 @@
     "color": "border-neon-yellow/20 hover:border-neon-yellow",
     "bg": "bg-neon-yellow/5",
     "permission": "agenda_events",
-    "baseColor": "#c8ff00",
+    "baseColor": "#009dff",
     "columns": 1
   },
   {
-    "title": "Message & Newsletter",
-    "description": "Emails & Campagnes",
+    "title": "Messagerie & Newsletter",
+    "description": "Emails, Contact & Newsletter",
     "icon": "Mail",
     "category": "SHOP",
-    "link": "#MESSAGES_NEWSLETTER",
+    "link": "#",
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
-    "baseColor": "#00bfff",
-    "columns": 1
-  },
-  {
-    "title": "TOP DROPSIDERS",
-    "description": "DJs, Clubs & Festivals",
-    "icon": "Trophy",
-    "category": "WIKI",
-    "link": "#TOP_DROPSIDERS_MODAL",
-    "color": "border-neon-yellow/20 hover:border-neon-yellow",
-    "bg": "bg-neon-yellow/5",
-    "permission": "community_mod",
-    "baseColor": "#e7f708",
+    "baseColor": "#dcb88e",
     "columns": 1
   },
   {
@@ -92,7 +78,7 @@
     "color": "border-neon-purple/20 hover:border-neon-purple",
     "bg": "bg-neon-purple/5",
     "permission": "community_mod",
-    "baseColor": "#0033ff",
+    "baseColor": "#c7a8f5",
     "columns": 1
   },
   {
@@ -104,19 +90,19 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "stats_analytics",
-    "baseColor": "#f0d7ad",
+    "baseColor": "#000000",
     "columns": 1
   },
   {
-    "title": "L'ÉQUIPE",
-    "description": "Team, Éditeurs & Membres",
-    "icon": "Users",
-    "category": "TEAM",
-    "link": "#TEAM_MANAGEMENT_MODAL",
-    "color": "border-neon-purple/20 hover:border-neon-purple",
-    "bg": "bg-neon-purple/5",
-    "permission": "all",
-    "baseColor": "#ff0000",
+    "title": "Top Dropsiders",
+    "description": "DJs, Clubs & Festivals",
+    "icon": "Star",
+    "category": "WIKI",
+    "link": "#TOP_DROPSIDERS_MODAL",
+    "color": "border-neon-yellow/20 hover:border-neon-yellow",
+    "bg": "bg-neon-yellow/5",
+    "permission": "community_mod",
+    "baseColor": "#b9c1fd",
     "columns": 1
   },
   {
@@ -142,5 +128,39 @@
     "permission": "news",
     "baseColor": "#00ccff",
     "columns": 1
+  },
+  {
+    "title": "L'Équipe & Éditeurs",
+    "description": "Accès & Membres",
+    "icon": "Users",
+    "category": "TEAM",
+    "link": "#",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
+    "permission": "all",
+    "baseColor": "#ff0000",
+    "columns": 1
+  },
+  {
+    "title": "Planning Story",
+    "description": "Visuel Programme",
+    "icon": "Calendar",
+    "category": "SOCIAL_STUDIO",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "news",
+    "baseColor": "#f99a9a",
+    "columns": 2
+  },
+  {
+    "title": "Questions Aléatoires",
+    "description": "Randomizer d'Interviews",
+    "icon": "Dice5",
+    "category": "STUDIO",
+    "link": "random-questions",
+    "permission": "news",
+    "baseColor": "#fde753",
+    "columns": 2
   }
 ]
