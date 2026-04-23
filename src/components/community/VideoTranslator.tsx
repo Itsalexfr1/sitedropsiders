@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock, AlertTriangle, Maximize2, Headphones } from 'lucide-react';
+import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock, AlertTriangle, Maximize2, Headphones, Activity } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 // Extend Window interface for SpeechRecognition
@@ -24,9 +24,46 @@ export function VideoTranslator() {
     const [isCapturing, setIsCapturing] = useState(false);
     const [liveTranscript, setLiveTranscript] = useState('');
     const [translatedTranscript, setTranslatedTranscript] = useState('');
+    const [audioLevel, setAudioLevel] = useState(0); // For the visual confirmation
+    
     const recognitionRef = useRef<any>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    const animationFrameRef = useRef<number | null>(null);
 
-    // Initialize Speech Recognition
+    // Initialize Audio Visualizer
+    const startAudioVisualizer = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const source = audioContextRef.current.createMediaStreamSource(stream);
+            analyserRef.current = audioContextRef.current.createAnalyser();
+            analyserRef.current.fftSize = 256;
+            source.connect(analyserRef.current);
+
+            const bufferLength = analyserRef.current.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            const updateLevel = () => {
+                if (analyserRef.current) {
+                    analyserRef.current.getByteFrequencyData(dataArray);
+                    const average = dataArray.reduce((a, b) => a + b) / bufferLength;
+                    setAudioLevel(average); // 0 to 255
+                    animationFrameRef.current = requestAnimationFrame(updateLevel);
+                }
+            };
+            updateLevel();
+        } catch (err) {
+            console.error("Error accessing audio for visualizer:", err);
+        }
+    };
+
+    const stopAudioVisualizer = () => {
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        if (audioContextRef.current) audioContextRef.current.close();
+        setAudioLevel(0);
+    };
+
     const startVoiceCapture = () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
@@ -37,11 +74,12 @@ export function VideoTranslator() {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'en-US'; // DJ speaks English
+        recognitionRef.current.lang = 'en-US';
 
         recognitionRef.current.onstart = () => {
             setIsCapturing(true);
-            setLiveTranscript("L'IA écoute le flux Windows...");
+            setLiveTranscript("L'IA est à l'écoute...");
+            startAudioVisualizer();
         };
 
         recognitionRef.current.onresult = async (event: any) => {
@@ -52,7 +90,6 @@ export function VideoTranslator() {
 
             setLiveTranscript(transcript);
 
-            // Translate when we have a stable segment
             if (event.results[event.results.length - 1].isFinal) {
                 const textToTranslate = event.results[event.results.length - 1][0].transcript;
                 try {
@@ -65,11 +102,7 @@ export function VideoTranslator() {
             }
         };
 
-        recognitionRef.current.onerror = (event: any) => {
-            console.error("Speech Recognition Error", event.error);
-            setIsCapturing(false);
-        };
-
+        recognitionRef.current.onerror = () => setIsCapturing(false);
         recognitionRef.current.onend = () => {
             if (isCapturing) recognitionRef.current.start();
         };
@@ -83,6 +116,7 @@ export function VideoTranslator() {
             setIsCapturing(false);
             setLiveTranscript('');
             setTranslatedTranscript('');
+            stopAudioVisualizer();
         }
     };
 
@@ -151,8 +185,8 @@ export function VideoTranslator() {
             {!embedUrl && (
                 <div className="text-center space-y-4 max-w-3xl mx-auto px-4">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-flex items-center gap-3 px-4 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full">
-                        <Headphones className="w-3 h-3 text-neon-cyan animate-pulse" />
-                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neon-cyan">DROPSIDERS WINDOWS-SYNC</span>
+                        <Activity className="w-3 h-3 text-neon-cyan animate-pulse" />
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neon-cyan">DROPSIDERS SONAR ENGINE</span>
                     </motion.div>
                     <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase leading-none text-white">
                         D-TV <span className="text-neon-cyan drop-shadow-[0_0_20px_rgba(0,255,255,0.5)]">VOICE CAPTURE</span>
@@ -187,65 +221,59 @@ export function VideoTranslator() {
                                     <div className="flex gap-3">
                                         <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex items-center gap-3">
                                             <div className="w-2 h-2 bg-neon-cyan rounded-full animate-pulse" />
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-white">MODALITÉ CINÉMA 80/20</span>
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-white">80/20 STUDIO MODE</span>
                                         </div>
-                                        <button 
-                                            onClick={isCapturing ? stopVoiceCapture : startVoiceCapture}
-                                            className={twMerge(
-                                                "px-4 py-2 rounded-xl border transition-all flex items-center gap-2 text-[9px] font-black uppercase tracking-widest",
-                                                isCapturing 
-                                                    ? "bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_15px_rgba(255,0,0,0.3)]" 
-                                                    : "bg-neon-cyan/20 border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-black"
+                                        <div className="flex bg-black/60 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden">
+                                            <button 
+                                                onClick={isCapturing ? stopVoiceCapture : startVoiceCapture}
+                                                className={twMerge(
+                                                    "px-4 py-2 transition-all flex items-center gap-2 text-[9px] font-black uppercase tracking-widest",
+                                                    isCapturing ? "bg-neon-red/20 text-neon-red" : "bg-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan hover:text-black"
+                                                )}
+                                            >
+                                                <Mic className={twMerge("w-3 h-3", isCapturing && "animate-pulse")} />
+                                                {isCapturing ? "STOP" : "CAPTURER SON WINDOWS"}
+                                            </button>
+                                            
+                                            {/* AUDIO LEVEL CONFIRMATION (Visualizer) */}
+                                            {isCapturing && (
+                                                <div className="px-4 flex items-center gap-1 bg-black/40 border-l border-white/10 min-w-[80px]">
+                                                    {[...Array(6)].map((_, i) => (
+                                                        <motion.div
+                                                            key={i}
+                                                            animate={{ 
+                                                                height: audioLevel > 10 ? [4, Math.random() * (audioLevel / 4) + 4, 4] : 4,
+                                                                backgroundColor: audioLevel > 20 ? "#00ffff" : "#333"
+                                                            }}
+                                                            className="w-1 rounded-full"
+                                                        />
+                                                    ))}
+                                                    <span className="text-[7px] font-black text-white ml-2">DETECTION...</span>
+                                                </div>
                                             )}
-                                        >
-                                            <Mic className={twMerge("w-3 h-3", isCapturing && "animate-pulse")} />
-                                            {isCapturing ? "STOP CAPTURE" : "CAPTURER SON WINDOWS"}
-                                        </button>
+                                        </div>
                                     </div>
                                     <button onClick={() => { setEmbedUrl(null); setUrl(''); stopVoiceCapture(); }} className="p-3 bg-neon-red/20 hover:bg-neon-red text-neon-red hover:text-white rounded-xl border border-neon-red/20 transition-all">
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
 
-                                {/* LIVE SUBTITLES OVERLAY (AI Speech to Text) */}
+                                {/* LIVE SUBTITLES OVERLAY */}
                                 <AnimatePresence>
                                     {(isCapturing && (translatedTranscript || liveTranscript)) && (
-                                        <motion.div 
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0 }}
-                                            className="absolute bottom-12 left-0 right-0 pointer-events-none flex justify-center px-10"
-                                        >
+                                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute bottom-12 left-0 right-0 pointer-events-none flex justify-center px-10">
                                             <div className="bg-black/80 backdrop-blur-xl px-8 py-4 rounded-[2rem] border border-white/10 shadow-2xl text-center max-w-3xl">
                                                 <div className="flex items-center gap-2 justify-center mb-2">
-                                                    <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-ping" />
-                                                    <span className="text-[7px] font-black uppercase text-neon-cyan tracking-[0.4em]">DROPSIDERS WINDOWS VOICE-SYNC</span>
+                                                    <Activity className={twMerge("w-3 h-3 text-neon-cyan", audioLevel > 10 && "animate-pulse")} />
+                                                    <span className="text-[7px] font-black uppercase text-neon-cyan tracking-[0.4em]">VOICE CAPTURE SYNC</span>
                                                 </div>
                                                 <p className="text-white text-base md:text-xl font-bold italic leading-tight">
-                                                    "{translatedTranscript || "Écoute du flux audio..."}"
+                                                    "{translatedTranscript || "En attente d'une voix claire..."}"
                                                 </p>
-                                                {liveTranscript && !translatedTranscript && (
-                                                    <p className="text-[9px] text-white/20 mt-1 uppercase font-black tracking-widest">
-                                                        Source : {liveTranscript}
-                                                    </p>
-                                                )}
                                             </div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-
-                                {/* Instruction for Windows Audio Link */}
-                                {!isCapturing && platform === 'TWITCH' && (
-                                    <div className="absolute top-20 left-6 max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                        <div className="bg-black/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-[9px] text-white/40 leading-relaxed uppercase font-black">
-                                            <div className="flex items-center gap-2 text-neon-cyan mb-2">
-                                                <Info className="w-3 h-3" />
-                                                <span>AIDE CAPTURE</span>
-                                            </div>
-                                            Pour que l'IA entende Windows, cliquez sur "CAPTURER SON" et assurez-vous que vos haut-parleurs sont activés (ou utilisez le 'Stereo Mix' dans Windows).
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
 
@@ -270,7 +298,7 @@ export function VideoTranslator() {
                                         {chatMessages.length === 0 ? (
                                             <div className="h-full flex flex-col items-center justify-center text-center opacity-10 p-8">
                                                 <RefreshCw className="w-6 h-6 animate-spin mb-3" />
-                                                <p className="text-[9px] font-black uppercase tracking-widest">Sync...</p>
+                                                <p className="text-[9px] font-black uppercase tracking-widest">Connecté...</p>
                                             </div>
                                         ) : (
                                             chatMessages.map((msg) => (
@@ -284,12 +312,6 @@ export function VideoTranslator() {
                                 ) : (
                                     <iframe src={`https://www.twitch.tv/embed/${channelName}/chat?parent=${window.location.hostname}&darkpopout`} className="w-full h-full border-none" />
                                 )}
-                            </div>
-
-                            <div className="p-4 bg-black/60 border-t border-white/5 text-center">
-                                <div className="flex items-center justify-center gap-2 text-[8px] font-black text-white/20 uppercase italic">
-                                    <Zap className="w-2.5 h-2.5" /> Dropsiders Cinema Engine
-                                </div>
                             </div>
                         </div>
                     </motion.div>
