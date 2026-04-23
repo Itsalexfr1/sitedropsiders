@@ -35,39 +35,26 @@ export function VideoTranslator() {
     const startAudioVisualizer = async () => {
         try {
             if (audioContextRef.current) await audioContextRef.current.close();
-            
-            // Try to get audio with high sensitivity
             const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { 
-                    echoCancellation: false, 
-                    noiseSuppression: false, 
-                    autoGainControl: true 
-                } 
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true } 
             });
             streamRef.current = stream;
-            
             audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
             if (audioContextRef.current.state === 'suspended') await audioContextRef.current.resume();
-            
             const source = audioContextRef.current.createMediaStreamSource(stream);
             analyserRef.current = audioContextRef.current.createAnalyser();
             analyserRef.current.fftSize = 64;
             source.connect(analyserRef.current);
-            
             const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
             const updateLevel = () => {
                 if (analyserRef.current) {
                     analyserRef.current.getByteFrequencyData(dataArray);
-                    const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-                    setAudioLevel(avg);
+                    setAudioLevel(dataArray.reduce((a, b) => a + b, 0) / dataArray.length);
                     animationFrameRef.current = requestAnimationFrame(updateLevel);
                 }
             };
             updateLevel();
-        } catch (err) { 
-            console.error("Visualizer error", err); 
-            alert("Veuillez autoriser l'accès au microphone pour capturer le son de Windows.");
-        }
+        } catch (err) { console.error("Visualizer error", err); }
     };
 
     const stopAudioVisualizer = () => {
@@ -80,14 +67,11 @@ export function VideoTranslator() {
     const startVoiceCapture = async () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return;
-        
         await startAudioVisualizer();
-        
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
         recognitionRef.current.lang = 'en-US';
-        
         recognitionRef.current.onstart = () => setIsCapturing(true);
         recognitionRef.current.onresult = async (event: any) => {
             const transcript = Array.from(event.results).map((result: any) => result[0].transcript).join('');
@@ -193,7 +177,7 @@ export function VideoTranslator() {
                     <div className="lg:w-[70%] h-full relative bg-black flex flex-col group">
                         <iframe src={embedUrl} className="w-full h-full border-none" allowFullScreen allow="autoplay; encrypted-media" />
                         
-                        {/* PERSISTENT TOP TOOLBAR (Force on Top) */}
+                        {/* PERSISTENT TOP TOOLBAR */}
                         <div className="absolute top-0 left-0 right-0 p-4 md:p-8 flex items-center justify-between bg-gradient-to-b from-black via-black/80 to-transparent z-[1000000]">
                             <div className="flex flex-wrap gap-3 items-center">
                                 <button 
@@ -203,11 +187,6 @@ export function VideoTranslator() {
                                     <ArrowLeft className="w-4 h-4" />
                                     QUITTER STUDIO
                                 </button>
-
-                                <div className="hidden md:flex bg-black/80 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/10 items-center gap-3">
-                                    <Activity className="w-4 h-4 text-neon-cyan animate-pulse" />
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-white">LIVE IMMERSIF 70/30</span>
-                                </div>
                                 
                                 <button 
                                     onClick={isCapturing ? stopVoiceCapture : startVoiceCapture}
@@ -218,29 +197,12 @@ export function VideoTranslator() {
                                 >
                                     <Mic className={twMerge("w-4 h-4", isCapturing && "animate-pulse")} />
                                     {isCapturing ? "STOP CAPTURE" : "LIER AUDIO WINDOWS"}
-                                    
-                                    {/* VISUAL FEEDBACK (SONAR) */}
                                     <div className="flex gap-1 ml-2 items-center min-w-[30px] h-4">
                                         {[...Array(5)].map((_, i) => (
-                                            <motion.div 
-                                                key={i} 
-                                                animate={{ 
-                                                    height: isCapturing && audioLevel > 5 ? [4, Math.random() * (audioLevel / 2) + 6, 4] : 4,
-                                                    backgroundColor: isCapturing && audioLevel > 10 ? "#ffffff" : "rgba(255,255,255,0.2)"
-                                                }} 
-                                                className="w-1 rounded-full transition-colors" 
-                                            />
+                                            <motion.div key={i} animate={{ height: isCapturing && audioLevel > 5 ? [4, Math.random() * (audioLevel / 2) + 6, 4] : 4 }} className="w-1 bg-white/40 rounded-full" />
                                         ))}
                                     </div>
                                 </button>
-                            </div>
-                            
-                            <div className="hidden sm:flex items-center gap-4 bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/5">
-                                <div className="text-right">
-                                    <p className="text-[7px] font-black text-white/40 uppercase tracking-widest leading-none">Studio Engine</p>
-                                    <p className="text-[8px] font-black text-neon-cyan uppercase tracking-tighter">v5.0 READY</p>
-                                </div>
-                                <Settings className="w-3.5 h-3.5 text-white/20 animate-spin-slow" />
                             </div>
                         </div>
 
@@ -249,7 +211,7 @@ export function VideoTranslator() {
                             {isCapturing && (translatedTranscript || liveTranscript) && (
                                 <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute bottom-20 left-0 right-0 pointer-events-none flex justify-center px-12 z-[1000000]">
                                     <div className="bg-black/90 backdrop-blur-2xl px-12 py-6 rounded-[3rem] border border-neon-cyan/30 text-center max-w-4xl shadow-[0_40px_100px_rgba(0,0,0,1)]">
-                                        <p className="text-white text-2xl md:text-5xl font-black italic tracking-tighter leading-tight drop-shadow-2xl">"{translatedTranscript || "Écoute du flux audio..."}"</p>
+                                        <p className="text-white text-2xl md:text-5xl font-black italic tracking-tighter leading-tight">"{translatedTranscript || "Écoute du flux audio..."}"</p>
                                     </div>
                                 </motion.div>
                             )}
@@ -261,30 +223,27 @@ export function VideoTranslator() {
                         <div className="p-6 border-b border-white/10 bg-black flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <MessageSquare className="w-5 h-5 text-neon-cyan" />
-                                <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-white">CONTROL CENTER</h3>
+                                <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-white">STUDIO CHAT</h3>
                             </div>
-                            <div className="flex gap-2">
-                                <div className="px-3 py-1 bg-neon-cyan/20 border border-neon-cyan/40 rounded-full">
-                                    <span className="text-[8px] font-black text-neon-cyan uppercase">AI TRAD</span>
-                                </div>
+                            <div className="px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full">
+                                <span className="text-[8px] font-black text-neon-cyan uppercase">TRADUCTION IA</span>
                             </div>
                         </div>
                         
-                        {/* Top: AI Translated (60% of sidebar) */}
-                        <div className="flex-[6] overflow-y-auto p-6 space-y-6 custom-scrollbar flex flex-col-reverse border-b border-white/10 bg-black/40">
+                        {/* Top: AI Translated (50% of height) */}
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar flex flex-col-reverse border-b border-white/10 bg-black/40">
                             {chatMessages.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center opacity-10 space-y-4">
                                     <RefreshCw className="w-10 h-10 animate-spin" />
-                                    <p className="text-[10px] font-black uppercase tracking-[0.5em]">SYNCING STREAM...</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.5em]">SYNC...</p>
                                 </div>
                             ) : (
                                 chatMessages.map((msg) => (
-                                    <motion.div key={msg.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="group">
-                                        <div className="flex items-center gap-2 mb-1.5">
-                                            <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full shadow-[0_0_10px_#00ffff]" />
+                                    <motion.div key={msg.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                                        <div className="flex items-center gap-2 mb-1">
                                             <span className="text-[10px] font-black text-neon-cyan uppercase tracking-tighter">{msg.user}</span>
                                         </div>
-                                        <div className="pl-4 border-l-2 border-white/5 group-hover:border-neon-cyan transition-all duration-300">
+                                        <div className="pl-4 border-l-2 border-white/5">
                                             <p className="text-white text-[14px] font-bold leading-relaxed">{msg.translated || msg.text}</p>
                                         </div>
                                     </motion.div>
@@ -292,13 +251,13 @@ export function VideoTranslator() {
                             )}
                         </div>
 
-                        {/* Bottom: Native Interact (40% of sidebar - +10% as requested) */}
-                        <div className="flex-[4] bg-black relative border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+                        {/* Bottom: Native Interact (50% of height) */}
+                        <div className="flex-1 bg-black relative border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
                             {platform === 'TWITCH' ? (
                                 <iframe src={`https://www.twitch.tv/embed/${channelName}/chat?parent=${window.location.hostname}&darkpopout`} className="w-full h-full border-none" />
                             ) : (
                                 <div className="h-full flex items-center justify-center p-12 opacity-20 text-center">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.5em] leading-loose">Twitch Interaction Only</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.5em]">Twitch Only</p>
                                 </div>
                             )}
                         </div>
