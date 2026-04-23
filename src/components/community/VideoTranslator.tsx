@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock, AlertTriangle, Maximize2, Headphones, Activity, ChevronRight } from 'lucide-react';
+import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock, AlertTriangle, Maximize2, Headphones, Activity, ChevronRight, LogOut, ArrowLeft } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 // Extend Window interface for SpeechRecognition
@@ -175,23 +175,31 @@ export function VideoTranslator() {
                     <div className="lg:w-[70%] h-full relative bg-black flex flex-col group">
                         <iframe src={embedUrl} className="w-full h-full border-none" allowFullScreen allow="autoplay; encrypted-media" />
                         
-                        {/* PERSISTENT STUDIO BAR (Always visible or very easy to find) */}
-                        <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/90 to-transparent pointer-events-none">
+                        {/* PERSISTENT STUDIO BAR */}
+                        <div className="absolute top-0 left-0 right-0 p-8 flex items-center justify-between bg-gradient-to-b from-black/95 to-transparent pointer-events-none">
                             <div className="flex gap-4 pointer-events-auto">
+                                <button 
+                                    onClick={() => { setEmbedUrl(null); setUrl(''); stopVoiceCapture(); }}
+                                    className="px-6 py-3 bg-white/10 hover:bg-white text-white hover:text-black rounded-2xl border border-white/10 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all shadow-2xl"
+                                >
+                                    <ArrowLeft className="w-4 h-4" />
+                                    QUITTER STUDIO
+                                </button>
+
                                 <div className="bg-black/60 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/10 flex items-center gap-3">
                                     <Activity className="w-4 h-4 text-neon-cyan animate-pulse" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-white">STUDIO LIVE ACTIVE</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-white">LIVE 70/30</span>
                                 </div>
                                 
                                 <button 
                                     onClick={isCapturing ? stopVoiceCapture : startVoiceCapture}
                                     className={twMerge(
-                                        "px-6 py-3 rounded-2xl border transition-all flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-2xl scale-110",
-                                        isCapturing ? "bg-neon-red/30 border-neon-red text-neon-red" : "bg-neon-cyan border-neon-cyan text-black hover:scale-115"
+                                        "px-6 py-3 rounded-2xl border transition-all flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-2xl",
+                                        isCapturing ? "bg-neon-red/30 border-neon-red text-neon-red" : "bg-neon-cyan border-neon-cyan text-black hover:scale-105"
                                     )}
                                 >
                                     <Mic className={twMerge("w-4 h-4", isCapturing && "animate-pulse")} />
-                                    {isCapturing ? "STOP CAPTURE" : "ACTIVER TRADUCTION VOCALE"}
+                                    {isCapturing ? "STOP CAPTURE" : "TRADUCTION VOCALE"}
                                     {isCapturing && (
                                         <div className="flex gap-1 ml-2 items-center">
                                             {[...Array(5)].map((_, i) => (
@@ -202,9 +210,12 @@ export function VideoTranslator() {
                                 </button>
                             </div>
                             
-                            <button onClick={() => { setEmbedUrl(null); setUrl(''); stopVoiceCapture(); }} className="p-4 bg-black/60 hover:bg-neon-red text-white hover:text-white rounded-2xl border border-white/10 transition-all pointer-events-auto">
-                                <X className="w-5 h-5" />
-                            </button>
+                            <div className="pointer-events-auto flex items-center gap-4">
+                                <div className="text-right">
+                                    <p className="text-[8px] font-black text-white/40 uppercase tracking-widest">Dropsiders Neural Studio</p>
+                                    <p className="text-[7px] font-bold text-neon-cyan uppercase">v4.5 Stable</p>
+                                </div>
+                            </div>
                         </div>
 
                         {/* SUBTITLES OVERLAY */}
@@ -220,14 +231,14 @@ export function VideoTranslator() {
                     </div>
 
                     {/* SIDEBAR HYBRID (30%) */}
-                    <div className="lg:w-[30%] min-w-[380px] border-l border-white/10 flex flex-col bg-[#050505] relative z-20">
+                    <div className="lg:w-[30%] min-w-[400px] border-l border-white/10 flex flex-col bg-[#050505] relative z-20">
                         <div className="p-6 border-b border-white/5 bg-black flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <MessageSquare className="w-5 h-5 text-neon-cyan" />
                                 <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-white">STUDIO CHAT FR</h3>
                             </div>
-                            <div className="px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full">
-                                <span className="text-[8px] font-black text-neon-cyan uppercase">IA ACTIVE</span>
+                            <div className="flex bg-white/5 rounded-xl p-1 border border-white/10">
+                                <div className="px-4 py-2 bg-neon-cyan text-black rounded-lg text-[9px] font-black shadow-[0_0_15px_#00ffff]">AI ACTIVE</div>
                             </div>
                         </div>
                         
@@ -262,7 +273,6 @@ export function VideoTranslator() {
                                     <p className="text-[9px] font-black uppercase tracking-widest leading-loose">Interaction disponible sur Twitch</p>
                                 </div>
                             )}
-                            <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-[#050505] to-transparent pointer-events-none" />
                         </div>
                     </div>
                 </div>
