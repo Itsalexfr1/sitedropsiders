@@ -18,9 +18,11 @@ export function VideoUploaderTranslator() {
     const [statusStep, setStatusStep] = useState("");
     const [savedHistory, setSavedHistory] = useState<{ id: string, name: string, date: string, transcripts: any[] }[]>(() => {
         try {
-            return JSON.parse(localStorage.getItem('dropsiders_video_translations') || '[]');
+            return JSON.parse(localStorage.getItem('dropsiders_video_archives') || '[]');
         } catch { return []; }
     });
+    const [archiveName, setArchiveName] = useState("");
+    const [showArchivePrompt, setShowArchivePrompt] = useState(false);
     
     const videoRef = useRef<HTMLVideoElement>(null);
     const recognitionRef = useRef<any>(null);
@@ -29,17 +31,21 @@ export function VideoUploaderTranslator() {
     const animationFrameRef = useRef<number | null>(null);
     const displayStreamRef = useRef<MediaStream | null>(null);
 
-    const saveToHistory = () => {
-        if (transcripts.length === 0 || !file) return;
+    const saveToArchive = () => {
+        if (transcripts.length === 0) return;
+        const finalName = archiveName.trim() || file?.name || "Sans titre";
         const newEntry = {
             id: Date.now().toString(),
-            name: file.name,
-            date: new Date().toLocaleString(),
+            name: finalName,
+            date: new Date().toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
             transcripts: transcripts
         };
-        const updated = [newEntry, ...savedHistory].slice(0, 20); // Keep last 20
+        const updated = [newEntry, ...savedHistory].slice(0, 50); // Keep last 50
         setSavedHistory(updated);
-        localStorage.setItem('dropsiders_video_translations', JSON.stringify(updated));
+        localStorage.setItem('dropsiders_video_archives', JSON.stringify(updated));
+        setShowArchivePrompt(false);
+        setArchiveName("");
+        showNotification("Success", "Traduction archivée avec succès !");
     };
 
     const downloadTxt = () => {
@@ -123,12 +129,20 @@ export function VideoUploaderTranslator() {
         }
     };
 
-    const startRecognition = () => {
+    const startRecognition = async () => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) return;
 
+        setStatusStep("Initialisation IA...");
+        
+        try {
+            // Pre-warm the engine
+            const dummy = await navigator.mediaDevices.getUserMedia({ audio: true });
+            dummy.getTracks().forEach(t => t.stop());
+        } catch (e) {}
+
         recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
+        recognitionRef.current.continuous = false;
         recognitionRef.current.interimResults = true;
         recognitionRef.current.lang = 'en-US';
 
@@ -145,6 +159,12 @@ export function VideoUploaderTranslator() {
             }
         };
 
+        recognitionRef.current.onend = () => {
+            if (isProcessing) {
+                try { recognitionRef.current.start(); } catch (e) {}
+            }
+        };
+
         recognitionRef.current.start();
     };
 
@@ -155,7 +175,7 @@ export function VideoUploaderTranslator() {
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
         setStatus('DONE');
         setIsProcessing(false);
-        saveToHistory();
+        setShowArchivePrompt(true);
     };
 
     const reset = () => {
@@ -308,12 +328,12 @@ export function VideoUploaderTranslator() {
                             <span className="text-[9px] font-black text-white/40 uppercase bg-white/5 px-2 py-1 rounded-full">{transcripts.length} BLOCS</span>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto space-y-4 pr-4 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto space-y-4 pr-4 custom-scrollbar bg-black/20 rounded-2xl p-4 border border-white/5">
                             <AnimatePresence mode="popLayout">
                                 {transcripts.length === 0 && (
                                     <div className="h-full flex flex-col items-center justify-center opacity-10 space-y-4">
                                         <Loader2 className="w-12 h-12 animate-spin" />
-                                        <p className="text-[10px] font-black uppercase tracking-[0.5em]">Attente de lecture...</p>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.5em]">Prêt à analyser...</p>
                                     </div>
                                 )}
                                 {transcripts.map((t, i) => (
@@ -321,32 +341,84 @@ export function VideoUploaderTranslator() {
                                         key={i}
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        className="p-5 bg-white/5 border border-white/10 rounded-2xl space-y-3 group hover:border-neon-cyan/30 transition-all"
+                                        className="p-4 bg-white/[0.03] border-l-2 border-neon-cyan space-y-1 group transition-all"
                                     >
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-black text-neon-cyan/60 uppercase">T + {Math.floor(t.timestamp)}s</span>
-                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-all">
-                                                    <Download className="w-3 h-3" />
-                                                </button>
-                                            </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[8px] font-black text-neon-cyan/40 uppercase">[{Math.floor(t.timestamp)}s]</span>
+                                            <p className="text-[10px] font-bold text-gray-500 italic">"{t.original}"</p>
                                         </div>
-                                        <div className="space-y-2">
-                                            <p className="text-[10px] font-bold text-gray-500 leading-relaxed italic">"{t.original}"</p>
-                                            <p className="text-sm font-black text-white leading-relaxed">{t.translated}</p>
-                                        </div>
+                                        <p className="text-[13px] font-black text-white leading-relaxed">{t.translated}</p>
                                     </motion.div>
                                 ))}
                             </AnimatePresence>
                         </div>
                         
-                        <button 
-                            onClick={downloadTxt}
-                            disabled={transcripts.length === 0}
-                            className="w-full mt-6 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-cyan transition-all disabled:opacity-20 flex items-center justify-center gap-3"
+                        <div className="grid grid-cols-2 gap-3 mt-6">
+                            <button 
+                                onClick={downloadTxt}
+                                disabled={transcripts.length === 0}
+                                className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-white/10 transition-all disabled:opacity-20 flex items-center justify-center gap-2"
+                            >
+                                <Download className="w-4 h-4" /> TEXTE (.TXT)
+                            </button>
+                            <button 
+                                onClick={() => setShowArchivePrompt(true)}
+                                disabled={transcripts.length === 0}
+                                className="py-4 bg-neon-cyan text-black rounded-2xl font-black text-[9px] uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-20 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,255,255,0.2)]"
+                            >
+                                <CheckCircle2 className="w-4 h-4" /> ARCHIVER LA VIDÉO
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Archive Prompt Modal */}
+            <AnimatePresence>
+                {showArchivePrompt && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="w-full max-w-md bg-zinc-900 border border-white/10 rounded-[2.5rem] p-10 space-y-8 shadow-2xl"
                         >
-                            <Download className="w-4 h-4" /> EXPORTER EN TEXTE (.TXT)
-                        </button>
+                            <div className="text-center space-y-2">
+                                <div className="w-16 h-16 bg-neon-cyan/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-neon-cyan/20">
+                                    <Languages className="w-8 h-8 text-neon-cyan" />
+                                </div>
+                                <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white">Archiver la <span className="text-neon-cyan">traduction</span></h3>
+                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Donne un nom à cette session</p>
+                            </div>
+
+                            <input 
+                                type="text"
+                                placeholder="ex: Interview de Drake"
+                                value={archiveName}
+                                onChange={(e) => setArchiveName(e.target.value)}
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold focus:border-neon-cyan outline-none transition-all text-center"
+                                autoFocus
+                                onKeyDown={(e) => e.key === 'Enter' && saveToArchive()}
+                            />
+
+                            <div className="flex flex-col gap-3">
+                                <button 
+                                    onClick={saveToArchive}
+                                    className="w-full py-4 bg-neon-cyan text-black rounded-full font-black uppercase text-xs tracking-widest shadow-[0_0_30px_rgba(0,255,255,0.3)] hover:scale-105 transition-all"
+                                >
+                                    Confirmer l'archivage
+                                </button>
+                                <button 
+                                    onClick={() => setShowArchivePrompt(false)}
+                                    className="w-full py-4 bg-white/5 text-gray-500 rounded-full font-black uppercase text-xs tracking-widest hover:text-white transition-all"
+                                >
+                                    Annuler
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
                     </div>
                 </div>
             )}
