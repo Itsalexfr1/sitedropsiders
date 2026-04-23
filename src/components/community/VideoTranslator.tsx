@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw } from 'lucide-react';
+import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 export function VideoTranslator() {
@@ -8,6 +8,8 @@ export function VideoTranslator() {
     const [embedUrl, setEmbedUrl] = useState<string | null>(null);
     const [platform, setPlatform] = useState<'YOUTUBE' | 'TWITCH' | null>(null);
     const [isTranslating, setIsTranslating] = useState(false);
+    const [channelName, setChannelName] = useState('');
+    const [chatMode, setChatMode] = useState<'AI' | 'NATIVE'>('AI');
     
     // Vocal Translation (Subtitles on Video)
     const [vocalSubtitle, setVocalSubtitle] = useState('Initialisation du moteur vocal...');
@@ -18,7 +20,6 @@ export function VideoTranslator() {
     // Simulated Vocal Transcription Engine
     useEffect(() => {
         if (!embedUrl) return;
-        
         const phrases = [
             "Bienvenue dans cette interview exclusive...",
             "Nous parlons aujourd'hui de la nouvelle scène techno...",
@@ -27,19 +28,17 @@ export function VideoTranslator() {
             "Restez connectés pour le prochain set en direct.",
             "Analyse du flux audio en cours..."
         ];
-        
         let i = 0;
         const interval = setInterval(() => {
             setVocalSubtitle(phrases[i % phrases.length]);
             i++;
         }, 4000);
-
         return () => clearInterval(interval);
     }, [embedUrl]);
 
     // Twitch Chat Connection
     useEffect(() => {
-        if (platform !== 'TWITCH' || !url) return;
+        if (platform !== 'TWITCH' || !url || chatMode !== 'AI') return;
         
         const channel = url.split('twitch.tv/')[1]?.split('?')[0];
         if (!channel) return;
@@ -60,25 +59,19 @@ export function VideoTranslator() {
                 const displayName = parts.find((p: string) => p.startsWith('display-name='))?.split('=')[1] || 'User';
                 const msgPart = message.split('PRIVMSG')[1];
                 const msgText = msgPart.split(':')[1]?.trim();
-
-                if (msgText) {
-                    translateAndAddChat(displayName, msgText);
-                }
+                if (msgText) translateAndAddChat(displayName, msgText);
             }
-            if (message.startsWith('PING')) {
-                socket.send('PONG :tmi.twitch.tv');
-            }
+            if (message.startsWith('PING')) socket.send('PONG :tmi.twitch.tv');
         };
 
         return () => socket.close();
-    }, [platform, url]);
+    }, [platform, url, chatMode]);
 
     const translateAndAddChat = async (user: string, text: string) => {
         try {
             const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|fr`);
             const data = await res.json();
             const translated = data.responseData.translatedText;
-            
             const newMsg = { id: Math.random().toString(36).substr(2, 9), user, text, translated };
             setChatMessages(prev => [newMsg, ...prev].slice(0, 50));
         } catch (e) {
@@ -104,33 +97,26 @@ export function VideoTranslator() {
         } else if (url.includes('twitch.tv/')) {
             const channel = url.split('twitch.tv/')[1].split('?')[0];
             setPlatform('TWITCH');
+            setChannelName(channel);
             setEmbedUrl(`https://player.twitch.tv/?channel=${channel}&parent=${window.location.hostname}&autoplay=true&muted=false`);
         }
 
-        setTimeout(() => {
-            setIsTranslating(false);
-        }, 1500);
+        setTimeout(() => setIsTranslating(false), 1500);
     };
 
     return (
         <div className="space-y-12 py-10 px-4">
             {/* Header section */}
             <div className="text-center space-y-4 max-w-3xl mx-auto">
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="inline-flex items-center gap-3 px-4 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full mb-2 shadow-[0_0_20px_rgba(0,255,255,0.1)]"
-                >
-                    <Mic className="w-3 h-3 text-neon-cyan animate-pulse" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neon-cyan">DROPSIDERS AI ENGINE</span>
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="inline-flex items-center gap-3 px-4 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full mb-2 shadow-[0_0_20px_rgba(0,255,255,0.1)]">
+                    <Zap className="w-3 h-3 text-neon-cyan animate-pulse" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neon-cyan">DROPSIDERS INTERACTIVE TV</span>
                 </motion.div>
-                
                 <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase leading-none">
-                    D-TV <span className="text-neon-cyan drop-shadow-[0_0_20px_rgba(0,255,255,0.5)]">TRANSLATOR</span>
+                    D-TV <span className="text-neon-cyan drop-shadow-[0_0_20px_rgba(0,255,255,0.5)]">INTERACTIVE</span>
                 </h2>
-                
                 <p className="text-gray-400 text-xs md:text-sm font-medium leading-relaxed max-w-xl mx-auto">
-                    Traduction vocale sur la vidéo et chat compact intelligent.
+                    Traductions IA + Interaction native. Connectez-vous à Twitch pour répondre en direct.
                 </p>
             </div>
 
@@ -139,124 +125,101 @@ export function VideoTranslator() {
                 <div className="relative group">
                     <div className="absolute -inset-1 bg-gradient-to-r from-neon-cyan via-neon-blue to-purple-600 rounded-3xl blur opacity-10 group-hover:opacity-20 transition duration-1000" />
                     <div className="relative flex flex-col md:flex-row bg-black/60 border border-white/10 rounded-3xl overflow-hidden p-2 backdrop-blur-2xl">
-                        <input 
-                            type="text" 
-                            value={url}
-                            onChange={(e) => setUrl(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleTranslate()}
-                            placeholder="Lien YouTube ou Twitch..."
-                            className="flex-1 bg-transparent border-none outline-none px-6 py-3 text-white text-sm font-bold placeholder:text-white/20"
-                        />
-                        <button 
-                            onClick={handleTranslate}
-                            disabled={!url || isTranslating}
-                            className="px-8 py-3 bg-white text-black font-black uppercase text-[10px] tracking-[0.1em] rounded-2xl hover:bg-neon-cyan transition-all duration-500 shrink-0"
-                        >
-                            {isTranslating ? 'SYNC...' : 'TRADUIRE'}
+                        <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleTranslate()} placeholder="Lien YouTube ou Twitch..." className="flex-1 bg-transparent border-none outline-none px-6 py-3 text-white text-sm font-bold placeholder:text-white/20" />
+                        <button onClick={handleTranslate} disabled={!url || isTranslating} className="px-8 py-3 bg-white text-black font-black uppercase text-[10px] tracking-[0.1em] rounded-2xl hover:bg-neon-cyan transition-all duration-500 shrink-0">
+                            {isTranslating ? 'SYNC...' : 'LANCER'}
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Results Area */}
             <AnimatePresence mode="wait">
                 {embedUrl ? (
-                    <motion.div 
-                        key="player"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        className="max-w-7xl mx-auto"
-                    >
+                    <motion.div key="player" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} className="max-w-7xl mx-auto">
                         <div className="flex flex-col lg:flex-row gap-6">
                             {/* Main Video Section */}
                             <div className="flex-[3] relative">
                                 <div className="aspect-video bg-black rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl relative">
-                                    <iframe
-                                        src={embedUrl}
-                                        className="w-full h-full border-none"
-                                        allowFullScreen
-                                        allow="autoplay; encrypted-media"
-                                    />
-
-                                    {/* VOCAL SUBTITLES OVERLAY (ON VIDEO) */}
+                                    <iframe src={embedUrl} className="w-full h-full border-none" allowFullScreen allow="autoplay; encrypted-media" />
                                     <div className="absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-10 px-12">
-                                        <motion.div
-                                            key={vocalSubtitle}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="bg-black/80 backdrop-blur-md px-6 py-2 rounded-xl border border-white/10 shadow-2xl text-center max-w-[80%]"
-                                        >
-                                            <p className="text-sm md:text-lg font-bold text-white leading-tight italic drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-                                                {vocalSubtitle}
-                                            </p>
+                                        <motion.div key={vocalSubtitle} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-black/80 backdrop-blur-md px-6 py-2 rounded-xl border border-white/10 shadow-2xl text-center max-w-[80%]">
+                                            <p className="text-sm md:text-lg font-bold text-white leading-tight italic drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">{vocalSubtitle}</p>
                                         </motion.div>
                                     </div>
-
-                                    {/* Small AI Badge */}
                                     <div className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/5">
                                         <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-white/60">AI Voice Sync</span>
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-white/60">Voice AI Sync</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* COMPACT CHAT SIDEBAR (STYLE TWITCH) */}
-                            <div className="flex-1 min-w-[300px] max-w-[400px] bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] flex flex-col h-[500px] lg:h-auto overflow-hidden shadow-xl">
-                                <div className="p-5 border-b border-white/5 flex items-center justify-between bg-black/40">
-                                    <div className="flex items-center gap-3">
-                                        <MessageSquare className="w-3.5 h-3.5 text-neon-cyan" />
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">LIVE CHAT FR</h3>
+                            {/* DUAL MODE CHAT SIDEBAR */}
+                            <div className="flex-1 min-w-[320px] max-w-[400px] bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] flex flex-col h-[600px] lg:h-auto overflow-hidden shadow-xl">
+                                <div className="p-4 border-b border-white/5 flex flex-col gap-3 bg-black/40">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <MessageSquare className="w-3.5 h-3.5 text-neon-cyan" />
+                                            <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-white">TWITCH CHAT</h3>
+                                        </div>
+                                        <div className="flex bg-white/5 rounded-lg p-0.5 border border-white/10">
+                                            <button onClick={() => setChatMode('AI')} className={twMerge("px-3 py-1 rounded-md text-[8px] font-black transition-all", chatMode === 'AI' ? "bg-neon-cyan text-black" : "text-white/40 hover:text-white")}>IA TRAD</button>
+                                            <button onClick={() => setChatMode('NATIVE')} className={twMerge("px-3 py-1 rounded-md text-[8px] font-black transition-all", chatMode === 'NATIVE' ? "bg-neon-blue text-white" : "text-white/40 hover:text-white")}>NATIF</button>
+                                        </div>
                                     </div>
-                                    <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
+                                    {chatMode === 'AI' && (
+                                        <p className="text-[8px] text-white/40 uppercase font-bold tracking-widest">Mode Lecture Seule + Traduction IA</p>
+                                    )}
+                                    {chatMode === 'NATIVE' && (
+                                        <p className="text-[8px] text-neon-blue uppercase font-black tracking-widest flex items-center gap-2 animate-pulse">
+                                            <Send className="w-2.5 h-2.5" /> Mode Interactif : Répondez en direct
+                                        </p>
+                                    )}
                                 </div>
                                 
-                                <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar flex flex-col-reverse">
-                                    {platform !== 'TWITCH' ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-center space-y-3 opacity-20 p-6">
-                                            <Tv className="w-6 h-6" />
-                                            <p className="text-[8px] font-black uppercase tracking-widest leading-relaxed">
-                                                Vocal Subtitles On. <br /> (Chat pour Twitch)
-                                            </p>
-                                        </div>
-                                    ) : chatMessages.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-center opacity-10">
-                                            <RefreshCw className="w-5 h-5 animate-spin mb-2" />
-                                            <p className="text-[8px] font-black uppercase tracking-widest">Connecté...</p>
+                                <div className="flex-1 overflow-hidden relative">
+                                    {chatMode === 'AI' ? (
+                                        <div className="h-full overflow-y-auto p-4 space-y-3 custom-scrollbar flex flex-col-reverse">
+                                            {platform !== 'TWITCH' ? (
+                                                <div className="h-full flex flex-col items-center justify-center text-center space-y-3 opacity-20 p-6">
+                                                    <Tv className="w-6 h-6" />
+                                                    <p className="text-[8px] font-black uppercase tracking-widest leading-relaxed">Vocal Subtitles On. <br /> (Chat pour Twitch)</p>
+                                                </div>
+                                            ) : chatMessages.length === 0 ? (
+                                                <div className="h-full flex flex-col items-center justify-center text-center opacity-10">
+                                                    <RefreshCw className="w-5 h-5 animate-spin mb-2" />
+                                                    <p className="text-[8px] font-black uppercase tracking-widest">Initialisation...</p>
+                                                </div>
+                                            ) : (
+                                                chatMessages.map((msg) => (
+                                                    <div key={msg.id} className="text-[11px] leading-relaxed group">
+                                                        <span className="font-black text-neon-cyan uppercase tracking-tighter mr-2">{msg.user}:</span>
+                                                        <span className="text-white font-medium">{msg.translated || msg.text}</span>
+                                                    </div>
+                                                ))
+                                            )}
                                         </div>
                                     ) : (
-                                        chatMessages.map((msg) => (
-                                            <div key={msg.id} className="text-[11px] leading-relaxed group">
-                                                <span className="font-black text-neon-cyan uppercase tracking-tighter mr-2">{msg.user}:</span>
-                                                <span className="text-white font-medium">
-                                                    {msg.translated || msg.text}
-                                                </span>
-                                            </div>
-                                        ))
+                                        <iframe 
+                                            src={`https://www.twitch.tv/embed/${channelName}/chat?parent=${window.location.hostname}&darkpopout`}
+                                            className="w-full h-full border-none"
+                                        />
                                     )}
                                 </div>
 
-                                <div className="p-4 bg-black/40 border-t border-white/5 text-center">
-                                    <button 
-                                        onClick={() => { setEmbedUrl(null); setUrl(''); }}
-                                        className="text-[8px] font-black uppercase text-white/20 hover:text-neon-red transition-colors"
-                                    >
-                                        CHANGER DE SOURCE
-                                    </button>
+                                <div className="p-4 bg-black/40 border-t border-white/5 text-center flex items-center justify-center gap-4">
+                                    <button onClick={() => { setEmbedUrl(null); setUrl(''); }} className="text-[8px] font-black uppercase text-white/20 hover:text-neon-red transition-colors">CHANGER SOURCE</button>
+                                    {chatMode === 'AI' && platform === 'TWITCH' && (
+                                        <button onClick={() => setChatMode('NATIVE')} className="text-[8px] font-black uppercase text-neon-cyan flex items-center gap-2">
+                                            <MessageSquare className="w-3 h-3" /> REPONDRE
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </motion.div>
                 ) : (
-                    <motion.div 
-                        key="placeholder"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="py-24 text-center opacity-10 flex flex-col items-center gap-6"
-                    >
-                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10">
-                            <Tv className="w-8 h-8" />
-                        </div>
+                    <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-24 text-center opacity-10 flex flex-col items-center gap-6">
+                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10"><Tv className="w-8 h-8" /></div>
                         <p className="text-[9px] font-black uppercase tracking-[0.5em]">Dropsiders Neural experience</p>
                     </motion.div>
                 )}
