@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock, AlertTriangle, Maximize2, Headphones, Activity, ChevronRight, LogOut, ArrowLeft, Settings } from 'lucide-react';
+import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock, AlertTriangle, Maximize2, Headphones, Activity, ChevronRight, LogOut, ArrowLeft, Settings, Monitor } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 // Extend Window interface for SpeechRecognition
@@ -39,6 +39,7 @@ export function VideoTranslator() {
     const monitorNodeRef = useRef<GainNode | null>(null);
     const animationFrameRef = useRef<number | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
+    const displayStreamRef = useRef<MediaStream | null>(null);
 
     // Audio Visualizer
     const startAudioVisualizer = async () => {
@@ -81,7 +82,108 @@ export function VideoTranslator() {
         }
     };
 
-    // Load available devices
+    // System Audio Capture (Display Media)
+    const startSystemAudioCapture = async () => {
+        try {
+            setCaptureError(null);
+            setStatusStep("Attente autorisation système...");
+            
+            // Capture screen/tab with audio
+            const displayStream = await navigator.mediaDevices.getDisplayMedia({
+                video: true, // Required for audio capture in most browsers
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false
+                }
+            });
+
+            const audioTracks = displayStream.getAudioTracks();
+            if (audioTracks.length === 0) {
+                displayStream.getTracks().forEach(t => t.stop());
+                setCaptureError("Aucun flux audio détecté dans la capture système.");
+                return false;
+            }
+
+            // Hide the video track if any (we only want audio)
+            displayStream.getVideoTracks().forEach(t => t.enabled = false);
+            
+            displayStreamRef.current = displayStream;
+            
+            // Re-use existing visualizer logic but with the new stream
+            if (audioContextRef.current) await audioContextRef.current.close();
+            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const source = audioContextRef.current.createMediaStreamSource(displayStream);
+            
+            analyserRef.current = audioContextRef.current.createAnalyser();
+            analyserRef.current.fftSize = 64;
+            source.connect(analyserRef.current);
+
+            monitorNodeRef.current = audioContextRef.current.createGain();
+            monitorNodeRef.current.gain.value = isMonitoring ? 1 : 0;
+            source.connect(monitorNodeRef.current);
+            monitorNodeRef.current.connect(audioContextRef.current.destination);
+
+            const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+            const updateLevel = () => {
+                if (analyserRef.current) {
+                    analyserRef.current.getByteFrequencyData(dataArray);
+                    const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+                    setAudioLevel(avg);
+                    animationFrameRef.current = requestAnimationFrame(updateLevel);
+                }
+            };
+            updateLevel();
+            
+            // Start the actual voice recognition on this audio stream
+            startRecognitionWithStream(displayStream);
+            return true;
+        } catch (err) {
+            console.error("System capture error", err);
+            setCaptureError("Capture système annulée ou refusée.");
+            return false;
+        }
+    };
+
+    const startRecognitionWithStream = (stream: MediaStream) => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
+
+        setStatusStep("Démarrage de l'IA (Système)...");
+        setIsCapturing(true);
+
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = 'en-US';
+
+        recognitionRef.current.onresult = async (event: any) => {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    const text = event.results[i][0].transcript;
+                    setLiveTranscript(text);
+                    try {
+                        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
+                        const data = await res.json();
+                        if (data && data[0] && data[0][0] && data[0][0][0]) {
+                            setTranslatedTranscript(data[0][0][0]);
+                        }
+                    } catch (e) {}
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            if (interimTranscript) setLiveTranscript(interimTranscript);
+        };
+
+        recognitionRef.current.onerror = (e: any) => {
+            console.error("System recognition error", e.error);
+            stopVoiceCapture();
+        };
+
+        recognitionRef.current.start();
+    };
     useEffect(() => {
         const getDevices = async () => {
             try {
@@ -220,7 +322,9 @@ export function VideoTranslator() {
         setIsCapturing(false);
         setLiveTranscript('');
         setTranslatedTranscript('');
-        stopAudioVisualizer();
+        if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
+        if (displayStreamRef.current) displayStreamRef.current.getTracks().forEach(track => track.stop());
+        setAudioLevel(0);
         setIsMonitoring(false);
     };
 
@@ -412,6 +516,15 @@ export function VideoTranslator() {
                                             )}
                                         >
                                             {isTestingAudio ? "TEST..." : "TEST MICRO"}
+                                        </button>
+
+                                        <button 
+                                            onClick={startSystemAudioCapture}
+                                            disabled={isCapturing}
+                                            className="px-6 py-3 bg-neon-purple/20 border border-neon-purple/40 text-neon-purple rounded-2xl flex items-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-neon-purple hover:text-white shadow-xl"
+                                        >
+                                            <Monitor className="w-4 h-4" />
+                                            CAPTURE SYSTÈME
                                         </button>
                                     </div>
 
