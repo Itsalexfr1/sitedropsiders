@@ -322,6 +322,17 @@ export function AdminMessages() {
                 setReplyStatus('success');
                 setReplyBody('');
                 setAttachments([]);
+                // On vide les cadres de saisie
+                setDestinationEmails(['']);
+                setMailSubject('');
+                setFestivalName('');
+                setFestivalDates('');
+                setPhotoFirstName('');
+                setPhotoLastName('');
+                setPhotoPortfolio('');
+                setDjName('');
+                setInterviewDate('');
+                setInterviewFestival('');
                 // Archive in sent box
                 const sent = {
                     id: Date.now().toString(),
@@ -978,7 +989,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                             </div>
 
                             {/* Scrollable Content */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 relative">
                                 <div className="space-y-6">
                                     <div className="space-y-3">
                                         {isNewMail && (
@@ -1348,29 +1359,43 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 </div>
                                             </label>
                                         </div>
+                                        {replyStatus === 'error' && (
+                                            <div className="flex items-center justify-center gap-3 p-4 bg-neon-red/10 border border-neon-red/30 rounded-2xl mt-4">
+                                                <AlertCircle className="w-5 h-5 text-neon-red" />
+                                                <p className="text-neon-red text-[11px] font-black uppercase italic tracking-widest">⚠ {replyError}</p>
+                                            </div>
+                                        )}
                                     </div>
                                     
-                                    {replyStatus === 'error' && (
-                                         <div className="flex items-center justify-center gap-3 p-4 bg-neon-red/10 border border-neon-red/30 rounded-2xl mt-4">
-                                             <AlertCircle className="w-5 h-5 text-neon-red" />
-                                             <p className="text-neon-red text-[11px] font-black uppercase italic tracking-widest">⚠ {replyError}</p>
-                                         </div>
-                                     )}
-
-                                     {replyStatus === 'success' && (
-                                         <div className="flex flex-col items-center justify-center gap-3 p-8 bg-neon-cyan/10 border border-neon-cyan/30 rounded-[2rem] mt-4">
-                                             <div className="w-16 h-16 bg-neon-cyan/20 rounded-full flex items-center justify-center border border-neon-cyan/40 mb-2 animate-bounce">
-                                                 <Check className="w-8 h-8 text-neon-cyan" />
-                                             </div>
-                                             <p className="text-white text-xl font-display font-black uppercase italic tracking-tighter text-center">MESSAGE ENVOYÉ !</p>
-                                             <p className="text-neon-cyan text-[10px] font-black uppercase tracking-[0.3em] text-center">Confirmation reçue via Brevo</p>
-                                             <button 
-                                                onClick={() => { setReplyStatus('idle'); setReplyBody(''); }}
-                                                className="mt-6 px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all shadow-lg"
-                                             >
-                                                 Envoyer un autre message
-                                             </button>
-                                         </div>
+                                    {replyStatus === 'success' && (
+                                        <div className="absolute inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl text-center">
+                                            <motion.div 
+                                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                                className="flex flex-col items-center gap-6 max-w-sm"
+                                            >
+                                                <div className="w-24 h-24 bg-neon-cyan/20 rounded-full flex items-center justify-center border-2 border-neon-cyan/40 mb-2 animate-bounce shadow-[0_0_50px_rgba(0,240,255,0.2)]">
+                                                    <Check className="w-12 h-12 text-neon-cyan" />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <h3 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">MESSAGE ENVOYÉ !</h3>
+                                                    <div className="flex items-center justify-center gap-3">
+                                                        <div className="h-px w-8 bg-neon-cyan/30" />
+                                                        <p className="text-neon-cyan text-[10px] font-black uppercase tracking-[0.4em]">Confirmation Brevo OK</p>
+                                                        <div className="h-px w-8 bg-neon-cyan/30" />
+                                                    </div>
+                                                </div>
+                                                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                                                    Les champs ont été réinitialisés. <br /> Le thème du mail a été conservé.
+                                                </p>
+                                                <button 
+                                                    onClick={() => setReplyStatus('idle')}
+                                                    className="mt-4 px-12 py-5 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-[2rem] hover:scale-105 transition-all text-[11px] tracking-[0.2em] shadow-[0_10px_30px_rgba(0,240,255,0.3)]"
+                                                >
+                                                    Continuer
+                                                </button>
+                                            </motion.div>
+                                        </div>
                                      )}
                                 </div>
                             </div>
