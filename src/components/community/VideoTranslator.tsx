@@ -196,7 +196,7 @@ export function VideoTranslator() {
                                     )}
                                 >
                                     <Mic className={twMerge("w-4 h-4", isCapturing && "animate-pulse")} />
-                                    {isCapturing ? "STOP CAPTURE" : "LIER AUDIO WINDOWS"}
+                                    {isCapturing ? "STOP CAPTURE" : "TRADUCTION VOCALE"}
                                     <div className="flex gap-1 ml-2 items-center min-w-[30px] h-4">
                                         {[...Array(5)].map((_, i) => (
                                             <motion.div key={i} animate={{ height: isCapturing && audioLevel > 5 ? [4, Math.random() * (audioLevel / 2) + 6, 4] : 4 }} className="w-1 bg-white/40 rounded-full" />
@@ -230,8 +230,8 @@ export function VideoTranslator() {
                             </div>
                         </div>
                         
-                        {/* Top: AI Translated (50% of height) */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar flex flex-col-reverse border-b border-white/10 bg-black/40">
+                        {/* Top: AI Translated (35% of height) */}
+                        <div className="h-[35%] overflow-y-auto p-6 space-y-6 custom-scrollbar flex flex-col-reverse border-b border-white/10 bg-black/40">
                             {chatMessages.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center opacity-10 space-y-4">
                                     <RefreshCw className="w-10 h-10 animate-spin" />
@@ -251,8 +251,8 @@ export function VideoTranslator() {
                             )}
                         </div>
 
-                        {/* Bottom: Native Interact (50% of height) */}
-                        <div className="flex-1 bg-black relative border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+                        {/* Bottom: Native Interact (65% of height) */}
+                        <div className="h-[65%] bg-black relative border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
                             {platform === 'TWITCH' ? (
                                 <iframe src={`https://www.twitch.tv/embed/${channelName}/chat?parent=${window.location.hostname}&darkpopout`} className="w-full h-full border-none" />
                             ) : (
