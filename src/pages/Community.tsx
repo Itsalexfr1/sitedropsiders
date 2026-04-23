@@ -16,6 +16,7 @@ import { AvisSection } from '../components/community/AvisSection';
 import { DjNameGenerator } from '../components/community/DjNameGenerator';
 import { PlaylistSharing } from '../components/community/PlaylistSharing';
 import { TrackIdForum } from '../components/community/TrackIdForum';
+import { VideoTranslator } from '../components/community/VideoTranslator';
 import { useUser } from '../context/UserContext';
 import { useEffect } from 'react';
 
@@ -264,7 +265,7 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB';
+    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'TV';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
     const location = useLocation();
 
@@ -272,7 +273,7 @@ export function Community() {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get('tab');
-        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB'].includes(tab)) {
+        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'TV'].includes(tab)) {
             setActiveTab(tab as TabType);
         }
     }, [location.search]);
@@ -942,7 +943,8 @@ export function Community() {
 
                                 { id: 'TRACK_ID',      icon: Music,        label: 'TrackID',           multiline: false },
                                 { id: 'PLAYLISTS',     icon: Share2,       label: 'Mixs',              multiline: false },
-                                { id: 'LAB',           icon: Wand2,        label: 'Communaut\u00e9',       multiline: false },
+                                { id: 'LAB',           icon: Wand2,        label: 'Communauté',       multiline: false },
+                                { id: 'TV',            icon: Tv,           label: 'TV Translator',     multiline: false, iconClass: 'text-neon-cyan' },
                             ] as any[]).filter(tab => !tab.hidden).map((tab) => (
                                 <button
                                     key={tab.id}
@@ -2119,6 +2121,17 @@ export function Community() {
                                 exit={{ opacity: 0, scale: 1.1 }}
                             >
                                 <DjNameGenerator />
+                            </motion.div>
+                        )}
+
+                        {activeTab === 'TV' && (
+                            <motion.div
+                                key="tv"
+                                initial={{ opacity: 0, x: 50 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -50 }}
+                            >
+                                <VideoTranslator />
                             </motion.div>
                         )}
                     </AnimatePresence>
