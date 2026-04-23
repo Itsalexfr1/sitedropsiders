@@ -1035,9 +1035,8 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             <input
                                                 type="text"
                                                 value={senderEmail}
-                                                onChange={(e) => setSenderEmail(e.target.value)}
-                                                placeholder="contact@dropsiders.fr"
-                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-red focus:outline-none focus:border-neon-red/50 flex-1 font-bold"
+                                                readOnly
+                                                className="bg-black/30 border border-white/5 rounded-lg px-3 py-1.5 text-sm text-gray-500 flex-1 font-bold cursor-not-allowed opacity-70"
                                             />
                                         </div>
                                         {isNewMail && (
