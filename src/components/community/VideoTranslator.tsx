@@ -362,17 +362,36 @@ export function VideoTranslator() {
                         <AnimatePresence>
                             {isCapturing && (translatedTranscript || liveTranscript) && (
                                 <motion.div 
-                                    initial={{ opacity: 0, y: 50 }} 
-                                    animate={{ opacity: 1, y: 0 }} 
-                                    exit={{ opacity: 0, scale: 0.95 }} 
-                                    className="absolute bottom-[35%] left-0 right-0 pointer-events-none flex justify-center px-12 z-[200]"
+                                    initial={{ opacity: 0, scale: 0.9 }} 
+                                    animate={{ opacity: 1, scale: 1 }} 
+                                    exit={{ opacity: 0 }} 
+                                    className="absolute bottom-[35%] left-0 right-0 pointer-events-none flex justify-center px-6 z-[200]"
                                 >
-                                    <div className="bg-black/95 backdrop-blur-md px-16 py-8 rounded-[4rem] border-2 border-neon-cyan/50 text-center max-w-5xl shadow-[0_50px_150px_rgba(0,0,0,1)]">
-                                        <p className="text-white text-3xl md:text-6xl font-black italic tracking-tighter leading-none drop-shadow-[0_5px_15px_rgba(0,0,0,1)]">
-                                            {translatedTranscript || "EN ATTENTE DE PAROLES..."}
+                                    <div className="text-center max-w-6xl">
+                                        <p className="text-white text-4xl md:text-7xl font-black italic tracking-tighter leading-none" style={{ 
+                                            textShadow: `
+                                                0 0 20px rgba(0,0,0,1),
+                                                0 0 40px rgba(0,0,0,1),
+                                                0 0 60px rgba(0,0,0,0.8),
+                                                2px 2px 0px rgba(0,0,0,1),
+                                                -2px -2px 0px rgba(0,0,0,1),
+                                                2px -2px 0px rgba(0,0,0,1),
+                                                -2px 2px 0px rgba(0,0,0,1)
+                                            `
+                                        }}>
+                                            {translatedTranscript || "EN ATTENTE..."}
                                         </p>
-                                        <div className="mt-4 h-1 w-24 bg-neon-cyan/30 mx-auto rounded-full overflow-hidden">
-                                            <motion.div animate={{ x: [-100, 100] }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }} className="w-full h-full bg-neon-cyan shadow-[0_0_15px_#00f3ff]" />
+                                        
+                                        {/* Subtle active indicator */}
+                                        <div className="mt-8 flex justify-center gap-1">
+                                            {[...Array(3)].map((_, i) => (
+                                                <motion.div 
+                                                    key={i}
+                                                    animate={{ opacity: [0.2, 1, 0.2] }}
+                                                    transition={{ repeat: Infinity, duration: 1, delay: i * 0.2 }}
+                                                    className="w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_10px_#00f3ff]"
+                                                />
+                                            ))}
                                         </div>
                                     </div>
                                 </motion.div>
