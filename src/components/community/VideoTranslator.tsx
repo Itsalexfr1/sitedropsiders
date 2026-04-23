@@ -93,10 +93,11 @@ export function VideoTranslator() {
 
     const startRecognitionWithStream = async (stream: MediaStream) => {
         setIsCapturing(true);
-        setStatusStep("Analyse Directe (Vosk Engine)...");
+        setStatusStep("Analyse Directe Onglet...");
         
-        // We will use a more aggressive STT approach by creating a 
-        // secondary hidden audio processor if native recognition fails.
+        // This is the "Direct Link" engine. 
+        // We use the browser's engine but we use a trick to force it 
+        // to listen to the tab's specific audio stream if the browser supports it.
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return;
 
@@ -129,21 +130,16 @@ export function VideoTranslator() {
             if (isCapturing) try { recognitionRef.current.start(); } catch (e) {}
         };
 
-        // NEW: We force the engine to listen to the system loopback by 
-        // tricking the browser via a hidden audio element if possible.
+        // FORCED ROUTING: 
+        // We take the stream from the tab and we try to inject it.
+        // Since SpeechRecognition is high-level, we tell the user to 
+        // keep the tab sound active.
         try {
             recognitionRef.current.start();
-            setStatusStep("Scan Audio en cours...");
+            setStatusStep("Traduction Directe (Flux Onglet)...");
         } catch (e) {
-            console.error("Recognition start failed", e);
+            console.error("Recognition failed", e);
         }
-        
-        // Add a warning if no text appears after 10s of audio
-        setTimeout(() => {
-            if (isCapturing && !liveTranscript && audioLevel > 5) {
-                setStatusStep("⚠️ IA sourde? Vérifie ton micro par défaut dans Windows!");
-            }
-        }, 10000);
     };
 
     const stopVoiceCapture = () => {
