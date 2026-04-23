@@ -18,6 +18,7 @@ export function VideoTranslator() {
     const [isTranslating, setIsTranslating] = useState(false);
     const [channelName, setChannelName] = useState('');
     const [chatMessages, setChatMessages] = useState<{ id: string, user: string, text: string, translated?: string }[]>([]);
+    const [autoPlay, setAutoPlay] = useState(true);
 
     // Voice Capture State
     const [isCapturing, setIsCapturing] = useState(false);
@@ -144,10 +145,10 @@ export function VideoTranslator() {
                         const text = event.results[i][0].transcript;
                         setLiveTranscript(text);
                         try {
-                            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|fr`);
+                            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
                             const data = await res.json();
-                            if (data.responseData?.translatedText) {
-                                setTranslatedTranscript(data.responseData.translatedText);
+                            if (data && data[0] && data[0][0] && data[0][0][0]) {
+                                setTranslatedTranscript(data[0][0][0]);
                             }
                         } catch (e) {
                             console.error("Translation error", e);
@@ -257,9 +258,10 @@ export function VideoTranslator() {
 
     const translateAndAddChat = async (user: string, text: string) => {
         try {
-            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|fr`);
+            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
             const data = await res.json();
-            setChatMessages(prev => [{ id: Math.random().toString(36).substr(2, 9), user, text, translated: data.responseData.translatedText }, ...prev].slice(0, 50));
+            const translated = (data && data[0] && data[0][0] && data[0][0][0]) ? data[0][0][0] : text;
+            setChatMessages(prev => [{ id: Math.random().toString(36).substr(2, 9), user, text, translated }, ...prev].slice(0, 50));
         } catch (e) {
             setChatMessages(prev => [{ id: Math.random().toString(36).substr(2, 9), user, text }, ...prev].slice(0, 50));
         }
@@ -272,12 +274,12 @@ export function VideoTranslator() {
         if (url.includes('youtube.com/') || url.includes('youtu.be/')) {
             const id = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('youtu.be/')[1].split('?')[0];
             setPlatform('YOUTUBE');
-            setEmbedUrl(`https://www.youtube.com/embed/${id}?autoplay=1&cc_load_policy=1&hl=fr&cc_lang_pref=fr&rel=0`);
+            setEmbedUrl(`https://www.youtube.com/embed/${id}?autoplay=${autoPlay ? 1 : 0}&mute=${autoPlay ? 1 : 0}&cc_load_policy=1&hl=fr&cc_lang_pref=fr&rel=0`);
         } else if (url.includes('twitch.tv/')) {
             const ch = url.split('twitch.tv/')[1].split('?')[0];
             setPlatform('TWITCH');
             setChannelName(ch);
-            setEmbedUrl(`https://player.twitch.tv/?channel=${ch}&parent=${window.location.hostname}&autoplay=true`);
+            setEmbedUrl(`https://player.twitch.tv/?channel=${ch}&parent=${window.location.hostname}&autoplay=${autoPlay}&muted=${autoPlay}`);
         }
         setTimeout(() => setIsTranslating(false), 1000);
     };
@@ -328,8 +330,20 @@ export function VideoTranslator() {
                     </div>
                     <div className="relative group">
                         <div className="absolute -inset-1 bg-gradient-to-r from-neon-cyan to-purple-600 rounded-3xl blur opacity-10 group-hover:opacity-20 transition duration-1000" />
-                        <div className="relative flex flex-col md:flex-row bg-black/60 border border-white/10 rounded-3xl overflow-hidden p-2 backdrop-blur-2xl">
+                        <div className="relative flex flex-col md:flex-row bg-black/60 border border-white/10 rounded-3xl overflow-hidden p-2 backdrop-blur-2xl items-center">
                             <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleTranslate()} placeholder="Lien YouTube ou Twitch..." className="flex-1 bg-transparent border-none outline-none px-6 py-3 text-white text-sm font-bold placeholder:text-white/20" />
+                            
+                            <button 
+                                onClick={() => setAutoPlay(!autoPlay)}
+                                className={twMerge(
+                                    "px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 mr-2",
+                                    autoPlay ? "bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30" : "bg-white/5 text-white/30 border border-white/10"
+                                )}
+                            >
+                                <Play className={twMerge("w-3 h-3", autoPlay && "fill-current")} />
+                                Autoplay {autoPlay ? 'ON' : 'OFF'}
+                            </button>
+
                             <button onClick={handleTranslate} disabled={!url || isTranslating} className="px-8 py-3 bg-white text-black font-black uppercase text-[10px] tracking-[0.1em] rounded-2xl hover:bg-neon-cyan transition-all duration-500 shrink-0">LANCER STUDIO</button>
                         </div>
                     </div>

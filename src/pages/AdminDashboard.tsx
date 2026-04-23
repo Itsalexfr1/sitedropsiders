@@ -102,6 +102,7 @@ import { SocialGiveawayModal } from "../components/admin/modals/SocialGiveawayMo
 import { InterviewRandomizer } from "../components/admin/InterviewRandomizer";
 import { ScheduleVisualGenerator } from "../components/admin/modals/ScheduleVisualGenerator";
 import { LiveInteractivityModal } from "../components/admin/modals/LiveInteractivityModal";
+import { useUser } from "../context/UserContext";
 import { AdminLoginScreen } from "../components/admin/AdminLoginScreen";
 import { InterviewVisualGenerator } from "./InterviewVisualGenerator";
 import { VideoUploaderTranslator } from "../components/admin/VideoUploaderTranslator";
@@ -109,6 +110,7 @@ import { VideoUploaderTranslator } from "../components/admin/VideoUploaderTransl
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 export function AdminDashboard() {
+  const { showNotification } = useUser();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -1114,13 +1116,11 @@ export function AdminDashboard() {
         fetchQuizzes();
       } else {
         const errData = await res.json();
-        alert(
-          `Erreur lors de la sauvegarde: ${errData.error || "Erreur inconnue"}`,
-        );
+        showNotification(`Erreur lors de la sauvegarde: ${errData.error || "Erreur inconnue"}`, "error");
       }
     } catch (err) {
       console.error("Error updating quiz:", err);
-      alert("Erreur réseau lors de la sauvegarde.");
+      showNotification("Erreur réseau lors de la sauvegarde.", "error");
     } finally {
       setIsSavingQuiz(false);
     }
@@ -1213,13 +1213,13 @@ export function AdminDashboard() {
       });
 
       if (resp.ok) {
-        alert("Notification envoyée avec succès à tous les abonnés !");
+        showNotification("Notification envoyée avec succès à tous les abonnés !", "success");
         setIsNotificationModalOpen(false);
       } else {
         throw new Error("Erreur lors de l'envoi");
       }
     } catch (e: any) {
-      alert("Erreur : " + e.message);
+      showNotification("Erreur : " + e.message, "error");
     } finally {
       setIsSendingManualPush(false);
     }
@@ -1404,7 +1404,7 @@ export function AdminDashboard() {
         },
       });
       if (res.ok) {
-        alert("Concours réinitialisé avec succès !");
+        showNotification("Concours réinitialisé avec succès !", "success");
         fetchContestResults();
       } else {
         alert("Erreur lors de la réinitialisation.");

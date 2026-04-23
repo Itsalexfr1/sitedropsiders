@@ -1,15 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, FileVideo, Languages, Play, Pause, RotateCcw, Download, CheckCircle2, AlertCircle, Loader2, MessageSquare, Trash2, Mic } from 'lucide-react';
+import { useUser } from "../../context/UserContext";
 import { twMerge } from 'tailwind-merge';
 
 export function VideoUploaderTranslator() {
+    const { showNotification } = useUser();
     const [file, setFile] = useState<File | null>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [transcripts, setTranscripts] = useState<{ original: string, translated: string, timestamp: number }[]>([]);
     const [status, setStatus] = useState<'IDLE' | 'PLAYING' | 'DONE'>('IDLE');
     const [progress, setProgress] = useState(0);
+    const [audioLevel, setAudioLevel] = useState(0);
     const [savedHistory, setSavedHistory] = useState<{ id: string, name: string, date: string, transcripts: any[] }[]>(() => {
         try {
             return JSON.parse(localStorage.getItem('dropsiders_video_translations') || '[]');
@@ -74,7 +77,7 @@ export function VideoUploaderTranslator() {
         
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            alert("Votre navigateur ne supporte pas la reconnaissance vocale.");
+            showNotification("Votre navigateur ne supporte pas la reconnaissance vocale.", "error");
             setIsProcessing(false);
             return;
         }
@@ -91,9 +94,9 @@ export function VideoUploaderTranslator() {
             if (lastResult.isFinal) {
                 const text = lastResult[0].transcript;
                 try {
-                    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|fr`);
+                    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
                     const data = await res.json();
-                    const translatedText = data.responseData.translatedText;
+                    const translatedText = (data && data[0] && data[0][0] && data[0][0][0]) ? data[0][0][0] : text;
                     
                     setTranscripts(prev => [
                         { 
@@ -120,6 +123,31 @@ export function VideoUploaderTranslator() {
 
         recognitionRef.current.start();
         videoRef.current.play();
+
+        // Audio Level Detection
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const analyser = audioContext.createAnalyser();
+            const source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 256;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            const checkVolume = () => {
+                if (status === 'PLAYING' || videoRef.current?.paused === false) {
+                    analyser.getByteFrequencyData(dataArray);
+                    const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
+                    setAudioLevel(avg);
+                    requestAnimationFrame(checkVolume);
+                } else {
+                    setAudioLevel(0);
+                }
+            };
+            checkVolume();
+        } catch (e) {
+            console.error("Audio detection failed", e);
+        }
     };
 
     const stopAnalysis = () => {
@@ -222,7 +250,20 @@ export function VideoUploaderTranslator() {
                                 )}>
                                     {status === 'PLAYING' && <Loader2 className="w-3 h-3 animate-spin" />}
                                     {status === 'DONE' && <CheckCircle2 className="w-3 h-3" />}
-                                    {status === 'IDLE' ? 'PRÊT POUR ANALYSE' : status === 'PLAYING' ? `ANALYSE : ${Math.floor(progress)}%` : 'TERMINÉ'}
+                                    {status === 'IDLE' ? 'PRÊT POUR ANALYSE' : status === 'PLAYING' ? `ANALYSE : ${Math.floor(progress)}%` : 'ANALYSE TERMINÉE'}
+                                    
+                                    {status === 'PLAYING' && (
+                                        <div className="flex gap-0.5 ml-3 items-center h-3">
+                                            {[...Array(4)].map((_, i) => (
+                                                <motion.div 
+                                                    key={i} 
+                                                    animate={{ height: audioLevel > 2 ? [2, 10, 2] : 2 }} 
+                                                    transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
+                                                    className="w-0.5 bg-neon-cyan rounded-full" 
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 <p className="text-[10px] text-gray-500 font-bold uppercase">{file.name}</p>
                             </div>
