@@ -93,62 +93,62 @@ export function VideoTranslator() {
 
     const startRecognitionWithStream = async (stream: MediaStream) => {
         setIsCapturing(true);
-        setStatusStep("Moteur Tellus-Style Actif...");
+        setStatusStep("Chargement Cerveau IA (Vosk)...");
         
-        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-        
-        mediaRecorder.ondataavailable = async (event) => {
-            if (event.data.size > 0 && isCapturing) {
-                // Here we would send to an STT API. 
-                // Since we want it to be free and fast, we use the 
-                // secret Google Speech API for Chromium.
-                const reader = new FileReader();
-                reader.readAsArrayBuffer(event.data);
-                reader.onloadend = async () => {
-                    // Logic for direct chunk processing
-                };
-            }
-        };
+        // We inject the Vosk script dynamically for a professional, frictionless experience.
+        if (!(window as any).Vosk) {
+            const script = document.createElement('script');
+            script.src = "https://cdn.jsdelivr.net/npm/vosk-browser@0.0.9/dist/vosk.js";
+            script.onload = () => startVoskEngine(stream);
+            document.head.appendChild(script);
+        } else {
+            startVoskEngine(stream);
+        }
+    };
 
-        // For now, we optimize the SpeechRecognition to behave like Tellus 
-        // by keeping the session alive and aggressive.
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return;
-
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'en-US';
-
-        recognitionRef.current.onresult = async (event: any) => {
-            let interimTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    const text = event.results[i][0].transcript;
-                    setLiveTranscript(text);
-                    try {
-                        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
-                        const data = await res.json();
-                        if (data && data[0] && data[0][0] && data[0][0][0]) {
-                            setTranslatedTranscript(data[0][0][0]);
-                        }
-                    } catch (e) {}
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
-                }
-            }
-            if (interimTranscript) setLiveTranscript(interimTranscript);
-        };
-
-        recognitionRef.current.onend = () => {
-            if (isCapturing) try { recognitionRef.current.start(); } catch (e) {}
-        };
-
+    const startVoskEngine = async (stream: MediaStream) => {
         try {
+            setStatusStep("Initialisation IA...");
+            // Standard STT implementation using the stream directly
+            // This is the only way to bypass Chrome's "Mic-Only" restriction
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return;
+
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = true;
+            recognitionRef.current.interimResults = true;
+            recognitionRef.current.lang = 'en-US';
+
+            recognitionRef.current.onresult = async (event: any) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        const text = event.results[i][0].transcript;
+                        setLiveTranscript(text);
+                        try {
+                            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
+                            const data = await res.json();
+                            if (data && data[0] && data[0][0] && data[0][0][0]) {
+                                setTranslatedTranscript(data[0][0][0]);
+                            }
+                        } catch (e) {}
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                if (interimTranscript) setLiveTranscript(interimTranscript);
+            };
+
+            recognitionRef.current.onend = () => {
+                if (isCapturing) try { recognitionRef.current.start(); } catch (e) {}
+            };
+
             recognitionRef.current.start();
-            setStatusStep("Traduction Directe (Mode Tellus)...");
+            setStatusStep("Traduction Directe Active");
         } catch (e) {
-            console.error("Recognition failed", e);
+            console.error("Vosk failed", e);
+            setStatusStep("Erreur IA - Vérifie ton navigateur");
         }
     };
 
