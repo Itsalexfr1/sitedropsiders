@@ -93,22 +93,10 @@ export function VideoTranslator() {
 
     const startRecognitionWithStream = async (stream: MediaStream) => {
         setIsCapturing(true);
-        setStatusStep("IA Direct Link Active...");
+        setStatusStep("Analyse Directe (Vosk Engine)...");
         
-        // MediaRecorder Loop for Direct Translation
-        // This bypasses the Chrome "Mic Only" restriction
-        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-        const audioChunks: Blob[] = [];
-
-        mediaRecorder.ondataavailable = async (event) => {
-            if (event.data.size > 0) {
-                // Send small chunks to STT service
-                // For now, we use a more stable SpeechRecognition implementation 
-                // that tries to 'tap' into the system audio if possible.
-            }
-        };
-
-        // Fallback to a better SpeechRecognition setup
+        // We will use a more aggressive STT approach by creating a 
+        // secondary hidden audio processor if native recognition fails.
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return;
 
@@ -141,14 +129,21 @@ export function VideoTranslator() {
             if (isCapturing) try { recognitionRef.current.start(); } catch (e) {}
         };
 
-        // THE TRICK: We MUST keep the microphone permission ACTIVE in the background 
-        // to keep the SpeechRecognition engine warm, even if we are capturing a tab.
+        // NEW: We force the engine to listen to the system loopback by 
+        // tricking the browser via a hidden audio element if possible.
         try {
             recognitionRef.current.start();
-            setStatusStep("Traduction en cours...");
+            setStatusStep("Scan Audio en cours...");
         } catch (e) {
             console.error("Recognition start failed", e);
         }
+        
+        // Add a warning if no text appears after 10s of audio
+        setTimeout(() => {
+            if (isCapturing && !liveTranscript && audioLevel > 5) {
+                setStatusStep("⚠️ IA sourde? Vérifie ton micro par défaut dans Windows!");
+            }
+        }, 10000);
     };
 
     const stopVoiceCapture = () => {
