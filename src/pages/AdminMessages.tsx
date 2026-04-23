@@ -499,6 +499,7 @@ FORMAT : Interview ${type}
 Travailler avec Dropsiders, c'est bénéficier d'une vitrine premium et "carrée" :
 - Articles interactifs haute performance (lecteur audio IA, design immersif).
 - Découvrez nos dernières interviews ici : https://dropsiders.fr/interviews
+- <a href="https://dropsiders.fr/uploads/pdfs/1a7e292d6bf86432-Interview_Cards_Dropsiders_VER.pdf" style="color:#ff0033; font-weight:bold;">Cliquez ici pour voir un exemple des questions qui seront posées</a>
 - Visibilité accrue via notre Agenda et notre nouvel espace Communauté (Votes, Avis).
 - Promotion ciblée sur nos réseaux sociaux (Instagram, TikTok).
 - Audience de passionnés et de professionnels ultra-engagés.
@@ -520,6 +521,7 @@ FORMAT: ${type} Interview
 Partnering with Dropsiders means benefiting from a premium and professional showcase:
 - High-performance interactive articles (AI audio player, immersive design).
 - Check out our latest interviews here: https://dropsiders.fr/interviews
+- <a href="https://dropsiders.fr/uploads/pdfs/1a7e292d6bf86432-Interview_Cards_Dropsiders_VER.pdf" style="color:#ff0033; font-weight:bold;">Click here to see an example of the questions that will be asked</a>
 - Increased visibility through our Agenda and our new Community hub (Votes, Reviews).
 - Targeted promotion on our social networks (Instagram, TikTok).
 - Highly engaged audience of fans and industry professionals.
