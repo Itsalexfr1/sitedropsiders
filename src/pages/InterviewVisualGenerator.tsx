@@ -498,6 +498,8 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
         );
     }
 
+    const fmt = FORMATS[activeFormat];
+
     if (isModal && !isOpen) return null;
 
     const content = (
