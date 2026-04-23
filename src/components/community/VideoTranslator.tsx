@@ -361,9 +361,19 @@ export function VideoTranslator() {
                         {/* SUBTITLES OVERLAY */}
                         <AnimatePresence>
                             {isCapturing && (translatedTranscript || liveTranscript) && (
-                                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute bottom-20 left-0 right-0 pointer-events-none flex justify-center px-12 z-[100]">
-                                    <div className="bg-black/90 backdrop-blur-3xl px-12 py-6 rounded-[3rem] border border-neon-cyan/30 text-center max-w-4xl shadow-[0_40px_100px_rgba(0,0,0,1)]">
-                                        <p className="text-white text-2xl md:text-5xl font-black italic tracking-tighter leading-tight">"{translatedTranscript || "Écoute du flux audio..."}"</p>
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 50 }} 
+                                    animate={{ opacity: 1, y: 0 }} 
+                                    exit={{ opacity: 0, scale: 0.95 }} 
+                                    className="absolute bottom-[35%] left-0 right-0 pointer-events-none flex justify-center px-12 z-[200]"
+                                >
+                                    <div className="bg-black/95 backdrop-blur-md px-16 py-8 rounded-[4rem] border-2 border-neon-cyan/50 text-center max-w-5xl shadow-[0_50px_150px_rgba(0,0,0,1)]">
+                                        <p className="text-white text-3xl md:text-6xl font-black italic tracking-tighter leading-none drop-shadow-[0_5px_15px_rgba(0,0,0,1)]">
+                                            {translatedTranscript || "EN ATTENTE DE PAROLES..."}
+                                        </p>
+                                        <div className="mt-4 h-1 w-24 bg-neon-cyan/30 mx-auto rounded-full overflow-hidden">
+                                            <motion.div animate={{ x: [-100, 100] }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }} className="w-full h-full bg-neon-cyan shadow-[0_0_15px_#00f3ff]" />
+                                        </div>
                                     </div>
                                 </motion.div>
                             )}
