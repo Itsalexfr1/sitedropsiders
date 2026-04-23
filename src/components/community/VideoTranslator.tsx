@@ -98,7 +98,7 @@ export function VideoTranslator() {
         
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            setCaptureError("Ton navigateur ne supporte pas la traduction vocale.");
+            setCaptureError("IA non supportée sur ce navigateur.");
             return;
         }
 
@@ -106,17 +106,18 @@ export function VideoTranslator() {
             try { recognitionRef.current.stop(); } catch (e) {}
         }
 
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = false;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'en-US';
+        const recognition = new SpeechRecognition();
+        recognitionRef.current = recognition;
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
 
-        recognitionRef.current.onstart = () => {
-            setStatusStep("IA à l'écoute...");
+        recognition.onstart = () => {
+            setStatusStep("IA ACTIVE");
         };
 
-        recognitionRef.current.onresult = async (event: any) => {
-            let interimTranscript = '';
+        recognition.onresult = async (event: any) => {
+            let interim = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 const text = event.results[i][0].transcript;
                 if (event.results[i].isFinal) {
@@ -129,34 +130,31 @@ export function VideoTranslator() {
                         }
                     } catch (e) {}
                 } else {
-                    interimTranscript += text;
+                    interim += text;
                 }
             }
-            if (interimTranscript) setLiveTranscript(interimTranscript);
+            if (interim) setLiveTranscript(interim);
         };
 
-        recognitionRef.current.onerror = (e: any) => {
-            console.error("Recognition Error:", e.error);
-            if (e.error === 'not-allowed') {
-                setStatusStep("⚠️ Autorise le micro en haut à gauche!");
-            } else {
-                setStatusStep(`Erreur: ${e.error}`);
-            }
+        recognition.onerror = (e: any) => {
+            console.error("AI Error:", e.error);
+            if (e.error === 'not-allowed') setStatusStep("PERM REFUSÉE");
+            else setStatusStep(`ERREUR: ${e.error}`);
         };
 
-        recognitionRef.current.onend = () => {
+        recognition.onend = () => {
             if (isCapturing) {
                 setTimeout(() => {
-                    try { recognitionRef.current.start(); } catch (e) {}
+                    try { recognition.start(); } catch (e) {}
                 }, 100);
             }
         };
 
         try {
-            recognitionRef.current.start();
+            recognition.start();
         } catch (e) {
-            console.error("Start failed", e);
-            setStatusStep("Erreur démarrage IA");
+            console.error("Critical Start Error", e);
+            setStatusStep("CLIQUE SUR DÉBLOQUER");
         }
     };
 
