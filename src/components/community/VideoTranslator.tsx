@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock, AlertTriangle, Maximize2 } from 'lucide-react';
+import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock, AlertTriangle, Maximize2, Headphones } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
+
+// Extend Window interface for SpeechRecognition
+declare global {
+    interface Window {
+        webkitSpeechRecognition: any;
+        SpeechRecognition: any;
+    }
+}
 
 export function VideoTranslator() {
     const [url, setUrl] = useState('');
@@ -11,6 +19,72 @@ export function VideoTranslator() {
     const [channelName, setChannelName] = useState('');
     const [chatMode, setChatMode] = useState<'AI' | 'NATIVE'>('AI');
     const [chatMessages, setChatMessages] = useState<{ id: string, user: string, text: string, translated?: string }[]>([]);
+
+    // Voice Capture State
+    const [isCapturing, setIsCapturing] = useState(false);
+    const [liveTranscript, setLiveTranscript] = useState('');
+    const [translatedTranscript, setTranslatedTranscript] = useState('');
+    const recognitionRef = useRef<any>(null);
+
+    // Initialize Speech Recognition
+    const startVoiceCapture = () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Votre navigateur ne supporte pas la reconnaissance vocale.");
+            return;
+        }
+
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = 'en-US'; // DJ speaks English
+
+        recognitionRef.current.onstart = () => {
+            setIsCapturing(true);
+            setLiveTranscript("L'IA écoute le flux Windows...");
+        };
+
+        recognitionRef.current.onresult = async (event: any) => {
+            const transcript = Array.from(event.results)
+                .map((result: any) => result[0])
+                .map((result: any) => result.transcript)
+                .join('');
+
+            setLiveTranscript(transcript);
+
+            // Translate when we have a stable segment
+            if (event.results[event.results.length - 1].isFinal) {
+                const textToTranslate = event.results[event.results.length - 1][0].transcript;
+                try {
+                    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=en|fr`);
+                    const data = await res.json();
+                    setTranslatedTranscript(data.responseData.translatedText);
+                } catch (e) {
+                    console.error("Translation error", e);
+                }
+            }
+        };
+
+        recognitionRef.current.onerror = (event: any) => {
+            console.error("Speech Recognition Error", event.error);
+            setIsCapturing(false);
+        };
+
+        recognitionRef.current.onend = () => {
+            if (isCapturing) recognitionRef.current.start();
+        };
+
+        recognitionRef.current.start();
+    };
+
+    const stopVoiceCapture = () => {
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            setIsCapturing(false);
+            setLiveTranscript('');
+            setTranslatedTranscript('');
+        }
+    };
 
     // Twitch Chat Connection
     useEffect(() => {
@@ -74,20 +148,18 @@ export function VideoTranslator() {
 
     return (
         <div className={twMerge("space-y-6 md:space-y-12 py-10", embedUrl ? "px-0" : "px-4")}>
-            {/* Header section (Hide when playing for full-width feel) */}
             {!embedUrl && (
                 <div className="text-center space-y-4 max-w-3xl mx-auto px-4">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-flex items-center gap-3 px-4 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full">
-                        <Zap className="w-3 h-3 text-neon-cyan animate-pulse" />
-                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neon-cyan">DROPSIDERS CINEMA MODE</span>
+                        <Headphones className="w-3 h-3 text-neon-cyan animate-pulse" />
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neon-cyan">DROPSIDERS WINDOWS-SYNC</span>
                     </motion.div>
                     <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase leading-none text-white">
-                        D-TV <span className="text-neon-cyan drop-shadow-[0_0_20px_rgba(0,255,255,0.5)]">TRANSLATOR</span>
+                        D-TV <span className="text-neon-cyan drop-shadow-[0_0_20px_rgba(0,255,255,0.5)]">VOICE CAPTURE</span>
                     </h2>
                 </div>
             )}
 
-            {/* URL Input Area (Hide when playing) */}
             {!embedUrl && (
                 <div className="max-w-2xl mx-auto px-4">
                     <div className="relative group">
@@ -112,33 +184,68 @@ export function VideoTranslator() {
                                 
                                 {/* Top Controls Overlay */}
                                 <div className="absolute top-6 left-6 right-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                    <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex items-center gap-3">
-                                        <div className="w-2 h-2 bg-neon-cyan rounded-full animate-pulse" />
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-white">MODALITÉ CINÉMA : 80/20</span>
+                                    <div className="flex gap-3">
+                                        <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex items-center gap-3">
+                                            <div className="w-2 h-2 bg-neon-cyan rounded-full animate-pulse" />
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-white">MODALITÉ CINÉMA 80/20</span>
+                                        </div>
+                                        <button 
+                                            onClick={isCapturing ? stopVoiceCapture : startVoiceCapture}
+                                            className={twMerge(
+                                                "px-4 py-2 rounded-xl border transition-all flex items-center gap-2 text-[9px] font-black uppercase tracking-widest",
+                                                isCapturing 
+                                                    ? "bg-neon-red/20 border-neon-red text-neon-red shadow-[0_0_15px_rgba(255,0,0,0.3)]" 
+                                                    : "bg-neon-cyan/20 border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-black"
+                                            )}
+                                        >
+                                            <Mic className={twMerge("w-3 h-3", isCapturing && "animate-pulse")} />
+                                            {isCapturing ? "STOP CAPTURE" : "CAPTURER SON WINDOWS"}
+                                        </button>
                                     </div>
-                                    <button onClick={() => { setEmbedUrl(null); setUrl(''); }} className="p-3 bg-neon-red/20 hover:bg-neon-red text-neon-red hover:text-white rounded-xl border border-neon-red/20 transition-all">
+                                    <button onClick={() => { setEmbedUrl(null); setUrl(''); stopVoiceCapture(); }} className="p-3 bg-neon-red/20 hover:bg-neon-red text-neon-red hover:text-white rounded-xl border border-neon-red/20 transition-all">
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
 
-                                {/* Vocal Translation Info Popover */}
-                                <div className="absolute bottom-10 left-10 max-w-md opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                    <div className="bg-black/80 backdrop-blur-xl p-6 rounded-[2rem] border border-white/10 shadow-2xl space-y-4">
-                                        <div className="flex items-center gap-3 text-neon-cyan">
-                                            <Mic className="w-5 h-5 animate-pulse" />
-                                            <h4 className="text-[10px] font-black uppercase tracking-widest">Traduction Vocale IA</h4>
-                                        </div>
-                                        <p className="text-[11px] text-white/60 leading-relaxed font-medium">
-                                            {platform === 'YOUTUBE' 
-                                                ? "Sous-titres FR activés via le lecteur. Cliquez sur l'icône [CC] si nécessaire." 
-                                                : "Le DJ parle anglais ? Pour la traduction vocale live sur Twitch, nous recommandons d'activer 'Live Caption' dans les paramètres de votre navigateur Chrome/Edge."}
-                                        </p>
-                                        <div className="flex gap-2">
-                                            <div className="px-3 py-1 bg-white/5 rounded-full text-[8px] font-black text-white/40 border border-white/5 uppercase">Neural V4.2</div>
-                                            <div className="px-3 py-1 bg-white/5 rounded-full text-[8px] font-black text-white/40 border border-white/5 uppercase">Low Latency</div>
+                                {/* LIVE SUBTITLES OVERLAY (AI Speech to Text) */}
+                                <AnimatePresence>
+                                    {(isCapturing && (translatedTranscript || liveTranscript)) && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0 }}
+                                            className="absolute bottom-12 left-0 right-0 pointer-events-none flex justify-center px-10"
+                                        >
+                                            <div className="bg-black/80 backdrop-blur-xl px-8 py-4 rounded-[2rem] border border-white/10 shadow-2xl text-center max-w-3xl">
+                                                <div className="flex items-center gap-2 justify-center mb-2">
+                                                    <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-ping" />
+                                                    <span className="text-[7px] font-black uppercase text-neon-cyan tracking-[0.4em]">DROPSIDERS WINDOWS VOICE-SYNC</span>
+                                                </div>
+                                                <p className="text-white text-base md:text-xl font-bold italic leading-tight">
+                                                    "{translatedTranscript || "Écoute du flux audio..."}"
+                                                </p>
+                                                {liveTranscript && !translatedTranscript && (
+                                                    <p className="text-[9px] text-white/20 mt-1 uppercase font-black tracking-widest">
+                                                        Source : {liveTranscript}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Instruction for Windows Audio Link */}
+                                {!isCapturing && platform === 'TWITCH' && (
+                                    <div className="absolute top-20 left-6 max-w-xs opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                        <div className="bg-black/80 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-[9px] text-white/40 leading-relaxed uppercase font-black">
+                                            <div className="flex items-center gap-2 text-neon-cyan mb-2">
+                                                <Info className="w-3 h-3" />
+                                                <span>AIDE CAPTURE</span>
+                                            </div>
+                                            Pour que l'IA entende Windows, cliquez sur "CAPTURER SON" et assurez-vous que vos haut-parleurs sont activés (ou utilisez le 'Stereo Mix' dans Windows).
                                         </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
 
@@ -155,12 +262,6 @@ export function VideoTranslator() {
                                         <button onClick={() => setChatMode('NATIVE')} className={twMerge("px-4 py-1.5 rounded-md text-[8px] font-black transition-all", chatMode === 'NATIVE' ? "bg-neon-blue text-white" : "text-white/40 hover:text-white")}>CHAT</button>
                                     </div>
                                 </div>
-                                {chatMode === 'AI' && (
-                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-neon-cyan/5 border border-neon-cyan/10 rounded-lg">
-                                        <div className="w-1 h-1 bg-neon-cyan rounded-full" />
-                                        <span className="text-[8px] font-black text-neon-cyan uppercase tracking-widest">Traduction Active</span>
-                                    </div>
-                                )}
                             </div>
                             
                             <div className="flex-1 overflow-hidden relative">
@@ -169,7 +270,7 @@ export function VideoTranslator() {
                                         {chatMessages.length === 0 ? (
                                             <div className="h-full flex flex-col items-center justify-center text-center opacity-10 p-8">
                                                 <RefreshCw className="w-6 h-6 animate-spin mb-3" />
-                                                <p className="text-[9px] font-black uppercase tracking-widest">Synchronisation...</p>
+                                                <p className="text-[9px] font-black uppercase tracking-widest">Sync...</p>
                                             </div>
                                         ) : (
                                             chatMessages.map((msg) => (
@@ -185,11 +286,9 @@ export function VideoTranslator() {
                                 )}
                             </div>
 
-                            <div className="p-4 bg-black/60 border-t border-white/5">
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex items-center justify-center gap-2 text-[8px] font-black text-white/20 uppercase italic">
-                                        <Zap className="w-2.5 h-2.5" /> Dropsiders Cinema Engine
-                                    </div>
+                            <div className="p-4 bg-black/60 border-t border-white/5 text-center">
+                                <div className="flex items-center justify-center gap-2 text-[8px] font-black text-white/20 uppercase italic">
+                                    <Zap className="w-2.5 h-2.5" /> Dropsiders Cinema Engine
                                 </div>
                             </div>
                         </div>
