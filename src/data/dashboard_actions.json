@@ -162,5 +162,15 @@
     "permission": "news",
     "baseColor": "#fde753",
     "columns": 2
+  },
+  {
+    "title": "Video Translator AI",
+    "description": "Analyse & Traduit MP4",
+    "icon": "Video",
+    "category": "STUDIO",
+    "link": "video-ai-translator",
+    "permission": "news",
+    "baseColor": "#00fffb",
+    "columns": 1
   }
 ]

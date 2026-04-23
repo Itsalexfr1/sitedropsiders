@@ -104,6 +104,7 @@ import { ScheduleVisualGenerator } from "../components/admin/modals/ScheduleVisu
 import { LiveInteractivityModal } from "../components/admin/modals/LiveInteractivityModal";
 import { AdminLoginScreen } from "../components/admin/AdminLoginScreen";
 import { InterviewVisualGenerator } from "./InterviewVisualGenerator";
+import { VideoUploaderTranslator } from "../components/admin/VideoUploaderTranslator";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -199,6 +200,7 @@ export function AdminDashboard() {
     useState(false);
   const [isQuizzConcoursModalOpen, setIsQuizzConcoursModalOpen] = useState(false);
   const [isInterviewVisualsModalOpen, setIsInterviewVisualsModalOpen] = useState(false);
+  const [isVideoAITranslatorModalOpen, setIsVideoAITranslatorModalOpen] = useState(false);
 
   const [isLoadingSocial, setIsLoadingSocial] = useState(false);
   const [bannerState, setBannerState] = useState({
@@ -2200,6 +2202,16 @@ export function AdminDashboard() {
       bg: "bg-neon-cyan/5",
       permission: "stats_analytics",
       baseColor: "cyan",
+      columns: 1,
+    },
+    {
+      title: "Video Translator AI",
+      description: "Analyse & Traduction MP4",
+      icon: "Video",
+      category: "STUDIO",
+      link: "video-ai-translator",
+      permission: "superadmin",
+      baseColor: "purple",
       columns: 1,
     },
     {
@@ -4531,6 +4543,12 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsBannerModalOpen(true);
+                            } else if (
+                              action.title === "Video Translator AI" ||
+                              action.link === "video-ai-translator"
+                            ) {
+                              e.preventDefault();
+                              setIsVideoAITranslatorModalOpen(true);
                             }
                           }}
                           className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -13228,6 +13246,53 @@ export function AdminDashboard() {
                       </div>
                     </button>
 
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* VIDEO TRANSLATOR AI MODAL */}
+          <AnimatePresence>
+            {isVideoAITranslatorModalOpen && (
+              <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsVideoAITranslatorModalOpen(false)}
+                  className="absolute inset-0 bg-black/95 backdrop-blur-xl"
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  className="relative w-full max-w-6xl bg-[#0a0a0a] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl p-0 h-[85vh] flex flex-col"
+                >
+                  <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-neon-purple/20 rounded-2xl border border-neon-purple/30">
+                        <Video className="w-6 h-6 text-neon-purple" />
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">
+                          Video Translator <span className="text-neon-purple">AI</span>
+                        </h2>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                          Transcription & Traduction automatique de fichiers MP4
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsVideoAITranslatorModalOpen(false)}
+                      className="p-4 bg-white/5 hover:bg-neon-red/20 border border-white/10 rounded-2xl text-gray-500 hover:text-white transition-all group"
+                    >
+                      <X className="w-6 h-6 group-hover:rotate-90 transition-transform" />
+                    </button>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                    <VideoUploaderTranslator />
                   </div>
                 </motion.div>
               </div>

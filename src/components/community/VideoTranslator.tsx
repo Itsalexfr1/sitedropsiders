@@ -25,10 +25,15 @@ export function VideoTranslator() {
     const [translatedTranscript, setTranslatedTranscript] = useState('');
     const [audioLevel, setAudioLevel] = useState(0); 
     const [captureError, setCaptureError] = useState<string | null>(null);
+    const [availableDevices, setAvailableDevices] = useState<MediaDeviceInfo[]>([]);
+    const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
+    const [showDeviceList, setShowDeviceList] = useState(false);
+    const [isMonitoring, setIsMonitoring] = useState(false);
     
     const recognitionRef = useRef<any>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const analyserRef = useRef<AnalyserNode | null>(null);
+    const monitorNodeRef = useRef<GainNode | null>(null);
     const animationFrameRef = useRef<number | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
@@ -36,9 +41,12 @@ export function VideoTranslator() {
     const startAudioVisualizer = async () => {
         try {
             if (audioContextRef.current) await audioContextRef.current.close();
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true } 
-            });
+            const constraints = { 
+                audio: selectedDeviceId 
+                    ? { deviceId: { exact: selectedDeviceId }, echoCancellation: false } 
+                    : { echoCancellation: false, noiseSuppression: false, autoGainControl: true } 
+            };
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
             streamRef.current = stream;
             audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
             if (audioContextRef.current.state === 'suspended') await audioContextRef.current.resume();
@@ -46,11 +54,18 @@ export function VideoTranslator() {
             analyserRef.current = audioContextRef.current.createAnalyser();
             analyserRef.current.fftSize = 64;
             source.connect(analyserRef.current);
+
+            // Monitoring Node
+            monitorNodeRef.current = audioContextRef.current.createGain();
+            monitorNodeRef.current.gain.value = isMonitoring ? 1 : 0;
+            source.connect(monitorNodeRef.current);
+            monitorNodeRef.current.connect(audioContextRef.current.destination);
             const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
             const updateLevel = () => {
                 if (analyserRef.current) {
                     analyserRef.current.getByteFrequencyData(dataArray);
-                    setAudioLevel(dataArray.reduce((a, b) => a + b, 0) / dataArray.length);
+                    const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+                    setAudioLevel(avg);
                     animationFrameRef.current = requestAnimationFrame(updateLevel);
                 }
             };
@@ -62,6 +77,23 @@ export function VideoTranslator() {
             return false;
         }
     };
+
+    // Load available devices
+    useEffect(() => {
+        const getDevices = async () => {
+            try {
+                // Request permission first to get labels
+                await navigator.mediaDevices.getUserMedia({ audio: true });
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const audioIn = devices.filter(d => d.kind === 'audioinput');
+                setAvailableDevices(audioIn);
+                // Auto-select Voicemeeter Out B2 if found
+                const b2 = audioIn.find(d => d.label.includes('B2') || d.label.includes('AUX Output'));
+                if (b2) setSelectedDeviceId(b2.deviceId);
+            } catch (e) {}
+        };
+        getDevices();
+    }, []);
 
     const stopAudioVisualizer = () => {
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
@@ -93,15 +125,26 @@ export function VideoTranslator() {
             };
 
             recognitionRef.current.onresult = async (event: any) => {
-                const transcript = Array.from(event.results).map((result: any) => result[0].transcript).join('');
-                setLiveTranscript(transcript);
-                if (event.results[event.results.length - 1].isFinal) {
-                    const text = event.results[event.results.length - 1][0].transcript;
-                    try {
-                        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|fr`);
-                        const data = await res.json();
-                        setTranslatedTranscript(data.responseData.translatedText);
-                    } catch (e) {}
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        const text = event.results[i][0].transcript;
+                        setLiveTranscript(text);
+                        try {
+                            const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|fr`);
+                            const data = await res.json();
+                            if (data.responseData?.translatedText) {
+                                setTranslatedTranscript(data.responseData.translatedText);
+                            }
+                        } catch (e) {
+                            console.error("Translation error", e);
+                        }
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                if (interimTranscript) {
+                    setLiveTranscript(interimTranscript);
                 }
             };
 
@@ -137,6 +180,15 @@ export function VideoTranslator() {
         setLiveTranscript('');
         setTranslatedTranscript('');
         stopAudioVisualizer();
+        setIsMonitoring(false);
+    };
+
+    const toggleMonitoring = () => {
+        const newState = !isMonitoring;
+        setIsMonitoring(newState);
+        if (monitorNodeRef.current) {
+            monitorNodeRef.current.gain.value = newState ? 1 : 0;
+        }
     };
 
     // Twitch Chat Connection
@@ -222,7 +274,7 @@ export function VideoTranslator() {
         <div id="studio-root" className={twMerge(
             "transition-all duration-700 studio-container",
             embedUrl 
-                ? "fixed inset-0 z-[999999999] bg-black flex flex-col lg:flex-row overflow-hidden" 
+                ? "fixed inset-0 z-[999999999] bg-black flex flex-row overflow-hidden" 
                 : "space-y-12 py-10 px-4"
         )}>
             {!embedUrl ? (
@@ -243,9 +295,9 @@ export function VideoTranslator() {
                     </div>
                 </div>
             ) : (
-                <div className="w-full h-full flex flex-col lg:flex-row">
+                <div className="w-full h-full flex flex-row">
                     {/* MAIN PLAYER (70%) */}
-                    <div className="lg:w-[70%] h-full relative bg-black flex flex-col group">
+                    <div className="flex-1 h-full relative bg-black flex flex-col group min-w-0">
                         <iframe src={embedUrl} className="w-full h-full border-none" allowFullScreen allow="autoplay; encrypted-media" />
                         
                         {/* TOP TOOLBAR */}
@@ -259,27 +311,81 @@ export function VideoTranslator() {
                                     QUITTER STUDIO
                                 </button>
                                 
-                                <div className="flex flex-col gap-2">
-                                    <button 
-                                        onClick={isCapturing ? stopVoiceCapture : startVoiceCapture}
-                                        className={twMerge(
-                                            "px-6 py-3 rounded-2xl border transition-all flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-2xl",
-                                            isCapturing ? "bg-neon-red border-neon-red text-white" : "bg-neon-cyan border-neon-cyan text-black hover:scale-105 active:scale-95"
+                                <div className="flex flex-col gap-2 relative">
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={isCapturing ? stopVoiceCapture : startVoiceCapture}
+                                            className={twMerge(
+                                                "px-6 py-3 rounded-2xl border transition-all flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-2xl",
+                                                isCapturing ? "bg-neon-red border-neon-red text-white" : "bg-neon-cyan border-neon-cyan text-black hover:scale-105 active:scale-95"
+                                            )}
+                                        >
+                                            <Mic className={twMerge("w-4 h-4", isCapturing && "animate-pulse")} />
+                                            {isCapturing ? "STOP CAPTURE" : "TRADUCTION VOCALE"}
+                                            <div className="flex gap-1 ml-2 items-center min-w-[30px] h-4">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <motion.div key={i} animate={{ height: isCapturing && audioLevel > 2 ? [4, 15, 4] : 4 }} className="w-1 bg-white/40 rounded-full" />
+                                                ))}
+                                            </div>
+                                        </button>
+
+                                        <button 
+                                            onClick={() => setShowDeviceList(!showDeviceList)}
+                                            className="p-3 bg-white/5 border border-white/10 rounded-2xl text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                                            title="Changer de source audio"
+                                        >
+                                            <Settings className="w-5 h-5" />
+                                        </button>
+
+                                        <button 
+                                            onClick={toggleMonitoring}
+                                            disabled={!isCapturing}
+                                            className={twMerge(
+                                                "p-3 border rounded-2xl transition-all shadow-xl",
+                                                isMonitoring ? "bg-neon-purple border-neon-purple text-white" : "bg-white/5 border-white/10 text-white/40 hover:text-white disabled:opacity-20"
+                                            )}
+                                            title="Écouter le retour (Monitoring)"
+                                        >
+                                            {isMonitoring ? <Volume2 className="w-5 h-5" /> : <Volume2 className="w-5 h-5 opacity-40" />}
+                                        </button>
+                                    </div>
+
+                                    {/* Device Selector Dropdown */}
+                                    <AnimatePresence>
+                                        {showDeviceList && (
+                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute top-full left-0 mt-2 w-72 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 z-[200] shadow-2xl">
+                                                <div className="p-3 border-b border-white/5 mb-2">
+                                                    <p className="text-[9px] font-black uppercase text-gray-500 tracking-widest">Source Audio</p>
+                                                </div>
+                                                <div className="max-h-60 overflow-y-auto custom-scrollbar">
+                                                    {availableDevices.map(d => (
+                                                        <button 
+                                                            key={d.deviceId} 
+                                                            onClick={() => { setSelectedDeviceId(d.deviceId); setShowDeviceList(false); if (isCapturing) { stopVoiceCapture(); startVoiceCapture(); } }}
+                                                            className={twMerge(
+                                                                "w-full text-left p-3 rounded-xl text-[10px] font-bold uppercase truncate transition-all",
+                                                                selectedDeviceId === d.deviceId ? "bg-neon-cyan/20 text-neon-cyan" : "text-white/60 hover:bg-white/5 hover:text-white"
+                                                            )}
+                                                        >
+                                                            {d.label || `Microphone ${d.deviceId.slice(0, 5)}`}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
                                         )}
-                                    >
-                                        <Mic className={twMerge("w-4 h-4", isCapturing && "animate-pulse")} />
-                                        {isCapturing ? "STOP CAPTURE" : "TRADUCTION VOCALE"}
-                                        <div className="flex gap-1 ml-2 items-center min-w-[30px] h-4">
-                                            {[...Array(5)].map((_, i) => (
-                                                <motion.div key={i} animate={{ height: isCapturing && audioLevel > 5 ? [4, 15, 4] : 4 }} className="w-1 bg-white/40 rounded-full" />
-                                            ))}
-                                        </div>
-                                    </button>
+                                    </AnimatePresence>
+                                    
                                     {captureError && (
                                         <div className="flex items-center gap-2 text-neon-red text-[8px] font-black uppercase tracking-widest bg-black/60 px-3 py-1 rounded-full border border-neon-red/20">
                                             <AlertTriangle className="w-3 h-3" />
                                             {captureError}
                                         </div>
+                                    )}
+                                    {isCapturing && audioLevel < 2 && (
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 text-neon-yellow text-[8px] font-black uppercase tracking-widest bg-black/80 px-4 py-2 rounded-xl border border-neon-yellow/30 shadow-2xl">
+                                            <Headphones className="w-3.5 h-3.5" />
+                                            {selectedDeviceId.includes('B2') ? 'Son trop faible sur B2 ?' : 'Sélectionne "Voicemeeter B2" avec l\'icône ⚙️'}
+                                        </motion.div>
                                     )}
                                 </div>
                             </div>
@@ -298,7 +404,7 @@ export function VideoTranslator() {
                     </div>
 
                     {/* SIDEBAR HYBRID (30%) */}
-                    <div className="lg:w-[30%] min-w-[400px] border-l border-white/10 flex flex-col bg-[#050505] relative z-[100]">
+                    <div className="w-[380px] h-full border-l border-white/10 flex flex-col bg-[#050505] relative z-[100] shrink-0">
                         <div className="p-6 border-b border-white/10 bg-black flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <MessageSquare className="w-5 h-5 text-neon-cyan" />
