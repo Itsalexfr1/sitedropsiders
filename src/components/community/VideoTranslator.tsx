@@ -9,12 +9,15 @@ export function VideoTranslator() {
     const [platform, setPlatform] = useState<'YOUTUBE' | 'TWITCH' | null>(null);
     const [isTranslating, setIsTranslating] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
+    
+    // Voice/Video subtitles state
     const [voiceStatus, setVoiceStatus] = useState<'IDLE' | 'LISTENING' | 'TRANSLATING'>('IDLE');
     const [currentTranscript, setCurrentTranscript] = useState('En attente du flux audio...');
-    const [chatMessages, setChatMessages] = useState<{ id: string, user: string, text: string, translated?: string, isTranslating?: boolean }[]>([]);
-    const [autoTranslateChat, setAutoTranslateChat] = useState(true);
+    
+    // Chat-as-Subtitles state
+    const [liveSubtitles, setLiveSubtitles] = useState<{ id: string, user: string, text: string, translated: string }[]>([]);
 
-    // Simulated Transcription Engine for better UX
+    // Simulated Transcription Engine for better UX (Voice)
     useEffect(() => {
         if (!embedUrl) {
             setVoiceStatus('IDLE');
@@ -37,7 +40,7 @@ export function VideoTranslator() {
         return () => clearInterval(interval);
     }, [embedUrl]);
 
-    // Twitch Chat Connection
+    // Twitch Chat Connection (Chat as Subtitles)
     useEffect(() => {
         if (platform !== 'TWITCH' || !url) return;
         
@@ -61,18 +64,8 @@ export function VideoTranslator() {
                 const msgPart = message.split('PRIVMSG')[1];
                 const msgText = msgPart.split(':')[1]?.trim();
 
-                if (msgText) {
-                    const newMsg = { 
-                        id: Math.random().toString(36).substr(2, 9), 
-                        user: displayName, 
-                        text: msgText 
-                    };
-                    
-                    setChatMessages(prev => [newMsg, ...prev].slice(0, 50));
-
-                    if (autoTranslateChat) {
-                        translateChatMessage(newMsg.id, msgText);
-                    }
+                if (msgText && msgText.length > 3) {
+                    processNewChatSubtitle(displayName, msgText);
                 }
             }
             if (message.startsWith('PING')) {
@@ -81,25 +74,36 @@ export function VideoTranslator() {
         };
 
         return () => socket.close();
-    }, [platform, url, autoTranslateChat]);
+    }, [platform, url]);
 
-    const translateChatMessage = async (id: string, text: string) => {
-        if (text.length < 3) return;
-        setChatMessages(prev => prev.map(m => m.id === id ? { ...m, isTranslating: true } : m));
+    const processNewChatSubtitle = async (user: string, text: string) => {
         try {
             const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|fr`);
             const data = await res.json();
             const translated = data.responseData.translatedText;
-            setChatMessages(prev => prev.map(m => m.id === id ? { ...m, translated, isTranslating: false } : m));
+            
+            const newSub = { 
+                id: Math.random().toString(36).substr(2, 9), 
+                user, 
+                text, 
+                translated 
+            };
+            
+            setLiveSubtitles(prev => [...prev, newSub].slice(-3)); // Keep last 3 on screen
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                setLiveSubtitles(prev => prev.filter(s => s.id !== newSub.id));
+            }, 5000);
         } catch (e) {
-            setChatMessages(prev => prev.map(m => m.id === id ? { ...m, isTranslating: false } : m));
+            console.error('Translation error', e);
         }
     };
 
     const handleTranslate = () => {
         if (!url) return;
         setIsTranslating(true);
-        setChatMessages([]);
+        setLiveSubtitles([]);
         
         // Extract ID
         let videoId = '';
@@ -132,17 +136,17 @@ export function VideoTranslator() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="inline-flex items-center gap-3 px-5 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full mb-4 shadow-[0_0_20px_rgba(0,255,255,0.1)]"
                 >
-                    <Mic className="w-4 h-4 text-neon-cyan animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-neon-cyan">DROPSIDERS FULL-SYNC AI</span>
+                    <Tv className="w-4 h-4 text-neon-cyan animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-neon-cyan">DROPSIDERS TV SUBTITLES</span>
                 </motion.div>
                 
                 <h2 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase leading-none">
-                    D-TV <span className="text-neon-cyan drop-shadow-[0_0_20px_rgba(0,255,255,0.5)]">VOICE & CHAT</span> <br />
-                    <span className="text-white/20">MULTILINGUE</span>
+                    D-TV <span className="text-neon-cyan drop-shadow-[0_0_20px_rgba(0,255,255,0.5)]">LIVE SUBTITLES</span> <br />
+                    <span className="text-white/20">STYLE TÉLÉVISION</span>
                 </h2>
                 
                 <p className="text-gray-400 text-sm md:text-base font-medium leading-relaxed max-w-2xl mx-auto">
-                    Expérience totale : l'IA traduit la personne qui parle ET le chat en direct. Ne ratez plus aucune interaction de la scène internationale.
+                    Les réactions du chat s'affichent maintenant directement sur la vidéo comme des sous-titres officiels. Immersion totale garantie.
                 </p>
             </div>
 
@@ -167,7 +171,7 @@ export function VideoTranslator() {
                             disabled={!url || isTranslating}
                             className="px-10 py-5 bg-white text-black font-black uppercase text-[11px] tracking-[0.1em] rounded-[2rem] hover:bg-neon-cyan hover:shadow-[0_0_30px_rgba(0,255,255,0.4)] disabled:opacity-50 disabled:grayscale transition-all duration-500 shrink-0"
                         >
-                            {isTranslating ? 'Initialisation...' : 'Lancer l\'Expérience'}
+                            {isTranslating ? 'Initialisation...' : 'Lancer le Flux'}
                         </button>
                     </div>
                 </div>
@@ -181,111 +185,75 @@ export function VideoTranslator() {
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="max-w-7xl mx-auto relative"
+                        className="max-w-6xl mx-auto relative group"
                     >
-                        <div className="flex flex-col lg:flex-row gap-8">
-                            {/* Left Side: Video + Voice Bar */}
-                            <div className="flex-[2] space-y-6">
-                                <div className="aspect-video bg-black rounded-[3rem] overflow-hidden border-4 border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative group/player">
-                                    <iframe
-                                        src={embedUrl}
-                                        className="w-full h-full border-none"
-                                        allowFullScreen
-                                        allow="autoplay; encrypted-media"
-                                    />
-                                    
-                                    <div className="absolute top-8 left-8 flex items-center gap-3 px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-white/10">
-                                        <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-white">Live Voice Sync</span>
-                                    </div>
+                        <div className="space-y-6">
+                            {/* VIDEO PLAYER WITH SUBTITLE OVERLAY */}
+                            <div className="aspect-video bg-black rounded-[3rem] overflow-hidden border-4 border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative overflow-hidden">
+                                <iframe
+                                    src={embedUrl}
+                                    className="w-full h-full border-none"
+                                    allowFullScreen
+                                    allow="autoplay; encrypted-media"
+                                />
+
+                                {/* CHAT SUBTITLES OVERLAY (TV STYLE) */}
+                                <div className="absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-12 px-12 gap-4">
+                                    <AnimatePresence>
+                                        {liveSubtitles.map((sub, i) => (
+                                            <motion.div
+                                                key={sub.id}
+                                                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 1.1 }}
+                                                className="flex flex-col items-center"
+                                            >
+                                                <div className="bg-black/80 backdrop-blur-xl px-6 py-2.5 rounded-xl border border-white/10 shadow-2xl text-center">
+                                                    <div className="flex items-center gap-2 justify-center mb-1">
+                                                        <span className="text-[7px] font-black uppercase text-neon-cyan tracking-[0.2em]">{sub.user}</span>
+                                                        <div className="w-1 h-1 bg-white/20 rounded-full" />
+                                                        <span className="text-[7px] font-black uppercase text-white/40 tracking-widest">Chat Sub</span>
+                                                    </div>
+                                                    <p className="text-sm md:text-lg font-bold text-white leading-tight italic drop-shadow-lg">
+                                                        {sub.translated}
+                                                    </p>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
                                 </div>
 
-                                {/* Voice Transcription Bar */}
-                                <div className="p-6 md:p-8 bg-white/5 border border-white/10 rounded-[2.5rem] backdrop-blur-3xl flex items-center gap-6 md:gap-8 relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-neon-cyan/5 to-transparent pointer-events-none" />
-                                    <div className="flex items-end gap-1 h-8 w-12 shrink-0">
-                                        {[...Array(6)].map((_, i) => (
-                                            <motion.div
-                                                key={i}
-                                                animate={{ height: [8, 24, 12, 32, 8] }}
-                                                transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.1 }}
-                                                className="w-1 bg-neon-cyan rounded-full"
-                                            />
-                                        ))}
-                                    </div>
-                                    <div className="flex-1 space-y-1">
-                                        <span className="text-[8px] font-black uppercase text-neon-cyan tracking-[0.3em]">Neural Transcription (FR)</span>
-                                        <p className="text-base md:text-xl font-bold text-white leading-tight italic">
-                                            "{currentTranscript}"
-                                        </p>
-                                    </div>
-                                    <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-black/40 rounded-xl border border-white/5">
-                                        <Languages className="w-4 h-4 text-neon-cyan" />
-                                        <span className="text-[9px] font-bold text-white uppercase">Neural V4</span>
-                                    </div>
+                                {/* Status Badge */}
+                                <div className="absolute top-8 left-8 flex items-center gap-3 px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-white/10">
+                                    <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-white">Neural Live Subtitles</span>
                                 </div>
                             </div>
 
-                            {/* Right Side: Chat Translator */}
-                            <div className="flex-1 min-w-[320px] bg-[#080808] border border-white/10 rounded-[3.5rem] flex flex-col h-[500px] lg:h-auto overflow-hidden shadow-2xl">
-                                <div className="p-6 border-b border-white/5 flex items-center justify-between bg-black/20">
-                                    <div className="flex items-center gap-3">
-                                        <MessageSquare className="w-4 h-4 text-neon-cyan" />
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Live Chat traduit</h3>
-                                    </div>
-                                    {platform === 'TWITCH' && (
-                                        <button 
-                                            onClick={() => setAutoTranslateChat(!autoTranslateChat)}
-                                            className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest transition-all ${autoTranslateChat ? 'bg-neon-cyan text-black' : 'bg-white/5 text-white/40'}`}
-                                        >
-                                            {autoTranslateChat ? 'Auto-Trad ON' : 'Auto-Trad OFF'}
-                                        </button>
-                                    )}
+                            {/* Voice / Info Bar */}
+                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] backdrop-blur-3xl flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+                                <div className="flex items-end gap-1 h-8 w-12 shrink-0">
+                                    {[...Array(6)].map((_, i) => (
+                                        <motion.div
+                                            key={i}
+                                            animate={{ height: [8, 24, 12, 32, 8] }}
+                                            transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.1 }}
+                                            className="w-1 bg-neon-cyan rounded-full"
+                                        />
+                                    ))}
                                 </div>
-                                
-                                <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar flex flex-col-reverse">
-                                    {platform !== 'TWITCH' ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-20 p-8">
-                                            <Tv className="w-8 h-8" />
-                                            <p className="text-[9px] font-black uppercase tracking-widest leading-relaxed">
-                                                Mode Transcription Vocale activé. <br /> (Chat live disponible sur Twitch)
-                                            </p>
-                                        </div>
-                                    ) : chatMessages.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-20">
-                                            <RefreshCw className="w-6 h-6 animate-spin" />
-                                            <p className="text-[9px] font-black uppercase tracking-widest">Connexion au chat...</p>
-                                        </div>
-                                    ) : (
-                                        chatMessages.map((msg) => (
-                                            <motion.div key={msg.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] font-black text-neon-cyan uppercase tracking-tighter">{msg.user}</span>
-                                                </div>
-                                                <div className="p-3 bg-white/5 rounded-2xl rounded-tl-none border border-white/5">
-                                                    <p className="text-[11px] text-white/60 leading-relaxed">{msg.text}</p>
-                                                </div>
-                                                {msg.translated && (
-                                                    <div className="p-3 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl rounded-tl-none ml-4 space-y-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <Languages className="w-3 h-3 text-neon-cyan" />
-                                                            <span className="text-[8px] font-black uppercase text-neon-cyan">Traduction</span>
-                                                        </div>
-                                                        <p className="text-[11px] text-white font-bold leading-relaxed">{msg.translated}</p>
-                                                    </div>
-                                                )}
-                                            </motion.div>
-                                        ))
-                                    )}
+                                <div className="flex-1 space-y-1 text-center md:text-left">
+                                    <span className="text-[8px] font-black uppercase text-neon-cyan tracking-[0.3em]">Audio Neural Engine</span>
+                                    <p className="text-base md:text-xl font-bold text-white/40 leading-tight italic">
+                                        "{currentTranscript}"
+                                    </p>
                                 </div>
-                                <div className="p-4 bg-black/40 border-t border-white/5 text-center">
-                                    <button 
-                                        onClick={() => { setEmbedUrl(null); setUrl(''); }}
-                                        className="text-[9px] font-black uppercase text-neon-red hover:text-white transition-colors"
-                                    >
-                                        Fermer l'expérience
-                                    </button>
-                                </div>
+                                <button 
+                                    onClick={() => { setEmbedUrl(null); setUrl(''); }}
+                                    className="px-8 py-4 bg-neon-red/10 border border-neon-red/20 text-neon-red rounded-2xl text-[10px] font-black uppercase hover:bg-neon-red hover:text-white transition-all duration-500"
+                                >
+                                    Fermer le Flux
+                                </button>
                             </div>
                         </div>
                     </motion.div>
@@ -299,10 +267,10 @@ export function VideoTranslator() {
                         <div className="relative">
                             <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} className="absolute -inset-8 border border-dashed border-white/10 rounded-full" />
                             <div className="w-24 h-24 bg-white/5 rounded-[2rem] flex items-center justify-center border border-white/10">
-                                <Mic className="w-10 h-10" />
+                                <Tv className="w-10 h-10" />
                             </div>
                         </div>
-                        <p className="text-[11px] font-black uppercase tracking-[0.5em]">Dropsiders Full-Sync AI</p>
+                        <p className="text-[11px] font-black uppercase tracking-[0.5em]">Dropsiders Neural Experience</p>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -310,20 +278,20 @@ export function VideoTranslator() {
             {/* Tech Specs */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pt-20 border-t border-white/5 opacity-40">
                 <div className="space-y-1">
-                    <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Voice Engine</h4>
-                    <p className="text-[8px] text-white/60 uppercase font-bold">Transcription vocale en direct.</p>
+                    <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Subtitle Overlay</h4>
+                    <p className="text-[8px] text-white/60 uppercase font-bold">Affichage style télévision sur la vidéo.</p>
                 </div>
                 <div className="space-y-1">
-                    <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Chat Proxy</h4>
-                    <p className="text-[8px] text-white/60 uppercase font-bold">Traduction simultanée du chat.</p>
+                    <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Real-time Translate</h4>
+                    <p className="text-[8px] text-white/60 uppercase font-bold">Traduction neuronale instantanée.</p>
                 </div>
                 <div className="space-y-1">
-                    <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Language Force</h4>
-                    <p className="text-[8px] text-white/60 uppercase font-bold">Injection de paramètres FR.</p>
+                    <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Immersive Mode</h4>
+                    <p className="text-[8px] text-white/60 uppercase font-bold">Focus total sur le contenu vidéo.</p>
                 </div>
                 <div className="space-y-1">
-                    <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Multi-Source</h4>
-                    <p className="text-[8px] text-white/60 uppercase font-bold">YouTube & Twitch Support.</p>
+                    <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Dropsiders Neural</h4>
+                    <p className="text-[8px] text-white/60 uppercase font-bold">Moteur v4.2 optimisé.</p>
                 </div>
             </div>
         </div>
