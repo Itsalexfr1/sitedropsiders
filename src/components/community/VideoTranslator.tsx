@@ -93,62 +93,57 @@ export function VideoTranslator() {
 
     const startRecognitionWithStream = async (stream: MediaStream) => {
         setIsCapturing(true);
-        setStatusStep("Chargement Cerveau IA (Vosk)...");
+        setStatusStep("Initialisation IA...");
         
-        // We inject the Vosk script dynamically for a professional, frictionless experience.
-        if (!(window as any).Vosk) {
-            const script = document.createElement('script');
-            script.src = "https://cdn.jsdelivr.net/npm/vosk-browser@0.0.9/dist/vosk.js";
-            script.onload = () => startVoskEngine(stream);
-            document.head.appendChild(script);
-        } else {
-            startVoskEngine(stream);
-        }
-    };
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
 
-    const startVoskEngine = async (stream: MediaStream) => {
-        try {
-            setStatusStep("Initialisation IA...");
-            // Standard STT implementation using the stream directly
-            // This is the only way to bypass Chrome's "Mic-Only" restriction
-            
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) return;
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false; // False + Restart is more robust
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = 'en-US';
 
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = true;
-            recognitionRef.current.interimResults = true;
-            recognitionRef.current.lang = 'en-US';
+        recognitionRef.current.onstart = () => {
+            setStatusStep("IA à l'écoute...");
+        };
 
-            recognitionRef.current.onresult = async (event: any) => {
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        const text = event.results[i][0].transcript;
-                        setLiveTranscript(text);
-                        try {
-                            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
-                            const data = await res.json();
-                            if (data && data[0] && data[0][0] && data[0][0][0]) {
-                                setTranslatedTranscript(data[0][0][0]);
-                            }
-                        } catch (e) {}
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
+        recognitionRef.current.onresult = async (event: any) => {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                const text = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    setLiveTranscript(text);
+                    try {
+                        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
+                        const data = await res.json();
+                        if (data && data[0] && data[0][0] && data[0][0][0]) {
+                            setTranslatedTranscript(data[0][0][0]);
+                        }
+                    } catch (e) {
+                        setCaptureError("Erreur Google Translate");
                     }
+                } else {
+                    interimTranscript += text;
                 }
-                if (interimTranscript) setLiveTranscript(interimTranscript);
-            };
+            }
+            if (interimTranscript) setLiveTranscript(interimTranscript);
+        };
 
-            recognitionRef.current.onend = () => {
-                if (isCapturing) try { recognitionRef.current.start(); } catch (e) {}
-            };
+        recognitionRef.current.onerror = (e: any) => {
+            console.error("Recognition Error:", e.error);
+            setStatusStep(`Erreur: ${e.error}`);
+        };
 
+        recognitionRef.current.onend = () => {
+            if (isCapturing) {
+                try { recognitionRef.current.start(); } catch (e) {}
+            }
+        };
+
+        try {
             recognitionRef.current.start();
-            setStatusStep("Traduction Directe Active");
         } catch (e) {
-            console.error("Vosk failed", e);
-            setStatusStep("Erreur IA - Vérifie ton navigateur");
+            console.error("Start failed", e);
         }
     };
 
@@ -395,7 +390,7 @@ export function VideoTranslator() {
                                                 -2px 2px 0px rgba(0,0,0,1)
                                             `
                                         }}>
-                                            {translatedTranscript || "EN ATTENTE..."}
+                                            {translatedTranscript || liveTranscript || "EN ATTENTE..."}
                                         </p>
                                         
                                         {/* Subtle active indicator */}
