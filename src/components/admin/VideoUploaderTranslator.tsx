@@ -137,13 +137,16 @@ export function VideoUploaderTranslator() {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) return;
 
-        setStatusStep("Initialisation IA...");
+        setStatusStep("IA en cours d'analyse...");
         
-        try {
-            // Pre-warm the engine
-            const dummy = await navigator.mediaDevices.getUserMedia({ audio: true });
-            dummy.getTracks().forEach(t => t.stop());
-        } catch (e) {}
+        // We try to create a loopback by connecting the audio to a destination
+        // and starting recognition. In some browsers, this helps the engine "hear" the internal stream.
+        if (audioContextRef.current && displayStreamRef.current) {
+            const dest = audioContextRef.current.createMediaStreamDestination();
+            const source = audioContextRef.current.createMediaStreamSource(displayStreamRef.current);
+            source.connect(dest);
+            source.connect(audioContextRef.current.destination); // Make sure user hears it too
+        }
 
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = false;
