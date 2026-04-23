@@ -93,13 +93,21 @@ export function VideoTranslator() {
 
     const startRecognitionWithStream = async (stream: MediaStream) => {
         setIsCapturing(true);
+        setCaptureError(null);
         setStatusStep("Initialisation IA...");
         
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return;
+        if (!SpeechRecognition) {
+            setCaptureError("Ton navigateur ne supporte pas la traduction vocale.");
+            return;
+        }
+
+        if (recognitionRef.current) {
+            try { recognitionRef.current.stop(); } catch (e) {}
+        }
 
         recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = false; // False + Restart is more robust
+        recognitionRef.current.continuous = false;
         recognitionRef.current.interimResults = true;
         recognitionRef.current.lang = 'en-US';
 
@@ -119,9 +127,7 @@ export function VideoTranslator() {
                         if (data && data[0] && data[0][0] && data[0][0][0]) {
                             setTranslatedTranscript(data[0][0][0]);
                         }
-                    } catch (e) {
-                        setCaptureError("Erreur Google Translate");
-                    }
+                    } catch (e) {}
                 } else {
                     interimTranscript += text;
                 }
@@ -131,12 +137,18 @@ export function VideoTranslator() {
 
         recognitionRef.current.onerror = (e: any) => {
             console.error("Recognition Error:", e.error);
-            setStatusStep(`Erreur: ${e.error}`);
+            if (e.error === 'not-allowed') {
+                setStatusStep("⚠️ Autorise le micro en haut à gauche!");
+            } else {
+                setStatusStep(`Erreur: ${e.error}`);
+            }
         };
 
         recognitionRef.current.onend = () => {
             if (isCapturing) {
-                try { recognitionRef.current.start(); } catch (e) {}
+                setTimeout(() => {
+                    try { recognitionRef.current.start(); } catch (e) {}
+                }, 100);
             }
         };
 
@@ -144,6 +156,7 @@ export function VideoTranslator() {
             recognitionRef.current.start();
         } catch (e) {
             console.error("Start failed", e);
+            setStatusStep("Erreur démarrage IA");
         }
     };
 
