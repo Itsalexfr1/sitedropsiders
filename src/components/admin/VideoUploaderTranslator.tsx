@@ -423,9 +423,6 @@ export function VideoUploaderTranslator() {
                     </div>
                 )}
             </AnimatePresence>
-                    </div>
-                </div>
-            )}
 
             {/* History Section */}
             {savedHistory.length > 0 && (
