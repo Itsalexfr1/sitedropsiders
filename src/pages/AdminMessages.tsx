@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin, apiFetch } from '../utils/auth';
 
 const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
@@ -340,7 +340,8 @@ export function AdminMessages() {
                     setMessages(prev => prev.map(m => m.id === selected.id ? { ...m, replied: true } : m));
                     setSelected(prev => prev ? { ...prev, replied: true } : prev);
                 }
-                setTimeout(() => { setReplyModal(false); setReplyStatus('idle'); }, 1500);
+                // Ne plus fermer automatiquement le modal pour laisser voir le message de succès
+                // setTimeout(() => { setReplyModal(false); setReplyStatus('idle'); }, 1500);
                 showNotif('success', `Message envoyé à ${to} !`);
             } else {
                 const err = await res.json().catch(() => ({}));
@@ -955,8 +956,9 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
-                        className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/90 backdrop-blur-md"
+                        // Retiré : ne plus fermer au clic extérieur
+                        // onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
+                        className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/95 backdrop-blur-xl"
                     >
                         <motion.div
                             initial={{ y: 50, opacity: 0 }}
@@ -1348,7 +1350,28 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                         </div>
                                     </div>
                                     
-                                    {replyStatus === 'error' && <p className="text-neon-red text-xs font-bold text-center mt-4">⚠ {replyError}</p>}
+                                    {replyStatus === 'error' && (
+                                         <div className="flex items-center justify-center gap-3 p-4 bg-neon-red/10 border border-neon-red/30 rounded-2xl mt-4">
+                                             <AlertCircle className="w-5 h-5 text-neon-red" />
+                                             <p className="text-neon-red text-[11px] font-black uppercase italic tracking-widest">⚠ {replyError}</p>
+                                         </div>
+                                     )}
+
+                                     {replyStatus === 'success' && (
+                                         <div className="flex flex-col items-center justify-center gap-3 p-8 bg-neon-cyan/10 border border-neon-cyan/30 rounded-[2rem] mt-4">
+                                             <div className="w-16 h-16 bg-neon-cyan/20 rounded-full flex items-center justify-center border border-neon-cyan/40 mb-2 animate-bounce">
+                                                 <Check className="w-8 h-8 text-neon-cyan" />
+                                             </div>
+                                             <p className="text-white text-xl font-display font-black uppercase italic tracking-tighter text-center">MESSAGE ENVOYÉ !</p>
+                                             <p className="text-neon-cyan text-[10px] font-black uppercase tracking-[0.3em] text-center">Confirmation reçue via Brevo</p>
+                                             <button 
+                                                onClick={() => { setReplyStatus('idle'); setReplyBody(''); }}
+                                                className="mt-6 px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all shadow-lg"
+                                             >
+                                                 Envoyer un autre message
+                                             </button>
+                                         </div>
+                                     )}
                                 </div>
                             </div>
 
