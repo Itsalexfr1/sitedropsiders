@@ -82,24 +82,27 @@ export function VideoUploaderTranslator() {
         }
     };
 
-    const startSystemAudioCapture = async () => {
+    const startAnalysis = async () => {
         try {
+            if (!videoRef.current) return;
             setCaptureError(null);
-            setStatusStep("Attente autorisation...");
-            
-            const stream = await navigator.mediaDevices.getDisplayMedia({
-                video: true,
-                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
-            });
+            setStatusStep("Extraction Audio...");
 
-            const audioTracks = stream.getAudioTracks();
-            if (audioTracks.length === 0) {
-                stream.getTracks().forEach(t => t.stop());
-                setCaptureError("Aucun son détecté dans la capture.");
-                return;
+            // THE STABLE WAY: Capture stream directly from the video element
+            // No screen sharing needed!
+            let stream: MediaStream;
+            if ((videoRef.current as any).captureStream) {
+                stream = (videoRef.current as any).captureStream();
+            } else if ((videoRef.current as any).mozCaptureStream) {
+                stream = (videoRef.current as any).mozCaptureStream();
+            } else {
+                // Fallback to DisplayMedia if captureStream is not supported (unlikely in modern Chrome)
+                stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true,
+                    audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+                });
             }
 
-            stream.getVideoTracks().forEach(t => t.enabled = false);
             displayStreamRef.current = stream;
             setIsProcessing(true);
             setStatus('PLAYING');
@@ -123,9 +126,10 @@ export function VideoUploaderTranslator() {
             updateLevel();
             
             startRecognition();
-            if (videoRef.current) videoRef.current.play();
+            videoRef.current.play();
         } catch (err) {
-            setCaptureError("Capture annulée.");
+            console.error("Analysis error", err);
+            setCaptureError("Erreur lors du démarrage de l'analyse.");
         }
     };
 
@@ -244,11 +248,11 @@ export function VideoUploaderTranslator() {
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                                 {status === 'IDLE' || status === 'DONE' ? (
                                     <button 
-                                        onClick={startSystemAudioCapture}
+                                        onClick={startAnalysis}
                                         className="px-8 py-4 bg-neon-cyan text-black rounded-2xl font-black uppercase text-[12px] flex items-center gap-3 hover:scale-105 transition-all shadow-2xl"
                                     >
                                         <Play className="w-5 h-5 fill-current" />
-                                        LANCER CAPTURE SYSTÈME
+                                        LANCER ANALYSE AUTOMATIQUE
                                     </button>
                                 ) : (
                                     <button 
