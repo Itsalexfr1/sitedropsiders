@@ -91,17 +91,33 @@ export function VideoTranslator() {
         }
     };
 
-    const startRecognitionWithStream = (stream: MediaStream) => {
+    const startRecognitionWithStream = async (stream: MediaStream) => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return;
 
-        setStatusStep("Démarrage de l'IA (Système)...");
+        try {
+            // Chrome/Opera logic: Even for system audio, we MUST have a mic permission unlocked
+            // otherwise the engine stays in "Starting" forever.
+            setStatusStep("Déblocage Moteur IA...");
+            const dummyStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            dummyStream.getTracks().forEach(t => t.stop()); // Unlock permission then stop dummy
+        } catch (e) {
+            console.error("Mic permission denied", e);
+            setCaptureError("L'IA a besoin de l'autorisation micro pour démarrer (même pour le système).");
+            return;
+        }
+
+        setStatusStep("Traduction Active...");
         setIsCapturing(true);
 
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
         recognitionRef.current.lang = 'en-US';
+
+        recognitionRef.current.onstart = () => {
+            setStatusStep(""); // Clear status once active
+        };
 
         recognitionRef.current.onresult = async (event: any) => {
             let interimTranscript = '';
@@ -125,21 +141,20 @@ export function VideoTranslator() {
 
         recognitionRef.current.onerror = (e: any) => {
             console.error("System recognition error", e.error);
-            // Don't stop immediately, just log
+            if (e.error === 'not-allowed') {
+                setCaptureError("Permission micro refusée dans le navigateur.");
+            }
         };
 
-        // Trick to keep it alive
         recognitionRef.current.onend = () => {
             if (isCapturing) try { recognitionRef.current.start(); } catch (e) {}
         };
 
-        recognitionRef.current.start();
-        
-        // IMPORTANT: On most browsers, SpeechRecognition listens to the DEFAULT system input.
-        // If the user is capturing an app/tab, they should ideally set their 
-        // system recording device to something like Stereo Mix, but since they want 
-        // to avoid it, we tell them to keep their Mic ACTIVE even if they capture a tab.
-        // The browser will then "mix" the signals on some platforms.
+        try {
+            recognitionRef.current.start();
+        } catch (e) {
+            console.error("Recognition start failed", e);
+        }
     };
 
     const stopVoiceCapture = () => {
