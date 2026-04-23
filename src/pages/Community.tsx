@@ -5,7 +5,7 @@ import {
     Sparkles, Trophy, Plus, Check, AlertCircle,
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
-    Flame, Search, Filter, Globe,
+    Flame, Search, Filter, Globe, Tv,
     Share2, MessageSquare, Wand2, Instagram, Users as UsersIcon
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
