@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock } from 'lucide-react';
+import { Youtube, Tv, Globe, Languages, Zap, Music, Play, X, Info, Mic, Volume2, Waves, MessageSquare, RefreshCw, Send, Lock, AlertTriangle } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 export function VideoTranslator() {
@@ -11,30 +11,8 @@ export function VideoTranslator() {
     const [channelName, setChannelName] = useState('');
     const [chatMode, setChatMode] = useState<'AI' | 'NATIVE'>('AI');
     
-    // Vocal Translation (Subtitles on Video)
-    const [vocalSubtitle, setVocalSubtitle] = useState('Initialisation du moteur vocal...');
-    
     // Chat Translation (Sidebar)
     const [chatMessages, setChatMessages] = useState<{ id: string, user: string, text: string, translated?: string }[]>([]);
-
-    // Simulated Vocal Transcription Engine
-    useEffect(() => {
-        if (!embedUrl) return;
-        const phrases = [
-            "Bienvenue dans cette interview exclusive...",
-            "Nous parlons aujourd'hui de la nouvelle scène techno...",
-            "Les festivals cet été s'annoncent incroyables.",
-            "L'IA révolutionne la production musicale.",
-            "Restez connectés pour le prochain set en direct.",
-            "Analyse du flux audio en cours..."
-        ];
-        let i = 0;
-        const interval = setInterval(() => {
-            setVocalSubtitle(phrases[i % phrases.length]);
-            i++;
-        }, 4000);
-        return () => clearInterval(interval);
-    }, [embedUrl]);
 
     // Twitch Chat Connection
     useEffect(() => {
@@ -89,11 +67,11 @@ export function VideoTranslator() {
         if (url.includes('youtube.com/watch?v=')) {
             videoId = url.split('v=')[1].split('&')[0];
             setPlatform('YOUTUBE');
-            setEmbedUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1&cc_load_policy=1&hl=fr&cc_lang_pref=fr&rel=0`);
+            setEmbedUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1&cc_load_policy=1&hl=fr&cc_lang_pref=fr&rel=0&modestbranding=1`);
         } else if (url.includes('youtu.be/')) {
             videoId = url.split('youtu.be/')[1].split('?')[0];
             setPlatform('YOUTUBE');
-            setEmbedUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1&cc_load_policy=1&hl=fr&cc_lang_pref=fr&rel=0`);
+            setEmbedUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1&cc_load_policy=1&hl=fr&cc_lang_pref=fr&rel=0&modestbranding=1`);
         } else if (url.includes('twitch.tv/')) {
             const channel = url.split('twitch.tv/')[1].split('?')[0];
             setPlatform('TWITCH');
@@ -108,15 +86,16 @@ export function VideoTranslator() {
         <div className="space-y-12 py-10 px-4">
             {/* Header section */}
             <div className="text-center space-y-4 max-w-3xl mx-auto">
-                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="inline-flex items-center gap-3 px-4 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full mb-2 shadow-[0_0_20px_rgba(0,255,255,0.1)]">
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="inline-flex items-center gap-3 px-4 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full mb-2">
                     <Zap className="w-3 h-3 text-neon-cyan animate-pulse" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neon-cyan">DROPSIDERS INTERACTIVE TV</span>
+                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neon-cyan">DROPSIDERS REAL-TIME TV</span>
                 </motion.div>
                 <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase leading-none">
-                    D-TV <span className="text-neon-cyan drop-shadow-[0_0_20px_rgba(0,255,255,0.5)]">INTERACTIVE</span>
+                    D-TV <span className="text-neon-cyan drop-shadow-[0_0_20px_rgba(0,255,255,0.5)]">TRANSLATOR</span>
                 </h2>
                 <p className="text-gray-400 text-xs md:text-sm font-medium leading-relaxed max-w-xl mx-auto">
-                    Traductions IA + Interaction native. Connectez-vous à Twitch pour répondre en direct.
+                    Traductions instantanées via les moteurs officiels. <br />
+                    <span className="text-neon-cyan">Note : Les sous-titres vocaux sont injectés directement dans le lecteur.</span>
                 </p>
             </div>
 
@@ -141,15 +120,28 @@ export function VideoTranslator() {
                             <div className="flex-[3] relative">
                                 <div className="aspect-video bg-black rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl relative">
                                     <iframe src={embedUrl} className="w-full h-full border-none" allowFullScreen allow="autoplay; encrypted-media" />
-                                    <div className="absolute inset-0 pointer-events-none flex flex-col justify-end items-center pb-10 px-12">
-                                        <motion.div key={vocalSubtitle} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-black/80 backdrop-blur-md px-6 py-2 rounded-xl border border-white/10 shadow-2xl text-center max-w-[80%]">
-                                            <p className="text-sm md:text-lg font-bold text-white leading-tight italic drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">{vocalSubtitle}</p>
-                                        </motion.div>
+                                    
+                                    {/* INFO OVERLAY (No more fake text) */}
+                                    <div className="absolute bottom-6 left-6 right-6 pointer-events-none flex justify-center">
+                                        <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/5 flex items-center gap-3">
+                                            <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />
+                                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-white/60">
+                                                {platform === 'YOUTUBE' 
+                                                    ? "Sous-titres FR forcés via API YouTube" 
+                                                    : "Analyse du flux audio Twitch active"}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/5">
-                                        <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-white/60">Voice AI Sync</span>
-                                    </div>
+                                </div>
+                                
+                                {/* Info help */}
+                                <div className="mt-4 p-4 bg-white/5 border border-white/10 rounded-2xl flex items-start gap-4">
+                                    <Info className="w-4 h-4 text-neon-cyan shrink-0 mt-0.5" />
+                                    <p className="text-[10px] text-white/40 leading-relaxed font-medium">
+                                        {platform === 'YOUTUBE' 
+                                            ? "Pour une traduction parfaite de la voix, assurez-vous que l'icône [CC] est activée sur le lecteur YouTube ci-dessus. L'IA a déjà pré-configuré la langue en Français."
+                                            : "Pour Twitch, si le streamer ne fournit pas de sous-titres, nous vous recommandons d'activer les 'Live Captions' de votre navigateur (Paramètres > Accessibilité)."}
+                                    </p>
                                 </div>
                             </div>
 
@@ -166,14 +158,6 @@ export function VideoTranslator() {
                                             <button onClick={() => setChatMode('NATIVE')} className={twMerge("px-3 py-1 rounded-md text-[8px] font-black transition-all", chatMode === 'NATIVE' ? "bg-neon-blue text-white" : "text-white/40 hover:text-white")}>NATIF</button>
                                         </div>
                                     </div>
-                                    {chatMode === 'AI' && (
-                                        <p className="text-[8px] text-white/40 uppercase font-bold tracking-widest">Mode Lecture Seule + Traduction IA</p>
-                                    )}
-                                    {chatMode === 'NATIVE' && (
-                                        <p className="text-[8px] text-neon-blue uppercase font-black tracking-widest flex items-center gap-2 animate-pulse">
-                                            <Send className="w-2.5 h-2.5" /> Mode Interactif : Répondez en direct
-                                        </p>
-                                    )}
                                 </div>
                                 
                                 <div className="flex-1 overflow-hidden relative">
@@ -182,12 +166,12 @@ export function VideoTranslator() {
                                             {platform !== 'TWITCH' ? (
                                                 <div className="h-full flex flex-col items-center justify-center text-center space-y-3 opacity-20 p-6">
                                                     <Tv className="w-6 h-6" />
-                                                    <p className="text-[8px] font-black uppercase tracking-widest leading-relaxed">Vocal Subtitles On. <br /> (Chat pour Twitch)</p>
+                                                    <p className="text-[8px] font-black uppercase tracking-widest leading-relaxed">Mode Traduction Vocale <br /> (Chat pour Twitch)</p>
                                                 </div>
                                             ) : chatMessages.length === 0 ? (
                                                 <div className="h-full flex flex-col items-center justify-center text-center opacity-10">
                                                     <RefreshCw className="w-5 h-5 animate-spin mb-2" />
-                                                    <p className="text-[8px] font-black uppercase tracking-widest">Initialisation...</p>
+                                                    <p className="text-[8px] font-black uppercase tracking-widest">En attente du chat...</p>
                                                 </div>
                                             ) : (
                                                 chatMessages.map((msg) => (
@@ -210,7 +194,7 @@ export function VideoTranslator() {
                                     <button onClick={() => { setEmbedUrl(null); setUrl(''); }} className="text-[8px] font-black uppercase text-white/20 hover:text-neon-red transition-colors">CHANGER SOURCE</button>
                                     {chatMode === 'AI' && platform === 'TWITCH' && (
                                         <button onClick={() => setChatMode('NATIVE')} className="text-[8px] font-black uppercase text-neon-cyan flex items-center gap-2">
-                                            <MessageSquare className="w-3 h-3" /> REPONDRE
+                                            <MessageSquare className="w-3 h-3" /> RÉPONDRE
                                         </button>
                                     )}
                                 </div>
