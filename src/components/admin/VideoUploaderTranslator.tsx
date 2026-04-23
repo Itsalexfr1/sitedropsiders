@@ -45,7 +45,7 @@ export function VideoUploaderTranslator() {
         localStorage.setItem('dropsiders_video_archives', JSON.stringify(updated));
         setShowArchivePrompt(false);
         setArchiveName("");
-        showNotification("success", "Traduction archivée avec succès !");
+        showNotification("Traduction archivée avec succès !", "success");
     };
 
     const downloadTxt = () => {
