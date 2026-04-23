@@ -32,6 +32,7 @@ interface UserContextType {
     earnPoints: (xp: number, drops: number) => void;
     isAuthModalOpen: boolean;
     setIsAuthModalOpen: (open: boolean) => void;
+    showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);

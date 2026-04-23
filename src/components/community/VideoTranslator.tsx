@@ -25,12 +25,8 @@ export function VideoTranslator() {
     const [liveTranscript, setLiveTranscript] = useState('');
     const [translatedTranscript, setTranslatedTranscript] = useState('');
     const [statusStep, setStatusStep] = useState<string>("");
-    const [isTestingAudio, setIsTestingAudio] = useState(false);
     const [audioLevel, setAudioLevel] = useState(0); 
     const [captureError, setCaptureError] = useState<string | null>(null);
-    const [availableDevices, setAvailableDevices] = useState<MediaDeviceInfo[]>([]);
-    const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
-    const [showDeviceList, setShowDeviceList] = useState(false);
     const [isMonitoring, setIsMonitoring] = useState(false);
     
     const recognitionRef = useRef<any>(null);
@@ -46,42 +42,6 @@ export function VideoTranslator() {
         try {
             if (audioContextRef.current) await audioContextRef.current.close();
             const constraints = { 
-                audio: selectedDeviceId 
-                    ? { deviceId: { exact: selectedDeviceId }, echoCancellation: false } 
-                    : { echoCancellation: false, noiseSuppression: false, autoGainControl: true } 
-            };
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
-            streamRef.current = stream;
-            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-            if (audioContextRef.current.state === 'suspended') await audioContextRef.current.resume();
-            const source = audioContextRef.current.createMediaStreamSource(stream);
-            analyserRef.current = audioContextRef.current.createAnalyser();
-            analyserRef.current.fftSize = 64;
-            source.connect(analyserRef.current);
-
-            // Monitoring Node
-            monitorNodeRef.current = audioContextRef.current.createGain();
-            monitorNodeRef.current.gain.value = isMonitoring ? 1 : 0;
-            source.connect(monitorNodeRef.current);
-            monitorNodeRef.current.connect(audioContextRef.current.destination);
-            const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-            const updateLevel = () => {
-                if (analyserRef.current) {
-                    analyserRef.current.getByteFrequencyData(dataArray);
-                    const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
-                    setAudioLevel(avg);
-                    animationFrameRef.current = requestAnimationFrame(updateLevel);
-                }
-            };
-            updateLevel();
-            return true;
-        } catch (err) { 
-            console.error("Visualizer error", err); 
-            setCaptureError("Microphone non autorisé ou introuvable.");
-            return false;
-        }
-    };
-
     // System Audio Capture (Display Media)
     const startSystemAudioCapture = async () => {
         try {
@@ -187,134 +147,6 @@ export function VideoTranslator() {
     useEffect(() => {
         const getDevices = async () => {
             try {
-                // Request temporary access to unlock device labels (Chrome/Opera security)
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                stream.getTracks().forEach(t => t.stop()); // Stop immediately
-                
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                setAvailableDevices(devices.filter(d => d.kind === 'audioinput'));
-            } catch (e) {
-                console.error("Device list error", e);
-                // Fallback to basic list if blocked
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                setAvailableDevices(devices.filter(d => d.kind === 'audioinput'));
-            }
-        };
-        getDevices();
-        navigator.mediaDevices.ondevicechange = getDevices;
-    }, []);
-
-    const stopAudioVisualizer = () => {
-        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-        if (audioContextRef.current) audioContextRef.current.close();
-        if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
-        setAudioLevel(0);
-    };
-
-    const startVoiceCapture = async () => {
-        setCaptureError(null);
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            setCaptureError("Votre navigateur ne supporte pas la reconnaissance vocale.");
-            return;
-        }
-
-        setStatusStep("Initialisation Micro...");
-        const visualizerStarted = await startAudioVisualizer();
-        if (!visualizerStarted) {
-            setStatusStep("Erreur Micro");
-            return;
-        }
-
-        setStatusStep("Démarrage de l'IA...");
-        setIsCapturing(true);
-
-        try {
-            recognitionRef.current = new SpeechRecognition();
-            recognitionRef.current.continuous = true;
-            recognitionRef.current.interimResults = true;
-            recognitionRef.current.lang = 'en-US';
-
-            recognitionRef.current.onstart = () => {
-                setIsCapturing(true);
-                setCaptureError(null);
-            };
-
-            recognitionRef.current.onresult = async (event: any) => {
-                let interimTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        const text = event.results[i][0].transcript;
-                        setLiveTranscript(text);
-                        try {
-                            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
-                            const data = await res.json();
-                            if (data && data[0] && data[0][0] && data[0][0][0]) {
-                                setTranslatedTranscript(data[0][0][0]);
-                            }
-                        } catch (e) {
-                            console.error("Translation error", e);
-                        }
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-                if (interimTranscript) {
-                    setLiveTranscript(interimTranscript);
-                }
-            };
-
-            recognitionRef.current.onerror = (event: any) => {
-                console.error("Recognition error", event.error);
-                if (event.error === 'not-allowed') {
-                    setCaptureError("Permission micro refusée.");
-                } else {
-                    setCaptureError(`Erreur: ${event.error}`);
-                }
-                stopVoiceCapture();
-            };
-
-            recognitionRef.current.onend = () => { 
-                if (isCapturing) {
-                    try { recognitionRef.current.start(); } catch (e) {}
-                } 
-            };
-
-            recognitionRef.current.start();
-        } catch (err) {
-            console.error("Failed to start recognition", err);
-            setCaptureError("Impossible de démarrer la capture.");
-            stopVoiceCapture();
-        }
-    };
-
-    const testAudioInput = async () => {
-        if (isTestingAudio) return;
-        setIsTestingAudio(true);
-        setStatusStep("Enregistrement test (1s)...");
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: selectedDeviceId ? { deviceId: { exact: selectedDeviceId } } : true 
-            });
-            const mediaRecorder = new MediaRecorder(stream);
-            const chunks: Blob[] = [];
-            mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'audio/wav' });
-                const url = URL.createObjectURL(blob);
-                const audio = new Audio(url);
-                audio.play();
-                setStatusStep("Test terminé (Lecture)");
-                setTimeout(() => { setIsTestingAudio(false); setStatusStep(""); }, 2000);
-            };
-            mediaRecorder.start();
-            setTimeout(() => mediaRecorder.stop(), 1000);
-        } catch (e) {
-            setCaptureError("Erreur Test: Micro introuvable");
-            setIsTestingAudio(false);
-        }
-    };
-
     const stopVoiceCapture = () => {
         if (recognitionRef.current) {
             try { recognitionRef.current.stop(); } catch (e) {}
@@ -322,7 +154,6 @@ export function VideoTranslator() {
         setIsCapturing(false);
         setLiveTranscript('');
         setTranslatedTranscript('');
-        if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
         if (displayStreamRef.current) displayStreamRef.current.getTracks().forEach(track => track.stop());
         setAudioLevel(0);
         setIsMonitoring(false);
@@ -472,87 +303,34 @@ export function VideoTranslator() {
                                 <div className="flex flex-col gap-2 relative">
                                     <div className="flex items-center gap-2">
                                         <button 
-                                            onClick={isCapturing ? stopVoiceCapture : startVoiceCapture}
+                                            onClick={isCapturing ? stopVoiceCapture : startSystemAudioCapture}
                                             className={twMerge(
-                                                "px-6 py-3 rounded-2xl border transition-all flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-2xl",
+                                                "px-8 py-4 rounded-2xl border transition-all flex items-center gap-4 text-[12px] font-black uppercase tracking-widest shadow-2xl",
                                                 isCapturing ? "bg-neon-red border-neon-red text-white" : "bg-neon-cyan border-neon-cyan text-black hover:scale-105 active:scale-95"
                                             )}
                                         >
-                                            <Mic className={twMerge("w-4 h-4", isCapturing && "animate-pulse")} />
-                                            {isCapturing ? "STOP CAPTURE" : "TRADUCTION VOCALE"}
-                                            <div className="flex gap-1 ml-2 items-center min-w-[30px] h-4">
-                                                {[...Array(5)].map((_, i) => (
-                                                    <motion.div key={i} animate={{ height: isCapturing && audioLevel > 2 ? [4, 15, 4] : 4 }} className="w-1 bg-white/40 rounded-full" />
+                                            <Monitor className={twMerge("w-5 h-5", isCapturing && "animate-pulse")} />
+                                            {isCapturing ? "STOP TRADUCTION" : "LANCER TRADUCTION SYSTÈME"}
+                                            <div className="flex gap-1.5 ml-2 items-center min-w-[40px] h-5">
+                                                {[...Array(6)].map((_, i) => (
+                                                    <motion.div key={i} animate={{ height: isCapturing && audioLevel > 2 ? [4, 18, 4] : 4 }} className="w-1.5 bg-white/40 rounded-full" />
                                                 ))}
                                             </div>
-                                        </button>
-
-                                        <button 
-                                            onClick={() => setShowDeviceList(!showDeviceList)}
-                                            className="p-3 bg-white/5 border border-white/10 rounded-2xl text-white/40 hover:text-white hover:bg-white/10 transition-all"
-                                            title="Changer de source audio"
-                                        >
-                                            <Settings className="w-5 h-5" />
                                         </button>
 
                                         <button 
                                             onClick={toggleMonitoring}
                                             disabled={!isCapturing}
                                             className={twMerge(
-                                                "p-3 border rounded-2xl transition-all shadow-xl",
+                                                "p-4 border rounded-2xl transition-all shadow-xl",
                                                 isMonitoring ? "bg-neon-purple border-neon-purple text-white" : "bg-white/5 border-white/10 text-white/40 hover:text-white disabled:opacity-20"
                                             )}
                                             title="Écouter le retour (Monitoring)"
                                         >
-                                            {isMonitoring ? <Volume2 className="w-5 h-5" /> : <Volume2 className="w-5 h-5 opacity-40" />}
-                                        </button>
-
-                                        <button 
-                                            onClick={testAudioInput}
-                                            disabled={isCapturing || isTestingAudio}
-                                            className={twMerge(
-                                                "px-4 py-3 border rounded-2xl transition-all text-[9px] font-black uppercase tracking-widest",
-                                                isTestingAudio ? "bg-neon-yellow text-black border-neon-yellow" : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-20"
-                                            )}
-                                        >
-                                            {isTestingAudio ? "TEST..." : "TEST MICRO"}
-                                        </button>
-
-                                        <button 
-                                            onClick={startSystemAudioCapture}
-                                            disabled={isCapturing}
-                                            className="px-6 py-3 bg-neon-purple/20 border border-neon-purple/40 text-neon-purple rounded-2xl flex items-center gap-3 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-neon-purple hover:text-white shadow-xl"
-                                        >
-                                            <Monitor className="w-4 h-4" />
-                                            CAPTURE SYSTÈME
+                                            {isMonitoring ? <Volume2 className="w-6 h-6" /> : <Volume2 className="w-6 h-6 opacity-40" />}
                                         </button>
                                     </div>
 
-                                    {/* Device Selector Dropdown */}
-                                    <AnimatePresence>
-                                        {showDeviceList && (
-                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute top-full left-0 mt-2 w-72 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 z-[200] shadow-2xl">
-                                                <div className="p-3 border-b border-white/5 mb-2">
-                                                    <p className="text-[9px] font-black uppercase text-gray-500 tracking-widest">Source Audio</p>
-                                                </div>
-                                                <div className="max-h-60 overflow-y-auto custom-scrollbar">
-                                                    {availableDevices.map(d => (
-                                                        <button 
-                                                            key={d.deviceId} 
-                                                            onClick={() => { setSelectedDeviceId(d.deviceId); setShowDeviceList(false); if (isCapturing) { stopVoiceCapture(); startVoiceCapture(); } }}
-                                                            className={twMerge(
-                                                                "w-full text-left p-3 rounded-xl text-[10px] font-bold uppercase truncate transition-all",
-                                                                selectedDeviceId === d.deviceId ? "bg-neon-cyan/20 text-neon-cyan" : "text-white/60 hover:bg-white/5 hover:text-white"
-                                                            )}
-                                                        >
-                                                            {d.label || `Microphone ${d.deviceId.slice(0, 5)}`}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                    
                                     {captureError && (
                                         <div className="flex items-center gap-2 text-neon-red text-[8px] font-black uppercase tracking-widest bg-black/60 px-3 py-1 rounded-full border border-neon-red/20">
                                             <AlertTriangle className="w-3 h-3" />
@@ -568,7 +346,7 @@ export function VideoTranslator() {
                                                 {audioLevel < 2 ? (
                                                     <>
                                                         <Headphones className="w-3.5 h-3.5 animate-pulse" />
-                                                        {selectedDeviceId.includes('B2') ? 'Son trop faible sur B2 ?' : 'Sélectionne "Voicemeeter B2" via ⚙️'}
+                                                        Pense à cocher "Partager l'audio" dans la fenêtre de capture !
                                                     </>
                                                 ) : (
                                                     <>
