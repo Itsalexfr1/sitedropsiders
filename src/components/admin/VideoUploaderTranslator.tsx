@@ -9,6 +9,7 @@ export function VideoUploaderTranslator() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [transcripts, setTranscripts] = useState<{ original: string, translated: string, timestamp: number }[]>([]);
     const [status, setStatus] = useState<'IDLE' | 'PLAYING' | 'DONE'>('IDLE');
+    const [progress, setProgress] = useState(0);
     const [savedHistory, setSavedHistory] = useState<{ id: string, name: string, date: string, transcripts: any[] }[]>(() => {
         try {
             return JSON.parse(localStorage.getItem('dropsiders_video_translations') || '[]');
@@ -134,6 +135,7 @@ export function VideoUploaderTranslator() {
         setVideoUrl(null);
         setTranscripts([]);
         setStatus('IDLE');
+        setProgress(0);
         setIsProcessing(false);
     };
 
@@ -184,6 +186,12 @@ export function VideoUploaderTranslator() {
                                 src={videoUrl || ''} 
                                 className="w-full h-full object-contain"
                                 onEnded={stopAnalysis}
+                                onTimeUpdate={() => {
+                                    if (videoRef.current && videoRef.current.duration > 0) {
+                                        const p = (videoRef.current.currentTime / videoRef.current.duration) * 100;
+                                        setProgress(p);
+                                    }
+                                }}
                             />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                                 {status === 'IDLE' || status === 'DONE' ? (
@@ -214,10 +222,21 @@ export function VideoUploaderTranslator() {
                                 )}>
                                     {status === 'PLAYING' && <Loader2 className="w-3 h-3 animate-spin" />}
                                     {status === 'DONE' && <CheckCircle2 className="w-3 h-3" />}
-                                    {status === 'IDLE' ? 'PRÊT POUR ANALYSE' : status === 'PLAYING' ? 'ANALYSE EN COURS...' : 'TERMINÉ'}
+                                    {status === 'IDLE' ? 'PRÊT POUR ANALYSE' : status === 'PLAYING' ? `ANALYSE : ${Math.floor(progress)}%` : 'TERMINÉ'}
                                 </div>
                                 <p className="text-[10px] text-gray-500 font-bold uppercase">{file.name}</p>
                             </div>
+                            {status === 'PLAYING' && (
+                                <div className="space-y-2 mt-2">
+                                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                        <motion.div 
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${progress}%` }}
+                                            className="h-full bg-gradient-to-r from-neon-cyan to-blue-500 shadow-[0_0_10px_rgba(0,255,255,0.3)]"
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         
                         <div className="flex items-center gap-3">

@@ -23,6 +23,8 @@ export function VideoTranslator() {
     const [isCapturing, setIsCapturing] = useState(false);
     const [liveTranscript, setLiveTranscript] = useState('');
     const [translatedTranscript, setTranslatedTranscript] = useState('');
+    const [statusStep, setStatusStep] = useState<string>("");
+    const [isTestingAudio, setIsTestingAudio] = useState(false);
     const [audioLevel, setAudioLevel] = useState(0); 
     const [captureError, setCaptureError] = useState<string | null>(null);
     const [availableDevices, setAvailableDevices] = useState<MediaDeviceInfo[]>([]);
@@ -82,17 +84,21 @@ export function VideoTranslator() {
     useEffect(() => {
         const getDevices = async () => {
             try {
-                // Request permission first to get labels
-                await navigator.mediaDevices.getUserMedia({ audio: true });
+                // Request temporary access to unlock device labels (Chrome/Opera security)
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                stream.getTracks().forEach(t => t.stop()); // Stop immediately
+                
                 const devices = await navigator.mediaDevices.enumerateDevices();
-                const audioIn = devices.filter(d => d.kind === 'audioinput');
-                setAvailableDevices(audioIn);
-                // Auto-select Voicemeeter Out B2 if found
-                const b2 = audioIn.find(d => d.label.includes('B2') || d.label.includes('AUX Output'));
-                if (b2) setSelectedDeviceId(b2.deviceId);
-            } catch (e) {}
+                setAvailableDevices(devices.filter(d => d.kind === 'audioinput'));
+            } catch (e) {
+                console.error("Device list error", e);
+                // Fallback to basic list if blocked
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                setAvailableDevices(devices.filter(d => d.kind === 'audioinput'));
+            }
         };
         getDevices();
+        navigator.mediaDevices.ondevicechange = getDevices;
     }, []);
 
     const stopAudioVisualizer = () => {
@@ -110,8 +116,15 @@ export function VideoTranslator() {
             return;
         }
 
+        setStatusStep("Initialisation Micro...");
         const visualizerStarted = await startAudioVisualizer();
-        if (!visualizerStarted) return;
+        if (!visualizerStarted) {
+            setStatusStep("Erreur Micro");
+            return;
+        }
+
+        setStatusStep("Démarrage de l'IA...");
+        setIsCapturing(true);
 
         try {
             recognitionRef.current = new SpeechRecognition();
@@ -169,6 +182,33 @@ export function VideoTranslator() {
             console.error("Failed to start recognition", err);
             setCaptureError("Impossible de démarrer la capture.");
             stopVoiceCapture();
+        }
+    };
+
+    const testAudioInput = async () => {
+        if (isTestingAudio) return;
+        setIsTestingAudio(true);
+        setStatusStep("Enregistrement test (1s)...");
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                audio: selectedDeviceId ? { deviceId: { exact: selectedDeviceId } } : true 
+            });
+            const mediaRecorder = new MediaRecorder(stream);
+            const chunks: Blob[] = [];
+            mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                audio.play();
+                setStatusStep("Test terminé (Lecture)");
+                setTimeout(() => { setIsTestingAudio(false); setStatusStep(""); }, 2000);
+            };
+            mediaRecorder.start();
+            setTimeout(() => mediaRecorder.stop(), 1000);
+        } catch (e) {
+            setCaptureError("Erreur Test: Micro introuvable");
+            setIsTestingAudio(false);
         }
     };
 
@@ -348,6 +388,17 @@ export function VideoTranslator() {
                                         >
                                             {isMonitoring ? <Volume2 className="w-5 h-5" /> : <Volume2 className="w-5 h-5 opacity-40" />}
                                         </button>
+
+                                        <button 
+                                            onClick={testAudioInput}
+                                            disabled={isCapturing || isTestingAudio}
+                                            className={twMerge(
+                                                "px-4 py-3 border rounded-2xl transition-all text-[9px] font-black uppercase tracking-widest",
+                                                isTestingAudio ? "bg-neon-yellow text-black border-neon-yellow" : "bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10 disabled:opacity-20"
+                                            )}
+                                        >
+                                            {isTestingAudio ? "TEST..." : "TEST MICRO"}
+                                        </button>
                                     </div>
 
                                     {/* Device Selector Dropdown */}
@@ -381,10 +432,32 @@ export function VideoTranslator() {
                                             {captureError}
                                         </div>
                                     )}
-                                    {isCapturing && audioLevel < 2 && (
-                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 text-neon-yellow text-[8px] font-black uppercase tracking-widest bg-black/80 px-4 py-2 rounded-xl border border-neon-yellow/30 shadow-2xl">
-                                            <Headphones className="w-3.5 h-3.5" />
-                                            {selectedDeviceId.includes('B2') ? 'Son trop faible sur B2 ?' : 'Sélectionne "Voicemeeter B2" avec l\'icône ⚙️'}
+                                    {isCapturing && (
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-2">
+                                            <div className={twMerge(
+                                                "flex items-center gap-2 text-[8px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border shadow-2xl",
+                                                audioLevel < 2 ? "bg-black/80 text-neon-yellow border-neon-yellow/30" : "bg-neon-cyan/10 text-neon-cyan border-neon-cyan/30"
+                                            )}>
+                                                {audioLevel < 2 ? (
+                                                    <>
+                                                        <Headphones className="w-3.5 h-3.5 animate-pulse" />
+                                                        {selectedDeviceId.includes('B2') ? 'Son trop faible sur B2 ?' : 'Sélectionne "Voicemeeter B2" via ⚙️'}
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Activity className="w-3.5 h-3.5 animate-pulse" />
+                                                        Flux Audio Détecté - Traduction en cours...
+                                                    </>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center justify-between px-2">
+                                                <p className="text-[7px] text-white/40 uppercase font-black tracking-[0.2em] italic">
+                                                    {statusStep || (translatedTranscript ? "Traduction Active" : "Écoute du flux...")}
+                                                </p>
+                                                {audioLevel > 0 && (
+                                                    <span className="text-[6px] text-neon-cyan font-black">SIG: {audioLevel}%</span>
+                                                )}
+                                            </div>
                                         </motion.div>
                                     )}
                                 </div>
