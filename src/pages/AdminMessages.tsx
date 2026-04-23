@@ -1046,6 +1046,11 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                     type="text"
                                                     value={mailSubject}
                                                     onChange={(e) => setMailSubject(e.target.value)}
+                                                    onInput={(e) => setMailSubject((e.target as HTMLInputElement).value)}
+                                                    onBlur={(e) => setMailSubject(e.target.value)}
+                                                    spellCheck="true"
+                                                    autoCorrect="on"
+                                                    autoComplete="on"
                                                     placeholder="Sujet du mail"
                                                     className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-white/20 flex-1 font-bold"
                                                 />
@@ -1304,8 +1309,13 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             <textarea
                                                 value={replyBody}
                                                 onChange={(e) => setReplyBody(e.target.value)}
+                                                onInput={(e) => setReplyBody((e.target as HTMLTextAreaElement).value)}
+                                                onBlur={(e) => setReplyBody(e.target.value)}
+                                                spellCheck="true"
+                                                autoCorrect="on"
+                                                autoComplete="on"
                                                 placeholder="Rédigez votre message..."
-                                                className="w-full h-[200px] md:h-[350px] bg-black/40 border border-white/10 rounded-2xl p-3 md:p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all font-mono custom-scrollbar"
+                                                className="w-full h-[200px] md:h-[350px] bg-black/40 border border-white/10 rounded-2xl p-3 md:p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all custom-scrollbar"
                                             />
                                         </div>
 
