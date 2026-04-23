@@ -13,6 +13,9 @@ export function VideoUploaderTranslator() {
     const [status, setStatus] = useState<'IDLE' | 'PLAYING' | 'DONE'>('IDLE');
     const [progress, setProgress] = useState(0);
     const [audioLevel, setAudioLevel] = useState(0);
+    const [captureError, setCaptureError] = useState<string | null>(null);
+    const [isMonitoring, setIsMonitoring] = useState(false);
+    const [statusStep, setStatusStep] = useState("");
     const [savedHistory, setSavedHistory] = useState<{ id: string, name: string, date: string, transcripts: any[] }[]>(() => {
         try {
             return JSON.parse(localStorage.getItem('dropsiders_video_translations') || '[]');
@@ -21,6 +24,10 @@ export function VideoUploaderTranslator() {
     
     const videoRef = useRef<HTMLVideoElement>(null);
     const recognitionRef = useRef<any>(null);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    const animationFrameRef = useRef<number | null>(null);
+    const displayStreamRef = useRef<MediaStream | null>(null);
 
     const saveToHistory = () => {
         if (transcripts.length === 0 || !file) return;
@@ -69,18 +76,56 @@ export function VideoUploaderTranslator() {
         }
     };
 
-    const startAnalysis = async () => {
-        if (!videoRef.current) return;
-        
-        setIsProcessing(true);
-        setStatus('PLAYING');
-        
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            showNotification("Votre navigateur ne supporte pas la reconnaissance vocale.", "error");
-            setIsProcessing(false);
-            return;
+    const startSystemAudioCapture = async () => {
+        try {
+            setCaptureError(null);
+            setStatusStep("Attente autorisation...");
+            
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+            });
+
+            const audioTracks = stream.getAudioTracks();
+            if (audioTracks.length === 0) {
+                stream.getTracks().forEach(t => t.stop());
+                setCaptureError("Aucun son détecté dans la capture.");
+                return;
+            }
+
+            stream.getVideoTracks().forEach(t => t.enabled = false);
+            displayStreamRef.current = stream;
+            setIsProcessing(true);
+            setStatus('PLAYING');
+
+            if (audioContextRef.current) await audioContextRef.current.close();
+            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const source = audioContextRef.current.createMediaStreamSource(stream);
+            analyserRef.current = audioContextRef.current.createAnalyser();
+            analyserRef.current.fftSize = 64;
+            source.connect(analyserRef.current);
+
+            const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+            const updateLevel = () => {
+                if (analyserRef.current) {
+                    analyserRef.current.getByteFrequencyData(dataArray);
+                    const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+                    setAudioLevel(avg);
+                    animationFrameRef.current = requestAnimationFrame(updateLevel);
+                }
+            };
+            updateLevel();
+            
+            startRecognition();
+            if (videoRef.current) videoRef.current.play();
+        } catch (err) {
+            setCaptureError("Capture annulée.");
         }
+    };
+
+    const startRecognition = () => {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) return;
 
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
@@ -88,74 +133,29 @@ export function VideoUploaderTranslator() {
         recognitionRef.current.lang = 'en-US';
 
         recognitionRef.current.onresult = async (event: any) => {
-            const results = event.results;
-            const lastResult = results[results.length - 1];
-            
+            const lastResult = event.results[event.results.length - 1];
             if (lastResult.isFinal) {
                 const text = lastResult[0].transcript;
                 try {
                     const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=${encodeURIComponent(text)}`);
                     const data = await res.json();
                     const translatedText = (data && data[0] && data[0][0] && data[0][0][0]) ? data[0][0][0] : text;
-                    
-                    setTranscripts(prev => [
-                        { 
-                            original: text, 
-                            translated: translatedText, 
-                            timestamp: videoRef.current?.currentTime || 0 
-                        },
-                        ...prev
-                    ]);
-                } catch (e) {
-                    setTranscripts(prev => [
-                        { original: text, translated: "[Erreur de traduction]", timestamp: videoRef.current?.currentTime || 0 },
-                        ...prev
-                    ]);
-                }
-            }
-        };
-
-        recognitionRef.current.onend = () => {
-            if (status === 'PLAYING') {
-                recognitionRef.current.start();
+                    setTranscripts(prev => [{ original: text, translated: translatedText, timestamp: videoRef.current?.currentTime || 0 }, ...prev]);
+                } catch (e) {}
             }
         };
 
         recognitionRef.current.start();
-        videoRef.current.play();
-
-        // Audio Level Detection
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const analyser = audioContext.createAnalyser();
-            const source = audioContext.createMediaStreamSource(stream);
-            source.connect(analyser);
-            analyser.fftSize = 256;
-            const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-            const checkVolume = () => {
-                if (status === 'PLAYING' || videoRef.current?.paused === false) {
-                    analyser.getByteFrequencyData(dataArray);
-                    const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
-                    setAudioLevel(avg);
-                    requestAnimationFrame(checkVolume);
-                } else {
-                    setAudioLevel(0);
-                }
-            };
-            checkVolume();
-        } catch (e) {
-            console.error("Audio detection failed", e);
-        }
     };
 
     const stopAnalysis = () => {
         if (recognitionRef.current) recognitionRef.current.stop();
         if (videoRef.current) videoRef.current.pause();
+        if (displayStreamRef.current) displayStreamRef.current.getTracks().forEach(t => t.stop());
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
         setStatus('DONE');
         setIsProcessing(false);
-        saveToHistory(); // Auto-archive on stop
+        saveToHistory();
     };
 
     const reset = () => {
@@ -221,13 +221,14 @@ export function VideoUploaderTranslator() {
                                     }
                                 }}
                             />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                                 {status === 'IDLE' || status === 'DONE' ? (
                                     <button 
-                                        onClick={startAnalysis}
-                                        className="w-16 h-16 bg-neon-cyan text-black rounded-full flex items-center justify-center hover:scale-110 transition-transform"
+                                        onClick={startSystemAudioCapture}
+                                        className="px-8 py-4 bg-neon-cyan text-black rounded-2xl font-black uppercase text-[12px] flex items-center gap-3 hover:scale-105 transition-all shadow-2xl"
                                     >
-                                        <Play className="w-8 h-8 fill-current" />
+                                        <Play className="w-5 h-5 fill-current" />
+                                        LANCER CAPTURE SYSTÈME
                                     </button>
                                 ) : (
                                     <button 
@@ -281,10 +282,19 @@ export function VideoUploaderTranslator() {
                         </div>
                         
                         <div className="flex items-center gap-3">
-                            <AlertCircle className="w-4 h-4 text-neon-yellow" />
-                            <p className="text-[9px] font-black uppercase tracking-widest text-neon-yellow/60 leading-relaxed">
-                                Note: Pour une analyse optimale, assurez-vous que le son sort sur vos haut-parleurs ou utilisez "Mixage Stéréo".
-                            </p>
+                            {captureError ? (
+                                <div className="flex items-center gap-2 text-neon-red text-[9px] font-black uppercase">
+                                    <AlertCircle className="w-4 h-4" />
+                                    {captureError}
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-3">
+                                    <CheckCircle2 className="w-4 h-4 text-neon-cyan" />
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-neon-cyan/60 leading-relaxed">
+                                        Mode Onglet Actif : Capture audio numérique activée.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
