@@ -13091,12 +13091,12 @@ export function AdminDashboard() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   className="relative w-full h-full bg-black flex flex-col p-0 overflow-hidden"
                 >
-                  <div className="absolute top-6 left-6 md:top-10 md:left-10 z-[120]">
+                  <div className="absolute top-6 right-6 md:top-10 md:right-10 z-[120]">
                     <button
                       onClick={() => setIsRandomizerModalOpen(false)}
-                      className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-500 hover:text-white transition-all shadow-2xl group flex items-center justify-center"
+                      className="p-4 bg-white/5 hover:bg-neon-red/20 border border-white/10 rounded-2xl text-gray-500 hover:text-white transition-all shadow-2xl group flex items-center justify-center"
                     >
-                      <ChevronLeft className="w-8 h-8 group-hover:-translate-x-1 transition-transform" />
+                      <X className="w-8 h-8 group-hover:rotate-90 transition-transform" />
                     </button>
                   </div>
                   <div className="flex-1 w-full h-full">
