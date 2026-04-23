@@ -1302,9 +1302,12 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             <div className="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em] mb-4 text-center">Aperçu</div>
                                             <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden shadow-2xl scale-[0.85] origin-top">
                                                 <div className="p-6">
-                                                    <div className="text-white/80 text-[11px] leading-relaxed whitespace-pre-wrap min-h-[100px]">
-                                                        {replyBody || "[Votre message apparaîtra ici]"}
-                                                    </div>
+                                                    <div 
+                                                        className="text-white/80 text-[11px] leading-relaxed min-h-[100px]"
+                                                        dangerouslySetInnerHTML={{ 
+                                                            __html: (replyBody || "[Votre message apparaîtra ici]").replace(/\n/g, '<br>') 
+                                                        }}
+                                                    />
                                                     <div className="mt-8 bg-black border border-white/10 border-t-4 border-t-neon-red rounded-xl overflow-hidden p-4">
                                                         <div className="text-white text-[10px] font-black italic uppercase text-center">
                                                             {accreditationLang === 'EN' ? 'Best regards,' : 'Cordialement,'} <br />
