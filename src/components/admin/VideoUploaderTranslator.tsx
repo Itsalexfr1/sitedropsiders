@@ -305,6 +305,18 @@ export function VideoUploaderTranslator() {
                             )}
                         </div>
                         
+                        <div className="flex items-center gap-3 bg-neon-cyan/5 p-4 rounded-2xl border border-neon-cyan/20">
+                            <div className="p-2 bg-neon-cyan/10 rounded-lg">
+                                <Mic className="w-4 h-4 text-neon-cyan" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-[10px] font-black uppercase text-white">Astuce Voicemeeter</p>
+                                <p className="text-[9px] text-gray-400 font-bold leading-relaxed">
+                                    Si le son bouge mais aucun texte ne sort : règle ton **Microphone par défaut** sur <span className="text-neon-cyan">"Voicemeeter Output"</span> dans les paramètres de ton navigateur.
+                                </p>
+                            </div>
+                        </div>
+
                         <div className="flex items-center gap-3">
                             {captureError ? (
                                 <div className="flex items-center gap-2 text-neon-red text-[9px] font-black uppercase">
@@ -315,7 +327,7 @@ export function VideoUploaderTranslator() {
                                 <div className="flex items-center gap-3">
                                     <CheckCircle2 className="w-4 h-4 text-neon-cyan" />
                                     <p className="text-[9px] font-black uppercase tracking-widest text-neon-cyan/60 leading-relaxed">
-                                        Mode Onglet Actif : Capture audio numérique activée.
+                                        Analyse Directe : Flux audio détecté ({Math.floor(audioLevel)}%).
                                     </p>
                                 </div>
                             )}
