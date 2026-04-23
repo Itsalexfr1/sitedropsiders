@@ -24,6 +24,7 @@ export function VideoTranslator() {
     const [liveTranscript, setLiveTranscript] = useState('');
     const [translatedTranscript, setTranslatedTranscript] = useState('');
     const [audioLevel, setAudioLevel] = useState(0); 
+    const [captureError, setCaptureError] = useState<string | null>(null);
     
     const recognitionRef = useRef<any>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
@@ -54,7 +55,12 @@ export function VideoTranslator() {
                 }
             };
             updateLevel();
-        } catch (err) { console.error("Visualizer error", err); }
+            return true;
+        } catch (err) { 
+            console.error("Visualizer error", err); 
+            setCaptureError("Microphone non autorisé ou introuvable.");
+            return false;
+        }
     };
 
     const stopAudioVisualizer = () => {
@@ -65,33 +71,68 @@ export function VideoTranslator() {
     };
 
     const startVoiceCapture = async () => {
+        setCaptureError(null);
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return;
-        await startAudioVisualizer();
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'en-US';
-        recognitionRef.current.onstart = () => setIsCapturing(true);
-        recognitionRef.current.onresult = async (event: any) => {
-            const transcript = Array.from(event.results).map((result: any) => result[0].transcript).join('');
-            setLiveTranscript(transcript);
-            if (event.results[event.results.length - 1].isFinal) {
-                const text = event.results[event.results.length - 1][0].transcript;
-                try {
-                    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|fr`);
-                    const data = await res.json();
-                    setTranslatedTranscript(data.responseData.translatedText);
-                } catch (e) {}
-            }
-        };
-        recognitionRef.current.onerror = () => stopVoiceCapture();
-        recognitionRef.current.onend = () => { if (isCapturing) recognitionRef.current.start(); };
-        recognitionRef.current.start();
+        if (!SpeechRecognition) {
+            setCaptureError("Votre navigateur ne supporte pas la reconnaissance vocale.");
+            return;
+        }
+
+        const visualizerStarted = await startAudioVisualizer();
+        if (!visualizerStarted) return;
+
+        try {
+            recognitionRef.current = new SpeechRecognition();
+            recognitionRef.current.continuous = true;
+            recognitionRef.current.interimResults = true;
+            recognitionRef.current.lang = 'en-US';
+
+            recognitionRef.current.onstart = () => {
+                setIsCapturing(true);
+                setCaptureError(null);
+            };
+
+            recognitionRef.current.onresult = async (event: any) => {
+                const transcript = Array.from(event.results).map((result: any) => result[0].transcript).join('');
+                setLiveTranscript(transcript);
+                if (event.results[event.results.length - 1].isFinal) {
+                    const text = event.results[event.results.length - 1][0].transcript;
+                    try {
+                        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|fr`);
+                        const data = await res.json();
+                        setTranslatedTranscript(data.responseData.translatedText);
+                    } catch (e) {}
+                }
+            };
+
+            recognitionRef.current.onerror = (event: any) => {
+                console.error("Recognition error", event.error);
+                if (event.error === 'not-allowed') {
+                    setCaptureError("Permission micro refusée.");
+                } else {
+                    setCaptureError(`Erreur: ${event.error}`);
+                }
+                stopVoiceCapture();
+            };
+
+            recognitionRef.current.onend = () => { 
+                if (isCapturing) {
+                    try { recognitionRef.current.start(); } catch (e) {}
+                } 
+            };
+
+            recognitionRef.current.start();
+        } catch (err) {
+            console.error("Failed to start recognition", err);
+            setCaptureError("Impossible de démarrer la capture.");
+            stopVoiceCapture();
+        }
     };
 
     const stopVoiceCapture = () => {
-        if (recognitionRef.current) recognitionRef.current.stop();
+        if (recognitionRef.current) {
+            try { recognitionRef.current.stop(); } catch (e) {}
+        }
         setIsCapturing(false);
         setLiveTranscript('');
         setTranslatedTranscript('');
@@ -149,27 +190,37 @@ export function VideoTranslator() {
         setTimeout(() => setIsTranslating(false), 1000);
     };
 
-    // Auto-hide global site layout elements when studio is active
+    // Radical hide effect: Find and hide ALL fixed elements that are not the Studio
     useEffect(() => {
         if (embedUrl) {
-            const elements = document.querySelectorAll('nav, footer, .announcement-banner');
-            elements.forEach(el => (el as HTMLElement).style.display = 'none');
+            // Find all elements that might be the Navbar or Marquee
+            // Navbar is usually nav, marquee is fixed top-20
+            const allElements = document.querySelectorAll('nav, footer, .fixed, .sticky, header');
+            allElements.forEach(el => {
+                if (!el.contains(document.querySelector('.studio-container')) && el.id !== 'studio-root') {
+                    (el as HTMLElement).style.setProperty('display', 'none', 'important');
+                }
+            });
             document.body.style.overflow = 'hidden';
         } else {
-            const elements = document.querySelectorAll('nav, footer, .announcement-banner');
-            elements.forEach(el => (el as HTMLElement).style.display = '');
+            const allElements = document.querySelectorAll('nav, footer, .fixed, .sticky, header');
+            allElements.forEach(el => {
+                (el as HTMLElement).style.display = '';
+            });
             document.body.style.overflow = '';
         }
         return () => {
-            const elements = document.querySelectorAll('nav, footer, .announcement-banner');
-            elements.forEach(el => (el as HTMLElement).style.display = '');
+            const allElements = document.querySelectorAll('nav, footer, .fixed, .sticky, header');
+            allElements.forEach(el => {
+                (el as HTMLElement).style.display = '';
+            });
             document.body.style.overflow = '';
         };
     }, [embedUrl]);
 
     return (
-        <div className={twMerge(
-            "transition-all duration-700",
+        <div id="studio-root" className={twMerge(
+            "transition-all duration-700 studio-container",
             embedUrl 
                 ? "fixed inset-0 z-[999999999] bg-black flex flex-col lg:flex-row overflow-hidden" 
                 : "space-y-12 py-10 px-4"
@@ -208,21 +259,29 @@ export function VideoTranslator() {
                                     QUITTER STUDIO
                                 </button>
                                 
-                                <button 
-                                    onClick={isCapturing ? stopVoiceCapture : startVoiceCapture}
-                                    className={twMerge(
-                                        "px-6 py-3 rounded-2xl border transition-all flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-2xl",
-                                        isCapturing ? "bg-neon-red border-neon-red text-white" : "bg-neon-cyan border-neon-cyan text-black hover:scale-105 active:scale-95"
+                                <div className="flex flex-col gap-2">
+                                    <button 
+                                        onClick={isCapturing ? stopVoiceCapture : startVoiceCapture}
+                                        className={twMerge(
+                                            "px-6 py-3 rounded-2xl border transition-all flex items-center gap-3 text-[10px] font-black uppercase tracking-widest shadow-2xl",
+                                            isCapturing ? "bg-neon-red border-neon-red text-white" : "bg-neon-cyan border-neon-cyan text-black hover:scale-105 active:scale-95"
+                                        )}
+                                    >
+                                        <Mic className={twMerge("w-4 h-4", isCapturing && "animate-pulse")} />
+                                        {isCapturing ? "STOP CAPTURE" : "TRADUCTION VOCALE"}
+                                        <div className="flex gap-1 ml-2 items-center min-w-[30px] h-4">
+                                            {[...Array(5)].map((_, i) => (
+                                                <motion.div key={i} animate={{ height: isCapturing && audioLevel > 5 ? [4, 15, 4] : 4 }} className="w-1 bg-white/40 rounded-full" />
+                                            ))}
+                                        </div>
+                                    </button>
+                                    {captureError && (
+                                        <div className="flex items-center gap-2 text-neon-red text-[8px] font-black uppercase tracking-widest bg-black/60 px-3 py-1 rounded-full border border-neon-red/20">
+                                            <AlertTriangle className="w-3 h-3" />
+                                            {captureError}
+                                        </div>
                                     )}
-                                >
-                                    <Mic className={twMerge("w-4 h-4", isCapturing && "animate-pulse")} />
-                                    {isCapturing ? "STOP CAPTURE" : "TRADUCTION VOCALE"}
-                                    <div className="flex gap-1 ml-2 items-center min-w-[30px] h-4">
-                                        {[...Array(5)].map((_, i) => (
-                                            <motion.div key={i} animate={{ height: isCapturing && audioLevel > 5 ? [4, 15, 4] : 4 }} className="w-1 bg-white/40 rounded-full" />
-                                        ))}
-                                    </div>
-                                </button>
+                                </div>
                             </div>
                         </div>
 
@@ -247,8 +306,8 @@ export function VideoTranslator() {
                             </div>
                         </div>
                         
-                        {/* Top: AI Translated (65%) */}
-                        <div className="h-[65%] overflow-y-auto p-6 space-y-6 custom-scrollbar flex flex-col-reverse border-b border-white/10 bg-black/40">
+                        {/* Top: AI Translated (45%) */}
+                        <div className="h-[45%] overflow-y-auto p-6 space-y-6 custom-scrollbar flex flex-col-reverse border-b border-white/10 bg-black/40">
                             {chatMessages.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center opacity-10 space-y-4">
                                     <RefreshCw className="w-10 h-10 animate-spin" />
@@ -268,8 +327,8 @@ export function VideoTranslator() {
                             )}
                         </div>
 
-                        {/* Bottom: Native Interact (35%) */}
-                        <div className="h-[35%] bg-black relative border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+                        {/* Bottom: Native Interact (55%) */}
+                        <div className="h-[55%] bg-black relative border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
                             {platform === 'TWITCH' ? (
                                 <iframe src={`https://www.twitch.tv/embed/${channelName}/chat?parent=${window.location.hostname}&darkpopout`} className="w-full h-full border-none" />
                             ) : (
