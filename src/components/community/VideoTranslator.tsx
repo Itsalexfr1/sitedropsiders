@@ -38,19 +38,14 @@ export function VideoTranslator() {
     const displayStreamRef = useRef<MediaStream | null>(null);
 
     // Audio Visualizer
-    const startAudioVisualizer = async () => {
-        try {
-            if (audioContextRef.current) await audioContextRef.current.close();
-            const constraints = { 
     // System Audio Capture (Display Media)
     const startSystemAudioCapture = async () => {
         try {
             setCaptureError(null);
             setStatusStep("Attente autorisation système...");
             
-            // Capture screen/tab with audio
             const displayStream = await navigator.mediaDevices.getDisplayMedia({
-                video: true, // Required for audio capture in most browsers
+                video: true,
                 audio: {
                     echoCancellation: false,
                     noiseSuppression: false,
@@ -65,12 +60,9 @@ export function VideoTranslator() {
                 return false;
             }
 
-            // Hide the video track if any (we only want audio)
             displayStream.getVideoTracks().forEach(t => t.enabled = false);
-            
             displayStreamRef.current = displayStream;
             
-            // Re-use existing visualizer logic but with the new stream
             if (audioContextRef.current) await audioContextRef.current.close();
             audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
             const source = audioContextRef.current.createMediaStreamSource(displayStream);
@@ -95,7 +87,6 @@ export function VideoTranslator() {
             };
             updateLevel();
             
-            // Start the actual voice recognition on this audio stream
             startRecognitionWithStream(displayStream);
             return true;
         } catch (err) {
@@ -144,9 +135,7 @@ export function VideoTranslator() {
 
         recognitionRef.current.start();
     };
-    useEffect(() => {
-        const getDevices = async () => {
-            try {
+
     const stopVoiceCapture = () => {
         if (recognitionRef.current) {
             try { recognitionRef.current.stop(); } catch (e) {}
