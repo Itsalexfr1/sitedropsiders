@@ -38,7 +38,6 @@ export function VideoTranslator() {
     const displayStreamRef = useRef<MediaStream | null>(null);
 
     // Audio Visualizer
-    // System Audio Capture (Display Media)
     const startSystemAudioCapture = async () => {
         try {
             setCaptureError(null);
@@ -46,11 +45,7 @@ export function VideoTranslator() {
             
             const displayStream = await navigator.mediaDevices.getDisplayMedia({
                 video: true,
-                audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false
-                }
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
             });
 
             const audioTracks = displayStream.getAudioTracks();
@@ -130,10 +125,21 @@ export function VideoTranslator() {
 
         recognitionRef.current.onerror = (e: any) => {
             console.error("System recognition error", e.error);
-            stopVoiceCapture();
+            // Don't stop immediately, just log
+        };
+
+        // Trick to keep it alive
+        recognitionRef.current.onend = () => {
+            if (isCapturing) try { recognitionRef.current.start(); } catch (e) {}
         };
 
         recognitionRef.current.start();
+        
+        // IMPORTANT: On most browsers, SpeechRecognition listens to the DEFAULT system input.
+        // If the user is capturing an app/tab, they should ideally set their 
+        // system recording device to something like Stereo Mix, but since they want 
+        // to avoid it, we tell them to keep their Mic ACTIVE even if they capture a tab.
+        // The browser will then "mix" the signals on some platforms.
     };
 
     const stopVoiceCapture = () => {
