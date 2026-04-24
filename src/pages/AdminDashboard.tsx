@@ -104,7 +104,6 @@ import { SocialGiveawayModal } from "../components/admin/modals/SocialGiveawayMo
 import { InterviewRandomizer } from "../components/admin/InterviewRandomizer";
 import { ScheduleVisualGenerator } from "../components/admin/modals/ScheduleVisualGenerator";
 import { LiveInteractivityModal } from "../components/admin/modals/LiveInteractivityModal";
-import { useUser } from "../context/UserContext";
 import { AdminLoginScreen } from "../components/admin/AdminLoginScreen";
 import { InterviewVisualGenerator } from "./InterviewVisualGenerator";
 import { VideoUploaderTranslator } from "../components/admin/VideoUploaderTranslator";
@@ -271,7 +270,6 @@ export function AdminDashboard() {
     onConfirm: (val: string) => {},
   });
 
-  const { showNotification } = useUser();
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [isScanningBroken, setIsScanningBroken] = useState(false);
   const [brokenImages, setBrokenImages] = useState<any[]>([]);
@@ -10843,7 +10841,7 @@ export function AdminDashboard() {
               promptModal.onConfirm(val);
               setPromptModal((prev) => ({ ...prev, isOpen: false }));
             }}
-            onCancel={() =>
+            onClose={() =>
               setPromptModal((prev) => ({ ...prev, isOpen: false }))
             }
           />
