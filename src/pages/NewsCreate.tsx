@@ -3693,10 +3693,6 @@ ${generateSocialsHtml()}
 
                                                     <div className="flex-1 text-center sm:text-left">
                                                         <h3 className="text-2xl lg:text-4xl font-display font-black text-white uppercase italic tracking-tight leading-loose mb-2" dangerouslySetInnerHTML={{ __html: standardizeContent(item.title || 'Titre du morceau') }} />
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="h-px flex-1 bg-gradient-to-r from-neon-red to-transparent opacity-30" />
-                                                            <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.4em]">EXCLUSIVITÉ DROPSIDERS</span>
-                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div className="rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/40 shadow-2xl relative z-10 backdrop-blur-xl transition-colors">
