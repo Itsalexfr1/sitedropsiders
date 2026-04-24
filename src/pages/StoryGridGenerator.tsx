@@ -161,12 +161,13 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
+            const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
             const canvas = await html2canvas(previewRef.current, {
                 useCORS: true,
-                scale: 3,
+                scale: isMobile ? 2 : 3, // Lower scale on mobile for iOS stability
                 backgroundColor: '#000000',
                 logging: false,
-                allowTaint: false, // Set to false to avoid security errors on toBlob
+                allowTaint: false,
                 imageTimeout: 15000,
                 onclone: (clonedDoc) => {
                     // Ensure fonts and images are visible in clone
@@ -177,22 +178,32 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                 }
             });
 
-            const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
             const fileName = `dropsiders_grid_${Date.now()}.png`;
 
             if (isMobile && navigator.share) {
                 try {
-                    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+                    // Use a slightly lower quality/scale for mobile to ensure iOS stability
+                    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
                     if (blob) {
                         const file = new File([blob], fileName, { type: 'image/png' });
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                            await navigator.share({
-                                files: [file],
-                                title: 'Dropsiders Grid Generator',
-                                text: 'Ma grille générée sur Dropsiders'
-                            });
+                        const shareData: any = {
+                            files: [file],
+                            title: 'Dropsiders Grid',
+                        };
+                        
+                        // Check if canShare exists and is positive
+                        if (navigator.canShare && navigator.canShare(shareData)) {
+                            await navigator.share(shareData);
                             setIsGenerating(false);
                             return;
+                        } else {
+                            // Fallback for cases where canShare is false but share exists
+                            await navigator.share({
+                                title: 'Dropsiders Grid',
+                                text: 'Ma grille Dropsiders',
+                                url: window.location.href // Some browsers need a URL or Text if files fail
+                            });
                         }
                     }
                 } catch (shareErr) {
@@ -497,7 +508,12 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                                 <div key={item.id} className="flex flex-col items-center gap-1">
                                                     <div className="w-full aspect-square rounded-full border-[1.5px] border-white bg-[#111] overflow-hidden shadow-lg relative">
                                                         {item.image ? (
-                                                            <img src={item.image} className="w-full h-full object-cover" alt="" />
+                                                            <img 
+                                                                src={item.image} 
+                                                                className="w-full h-full object-cover" 
+                                                                alt="" 
+                                                                crossOrigin="anonymous"
+                                                            />
                                                         ) : (
                                                             <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">
                                                                 <ImageIcon className="w-3 h-3 text-white/20" />
