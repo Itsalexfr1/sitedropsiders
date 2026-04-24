@@ -35,7 +35,6 @@ interface StoryGridGeneratorProps {
 
 export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGeneratorProps) {
     const [items, setItems] = useState<StoryItem[]>([]);
-    const [footerCount, setFooterCount] = useState('+1 M');
     const [isGenerating, setIsGenerating] = useState(false);
     const [activeTheme, setActiveTheme] = useState<'manual' | 'djs' | 'clubs' | 'festivals'>('manual');
     const [randomLimit, setRandomLimit] = useState(35);
@@ -260,18 +259,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                 </div>
                             )}
 
-                            <div className="pt-2">
-                                <div className="space-y-2">
-                                    <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Compteur Footer</span>
-                                    <input 
-                                        type="text"
-                                        value={footerCount}
-                                        onChange={(e) => setFooterCount(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-xs font-bold outline-none focus:border-neon-cyan"
-                                        placeholder="+1 M"
-                                    />
-                                </div>
-                            </div>
                         </div>
 
                         {/* Items List */}
@@ -479,22 +466,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                         </div>
                                     </div>
 
-                                    <div className="mb-10 w-full flex justify-center">
-                                        <div className="bg-white rounded-full py-3 px-6 flex items-center justify-center gap-4 shadow-xl">
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex -space-x-2">
-                                                    {[1,2,3].map(i => (
-                                                        <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
-                                                            <img src={`https://i.pravatar.cc/100?u=${i}`} className="w-full h-full object-cover grayscale" alt="" />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                <span className="text-[11px] font-bold text-gray-500">{footerCount}</span>
-                                            </div>
-                                            <div className="w-[1px] h-4 bg-gray-200" />
-                                            <span className="text-[11px] font-black uppercase tracking-widest text-black italic">Dropsiders</span>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
