@@ -12,6 +12,18 @@
     "columns": 1
   },
   {
+    "title": "Générateurs",
+    "description": "Studio de création visuelle",
+    "icon": "Sparkles",
+    "category": "STUDIO",
+    "link": "#GENERATORS",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
+    "permission": "social_studio",
+    "baseColor": "#bd00ff",
+    "columns": 1
+  },
+  {
     "title": "Contenu",
     "description": "News, Musique, Interviews...",
     "icon": "FileText",
@@ -21,18 +33,6 @@
     "bg": "bg-neon-cyan/5",
     "permission": "news_focus",
     "baseColor": "#37ff00",
-    "columns": 1
-  },
-  {
-    "title": "Quizz & CONCOURS",
-    "description": "Tirages, Quizz, Participants",
-    "icon": "Gamepad2",
-    "category": "ALL",
-    "link": "#QUIZZ_CONCOURS_MODAL",
-    "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-neon-red/5",
-    "permission": "all",
-    "baseColor": "#00fffb",
     "columns": 1
   },
   {
@@ -57,6 +57,18 @@
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
     "baseColor": "#dcb88e",
+    "columns": 1
+  },
+  {
+    "title": "Quizz & CONCOURS",
+    "description": "Tirages, Quizz, Participants",
+    "icon": "Gamepad2",
+    "category": "ALL",
+    "link": "#QUIZZ_CONCOURS_MODAL",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-neon-red/5",
+    "permission": "all",
+    "baseColor": "#00fffb",
     "columns": 1
   },
   {
@@ -135,22 +147,22 @@
     "title": "Video Translator AI",
     "description": "Analyse & Traduit MP4",
     "icon": "Video",
-    "category": "STUDIO",
+    "category": "ALL",
     "link": "video-ai-translator",
     "permission": "news",
     "baseColor": "#00fffb",
     "columns": 1
   },
   {
-    "title": "Générateurs",
-    "description": "Studio de création visuelle",
-    "icon": "Sparkles",
-    "category": "STUDIO",
-    "link": "#GENERATORS",
-    "color": "border-neon-purple/20 hover:border-neon-purple",
-    "bg": "bg-neon-purple/5",
-    "permission": "social_studio",
-    "baseColor": "#bd00ff",
+    "title": "Planning Story",
+    "description": "Visuel Programme",
+    "icon": "Calendar",
+    "category": "SOCIAL_STUDIO",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "news",
+    "baseColor": "cyan",
     "columns": 1
   }
 ]
