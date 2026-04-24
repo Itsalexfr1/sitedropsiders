@@ -26,14 +26,24 @@ interface StoryItem {
 interface StoryGridGeneratorProps {
     isOpen: boolean;
     onClose: () => void;
+    embedded?: boolean;
     wikiData?: {
-        djs: any[];
-        clubs: any[];
-        festivals: any[];
+        djs?: any[];
+        clubs?: any[];
+        festivals?: any[];
+        wikiDjs?: any[];
+        wikiClubs?: any[];
+        wikiFestivals?: any[];
     };
 }
 
-export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGeneratorProps) {
+export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, embedded = false }: StoryGridGeneratorProps) {
+    // Normalize wikiData — support both {djs,clubs,festivals} and {wikiDjs,wikiClubs,wikiFestivals}
+    const wikiData = rawWikiData ? {
+        djs: rawWikiData.djs || rawWikiData.wikiDjs || [],
+        clubs: rawWikiData.clubs || rawWikiData.wikiClubs || [],
+        festivals: rawWikiData.festivals || rawWikiData.wikiFestivals || [],
+    } : undefined;
     const [items, setItems] = useState<StoryItem[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [activeTheme, setActiveTheme] = useState<'manual' | 'djs' | 'clubs' | 'festivals'>('manual');
@@ -505,14 +515,9 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                     </div>
 
                                     {/* Footer branding */}
-                                    <div className="w-full mt-2 pt-2 border-t border-white/10 flex items-center justify-center gap-2 relative z-10">
-                                        <span className="text-[8px] font-black text-white/60 uppercase tracking-[0.2em]">
-                                            Identifiez notre compte
-                                        </span>
-                                        <span className="text-[9px] font-black text-white uppercase tracking-wider">
-                                            @dropsiders.eu
-                                        </span>
-                                        <span className="text-[10px]">✅</span>
+                                    <div className="w-full mt-2 pt-2 border-t border-white/10 flex flex-col items-center gap-0.5 relative z-10">
+                                        <span className="text-[6px] font-black text-white/50 uppercase tracking-widest">Faites le vôtre sur <span className="text-white">dropsiders.fr</span></span>
+                                        <span className="text-[6px] font-black text-white/50 uppercase tracking-widest">Identifiez-nous <span className="text-neon-cyan">@dropsiders.eu</span> ✅</span>
                                     </div>
 
                                 </div>

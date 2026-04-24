@@ -6,8 +6,9 @@ import {
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
     Flame, Search, Filter, Globe, Tv,
-    Share2, MessageSquare, Wand2, Instagram, Users as UsersIcon
+    Share2, MessageSquare, Wand2, Instagram, Users as UsersIcon, LayoutGrid
 } from 'lucide-react';
+import { StoryGridGenerator } from './StoryGridGenerator';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
 import { MemoryWall } from '../components/community/MemoryWall';
@@ -265,7 +266,7 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'TV';
+    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'TV' | 'GRID';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
     const location = useLocation();
 
@@ -273,7 +274,7 @@ export function Community() {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get('tab');
-        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'TV'].includes(tab)) {
+        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'TV', 'GRID'].includes(tab)) {
             setActiveTab(tab as TabType);
         }
     }, [location.search]);
@@ -328,6 +329,13 @@ export function Community() {
             }
         };
         fetchCommunityData();
+    }, []);
+
+    const [wikiData, setWikiData] = useState<{ wikiDjs: any[], wikiClubs: any[], wikiFestivals: any[] }>({ wikiDjs: [], wikiClubs: [], wikiFestivals: [] });
+    useEffect(() => {
+        fetch('/api/wiki/all').then(r => r.ok ? r.json() : null).then(data => {
+            if (data) setWikiData({ wikiDjs: data.djs || [], wikiClubs: data.clubs || [], wikiFestivals: data.festivals || [] });
+        }).catch(() => {});
     }, []);
 
     const festivals = useMemo(() => {
@@ -436,6 +444,7 @@ export function Community() {
     const [advisorTip, setAdvisorTip] = useState<{ name: string, tip: string, avatar: string } | null>(null);
     const [posterStyle, setPosterStyle] = useState<'ULTRA' | 'TOMORROWLAND' | 'EDC'>('ULTRA');
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [isGridOpen, setIsGridOpen] = useState(false);
 
     const currentRank = useMemo(() => {
         return [...PROM_RANKS].reverse().find(r => promoterXP >= r.minXp) || PROM_RANKS[0];
@@ -945,6 +954,7 @@ export function Community() {
                                 { id: 'PLAYLISTS',     icon: Share2,       label: 'Mixs',              multiline: false },
                                 { id: 'LAB',           icon: Wand2,        label: 'Communauté',       multiline: false },
                                 { id: 'TV',            icon: Tv,           label: 'TV Translator',     multiline: false, iconClass: 'text-neon-cyan' },
+                                { id: 'GRID',          icon: LayoutGrid,   label: 'Story Grid',        multiline: false, iconClass: 'text-neon-purple' },
                             ] as any[]).filter(tab => !tab.hidden).map((tab) => (
                                 <button
                                     key={tab.id}
@@ -1048,6 +1058,37 @@ export function Community() {
                                         {contestTab === 'QUIZ' ? <QuizSection /> : <InstagramContest onPlayClick={() => setContestTab('QUIZ')} />}
                                     </motion.div>
                                 </AnimatePresence>
+                            </motion.div>
+                        )}
+
+                        {activeTab === 'GRID' && (
+                            <motion.div
+                                key="grid"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="flex flex-col items-center justify-center py-20 gap-8 text-center"
+                            >
+                                <div className="w-24 h-24 rounded-3xl bg-neon-purple/10 border border-neon-purple/30 flex items-center justify-center">
+                                    <LayoutGrid className="w-12 h-12 text-neon-purple" />
+                                </div>
+                                <div className="space-y-3">
+                                    <h2 className="text-4xl md:text-5xl font-display font-black uppercase italic tracking-tighter text-white">
+                                        Story <span className="text-neon-purple">Grid</span> Generator
+                                    </h2>
+                                    <p className="text-white/40 font-bold uppercase tracking-widest text-[10px] max-w-md mx-auto">
+                                        Génère ta grille d'artistes pour tes stories Instagram.
+                                    </p>
+                                </div>
+                                <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => setIsGridOpen(true)}
+                                    className="px-10 py-4 bg-neon-purple text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-[0_0_30px_rgba(189,0,255,0.3)] hover:shadow-[0_0_50px_rgba(189,0,255,0.5)] transition-all flex items-center gap-3"
+                                >
+                                    <LayoutGrid className="w-5 h-5" />
+                                    Ouvrir le Générateur
+                                </motion.button>
                             </motion.div>
                         )}
 
@@ -2199,6 +2240,12 @@ export function Community() {
             <UserAuthModal 
                 isOpen={isAuthModalOpen} 
                 onClose={() => setIsAuthModalOpen(false)} 
+            />
+
+            <StoryGridGenerator
+                isOpen={isGridOpen}
+                onClose={() => setIsGridOpen(false)}
+                wikiData={wikiData}
             />
 
             <AdminEditBar
