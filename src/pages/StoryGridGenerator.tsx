@@ -37,7 +37,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
     const [items, setItems] = useState<StoryItem[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [activeTheme, setActiveTheme] = useState<'manual' | 'djs' | 'clubs' | 'festivals'>('manual');
-    const [randomLimit, setRandomLimit] = useState(35);
+    const [randomLimit, setRandomLimit] = useState(30);
     
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -278,7 +278,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                         <span className="text-white font-bold text-xs">{randomLimit}</span>
                                     </div>
                                     <input 
-                                        type="range" min={3} max={50}
+                                        type="range" min={3} max={30}
                                         value={randomLimit}
                                         onChange={(e) => setRandomLimit(parseInt(e.target.value))}
                                         className="w-full h-1 bg-white/10 rounded-full appearance-none accent-neon-cyan cursor-pointer"
