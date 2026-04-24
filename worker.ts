@@ -2036,9 +2036,22 @@ ${urls.map(u => `  <url>
             try {
                 const { email, provider } = await request.json();
                 const cleanEmail = email.toLowerCase().trim();
+
+                // Requirement check - MUST have a public community account (except super admins)
+                const isSuper = (cleanEmail === 'alexflex30@gmail.com' || cleanEmail === 'contact@dropsiders.fr');
+                if (!isSuper) {
+                    const communityKey = `community_user_${cleanEmail}`;
+                    const communityUser = await env.CHAT_KV.get(communityKey);
+                    if (!communityUser) {
+                        return new Response(JSON.stringify({ 
+                            authorized: false, 
+                            needPublicAccount: true 
+                        }), { status: 200, headers });
+                    }
+                }
                 
                 // Allow super admins directly
-                if (cleanEmail === 'alexflex30@gmail.com' || cleanEmail === 'contact@dropsiders.fr') {
+                if (isSuper) {
                     const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
                     const phone = settingsFile?.content?.alex_phone || null;
                     return new Response(JSON.stringify({ authorized: true, phone, isSuperAdmin: true }), { status: 200, headers });

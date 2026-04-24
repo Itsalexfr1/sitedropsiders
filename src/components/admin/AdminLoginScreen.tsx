@@ -34,6 +34,7 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
     const [countdown, setCountdown] = useState(0);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
+    const [showPublicAccountWarning, setShowPublicAccountWarning] = useState(false);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     // Countdown resend timer
@@ -152,6 +153,12 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
             }
 
             const data = await res.json();
+            
+            if (data.needPublicAccount) {
+                setShowPublicAccountWarning(true);
+                setStep('social');
+                return;
+            }
 
             if (!data.authorized) {
                 setError("Votre compte n'est pas autorisé. Contactez l'administrateur.");
@@ -556,6 +563,61 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
                                 Vérification en cours...
                             </p>
                         </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* ── PUBLIC ACCOUNT WARNING MODAL ─────────────────────────── */}
+                <AnimatePresence>
+                    {showPublicAccountWarning && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setShowPublicAccountWarning(false)}
+                                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                            />
+                            
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-sm bg-dark-bg border border-white/10 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 right-0 h-1 bg-neon-red" />
+                                
+                                <div className="flex justify-center mb-6">
+                                    <div className="p-4 bg-neon-red/10 rounded-2xl border border-neon-red/20">
+                                        <AlertCircle className="w-8 h-8 text-neon-red" />
+                                    </div>
+                                </div>
+
+                                <h2 className="text-2xl font-display font-black text-white text-center mb-4 uppercase italic tracking-tight">
+                                    Compte <span className="text-neon-red">Public Requis</span>
+                                </h2>
+                                
+                                <p className="text-gray-400 text-xs font-bold text-center leading-relaxed mb-8">
+                                    Pour accéder au tableau de bord, vous devez d'abord créer un profil public sur le site Dropsiders.
+                                    <br /><br />
+                                    Veuillez vous connecter une première fois via Google ou Discord sur la page d'accueil du site avant de revenir ici.
+                                </p>
+
+                                <div className="space-y-3">
+                                    <a 
+                                        href="/"
+                                        className="w-full py-4 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-neon-red/80 transition-all active:scale-95 shadow-lg shadow-neon-red/20"
+                                    >
+                                        Aller sur le site
+                                    </a>
+                                    <button
+                                        onClick={() => setShowPublicAccountWarning(false)}
+                                        className="w-full py-4 bg-white/5 text-gray-500 hover:text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all"
+                                    >
+                                        Fermer
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
                     )}
                 </AnimatePresence>
             </div>
