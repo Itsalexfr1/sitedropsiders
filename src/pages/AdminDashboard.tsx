@@ -2229,16 +2229,6 @@ export function AdminDashboard() {
       columns: 1,
     },
     {
-      title: "Social Studio",
-      description: "Outils Réseaux Sociaux",
-      icon: "Instagram",
-      category: "SOCIAL_STUDIO",
-      link: "social-studio",
-      permission: "news",
-      baseColor: "pink",
-      columns: 2,
-    },
-    {
       title: "Générateurs",
       description: "Studio de création visuelle",
       icon: "Sparkles",
