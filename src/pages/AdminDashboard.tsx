@@ -72,6 +72,7 @@ import {
   Home,
   Tent,
   ShieldCheck,
+  LayoutGrid,
 } from "lucide-react";
 
 import { motion, AnimatePresence } from "framer-motion";
