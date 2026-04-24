@@ -43,6 +43,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeEditId, setActiveEditId] = useState<string | null>(null);
     const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
+    const [mobileTab, setMobileTab] = useState<'config' | 'preview'>('config');
 
     const toggleLock = (id: string) => {
         setLockedIds(prev => {
@@ -155,37 +156,67 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
     const downloadImage = async () => {
         if (!previewRef.current || items.length === 0) return;
         setIsGenerating(true);
+        
+        // Wait for images to load just in case
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         try {
             const canvas = await html2canvas(previewRef.current, {
                 useCORS: true,
                 scale: 3,
                 backgroundColor: '#000000',
                 logging: false,
-                allowTaint: true
+                allowTaint: false, // Set to false to avoid security errors on toBlob
+                imageTimeout: 15000,
+                onclone: (clonedDoc) => {
+                    // Ensure fonts and images are visible in clone
+                    const images = clonedDoc.getElementsByTagName('img');
+                    for (let i = 0; i < images.length; i++) {
+                        images[i].crossOrigin = "anonymous";
+                    }
+                }
             });
 
             const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
-            
+            const fileName = `dropsiders_grid_${Date.now()}.png`;
+
             if (isMobile && navigator.share) {
-                const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
-                if (blob) {
-                    const file = new File([blob], `dropsiders_grid_${Date.now()}.png`, { type: 'image/png' });
-                    await navigator.share({
-                        files: [file],
-                        title: 'Dropsiders Grid Generator',
-                        text: 'Ma grille générée sur Dropsiders'
-                    });
-                    setIsGenerating(false);
-                    return;
+                try {
+                    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
+                    if (blob) {
+                        const file = new File([blob], fileName, { type: 'image/png' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                files: [file],
+                                title: 'Dropsiders Grid Generator',
+                                text: 'Ma grille générée sur Dropsiders'
+                            });
+                            setIsGenerating(false);
+                            return;
+                        }
+                    }
+                } catch (shareErr) {
+                    console.warn('Share API failed:', shareErr);
                 }
             }
 
+            // Fallback for Desktop or if Share fails
+            const dataUrl = canvas.toDataURL('image/png', 1.0);
             const link = document.createElement('a');
-            link.download = `dropsiders_grid_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png');
+            link.download = fileName;
+            link.href = dataUrl;
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
+            
+            // On mobile, if share failed and link.click() might fail, open in new tab
+            if (isMobile) {
+                window.open(dataUrl, '_blank');
+            }
+
         } catch (err) {
             console.error('Failed to generate image:', err);
+            alert("Erreur lors de la génération de l'image. Vérifiez votre connexion.");
         } finally {
             setIsGenerating(false);
         }
@@ -215,9 +246,25 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                     </button>
                 </div>
 
+                {/* Mobile Tabs */}
+                <div className="lg:hidden flex border-b border-white/5 bg-black/40">
+                    <button 
+                        onClick={() => setMobileTab('config')}
+                        className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${mobileTab === 'config' ? 'text-neon-cyan border-b-2 border-neon-cyan bg-neon-cyan/5' : 'text-gray-500'}`}
+                    >
+                        Configuration
+                    </button>
+                    <button 
+                        onClick={() => setMobileTab('preview')}
+                        className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest transition-all ${mobileTab === 'preview' ? 'text-neon-cyan border-b-2 border-neon-cyan bg-neon-cyan/5' : 'text-gray-500'}`}
+                    >
+                        Aperçu du Rendu
+                    </button>
+                </div>
+
                 <div className="flex-1 overflow-y-auto lg:overflow-hidden grid grid-cols-1 lg:grid-cols-[450px_1fr] gap-0">
                     {/* Controls */}
-                    <div className="p-8 border-r border-white/5 overflow-y-auto custom-scrollbar space-y-8 bg-black/20">
+                    <div className={`${mobileTab === 'preview' ? 'hidden lg:block' : 'block'} p-8 border-r border-white/5 overflow-y-auto custom-scrollbar space-y-8 bg-black/20`}>
                         <div className="space-y-6">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                 <Settings className="w-3 h-3 text-neon-cyan" /> Mode de génération
@@ -427,7 +474,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                     </div>
 
                     {/* Preview Area */}
-                    <div className="p-4 md:p-12 bg-[#050505] flex flex-col items-center justify-center relative overflow-hidden group min-h-[600px]">
+                    <div className={`${mobileTab === 'config' ? 'hidden lg:flex' : 'flex'} p-4 md:p-12 bg-[#050505] flex flex-col items-center justify-center relative overflow-hidden group min-h-[600px]`}>
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,243,0.05)_0%,transparent_70%)] pointer-events-none" />
                         
                         <div className="relative mb-12 scale-[0.8] md:scale-100">
