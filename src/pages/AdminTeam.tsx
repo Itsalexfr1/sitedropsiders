@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Plus, Save, ArrowLeft, Loader2, Instagram, Trash2 } from 'lucide-react';
 import { Link, useBlocker } from 'react-router-dom';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { Upload } from 'lucide-react';
@@ -30,6 +30,10 @@ export function AdminTeam() {
     const [editingMember, setEditingMember] = useState<any>(null);
     const [deleteTarget, setDeleteTarget] = useState<TeamMember | null>(null);
     const [hasChanges, setHasChanges] = useState(false);
+    
+    const [communitySearch, setCommunitySearch] = useState('');
+    const [communityResults, setCommunityResults] = useState<any[]>([]);
+    const [isSearchingCommunity, setIsSearchingCommunity] = useState(false);
 
     // Track changes
     const initialDataLoaded = useRef(false);
@@ -89,7 +93,7 @@ export function AdminTeam() {
         setIsSaving(true);
         setMessage('');
         try {
-            const response = await fetch('/api/team/update', {
+            const response = await apiFetch('/api/team/update', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ members })
@@ -142,7 +146,61 @@ export function AdminTeam() {
     };
 
     const removeMember = async (id: number) => {
-        setMembers(members.filter(m => m.id !== id));
+        const updatedMembers = members.filter(m => m.id !== id);
+        setMembers(updatedMembers);
+        
+        // Immediate persistence for "supprime direct"
+        setIsSaving(true);
+        try {
+            await apiFetch('/api/team/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ members: updatedMembers })
+            });
+            setMessage('Membre supprimé avec succès');
+            setHasChanges(false);
+            setTimeout(() => setMessage(''), 3000);
+        } catch (err) {
+            setMessage('Erreur lors de la suppression sur le serveur');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const searchCommunity = async (q: string) => {
+        if (q.length < 2) {
+            setCommunityResults([]);
+            return;
+        }
+        setIsSearchingCommunity(true);
+        try {
+            const res = await apiFetch(`/api/users/search?q=${encodeURIComponent(q)}`, {
+                headers: getAuthHeaders()
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setCommunityResults(data);
+            }
+        } catch (err) {
+            console.error('Community search failed', err);
+        } finally {
+            setIsSearchingCommunity(false);
+        }
+    };
+
+    const importFromCommunity = (user: any) => {
+        setEditingMember({
+            id: Date.now(),
+            name: user.username || user.name || user.pseudo || '',
+            role: 'Éditeur',
+            image: user.avatar || '/images/team/default.jpg',
+            socials: {
+                instagram: '',
+                tiktok: ''
+            }
+        });
+        setCommunitySearch('');
+        setCommunityResults([]);
     };
 
     return (
@@ -273,6 +331,47 @@ export function AdminTeam() {
                                 </h2>
 
                                 <div className="space-y-6">
+                                    {!members.find(m => m.id === editingMember.id) && (
+                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl">
+                                            <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-2">Importer un utilisateur inscrit (Google/Discord)</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={communitySearch}
+                                                    onChange={e => {
+                                                        setCommunitySearch(e.target.value);
+                                                        searchCommunity(e.target.value);
+                                                    }}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-xs focus:outline-none focus:border-neon-red transition-colors"
+                                                    placeholder="Rechercher par pseudo ou email..."
+                                                />
+                                                {isSearchingCommunity && (
+                                                    <div className="absolute right-4 top-3">
+                                                        <Loader2 className="w-5 h-5 text-neon-red animate-spin" />
+                                                    </div>
+                                                )}
+                                                {communityResults.length > 0 && (
+                                                    <div className="absolute top-full left-0 right-0 mt-2 bg-dark-bg border border-white/10 rounded-xl overflow-hidden z-50 shadow-2xl max-h-48 overflow-y-auto">
+                                                        {communityResults.map((user: any, idx) => (
+                                                            <div 
+                                                                key={idx}
+                                                                onClick={() => importFromCommunity(user)}
+                                                                className="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0"
+                                                            >
+                                                                <img src={user.avatar} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-white text-xs font-bold truncate">{user.username || user.pseudo}</p>
+                                                                    <p className="text-gray-500 text-[10px] truncate">{user.email}</p>
+                                                                </div>
+                                                                <div className="px-2 py-1 bg-white/5 rounded text-[8px] text-gray-400 font-bold uppercase">{user.provider}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-4">
                                             <div>

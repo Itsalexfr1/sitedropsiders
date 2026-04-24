@@ -1824,13 +1824,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             {top5Items.map((item, i) => (
                 <div key={i} className={`p-4 rounded-2xl border transition-all cursor-pointer ${currentPreviewIndex === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewIndex(i)}>
                     <div className="grid grid-cols-2 gap-2 mb-2">
-                        <input value={item.main} onChange={e => { const n = [...top5Items]; n[i].main = e.target.value; setTop5Items(n); }} placeholder="ARTISTE" spellCheck={true} autoCapitalize="words" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
-                        <input value={item.sub} onChange={e => { const n = [...top5Items]; n[i].sub = e.target.value; setTop5Items(n); }} placeholder="TITRE" spellCheck={true} autoCapitalize="words" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                        <input value={item.main} onChange={e => { const n = [...top5Items]; n[i].main = e.target.value; setTop5Items(n); }} placeholder="ARTISTE" spellCheck="true" autoCorrect="on" autoCapitalize="words" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                        <input value={item.sub} onChange={e => { const n = [...top5Items]; n[i].sub = e.target.value; setTop5Items(n); }} placeholder="TITRE" spellCheck="true" autoCorrect="on" autoCapitalize="words" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
                     </div>
                     {theme === 'TOP 5 ARTISTE' && (
-                        <input value={item.value} onChange={e => { const n = [...top5Items]; n[i].value = e.target.value; setTop5Items(n); }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold mb-2" />
+                        <input value={item.value} onChange={e => { const n = [...top5Items]; n[i].value = e.target.value; setTop5Items(n); }} placeholder="STREAMS (MILLIONS)" spellCheck="true" autoCorrect="on" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold mb-2" />
                     )}
-                    <input value={item.spotifyUrl} onChange={e => { const n = [...top5Items]; n[i].spotifyUrl = e.target.value; setTop5Items(n); }} placeholder="LIEN SPOTIFY / VIDEO" className="w-full bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-[#1DB954] font-bold mb-2" />
+                    <input value={item.spotifyUrl} onChange={e => { const n = [...top5Items]; n[i].spotifyUrl = e.target.value; setTop5Items(n); }} placeholder="LIEN SPOTIFY / VIDEO" spellCheck="false" autoCorrect="off" autoCapitalize="none" className="w-full bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-[#1DB954] font-bold mb-2" />
                     <div className="flex items-center gap-2">
                         <button onClick={(e) => {
                             e.stopPropagation();
@@ -1947,6 +1947,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 value={customText} 
                 onChange={e => setCustomText(e.target.value)} 
                 placeholder={`[NOM DE L'ARTISTE]\n[SOUS TITRE / DESCRIPTION]`} 
+                spellCheck="true"
+                autoCorrect="on"
+                autoCapitalize="sentences"
                 className="w-full h-24 bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs mb-2 transition-all focus:border-neon-cyan focus:bg-white/[0.15]" 
             />
             <div className="flex gap-2">
@@ -1971,6 +1974,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 value={customText} 
                 onChange={e => setCustomText(e.target.value)} 
                 placeholder="TITRE (ex: LINE-UP)" 
+                spellCheck="true"
+                autoCorrect="on"
+                autoCapitalize="words"
                 className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs mb-2" 
             />
             <div className="flex gap-2 mb-2">
@@ -2000,6 +2006,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 value={planningDate} 
                 onChange={e => setPlanningDate(e.target.value)} 
                 placeholder="DATE (ex: 21 MARS - 28 MARS)" 
+                spellCheck="true"
+                autoCorrect="on"
+                autoCapitalize="words"
                 className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px] mb-2" 
             />
 
@@ -2048,12 +2057,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             value={item.time} 
                             onChange={e => { const n = [...planningItems]; n[i].time = e.target.value; setPlanningItems(n); }} 
                             placeholder="00:00" 
+                            spellCheck="false"
+                            autoCorrect="off"
                             className="w-20 bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-neon-cyan font-bold text-center" 
                         />
                         <input 
                             value={item.artist} 
                             onChange={e => { const n = [...planningItems]; n[i].artist = e.target.value; setPlanningItems(n); }} 
                             placeholder="ARTISTE" 
+                            spellCheck="true"
+                            autoCorrect="on"
+                            autoCapitalize="words"
                             className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" 
                         />
                         <button onClick={() => setPlanningItems(planningItems.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><X className="w-3 h-3" /></button>
@@ -2074,7 +2088,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 onSelect={(e) => { const t = e.target as HTMLTextAreaElement; setSelection({ start: t.selectionStart, end: t.selectionEnd }); }}
                 onChange={e => setCustomText(e.target.value.slice(0, 1100))}
                 placeholder="VOTRE TEXTE..."
-                spellCheck={true}
+                spellCheck="true"
                 autoCorrect="on"
                 autoComplete="on"
                 autoCapitalize="sentences"
@@ -2118,7 +2132,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 value={highlightsArtists}
                 onChange={e => setHighlightsArtists(e.target.value)}
                 placeholder="ARTISTES..."
-                spellCheck={true}
+                spellCheck="true"
+                autoCorrect="on"
+                autoCapitalize="sentences"
                 className="w-full h-16 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-cyan-500 outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words mb-2"
             />
             <span className="text-[10px] font-black text-gray-500 uppercase">Festivals</span>
@@ -2126,6 +2142,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 value={highlightsFestival} 
                 onChange={e => setHighlightsFestival(e.target.value)} 
                 placeholder="FESTIVAL(S) (ex: TOMORROWLAND)" 
+                spellCheck="true"
+                autoCorrect="on"
+                autoCapitalize="words"
                 className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white text-sm font-black italic focus:border-cyan-500 outline-none transition-all uppercase mb-2" 
             />
             <span className="text-[10px] font-black text-gray-500 uppercase">Lieu et Date</span>
@@ -2139,6 +2158,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     setHighlightsLocation(val);
                 }} 
                 placeholder="LIEU, PAYS, ANNÉE (ex: PARIS, FRANCE, 2026)" 
+                spellCheck="true"
+                autoCorrect="on"
+                autoCapitalize="words"
                 className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-500 outline-none transition-all" 
             />
             <div className="grid grid-cols-2 gap-4 pt-2">
