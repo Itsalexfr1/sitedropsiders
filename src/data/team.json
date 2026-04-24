@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "id": 1,
     "name": "ALEX",
@@ -6,16 +6,6 @@
     "image": "https://www.dropsiders.fr/uploads/migrated/dropsiders/wcyxatveeurgu5s1fi3s.jpg",
     "socials": {
       "instagram": "https://www.instagram.com/itsalex.fr1/",
-      "tiktok": "#"
-    }
-  },
-  {
-    "id": 2,
-    "name": "KEVIN ",
-    "role": "PHOTOGRAPHE & VIDÉASTE",
-    "image": "https://www.dropsiders.fr/uploads/migrated/dropsiders/e2nt8hmtt0gyvmlxb2fu.jpg",
-    "socials": {
-      "instagram": "https://www.instagram.com/kevinmiralla",
       "tiktok": "#"
     }
   },
@@ -60,4 +50,3 @@
     }
   }
 ]
-
