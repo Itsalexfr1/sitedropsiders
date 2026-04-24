@@ -104,6 +104,9 @@ export function AdminEditors() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeTab, setActiveTab] = useState<'editors' | 'community'>('editors');
+    const [communityUsers, setCommunityUsers] = useState<any[]>([]);
+    const [isCommunityLoading, setIsCommunityLoading] = useState(false);
     const [searchParams] = useSearchParams();
     const initialEmail = searchParams.get('email') || '';
 
@@ -142,7 +145,25 @@ export function AdminEditors() {
             return;
         }
         fetchEditors();
+        fetchCommunityUsers();
     }, [navigate]);
+
+    const fetchCommunityUsers = async () => {
+        setIsCommunityLoading(true);
+        try {
+            const res = await apiFetch('/api/users/list', {
+                headers: getAuthHeaders()
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setCommunityUsers(Array.isArray(data) ? data : []);
+            }
+        } catch (e) {
+            console.error('Failed to fetch community users', e);
+        } finally {
+            setIsCommunityLoading(false);
+        }
+    };
 
     const fetchEditors = async () => {
         try {
@@ -270,6 +291,15 @@ export function AdminEditors() {
         );
     }, [editors, searchTerm]);
 
+    const filteredCommunity = useMemo(() => {
+        return communityUsers.filter(u => 
+            u.username?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            u.pseudo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            u.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [communityUsers, searchTerm]);
+
     return (
         <div className="min-h-screen bg-dark-bg py-32 relative overflow-hidden">
             <StarField />
@@ -313,12 +343,29 @@ export function AdminEditors() {
                     </div>
                 </div>
 
-                {isLoading ? (
+                <div className="flex gap-8 mb-8 border-b border-white/5">
+                    <button 
+                        onClick={() => setActiveTab('editors')}
+                        className={`pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'editors' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                    >
+                        Staff & Éditeurs
+                        {activeTab === 'editors' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-1 bg-neon-red shadow-[0_0_15px_rgba(255,18,65,0.4)]" />}
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('community')}
+                        className={`pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'community' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                    >
+                        Communauté (Google/Discord)
+                        {activeTab === 'community' && <motion.div layoutId="tab" className="absolute bottom-0 left-0 right-0 h-1 bg-neon-red shadow-[0_0_15px_rgba(255,18,65,0.4)]" />}
+                    </button>
+                </div>
+
+                {isLoading || (activeTab === 'community' && isCommunityLoading) ? (
                     <div className="flex flex-col items-center justify-center py-32 gap-4">
                         <Loader2 className="w-12 h-12 text-neon-red animate-spin" />
-                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Initialisation du système...</span>
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] animate-pulse">Chargement des données...</span>
                     </div>
-                ) : (
+                ) : activeTab === 'editors' ? (
                     <div className="grid gap-4">
                         <AnimatePresence mode="popLayout">
                             {filteredEditors.map((editor) => {
@@ -427,6 +474,68 @@ export function AdminEditors() {
                                     <h3 className="text-xl font-bold text-white uppercase italic mb-2">Aucun éditeur trouvé</h3>
                                     <p className="text-gray-500 uppercase text-[10px] font-bold tracking-[0.2em] max-w-xs mx-auto">Utilisez le bouton "Assigner Permissions" pour ajouter des membres à l'équipe.</p>
                                 </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                ) : (
+                    <div className="grid gap-4">
+                        <AnimatePresence mode="popLayout">
+                            {filteredCommunity.map((user) => {
+                                const isStaff = editors.some(e => e.email === user.email);
+                                return (
+                                    <motion.div
+                                        key={user.email}
+                                        layout
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center justify-between group hover:bg-white/[0.08] transition-all"
+                                    >
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-14 h-14 rounded-xl overflow-hidden border border-white/10 bg-black">
+                                                {user.avatar ? (
+                                                    <img src={user.avatar} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-white/5"><Shield className="w-6 h-6 text-gray-600" /></div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-1">
+                                                    <h3 className="text-lg font-display font-black text-white italic uppercase tracking-tight">{user.username || user.pseudo || user.name || 'Utilisateur'}</h3>
+                                                    {isStaff && (
+                                                        <span className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/30 text-neon-red text-[7px] font-black rounded uppercase tracking-widest">Staff</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mb-2">{user.email}</p>
+                                                <div className="flex items-center gap-3">
+                                                    {user.provider === 'google' && <div className="flex items-center gap-1 text-[8px] text-gray-400 font-bold uppercase"><img src="https://www.google.com/favicon.ico" className="w-2 h-2" /> Google</div>}
+                                                    {user.provider === 'discord' && <div className="flex items-center gap-1 text-[8px] text-gray-400 font-bold uppercase"><img src="https://discord.com/favicon.ico" className="w-2 h-2" /> Discord</div>}
+                                                    <span className="text-[8px] text-gray-600 font-bold uppercase">Inscrit le {user.created ? new Date(user.created).toLocaleDateString() : '???'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {!isStaff && (
+                                            <button 
+                                                type="button"
+                                                onClick={() => {
+                                                    setNewEditor({ email: user.email, pseudo: user.username || user.pseudo || '', permissions: [] });
+                                                    setFoundUser(user);
+                                                    setShowAddModal(true);
+                                                    setIsEditing(false);
+                                                }}
+                                                className="px-4 py-2 border border-white/10 rounded-xl text-[10px] text-white font-black uppercase tracking-widest hover:bg-neon-red hover:border-neon-red transition-all"
+                                            >
+                                                Promouvoir Staff
+                                            </button>
+                                        )}
+                                    </motion.div>
+                                );
+                            })}
+                            
+                            {filteredCommunity.length === 0 && (
+                                <div className="text-center py-20 bg-white/5 rounded-3xl border border-dashed border-white/10 text-gray-500 font-bold uppercase text-[10px] tracking-widest">
+                                    Aucun utilisateur trouvé dans la base communautaire.
+                                </div>
                             )}
                         </AnimatePresence>
                     </div>

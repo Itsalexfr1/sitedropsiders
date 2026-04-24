@@ -1093,32 +1093,57 @@ ${urls.map(u => `  <url>
             const query = url.searchParams.get('q')?.toLowerCase().trim();
             if (!query) return new Response(JSON.stringify([]), { headers });
 
-            const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
-            const results = [];
-            
-            // Limit search for performance if many users
-            const checkKeys = list.keys.slice(0, 500); 
-            
-            for (const key of checkKeys) {
-                if (key.name.includes(query)) {
-                    const data = await env.CHAT_KV.get(key.name);
-                    if (data) results.push(JSON.parse(data));
-                }
+            try {
+                const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
+                const users = await Promise.all(
+                    list.keys.map(async (key) => {
+                        const data = await env.CHAT_KV.get(key.name);
+                        if (!data) return null;
+                        const user = JSON.parse(data);
+                        
+                        const email = (user.email || '').toLowerCase();
+                        const username = (user.username || '').toLowerCase();
+                        const pseudo = (user.pseudo || '').toLowerCase();
+                        const name = (user.name || '').toLowerCase();
+                        
+                        if (email.includes(query) || username.includes(query) || pseudo.includes(query) || name.includes(query) || user.id === query) {
+                            return user;
+                        }
+                        return null;
+                    })
+                );
+                
+                const results = users.filter(Boolean);
+                return new Response(JSON.stringify(results), { 
+                    status: 200, 
+                    headers: { 'Content-Type': 'application/json', ...headers } 
+                });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
-            
-            return new Response(JSON.stringify(results), { headers });
         }
 
         if (path === '/api/users/list' && request.method === 'GET') {
-            // Permission check: only admin/super can list all users
-            // (We assume the calling code in Admin checks this via headers)
-            const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
-            const users = [];
-            for (const key of list.keys.slice(0, 100)) { // Limit to 100 for now
-                const data = await env.CHAT_KV.get(key.name);
-                if (data) users.push(JSON.parse(data));
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            
+            try {
+                const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
+                const users = await Promise.all(
+                    list.keys.map(async (key) => {
+                        const data = await env.CHAT_KV.get(key.name);
+                        if (!data) return null;
+                        return JSON.parse(data);
+                    })
+                );
+                
+                const results = users.filter(Boolean);
+                return new Response(JSON.stringify(results), { 
+                    status: 200, 
+                    headers: { 'Content-Type': 'application/json', ...headers } 
+                });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
-            return new Response(JSON.stringify(users), { headers });
         }
 
         // --- API: COMMUNITY PLAYER XP ---
