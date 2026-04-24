@@ -3350,7 +3350,7 @@ export function AdminDashboard() {
                                     // Optimistic UI Update
                                     setTeamMembers(newTeam);
                                     
-                                    fetch("/api/team/update", {
+                                    apiFetch("/api/team/update", {
                                       method: "POST",
                                       headers: getAuthHeaders(),
                                       body: JSON.stringify({ members: newTeam }),

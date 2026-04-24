@@ -1079,11 +1079,14 @@ ${urls.map(u => `  <url>
                 };
 
                 // Non-blocking fetch
+                console.log(`[AUTH] Attempting to notify admin for new user: ${userData.email}`);
                 fetch('https://api.brevo.com/v3/smtp/email', {
                     method: 'POST',
                     headers: { 'accept': 'application/json', 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json' },
                     body: JSON.stringify(payload)
-                }).catch(e => console.error('Brevo notification error', e));
+                }).catch(e => {
+                    console.error('[AUTH] Brevo notification error', e);
+                });
             }
 
             return new Response(JSON.stringify({ success: true, user: userData }), { headers });
@@ -1788,7 +1791,10 @@ ${urls.map(u => `  <url>
                     if (isSuperEmail || requestUsername === 'alex') {
                         authenticated = true;
                         userPermissions = ['all'];
+                        console.log(`[AUTH] SuperAdmin authenticated: ${requestUsername}`);
                     }
+                } else {
+                    console.log(`[AUTH] Session mismatch for ${requestUsername}: req=${requestSessionId}, master=${masterSessionId}`);
                 }
             }
 
@@ -1911,6 +1917,57 @@ ${urls.map(u => `  <url>
             // Editors Management: only Alex or Super Admins
             if (path.startsWith('/api/editors') && requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr' && requestUsername !== 'alexflex30@gmail.com' && requestUsername !== 'alex@dropsiders.fr') {
                 return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur" }), { status: 403, headers });
+            }
+        }
+
+        // --- API: USERS MANAGEMENT (Moved here to ensure 'authenticated' is in scope) ---
+        if (path === '/api/users/list' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized', details: 'Authentication required' }), { status: 401, headers });
+            try {
+                const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
+                const users = await Promise.all(
+                    list.keys.map(async (key) => {
+                        const data = await env.CHAT_KV.get(key.name);
+                        return data ? JSON.parse(data) : null;
+                    })
+                );
+                return new Response(JSON.stringify(users.filter(Boolean)), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/users/search' && request.method === 'GET') {
+            const query = url.searchParams.get('q')?.toLowerCase().trim();
+            if (!query) return new Response(JSON.stringify([]), { headers });
+            
+            try {
+                const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
+                const users = await Promise.all(
+                    list.keys.map(async (key) => {
+                        const data = await env.CHAT_KV.get(key.name);
+                        if (!data) return null;
+                        const user = JSON.parse(data);
+                        
+                        const email = (user.email || '').toLowerCase();
+                        const username = (user.username || '').toLowerCase();
+                        const pseudo = (user.pseudo || '').toLowerCase();
+                        const name = (user.name || '').toLowerCase();
+                        
+                        if (email.includes(query) || username.includes(query) || pseudo.includes(query) || name.includes(query) || user.id === query) {
+                            return user;
+                        }
+                        return null;
+                    })
+                );
+                
+                const results = users.filter(Boolean);
+                return new Response(JSON.stringify(results), { 
+                    status: 200, 
+                    headers: { 'Content-Type': 'application/json', ...headers } 
+                });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
         }
 
@@ -2475,12 +2532,12 @@ ${urls.map(u => `  <url>
 
         // --- API: TEAM (with permission) ---
         if (path === '/api/team/update' && request.method === 'POST') {
-            // Permission check: requires 'accueil' (home_layout) or 'all' or Super Admin
-            const userPermissions = await getPermissions(request, env);
-            const hasTeamPermission = userPermissions.includes('all') || 
-                                     userPermissions.includes('accueil') ||
-                                     userPermissions.includes('home_layout') ||
-                                     isSuperAdmin(await getUserId(request, env));
+            // Permission check: requires 'accueil' (home_layout) or 'all'
+            const hasTeamPermission = authenticated && (
+                userPermissions.includes('all') || 
+                userPermissions.includes('accueil') ||
+                userPermissions.includes('home_layout')
+            );
 
             if (!hasTeamPermission) {
                 return new Response(JSON.stringify({ error: 'Permission denied (Need Team/Home access)' }), { status: 403, headers });

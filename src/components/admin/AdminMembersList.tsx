@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Search, RefreshCw, Mail, Calendar, ExternalLink, ShieldCheck, User, Trash2, ShieldAlert } from 'lucide-react';
+import { apiFetch, getAuthHeaders } from '../../utils/auth';
 
 interface CommunityUser {
     id: string;
@@ -23,8 +24,8 @@ export function AdminMembersList({ onEditPermissions, authHeaders }: {
     const fetchUsers = async () => {
         setRefreshing(true);
         try {
-            const res = await fetch('/api/users/list', {
-                headers: authHeaders || {}
+            const res = await apiFetch('/api/users/list', {
+                headers: getAuthHeaders()
             });
             if (res.ok) {
                 const data = await res.json();
