@@ -3,13 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, 
     Download, 
-    Plus, 
     Trash2, 
     Upload, 
     LayoutGrid, 
-    Type, 
     Settings,
-    ChevronLeft,
     Image as ImageIcon,
     Search,
     Check,
@@ -17,7 +14,6 @@ import {
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
-import { uploadFile } from '../utils/uploadService';
 
 interface StoryItem {
     id: string;
@@ -37,7 +33,6 @@ interface StoryGridGeneratorProps {
 
 export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGeneratorProps) {
     const [items, setItems] = useState<StoryItem[]>([]);
-    const [columns, setColumns] = useState(5);
     const [footerCount, setFooterCount] = useState('+1 M');
     const [isGenerating, setIsGenerating] = useState(false);
     const [activeTheme, setActiveTheme] = useState<'manual' | 'djs' | 'clubs' | 'festivals'>('manual');
@@ -67,7 +62,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
             newItems.push({
                 id: Math.random().toString(36).substr(2, 9),
                 image,
-                label: file.name.split('.')[0].substring(0, 15) // Use filename as default label
+                label: file.name.split('.')[0].substring(0, 15)
             });
         }
         setItems([...items, ...newItems]);
@@ -76,13 +71,11 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
     const handleWikiAdd = async (name: string, image: string, type: string) => {
         setIsSavingWiki(true);
         try {
-            // If image is base64, we might need to upload it first or send as is
-            // Following AdminDashboard logic:
             const res = await apiFetch("/api/wiki/add", {
                 method: "POST",
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
-                    type: type.toUpperCase() + 'S', // DJS, CLUBS, FESTIVALS
+                    type: type.toUpperCase() + 'S',
                     entry: { name, image }
                 }),
             });
@@ -104,7 +97,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
 
         if (source.length === 0) return;
 
-        // Shuffle and pick limit
         const shuffled = [...source].sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, randomLimit);
 
@@ -147,10 +139,9 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
         if (!previewRef.current || items.length === 0) return;
         setIsGenerating(true);
         try {
-            // Wait a bit for images to load if they are external (though here they are base64)
             const canvas = await html2canvas(previewRef.current, {
                 useCORS: true,
-                scale: 3, // Higher quality
+                scale: 3,
                 backgroundColor: '#000000'
             });
             const link = document.createElement('a');
@@ -247,6 +238,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                         </div>
 
                         {/* Items List */}
+                        <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                     <LayoutGrid className="w-3 h-3 text-neon-cyan" /> Éléments ({items.length})
@@ -302,14 +294,12 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                             </button>
                                         </div>
 
-                                        {/* Edit Overlay for Item */}
                                         {activeEditId === item.id && (
                                             <motion.div 
                                                 initial={{ opacity: 0, height: 0 }}
                                                 animate={{ opacity: 1, height: 'auto' }}
                                                 className="pt-4 border-t border-white/5 space-y-4"
                                             >
-                                                {/* Wiki Search */}
                                                 <div className="space-y-2">
                                                     <div className="relative">
                                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500" />
@@ -342,8 +332,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                                                         <img src={res.image || res.photo} className="w-6 h-6 rounded-full object-cover" alt="" />
                                                                         <span className="text-[10px] font-bold text-white">{res.name}</span>
                                                                     </button>
-                                                                ))
-                                                            }
+                                                                ))}
                                                         </div>
                                                     )}
                                                 </div>
@@ -406,30 +395,24 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
 
                     {/* Preview Area */}
                     <div className="p-12 bg-[#050505] flex flex-col items-center justify-center relative overflow-hidden group">
-                        {/* Background Decoration */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,243,0.05)_0%,transparent_70%)] pointer-events-none" />
                         
                         <div className="relative mb-12">
-                            {/* Smartphone Container Mockup */}
                             <div className="w-[360px] aspect-[9/16] bg-black rounded-[4rem] border-[8px] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col">
-                                {/* The actual exportable area */}
                                 <div 
                                     ref={previewRef}
                                     className="w-full h-full bg-[#050505] flex flex-col items-center p-6 pt-12 relative overflow-hidden"
                                 >
-                                    {/* Premium Background Elements */}
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,51,0.08)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,255,243,0.05)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
-                                    {/* Logo Dropsiders Top */}
                                     <div className="mb-8 flex justify-center relative z-10">
                                         <img src="/Logo.png" alt="Dropsiders" className="h-8 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
                                     </div>
 
-                                    {/* Grid */}
                                     <div className="w-full flex-1 overflow-hidden relative z-10">
-                                        <div className={`grid gap-x-2 gap-y-4 grid-cols-5`}>
+                                        <div className="grid gap-x-2 gap-y-4 grid-cols-5">
                                             {items.map(item => (
                                                 <div key={item.id} className="flex flex-col items-center gap-1">
                                                     <div className="w-full aspect-square rounded-full border-[1.5px] border-white bg-[#111] overflow-hidden shadow-lg relative">
@@ -450,11 +433,9 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                         </div>
                                     </div>
 
-                                    {/* Bottom Bar (Recreating the screenshot style but removing Ajout Perso) */}
                                     <div className="mb-10 w-full flex justify-center">
                                         <div className="bg-white rounded-full py-3 px-6 flex items-center justify-center gap-4 shadow-xl">
                                             <div className="flex items-center gap-2">
-                                                {/* Mimic the profile group */}
                                                 <div className="flex -space-x-2">
                                                     {[1,2,3].map(i => (
                                                         <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
@@ -464,16 +445,13 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                                 </div>
                                                 <span className="text-[11px] font-bold text-gray-500">{footerCount}</span>
                                             </div>
-                                            {/* Divider */}
                                             <div className="w-[1px] h-4 bg-gray-200" />
-                                            {/* DROPSIDERS LOGO / TEXT instead of AJOUT PERSO */}
                                             <span className="text-[11px] font-black uppercase tracking-widest text-black italic">Dropsiders</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Export Controls Overlay */}
                             <div className="absolute -right-24 top-0 space-y-4 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button 
                                     onClick={downloadImage}
@@ -493,7 +471,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                     </div>
                 </div>
 
-                {/* Footer Bar */}
                 <div className="p-6 bg-black border-t border-white/5 flex justify-end gap-4">
                     <button 
                         onClick={onClose}
