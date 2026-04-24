@@ -467,18 +467,18 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                             <div className="w-[360px] aspect-[9/16] bg-black rounded-[4rem] border-[8px] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col">
                                 <div 
                                     ref={previewRef}
-                                    className="w-full h-full bg-[#050505] flex flex-col items-center p-6 pt-12 relative overflow-hidden"
+                                    className="w-full h-full bg-[#050505] flex flex-col items-center p-4 pt-8 relative overflow-hidden"
                                 >
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,51,0.08)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,255,243,0.05)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
-                                    <div className="mb-8 flex justify-center relative z-10">
-                                        <img src="/Logo.png" alt="Dropsiders" className="h-8 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+                                    <div className="mb-4 flex justify-center relative z-10">
+                                        <img src="/Logo.png" alt="Dropsiders" className="h-6 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
                                     </div>
 
                                     <div className="w-full flex-1 overflow-hidden relative z-10">
-                                        <div className="grid gap-x-2 gap-y-4 grid-cols-5">
+                                        <div className="grid gap-x-1.5 gap-y-2 grid-cols-5">
                                             {items.map(item => (
                                                 <div key={item.id} className="flex flex-col items-center gap-1">
                                                     <div className="w-full aspect-square rounded-full border-[1.5px] border-white bg-[#111] overflow-hidden shadow-lg relative">
@@ -505,7 +505,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                     </div>
 
                                     {/* Footer branding */}
-                                    <div className="w-full mt-4 pt-3 border-t border-white/10 flex items-center justify-center gap-2 relative z-10">
+                                    <div className="w-full mt-2 pt-2 border-t border-white/10 flex items-center justify-center gap-2 relative z-10">
                                         <span className="text-[8px] font-black text-white/60 uppercase tracking-[0.2em]">
                                             Identifiez notre compte
                                         </span>
