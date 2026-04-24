@@ -1,0 +1,516 @@
+import { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+    X, 
+    Download, 
+    Plus, 
+    Trash2, 
+    Upload, 
+    LayoutGrid, 
+    Type, 
+    Settings,
+    ChevronLeft,
+    Image as ImageIcon,
+    Search,
+    Check,
+    Loader2
+} from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { uploadFile } from '../utils/uploadService';
+
+interface StoryItem {
+    id: string;
+    image: string | null;
+    label: string;
+}
+
+interface StoryGridGeneratorProps {
+    isOpen: boolean;
+    onClose: () => void;
+    wikiData?: {
+        djs: any[];
+        clubs: any[];
+        festivals: any[];
+    };
+}
+
+export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGeneratorProps) {
+    const [items, setItems] = useState<StoryItem[]>([]);
+    const [columns, setColumns] = useState(5);
+    const [footerCount, setFooterCount] = useState('+1 M');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [activeTheme, setActiveTheme] = useState<'manual' | 'djs' | 'clubs' | 'festivals'>('manual');
+    const [randomLimit, setRandomLimit] = useState(35);
+    
+    const previewRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [activeEditId, setActiveEditId] = useState<string | null>(null);
+    
+    // Wiki Search & Edit
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isSavingWiki, setIsSavingWiki] = useState(false);
+    const [addToWiki, setAddToWiki] = useState(false);
+
+    const handleBatchUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files?.length) return;
+        const files = Array.from(e.target.files);
+        const newItems: StoryItem[] = [];
+
+        for (const file of files) {
+            const reader = new FileReader();
+            const promise = new Promise<string>((resolve) => {
+                reader.onload = (event) => resolve(event.target?.result as string);
+                reader.readAsDataURL(file);
+            });
+            const image = await promise;
+            newItems.push({
+                id: Math.random().toString(36).substr(2, 9),
+                image,
+                label: file.name.split('.')[0].substring(0, 15) // Use filename as default label
+            });
+        }
+        setItems([...items, ...newItems]);
+    };
+
+    const handleWikiAdd = async (name: string, image: string, type: string) => {
+        setIsSavingWiki(true);
+        try {
+            // If image is base64, we might need to upload it first or send as is
+            // Following AdminDashboard logic:
+            const res = await apiFetch("/api/wiki/add", {
+                method: "POST",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    type: type.toUpperCase() + 'S', // DJS, CLUBS, FESTIVALS
+                    entry: { name, image }
+                }),
+            });
+            return res.ok;
+        } catch (err) {
+            console.error("Wiki add failed:", err);
+            return false;
+        } finally {
+            setIsSavingWiki(false);
+        }
+    };
+
+    const generateFromWiki = useCallback(() => {
+        if (!wikiData) return;
+        let source: any[] = [];
+        if (activeTheme === 'djs') source = wikiData.djs;
+        else if (activeTheme === 'clubs') source = wikiData.clubs;
+        else if (activeTheme === 'festivals') source = wikiData.festivals;
+
+        if (source.length === 0) return;
+
+        // Shuffle and pick limit
+        const shuffled = [...source].sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, randomLimit);
+
+        const newItems: StoryItem[] = selected.map(item => ({
+            id: Math.random().toString(36).substr(2, 9),
+            image: item.image || item.photo || null,
+            label: item.name || 'Sans nom'
+        }));
+
+        setItems(newItems);
+    }, [activeTheme, wikiData, randomLimit]);
+
+    const randomizeSelection = () => {
+        generateFromWiki();
+    };
+
+    const removeItem = (id: string) => {
+        setItems(items.filter(item => item.id !== id));
+    };
+
+    const updateItem = (id: string, updates: Partial<StoryItem>) => {
+        setItems(items.map(item => item.id === id ? { ...item, ...updates } : item));
+    };
+
+    const handleSingleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!activeEditId || !e.target.files?.[0]) return;
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            updateItem(activeEditId, { 
+                image: event.target?.result as string,
+                label: file.name.split('.')[0].substring(0, 15)
+            });
+            setActiveEditId(null);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const downloadImage = async () => {
+        if (!previewRef.current || items.length === 0) return;
+        setIsGenerating(true);
+        try {
+            // Wait a bit for images to load if they are external (though here they are base64)
+            const canvas = await html2canvas(previewRef.current, {
+                useCORS: true,
+                scale: 3, // Higher quality
+                backgroundColor: '#000000'
+            });
+            const link = document.createElement('a');
+            link.download = `dropsiders_grid_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch (err) {
+            console.error('Failed to generate image:', err);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4">
+            <div className="bg-[#0A0A0A] w-full max-w-7xl h-[92vh] rounded-[3rem] border border-white/10 shadow-2xl flex flex-col overflow-hidden">
+                {/* Header */}
+                <div className="p-8 border-b border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-neon-cyan/10 flex items-center justify-center border border-neon-cyan/20">
+                            <LayoutGrid className="w-6 h-6 text-neon-cyan" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tight">Générateur <span className="text-neon-cyan">Story Grid</span></h2>
+                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Créez des visuels de grille type Instagram</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={onClose}
+                        className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-hidden grid lg:grid-cols-[450px_1fr] gap-0">
+                    {/* Controls */}
+                    <div className="p-8 border-r border-white/5 overflow-y-auto custom-scrollbar space-y-8 bg-black/20">
+                        <div className="space-y-6">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <Settings className="w-3 h-3 text-neon-cyan" /> Mode de génération
+                            </label>
+                            
+                            <div className="grid grid-cols-2 gap-2">
+                                {(['manual', 'djs', 'clubs', 'festivals'] as const).map(t => (
+                                    <button 
+                                        key={t}
+                                        onClick={() => {
+                                            setActiveTheme(t);
+                                            if (t === 'manual') setItems([]);
+                                        }}
+                                        className={`py-3 rounded-xl border font-black text-[10px] uppercase tracking-widest transition-all ${activeTheme === t ? 'bg-neon-cyan/10 border-neon-cyan/50 text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                    >
+                                        {t === 'manual' ? 'Manuel' : t}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {activeTheme !== 'manual' && (
+                                <div className="p-5 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">Nombre d'éléments</span>
+                                        <span className="text-white font-bold text-xs">{randomLimit}</span>
+                                    </div>
+                                    <input 
+                                        type="range" min={3} max={50}
+                                        value={randomLimit}
+                                        onChange={(e) => setRandomLimit(parseInt(e.target.value))}
+                                        className="w-full h-1 bg-white/10 rounded-full appearance-none accent-neon-cyan cursor-pointer"
+                                    />
+                                    <button 
+                                        onClick={randomizeSelection}
+                                        className="w-full py-3 bg-neon-cyan text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all"
+                                    >
+                                        Générer / Mélanger
+                                    </button>
+                                </div>
+                            )}
+
+                            <div className="pt-2">
+                                <div className="space-y-2">
+                                    <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Compteur Footer</span>
+                                    <input 
+                                        type="text"
+                                        value={footerCount}
+                                        onChange={(e) => setFooterCount(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-xs font-bold outline-none focus:border-neon-cyan"
+                                        placeholder="+1 M"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Items List */}
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                    <LayoutGrid className="w-3 h-3 text-neon-cyan" /> Éléments ({items.length})
+                                </label>
+                                {activeTheme === 'manual' && (
+                                    <button 
+                                        onClick={() => {
+                                            setActiveEditId(null);
+                                            fileInputRef.current?.click();
+                                        }}
+                                        className="px-4 py-2 bg-neon-cyan text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2 shadow-lg shadow-neon-cyan/20"
+                                    >
+                                        <Upload className="w-3 h-3" /> Importer
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="space-y-3">
+                                {items.map((item, index) => (
+                                    <div key={item.id} className="group bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col gap-4 hover:border-neon-cyan/30 transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div 
+                                                onClick={() => {
+                                                    setActiveEditId(item.id);
+                                                    setSearchQuery('');
+                                                }}
+                                                className="w-14 h-14 rounded-full border-2 border-white/10 bg-black/40 flex-shrink-0 cursor-pointer overflow-hidden relative group/img"
+                                            >
+                                                {item.image ? (
+                                                    <img src={item.image} className="w-full h-full object-cover" alt="" />
+                                                ) : (
+                                                    <ImageIcon className="w-5 h-5 text-gray-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover/img:text-white transition-colors" />
+                                                )}
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
+                                                    <Settings className="w-4 h-4 text-white" />
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 space-y-1">
+                                                <span className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em]">Item #{index + 1}</span>
+                                                <input 
+                                                    type="text"
+                                                    value={item.label}
+                                                    onChange={(e) => updateItem(item.id, { label: e.target.value })}
+                                                    placeholder="NOM OBLIGATOIRE"
+                                                    className={`w-full bg-transparent border-none p-0 font-bold text-sm outline-none transition-colors ${!item.label.trim() ? 'text-neon-red placeholder:text-neon-red/50' : 'text-white focus:text-neon-cyan'}`}
+                                                />
+                                            </div>
+                                            <button 
+                                                onClick={() => removeItem(item.id)}
+                                                className="p-2 text-gray-600 hover:text-neon-red opacity-0 group-hover:opacity-100 transition-all"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+
+                                        {/* Edit Overlay for Item */}
+                                        {activeEditId === item.id && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                className="pt-4 border-t border-white/5 space-y-4"
+                                            >
+                                                {/* Wiki Search */}
+                                                <div className="space-y-2">
+                                                    <div className="relative">
+                                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500" />
+                                                        <input 
+                                                            type="text"
+                                                            value={searchQuery}
+                                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                                            placeholder="Rechercher dans le Wiki..."
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-[10px] font-bold text-white outline-none focus:border-neon-cyan"
+                                                        />
+                                                    </div>
+                                                    {searchQuery.length > 1 && wikiData && (
+                                                        <div className="bg-black/60 rounded-xl max-h-40 overflow-y-auto custom-scrollbar border border-white/5">
+                                                            {[...wikiData.djs, ...wikiData.clubs, ...wikiData.festivals]
+                                                                .filter(w => w.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                                                                .slice(0, 5)
+                                                                .map(res => (
+                                                                    <button 
+                                                                        key={res.id}
+                                                                        onClick={() => {
+                                                                            updateItem(item.id, { 
+                                                                                image: res.image || res.photo, 
+                                                                                label: res.name 
+                                                                            });
+                                                                            setSearchQuery('');
+                                                                            setActiveEditId(null);
+                                                                        }}
+                                                                        className="w-full p-2 hover:bg-white/5 flex items-center gap-3 transition-colors text-left"
+                                                                    >
+                                                                        <img src={res.image || res.photo} className="w-6 h-6 rounded-full object-cover" alt="" />
+                                                                        <span className="text-[10px] font-bold text-white">{res.name}</span>
+                                                                    </button>
+                                                                ))
+                                                            }
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        className="flex-1 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white flex items-center justify-center gap-2"
+                                                    >
+                                                        <Upload className="w-3 h-3" /> Changer Photo
+                                                    </button>
+                                                    {addToWiki && item.image && item.label && (
+                                                        <button 
+                                                            onClick={async () => {
+                                                                const success = await handleWikiAdd(item.label, item.image!, activeTheme === 'manual' ? 'DJ' : activeTheme.slice(0, -1));
+                                                                if (success) setAddToWiki(false);
+                                                            }}
+                                                            disabled={isSavingWiki}
+                                                            className="px-4 py-2 bg-neon-cyan/20 border border-neon-cyan/50 rounded-xl text-[9px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-2"
+                                                        >
+                                                            {isSavingWiki ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                                            Sync Wiki
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                
+                                                <div className="flex items-center gap-2 px-1">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        id={`wiki-${item.id}`}
+                                                        checked={addToWiki}
+                                                        onChange={(e) => setAddToWiki(e.target.checked)}
+                                                        className="accent-neon-cyan"
+                                                    />
+                                                    <label htmlFor={`wiki-${item.id}`} className="text-[9px] font-bold text-gray-500 uppercase cursor-pointer">Ajouter au Wiki</label>
+                                                </div>
+
+                                                <button 
+                                                    onClick={() => setActiveEditId(null)}
+                                                    className="w-full py-1 text-[8px] font-black text-gray-600 uppercase hover:text-white"
+                                                >
+                                                    Fermer
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <input 
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            multiple={!activeEditId}
+                            className="hidden"
+                            onChange={(e) => activeEditId ? handleSingleFileUpload(e) : handleBatchUpload(e)}
+                        />
+                    </div>
+
+                    {/* Preview Area */}
+                    <div className="p-12 bg-[#050505] flex flex-col items-center justify-center relative overflow-hidden group">
+                        {/* Background Decoration */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,243,0.05)_0%,transparent_70%)] pointer-events-none" />
+                        
+                        <div className="relative mb-12">
+                            {/* Smartphone Container Mockup */}
+                            <div className="w-[360px] aspect-[9/16] bg-black rounded-[4rem] border-[8px] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col">
+                                {/* The actual exportable area */}
+                                <div 
+                                    ref={previewRef}
+                                    className="w-full h-full bg-[#050505] flex flex-col items-center p-6 pt-12 relative overflow-hidden"
+                                >
+                                    {/* Premium Background Elements */}
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,51,0.08)_0%,transparent_50%)]" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,255,243,0.05)_0%,transparent_50%)]" />
+                                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+
+                                    {/* Logo Dropsiders Top */}
+                                    <div className="mb-8 flex justify-center relative z-10">
+                                        <img src="/Logo.png" alt="Dropsiders" className="h-8 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+                                    </div>
+
+                                    {/* Grid */}
+                                    <div className="w-full flex-1 overflow-hidden relative z-10">
+                                        <div className={`grid gap-x-2 gap-y-4 grid-cols-5`}>
+                                            {items.map(item => (
+                                                <div key={item.id} className="flex flex-col items-center gap-1">
+                                                    <div className="w-full aspect-square rounded-full border-[1.5px] border-white bg-[#111] overflow-hidden shadow-lg relative">
+                                                        {item.image ? (
+                                                            <img src={item.image} className="w-full h-full object-cover" alt="" />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">
+                                                                <ImageIcon className="w-3 h-3 text-white/20" />
+                                                            </div>
+                                                        )}
+                                                        <div className="absolute inset-0 rounded-full border-[1px] border-black/40" />
+                                                    </div>
+                                                    <span className="text-[7px] text-white/90 font-bold text-center leading-[1.1] uppercase tracking-tighter line-clamp-2 px-0.5">
+                                                        {item.label}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Bottom Bar (Recreating the screenshot style but removing Ajout Perso) */}
+                                    <div className="mb-10 w-full flex justify-center">
+                                        <div className="bg-white rounded-full py-3 px-6 flex items-center justify-center gap-4 shadow-xl">
+                                            <div className="flex items-center gap-2">
+                                                {/* Mimic the profile group */}
+                                                <div className="flex -space-x-2">
+                                                    {[1,2,3].map(i => (
+                                                        <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
+                                                            <img src={`https://i.pravatar.cc/100?u=${i}`} className="w-full h-full object-cover grayscale" alt="" />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <span className="text-[11px] font-bold text-gray-500">{footerCount}</span>
+                                            </div>
+                                            {/* Divider */}
+                                            <div className="w-[1px] h-4 bg-gray-200" />
+                                            {/* DROPSIDERS LOGO / TEXT instead of AJOUT PERSO */}
+                                            <span className="text-[11px] font-black uppercase tracking-widest text-black italic">Dropsiders</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Export Controls Overlay */}
+                            <div className="absolute -right-24 top-0 space-y-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button 
+                                    onClick={downloadImage}
+                                    disabled={isGenerating}
+                                    className="w-16 h-16 rounded-3xl bg-neon-cyan text-black flex items-center justify-center shadow-[0_0_30px_rgba(0,255,243,0.3)] hover:scale-110 transition-all disabled:opacity-50"
+                                    title="Télécharger l'image"
+                                >
+                                    {isGenerating ? <div className="w-6 h-6 border-4 border-black/20 border-t-black rounded-full animate-spin" /> : <Download className="w-7 h-7" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="text-center space-y-2">
+                            <p className="text-gray-500 text-xs font-bold uppercase tracking-[0.3em]">Aperçu du Rendu Final</p>
+                            <p className="text-[9px] text-gray-700 font-medium italic">Format Portrait (9:16) optimisé pour les stories</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer Bar */}
+                <div className="p-6 bg-black border-t border-white/5 flex justify-end gap-4">
+                    <button 
+                        onClick={onClose}
+                        className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-gray-400 font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all"
+                    >
+                        Annuler
+                    </button>
+                    <button 
+                        onClick={downloadImage}
+                        disabled={isGenerating || items.length === 0 || items.some(it => !it.label.trim())}
+                        className="px-12 py-4 bg-neon-cyan text-black rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-neon-cyan/20 hover:scale-[1.02] transition-all flex items-center gap-3 disabled:opacity-50 disabled:hover:scale-100"
+                    >
+                        {isGenerating ? 'GÉNÉRATION...' : 'TÉLÉCHARGER LE VISUEL'}
+                        {!isGenerating && <Download className="w-4 h-4" />}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
