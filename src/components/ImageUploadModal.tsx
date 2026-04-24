@@ -17,6 +17,7 @@ interface ImageUploadModalProps {
     allowMultiple?: boolean;
     watermark?: boolean;   // Automatically add DROPSIDERS logo
     forceFilename?: string; // Force upload filename
+    forceCrop?: boolean;    // Force open cropper automatically
 }
 
 export function ImageUploadModal({ 
@@ -29,7 +30,8 @@ export function ImageUploadModal({
     initialImage,
     allowMultiple = false,
     watermark = false,
-    forceFilename
+    forceFilename,
+    forceCrop = false
 }: ImageUploadModalProps) {
     const [isUploading, setIsUploading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -149,8 +151,7 @@ export function ImageUploadModal({
             if (initialImage) {
                 setSelectedImages([{ file: null, preview: initialImage }]);
                 setStep('preview');
-                // Auto-open crop for existing images to allow immediate re-cropping
-                setIsCropOpen(true);
+                if (forceCrop) setIsCropOpen(true);
             }
         } else if (!isOpen) {
             document.body.style.overflow = 'unset';
@@ -293,8 +294,7 @@ export function ImageUploadModal({
         if (images.length > 0) {
             setSelectedImages(images);
             setStep('preview');
-            // Auto-open crop if aspect is provided (e.g. for card mode)
-            if (aspect && images.length === 1 && (!images[0].file || images[0].file.type.startsWith('image/'))) {
+            if (forceCrop && aspect && images.length === 1 && (!images[0].file || images[0].file.type.startsWith('image/'))) {
                 setIsCropOpen(true);
             }
         }
@@ -603,7 +603,7 @@ export function ImageUploadModal({
                                                     </button>
                                                     <button onClick={() => setLibTab('unsplash')} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${libTab === 'unsplash' ? 'bg-neon-cyan text-black font-black' : 'text-white hover:bg-white/10'}`}>
                                                         <Globe className="w-4 h-4" />
-                                                        <span className="font-black text-[10px] uppercase tracking-widest">Google Images</span>
+                                                        <span className="font-black text-[10px] uppercase tracking-widest">Recherche Web</span>
                                                     </button>
                                                 </div>
                                                 
@@ -640,7 +640,7 @@ export function ImageUploadModal({
                                                     <form onSubmit={searchWeb} className="flex gap-2 relative">
                                                         <input 
                                                             type="text" 
-                                                            placeholder="Rechercher une image sur Google..."
+                                                            placeholder="Rechercher une image sur le web..."
                                                             value={webQuery}
                                                             onChange={e => setWebQuery(e.target.value)}
                                                             className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-black text-white hover:border-white/30 focus:border-neon-cyan outline-none transition-all uppercase placeholder:italic"

@@ -4,9 +4,9 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": false,
+    "enabled": true,
     "youtubeId": "",
-    "title": "COACHELLA week end 2 ",
+    "title": "EDC LAS VEGAS ",
     "moderators": "",
     "lineup": "[]",
     "tickerType": "news",
@@ -28,7 +28,31 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "off"
+    "status": "edit",
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
+    "streams": [
+      {
+        "id": "pyc0ajojf",
+        "name": "STAGE 1",
+        "youtubeId": "",
+        "streamSource": "twitch",
+        "twitchChannel": "dropsiders_live"
+      }
+    ],
+    "activeStreamId": "pyc0ajojf",
+    "tickerMode": "news",
+    "instagramLink": "",
+    "tiktokLink": "",
+    "youtubeLink": "",
+    "twitterLink": "",
+    "sponsorText": "",
+    "sponsorLink": "",
+    "showSponsorBanner": true,
+    "festivalLogo": "https://dropsiders.fr/uploads/festivals/9d105c3e8b63a7e1-EDCLV_2026_logo_1.webp",
+    "twitchChannel": "",
+    "streamSource": "youtube",
+    "twitchBotAutoMessage": "",
+    "twitchBotAutoMessageInterval": 30
   },
   "socials": {
     "instagram": "dropsiders.eu",

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { Client, Databases, ID, Query } from 'appwrite';
 import { useUser } from './UserContext';
-const showNotification = (msg: string, type: 'success' | 'error' | 'info') => console.log(`[${type.toUpperCase()}] ${msg}`);
+
 
 // --- Interfaces ---
 export interface LineupItem {
@@ -23,6 +23,8 @@ export interface StreamItem {
     id: string;
     name: string;
     youtubeId: string;
+    twitchChannel?: string;
+    streamSource?: 'youtube' | 'twitch';
     currentTrack?: string;
     overrideArtist?: string;
     isExternalLink?: boolean;
@@ -32,6 +34,8 @@ export interface StreamItem {
 export interface TakeoverSettings {
     title: string;
     youtubeId: string;
+    twitchChannel?: string;
+    streamSource?: 'youtube' | 'twitch';
     mainFluxName: string;
     currentTrack: string;
     tickerText: string;
@@ -68,6 +72,8 @@ export interface TakeoverSettings {
     festivalLogo?: string;
     moderators?: string[];
     bannedPseudos?: string[];
+    twitchBotAutoMessage?: string;
+    twitchBotAutoMessageInterval?: number;
 }
 
 export interface TrackItem {
@@ -122,6 +128,10 @@ interface TakeoverContextType {
     pinnedMessage: any;
     setPinnedMessage: (m: any) => void;
     
+    // Notifications
+    notification: { show: boolean, message: string, type: 'success' | 'error' | 'info' };
+    showNotification: (msg: string, type?: 'success' | 'error' | 'info') => void;
+    
     // Interactive
     activePoll: any;
     setActivePoll: (p: any) => void;
@@ -147,7 +157,6 @@ interface TakeoverContextType {
     // Handlers
     handleGlobalSave: (data?: TakeoverSettings) => Promise<void>;
     triggerConfetti: () => void;
-    showNotification: (msg: string, type: 'success' | 'error' | 'info') => void;
 }
 
 export const TakeoverContext = createContext<TakeoverContextType | undefined>(undefined);
@@ -192,6 +201,17 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
     const [quizTimeLeft, setQuizTimeLeft] = useState<number | null>(null);
     const [activeHeist, setActiveHeist] = useState<any>(null);
     const [activeBoss, setActiveBoss] = useState<any>(null);
+    const [notification, setNotification] = useState<{ show: boolean, message: string, type: 'success' | 'error' | 'info' }>({
+        show: false,
+        message: '',
+        type: 'info'
+    });
+
+    const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => setNotification(prev => ({ ...prev, show: false })), 4000);
+    }, []);
+
     const { user: globalUser, earnPoints, isLoggedIn: isGlobalLoggedIn } = useUser();
     const [userDrops, setUserDropsLocal] = useState(() => {
         const saved = localStorage.getItem('user_drops');
@@ -221,6 +241,8 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
     const [settings, setSettings] = useState<TakeoverSettings>({
         title: initialSettings?.title || 'LIVESTREAM',
         youtubeId: initialSettings?.youtubeId || '',
+        twitchChannel: initialSettings?.twitchChannel || '',
+        streamSource: initialSettings?.streamSource || 'youtube',
         mainFluxName: initialSettings?.mainFluxName || 'MAIN STAGE',
         currentTrack: initialSettings?.currentTrack || 'ID - UNRELEASED',
         tickerText: initialSettings?.tickerText || 'BIENVENUE SUR LE LIVE DROPSIDERS !',
@@ -334,6 +356,7 @@ export const TakeoverProvider: React.FC<{ children: React.ReactNode, initialSett
         COLLECTION_CHAT,
         handleGlobalSave,
         triggerConfetti,
+        notification,
         showNotification
     };
 

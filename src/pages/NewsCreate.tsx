@@ -2329,7 +2329,7 @@ ${generateSocialsHtml()}
                                     { id: 'snapchat', name: 'Snapchat', icon: SnapchatIcon, color: 'text-yellow-400' },
                                     { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
                                     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                    { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' },
+                                    { id: 'x', name: 'X', icon: XIcon, color: 'text-white' },
                                     { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
                                     { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
                                     { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
@@ -4799,13 +4799,13 @@ ${generateSocialsHtml()}
                                     Facebook
                                 </a>
                                 <a 
-                                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareModalConfig.url)}&text=${encodeURIComponent(shareModalConfig.title)}`}
+                                    href={`https://x.com/intent/tweet?url=${encodeURIComponent(shareModalConfig.url)}&text=${encodeURIComponent(shareModalConfig.title)}`}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="flex items-center justify-center gap-3 w-full py-4 bg-white/5 border border-white/10 text-white rounded-xl font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all text-[11px]"
                                 >
                                     <XIcon className="w-4 h-4 ml-1" />
-                                    X (Twitter)
+                                    X
                                 </a>
                                 <a 
                                     href={`https://snapchat.com/scan?attachmentUrl=${encodeURIComponent(shareModalConfig.url)}`}

@@ -1709,7 +1709,7 @@ export function RecapCreate() {
                                             { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
                                             { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
                                             { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                            { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' }
+                                            { id: 'x', name: 'X', icon: XIcon, color: 'text-white' }
                                         ].map((social) => (
                                             <div key={social.id}>
                                                 <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
@@ -1767,7 +1767,7 @@ export function RecapCreate() {
                                             { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
                                             { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
                                             { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                            { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' },
+                                            { id: 'x', name: 'X', icon: XIcon, color: 'text-white' },
                                             { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
                                             { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
                                             { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }

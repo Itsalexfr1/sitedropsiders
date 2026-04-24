@@ -353,21 +353,6 @@ export function WikiWidget({
                     ))}
                 </div>
 
-                {/* Sort controls */}
-                <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl p-1.5">
-                    {(['alpha', 'votes'] as const).map(mode => (
-                        <button
-                            key={mode}
-                            onClick={() => setSortMode(mode)}
-                            className={twMerge(
-                                'px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[8px] transition-all',
-                                sortMode === mode ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'
-                            )}
-                        >
-                            {mode === 'alpha' ? 'Alphabétique' : 'Par votes'}
-                        </button>
-                    ))}
-                </div>
 
                 {/* View toggle */}
                 <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-2xl p-1.5">

@@ -453,10 +453,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 translatedLines.push(`${numStr}. ${frText}`);
                 
                 try {
-                    const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(frText)}&langpair=fr|en`);
+                    const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl=en&dt=t&q=${encodeURIComponent(frText)}`);
                     const data = await response.json();
-                    if (data.responseData?.translatedText) {
-                        translatedLines.push(data.responseData.translatedText);
+                    if (data && data[0] && data[0][0] && data[0][0][0]) {
+                        translatedLines.push(data[0][0][0]);
                     }
                 } catch (error) {
                     console.error("Translation error:", error);

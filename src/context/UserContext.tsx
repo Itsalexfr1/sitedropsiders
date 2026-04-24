@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { twMerge } from 'tailwind-merge';
 
 interface UserProfile {
     id: string;
@@ -30,6 +32,7 @@ interface UserContextType {
     earnPoints: (xp: number, drops: number) => void;
     isAuthModalOpen: boolean;
     setIsAuthModalOpen: (open: boolean) => void;
+    showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -37,6 +40,13 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
+
+    const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setNotification({ message, type });
+        // Auto hide after 5 seconds
+        setTimeout(() => setNotification(null), 5000);
+    };
 
     // Initial load from localStorage
     useEffect(() => {
@@ -79,8 +89,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                         provider: 'google'
                     });
                     setTimeout(() => {
-                        window.alert(`Succès! Vous êtes connecté via Google en tant que ${googleUser.name}.`);
-                        window.location.reload(); // Force la fermeture de potentielles fenêtres et l'update
+                        showNotification(`Succès! Vous êtes connecté via Google en tant que ${googleUser.name}.`, 'success');
+                        setTimeout(() => window.location.reload(), 2000); // Laisse le temps de voir le message
                     }, 500);
                 }
             })
@@ -327,9 +337,72 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             updateUser,
             earnPoints,
             isAuthModalOpen,
-            setIsAuthModalOpen
+            setIsAuthModalOpen,
+            showNotification
         }}>
             {children}
+
+            {/* DESIGN DROPSIDERS NOTIFICATION */}
+            <AnimatePresence>
+                {notification && (
+                    <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[10000] w-[90%] max-w-[400px]">
+                        <motion.div
+                            initial={{ y: -100, opacity: 0, scale: 0.9 }}
+                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                            exit={{ y: -100, opacity: 0, scale: 0.9 }}
+                            className="relative bg-black/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden group"
+                        >
+                            {/* Neon Borders */}
+                            <div className={twMerge(
+                                "absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity",
+                                notification.type === 'success' ? "shadow-[inset_0_0_20px_rgba(0,240,255,0.4)]" : 
+                                notification.type === 'error' ? "shadow-[inset_0_0_20px_rgba(255,0,51,0.4)]" : 
+                                "shadow-[inset_0_0_20px_rgba(168,85,247,0.4)]"
+                            )} />
+
+                            <div className="relative flex items-start gap-4">
+                                <div className={twMerge(
+                                    "p-3 rounded-2xl border",
+                                    notification.type === 'success' ? "bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan" : 
+                                    notification.type === 'error' ? "bg-neon-red/10 border-neon-red/30 text-neon-red" : 
+                                    "bg-neon-purple/10 border-neon-purple/30 text-neon-purple"
+                                )}>
+                                    <div className="w-5 h-5 flex items-center justify-center">
+                                        {notification.type === 'success' ? '✓' : notification.type === 'error' ? '!' : 'i'}
+                                    </div>
+                                </div>
+                                <div className="flex-1 pt-1">
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-1">
+                                        {notification.type === 'success' ? 'Confirmation' : notification.type === 'error' ? 'Alerte' : 'Information'}
+                                    </h4>
+                                    <p className="text-sm font-bold text-white leading-relaxed italic">
+                                        {notification.message}
+                                    </p>
+                                </div>
+                                <button 
+                                    onClick={() => setNotification(null)}
+                                    className="p-2 text-white/20 hover:text-white transition-colors"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <motion.div 
+                                initial={{ width: "100%" }}
+                                animate={{ width: 0 }}
+                                transition={{ duration: 5, ease: "linear" }}
+                                className={twMerge(
+                                    "absolute bottom-0 left-0 h-1",
+                                    notification.type === 'success' ? "bg-neon-cyan" : 
+                                    notification.type === 'error' ? "bg-neon-red" : 
+                                    "bg-neon-purple"
+                                )}
+                            />
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </UserContext.Provider>
     );
 }

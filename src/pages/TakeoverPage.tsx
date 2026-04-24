@@ -21,6 +21,7 @@ import { ModerationModal } from '../components/admin/ModerationModal';
 import { ImageCropper } from '../components/ImageCropper';
 import { resolveImageUrl } from '../utils/image';
 import settingsData from '../data/settings.json';
+import * as tmi from 'tmi.js';
 
 import { TakeoverProvider, useTakeover, type TakeoverSettings, type StreamItem, type LineupItem, type TracklistSet, type TrackItem } from '../context/TakeoverContext';
 import { AdminPanel } from '../components/takeover/AdminPanel';
@@ -33,13 +34,16 @@ export const TakeoverPage = (props: any) => {
     );
 };
 
+const twitchAvatarCache: Record<string, string> = {};
+
 const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const navigate = useNavigate();
+    const takeover = useTakeover();
     const { 
         showAdminPanel, setShowAdminPanel, 
         settings, setSettings, 
         handleGlobalSave 
-    } = useTakeover();
+    } = takeover;
 
     // Appwrite Config
     const client = new Client()
@@ -571,7 +575,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const [editInsta, setEditInsta] = useState(settings.instagramLink || '');
     const [editTiktok, setEditTiktok] = useState(settings.tiktokLink || '');
     const [editYoutube, setEditYoutube] = useState(settings.youtubeLink || '');
-    const [editTwitter, setEditTwitter] = useState(settings.twitterLink || '');
+    const [editX, setEditX] = useState(settings.twitterLink || '');
     const [editFestivalLogo, setEditFestivalLogo] = useState(settings.festivalLogo || '');
     const [isSaving, setIsSaving] = useState(false);
 
@@ -1164,7 +1168,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 profileBorder: response.payload.profileBorder || 'none',
                                 pseudoColor: response.payload.pseudoColor || '#ffffff',
                                 specialFontStyle: response.payload.specialFontStyle || 'normal',
-                                instagram: response.payload.instagram || ''
+                                instagram: response.payload.instagram || '',
+                                avatar: response.payload.avatar || ''
                             }];
                         });
                     }
@@ -1369,6 +1374,72 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         return () => unsubscribe();
     }, []);
 
+    // 🟣 Twitch Chat Bridge
+    useEffect(() => {
+        // Find twitch channel from settings or active stream
+        const streamIdx = parseInt(activeStage.replace('stage', '')) - 1;
+        const activeStream = (settings.streams && !isNaN(streamIdx)) ? settings.streams[streamIdx] : settings.streams?.find(s => s.id === settings.activeStreamId);
+        
+        const twitchChannel = settings.twitchChannel || activeStream?.twitchChannel;
+        // Keep bridge active even if source is youtube, as long as we have a channel
+        if (!twitchChannel) return;
+
+        let cleanChannel = twitchChannel;
+        if (cleanChannel.includes('twitch.tv/')) {
+            cleanChannel = cleanChannel.split('twitch.tv/')[1].split('/')[0].split('?')[0];
+        }
+
+        console.log(`[TWITCH] Connecting to channel: ${cleanChannel}...`);
+        const twitchClient = new tmi.Client({
+            connection: { secure: true, reconnect: true },
+            channels: [cleanChannel]
+        });
+
+        twitchClient.connect().catch(console.error);
+
+        twitchClient.on('message', (channel: string, tags: any, message: string, self: boolean) => {
+            if (self) return;
+            
+            const msgId = `twitch-${tags.id || Date.now()}`;
+            const pseudo = tags['display-name'] || tags.username;
+            
+            // Background avatar fetch
+            if (!twitchAvatarCache[pseudo] && pseudo) {
+                twitchAvatarCache[pseudo] = 'loading';
+                fetch(`https://decapi.me/twitch/avatar/${pseudo}`)
+                    .then(r => r.text())
+                    .then(url => {
+                        if (url && url.startsWith('http')) {
+                            twitchAvatarCache[pseudo] = url;
+                            setChatMessages((prev: any) => prev.map((m: any) => m.pseudo === pseudo ? { ...m, avatar: url } : m));
+                        }
+                    }).catch(() => { twitchAvatarCache[pseudo] = ''; });
+            }
+
+            setChatMessages((prev: any) => {
+                if (prev.find((m: any) => m.id === msgId)) return prev;
+                
+                // Cap messages to avoid lag
+                const next = [...prev, {
+                    id: msgId,
+                    pseudo: pseudo,
+                    message: message,
+                    color: tags.color || '#9146FF',
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    country: 'TWITCH',
+                    isTwitch: true,
+                    profileBorder: 'solid 2px #9146FF',
+                    avatar: twitchAvatarCache[pseudo] !== 'loading' ? twitchAvatarCache[pseudo] : undefined
+                }];
+                return next.slice(-100); 
+            });
+        });
+
+        return () => {
+            twitchClient.disconnect();
+        };
+    }, [settings.twitchChannel, settings.streamSource, activeStage, settings.streams]);
+
     // ⏰ Quiz Auto-Timer (30s)
     useEffect(() => {
         if (activeQuiz && activeQuiz.question) {
@@ -1497,7 +1568,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                     if (data.instagramLink) setEditInsta(data.instagramLink);
                     if (data.tiktokLink) setEditTiktok(data.tiktokLink);
                     if (data.youtubeLink) setEditYoutube(data.youtubeLink);
-                    if (data.twitterLink) setEditTwitter(data.twitterLink);
+                    if (data.twitterLink) setEditX(data.twitterLink);
                     if (data.botCommands) setBotCommands(data.botCommands);
                     if (data.tracklist) {
                         try {
@@ -2053,7 +2124,21 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             // Dynamic Bot Commands
             const customCmd = botCommands.find(c => c.command.toLowerCase() === mainCmd);
             if (customCmd) {
-                messageText = `[BOT]: ${customCmd.response}`;
+                // We let the user's message go through, then the bot replies
+                setTimeout(async () => {
+                    try {
+                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                            pseudo: "BOT_SYSTEM",
+                            message: `🤖 @${pseudo} : ${customCmd.response}`,
+                            color: "text-neon-cyan",
+                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                            country: "FR",
+                            stage: activeStage
+                        });
+                    } catch (e) {
+                        console.error("Bot reply failed:", e);
+                    }
+                }, 800);
             }
         }
 
@@ -2151,7 +2236,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                 country: userCountry || "FR",
                 stage: activeStage,
-                isModOnly: isModChat
+                isModOnly: isModChat,
+                avatar: localStorage.getItem('chat_avatar') || ''
             });
 
 
@@ -2794,6 +2880,16 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     );
                                 }
 
+                                if (activeStream?.streamSource === 'twitch' && activeStream?.twitchChannel) {
+                                    return (
+                                        <iframe
+                                            src={`https://player.twitch.tv/?channel=${activeStream.twitchChannel}&parent=${window.location.hostname}`}
+                                            className="w-full h-full border-none"
+                                            allowFullScreen
+                                        />
+                                    );
+                                }
+
                                 return activeYtId ? (
                                     <iframe 
                                         className="w-full h-full border-none" 
@@ -2803,11 +2899,86 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         referrerPolicy="strict-origin-when-cross-origin"
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-4">
-                                        <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center animate-pulse">
-                                            <Radio className="w-8 h-8 text-white/50" />
+                                    <div className="w-full h-full relative overflow-hidden bg-[#050505] flex flex-col items-center justify-center">
+                                        {/* Animated Cyber Grid Background */}
+                                        <div className="absolute inset-0 z-0">
+                                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
+                                            <motion.div 
+                                                animate={{ 
+                                                    backgroundPosition: ['0px 0px', '40px 40px'],
+                                                }}
+                                                transition={{ 
+                                                    duration: 4,
+                                                    repeat: Infinity,
+                                                    ease: "linear"
+                                                }}
+                                                className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,#00ffff10_1px,transparent_1px),linear-gradient(to_bottom,#00ffff10_1px,transparent_1px)] bg-[size:80px_80px]" 
+                                            />
                                         </div>
-                                        <p className="text-white/30 text-xs font-black uppercase tracking-[0.3em] mt-4">Stream bientôt en ligne</p>
+
+                                        {/* Noise Overlay */}
+                                        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+
+                                        {/* Scanline Effect */}
+                                        <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
+                                            <motion.div 
+                                                animate={{ y: ['-100%', '100%'] }}
+                                                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                                className="w-full h-20 bg-gradient-to-b from-transparent via-white/[0.03] to-transparent"
+                                            />
+                                        </div>
+
+                                        <div className="relative z-20 flex flex-col items-center gap-8">
+                                            <motion.div 
+                                                animate={{ 
+                                                    scale: [1, 1.05, 1],
+                                                    filter: [
+                                                        'drop-shadow(0 0 0px #ff0033)',
+                                                        'drop-shadow(0 0 20px #ff0033)',
+                                                        'drop-shadow(0 0 0px #ff0033)'
+                                                    ]
+                                                }}
+                                                transition={{ duration: 4, repeat: Infinity }}
+                                                className="relative"
+                                            >
+                                                <img src="/Logo.png" className="w-32 lg:w-48 opacity-90 brightness-110" alt="Dropsiders" />
+                                                <div className="absolute -inset-4 bg-neon-red/10 blur-3xl rounded-full animate-pulse" />
+                                            </motion.div>
+
+                                            <div className="text-center space-y-4">
+                                                <div className="flex items-center justify-center gap-3">
+                                                    <div className="h-px w-8 bg-gradient-to-r from-transparent to-neon-red" />
+                                                    <span className="text-[10px] lg:text-xs font-black text-white uppercase tracking-[0.5em] italic">SIGNAL INTERROMPU</span>
+                                                    <div className="h-px w-8 bg-gradient-to-l from-transparent to-neon-red" />
+                                                </div>
+                                                
+                                                <h3 className="text-3xl lg:text-5xl font-display font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/20 uppercase italic tracking-tighter">
+                                                    STREAMING <span className="text-neon-red">OFFLINE</span>
+                                                </h3>
+
+                                                <div className="flex items-center justify-center gap-6 pt-4">
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <span className="text-[8px] font-black text-gray-500 uppercase">Status</span>
+                                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                                            <div className="w-1.5 h-1.5 bg-gray-600 rounded-full" />
+                                                            <span className="text-[9px] font-bold text-gray-400 uppercase">EN ATTENTE</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-px h-8 bg-white/10" />
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <span className="text-[8px] font-black text-gray-500 uppercase">Fréquence</span>
+                                                        <span className="text-[10px] font-bold text-neon-cyan">88.5 MHz</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Bottom Glitch Bar */}
+                                        <div className="absolute bottom-0 left-0 right-0 h-1 flex">
+                                            <motion.div animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 0.1, repeat: Infinity }} className="flex-1 bg-neon-red" />
+                                            <div className="flex-1 bg-neon-cyan" />
+                                            <motion.div animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 0.1, repeat: Infinity }} className="flex-1 bg-neon-purple" />
+                                        </div>
                                     </div>
                                 );
                             })()
@@ -2839,6 +3010,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                     </div>
                                                 ) : (
                                                     <>
+                                                    {s.streamSource === 'twitch' && s.twitchChannel ? (
+                                                        <iframe
+                                                            src={`https://player.twitch.tv/?channel=${s.twitchChannel}&parent=${window.location.hostname}&autoplay=${idx === activeAudioIdx ? 'true' : 'false'}&muted=${idx === activeAudioIdx ? 'false' : 'true'}`}
+                                                            className="w-full h-full border-none"
+                                                            allowFullScreen
+                                                        />
+                                                    ) : (
                                                         <iframe
                                                             className="w-full h-full border-none"
                                                             src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
@@ -2846,6 +3024,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                             allowFullScreen
                                                             referrerPolicy="strict-origin-when-cross-origin"
                                                         />
+                                                    )}
                                                         <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
                                                             {s.name}
                                                         </div>
@@ -2919,9 +3098,17 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                         >
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple" />
                             <div className="flex flex-col items-center gap-4 text-center">
-                                <div className={`w-20 h-20 rounded-3xl border-2 flex items-center justify-center bg-white/5 relative overflow-hidden`} style={{ borderColor: selectedProfile.color || '#fff' }}>
-                                    <FlagIcon location={selectedProfile.country} className="absolute inset-0 w-full h-full opacity-30 object-cover" />
-                                    <span className="text-3xl font-black text-white relative z-10">{selectedProfile.pseudo[0]}</span>
+                                <div className={`w-20 h-20 rounded-3xl border-2 flex items-center justify-center bg-white/5 relative overflow-hidden shrink-0`} style={{ borderColor: selectedProfile.color || '#fff' }}>
+                                    {selectedProfile.avatar ? (
+                                        <img src={selectedProfile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : selectedProfile.isTwitch ? (
+                                        <svg className="w-10 h-10 fill-[#9146FF]" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
+                                    ) : (
+                                        <>
+                                            <FlagIcon location={selectedProfile.country} className="absolute inset-0 w-full h-full opacity-30 object-cover" />
+                                            <span className="text-3xl font-black text-white relative z-10">{selectedProfile.pseudo[0]}</span>
+                                        </>
+                                    )}
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">{selectedProfile.pseudo}</h3>
@@ -2996,12 +3183,27 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 <Users className="w-4 h-4 text-neon-cyan" />
                                 <span className="text-[10px] font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
                             </button>
+                             <div className="flex items-center gap-2">
+                                <span className="text-[8px] font-black text-gray-500 uppercase tracking-tighter">Ma Couleur</span>
+                                <input 
+                                    type="color" 
+                                    title="Choisir ma couleur" 
+                                    value={pseudoColor} 
+                                    onChange={(e) => { 
+                                        const color = e.target.value;
+                                        setPseudoColor(color); 
+                                        setAccentColor(color);
+                                        localStorage.setItem('user_pseudo_color', color); 
+                                        localStorage.setItem('chat_accent_color', color);
+                                    }} 
+                                    className="w-5 h-5 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent" 
+                                />
+                             </div>
                             {isMod && (
                                 <button onClick={() => setIsModChat(!isModChat)} className={`px-2 py-1 rounded-md text-[8px] font-black uppercase flex items-center gap-1.5 transition-all ${isModChat ? 'bg-amber-500 text-black' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
                                     <ShieldCheck className="w-3 h-3" /> CANAL MODOS
                                 </button>
                             )}
-                            <input type="color" value={accentColor} onChange={(e) => { setAccentColor(e.target.value); localStorage.setItem('chat_accent_color', e.target.value); }} className="w-6 h-6 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent" />
                         </div>
                     </div>
 
@@ -3417,7 +3619,8 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                     }}
                                                     onMouseEnter={() => setHoveredMessageId(msg.id)}
                                                     onMouseLeave={() => setHoveredMessageId(null)}
-                                                    onDoubleClick={() => setSelectedProfile({ pseudo: msg.pseudo, country: msg.country, color: msg.color })}
+                                                    onDoubleClick={() => setSelectedProfile({ pseudo: msg.pseudo, country: msg.country, color: msg.color, avatar: msg.avatar, isTwitch: msg.isTwitch })}
+                                                    onClick={() => setSelectedProfile({ pseudo: msg.pseudo, country: msg.country, color: msg.color, avatar: msg.avatar, isTwitch: msg.isTwitch })}
                                                     className={`group flex flex-col gap-0.5 relative px-2 py-0.5 lg:p-3 rounded-xl transition-all duration-300 cursor-pointer ${clashPoll?.active
                                                         ? (clashPoll.votesA.includes(msg.pseudo) ? 'mr-12 border-l-2 border-red-500' : clashPoll.votesB.includes(msg.pseudo) ? 'ml-12 border-r-2 border-blue-500 text-right items-end' : 'hover:bg-white/[0.02]')
                                                         : (msg.pseudo === localStorage.getItem('chat_pseudo') ? 'bg-white/5 ml-4 lg:ml-8' : 'hover:bg-white/[0.02]')
@@ -3435,22 +3638,31 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                     )}
                                                     <div className="flex gap-3 relative">
                                                         <div className={`w-9 h-9 rounded-xl border border-white/10 shrink-0 flex items-center justify-center bg-white/5 relative overflow-hidden group-hover:border-neon-red/30 transition-all ${(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? 'border-neon-red/50 shadow-[0_0_10px_rgba(255,0,51,0.2)]' : ''}`}>
-                                                            <FlagIcon 
-                                                                location={(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? 'FR' : msg.country} 
-                                                                className={`absolute inset-0 w-full h-full object-cover ${(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? '' : 'grayscale'}`} 
-                                                            />
-                                                            <div className="absolute inset-0 bg-black/20" />
+                                                            {msg.avatar ? (
+                                                                <img src={msg.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                                            ) : msg.isTwitch ? (
+                                                                <div className="w-full h-full bg-[#9146FF]/20 flex items-center justify-center">
+                                                                    <svg className="w-5 h-5 fill-[#9146FF]" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
+                                                                </div>
+                                                            ) : (
+                                                                <>
+                                                                    <FlagIcon 
+                                                                        location={(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? 'FR' : msg.country} 
+                                                                        className={`absolute inset-0 w-full h-full object-cover ${(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? '' : 'grayscale opacity-50'}`} 
+                                                                    />
+                                                                    <div className="absolute inset-0 bg-black/20" />
+                                                                </>
+                                                            )}
                                                             {isHovered && <motion.div layoutId="bg-glow" className="absolute inset-0 bg-neon-red/5 blur-md" />}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 {(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? <FlagIcon location="FR" className="w-3 h-2" /> : (msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />)}
-                                                                {(msg.geo || userCity) && (
-                                                                    <span className="text-[7px] font-black text-gray-500 bg-white/5 px-1 rounded flex items-center gap-0.5">
-                                                                        <MapPin className="w-2 h-2" /> {msg.geo || userCity}
+                                                                {msg.country && msg.country !== 'TWITCH' && (
+                                                                    <span className="text-[7px] font-black text-gray-500 bg-white/5 px-1 rounded flex items-center gap-0.5 uppercase tracking-widest">
+                                                                        <MapPin className="w-2 h-2" /> {countries.find(c => c.code === msg.country)?.name || msg.country}
                                                                     </span>
                                                                 )}
-                                                                <span className="text-[9px] font-black text-neon-cyan/60 shrink-0 uppercase tracking-tighter mr-1 text-xs">[Lvl {Math.floor(Math.sqrt((msg.xp || 0) / 100)) + 1}]</span>
                                                                 <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.isHolo ? 'holo-pseudo' : (msg.xp > 5000 ? 'bg-gradient-to-r from-red-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent animate-gradient' : msg.color || 'text-white')}`}>{msg.pseudo || msg.user}</span>
                                                                 {msg.isPrems && (
                                                                     <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-neon-red text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(255,0,51,0.5)] animate-pulse flex items-center gap-1">
@@ -3466,6 +3678,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                                 {showBadgesAdmin && msg.isMod && <Sword className="w-2.5 h-2.5 text-neon-red" />}
                                                                 {showBadgesAdmin && msg.isVip && <Crown className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />}
                                                                 {showBadgesAdmin && msg.pseudo === 'ALEX_FR1' && <Star className="w-2.5 h-2.5 text-neon-cyan fill-neon-cyan" />}
+
+                                                                {msg.isTwitch && (
+                                                                    <span className="bg-[#9146FF] text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(145,70,255,0.4)] flex items-center gap-1 ml-1 animate-in fade-in zoom-in duration-300">
+                                                                        <svg className="w-2 h-2 fill-current" viewBox="0 0 24 24"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
+                                                                        TWITCH
+                                                                    </span>
+                                                                )}
 
                                                                 {/* Animated Badges */}
                                                                 {showBadgesAdmin && (msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') && (
@@ -4509,6 +4728,37 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                     )}
                                 </button>
                             </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Notifications UI */}
+            <AnimatePresence mode="wait">
+                {takeover?.notification?.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, scale: 0.9, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
+                        exit={{ opacity: 0, y: 20, scale: 0.9, x: '-50%' }}
+                        className="fixed bottom-24 left-1/2 z-[200]"
+                    >
+                        <div className={`flex items-center gap-4 px-6 py-4 rounded-[2rem] shadow-2xl backdrop-blur-3xl border ${
+                            takeover.notification.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 
+                            takeover.notification.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
+                            'bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan'
+                        }`}>
+                            <div className={`p-2 rounded-full ${
+                                takeover.notification.type === 'success' ? 'bg-green-500/20' : 
+                                takeover.notification.type === 'error' ? 'bg-red-500/20' : 
+                                'bg-neon-cyan/20'
+                            }`}>
+                                {takeover.notification.type === 'success' ? <Check className="w-5 h-5" /> : 
+                                 takeover.notification.type === 'error' ? <AlertCircle className="w-5 h-5" /> : 
+                                 <Megaphone className="w-5 h-5" />}
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap text-white">
+                                {takeover.notification.message}
+                            </span>
                         </div>
                     </motion.div>
                 )}

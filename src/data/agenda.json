@@ -6278,5 +6278,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1000,
+    "title": "EDC Week : Illenium",
+    "date": "2026-05-16",
+    "startDate": "2026-05-16",
+    "endDate": "2026-05-16",
+    "venue": "Tao Beach",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/c408558fd3d61f75-crop_1776822471102.jpg",
+    "url": "https://tickets.taogroup.com/e/tao-beach-las-vegas-5-16-2026/tickets",
+    "genre": "Drum & Bass",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]

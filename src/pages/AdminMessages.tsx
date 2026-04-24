@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin, apiFetch } from '../utils/auth';
 
 const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
@@ -322,6 +322,17 @@ export function AdminMessages() {
                 setReplyStatus('success');
                 setReplyBody('');
                 setAttachments([]);
+                // On vide les cadres de saisie
+                setDestinationEmails(['']);
+                setMailSubject('');
+                setFestivalName('');
+                setFestivalDates('');
+                setPhotoFirstName('');
+                setPhotoLastName('');
+                setPhotoPortfolio('');
+                setDjName('');
+                setInterviewDate('');
+                setInterviewFestival('');
                 // Archive in sent box
                 const sent = {
                     id: Date.now().toString(),
@@ -340,7 +351,8 @@ export function AdminMessages() {
                     setMessages(prev => prev.map(m => m.id === selected.id ? { ...m, replied: true } : m));
                     setSelected(prev => prev ? { ...prev, replied: true } : prev);
                 }
-                setTimeout(() => { setReplyModal(false); setReplyStatus('idle'); }, 1500);
+                // Ne plus fermer automatiquement le modal pour laisser voir le message de succès
+                // setTimeout(() => { setReplyModal(false); setReplyStatus('idle'); }, 1500);
                 showNotif('success', `Message envoyé à ${to} !`);
             } else {
                 const err = await res.json().catch(() => ({}));
@@ -499,6 +511,7 @@ FORMAT : Interview ${type}
 Travailler avec Dropsiders, c'est bénéficier d'une vitrine premium et "carrée" :
 - Articles interactifs haute performance (lecteur audio IA, design immersif).
 - Découvrez nos dernières interviews ici : https://dropsiders.fr/interviews
+- <a href="https://dropsiders.fr/uploads/pdfs/1a7e292d6bf86432-Interview_Cards_Dropsiders_VER.pdf" style="color:#ff0033; font-weight:bold;">Cliquez ici pour voir un exemple des questions qui seront posées</a>
 - Visibilité accrue via notre Agenda et notre nouvel espace Communauté (Votes, Avis).
 - Promotion ciblée sur nos réseaux sociaux (Instagram, TikTok).
 - Audience de passionnés et de professionnels ultra-engagés.
@@ -520,6 +533,7 @@ FORMAT: ${type} Interview
 Partnering with Dropsiders means benefiting from a premium and professional showcase:
 - High-performance interactive articles (AI audio player, immersive design).
 - Check out our latest interviews here: https://dropsiders.fr/interviews
+- <a href="https://dropsiders.fr/uploads/pdfs/1a7e292d6bf86432-Interview_Cards_Dropsiders_VER.pdf" style="color:#ff0033; font-weight:bold;">Click here to see an example of the questions that will be asked</a>
 - Increased visibility through our Agenda and our new Community hub (Votes, Reviews).
 - Targeted promotion on our social networks (Instagram, TikTok).
 - Highly engaged audience of fans and industry professionals.
@@ -953,8 +967,9 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
-                        className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/90 backdrop-blur-md"
+                        // Retiré : ne plus fermer au clic extérieur
+                        // onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
+                        className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/95 backdrop-blur-xl"
                     >
                         <motion.div
                             initial={{ y: 50, opacity: 0 }}
@@ -974,7 +989,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                             </div>
 
                             {/* Scrollable Content */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 relative">
                                 <div className="space-y-6">
                                     <div className="space-y-3">
                                         {isNewMail && (
@@ -1020,9 +1035,8 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             <input
                                                 type="text"
                                                 value={senderEmail}
-                                                onChange={(e) => setSenderEmail(e.target.value)}
-                                                placeholder="contact@dropsiders.fr"
-                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-red focus:outline-none focus:border-neon-red/50 flex-1 font-bold"
+                                                readOnly
+                                                className="bg-black/30 border border-white/5 rounded-lg px-3 py-1.5 text-sm text-gray-500 flex-1 font-bold cursor-not-allowed opacity-70"
                                             />
                                         </div>
                                         {isNewMail && (
@@ -1032,6 +1046,11 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                     type="text"
                                                     value={mailSubject}
                                                     onChange={(e) => setMailSubject(e.target.value)}
+                                                    onInput={(e) => setMailSubject((e.target as HTMLInputElement).value)}
+                                                    onBlur={(e) => setMailSubject(e.target.value)}
+                                                    spellCheck="true"
+                                                    autoCorrect="on"
+                                                    autoComplete="on"
                                                     placeholder="Sujet du mail"
                                                     className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-white/20 flex-1 font-bold"
                                                 />
@@ -1290,8 +1309,13 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             <textarea
                                                 value={replyBody}
                                                 onChange={(e) => setReplyBody(e.target.value)}
+                                                onInput={(e) => setReplyBody((e.target as HTMLTextAreaElement).value)}
+                                                onBlur={(e) => setReplyBody(e.target.value)}
+                                                spellCheck="true"
+                                                autoCorrect="on"
+                                                autoComplete="on"
                                                 placeholder="Rédigez votre message..."
-                                                className="w-full h-[200px] md:h-[350px] bg-black/40 border border-white/10 rounded-2xl p-3 md:p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all font-mono custom-scrollbar"
+                                                className="w-full h-[200px] md:h-[350px] bg-black/40 border border-white/10 rounded-2xl p-3 md:p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all custom-scrollbar"
                                             />
                                         </div>
 
@@ -1300,9 +1324,12 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             <div className="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em] mb-4 text-center">Aperçu</div>
                                             <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden shadow-2xl scale-[0.85] origin-top">
                                                 <div className="p-6">
-                                                    <div className="text-white/80 text-[11px] leading-relaxed whitespace-pre-wrap min-h-[100px]">
-                                                        {replyBody || "[Votre message apparaîtra ici]"}
-                                                    </div>
+                                                    <div 
+                                                        className="text-white/80 text-[11px] leading-relaxed min-h-[100px]"
+                                                        dangerouslySetInnerHTML={{ 
+                                                            __html: (replyBody || "[Votre message apparaîtra ici]").replace(/\n/g, '<br>') 
+                                                        }}
+                                                    />
                                                     <div className="mt-8 bg-black border border-white/10 border-t-4 border-t-neon-red rounded-xl overflow-hidden p-4">
                                                         <div className="text-white text-[10px] font-black italic uppercase text-center">
                                                             {accreditationLang === 'EN' ? 'Best regards,' : 'Cordialement,'} <br />
@@ -1341,9 +1368,44 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 </div>
                                             </label>
                                         </div>
+                                        {replyStatus === 'error' && (
+                                            <div className="flex items-center justify-center gap-3 p-4 bg-neon-red/10 border border-neon-red/30 rounded-2xl mt-4">
+                                                <AlertCircle className="w-5 h-5 text-neon-red" />
+                                                <p className="text-neon-red text-[11px] font-black uppercase italic tracking-widest">⚠ {replyError}</p>
+                                            </div>
+                                        )}
                                     </div>
                                     
-                                    {replyStatus === 'error' && <p className="text-neon-red text-xs font-bold text-center mt-4">⚠ {replyError}</p>}
+                                    {replyStatus === 'success' && (
+                                        <div className="absolute inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl text-center">
+                                            <motion.div 
+                                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                                className="flex flex-col items-center gap-6 max-w-sm"
+                                            >
+                                                <div className="w-24 h-24 bg-neon-cyan/20 rounded-full flex items-center justify-center border-2 border-neon-cyan/40 mb-2 animate-bounce shadow-[0_0_50px_rgba(0,240,255,0.2)]">
+                                                    <Check className="w-12 h-12 text-neon-cyan" />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <h3 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">MESSAGE ENVOYÉ !</h3>
+                                                    <div className="flex items-center justify-center gap-3">
+                                                        <div className="h-px w-8 bg-neon-cyan/30" />
+                                                        <p className="text-neon-cyan text-[10px] font-black uppercase tracking-[0.4em]">Confirmation Brevo OK</p>
+                                                        <div className="h-px w-8 bg-neon-cyan/30" />
+                                                    </div>
+                                                </div>
+                                                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                                                    Les champs ont été réinitialisés. <br /> Le thème du mail a été conservé.
+                                                </p>
+                                                <button 
+                                                    onClick={() => setReplyStatus('idle')}
+                                                    className="mt-4 px-12 py-5 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-[2rem] hover:scale-105 transition-all text-[11px] tracking-[0.2em] shadow-[0_10px_30px_rgba(0,240,255,0.3)]"
+                                                >
+                                                    Continuer
+                                                </button>
+                                            </motion.div>
+                                        </div>
+                                     )}
                                 </div>
                             </div>
 

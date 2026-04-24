@@ -48,7 +48,8 @@
     "react-simple-maps": "^3.0.0",
     "react-social-media-embed": "^2.5.18",
     "tailwind-merge": "^3.4.1",
-    "tesseract.js": "^7.0.0"
+    "tesseract.js": "^7.0.0",
+    "tmi.js": "^1.8.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -63,6 +64,7 @@
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@types/react-simple-maps": "^3.0.6",
+    "@types/tmi.js": "^1.8.6",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.24",
     "concurrently": "^9.2.1",

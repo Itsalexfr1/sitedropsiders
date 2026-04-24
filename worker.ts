@@ -67,6 +67,134 @@ const utf8Decode = (base64) => {
     return new TextDecoder().decode(bytes);
 };
 
+async function getTwitchToken(env) {
+    const cached = await env.CHAT_KV.get('twitch_access_token');
+    if (cached) return cached;
+
+    const res = await fetch('https://id.twitch.tv/oauth2/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+            client_id: env.TWITCH_CLIENT_ID,
+            client_secret: env.TWITCH_CLIENT_SECRET,
+            grant_type: 'client_credentials'
+        })
+    });
+
+    const data = await res.json();
+    if (data.access_token) {
+        await env.CHAT_KV.put('twitch_access_token', data.access_token, { expirationTtl: data.expires_in - 60 });
+        return data.access_token;
+    }
+    return env.TWITCH_BOT_TOKEN; // Fallback to env token if App Token fails
+}
+
+// --- TWITCH HELIX HELPERS ---
+async function sendTwitchMessage(env, channelName, message) {
+    const CLIENT_ID = env.TWITCH_CLIENT_ID;
+    let TOKEN = env.TWITCH_BOT_TOKEN;
+    if (TOKEN && TOKEN.startsWith('oauth:')) TOKEN = TOKEN.replace('oauth:', '');
+    
+    if (!CLIENT_ID || !TOKEN) return { ok: false, error: 'Missing Twitch credentials (CLIENT_ID or BOT_TOKEN)' };
+
+    try {
+        // 1. Get Broadcaster ID from channel name
+        const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channelName}`, {
+            headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` }
+        });
+        const userData = await userRes.json();
+        if (!userRes.ok) return { ok: false, error: `Helix User Error: ${userData.message || userRes.statusText}` };
+        if (!userData.data || userData.data.length === 0) return { ok: false, error: `Channel '${channelName}' introuvable sur Twitch` };
+        const broadcasterId = userData.data[0].id;
+
+        // 2. Get Bot ID (User ID from token)
+        const botRes = await fetch('https://api.twitch.tv/helix/users', {
+            headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` }
+        });
+        const botData = await botRes.json();
+        if (!botRes.ok) return { ok: false, error: `Helix Bot Error: ${botData.message || botRes.statusText}` };
+        const botId = botData.data[0].id;
+
+        // 3. Send message
+        const sendRes = await fetch('https://api.twitch.tv/helix/chat/messages', {
+            method: 'POST',
+            headers: {
+                'Client-Id': CLIENT_ID,
+                'Authorization': `Bearer ${TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                broadcaster_id: broadcasterId,
+                sender_id: botId,
+                message: message
+            })
+        });
+
+        const sendData = await sendRes.json();
+        if (!sendRes.ok) return { ok: false, error: `Helix Send Error: ${sendData.message || sendRes.statusText}` };
+
+        return { ok: true, status: sendRes.status };
+    } catch (e) {
+        return { ok: false, error: `Exception: ${e.message}` };
+    }
+}
+
+// --- TWITCH BOT MULTIFUNCTION HELPERS ---
+async function twitchBotRequest(env, method, endpoint, body = null) {
+    const CLIENT_ID = env.TWITCH_CLIENT_ID;
+    let TOKEN = env.TWITCH_BOT_TOKEN;
+    if (TOKEN && TOKEN.startsWith('oauth:')) TOKEN = TOKEN.replace('oauth:', '');
+    const hdrs: any = { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` };
+    if (body) hdrs['Content-Type'] = 'application/json';
+    const res = await fetch(`https://api.twitch.tv/helix/${endpoint}`, { method, headers: hdrs, body: body ? JSON.stringify(body) : undefined });
+    const isJson = res.headers.get('content-type')?.includes('application/json');
+    return { ok: res.ok, status: res.status, data: isJson ? await res.json() : null };
+}
+async function getBotId(env) {
+    const CLIENT_ID = env.TWITCH_CLIENT_ID;
+    let TOKEN = env.TWITCH_BOT_TOKEN;
+    if (TOKEN && TOKEN.startsWith('oauth:')) TOKEN = TOKEN.replace('oauth:', '');
+    const res = await fetch('https://api.twitch.tv/helix/users', { headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` } });
+    const d = await res.json();
+    return d.data?.[0] || null;
+}
+async function getTwitchUserId(env, login) {
+    const CLIENT_ID = env.TWITCH_CLIENT_ID;
+    let TOKEN = env.TWITCH_BOT_TOKEN;
+    if (TOKEN && TOKEN.startsWith('oauth:')) TOKEN = TOKEN.replace('oauth:', '');
+    const res = await fetch(`https://api.twitch.tv/helix/users?login=${login}`, { headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` } });
+    const d = await res.json();
+    return d.data?.[0] || null;
+}
+async function createTwitchClip(env, broadcasterId) { return twitchBotRequest(env, 'POST', `clips?broadcaster_id=${broadcasterId}`, null); }
+async function addTwitchVip(env, broadcasterId, userId) { return twitchBotRequest(env, 'POST', `channels/vips?broadcaster_id=${broadcasterId}&user_id=${userId}`, null); }
+async function removeTwitchVip(env, broadcasterId, userId) { return twitchBotRequest(env, 'DELETE', `channels/vips?broadcaster_id=${broadcasterId}&user_id=${userId}`, null); }
+async function addTwitchModerator(env, broadcasterId, userId) { return twitchBotRequest(env, 'POST', `moderation/moderators?broadcaster_id=${broadcasterId}&user_id=${userId}`, null); }
+async function timeoutTwitchUser(env, broadcasterId, userId, durationSeconds = 600, reason = '') {
+    const bot = await getBotId(env);
+    if (!bot) return { ok: false };
+    return twitchBotRequest(env, 'POST', `moderation/bans?broadcaster_id=${broadcasterId}&moderator_id=${bot.id}`, { data: { user_id: userId, duration: durationSeconds, reason } });
+}
+async function getTwitchGameId(env, gameName) {
+    const CLIENT_ID = env.TWITCH_CLIENT_ID;
+    let TOKEN = env.TWITCH_BOT_TOKEN;
+    if (TOKEN && TOKEN.startsWith('oauth:')) TOKEN = TOKEN.replace('oauth:', '');
+    const res = await fetch(`https://api.twitch.tv/helix/games?name=${encodeURIComponent(gameName)}`, { headers: { 'Client-Id': CLIENT_ID, 'Authorization': `Bearer ${TOKEN}` } });
+    const d = await res.json();
+    return d.data?.[0]?.id || null;
+}
+async function updateTwitchStream(env, broadcasterId, opts) {
+    const body: any = {};
+    if (opts.title) body.title = opts.title;
+    if (opts.game_id) body.game_id = opts.game_id;
+    return twitchBotRequest(env, 'PATCH', `channels?broadcaster_id=${broadcasterId}`, body);
+}
+async function setChatSettings(env, broadcasterId, settings) {
+    const bot = await getBotId(env);
+    if (!bot) return { ok: false };
+    return twitchBotRequest(env, 'PATCH', `chat/settings?broadcaster_id=${broadcasterId}&moderator_id=${bot.id}`, settings);
+}
+
 const SETTINGS_PATH = 'src/data/settings.json';
 const NEWS_PATH = 'src/data/news.json';
 const RECAPS_PATH = 'src/data/recaps.json';
@@ -624,6 +752,268 @@ ${urls.map(u => `  <url>
         }
 
         // --- API: COMMUNITY USER SYNC & SEARCH ---
+        // --- TWITCH: EVENTSUB WEBHOOK ---
+        if (path === '/api/twitch/eventsub' && request.method === 'POST') {
+            const signature = request.headers.get('Twitch-Eventsub-Message-Signature');
+            const timestamp = request.headers.get('Twitch-Eventsub-Message-Timestamp');
+            const messageId = request.headers.get('Twitch-Eventsub-Message-Id');
+            const secret = env.TWITCH_EVENTSUB_SECRET;
+
+            if (!signature || !timestamp || !messageId || !secret) {
+                return new Response('Missing headers or secret', { status: 400 });
+            }
+
+            const body = await request.text();
+            
+            // Verification (HMAC SHA256)
+            const hmacMessage = messageId + timestamp + body;
+            const encoder = new TextEncoder();
+            const key = await crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+            const sigBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(hmacMessage));
+            const expectedSignature = 'sha256=' + Array.from(new Uint8Array(sigBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+            if (signature !== expectedSignature) {
+                console.error('[TWITCH WEBHOOK] Invalid signature');
+                return new Response('Invalid signature', { status: 403 });
+            }
+
+            const data = JSON.parse(body);
+
+            // Handle Verification Challenge
+            if (data.challenge) {
+                console.log('[TWITCH WEBHOOK] Responding to challenge:', data.challenge);
+                return new Response(data.challenge, { status: 200 });
+            }
+
+            console.log('[TWITCH WEBHOOK] Received event:', data.subscription.type);
+
+            // Handle Chat Message
+            if (data.subscription.type === 'channel.chat.message') {
+                const chatMsg = data.event.message.text?.trim() || '';
+                const sender = data.event.chatter_user_name;
+                const senderId = data.event.chatter_user_id;
+                const broadcasterId = data.event.broadcaster_user_id;
+                const broadcasterLogin = data.event.broadcaster_user_login;
+                const messageId = data.event.message_id;
+
+                const settings = await env.CHAT_KV.get('settings', 'json') || {};
+
+                // 1. Check banned words (auto-delete)
+                const bannedWords: string[] = settings.bannedWords
+                    ? settings.bannedWords.split(',').map((w: string) => w.trim().toLowerCase()).filter(Boolean)
+                    : [];
+                const msgLower = chatMsg.toLowerCase();
+                const hasBannedWord = bannedWords.some(w => msgLower.includes(w));
+
+                if (hasBannedWord && messageId) {
+                    await deleteTwitchMessage(env, broadcasterId, messageId);
+                    await sendTwitchMessage(env, broadcasterLogin, `@${sender} ⚠️ Ton message a été supprimé car il contient un mot interdit.`);
+                    console.log(`[BOT] Deleted message from ${sender} (banned word)`);
+                }
+
+                // 2. Handle commands (!) 
+                else if (chatMsg.startsWith('!')) {
+                    const cmd = chatMsg.split(' ')[0].toLowerCase();
+                    const args = chatMsg.split(' ').slice(1);
+                    const commands = settings.botCommands || [];
+                    const match = commands.find((c: any) => c.command === cmd);
+
+                    if (match) {
+                        // Custom command from admin
+                        await sendTwitchMessage(env, broadcasterLogin, `@${sender} ${match.response}`);
+                    } else {
+                        // Built-in commands
+                        const isMod = data.event.chatter_is_broadcaster || data.event.source_broadcaster_user_id === broadcasterId;
+                        switch (cmd) {
+                            case '!site':
+                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 🌐 Retrouve tout le contenu Dropsiders sur https://dropsiders.eu`);
+                                break;
+                            case '!insta':
+                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 📸 Suis-nous sur Instagram : https://instagram.com/dropsiders.fr`);
+                                break;
+                            case '!drops':
+                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 💰 Connecte-toi sur https://dropsiders.eu pour voir tes Drops !`);
+                                break;
+                            case '!discord':
+                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 🎮 Rejoins notre Discord : https://discord.gg/dropsiders`);
+                                break;
+                            case '!clip':
+                                const clipRes = await createTwitchClip(env, broadcasterId);
+                                if (clipRes.ok) {
+                                    const clipUrl = `https://clips.twitch.tv/${clipRes.data?.data?.[0]?.id || ''}`;
+                                    await sendTwitchMessage(env, broadcasterLogin, `🎬 Clip créé ! ${clipUrl}`);
+                                } else {
+                                    await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Impossible de créer le clip.`);
+                                }
+                                break;
+                            case '!vip': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const target = args[0]?.replace('@', '');
+                                if (!target) { await sendTwitchMessage(env, broadcasterLogin, `Usage : !vip @pseudo`); break; }
+                                const tUser = await getTwitchUserId(env, target);
+                                if (tUser) { await addTwitchVip(env, broadcasterId, tUser.id); await sendTwitchMessage(env, broadcasterLogin, `✅ @${target} est maintenant VIP !`); }
+                                break;
+                            }
+                            case '!unvip': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const target = args[0]?.replace('@', '');
+                                const tUser = await getTwitchUserId(env, target);
+                                if (tUser) { await removeTwitchVip(env, broadcasterId, tUser.id); await sendTwitchMessage(env, broadcasterLogin, `✅ @${target} n'est plus VIP.`); }
+                                break;
+                            }
+                            case '!mod': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const target = args[0]?.replace('@', '');
+                                const tUser = await getTwitchUserId(env, target);
+                                if (tUser) { await addTwitchModerator(env, broadcasterId, tUser.id); await sendTwitchMessage(env, broadcasterLogin, `✅ @${target} est maintenant modérateur !`); }
+                                break;
+                            }
+                            case '!timeout': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const target = args[0]?.replace('@', '');
+                                const duration = parseInt(args[1]) || 600;
+                                const tUser = await getTwitchUserId(env, target);
+                                if (tUser) { await timeoutTwitchUser(env, broadcasterId, tUser.id, duration); await sendTwitchMessage(env, broadcasterLogin, `✅ @${target} timeout ${duration}s.`); }
+                                break;
+                            }
+                            case '!jeu': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const gameName = args.join(' ');
+                                const gameId = await getTwitchGameId(env, gameName);
+                                if (gameId) { await updateTwitchStream(env, broadcasterId, { game_id: gameId }); await sendTwitchMessage(env, broadcasterLogin, `✅ Jeu mis à jour : ${gameName}`); }
+                                else { await sendTwitchMessage(env, broadcasterLogin, `❌ Jeu introuvable : ${gameName}`); }
+                                break;
+                            }
+                            case '!titre': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const title = args.join(' ');
+                                await updateTwitchStream(env, broadcasterId, { title });
+                                await sendTwitchMessage(env, broadcasterLogin, `✅ Titre mis à jour : ${title}`);
+                                break;
+                            }
+                            case '!lent': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                const delay = parseInt(args[0]) || 30;
+                                await setChatSettings(env, broadcasterId, { slow_mode: true, slow_mode_wait_time: delay });
+                                await sendTwitchMessage(env, broadcasterLogin, `✅ Mode lent activé (${delay}s).`);
+                                break;
+                            }
+                            case '!emotesonly': {
+                                if (!isMod) { await sendTwitchMessage(env, broadcasterLogin, `@${sender} ❌ Commande réservée aux modérateurs.`); break; }
+                                await setChatSettings(env, broadcasterId, { emote_mode: true });
+                                await sendTwitchMessage(env, broadcasterLogin, `✅ Mode émotes uniquement activé.`);
+                                break;
+                            }
+                            case '!commandes':
+                                const customCmds = commands.map((c: any) => c.command).join(', ');
+                                await sendTwitchMessage(env, broadcasterLogin, `📋 Commandes : !site !insta !drops !discord !clip !vip !mod !timeout !jeu !titre !lent !emotesonly${customCmds ? ' ' + customCmds : ''}`);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            return new Response('OK', { status: 200 });
+        }
+
+        if (path === '/api/twitch/test' && request.method === 'POST') {
+            const settings = await env.CHAT_KV.get('settings', 'json') || {};
+            let channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
+            
+            // Clean channel name (remove URL parts if any)
+            if (channel.includes('twitch.tv/')) {
+                channel = channel.split('twitch.tv/')[1].split('/')[0].split('?')[0];
+            }
+
+            const result = await sendTwitchMessage(env, channel, "🤖 Test du Bot Dropsiders réussi ! Je suis prêt à mettre l'ambiance. 🔥");
+            console.log(`[TWITCH TEST] Channel: ${channel}, Result:`, result);
+            return new Response(JSON.stringify({ success: result.ok, error: result.error }), { headers: { 'Content-Type': 'application/json' } });
+        }
+
+        if (path === '/api/twitch/sync' && request.method === 'POST') {
+            const corsHeaders = {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            };
+
+            try {
+                const settings = await env.CHAT_KV.get('settings', 'json') || {};
+                let channel = settings.twitchChannel || env.TWITCH_CHANNEL || "dropsiders_live";
+
+                // Clean channel name
+                if (channel.includes('twitch.tv/')) {
+                    channel = channel.split('twitch.tv/')[1].split('/')[0].split('?')[0];
+                }
+
+                // Use App Access Token (Client Credentials) for EventSub — no user scopes needed
+                const appToken = await getTwitchToken(env);
+                if (!appToken) {
+                    return new Response(JSON.stringify({ success: false, error: 'Impossible d\'obtenir un App Token Twitch. Vérifiez TWITCH_CLIENT_ID et TWITCH_CLIENT_SECRET.' }), { status: 500, headers: corsHeaders });
+                }
+
+                // Get broadcaster user ID
+                const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channel}`, {
+                    headers: {
+                        'Client-ID': env.TWITCH_CLIENT_ID,
+                        'Authorization': `Bearer ${appToken}`
+                    }
+                });
+                const userData = await userRes.json();
+                const broadcasterId = userData.data?.[0]?.id;
+                if (!broadcasterId) {
+                    return new Response(JSON.stringify({ success: false, error: `Chaîne '${channel}' introuvable sur Twitch` }), { status: 404, headers: corsHeaders });
+                }
+
+                // Get bot user ID from bot token
+                let USER_TOKEN = env.TWITCH_BOT_TOKEN || appToken;
+                if (USER_TOKEN.startsWith('oauth:')) USER_TOKEN = USER_TOKEN.replace('oauth:', '');
+                const botRes = await fetch('https://api.twitch.tv/helix/users', {
+                    headers: {
+                        'Client-ID': env.TWITCH_CLIENT_ID,
+                        'Authorization': `Bearer ${USER_TOKEN}`
+                    }
+                });
+                const botData = await botRes.json();
+                const botId = botData.data?.[0]?.id || broadcasterId;
+
+                // Subscribe to Chat Messages via EventSub
+                const callbackUrl = `${new URL(request.url).origin}/api/twitch/eventsub`;
+                const subRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+                    method: 'POST',
+                    headers: {
+                        'Client-ID': env.TWITCH_CLIENT_ID,
+                        'Authorization': `Bearer ${appToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'channel.chat.message',
+                        version: '1',
+                        condition: {
+                            broadcaster_user_id: broadcasterId,
+                            user_id: botId
+                        },
+                        transport: {
+                            method: 'webhook',
+                            callback: callbackUrl,
+                            secret: env.TWITCH_EVENTSUB_SECRET || 'dropsiders-secret'
+                        }
+                    })
+                });
+
+                const subData = await subRes.json();
+                console.log('[TWITCH SYNC] Status:', subRes.status, JSON.stringify(subData));
+
+                // 409 = already subscribed, that's fine
+                const ok = subRes.ok || subRes.status === 409;
+                const errorMsg = ok ? null : (subData.message || `Erreur Twitch: ${subRes.status}`);
+
+                return new Response(JSON.stringify({ success: ok, broadcasterId, botId, callbackUrl, error: errorMsg }), { headers: corsHeaders });
+            } catch (e) {
+                console.error('[TWITCH SYNC ERROR]', e);
+                return new Response(JSON.stringify({ success: false, error: `Exception: ${e.message}` }), { status: 500, headers: corsHeaders });
+            }
+        }
+
         if (path === '/api/users/sync' && request.method === 'POST') {
             const body = await request.json();
             const { id, username, email, avatar, provider, newsletter: bodynewsletter } = body;
@@ -786,33 +1176,46 @@ ${urls.map(u => `  <url>
             }
         }
 
-        // --- API: GOOGLE IMAGE SEARCH PROXY ---
+        // --- API: DUCKDUCKGO IMAGE SEARCH (No Key Required) ---
         if (path === '/api/google-image-search' && request.method === 'GET') {
             const q = url.searchParams.get('q');
-            const start = url.searchParams.get('start') || '1';
             if (!q) return new Response(JSON.stringify({ error: 'Query manquante' }), { status: 400, headers });
 
             try {
-                const settingsFile = await fetchGitHubFile('src/data/settings.json', { OWNER, REPO, TOKEN });
-                const settings = settingsFile?.content || {};
-                const googleKey = settings.google_search_key || env.GOOGLE_SEARCH_KEY || '';
-                const googleCx = settings.google_cx || env.GOOGLE_CX || '';
+                // 1. Get VQD Token (Required by DDG)
+                const ddgMain = await fetch(`https://duckduckgo.com/?q=${encodeURIComponent(q)}`);
+                const html = await ddgMain.text();
+                const vqdMatch = html.match(/vqd=['"]([^'"]+)['"]/);
+                const vqd = vqdMatch ? vqdMatch[1] : null;
 
-                if (!googleKey || !googleCx) {
-                    return new Response(JSON.stringify({ error: 'Clés API Google manquantes dans les réglages.' }), { status: 500, headers });
+                if (!vqd) {
+                    return new Response(JSON.stringify({ error: 'Impossible de récupérer le token DuckDuckGo' }), { status: 500, headers });
                 }
 
-                const searchUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(q)}&cx=${googleCx}&key=${googleKey}&searchType=image&num=10&imgSize=large&start=${start}`;
+                // 2. Fetch Images from DuckDuckGo
+                const searchUrl = `https://duckduckgo.com/i.js?q=${encodeURIComponent(q)}&o=json&vqd=${vqd}&f=,,,`;
                 const res = await fetch(searchUrl, {
-                    headers: { 'User-Agent': 'Cloudflare-Worker/1.0' }
+                    headers: { 
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+                        'Accept': 'application/json'
+                    }
                 });
-                const data = await res.json();
+                
+                const data = await res.json() as any;
+                
+                // 3. Map results to our standard format
+                const results = {
+                    items: (data.results || []).map((r: any) => ({
+                        link: r.image,
+                        title: r.title,
+                        displayLink: r.source,
+                        image: {
+                            thumbnailLink: r.thumbnail
+                        }
+                    }))
+                };
 
-                if (!res.ok) {
-                    return new Response(JSON.stringify({ error: data.error?.message || 'Erreur Google API' }), { status: res.status, headers });
-                }
-
-                return new Response(JSON.stringify(data), { headers });
+                return new Response(JSON.stringify(results), { headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
@@ -6853,6 +7256,34 @@ ${urls.map(u => `  <url>
         if (newArtistsToNotify.length === 0) return;
 
         await env.CHAT_KV.put('last_notified_artists', JSON.stringify(lastNotified), { expirationTtl: 86400 });
+
+        // --- TWITCH AUTO-MESSAGES & NEWS ALERTS ---
+        if (content.takeover && content.takeover.twitchChannel) {
+            const channel = content.takeover.twitchChannel;
+            
+            // 1. News Alerts
+            const newsRes = await fetch(`https://raw.githubusercontent.com/${OWNER}/${REPO}/main/src/data/news.json`);
+            if (newsRes.ok) {
+                const news = await newsRes.json();
+                if (news.length > 0) {
+                    const lastNewsId = await env.CHAT_KV.get('last_twitch_news_id');
+                    if (lastNewsId && lastNewsId !== news[0].id.toString()) {
+                        const article = news[0];
+                        await sendTwitchMessage(env, channel, `🚀 NOUVEAUTÉ : ${article.title} -> https://dropsiders.fr/news/${article.id}`);
+                    }
+                    await env.CHAT_KV.put('last_twitch_news_id', news[0].id.toString());
+                }
+            }
+
+            // 2. Auto-Messages
+            const lastAuto = await env.CHAT_KV.get('last_twitch_auto_time');
+            const interval = content.takeover.autoMessageInterval || 60;
+            const now = Date.now();
+            if (content.takeover.autoMessage && (!lastAuto || (now - parseInt(lastAuto)) > interval * 60 * 1000)) {
+                await sendTwitchMessage(env, channel, content.takeover.autoMessage);
+                await env.CHAT_KV.put('last_twitch_auto_time', now.toString());
+            }
+        }
 
         // Send one notification per artist to subscribers who have them as favorites
         for (const artist of newArtistsToNotify) {

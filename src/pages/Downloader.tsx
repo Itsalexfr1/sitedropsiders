@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Instagram, Music, Twitter, Youtube, Link, AlertCircle, CheckCircle, Loader2, X, Video } from 'lucide-react';
+import { Download, Instagram, Music, Youtube, Link, AlertCircle, CheckCircle, Loader2, X, Video } from 'lucide-react';
+import { XIcon } from '../components/ui/XIcon';
+
 
 interface DownloaderProps {
     isPopup?: boolean;
@@ -96,7 +98,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                             SOCIAL <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red to-neon-cyan">DOWNLOADER</span>
                         </h1>
                         <p className="text-lg text-gray-400 max-w-2xl mx-auto font-medium">
-                            Téléchargez vos vidéos et photos Instagram, TikTok, Twitter et plus encore en haute qualité, instantanément.
+                            Téléchargez vos vidéos et photos Instagram, TikTok, X and plus encore en haute qualité, instantanément.
                         </p>
                     </motion.div>
                 )}
@@ -135,7 +137,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                                 type="text"
                                 value={url}
                                 onChange={(e) => setUrl(e.target.value)}
-                                placeholder="Collez le lien Instagram, TikTok, Twitter..."
+                                placeholder="Collez le lien Instagram, TikTok, X..."
                                 className="w-full bg-black/40 border border-white/10 text-white rounded-3xl py-5 md:py-6 pl-14 pr-16 md:pr-64 focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all outline-none text-xs md:text-base font-medium placeholder:text-gray-600"
                             />
 
@@ -174,7 +176,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                             {[
                                 { icon: Instagram, label: "Instagram" },
                                 { icon: Music, label: "TikTok" },
-                                { icon: Twitter, label: "Twitter" },
+                                { icon: XIcon, label: "X" },
                                 { icon: Youtube, label: "Youtube" }
                             ].map((platform, i) => (
                                 <div key={i} className="flex items-center gap-2 hover:text-white transition-colors cursor-default">
