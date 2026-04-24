@@ -1092,62 +1092,6 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify({ success: true, user: userData }), { headers });
         }
 
-        if (path === '/api/users/search' && request.method === 'GET') {
-            const query = url.searchParams.get('q')?.toLowerCase().trim();
-            if (!query) return new Response(JSON.stringify([]), { headers });
-
-            try {
-                const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
-                const users = await Promise.all(
-                    list.keys.map(async (key) => {
-                        const data = await env.CHAT_KV.get(key.name);
-                        if (!data) return null;
-                        const user = JSON.parse(data);
-                        
-                        const email = (user.email || '').toLowerCase();
-                        const username = (user.username || '').toLowerCase();
-                        const pseudo = (user.pseudo || '').toLowerCase();
-                        const name = (user.name || '').toLowerCase();
-                        
-                        if (email.includes(query) || username.includes(query) || pseudo.includes(query) || name.includes(query) || user.id === query) {
-                            return user;
-                        }
-                        return null;
-                    })
-                );
-                
-                const results = users.filter(Boolean);
-                return new Response(JSON.stringify(results), { 
-                    status: 200, 
-                    headers: { 'Content-Type': 'application/json', ...headers } 
-                });
-            } catch (e: any) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
-            }
-        }
-
-        if (path === '/api/users/list' && request.method === 'GET') {
-            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
-            
-            try {
-                const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
-                const users = await Promise.all(
-                    list.keys.map(async (key) => {
-                        const data = await env.CHAT_KV.get(key.name);
-                        if (!data) return null;
-                        return JSON.parse(data);
-                    })
-                );
-                
-                const results = users.filter(Boolean);
-                return new Response(JSON.stringify(results), { 
-                    status: 200, 
-                    headers: { 'Content-Type': 'application/json', ...headers } 
-                });
-            } catch (e: any) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
-            }
-        }
 
         // --- API: COMMUNITY PLAYER XP ---
         if (path === '/api/community/sync-xp' && request.method === 'POST') {
