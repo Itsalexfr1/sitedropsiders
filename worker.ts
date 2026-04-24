@@ -1697,7 +1697,9 @@ ${urls.map(u => `  <url>
             path === '/api/wiki/update' ||
             path === '/api/wiki/delete' ||
             path === '/api/admin/remove-broken-image-bulk' ||
-            path === '/api/agenda/favorites'
+            path === '/api/agenda/favorites' ||
+            path === '/api/users/list' ||
+            path === '/api/users/search'
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
