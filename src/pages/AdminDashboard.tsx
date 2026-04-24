@@ -2248,6 +2248,30 @@ export function AdminDashboard() {
       baseColor: "cyan",
       columns: 2,
     },
+    {
+      title: "Générateurs",
+      description: "Studio de création visuelle",
+      icon: "Sparkles",
+      category: "STUDIO",
+      link: "#GENERATORS",
+      color: "border-neon-purple/20 hover:border-neon-purple",
+      bg: "bg-neon-purple/5",
+      permission: "news",
+      baseColor: "purple",
+      columns: 1,
+    },
+    {
+      title: "Story Grid Generator",
+      description: "Générateur de Grille Instagram",
+      icon: "LayoutGrid",
+      category: "SOCIAL_STUDIO",
+      link: "#STORY_GRID_MODAL",
+      color: "border-neon-cyan/20 hover:border-neon-cyan",
+      bg: "bg-neon-cyan/5",
+      permission: "news",
+      baseColor: "cyan",
+      columns: 1,
+    },
 
     // SHOP & CONTACT
     {
@@ -4495,7 +4519,8 @@ export function AdminDashboard() {
                               e.preventDefault();
                               setIsContenuModalOpen(true);
                             } else if (
-                              action.title === "GENERATEURS" ||
+                              action.title?.toUpperCase() === "GENERATEURS" ||
+                              action.title === "Générateurs" ||
                               action.link === "#GENERATORS"
                             ) {
                               e.preventDefault();
@@ -4524,6 +4549,13 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsTeamManagementModalOpen(true);
+                            } else if (
+                              action.title === "Story Grid Generator" ||
+                              action.title === "Story Grid" ||
+                              action.link === "#STORY_GRID_MODAL"
+                            ) {
+                              e.preventDefault();
+                              setIsStoryGridModalOpen(true);
                             } else if (
                               action.title === "Quizz & CONCOURS" ||
                               action.link === "#QUIZZ_CONCOURS_MODAL"

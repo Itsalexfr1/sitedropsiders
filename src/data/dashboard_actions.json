@@ -172,5 +172,29 @@
     "permission": "news",
     "baseColor": "#00fffb",
     "columns": 1
+  },
+  {
+    "title": "Générateurs",
+    "description": "Studio de création visuelle",
+    "icon": "Sparkles",
+    "category": "STUDIO",
+    "link": "#GENERATORS",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
+    "permission": "news",
+    "baseColor": "#bd00ff",
+    "columns": 1
+  },
+  {
+    "title": "Story Grid Generator",
+    "description": "Générateur de Grille Instagram",
+    "icon": "LayoutGrid",
+    "category": "SOCIAL_STUDIO",
+    "link": "#STORY_GRID_MODAL",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "news",
+    "baseColor": "#00fffb",
+    "columns": 1
   }
 ]
