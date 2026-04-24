@@ -11,7 +11,10 @@ interface CommunityUser {
     lastSeen: string;
 }
 
-export function AdminMembersList({ onEditPermissions }: { onEditPermissions?: (email: string) => void }) {
+export function AdminMembersList({ onEditPermissions, authHeaders }: { 
+    onEditPermissions?: (email: string) => void;
+    authHeaders?: any;
+}) {
     const [users, setUsers] = useState<CommunityUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -20,10 +23,15 @@ export function AdminMembersList({ onEditPermissions }: { onEditPermissions?: (e
     const fetchUsers = async () => {
         setRefreshing(true);
         try {
-            const res = await fetch('/api/users/list');
+            const res = await fetch('/api/users/list', {
+                headers: authHeaders || {}
+            });
             if (res.ok) {
                 const data = await res.json();
-                setUsers(data);
+                console.log('[AdminMembersList] Fetched users:', data.length);
+                setUsers(Array.isArray(data) ? data : []);
+            } else {
+                console.error('Error fetching users:', res.status, res.statusText);
             }
         } catch (e) {
             console.error('Error fetching users:', e);
@@ -66,6 +74,7 @@ export function AdminMembersList({ onEditPermissions }: { onEditPermissions?: (e
                     <h2 className="text-3xl font-display font-black text-white uppercase italic leading-none flex items-center gap-4">
                         <Users className="w-8 h-8 text-neon-red" />
                         Membres du <span className="text-neon-red">Site</span>
+                        {users.length > 0 && <span className="text-xs bg-white/10 px-2 py-1 rounded-full text-gray-400 font-bold">{users.length}</span>}
                     </h2>
                     <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-2 italic">
                         Liste des comptes créés via Google, Discord ou Mail sur Dropsiders.fr
@@ -156,7 +165,9 @@ export function AdminMembersList({ onEditPermissions }: { onEditPermissions?: (e
                         ))
                     ) : (
                         <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-[3rem]">
-                            <p className="text-gray-500 text-xs font-black uppercase tracking-widest">Aucun membre ne correspond à votre recherche</p>
+                            <p className="text-gray-500 text-xs font-black uppercase tracking-widest">
+                                {users.length === 0 ? "Aucun utilisateur trouvé dans la base de données" : "Aucun membre ne correspond à votre recherche"}
+                            </p>
                         </div>
                     )}
                 </AnimatePresence>

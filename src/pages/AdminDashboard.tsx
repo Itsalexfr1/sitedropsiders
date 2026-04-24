@@ -87,6 +87,7 @@ import { TracklistModal } from "../components/admin/TracklistModal";
 import { QuickEditorWizard } from "../components/admin/QuickEditorWizard";
 import { AudioWaveformSelector } from "../components/admin/AudioWaveformSelector";
 import { ConfirmModal } from "../components/ui/ConfirmModal";
+import { PromptModal } from "../components/ui/PromptModal";
 import { AgendaModal } from "../components/AgendaModal";
 import { ImageUploadModal } from "../components/ImageUploadModal";
 import { ShopMenuModal } from "../components/admin/modals/ShopMenuModal";
@@ -94,6 +95,7 @@ import { ScanMenuModal } from "../components/admin/modals/ScanMenuModal";
 import { R2PhotosMenuModal } from "../components/admin/modals/R2PhotosMenuModal";
 import { R2Explorer } from "../components/admin/R2Explorer";
 import { CreatorStudioMenuModal } from "../components/admin/modals/CreatorStudioMenuModal";
+import { useUser } from "../context/UserContext";
 import { Downloader } from "./Downloader";
 import { WikiWidget } from "../components/widgets/WikiWidget";
 import { resolveImageUrl } from "../utils/image";
@@ -260,6 +262,16 @@ export function AdminDashboard() {
     message: string;
     type?: "info" | "danger" | "warning";
   } | null>(null);
+
+  const [promptModal, setPromptModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    defaultValue: "",
+    onConfirm: (val: string) => {},
+  });
+
+  const { showNotification } = useUser();
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [isScanningBroken, setIsScanningBroken] = useState(false);
   const [brokenImages, setBrokenImages] = useState<any[]>([]);
@@ -1192,7 +1204,7 @@ export function AdminDashboard() {
 
   const handleSendManualPush = async () => {
     if (!pushCustomTitle || !pushCustomBody) {
-      alert("Veuillez remplir le titre et le message.");
+      showNotification("Veuillez remplir le titre et le message.", "error");
       return;
     }
 
@@ -1388,31 +1400,32 @@ export function AdminDashboard() {
   };
 
   const handleResetContest = async () => {
-    if (
-      !window.confirm(
-        "Voulez-vous vraiment réinitialiser le concours actuel ?\nCela effacera tous les résultats et permettra à tout le monde de rejouer.",
-      )
-    )
-      return;
-
-    try {
-      const res = await apiFetch("/api/quiz/contest/reset", {
-        method: "POST",
-        headers: {
-          ...getAuthHeaders(),
-          "X-Admin-Password": localStorage.getItem("admin_password") || "",
-        },
-      });
-      if (res.ok) {
-        showNotification("Concours réinitialisé avec succès !", "success");
-        fetchContestResults();
-      } else {
-        alert("Erreur lors de la réinitialisation.");
+    setConfirmModal({
+      isOpen: true,
+      title: "Réinitialiser Concours",
+      message: "Voulez-vous vraiment réinitialiser le concours actuel ?\nCela effacera tous les résultats et permettra à tout le monde de rejouer.",
+      type: "danger",
+      onConfirm: async () => {
+        try {
+          const res = await apiFetch("/api/quiz/contest/reset", {
+            method: "POST",
+            headers: {
+              ...getAuthHeaders(),
+              "X-Admin-Password": localStorage.getItem("admin_password") || "",
+            },
+          });
+          if (res.ok) {
+            showNotification("Concours réinitialisé avec succès !", "success");
+            fetchContestResults();
+          } else {
+            showNotification("Erreur lors de la réinitialisation.", "error");
+          }
+        } catch (e) {
+          console.error("Reset contest error:", e);
+          showNotification("Erreur réseau.", "error");
+        }
       }
-    } catch (e) {
-      console.error("Reset contest error:", e);
-      alert("Erreur réseau.");
-    }
+    });
   };
 
   useEffect(() => {
@@ -3148,6 +3161,7 @@ export function AdminDashboard() {
             <div className="space-y-12 pb-20">
               {/* CENTRALIZED MEMBER LIST */}
               <AdminMembersList
+                authHeaders={getAuthHeaders()}
                 onEditPermissions={(email) =>
                   navigate(`/admin/editors?email=${encodeURIComponent(email)}`)
                 }
@@ -3224,17 +3238,26 @@ export function AdminDashboard() {
                             </button>
                             <button
                               onClick={() => {
-                                if (confirm("Supprimer cet éditeur ?")) {
-                                  apiFetch("/api/editors/delete", {
-                                    method: "POST",
-                                    headers: getAuthHeaders(),
-                                    body: JSON.stringify({
-                                      username: editor.username,
-                                    }),
-                                  }).then((r) => {
-                                    if (r.ok) fetchEditors();
-                                  });
-                                }
+                                setConfirmModal({
+                                  isOpen: true,
+                                  title: "Supprimer Éditeur",
+                                  message: `Voulez-vous vraiment supprimer l'éditeur ${editor.pseudo || editor.username} ?`,
+                                  type: "danger",
+                                  onConfirm: () => {
+                                    apiFetch("/api/editors/delete", {
+                                      method: "POST",
+                                      headers: getAuthHeaders(),
+                                      body: JSON.stringify({
+                                        username: editor.username,
+                                      }),
+                                    }).then((r) => {
+                                      if (r.ok) {
+                                        showNotification("Éditeur supprimé.", "success");
+                                        fetchEditors();
+                                      }
+                                    });
+                                  }
+                                });
                               }}
                               className="p-2 hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-500 transition-all"
                             >
@@ -3316,19 +3339,34 @@ export function AdminDashboard() {
                               Modifier
                             </button>
                             <button
-                              onClick={() => {
-                                if (confirm("Supprimer ce membre ?")) {
-                                  const newTeam = teamMembers.filter(
-                                    (m) => m.id !== member.id,
-                                  );
-                                  fetch("/api/team/update", {
-                                    method: "POST",
-                                    headers: getAuthHeaders(),
-                                    body: JSON.stringify({ members: newTeam }),
-                                  }).then((r) => {
-                                    if (r.ok) fetchTeam();
-                                  });
-                                }
+                               onClick={() => {
+                                setConfirmModal({
+                                  isOpen: true,
+                                  title: "Supprimer de la Team",
+                                  message: `Voulez-vous vraiment supprimer ${member.name} de la team ?`,
+                                  type: "danger",
+                                  onConfirm: () => {
+                                    const newTeam = teamMembers.filter(
+                                      (m) => m.id !== member.id,
+                                    );
+                                    // Optimistic UI Update
+                                    setTeamMembers(newTeam);
+                                    
+                                    fetch("/api/team/update", {
+                                      method: "POST",
+                                      headers: getAuthHeaders(),
+                                      body: JSON.stringify({ members: newTeam }),
+                                    }).then((r) => {
+                                      if (r.ok) {
+                                        showNotification(`${member.name} supprimé de la team.`, "success");
+                                        fetchTeam();
+                                      } else {
+                                        showNotification("Erreur lors de la mise à jour.", "error");
+                                        fetchTeam(); // Revert
+                                      }
+                                    });
+                                  }
+                                });
                               }}
                               className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all"
                             >
@@ -3504,23 +3542,28 @@ export function AdminDashboard() {
                             </button>
                             <button
                               onClick={() => {
-                                if (
-                                  confirm(`Supprimer ${entry.name} du Wiki ?`)
-                                ) {
-                                  apiFetch("/api/wiki/delete", {
-                                    method: "POST",
-                                    headers: getAuthHeaders(),
-                                    body: JSON.stringify({
-                                      id: entry.id,
-                                      type: wikiFilter,
-                                    }),
-                                  }).then((r) => {
-                                    if (r.ok) {
-                                      fetchWiki();
-                                      fetchPhotosCount();
-                                    }
-                                  });
-                                }
+                                setConfirmModal({
+                                  isOpen: true,
+                                  title: "Supprimer du Wiki",
+                                  message: `Voulez-vous vraiment supprimer ${entry.name} du Wiki ?`,
+                                  type: "danger",
+                                  onConfirm: () => {
+                                    apiFetch("/api/wiki/delete", {
+                                      method: "POST",
+                                      headers: getAuthHeaders(),
+                                      body: JSON.stringify({
+                                        id: entry.id,
+                                        type: wikiFilter,
+                                      }),
+                                    }).then((r) => {
+                                      if (r.ok) {
+                                        showNotification(`${entry.name} supprimé du Wiki.`, "success");
+                                        fetchWiki();
+                                        fetchPhotosCount();
+                                      }
+                                    });
+                                  }
+                                });
                               }}
                               className="p-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all border border-red-500/20"
                             >
@@ -10781,12 +10824,28 @@ export function AdminDashboard() {
             isOpen={confirmModal.isOpen}
             title={confirmModal.title}
             message={confirmModal.message}
-            onConfirm={confirmModal.onConfirm}
+            onConfirm={() => {
+              confirmModal.onConfirm();
+              setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+            }}
             onCancel={() =>
               setConfirmModal((prev) => ({ ...prev, isOpen: false }))
             }
             type={confirmModal.type}
             confirmText={confirmModal.confirmText}
+          />
+          <PromptModal
+            isOpen={promptModal.isOpen}
+            title={promptModal.title}
+            message={promptModal.message}
+            defaultValue={promptModal.defaultValue}
+            onConfirm={(val) => {
+              promptModal.onConfirm(val);
+              setPromptModal((prev) => ({ ...prev, isOpen: false }));
+            }}
+            onCancel={() =>
+              setPromptModal((prev) => ({ ...prev, isOpen: false }))
+            }
           />
           <AgendaModal
             isOpen={isAgendaCreateModalOpen}

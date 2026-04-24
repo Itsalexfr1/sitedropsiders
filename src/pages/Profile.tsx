@@ -8,10 +8,11 @@ import { ImageUploadModal } from '../components/ImageUploadModal';
 import { MixUploadModal } from '../components/profile/MixUploadModal';
 import wikiFestivals from '../data/wiki_festivals.json';
 import { UserAuthModal } from '../components/auth/UserAuthModal';
-const showNotification = (msg: string, type: 'success' | 'error' | 'info') => console.log(`[${type.toUpperCase()}] ${msg}`);
+import { ConfirmationModal } from '../components/ConfirmationModal';
+
 
 export function Profile() {
-    const { user, updateUser, logout, isLoggedIn } = useUser();
+    const { user, updateUser, logout, isLoggedIn, showNotification } = useUser();
     const navigate = useNavigate();
     
     const [username, setUsername] = useState(user?.username || '');
@@ -28,6 +29,7 @@ export function Profile() {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null);
     const [userMixes, setUserMixes] = useState<any[]>([]);
+    const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
     useEffect(() => {
         if (user?.email) {
@@ -61,43 +63,41 @@ export function Profile() {
         const mixToDelete = userMixes.find(m => m.id === id);
         if (!mixToDelete) return;
 
-        if (window.confirm("Es-tu sûr de vouloir supprimer ce contenu du Studio Dropsiders et du Cloud ? Cette action est irréversible.")) {
-            try {
-                // 1. Delete from Metadata (KV)
-                const resMeta = await fetch(`/api/user/mixes?email=${encodeURIComponent(user?.email || '')}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
-                        'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
-                    },
-                    body: JSON.stringify({ id })
-                });
+        try {
+            // 1. Delete from Metadata (KV)
+            const resMeta = await fetch(`/api/user/mixes?email=${encodeURIComponent(user?.email || '')}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
+                    'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
+                },
+                body: JSON.stringify({ id })
+            });
 
-                if (resMeta.ok) {
-                    // 2. Delete from Cloud (R2)
-                    if (mixToDelete.audioKey) {
-                        await fetch('/api/r2/delete', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
-                                'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
-                            },
-                            body: JSON.stringify({ key: mixToDelete.audioKey })
-                        });
-                    }
-
-                    setUserMixes(prev => prev.filter(m => m.id !== id));
-                    showNotification('Contenu supprimé avec succès.', 'success');
-                } else {
-                    const err = await resMeta.json();
-                    showNotification(err.error || 'Erreur lors de la suppression', 'error');
+            if (resMeta.ok) {
+                // 2. Delete from Cloud (R2)
+                if (mixToDelete.audioKey) {
+                    await fetch('/api/r2/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
+                            'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
+                        },
+                        body: JSON.stringify({ key: mixToDelete.audioKey })
+                    });
                 }
-            } catch (e: any) {
-                console.error(e);
-                showNotification(e.message || 'Erreur réseau', 'error');
+
+                setUserMixes(prev => prev.filter(m => m.id !== id));
+                showNotification('Contenu supprimé avec succès.', 'success');
+            } else {
+                const err = await resMeta.json();
+                showNotification(err.error || 'Erreur lors de la suppression', 'error');
             }
+        } catch (e: any) {
+            console.error(e);
+            showNotification(e.message || 'Erreur réseau', 'error');
         }
     };
 
@@ -121,7 +121,7 @@ export function Profile() {
             }
         } else {
             await navigator.clipboard.writeText(link);
-            alert("Lien du profil copié !");
+            showNotification("Lien du profil copié !", 'success');
         }
     };
 
@@ -391,7 +391,7 @@ export function Profile() {
                                                     const file = e.target.files?.[0];
                                                     if (file) {
                                                         if (file.size > 150 * 1024 * 1024) {
-                                                            alert("Le fichier est trop volumineux. La limite est de 150 Mo.");
+                                                            showNotification("Le fichier est trop volumineux. La limite est de 150 Mo.", 'error');
                                                             return;
                                                         }
                                                         setSelectedAudioFile(file);
@@ -425,7 +425,7 @@ export function Profile() {
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <button 
-                                                                    onClick={() => handleDeleteMix(mix.id)}
+                                                                    onClick={() => setDeleteTargetId(mix.id)}
                                                                     className="w-10 h-10 border border-red-500/10 bg-red-500/5 hover:bg-red-500/20 hover:border-red-500/30 rounded-xl flex items-center justify-center text-red-500 transition-all opacity-0 group-hover:opacity-100"
                                                                     title="Supprimer définitivement"
                                                                 >
@@ -541,12 +541,12 @@ export function Profile() {
                                             <button 
                                                 onClick={async () => {
                                                     if (!selectedFestival || !reviewRating || !reviewText) {
-                                                        alert("Merci de remplir tous les champs !");
+                                                        showNotification("Merci de remplir tous les champs !", 'error');
                                                         return;
                                                     }
                                                     if (!wikiFestivals.some(f => f.name.toLowerCase() === selectedFestival.toLowerCase())) {
                                                         if (!customFestivalImage) {
-                                                            alert("Ce festival n'est pas répertorié. Vous devez ajouter une photo du festival pour l'envoyer !");
+                                                            showNotification("Ce festival n'est pas répertorié. Vous devez ajouter une photo du festival pour l'envoyer !", 'error');
                                                             return;
                                                         }
                                                     }
@@ -567,16 +567,16 @@ export function Profile() {
                                                             })
                                                         });
                                                         if (res.ok) {
-                                                            alert("Avis envoyé avec succès ! Il apparaîtra sur la page Communauté.");
+                                                            showNotification("Avis envoyé avec succès ! Il apparaîtra sur la page Communauté.", 'success');
                                                             setReviewRating(0);
                                                             setReviewText('');
                                                             setSelectedFestival('');
                                                         } else {
-                                                            alert("Erreur lors de la soumission de l'avis.");
+                                                            showNotification("Erreur lors de la soumission de l'avis.", 'error');
                                                         }
                                                     } catch (e) {
                                                         console.error(e);
-                                                        alert("Erreur réseau.");
+                                                        showNotification("Erreur réseau.", 'error');
                                                     }
                                                 }}
                                                 className="w-full py-4 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 text-yellow-500 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all group"
@@ -656,6 +656,20 @@ export function Profile() {
                     setUserMixes(prev => [data, ...prev]);
                     // Logic to actually save to DB could go here
                 }}
+            />
+
+            <ConfirmationModal
+                isOpen={deleteTargetId !== null}
+                title="Supprimer ce mix ?"
+                message="Es-tu sûr de vouloir supprimer ce contenu du Studio Dropsiders et du Cloud ? Cette action est irréversible."
+                confirmLabel="Supprimer"
+                cancelLabel="Annuler"
+                onConfirm={() => {
+                    if (deleteTargetId) handleDeleteMix(deleteTargetId);
+                    setDeleteTargetId(null);
+                }}
+                onCancel={() => setDeleteTargetId(null)}
+                accentColor="neon-red"
             />
             </div>
 
