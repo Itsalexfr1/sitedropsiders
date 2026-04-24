@@ -466,7 +466,7 @@
     padding: 0 !important;
     margin-bottom: 6rem;
     margin-top: 0;
-    text-align: left;
+    text-align: center;
     position: relative;
     overflow: visible;
 }
@@ -480,13 +480,13 @@
 /* Title spacing */
 .music-top-item-premium .music-top-header {
     margin-bottom: 1.5rem !important;
-    justify-content: flex-start;
+    justify-content: center;
 }
 
 /* Title style: clean, white neon text */
 .music-top-item-premium h3 {
     margin: 0 0 1.5rem !important;
-    text-align: left !important;
+    text-align: center !important;
     color: white !important;
     text-shadow:
         0 0 10px var(--theme-color, rgba(255, 0, 51, 0.6)),
@@ -673,7 +673,7 @@
 }
 
 .music-top-header {
-    justify-content: flex-start !important;
+    justify-content: center !important;
 }
 
 .music-player-expand-container {

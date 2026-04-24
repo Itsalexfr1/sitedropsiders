@@ -746,7 +746,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     </div>
 
                     <div className="space-y-6">
-                        <div className="flex flex-wrap gap-2 mb-6">
+                        <div className="flex flex-wrap justify-center gap-2 mb-6">
                             <span className={`inline-flex items-center justify-center px-6 py-2.5 rounded-full text-white font-black text-[10px] uppercase tracking-widest shadow-lg ${article.isFocus
                                 ? 'bg-yellow-500 shadow-yellow-500/20'
                                 : `bg-${themeColorName} shadow-${themeColorName}/20`
@@ -809,7 +809,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     </div>
                                 )}
                                 <h1
-                                    className="text-3xl sm:text-4xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-[0.9] drop-shadow-2xl premium-h1"
+                                    className="text-3xl sm:text-4xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-[0.9] drop-shadow-2xl premium-h1 text-center"
                                     dangerouslySetInnerHTML={{ __html: standardizeText(displayTitle) }}
                                 />
                             </>
@@ -923,11 +923,11 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     (article.category === 'Interview' || article.category === 'Interviews' ? article.showVideo === true : article.showVideo !== false) &&
                                     !article.category?.includes('Interview Video') && (
                                         <div className="mt-16 mb-16">
-                                            <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
+                                            <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex flex-col items-center justify-center gap-4 group text-center">
                                                 <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 group-hover:bg-neon-red/20 transition-all">
                                                     <Play className="w-6 h-6 text-neon-red fill-neon-red animate-pulse" />
                                                 </div>
-                                                <div className="flex flex-col">
+                                                <div className="flex flex-col text-center">
                                                     <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1">{t('article_detail.must_watch')}</span>
                                                     {isInterview ? "VIDÉO DE L'INTERVIEW" : t('article_detail.video_title')}
                                                 </div>
@@ -948,7 +948,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 {/* Gallery - Show for all except specifically requested exclusions */}
                                 {(article.images && article.images.length > 1 && type === 'recap') && (
                                     <div className="mt-20 pt-20 border-t border-white/5">
-                                        <h3 className="text-2xl font-display font-black text-neon-red mb-10 flex items-center gap-3 uppercase italic">
+                                        <h3 className="text-2xl font-display font-black text-neon-red mb-10 flex flex-col items-center justify-center gap-3 uppercase italic text-center">
                                             <Camera className="w-8 h-8 text-neon-red" />
                                             {t('article_detail.gallery_title')}
                                         </h3>

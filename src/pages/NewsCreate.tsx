@@ -3618,7 +3618,7 @@ ${generateSocialsHtml()}
                         <div className="bg-black border border-white/10 rounded-[32px] p-8 md:p-12 article-body-premium shadow-[0_0_50px_rgba(0,0,0,0.5)] min-h-[400px]">
                             {/* Aperçu de l'En-tête */}
                             <div className="mb-12 border-b border-white/10 pb-8">
-                                <div className="flex flex-wrap gap-2 mb-6">
+                                <div className="flex flex-wrap justify-center gap-2 mb-6">
                                     <span className={`px-4 py-1.5 rounded-full text-white font-black text-[9px] uppercase tracking-widest shadow-lg ${activeTab === 'Focus' ? 'bg-yellow-500 shadow-yellow-500/20' : activeTab === 'Musique' ? 'bg-neon-green shadow-neon-green/20' : 'bg-neon-red shadow-neon-red/20'}`}>
                                         {activeTab === 'Focus' ? 'FOCUS' : activeTab === 'Musique' ? 'MUSIQUE' : (category || 'NEWS')}
                                     </span>
@@ -3634,9 +3634,9 @@ ${generateSocialsHtml()}
                                         {author || 'Alex'}
                                     </span>
                                 </div>
-                                <h1 className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-4" dangerouslySetInnerHTML={{ __html: standardizeContent(title || 'TITRE DE L\'ARTICLE') }} />
+                                <h1 className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-4 text-center" dangerouslySetInnerHTML={{ __html: standardizeContent(title || 'TITRE DE L\'ARTICLE') }} />
                                 {(locationInput || country) && (
-                                    <div className="flex items-center gap-3 text-gray-400 text-sm font-bold uppercase tracking-widest mt-2 mb-6">
+                                    <div className="flex items-center justify-center gap-3 text-gray-400 text-sm font-bold uppercase tracking-widest mt-2 mb-6">
                                         {locationInput && (
                                             <span className="flex items-center gap-2">
                                                 <MapPin className="w-4 h-4 text-neon-cyan" /> {locationInput}
@@ -3668,7 +3668,7 @@ ${generateSocialsHtml()}
                                     <div className="music-top-section pt-12 border-t border-white/10">
                                         {musicItems.map((item) => (
                                             <div key={item.id} className="music-top-item-premium mb-16 last:mb-0 relative">
-                                                <div className="flex flex-col sm:flex-row sm:items-center gap-8 mb-6">
+                                                <div className="flex flex-col items-center gap-8 mb-6">
                                                     {/* VINYL ANIMATION */}
                                                     <div className="relative group/vinyl flex justify-center">
                                                         <motion.div
@@ -3691,7 +3691,7 @@ ${generateSocialsHtml()}
                                                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[80%] h-4 bg-black/60 blur-xl rounded-full" />
                                                     </div>
 
-                                                    <div className="flex-1 text-center sm:text-left">
+                                                    <div className="flex-1 text-center">
                                                         <h3 className="text-2xl lg:text-4xl font-display font-black text-white uppercase italic tracking-tight leading-loose mb-2" dangerouslySetInnerHTML={{ __html: standardizeContent(item.title || 'Titre du morceau') }} />
                                                     </div>
                                                 </div>
@@ -3718,11 +3718,11 @@ ${generateSocialsHtml()}
 
                                         {youtubeId && (
                                             <div className="mt-20">
-                                                <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
+                                                <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex flex-col items-center justify-center gap-4 group text-center">
                                                     <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
                                                         <Youtube className="w-6 h-6 text-neon-red" />
                                                     </div>
-                                                    <div className="flex flex-col text-left">
+                                                    <div className="flex flex-col text-center">
                                                         <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1 italic">DÉCOUVREZ</span>
                                                         LA VIDÉO DE L'ARTICLE
                                                     </div>
@@ -3825,7 +3825,7 @@ ${generateSocialsHtml()}
 
                                     {youtubeId && showVideo && (
                                         <div className="mt-16 mb-16">
-                                            <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
+                                            <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex flex-col items-center justify-center gap-4 group text-center">
                                                 <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
                                                     <div className="w-6 h-6 text-neon-red fill-neon-red" style={{
                                                         width: '0',
@@ -3836,7 +3836,7 @@ ${generateSocialsHtml()}
                                                         marginLeft: '4px'
                                                     }} />
                                                 </div>
-                                                <div className="flex flex-col text-left">
+                                                <div className="flex flex-col text-center">
                                                     <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1 italic">À NE PAS MANQUER</span>
                                                     LA VIDÉO DE L'ARTICLE
                                                 </div>
