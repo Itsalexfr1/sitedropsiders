@@ -10,7 +10,9 @@ import {
     Image as ImageIcon,
     Search,
     Check,
-    Loader2
+    Loader2,
+    Lock,
+    Unlock
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -41,6 +43,16 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeEditId, setActiveEditId] = useState<string | null>(null);
+    const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
+
+    const toggleLock = (id: string) => {
+        setLockedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
     
     // Wiki Search & Edit
     const [searchQuery, setSearchQuery] = useState('');
@@ -100,14 +112,20 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
         const shuffled = [...source].sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, randomLimit);
 
-        const newItems: StoryItem[] = selected.map(item => ({
+        const wikiItems: StoryItem[] = selected.map(item => ({
             id: Math.random().toString(36).substr(2, 9),
             image: item.image || item.photo || null,
             label: item.name || 'Sans nom'
         }));
 
-        setItems(newItems);
-    }, [activeTheme, wikiData, randomLimit]);
+        // Merge: keep locked items at their positions or at least keep them in the list
+        setItems(prev => {
+            const lockedItems = prev.filter(it => lockedIds.has(it.id));
+            const availableSlots = randomLimit - lockedItems.length;
+            const newWikiItems = wikiItems.slice(0, Math.max(0, availableSlots));
+            return [...lockedItems, ...newWikiItems].slice(0, randomLimit);
+        });
+    }, [activeTheme, wikiData, randomLimit, lockedIds]);
 
     const randomizeSelection = () => {
         generateFromWiki();
@@ -142,8 +160,27 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
             const canvas = await html2canvas(previewRef.current, {
                 useCORS: true,
                 scale: 3,
-                backgroundColor: '#000000'
+                backgroundColor: '#000000',
+                logging: false,
+                allowTaint: true
             });
+
+            const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
+            
+            if (isMobile && navigator.share) {
+                const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+                if (blob) {
+                    const file = new File([blob], `dropsiders_grid_${Date.now()}.png`, { type: 'image/png' });
+                    await navigator.share({
+                        files: [file],
+                        title: 'Dropsiders Grid Generator',
+                        text: 'Ma grille générée sur Dropsiders'
+                    });
+                    setIsGenerating(false);
+                    return;
+                }
+            }
+
             const link = document.createElement('a');
             link.download = `dropsiders_grid_${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
@@ -158,8 +195,8 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4">
-            <div className="bg-[#0A0A0A] w-full max-w-7xl h-[92vh] rounded-[3rem] border border-white/10 shadow-2xl flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-xl flex items-center justify-center md:p-4">
+            <div className="bg-[#0A0A0A] w-full max-w-7xl h-full md:h-[92vh] md:rounded-[3rem] border-white/10 shadow-2xl flex flex-col overflow-hidden relative">
                 {/* Header */}
                 <div className="p-8 border-b border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -179,7 +216,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-hidden grid lg:grid-cols-[450px_1fr] gap-0">
+                <div className="flex-1 overflow-y-auto lg:overflow-hidden grid grid-cols-1 lg:grid-cols-[450px_1fr] gap-0">
                     {/* Controls */}
                     <div className="p-8 border-r border-white/5 overflow-y-auto custom-scrollbar space-y-8 bg-black/20">
                         <div className="space-y-6">
@@ -286,12 +323,21 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                                     className={`w-full bg-transparent border-none p-0 font-bold text-sm outline-none transition-colors ${!item.label.trim() ? 'text-neon-red placeholder:text-neon-red/50' : 'text-white focus:text-neon-cyan'}`}
                                                 />
                                             </div>
-                                            <button 
-                                                onClick={() => removeItem(item.id)}
-                                                className="p-2 text-gray-600 hover:text-neon-red opacity-0 group-hover:opacity-100 transition-all"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            <div className="flex items-center gap-1">
+                                                <button 
+                                                    onClick={() => toggleLock(item.id)}
+                                                    className={`p-2 transition-all ${lockedIds.has(item.id) ? 'text-neon-cyan' : 'text-gray-600 hover:text-white'}`}
+                                                    title={lockedIds.has(item.id) ? "Déverrouiller" : "Verrouiller (garder lors du mélange)"}
+                                                >
+                                                    {lockedIds.has(item.id) ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                                                </button>
+                                                <button 
+                                                    onClick={() => removeItem(item.id)}
+                                                    className="p-2 text-gray-600 hover:text-neon-red transition-all"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
 
                                         {activeEditId === item.id && (
@@ -394,10 +440,10 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                     </div>
 
                     {/* Preview Area */}
-                    <div className="p-12 bg-[#050505] flex flex-col items-center justify-center relative overflow-hidden group">
+                    <div className="p-4 md:p-12 bg-[#050505] flex flex-col items-center justify-center relative overflow-hidden group min-h-[600px]">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,243,0.05)_0%,transparent_70%)] pointer-events-none" />
                         
-                        <div className="relative mb-12">
+                        <div className="relative mb-12 scale-[0.8] md:scale-100">
                             <div className="w-[360px] aspect-[9/16] bg-black rounded-[4rem] border-[8px] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col">
                                 <div 
                                     ref={previewRef}
