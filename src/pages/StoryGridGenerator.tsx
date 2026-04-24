@@ -504,6 +504,17 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                         </div>
                                     </div>
 
+                                    {/* Footer branding */}
+                                    <div className="w-full mt-4 pt-3 border-t border-white/10 flex items-center justify-center gap-2 relative z-10">
+                                        <span className="text-[8px] font-black text-white/60 uppercase tracking-[0.2em]">
+                                            Identifiez notre compte
+                                        </span>
+                                        <span className="text-[9px] font-black text-white uppercase tracking-wider">
+                                            @dropsiders.eu
+                                        </span>
+                                        <span className="text-[10px]">✅</span>
+                                    </div>
+
                                 </div>
                             </div>
 
