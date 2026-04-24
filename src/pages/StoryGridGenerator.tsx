@@ -164,11 +164,11 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
             const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
             const canvas = await html2canvas(previewRef.current, {
                 useCORS: true,
-                scale: isMobile ? 2 : 3, // Lower scale on mobile for iOS stability
+                scale: 2, // Consistent scale for reliability
                 backgroundColor: '#000000',
                 logging: false,
                 allowTaint: false,
-                imageTimeout: 15000,
+                imageTimeout: 20000,
                 onclone: (clonedDoc) => {
                     // Ensure fonts and images are visible in clone
                     const images = clonedDoc.getElementsByTagName('img');
@@ -225,9 +225,9 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                 window.open(dataUrl, '_blank');
             }
 
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to generate image:', err);
-            alert("Erreur lors de la génération de l'image. Vérifiez votre connexion.");
+            alert(`Erreur technique : ${err.message || "Problème de rendu"}. Essayez avec moins d'éléments ou une autre connexion.`);
         } finally {
             setIsGenerating(false);
         }
@@ -509,7 +509,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                                                     <div className="w-full aspect-square rounded-full border-[1.5px] border-white bg-[#111] overflow-hidden shadow-lg relative">
                                                         {item.image ? (
                                                             <img 
-                                                                src={item.image} 
+                                                                src={item.image.startsWith('http') ? `https://images.weserv.nl/?url=${encodeURIComponent(item.image)}&w=300&h=300&fit=cover` : item.image} 
                                                                 className="w-full h-full object-cover" 
                                                                 alt="" 
                                                                 crossOrigin="anonymous"
