@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Plus, Save, ArrowLeft, Loader2, Instagram, Trash2 } from 'lucide-react';
 import { Link, useBlocker } from 'react-router-dom';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { Upload } from 'lucide-react';
@@ -89,7 +89,7 @@ export function AdminTeam() {
         setIsSaving(true);
         setMessage('');
         try {
-            const response = await fetch('/api/team/update', {
+            const response = await apiFetch('/api/team/update', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ members })

@@ -255,12 +255,21 @@ export default {
                 const userData = {
                     id: discordUser.id,
                     username: discordUser.global_name || discordUser.username,
-                    email: discordUser.email,
+                    email: discordUser.email || '',
                     avatar: discordUser.avatar 
                         ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
                         : `https://cdn.discordapp.com/embed/avatars/${parseInt(discordUser.discriminator || '0') % 5}.png`,
-                    provider: 'discord'
+                    provider: 'discord',
+                    lastSeen: new Date().toISOString()
                 };
+
+                // Server-side persistence to ensure user appears in "Comptes" immediately
+                if (env.CHAT_KV) {
+                    const cleanEmail = userData.email ? userData.email.toLowerCase().trim() : '';
+                    const kvKey = cleanEmail ? `community_user_${cleanEmail}` : `community_user_${discordUser.id}`;
+                    await env.CHAT_KV.put(kvKey, JSON.stringify(userData));
+                    console.log(`[DISCORD SYNC] User ${userData.username} saved to KV with key ${kvKey}`);
+                }
 
                 // Return HTML that sends user data to parent window via postMessage
                 return new Response(`
@@ -1387,17 +1396,17 @@ ${urls.map(u => `  <url>
             const hasAll = userPermissions.includes('all');
 
             // 1. News
-            if (path.startsWith('/api/news') && !hasAll && !userPermissions.includes('news')) {
+            if (path.startsWith('/api/news') && !hasAll && !userPermissions.includes('news') && !userPermissions.includes('news_focus')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : news' }), { status: 403, headers });
             }
 
             // 2. Agenda
-            if (path.startsWith('/api/agenda') && !hasAll && !userPermissions.includes('agenda')) {
+            if (path.startsWith('/api/agenda') && !hasAll && !userPermissions.includes('agenda') && !userPermissions.includes('agenda_events')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : agenda' }), { status: 403, headers });
             }
 
             // 3. Recaps
-            if (path.startsWith('/api/recaps') && !hasAll && !userPermissions.includes('recaps')) {
+            if (path.startsWith('/api/recaps') && !hasAll && !userPermissions.includes('recaps') && !userPermissions.includes('recaps_festivals')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : recaps' }), { status: 403, headers });
             }
 
@@ -1407,7 +1416,7 @@ ${urls.map(u => `  <url>
                                    path.startsWith('/api/instagram-contest') || 
                                    path.includes('/quiz/contest');
                                    
-            if (isCommunityRoute && !hasAll && !userPermissions.includes('community')) {
+            if (isCommunityRoute && !hasAll && !userPermissions.includes('community') && !userPermissions.includes('community_mod')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : community' }), { status: 403, headers });
             }
 
@@ -1418,18 +1427,44 @@ ${urls.map(u => `  <url>
 
             // 6. Broadcast (Newsletter & Messages)
             const isBroadcastRoute = path.startsWith('/api/newsletter') || path === '/api/subscribers' || path.startsWith('/api/contacts');
-            if (isBroadcastRoute && !hasAll && !userPermissions.includes('broadcast')) {
+            if (isBroadcastRoute && !hasAll && !userPermissions.includes('broadcast') && !userPermissions.includes('push_newsletter') && !userPermissions.includes('messages_contact')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : broadcast' }), { status: 403, headers });
             }
 
             // 7. Spotify
-            if (path === '/api/spotify/update' && !hasAll && !userPermissions.includes('musique')) {
+            if (path === '/api/spotify/update' && !hasAll && !userPermissions.includes('musique') && !userPermissions.includes('musique_releases')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : musique' }), { status: 403, headers });
             }
 
-            // 8. Accueil (Layout)
-            if (path === '/api/home-layout/update' && !hasAll && !userPermissions.includes('accueil')) {
+            // 8. Accueil (Layout & Team)
+            const isHomeRoute = path === '/api/home-layout/update' || path === '/api/team/update';
+            if (isHomeRoute && !hasAll && !userPermissions.includes('accueil') && !userPermissions.includes('home_layout')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : accueil' }), { status: 403, headers });
+            }
+
+            // 9. Interviews
+            if (path === '/api/interview-questions/update' && !hasAll && !userPermissions.includes('interviews') && !userPermissions.includes('interviews_video')) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : interviews' }), { status: 403, headers });
+            }
+
+            // 10. Wiki (DJs, Clubs, Festivals)
+            const isWikiUpdate = path.startsWith('/api/wiki') && path.endsWith('/update');
+            if (isWikiUpdate && !hasAll && !userPermissions.includes('wiki') && !userPermissions.includes('wiki_dropsiders')) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : wiki' }), { status: 403, headers });
+            }
+
+            // 11. Live Takeover
+            if (path === '/api/takeover-settings' && request.method === 'POST' && !hasAll && !userPermissions.includes('live')) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : live' }), { status: 403, headers });
+            }
+
+            // 12. Social Studio (Read access to some tools might be implicitly allowed, but let's be explicit if needed)
+            // Note: social_studio users often need to read takeover settings or upload images.
+            // R2 Upload is usually open to all authenticated editors or handled separately.
+
+            // 13. Dashboard Actions (restricted to Super Admins)
+            if (path === '/api/dashboard-actions/update' && !hasAll) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : admin' }), { status: 403, headers });
             }
 
             // 9. Factures: allow alex OR any authenticated user with 'all' or 'news' permission
@@ -2010,7 +2045,19 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify(file.content), { status: 200, headers });
         }
 
+        // --- API: TEAM (with permission) ---
         if (path === '/api/team/update' && request.method === 'POST') {
+            // Permission check: requires 'accueil' (home_layout) or 'all' or Super Admin
+            const userPermissions = await getPermissions(request, env);
+            const hasTeamPermission = userPermissions.includes('all') || 
+                                     userPermissions.includes('accueil') ||
+                                     userPermissions.includes('home_layout') ||
+                                     isSuperAdmin(await getUserId(request, env));
+
+            if (!hasTeamPermission) {
+                return new Response(JSON.stringify({ error: 'Permission denied (Need Team/Home access)' }), { status: 403, headers });
+            }
+
             const TEAM_PATH = 'src/data/team.json';
             const { members } = await request.json();
             const file = await fetchGitHubFile(TEAM_PATH, gitConfig) || { content: [], sha: null };
