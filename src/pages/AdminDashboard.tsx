@@ -5105,7 +5105,7 @@ export function AdminDashboard() {
                     <button
                       onClick={() => {
                         setIsGeneratorsModalOpen(false);
-                        setIsRandomizerModalOpen(true);
+                        setIsInterviewVisualsModalOpen(true);
                       }}
                       className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
                     >

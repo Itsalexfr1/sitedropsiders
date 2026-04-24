@@ -175,6 +175,21 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                     for (let i = 0; i < images.length; i++) {
                         images[i].crossOrigin = "anonymous";
                     }
+
+                    // FIX: Remove modern CSS colors that break html2canvas (oklab, oklch)
+                    const allElements = clonedDoc.getElementsByTagName('*');
+                    for (let i = 0; i < allElements.length; i++) {
+                        const el = allElements[i] as HTMLElement;
+                        if (el.style) {
+                            // Check background, border, color for modern functions
+                            ['background', 'backgroundColor', 'color', 'borderColor', 'backgroundImage'].forEach(prop => {
+                                const val = (el.style as any)[prop];
+                                if (val && (val.includes('oklab') || val.includes('oklch'))) {
+                                    (el.style as any)[prop] = ''; // Remove or fallback
+                                }
+                            });
+                        }
+                    }
                 }
             });
 
