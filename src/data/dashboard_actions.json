@@ -142,28 +142,6 @@
     "columns": 1
   },
   {
-    "title": "Planning Story",
-    "description": "Visuel Programme",
-    "icon": "Calendar",
-    "category": "SOCIAL_STUDIO",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "news",
-    "baseColor": "#f99a9a",
-    "columns": 2
-  },
-  {
-    "title": "Questions Aléatoires",
-    "description": "Randomizer d'Interviews",
-    "icon": "Dice5",
-    "category": "STUDIO",
-    "link": "random-questions",
-    "permission": "news",
-    "baseColor": "#fde753",
-    "columns": 2
-  },
-  {
     "title": "Video Translator AI",
     "description": "Analyse & Traduit MP4",
     "icon": "Video",
@@ -183,18 +161,6 @@
     "bg": "bg-neon-purple/5",
     "permission": "news",
     "baseColor": "#bd00ff",
-    "columns": 1
-  },
-  {
-    "title": "Story Grid Generator",
-    "description": "Générateur de Grille Instagram",
-    "icon": "LayoutGrid",
-    "category": "SOCIAL_STUDIO",
-    "link": "#STORY_GRID_MODAL",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "news",
-    "baseColor": "#00fffb",
     "columns": 1
   }
 ]
