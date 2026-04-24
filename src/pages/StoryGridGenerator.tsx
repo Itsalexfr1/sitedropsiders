@@ -14,7 +14,7 @@ import {
     Lock,
     Unlock
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
+import { toPng } from 'html-to-image';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
 
 interface StoryItem {
@@ -156,124 +156,53 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
     const downloadImage = async () => {
         if (!previewRef.current || items.length === 0) return;
         setIsGenerating(true);
-        
-        // Wait for images to load just in case
-        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Small delay to ensure all images are painted
+        await new Promise(resolve => setTimeout(resolve, 600));
 
         try {
             const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
-            const canvas = await html2canvas(previewRef.current, {
-                useCORS: true,
-                scale: 2, // Consistent scale for reliability
-                backgroundColor: '#000000',
-                logging: false,
-                allowTaint: false,
-                imageTimeout: 20000,
-                onclone: (clonedDoc) => {
-                    // 1. Ensure fonts and images are visible in clone
-                    const images = clonedDoc.getElementsByTagName('img');
-                    for (let i = 0; i < images.length; i++) {
-                        images[i].crossOrigin = "anonymous";
-                    }
-
-                    // 2. Aggressively sanitize CSS for html2canvas
-                    // Remove all external links that might contain oklab/oklch or cause issues
-                    const links = Array.from(clonedDoc.getElementsByTagName('link'));
-                    links.forEach(link => {
-                        if (link.rel === 'stylesheet') {
-                            try {
-                                // Try to access rules to see if it's safe
-                                const sheet = link.sheet as CSSStyleSheet;
-                                if (sheet && sheet.cssRules) {
-                                    // Check if any rule has okl
-                                    for (let j = 0; j < sheet.cssRules.length; j++) {
-                                        if (sheet.cssRules[j].cssText.includes('okl')) {
-                                            link.remove();
-                                            break;
-                                        }
-                                    }
-                                }
-                            } catch (e) {
-                                // Security error = cross-origin. Most likely to contain problematic CSS
-                                link.remove();
-                            }
-                        }
-                    });
-
-                    // Sanitize internal style tags
-                    const styles = Array.from(clonedDoc.getElementsByTagName('style'));
-                    styles.forEach(style => {
-                        if (style.innerHTML.includes('okl')) {
-                            style.innerHTML = style.innerHTML.replace(/okl(ab|ch)\([^\)]+\)/g, 'black');
-                        }
-                    });
-
-                    // Sanitize inline styles
-                    const allElements = clonedDoc.getElementsByTagName('*');
-                    for (let i = 0; i < allElements.length; i++) {
-                        const el = allElements[i] as HTMLElement;
-                        if (el.style) {
-                            ['background', 'backgroundColor', 'color', 'borderColor', 'backgroundImage'].forEach(prop => {
-                                const val = (el.style as any)[prop];
-                                if (val && (val.includes('oklab') || val.includes('oklch'))) {
-                                    (el.style as any)[prop] = '';
-                                }
-                            });
-                        }
-                    }
-                }
-            });
-
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
             const fileName = `dropsiders_grid_${Date.now()}.png`;
+
+            // html-to-image supports modern CSS (oklab, oklch, etc.) natively
+            const dataUrl = await toPng(previewRef.current, {
+                quality: 1,
+                pixelRatio: 2,
+                backgroundColor: '#000000',
+                cacheBust: true,
+                // Proxy images that may have CORS issues
+                fetchRequestInit: { mode: 'cors' },
+            });
 
             if (isMobile && navigator.share) {
                 try {
-                    // Use a slightly lower quality/scale for mobile to ensure iOS stability
-                    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
-                    if (blob) {
-                        const file = new File([blob], fileName, { type: 'image/png' });
-                        const shareData: any = {
-                            files: [file],
-                            title: 'Dropsiders Grid',
-                        };
-                        
-                        // Check if canShare exists and is positive
-                        if (navigator.canShare && navigator.canShare(shareData)) {
-                            await navigator.share(shareData);
-                            setIsGenerating(false);
-                            return;
-                        } else {
-                            // Fallback for cases where canShare is false but share exists
-                            await navigator.share({
-                                title: 'Dropsiders Grid',
-                                text: 'Ma grille Dropsiders',
-                                url: window.location.href // Some browsers need a URL or Text if files fail
-                            });
-                        }
+                    // Convert dataUrl to Blob for native share
+                    const res = await fetch(dataUrl);
+                    const blob = await res.blob();
+                    const file = new File([blob], fileName, { type: 'image/png' });
+                    const shareData = { files: [file], title: 'Dropsiders Grid' };
+
+                    if (navigator.canShare && navigator.canShare(shareData)) {
+                        await navigator.share(shareData);
+                        setIsGenerating(false);
+                        return;
                     }
                 } catch (shareErr) {
-                    console.warn('Share API failed:', shareErr);
+                    console.warn('Share API failed, falling back to download:', shareErr);
                 }
             }
 
-            // Fallback for Desktop or if Share fails
-            const dataUrl = canvas.toDataURL('image/png', 1.0);
+            // Desktop or share fallback: direct download
             const link = document.createElement('a');
             link.download = fileName;
             link.href = dataUrl;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            // On mobile, if share failed and link.click() might fail, open in new tab
-            if (isMobile) {
-                window.open(dataUrl, '_blank');
-            }
 
         } catch (err: any) {
             console.error('Failed to generate image:', err);
-            alert(`Erreur technique : ${err.message || "Problème de rendu"}. Essayez avec moins d'éléments ou une autre connexion.`);
+            alert(`Erreur technique : ${err.message || 'Problème de rendu'}`);
         } finally {
             setIsGenerating(false);
         }
