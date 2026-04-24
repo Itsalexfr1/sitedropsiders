@@ -2236,7 +2236,7 @@ export function AdminDashboard() {
       link: "#GENERATORS",
       color: "border-neon-purple/20 hover:border-neon-purple",
       bg: "bg-neon-purple/5",
-      permission: "news",
+      permission: "social_studio",
       baseColor: "purple",
       columns: 1,
     },

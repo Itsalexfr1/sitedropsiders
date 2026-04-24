@@ -170,22 +170,53 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData }: StoryGridGener
                 allowTaint: false,
                 imageTimeout: 20000,
                 onclone: (clonedDoc) => {
-                    // Ensure fonts and images are visible in clone
+                    // 1. Ensure fonts and images are visible in clone
                     const images = clonedDoc.getElementsByTagName('img');
                     for (let i = 0; i < images.length; i++) {
                         images[i].crossOrigin = "anonymous";
                     }
 
-                    // FIX: Remove modern CSS colors that break html2canvas (oklab, oklch)
+                    // 2. Aggressively sanitize CSS for html2canvas
+                    // Remove all external links that might contain oklab/oklch or cause issues
+                    const links = Array.from(clonedDoc.getElementsByTagName('link'));
+                    links.forEach(link => {
+                        if (link.rel === 'stylesheet') {
+                            try {
+                                // Try to access rules to see if it's safe
+                                const sheet = link.sheet as CSSStyleSheet;
+                                if (sheet && sheet.cssRules) {
+                                    // Check if any rule has okl
+                                    for (let j = 0; j < sheet.cssRules.length; j++) {
+                                        if (sheet.cssRules[j].cssText.includes('okl')) {
+                                            link.remove();
+                                            break;
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                // Security error = cross-origin. Most likely to contain problematic CSS
+                                link.remove();
+                            }
+                        }
+                    });
+
+                    // Sanitize internal style tags
+                    const styles = Array.from(clonedDoc.getElementsByTagName('style'));
+                    styles.forEach(style => {
+                        if (style.innerHTML.includes('okl')) {
+                            style.innerHTML = style.innerHTML.replace(/okl(ab|ch)\([^\)]+\)/g, 'black');
+                        }
+                    });
+
+                    // Sanitize inline styles
                     const allElements = clonedDoc.getElementsByTagName('*');
                     for (let i = 0; i < allElements.length; i++) {
                         const el = allElements[i] as HTMLElement;
                         if (el.style) {
-                            // Check background, border, color for modern functions
                             ['background', 'backgroundColor', 'color', 'borderColor', 'backgroundImage'].forEach(prop => {
                                 const val = (el.style as any)[prop];
                                 if (val && (val.includes('oklab') || val.includes('oklch'))) {
-                                    (el.style as any)[prop] = ''; // Remove or fallback
+                                    (el.style as any)[prop] = '';
                                 }
                             });
                         }
