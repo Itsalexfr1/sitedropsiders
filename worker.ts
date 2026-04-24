@@ -395,6 +395,33 @@ export default {
                 if (env.CHAT_KV) {
                     const cleanEmail = userData.email ? userData.email.toLowerCase().trim() : '';
                     const kvKey = cleanEmail ? `community_user_${cleanEmail}` : `community_user_${discordUser.id}`;
+                    
+                    const existing = await env.CHAT_KV.get(kvKey);
+                    if (!existing) {
+                        // New user! Notify admin
+                        if (env.BREVO_API_KEY) {
+                            const payload = {
+                                sender: { name: 'Dropsiders System', email: 'security@dropsiders.fr' },
+                                to: [{ email: 'contact@dropsiders.fr' }],
+                                subject: `[NOUVEAU COMPTE DISCORD] ${userData.username}`,
+                                htmlContent: `
+                                    <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px;">
+                                        <h2>Nouveau membre inscrit via Discord !</h2>
+                                        <p><strong>Pseudo:</strong> ${userData.username}</p>
+                                        <p><strong>Email:</strong> ${userData.email || 'N/A'}</p>
+                                        <p><strong>Discord ID:</strong> ${userData.id}</p>
+                                        <p><strong>Date:</strong> ${userData.lastSeen}</p>
+                                    </div>
+                                `
+                            };
+                            fetch('https://api.brevo.com/v3/smtp/email', {
+                                method: 'POST',
+                                headers: { 'accept': 'application/json', 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            }).catch(e => console.error('Discord notify error', e));
+                        }
+                    }
+
                     await env.CHAT_KV.put(kvKey, JSON.stringify(userData));
                     console.log(`[DISCORD SYNC] User ${userData.username} saved to KV with key ${kvKey}`);
                 }

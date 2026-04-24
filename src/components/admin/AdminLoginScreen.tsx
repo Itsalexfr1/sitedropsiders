@@ -599,7 +599,7 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
                                 <p className="text-gray-400 text-xs font-bold text-center leading-relaxed mb-8">
                                     Pour accéder au tableau de bord, vous devez d'abord créer un profil public sur le site Dropsiders.
                                     <br /><br />
-                                    Veuillez vous connecter une première fois via Google ou Discord sur la page d'accueil du site avant de revenir ici.
+                                    Veuillez vous connecter une première fois via Google ou Discord sur la page d'accueil du site, puis <strong>patientez jusqu'à ce que l'administrateur vous donne les permissions nécessaires</strong>.
                                 </p>
 
                                 <div className="space-y-3">
