@@ -33,6 +33,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
     const [isRecording, setIsRecording] = useState(false);
     const [recordingProgress, setRecordingProgress] = useState(0);
     const [videoDuration, setVideoDuration] = useState(10);
+    const [mobileTab, setMobileTab] = useState<'config' | 'preview'>('config');
     const [showSuccess, setShowSuccess] = useState(false);
 
     useEffect(() => {
