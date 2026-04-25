@@ -93,7 +93,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
             await new Promise(r => setTimeout(r, 500));
             
             const blob = await toBlob(previewRef.current, {
-                pixelRatio: 3,
+                pixelRatio: 2,
                 backgroundColor: bgType === 'transparent' ? undefined : '#000000',
             });
             
@@ -432,7 +432,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                                 <div className="w-6 h-6 bg-neon-green rounded-full flex items-center justify-center">
                                                     <Check className="w-4 h-4 text-black" />
                                                 </div>
-                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Image Enregistrée !</span>
+                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Prêt ! Enregistre-la dans tes photos</span>
                                             </motion.div>
                                         )}
                                     </AnimatePresence>

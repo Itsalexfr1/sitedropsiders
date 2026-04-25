@@ -12,9 +12,10 @@ import {
     Check,
     Loader2,
     Lock,
-    Unlock
+    Unlock,
+    Sparkles
 } from 'lucide-react';
-import { toPng } from 'html-to-image';
+import { toBlob } from 'html-to-image';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
 
 interface StoryItem {
@@ -47,6 +48,8 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
     } : undefined;
     const [items, setItems] = useState<StoryItem[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const previewRef = useRef<HTMLDivElement>(null);
     const [activeTheme, setActiveTheme] = useState<'manual' | 'djs' | 'clubs' | 'festivals'>('manual');
     const [randomLimit, setRandomLimit] = useState(30);
     const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
@@ -57,7 +60,40 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         setLockedIds(new Set());
     }, [activeTheme]);
     
-    const previewRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (showSuccess) {
+            const timer = setTimeout(() => setShowSuccess(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showSuccess]);
+
+    const saveOrShareFile = async (blob: Blob, filename: string) => {
+        const file = new File([blob], filename, { type: blob.type });
+        
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: filename,
+                });
+                return true;
+            } catch (err) {
+                if ((err as Error).name !== 'AbortError') {
+                    console.warn("Share failed, falling back to download", err);
+                } else {
+                    return false; // User cancelled
+                }
+            }
+        }
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = url;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        return true;
+    };
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeEditId, setActiveEditId] = useState<string | null>(null);
     const [mobileTab, setMobileTab] = useState<'config' | 'preview'>('config');
@@ -227,44 +263,18 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         await new Promise(resolve => setTimeout(resolve, 600));
 
         try {
-            const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
             const fileName = `dropsiders_grid_${Date.now()}.png`;
 
-            // html-to-image supports modern CSS (oklab, oklch, etc.) natively
-            const dataUrl = await toPng(previewRef.current, {
-                quality: 1,
+            const blob = await toBlob(previewRef.current, {
                 pixelRatio: 2,
                 backgroundColor: '#000000',
                 cacheBust: true,
-                // Proxy images that may have CORS issues
-                fetchRequestInit: { mode: 'cors' },
             });
 
-            if (isMobile && navigator.share) {
-                try {
-                    // Convert dataUrl to Blob for native share
-                    const res = await fetch(dataUrl);
-                    const blob = await res.blob();
-                    const file = new File([blob], fileName, { type: 'image/png' });
-                    const shareData = { files: [file], title: 'Dropsiders Grid' };
-
-                    if (navigator.canShare && navigator.canShare(shareData)) {
-                        await navigator.share(shareData);
-                        setIsGenerating(false);
-                        return;
-                    }
-                } catch (shareErr) {
-                    console.warn('Share API failed, falling back to download:', shareErr);
-                }
+            if (blob) {
+                const shared = await saveOrShareFile(blob, fileName);
+                if (shared) setShowSuccess(true);
             }
-
-            // Desktop or share fallback: direct download
-            const link = document.createElement('a');
-            link.download = fileName;
-            link.href = dataUrl;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
 
         } catch (err: any) {
             console.error('Failed to generate image:', err);
@@ -536,6 +546,22 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                     ref={previewRef}
                                     className="w-full h-full bg-[#050505] flex flex-col items-center p-4 pt-3 relative overflow-hidden"
                                 >
+                                    {/* Success Toast */}
+                                    <AnimatePresence>
+                                        {showSuccess && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -20, scale: 0.8 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.8 }}
+                                                className="absolute top-10 left-1/2 -translate-x-1/2 z-[60] bg-neon-green/20 backdrop-blur-md border border-neon-green/30 px-6 py-3 rounded-2xl flex items-center gap-3 shadow-[0_0_20px_rgba(76,217,100,0.2)]"
+                                            >
+                                                <div className="w-6 h-6 bg-neon-green rounded-full flex items-center justify-center">
+                                                    <Check className="w-4 h-4 text-black" />
+                                                </div>
+                                                <span className="text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">Prêt ! Enregistre-la dans tes photos</span>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,51,0.08)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,255,243,0.05)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
