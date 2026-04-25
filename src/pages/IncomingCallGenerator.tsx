@@ -165,33 +165,47 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
             const bgVideo = previewRef.current.querySelector('video') as HTMLVideoElement;
             
-            for (let i = 0; i < totalFrames; i++) {
-                if (!isRecording) break;
-
-                // Draw Background
-                ctx.fillStyle = '#050505';
-                ctx.fillRect(0, 0, width, height);
-
-                if (bgVideo && bgType === 'video') {
-                    bgVideo.currentTime = (i / fps) % bgVideo.duration;
-                    ctx.drawImage(bgVideo, 0, 0, width, height);
-                } else if (bgType === 'image' && bgUrl) {
-                    const bgImg = previewRef.current.querySelector('img.absolute.inset-0') as HTMLImageElement;
-                    if (bgImg) ctx.drawImage(bgImg, 0, 0, width, height);
-                }
-
-                // Draw UI Overlay
-                ctx.drawImage(uiCanvas, 0, 0, width, height);
-                setRecordingProgress(Math.round((i / totalFrames) * 100));
-                
-                // Allow UI to update and recorder to capture the frame
-                await new Promise(r => setTimeout(r, 16)); 
+            const startTime = Date.now();
+            const durationMs = videoDuration * 1000;
+            
+            if (bgVideo && bgType === 'video') {
+                bgVideo.currentTime = 0;
+                try { await bgVideo.play(); } catch (e) { console.warn(e); }
             }
 
-            recorder.stop();
-            const blob = await exportPromise;
-            await saveOrShareFile(blob, `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`);
-            setShowSuccess(true);
+            return new Promise<void>((resolve, reject) => {
+                const renderFrame = () => {
+                    const now = Date.now();
+                    const elapsed = now - startTime;
+                    
+                    if (elapsed >= durationMs || !isRecording) {
+                        recorder.stop();
+                        return;
+                    }
+
+                    ctx.fillStyle = '#050505';
+                    ctx.fillRect(0, 0, width, height);
+
+                    if (bgVideo && bgType === 'video') {
+                        ctx.drawImage(bgVideo, 0, 0, width, height);
+                    } else if (bgType === 'image' && bgUrl) {
+                        const bgImg = previewRef.current.querySelector('img.absolute.inset-0') as HTMLImageElement;
+                        if (bgImg) ctx.drawImage(bgImg, 0, 0, width, height);
+                    }
+
+                    ctx.drawImage(uiCanvas, 0, 0, width, height);
+                    setRecordingProgress(Math.min(99, Math.round((elapsed / durationMs) * 100)));
+                    requestAnimationFrame(renderFrame);
+                };
+
+                exportPromise.then(async (blob) => {
+                    await saveOrShareFile(blob, `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`);
+                    setShowSuccess(true);
+                    resolve();
+                }).catch(reject);
+
+                requestAnimationFrame(renderFrame);
+            });
 
         } catch (err) {
             console.error("Video export failed:", err);
