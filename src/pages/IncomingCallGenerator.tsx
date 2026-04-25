@@ -31,6 +31,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
     const [isExporting, setIsExporting] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingProgress, setRecordingProgress] = useState(0);
+    const [videoDuration, setVideoDuration] = useState(10);
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -137,10 +138,9 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                 await bgVideo.play();
             }
 
-            // 4. Recording Loop (5 seconds)
-            const duration = 5; // seconds
+            // 4. Recording Loop
             const fps = 30;
-            const totalFrames = duration * fps;
+            const totalFrames = videoDuration * fps;
 
             for (let i = 0; i < totalFrames; i++) {
                 // Draw Background
@@ -306,6 +306,24 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                             />
                         </div>
 
+                        {/* Video Duration Selection */}
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <Clock className="w-3 h-3 text-neon-purple" /> Durée Vidéo (s)
+                            </label>
+                            <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10">
+                                {[5, 10, 15].map((d) => (
+                                    <button 
+                                        key={d}
+                                        onClick={() => setVideoDuration(d)}
+                                        className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-bold transition-all ${videoDuration === d ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(189,0,255,0.3)]' : 'text-gray-400 hover:text-white'}`}
+                                    >
+                                        {d}s
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         {/* Export */}
                         <div className="pt-4 space-y-3">
                             <button
@@ -331,7 +349,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                 disabled={isExporting || isRecording}
                                 className="w-full p-4 bg-gradient-to-r from-neon-cyan to-neon-purple rounded-2xl text-black font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
                             >
-                                {isRecording ? (
+                                        {isRecording ? (
                                     <>
                                         <Loader2 className="w-5 h-5 animate-spin" />
                                         Vidéo {recordingProgress}%
@@ -339,7 +357,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                 ) : (
                                     <>
                                         <Video className="w-5 h-5" />
-                                        Exporter MP4 (5s)
+                                        Exporter MP4 ({videoDuration}s)
                                     </>
                                 )}
                             </button>
