@@ -109,14 +109,15 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
     };
 
     const handleExportVideo = async () => {
-        if (!previewRef.current) return;
+        const previewEl = previewRef.current;
+        if (!previewEl) return;
         
         setIsRecording(true);
         setRecordingProgress(0);
 
         try {
             // 1. Capture the UI as a transparent canvas
-            const uiCanvas = await toCanvas(previewRef.current, {
+            const uiCanvas = await toCanvas(previewEl, {
                 pixelRatio: 1, 
                 backgroundColor: 'transparent',
                 filter: (node) => {
@@ -127,9 +128,6 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
             const width = 720;
             const height = 1280;
-            const fps = 30;
-            const totalFrames = videoDuration * fps;
-
             const canvas = document.createElement('canvas');
             canvas.width = width;
             canvas.height = height;
@@ -137,16 +135,8 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
             if (!ctx) throw new Error("Could not get canvas context");
 
             // Setup MediaRecorder
-            const stream = canvas.captureStream(fps);
-            
-            // Check for supported mime types
-            let mimeType = 'video/mp4';
-            if (!MediaRecorder.isTypeSupported('video/mp4')) {
-                if (MediaRecorder.isTypeSupported('video/webm')) {
-                    mimeType = 'video/webm';
-                }
-            }
-            
+            const stream = canvas.captureStream(30);
+            const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
             const chunks: Blob[] = [];
             const recorder = new MediaRecorder(stream, {
                 mimeType,
@@ -163,8 +153,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
             recorder.start();
 
-            const bgVideo = previewRef.current.querySelector('video') as HTMLVideoElement;
-            
+            const bgVideo = previewEl.querySelector('video') as HTMLVideoElement;
             const startTime = Date.now();
             const durationMs = videoDuration * 1000;
             
@@ -189,7 +178,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                     if (bgVideo && bgType === 'video') {
                         ctx.drawImage(bgVideo, 0, 0, width, height);
                     } else if (bgType === 'image' && bgUrl) {
-                        const bgImg = previewRef.current.querySelector('img.absolute.inset-0') as HTMLImageElement;
+                        const bgImg = previewEl.querySelector('img.absolute.inset-0') as HTMLImageElement;
                         if (bgImg) ctx.drawImage(bgImg, 0, 0, width, height);
                     }
 
