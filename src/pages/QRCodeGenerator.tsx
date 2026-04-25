@@ -68,8 +68,8 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
             },
             imageOptions: {
                 crossOrigin: 'anonymous',
-                margin: 6,
-                imageSize: 0.28,
+                margin: 3,
+                imageSize: 0.40,
             },
             qrOptions: {
                 errorCorrectionLevel: 'H',
@@ -295,7 +295,7 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
                                     className="rounded-[2rem] overflow-hidden shadow-[0_0_80px_rgba(0,255,243,0.15)] border border-white/10 relative z-10"
                                     style={{ background: bgColor }}
                                 >
-                                    <div ref={qrRef} className="p-4" />
+                                    <div ref={qrRef} className="p-1" />
                                 </div>
                                 {/* Glow */}
                                 <div

@@ -5093,25 +5093,8 @@ export function AdminDashboard() {
                         </p>
                       </div>
                     </button>
-                    <button
-                      onClick={() => {
-                        setIsGeneratorsModalOpen(false);
-                        setIsScheduleModalOpen(true);
-                      }}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
-                    >
-                      <div className="w-16 h-16 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                        <Calendar className="w-8 h-8 text-neon-cyan" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
-                          PLANNING
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
-                          Visuel Programme
-                        </p>
-                      </div>
-                    </button>
+
+
                     <button
                       onClick={() => {
                         setIsGeneratorsModalOpen(false);
