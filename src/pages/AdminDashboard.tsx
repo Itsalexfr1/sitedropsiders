@@ -112,6 +112,7 @@ import { VideoUploaderTranslator } from "../components/admin/VideoUploaderTransl
 import { InterviewVisualGenerator } from "./InterviewVisualGenerator";
 import { StoryGridGenerator } from "./StoryGridGenerator";
 import { QRCodeGenerator } from "./QRCodeGenerator";
+import { IncomingCallGenerator } from "./IncomingCallGenerator";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -210,6 +211,7 @@ export function AdminDashboard() {
   const [isInterviewVisualsModalOpen, setIsInterviewVisualsModalOpen] = useState(false);
   const [isStoryGridModalOpen, setIsStoryGridModalOpen] = useState(false);
   const [isQRCodeModalOpen, setIsQRCodeModalOpen] = useState(false);
+  const [isIncomingCallModalOpen, setIsIncomingCallModalOpen] = useState(false);
   const [isVideoAITranslatorModalOpen, setIsVideoAITranslatorModalOpen] = useState(false);
 
   const [isLoadingSocial, setIsLoadingSocial] = useState(false);
@@ -5161,6 +5163,27 @@ export function AdminDashboard() {
                         </p>
                       </div>
                     </button>
+
+                    <button
+                      onClick={() => {
+                        setIsGeneratorsModalOpen(false);
+                        setIsIncomingCallModalOpen(true);
+                      }}
+                      className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
+                    >
+                      <div className="w-16 h-16 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
+                        <Phone className="w-8 h-8 text-neon-green" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-white uppercase italic">
+                          APPEL IPHONE
+                        </h3>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
+                          Visuel Appel Entrant
+                        </p>
+                      </div>
+                    </button>
+
 
                   </div>
                 </motion.div>
@@ -10919,6 +10942,10 @@ export function AdminDashboard() {
           <QRCodeGenerator
             isOpen={isQRCodeModalOpen}
             onClose={() => setIsQRCodeModalOpen(false)}
+          />
+          <IncomingCallGenerator
+            isOpen={isIncomingCallModalOpen}
+            onClose={() => setIsIncomingCallModalOpen(false)}
           />
           <ModerationModal
             isOpen={isModerationModalOpen}
