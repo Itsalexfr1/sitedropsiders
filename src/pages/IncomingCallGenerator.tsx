@@ -12,7 +12,8 @@ import {
     MessageCircle,
     Bell,
     Clock,
-    Sparkles
+    Sparkles,
+    Lock
 } from 'lucide-react';
 import { toPng, toCanvas } from 'html-to-image';
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
