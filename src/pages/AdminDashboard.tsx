@@ -5029,7 +5029,7 @@ export function AdminDashboard() {
                   className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-5xl w-full shadow-2xl relative overflow-hidden"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-white to-neon-purple" />
-                  <div className="flex justify-between items-start mb-12">
+                  <div className="flex justify-between items-start mb-6 md:mb-12">
                     <div>
                       <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                         STUDIO{" "}
@@ -5052,13 +5052,13 @@ export function AdminDashboard() {
                         setIsGeneratorsModalOpen(false);
                         setIsInterviewGeneratorOpen(true);
                       }}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                      className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
                     >
-                      <div className="w-16 h-16 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                        <Columns className="w-8 h-8 text-neon-purple" />
+                      <div className="w-10 h-10 md:w-16 md:h-16 bg-neon-purple/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                        <Columns className="w-5 h-5 md:w-8 md:h-8 text-neon-purple" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
                           FICHES
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
@@ -5071,13 +5071,13 @@ export function AdminDashboard() {
                         setIsGeneratorsModalOpen(false);
                         setIsSocialModalOpen(true);
                       }}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-pink-500/10 hover:border-pink-500/50 transition-all group"
+                      className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-pink-500/10 hover:border-pink-500/50 transition-all group"
                     >
-                      <div className="w-16 h-16 bg-pink-500/20 rounded-2xl flex items-center justify-center border border-pink-500/30 group-hover:scale-110 transition-transform">
-                        <Instagram className="w-8 h-8 text-pink-500" />
+                      <div className="w-10 h-10 md:w-16 md:h-16 bg-pink-500/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-pink-500/30 group-hover:scale-110 transition-transform">
+                        <Instagram className="w-5 h-5 md:w-8 md:h-8 text-pink-500" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
                           SOCIAL POST
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
@@ -5090,13 +5090,13 @@ export function AdminDashboard() {
                         setIsGeneratorsModalOpen(false);
                         setIsScheduleModalOpen(true);
                       }}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
+                      className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
                     >
-                      <div className="w-16 h-16 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                        <Calendar className="w-8 h-8 text-neon-cyan" />
+                      <div className="w-10 h-10 md:w-16 md:h-16 bg-neon-cyan/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                        <Calendar className="w-5 h-5 md:w-8 md:h-8 text-neon-cyan" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
                           PLANNING
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
@@ -5109,13 +5109,13 @@ export function AdminDashboard() {
                         setIsGeneratorsModalOpen(false);
                         setIsInterviewVisualsModalOpen(true);
                       }}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                      className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
                     >
-                      <div className="w-16 h-16 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                        <Dice5 className="w-8 h-8 text-neon-red" />
+                      <div className="w-10 h-10 md:w-16 md:h-16 bg-neon-red/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                        <Dice5 className="w-5 h-5 md:w-8 md:h-8 text-neon-red" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
                           VISUELS INTERVIEWS
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
@@ -5130,13 +5130,13 @@ export function AdminDashboard() {
                         setIsGeneratorsModalOpen(false);
                         setIsStoryGridModalOpen(true);
                       }}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
+                      className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
                     >
-                      <div className="w-16 h-16 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                        <LayoutGrid className="w-8 h-8 text-neon-cyan" />
+                      <div className="w-10 h-10 md:w-16 md:h-16 bg-neon-cyan/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                        <LayoutGrid className="w-5 h-5 md:w-8 md:h-8 text-neon-cyan" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
                           STORY GRID
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
@@ -5150,13 +5150,13 @@ export function AdminDashboard() {
                         setIsGeneratorsModalOpen(false);
                         setIsQRCodeModalOpen(true);
                       }}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                      className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
                     >
-                      <div className="w-16 h-16 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                        <QrCode className="w-8 h-8 text-neon-purple" />
+                      <div className="w-10 h-10 md:w-16 md:h-16 bg-neon-purple/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                        <QrCode className="w-5 h-5 md:w-8 md:h-8 text-neon-purple" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
                           QR CODE
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
@@ -5170,13 +5170,13 @@ export function AdminDashboard() {
                         setIsGeneratorsModalOpen(false);
                         setIsIncomingCallModalOpen(true);
                       }}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
+                      className="p-4 md:p-8 bg-white/5 border border-white/10 rounded-[1.5rem] md:rounded-[2.5rem] flex flex-col items-center gap-3 md:gap-6 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
                     >
-                      <div className="w-16 h-16 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
-                        <Phone className="w-8 h-8 text-neon-green" />
+                      <div className="w-10 h-10 md:w-16 md:h-16 bg-neon-green/20 rounded-xl md:rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
+                        <Phone className="w-5 h-5 md:w-8 md:h-8 text-neon-green" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-xs md:text-lg font-bold text-white uppercase italic">
                           APPEL IPHONE
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
