@@ -16,7 +16,6 @@ import {
     Lock
 } from 'lucide-react';
 import { toPng, toCanvas } from 'html-to-image';
-import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 
 interface IncomingCallGeneratorProps {
     isOpen: boolean;
@@ -76,78 +75,70 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
     const handleExportVideo = async () => {
         if (!previewRef.current) return;
-        if (!window.VideoEncoder) {
-            alert("Ton navigateur ne supporte pas l'encodage vidéo natif (WebCodecs). Utilise Chrome, Edge ou Safari récent.");
-            return;
-        }
-
+        
         setIsRecording(true);
         setRecordingProgress(0);
 
         try {
-            console.log("Exporting UI to Canvas...");
+            // 1. Capture the UI as a transparent canvas
             const uiCanvas = await toCanvas(previewRef.current, {
-                pixelRatio: 1, // Standard resolution for mobile stability
+                pixelRatio: 1, 
                 backgroundColor: 'transparent',
                 filter: (node) => {
                     if (node instanceof HTMLVideoElement || (node instanceof HTMLImageElement && node.className.includes('absolute inset-0'))) return false;
                     return true;
                 }
             });
-            console.log("UI Canvas captured.");
 
-            // 2. Setup Canvas and Muxer
             const width = 720;
             const height = 1280;
+            const fps = 30;
+            const totalFrames = videoDuration * fps;
+
             const canvas = document.createElement('canvas');
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d', { alpha: false });
             if (!ctx) throw new Error("Could not get canvas context");
 
-            const muxer = new Muxer({
-                target: new ArrayBufferTarget(),
-                video: {
-                    codec: 'avc',
-                    width,
-                    height
-                },
-                fastStart: 'in-memory'
-            });
-
-            const videoEncoder = new VideoEncoder({
-                output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
-                error: (e) => {
-                    console.error("VideoEncoder error:", e);
-                    alert("Erreur Encodage: " + e.message);
+            // Setup MediaRecorder
+            const stream = canvas.captureStream(fps);
+            
+            // Check for supported mime types
+            let mimeType = 'video/mp4';
+            if (!MediaRecorder.isTypeSupported('video/mp4')) {
+                if (MediaRecorder.isTypeSupported('video/webm')) {
+                    mimeType = 'video/webm';
                 }
-            });
-
-            videoEncoder.configure({
-                codec: 'avc1.42E01F', // H.264
-                width,
-                height,
-                bitrate: 2_000_000, // Reduced for mobile stability
-                framerate: 30
-            });
-
-            // 3. Find background video if any
-            const bgVideo = previewRef.current.querySelector('video');
-            if (bgVideo) {
-                bgVideo.currentTime = 0;
-                await bgVideo.play();
             }
+            
+            const chunks: Blob[] = [];
+            const recorder = new MediaRecorder(stream, {
+                mimeType,
+                videoBitsPerSecond: 2500000
+            });
 
-            // 4. Recording Loop
-            const fps = 30;
-            const totalFrames = videoDuration * fps;
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunks.push(e.data);
+            };
 
+            const exportPromise = new Promise<Blob>((resolve) => {
+                recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
+            });
+
+            recorder.start();
+
+            const bgVideo = previewRef.current.querySelector('video') as HTMLVideoElement;
+            
             for (let i = 0; i < totalFrames; i++) {
+                if (!isRecording) break;
+
                 // Draw Background
                 ctx.fillStyle = '#050505';
                 ctx.fillRect(0, 0, width, height);
 
-                if (bgVideo) {
+                if (bgVideo && bgType === 'video') {
+                    bgVideo.currentTime = (i / fps) % bgVideo.duration;
                     ctx.drawImage(bgVideo, 0, 0, width, height);
                 } else if (bgType === 'image' && bgUrl) {
                     const bgImg = previewRef.current.querySelector('img.absolute.inset-0') as HTMLImageElement;
@@ -156,32 +147,24 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
                 // Draw UI Overlay
                 ctx.drawImage(uiCanvas, 0, 0, width, height);
-
-                // Add to encoder
-                const frame = new VideoFrame(canvas, { timestamp: (i * 1000000) / fps });
-                videoEncoder.encode(frame, { keyFrame: i % 30 === 0 });
-                frame.close();
-
                 setRecordingProgress(Math.round((i / totalFrames) * 100));
-                // Small delay to allow UI to breathe
-                if (i % 5 === 0) await new Promise(r => setTimeout(r, 10));
+                
+                // Allow UI to update and recorder to capture the frame
+                await new Promise(r => setTimeout(r, 16)); 
             }
 
-            await videoEncoder.flush();
-            muxer.finalize();
-
-            const { buffer } = muxer.target as ArrayBufferTarget;
-            const blob = new Blob([buffer], { type: 'video/mp4' });
+            recorder.stop();
+            const blob = await exportPromise;
             const url = URL.createObjectURL(blob);
             
             const link = document.createElement('a');
-            link.download = `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.mp4`;
+            link.download = `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`;
             link.href = url;
             link.click();
 
         } catch (err) {
             console.error("Video export failed:", err);
-            alert("Erreur lors de l'export vidéo. Vérifie la console.");
+            alert("Erreur lors de l'export vidéo. Essaye sur PC si le problème persiste.");
         } finally {
             setIsRecording(false);
             setRecordingProgress(0);
