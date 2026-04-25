@@ -88,10 +88,9 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
             // 1. Capture the UI as a transparent PNG to use as overlay
             // We temporarily hide the background to get only the UI
             const uiDataUrl = await toPng(previewRef.current, {
-                pixelRatio: 2,
+                pixelRatio: 1.5, // Reduced for mobile stability
                 backgroundColor: 'transparent',
                 filter: (node) => {
-                    // Filter out the background video/image elements
                     if (node instanceof HTMLVideoElement || (node instanceof HTMLImageElement && node.className.includes('absolute inset-0'))) return false;
                     return true;
                 }
@@ -411,8 +410,8 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                     )}
 
                                     {/* Call UI Content */}
-                                    <div className="relative z-10 w-full flex flex-col items-center text-center mt-20">
-                                        <h1 className="text-[32px] md:text-[36px] font-normal text-white mb-1 drop-shadow-2xl tracking-normal" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif' }}>
+                                    <div className="relative z-10 w-full flex flex-col items-center text-center mt-20 px-8">
+                                        <h1 className="text-[32px] md:text-[36px] font-normal text-white mb-1 drop-shadow-2xl tracking-normal whitespace-nowrap overflow-hidden text-ellipsis w-full" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif' }}>
                                             {callerName}
                                         </h1>
                                         <p className="text-[17px] text-white/70 font-normal drop-shadow-md tracking-normal">
