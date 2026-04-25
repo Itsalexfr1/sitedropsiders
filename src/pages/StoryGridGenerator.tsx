@@ -118,28 +118,40 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
 
     const generateFromWiki = useCallback(() => {
         if (!wikiData) return;
+        
+        // Deep copy source to avoid any reference issues
         let source: any[] = [];
-        if (activeTheme === 'djs') source = wikiData.djs;
-        else if (activeTheme === 'clubs') source = wikiData.clubs;
-        else if (activeTheme === 'festivals') source = wikiData.festivals;
+        if (activeTheme === 'djs') source = JSON.parse(JSON.stringify(wikiData.djs || []));
+        else if (activeTheme === 'clubs') source = JSON.parse(JSON.stringify(wikiData.clubs || []));
+        else if (activeTheme === 'festivals') source = JSON.parse(JSON.stringify(wikiData.festivals || []));
 
         if (source.length === 0) return;
 
-        const shuffled = [...source].sort(() => 0.5 - Math.random());
+        // Fisher-Yates Shuffle (robust and unbiased)
+        const shuffled = [...source];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+
         const selected = shuffled.slice(0, randomLimit);
 
+        // Map to StoryItem with guaranteed unique IDs and cache-busting
         const wikiItems: StoryItem[] = selected.map(item => ({
-            id: Math.random().toString(36).substr(2, 9),
+            id: `wiki-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             image: item.image || item.photo || null,
             label: item.name || 'Sans nom'
         }));
 
-        // Merge: keep locked items at their positions or at least keep them in the list
         setItems(prev => {
             const lockedItems = prev.filter(it => lockedIds.has(it.id));
-            const availableSlots = randomLimit - lockedItems.length;
-            const newWikiItems = wikiItems.slice(0, Math.max(0, availableSlots));
-            return [...lockedItems, ...newWikiItems].slice(0, randomLimit);
+            const availableSlots = Math.max(0, randomLimit - lockedItems.length);
+            const filteredNew = wikiItems.slice(0, availableSlots);
+            
+            // Log to debug if needed (user can see in console if they look)
+            console.log("Generating from Wiki:", filteredNew.length, "items added");
+            
+            return [...lockedItems, ...filteredNew].slice(0, randomLimit);
         });
     }, [activeTheme, wikiData, randomLimit, lockedIds]);
 
@@ -500,7 +512,11 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                                     <div className="w-full aspect-square rounded-full border-[1.5px] border-white bg-[#111] overflow-hidden shadow-lg relative">
                                                         {item.image ? (
                                                             <img 
-                                                                src={item.image.startsWith('http') ? `https://images.weserv.nl/?url=${encodeURIComponent(item.image)}&w=300&h=300&fit=cover` : item.image} 
+                                                                src={
+                                                                    item.image.startsWith('http') && !item.image.includes('blob:') && !item.image.includes('data:')
+                                                                        ? `https://images.weserv.nl/?url=${encodeURIComponent(item.image)}&w=300&h=300&fit=cover&t=${Date.now()}` 
+                                                                        : item.image
+                                                                } 
                                                                 className="w-full h-full object-cover" 
                                                                 alt="" 
                                                                 crossOrigin="anonymous"
