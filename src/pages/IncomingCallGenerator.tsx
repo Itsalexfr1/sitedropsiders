@@ -13,9 +13,10 @@ import {
     Bell,
     Clock,
     Sparkles,
-    Lock
+    Lock,
+    Check
 } from 'lucide-react';
-import { toPng, toCanvas } from 'html-to-image';
+import { toPng, toCanvas, toBlob } from 'html-to-image';
 
 interface IncomingCallGeneratorProps {
     isOpen: boolean;
@@ -32,7 +33,15 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
     const [isRecording, setIsRecording] = useState(false);
     const [recordingProgress, setRecordingProgress] = useState(0);
     const [videoDuration, setVideoDuration] = useState(10);
-    const [mobileTab, setMobileTab] = useState<'config' | 'preview'>('config');
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    useEffect(() => {
+        if (showSuccess) {
+            const timer = setTimeout(() => setShowSuccess(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showSuccess]);
+
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -82,15 +91,15 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
         try {
             await new Promise(r => setTimeout(r, 500));
             
-            const dataUrl = await toPng(previewRef.current, {
-                quality: 1,
+            const blob = await toBlob(previewRef.current, {
                 pixelRatio: 3,
                 backgroundColor: bgType === 'transparent' ? undefined : '#000000',
             });
             
-            const res = await fetch(dataUrl);
-            const blob = await res.blob();
-            await saveOrShareFile(blob, `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.png`);
+            if (blob) {
+                await saveOrShareFile(blob, `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.png`);
+                setShowSuccess(true);
+            }
         } catch (err) {
             console.error("Export failed:", err);
         } finally {
@@ -181,6 +190,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
             recorder.stop();
             const blob = await exportPromise;
             await saveOrShareFile(blob, `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`);
+            setShowSuccess(true);
 
         } catch (err) {
             console.error("Video export failed:", err);
@@ -395,6 +405,23 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                     ref={previewRef}
                                     className={`w-full h-full relative flex flex-col items-center pt-24 px-6 overflow-hidden ${bgType === 'transparent' ? 'bg-transparent' : 'bg-[#050505]'}`}
                                 >
+                                    {/* Success Toast */}
+                                    <AnimatePresence>
+                                        {showSuccess && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -20, scale: 0.8 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.8 }}
+                                                className="absolute top-28 z-[60] bg-neon-green/20 backdrop-blur-md border border-neon-green/30 px-6 py-3 rounded-2xl flex items-center gap-3 shadow-[0_0_20px_rgba(76,217,100,0.2)]"
+                                            >
+                                                <div className="w-6 h-6 bg-neon-green rounded-full flex items-center justify-center">
+                                                    <Check className="w-4 h-4 text-black" />
+                                                </div>
+                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Image Enregistrée !</span>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
                                     {/* Dynamic Island */}
                                     <div className="absolute top-5 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-[1.5rem] z-50 border border-white/5" />
 
