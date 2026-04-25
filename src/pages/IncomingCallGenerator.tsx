@@ -386,16 +386,16 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                         {/* Static Radial Gradient Background */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,243,0.05)_0%,transparent_70%)] pointer-events-none" />
                         
-                        <div className="relative scale-[0.85] md:scale-100">
+                        <div className="relative scale-[0.75] sm:scale-[0.85] lg:scale-100 transition-transform duration-500">
                             <div 
-                                className="w-[360px] aspect-[9/16] bg-black rounded-[4rem] border-[8px] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col"
+                                className="w-[340px] md:w-[400px] aspect-[9/19.5] bg-black rounded-[3.5rem] border-[8px] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col"
                             >
                                 <div 
                                     ref={previewRef}
-                                    className={`w-full h-full relative flex flex-col items-center pt-20 px-6 overflow-hidden ${bgType === 'transparent' ? 'bg-transparent' : 'bg-[#050505]'}`}
+                                    className={`w-full h-full relative flex flex-col items-center pt-24 px-6 overflow-hidden ${bgType === 'transparent' ? 'bg-transparent' : 'bg-[#050505]'}`}
                                 >
                                     {/* Dynamic Island */}
-                                    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-[1.5rem] z-50 border border-white/5" />
+                                    <div className="absolute top-5 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-[1.5rem] z-50 border border-white/5" />
 
                                     {/* BG Content */}
                                     {bgType === 'image' && bgUrl && (
