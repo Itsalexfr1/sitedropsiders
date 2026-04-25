@@ -53,7 +53,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
             const dataUrl = await toPng(previewRef.current, {
                 quality: 1,
                 pixelRatio: 3, // High res
-                backgroundColor: bgType === 'transparent' ? null : '#000000',
+                backgroundColor: bgType === 'transparent' ? undefined : '#000000',
             });
             
             const link = document.createElement('a');

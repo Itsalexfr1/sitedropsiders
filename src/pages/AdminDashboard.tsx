@@ -74,6 +74,7 @@ import {
   ShieldCheck,
   LayoutGrid,
   QrCode,
+  Phone,
 } from "lucide-react";
 
 
