@@ -14,7 +14,8 @@ import {
     Clock,
     Sparkles
 } from 'lucide-react';
-import { toPng } from 'html-to-image';
+import { toPng, toCanvas } from 'html-to-image';
+import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 
 interface IncomingCallGeneratorProps {
     isOpen: boolean;
@@ -28,6 +29,8 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
     const [bgUrl, setBgUrl] = useState<string | null>(null);
     const [isLocked, setIsLocked] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingProgress, setRecordingProgress] = useState(0);
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,6 +68,123 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
             console.error("Export failed:", err);
         } finally {
             setIsExporting(false);
+        }
+    };
+
+    const handleExportVideo = async () => {
+        if (!previewRef.current) return;
+        if (!window.VideoEncoder) {
+            alert("Ton navigateur ne supporte pas l'encodage vidéo natif (WebCodecs). Utilise Chrome, Edge ou Safari récent.");
+            return;
+        }
+
+        setIsRecording(true);
+        setRecordingProgress(0);
+
+        try {
+            // 1. Capture the UI as a transparent PNG to use as overlay
+            // We temporarily hide the background to get only the UI
+            const uiDataUrl = await toPng(previewRef.current, {
+                pixelRatio: 2,
+                backgroundColor: 'transparent',
+                filter: (node) => {
+                    // Filter out the background video/image elements
+                    if (node instanceof HTMLVideoElement || (node instanceof HTMLImageElement && node.className.includes('absolute inset-0'))) return false;
+                    return true;
+                }
+            });
+
+            const uiImage = new Image();
+            uiImage.src = uiDataUrl;
+            await new Promise(r => uiImage.onload = r);
+
+            // 2. Setup Canvas and Muxer
+            const width = 720;
+            const height = 1280;
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d', { alpha: false });
+            if (!ctx) throw new Error("Could not get canvas context");
+
+            const muxer = new Muxer({
+                target: new ArrayBufferTarget(),
+                video: {
+                    codec: 'avc',
+                    width,
+                    height
+                },
+                fastStart: 'in-memory'
+            });
+
+            const videoEncoder = new VideoEncoder({
+                output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+                error: (e) => console.error(e)
+            });
+
+            videoEncoder.configure({
+                codec: 'avc1.42E01F', // H.264
+                width,
+                height,
+                bitrate: 5_000_000, // 5 Mbps
+                framerate: 30
+            });
+
+            // 3. Find background video if any
+            const bgVideo = previewRef.current.querySelector('video');
+            if (bgVideo) {
+                bgVideo.currentTime = 0;
+                await bgVideo.play();
+            }
+
+            // 4. Recording Loop (5 seconds)
+            const duration = 5; // seconds
+            const fps = 30;
+            const totalFrames = duration * fps;
+
+            for (let i = 0; i < totalFrames; i++) {
+                // Draw Background
+                ctx.fillStyle = '#050505';
+                ctx.fillRect(0, 0, width, height);
+
+                if (bgVideo) {
+                    ctx.drawImage(bgVideo, 0, 0, width, height);
+                } else if (bgType === 'image' && bgUrl) {
+                    const bgImg = previewRef.current.querySelector('img.absolute.inset-0') as HTMLImageElement;
+                    if (bgImg) ctx.drawImage(bgImg, 0, 0, width, height);
+                }
+
+                // Draw UI Overlay
+                ctx.drawImage(uiImage, 0, 0, width, height);
+
+                // Add to encoder
+                const frame = new VideoFrame(canvas, { timestamp: (i * 1000000) / fps });
+                videoEncoder.encode(frame, { keyFrame: i % 30 === 0 });
+                frame.close();
+
+                setRecordingProgress(Math.round((i / totalFrames) * 100));
+                // Small delay to allow UI to breathe
+                if (i % 5 === 0) await new Promise(r => setTimeout(r, 10));
+            }
+
+            await videoEncoder.flush();
+            muxer.finalize();
+
+            const { buffer } = muxer.target as ArrayBufferTarget;
+            const blob = new Blob([buffer], { type: 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.download = `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.mp4`;
+            link.href = url;
+            link.click();
+
+        } catch (err) {
+            console.error("Video export failed:", err);
+            alert("Erreur lors de l'export vidéo. Vérifie la console.");
+        } finally {
+            setIsRecording(false);
+            setRecordingProgress(0);
         }
     };
 
@@ -187,26 +307,45 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                         </div>
 
                         {/* Export */}
-                        <div className="pt-4">
+                        <div className="pt-4 space-y-3">
                             <button
                                 onClick={handleDownload}
-                                disabled={isExporting}
-                                className="w-full p-4 bg-gradient-to-r from-neon-cyan to-neon-purple rounded-2xl text-black font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale"
+                                disabled={isExporting || isRecording}
+                                className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-white/10 active:scale-[0.98] transition-all disabled:opacity-50"
                             >
                                 {isExporting ? (
                                     <>
                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                        Génération...
+                                        Génération PNG...
                                     </>
                                 ) : (
                                     <>
-                                        <Download className="w-5 h-5" />
+                                        <ImageIcon className="w-5 h-5" />
                                         Exporter PNG
                                     </>
                                 )}
                             </button>
+
+                            <button
+                                onClick={handleExportVideo}
+                                disabled={isExporting || isRecording}
+                                className="w-full p-4 bg-gradient-to-r from-neon-cyan to-neon-purple rounded-2xl text-black font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                            >
+                                {isRecording ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        Vidéo {recordingProgress}%
+                                    </>
+                                ) : (
+                                    <>
+                                        <Video className="w-5 h-5" />
+                                        Exporter MP4 (5s)
+                                    </>
+                                )}
+                            </button>
+                            
                             <p className="text-[9px] text-gray-500 text-center mt-3 font-bold uppercase tracking-wider">
-                                PNG avec fond transparent pour tes stories
+                                MP4 pour tes stories • PNG pour overlay transparent
                             </p>
                         </div>
                     </div>
