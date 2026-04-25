@@ -85,20 +85,16 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
         setRecordingProgress(0);
 
         try {
-            // 1. Capture the UI as a transparent PNG to use as overlay
-            // We temporarily hide the background to get only the UI
-            const uiDataUrl = await toPng(previewRef.current, {
-                pixelRatio: 1.5, // Reduced for mobile stability
+            console.log("Exporting UI to Canvas...");
+            const uiCanvas = await toCanvas(previewRef.current, {
+                pixelRatio: 1, // Standard resolution for mobile stability
                 backgroundColor: 'transparent',
                 filter: (node) => {
                     if (node instanceof HTMLVideoElement || (node instanceof HTMLImageElement && node.className.includes('absolute inset-0'))) return false;
                     return true;
                 }
             });
-
-            const uiImage = new Image();
-            uiImage.src = uiDataUrl;
-            await new Promise(r => uiImage.onload = r);
+            console.log("UI Canvas captured.");
 
             // 2. Setup Canvas and Muxer
             const width = 720;
@@ -121,14 +117,17 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
             const videoEncoder = new VideoEncoder({
                 output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
-                error: (e) => console.error(e)
+                error: (e) => {
+                    console.error("VideoEncoder error:", e);
+                    alert("Erreur Encodage: " + e.message);
+                }
             });
 
             videoEncoder.configure({
                 codec: 'avc1.42E01F', // H.264
                 width,
                 height,
-                bitrate: 5_000_000, // 5 Mbps
+                bitrate: 2_000_000, // Reduced for mobile stability
                 framerate: 30
             });
 
@@ -156,7 +155,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                 }
 
                 // Draw UI Overlay
-                ctx.drawImage(uiImage, 0, 0, width, height);
+                ctx.drawImage(uiCanvas, 0, 0, width, height);
 
                 // Add to encoder
                 const frame = new VideoFrame(canvas, { timestamp: (i * 1000000) / fps });
