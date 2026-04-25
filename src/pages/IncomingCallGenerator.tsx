@@ -33,6 +33,8 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
     const [isRecording, setIsRecording] = useState(false);
     const [recordingProgress, setRecordingProgress] = useState(0);
     const [videoDuration, setVideoDuration] = useState(10);
+    const [mobileTab, setMobileTab] = useState<'config' | 'preview'>('config');
+    const [callerImage, setCallerImage] = useState<string | null>(null);
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,6 +49,13 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
         } else {
             setBgType('image');
         }
+    };
+
+    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        setCallerImage(url);
     };
 
     const handleDownload = async () => {
@@ -208,14 +217,25 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
                     className="relative w-full max-w-6xl h-[90vh] bg-[#0A0A0A] border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col md:flex-row"
                 >
-                    {/* Header Mobile */}
-                    <div className="md:hidden p-6 flex justify-between items-center border-b border-white/5">
-                        <h2 className="text-xl font-bold text-white italic">CALL GENERATOR</h2>
-                        <button onClick={onClose} className="p-2 bg-white/5 rounded-full"><X className="w-6 h-6 text-white" /></button>
+                    {/* Header Mobile Tabs */}
+                    <div className="md:hidden flex border-b border-white/5">
+                        <button 
+                            onClick={() => setMobileTab('config')}
+                            className={`flex-1 p-4 text-[10px] font-black uppercase tracking-widest transition-all ${mobileTab === 'config' ? 'bg-neon-cyan text-black' : 'text-gray-500'}`}
+                        >
+                            Configuration
+                        </button>
+                        <button 
+                            onClick={() => setMobileTab('preview')}
+                            className={`flex-1 p-4 text-[10px] font-black uppercase tracking-widest transition-all ${mobileTab === 'preview' ? 'bg-neon-cyan text-black' : 'text-gray-500'}`}
+                        >
+                            Aperçu
+                        </button>
+                        <button onClick={onClose} className="p-4 border-l border-white/5"><X className="w-5 h-5 text-white" /></button>
                     </div>
 
                     {/* Left Side: Controls */}
-                    <div className="w-full md:w-[400px] p-8 overflow-y-auto border-r border-white/5 space-y-8 custom-scrollbar bg-black/40">
+                    <div className={`${mobileTab === 'config' ? 'block' : 'hidden md:block'} w-full md:w-[400px] p-8 overflow-y-auto border-r border-white/5 space-y-8 custom-scrollbar bg-black/40`}>
                         <div className="hidden md:flex justify-between items-center mb-4">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-neon-cyan/10 rounded-xl">
@@ -245,6 +265,19 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                 placeholder="Statut (ex: Appel entrant...)"
                                 className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:outline-none focus:border-neon-cyan/50 transition-all text-sm"
                             />
+                            <button 
+                                onClick={() => {
+                                    const input = document.createElement('input');
+                                    input.type = 'file';
+                                    input.accept = 'image/*';
+                                    input.onchange = (e) => handleAvatarUpload(e as any);
+                                    input.click();
+                                }}
+                                className="w-full p-4 bg-white/5 border border-white/10 border-dashed rounded-2xl text-gray-400 text-xs font-bold uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                            >
+                                <ImageIcon className="w-4 h-4" />
+                                {callerImage ? "Changer la photo" : "Ajouter une photo"}
+                            </button>
                         </div>
 
                         {/* Call Style Toggle */}
@@ -370,7 +403,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                     </div>
 
                     {/* Right Side: Preview */}
-                    <div className="flex-1 p-4 md:p-12 bg-[#050505] flex flex-col items-center justify-center relative overflow-hidden group">
+                    <div className={`${mobileTab === 'preview' ? 'flex' : 'hidden md:flex'} flex-1 p-4 md:p-12 bg-[#050505] flex-col items-center justify-center relative overflow-hidden group`}>
                         {/* Static Radial Gradient Background */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,243,0.05)_0%,transparent_70%)] pointer-events-none" />
                         
@@ -400,6 +433,11 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
                                     {/* Call UI Content */}
                                     <div className="relative z-10 w-full flex flex-col items-center text-center mt-12">
+                                        {callerImage && (
+                                            <div className="w-24 h-24 rounded-full overflow-hidden mb-6 border-2 border-white/10 shadow-2xl">
+                                                <img src={callerImage} className="w-full h-full object-cover" alt="" />
+                                            </div>
+                                        )}
                                         <h1 className="text-4xl md:text-5xl font-medium text-white mb-2 drop-shadow-2xl tracking-tight" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif' }}>
                                             {callerName}
                                         </h1>
