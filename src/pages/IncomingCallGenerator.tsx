@@ -200,8 +200,11 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                             >
                                 <div 
                                     ref={previewRef}
-                                    className={`w-full h-full relative flex flex-col items-center pt-24 px-6 overflow-hidden ${bgType === 'transparent' ? 'bg-transparent' : 'bg-black'}`}
+                                    className={`w-full h-full relative flex flex-col items-center pt-20 px-6 overflow-hidden ${bgType === 'transparent' ? 'bg-transparent' : 'bg-[#050505]'}`}
                                 >
+                                    {/* Dynamic Island */}
+                                    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-7 bg-black rounded-[1.5rem] z-50 border border-white/5" />
+
                                     {/* BG Content */}
                                     {bgType === 'image' && bgUrl && (
                                         <img src={bgUrl} className="absolute inset-0 w-full h-full object-cover" alt="" />
@@ -216,55 +219,63 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                     )}
 
                                     {/* Call UI Content */}
-                                    <div className="relative z-10 w-full flex flex-col items-center text-center">
-                                        <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg" style={{ fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+                                    <div className="relative z-10 w-full flex flex-col items-center text-center mt-12">
+                                        <h1 className="text-4xl md:text-5xl font-medium text-white mb-2 drop-shadow-2xl tracking-tight" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif' }}>
                                             {callerName}
                                         </h1>
-                                        <p className="text-xl text-white/90 font-medium drop-shadow-md">
+                                        <p className="text-xl text-white/80 font-normal drop-shadow-md tracking-wide">
                                             {callStatus}
                                         </p>
                                     </div>
 
                                     {/* Bottom Buttons Container */}
-                                    <div className="mt-auto mb-16 relative z-10 w-full max-w-[280px]">
+                                    <div className="mt-auto mb-20 relative z-10 w-full max-w-[300px]">
                                         {/* Top Icons: Remind & Message */}
-                                        <div className="flex justify-between px-4 mb-16 text-white">
+                                        <div className="flex justify-between px-6 mb-20 text-white">
                                             <div className="flex flex-col items-center gap-2">
-                                                <Clock className="w-7 h-7" />
-                                                <span className="text-[11px] font-medium">Rappel</span>
+                                                <div className="w-10 h-10 flex items-center justify-center">
+                                                    <Clock className="w-7 h-7 stroke-[1.5px]" />
+                                                </div>
+                                                <span className="text-[11px] font-medium opacity-90">Rappel</span>
                                             </div>
                                             <div className="flex flex-col items-center gap-2">
-                                                <MessageCircle className="w-7 h-7" />
-                                                <span className="text-[11px] font-medium">Message</span>
+                                                <div className="w-10 h-10 flex items-center justify-center">
+                                                    <MessageCircle className="w-7 h-7 stroke-[1.5px]" />
+                                                </div>
+                                                <span className="text-[11px] font-medium opacity-90">Message</span>
                                             </div>
                                         </div>
 
                                         {/* Main Buttons: Decline & Accept */}
                                         <div className="flex justify-between">
                                             <div className="flex flex-col items-center gap-3">
-                                                <div className="w-[72px] h-[72px] bg-[#FF3B30] rounded-full flex items-center justify-center shadow-xl">
-                                                    <PhoneOff className="w-8 h-8 text-white fill-white" />
+                                                <div className="w-[76px] h-[76px] bg-[#FF3B30] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                                                    <svg viewBox="0 0 24 24" className="w-10 h-10 text-white fill-current rotate-[135deg]">
+                                                        <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                    </svg>
                                                 </div>
-                                                <span className="text-[13px] text-white font-medium">Refuser</span>
+                                                <span className="text-[14px] text-white font-medium">Refuser</span>
                                             </div>
                                             <div className="flex flex-col items-center gap-3">
-                                                <div className="w-[72px] h-[72px] bg-[#4CD964] rounded-full flex items-center justify-center shadow-xl">
-                                                    <Phone className="w-8 h-8 text-white fill-white" />
+                                                <div className="w-[76px] h-[76px] bg-[#4CD964] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                                                    <svg viewBox="0 0 24 24" className="w-10 h-10 text-white fill-current">
+                                                        <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                    </svg>
                                                 </div>
-                                                <span className="text-[13px] text-white font-medium">Accepter</span>
+                                                <span className="text-[14px] text-white font-medium">Accepter</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Indicator */}
-                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-white/20 rounded-full z-10" />
+                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-36 h-1.5 bg-white/20 rounded-full z-10" />
                                 </div>
                             </div>
 
                             {/* Info Badge */}
                             <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
                                 <span className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
-                                Preview 9:16 Story
+                                iPhone 17 Pro Max Format
                             </div>
                         </div>
                     </div>
