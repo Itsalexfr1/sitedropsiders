@@ -21,6 +21,7 @@ interface StoryItem {
     id: string;
     image: string | null;
     label: string;
+    displayImage?: string | null;
 }
 
 interface StoryGridGeneratorProps {
@@ -86,10 +87,12 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                 new Promise<StoryItem>((resolve) => {
                     const reader = new FileReader();
                     reader.onload = (event) => {
+                        const base64 = event.target?.result as string;
                         resolve({
-                            id: Math.random().toString(36).substr(2, 9),
-                            image: event.target?.result as string,
+                            id: `batch-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                            image: base64,
                             label: file.name.split('.')[0].substring(0, 15),
+                            displayImage: base64
                         });
                     };
                     reader.readAsDataURL(file);
@@ -147,11 +150,22 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         const selected = filteredSource.slice(0, randomLimit);
 
         // Map to StoryItem with guaranteed unique IDs and cache-busting
-        const wikiItems: StoryItem[] = selected.map(item => ({
-            id: `wiki-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            image: item.image || item.photo || null,
-            label: item.name || 'Sans nom'
-        }));
+        const generationTimestamp = Date.now();
+        const wikiItems: StoryItem[] = selected.map((item, idx) => {
+            const rawImg = item.image || item.photo || null;
+            let displayImg = rawImg;
+            
+            if (rawImg && rawImg.startsWith('http') && !rawImg.includes('blob:') && !rawImg.includes('data:')) {
+                displayImg = `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=300&h=300&fit=cover&v=${generationTimestamp}-${idx}`;
+            }
+
+            return {
+                id: `wiki-${generationTimestamp}-${idx}-${Math.random().toString(36).substr(2, 5)}`,
+                image: rawImg,
+                label: item.name || 'Sans nom',
+                displayImage: displayImg
+            };
+        });
 
         setItems(prev => {
             const lockedItems = prev.filter(it => lockedIds.has(it.id));
@@ -174,7 +188,21 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
     };
 
     const updateItem = (id: string, updates: Partial<StoryItem>) => {
-        setItems(items.map(item => item.id === id ? { ...item, ...updates } : item));
+        setItems(items.map(item => {
+            if (item.id === id) {
+                const newItem = { ...item, ...updates };
+                if (updates.image !== undefined) {
+                    const rawImg = newItem.image;
+                    if (rawImg && rawImg.startsWith('http') && !rawImg.includes('blob:') && !rawImg.includes('data:')) {
+                        newItem.displayImage = `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=300&h=300&fit=cover&v=${Date.now()}-${item.id}`;
+                    } else {
+                        newItem.displayImage = rawImg;
+                    }
+                }
+                return newItem;
+            }
+            return item;
+        }));
     };
 
     const handleSingleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -424,8 +452,9 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                                                     <button 
                                                                         key={res.id}
                                                                         onClick={() => {
+                                                                            const rawImg = res.image || res.photo;
                                                                             updateItem(item.id, { 
-                                                                                image: res.image || res.photo, 
+                                                                                image: rawImg, 
                                                                                 label: res.name 
                                                                             });
                                                                             setSearchQuery('');
@@ -511,8 +540,14 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,255,243,0.05)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
-                                    <div className="mb-3 flex justify-center relative z-10">
-                                        <img src="/Logo.png" alt="Dropsiders" className="h-8 object-contain drop-shadow-[0_0_20px_rgba(255,255,255,0.4)]" />
+                                    <div className="flex flex-col items-center pt-1 mb-1">
+                                        <div className="relative group">
+                                            <img 
+                                                src="https://www.dropsiders.fr/uploads/settings/76d1e4e616f7be81-DROPSIDERS%20LOGO%20BLANC.png" 
+                                                className="h-9 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+                                                alt="Logo" 
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="w-full flex-1 overflow-hidden relative z-10">
@@ -520,16 +555,13 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                             {items.map(item => (
                                                 <div key={item.id} className="flex flex-col items-center gap-1">
                                                     <div className="w-full aspect-square rounded-full border-[1.5px] border-white bg-[#111] overflow-hidden shadow-lg relative">
-                                                        {item.image ? (
+                                                        {item.displayImage || item.image ? (
                                                             <img 
-                                                                src={
-                                                                    item.image.startsWith('http') && !item.image.includes('blob:') && !item.image.includes('data:')
-                                                                        ? `https://images.weserv.nl/?url=${encodeURIComponent(item.image)}&w=300&h=300&fit=cover&t=${Date.now()}` 
-                                                                        : item.image
-                                                                } 
+                                                                src={item.displayImage || item.image || ''} 
                                                                 className="w-full h-full object-cover" 
                                                                 alt="" 
                                                                 crossOrigin="anonymous"
+                                                                key={item.id}
                                                             />
                                                         ) : (
                                                             <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">
