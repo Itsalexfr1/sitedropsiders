@@ -2313,18 +2313,7 @@ export function AdminDashboard() {
       baseColor: "orange",
       columns: 1,
     },
-    {
-      title: "Planning Story",
-      description: "Visuel Programme",
-      icon: "Calendar",
-      category: "SOCIAL_STUDIO",
-      link: "#",
-      color: "border-neon-cyan/20 hover:border-neon-cyan",
-      bg: "bg-neon-cyan/5",
-      permission: "news",
-      baseColor: "cyan",
-      columns: 1,
-    },
+
     {
       title: "Accueil",
       description: "Sections & Vues",
