@@ -26,6 +26,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
     const [callStatus, setCallStatus] = useState('Appel entrant...');
     const [bgType, setBgType] = useState<'transparent' | 'image' | 'video'>('transparent');
     const [bgUrl, setBgUrl] = useState<string | null>(null);
+    const [isLocked, setIsLocked] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -123,6 +124,27 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                 placeholder="Statut (ex: Appel entrant...)"
                                 className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:outline-none focus:border-neon-cyan/50 transition-all text-sm"
                             />
+                        </div>
+
+                        {/* Call Style Toggle */}
+                        <div className="space-y-4">
+                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <Lock className="w-3 h-3 text-neon-cyan" /> État du téléphone
+                            </label>
+                            <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10">
+                                <button 
+                                    onClick={() => setIsLocked(false)}
+                                    className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${!isLocked ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,255,243,0.3)]' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    Déverrouillé
+                                </button>
+                                <button 
+                                    onClick={() => setIsLocked(true)}
+                                    className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${isLocked ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,255,243,0.3)]' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    Verrouillé
+                                </button>
+                            </div>
                         </div>
 
                         {/* Background Selection */}
@@ -246,25 +268,47 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                             </div>
                                         </div>
 
-                                        {/* Main Buttons: Decline & Accept */}
-                                        <div className="flex justify-between">
-                                            <div className="flex flex-col items-center gap-3">
-                                                <div className="w-[76px] h-[76px] bg-[#FF3B30] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer">
-                                                    <svg viewBox="0 0 24 24" className="w-10 h-10 text-white fill-current rotate-[135deg]">
+                                        {isLocked ? (
+                                            /* Slide to Answer (Locked) */
+                                            <div className="relative w-full h-[76px] bg-white/10 backdrop-blur-md rounded-full flex items-center p-2 border border-white/5">
+                                                <div className="w-[60px] h-[60px] bg-white rounded-full flex items-center justify-center shadow-lg">
+                                                    <svg viewBox="0 0 24 24" className="w-8 h-8 text-[#4CD964] fill-current">
                                                         <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                                                     </svg>
                                                 </div>
-                                                <span className="text-[14px] text-white font-medium">Refuser</span>
-                                            </div>
-                                            <div className="flex flex-col items-center gap-3">
-                                                <div className="w-[76px] h-[76px] bg-[#4CD964] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer">
-                                                    <svg viewBox="0 0 24 24" className="w-10 h-10 text-white fill-current">
-                                                        <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
-                                                    </svg>
+                                                <div className="flex-1 text-center pr-6">
+                                                    <span className="text-[13px] text-white/70 font-medium tracking-tight">
+                                                        Faire glisser pour répondre
+                                                    </span>
                                                 </div>
-                                                <span className="text-[14px] text-white font-medium">Accepter</span>
+                                                {/* Shimmer overlay animation */}
+                                                <motion.div 
+                                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full pointer-events-none"
+                                                    animate={{ x: ['-100%', '100%'] }}
+                                                    transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+                                                />
                                             </div>
-                                        </div>
+                                        ) : (
+                                            /* Decline & Accept (Unlocked) */
+                                            <div className="flex justify-between">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <div className="w-[76px] h-[76px] bg-[#FF3B30] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                                                        <svg viewBox="0 0 24 24" className="w-10 h-10 text-white fill-current rotate-[135deg]">
+                                                            <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                        </svg>
+                                                    </div>
+                                                    <span className="text-[14px] text-white font-medium">Refuser</span>
+                                                </div>
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <div className="w-[76px] h-[76px] bg-[#4CD964] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                                                        <svg viewBox="0 0 24 24" className="w-10 h-10 text-white fill-current">
+                                                            <path d="M6.62 10.79c1.44 2.82 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                        </svg>
+                                                    </div>
+                                                    <span className="text-[14px] text-white font-medium">Accepter</span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Indicator */}
