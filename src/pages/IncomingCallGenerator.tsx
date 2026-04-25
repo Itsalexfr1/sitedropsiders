@@ -410,8 +410,8 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                     )}
 
                                     {/* Call UI Content */}
-                                    <div className="relative z-10 w-full flex flex-col items-center text-center mt-20 px-8">
-                                        <h1 className="text-[32px] md:text-[36px] font-normal text-white mb-1 drop-shadow-2xl tracking-normal whitespace-nowrap overflow-hidden text-ellipsis w-full" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif' }}>
+                                    <div className="relative z-10 w-full flex flex-col items-center text-center mt-20 px-4">
+                                        <h1 className="text-[26px] md:text-[32px] font-normal text-white mb-1 drop-shadow-2xl tracking-normal whitespace-nowrap w-full px-2" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif' }}>
                                             {callerName}
                                         </h1>
                                         <p className="text-[17px] text-white/70 font-normal drop-shadow-md tracking-normal">
