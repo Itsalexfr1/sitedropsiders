@@ -49,23 +49,48 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
         }
     };
 
+    const saveOrShareFile = async (blob: Blob, filename: string) => {
+        const file = new File([blob], filename, { type: blob.type });
+        
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    files: [file],
+                    title: filename,
+                });
+                return;
+            } catch (err) {
+                if ((err as Error).name !== 'AbortError') {
+                    console.warn("Share failed, falling back to download", err);
+                } else {
+                    return; // User cancelled
+                }
+            }
+        }
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = url;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    };
+
     const handleDownload = async () => {
         if (!previewRef.current) return;
         setIsExporting(true);
         try {
-            // Wait for any fonts/images to settle
             await new Promise(r => setTimeout(r, 500));
             
             const dataUrl = await toPng(previewRef.current, {
                 quality: 1,
-                pixelRatio: 3, // High res
+                pixelRatio: 3,
                 backgroundColor: bgType === 'transparent' ? undefined : '#000000',
             });
             
-            const link = document.createElement('a');
-            link.download = `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.png`;
-            link.href = dataUrl;
-            link.click();
+            const res = await fetch(dataUrl);
+            const blob = await res.blob();
+            await saveOrShareFile(blob, `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.png`);
         } catch (err) {
             console.error("Export failed:", err);
         } finally {
@@ -155,12 +180,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
             recorder.stop();
             const blob = await exportPromise;
-            const url = URL.createObjectURL(blob);
-            
-            const link = document.createElement('a');
-            link.download = `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`;
-            link.href = url;
-            link.click();
+            await saveOrShareFile(blob, `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`);
 
         } catch (err) {
             console.error("Video export failed:", err);
