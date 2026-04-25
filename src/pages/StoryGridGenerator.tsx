@@ -72,22 +72,28 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
     const handleBatchUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.length) return;
         const files = Array.from(e.target.files);
-        const newItems: StoryItem[] = [];
 
-        for (const file of files) {
-            const reader = new FileReader();
-            const promise = new Promise<string>((resolve) => {
-                reader.onload = (event) => resolve(event.target?.result as string);
-                reader.readAsDataURL(file);
-            });
-            const image = await promise;
-            newItems.push({
-                id: Math.random().toString(36).substr(2, 9),
-                image,
-                label: file.name.split('.')[0].substring(0, 15)
-            });
-        }
-        setItems([...items, ...newItems]);
+        // Read all files in parallel — each file gets its own FileReader instance
+        // captured correctly inside the map closure (no shared-variable bug)
+        const newItems: StoryItem[] = await Promise.all(
+            files.map((file) =>
+                new Promise<StoryItem>((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        resolve({
+                            id: Math.random().toString(36).substr(2, 9),
+                            image: event.target?.result as string,
+                            label: file.name.split('.')[0].substring(0, 15),
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                })
+            )
+        );
+
+        setItems((prev) => [...prev, ...newItems]);
+        // Reset the input so the same files can be re-selected if needed
+        e.target.value = '';
     };
 
     const handleWikiAdd = async (name: string, image: string, type: string) => {

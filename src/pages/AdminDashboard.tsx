@@ -73,7 +73,9 @@ import {
   Tent,
   ShieldCheck,
   LayoutGrid,
+  QrCode,
 } from "lucide-react";
+
 
 import { motion, AnimatePresence } from "framer-motion";
 import { getAuthHeaders, apiFetch, isSuperAdmin } from "../utils/auth";
@@ -109,6 +111,7 @@ import { AdminLoginScreen } from "../components/admin/AdminLoginScreen";
 import { VideoUploaderTranslator } from "../components/admin/VideoUploaderTranslator";
 import { InterviewVisualGenerator } from "./InterviewVisualGenerator";
 import { StoryGridGenerator } from "./StoryGridGenerator";
+import { QRCodeGenerator } from "./QRCodeGenerator";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -206,6 +209,7 @@ export function AdminDashboard() {
   const [isQuizzConcoursModalOpen, setIsQuizzConcoursModalOpen] = useState(false);
   const [isInterviewVisualsModalOpen, setIsInterviewVisualsModalOpen] = useState(false);
   const [isStoryGridModalOpen, setIsStoryGridModalOpen] = useState(false);
+  const [isQRCodeModalOpen, setIsQRCodeModalOpen] = useState(false);
   const [isVideoAITranslatorModalOpen, setIsVideoAITranslatorModalOpen] = useState(false);
 
   const [isLoadingSocial, setIsLoadingSocial] = useState(false);
@@ -4593,6 +4597,12 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsVideoAITranslatorModalOpen(true);
+                            } else if (
+                              action.title === "QR Code" ||
+                              action.link === "#QR_CODE_MODAL"
+                            ) {
+                              e.preventDefault();
+                              setIsQRCodeModalOpen(true);
                             }
                           }}
                           className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -5122,6 +5132,7 @@ export function AdminDashboard() {
                       </div>
                     </button>
 
+
                     <button
                       onClick={() => {
                         setIsGeneratorsModalOpen(false);
@@ -5138,6 +5149,26 @@ export function AdminDashboard() {
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
                           Grille Instagram
+                        </p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsGeneratorsModalOpen(false);
+                        setIsQRCodeModalOpen(true);
+                      }}
+                      className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                    >
+                      <div className="w-16 h-16 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                        <QrCode className="w-8 h-8 text-neon-purple" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-white uppercase italic">
+                          QR CODE
+                        </h3>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">
+                          Statique • Valable à vie
                         </p>
                       </div>
                     </button>
@@ -10895,6 +10926,10 @@ export function AdminDashboard() {
               clubs: wikiClubs,
               festivals: wikiFestivals,
             }}
+          />
+          <QRCodeGenerator
+            isOpen={isQRCodeModalOpen}
+            onClose={() => setIsQRCodeModalOpen(false)}
           />
           <ModerationModal
             isOpen={isModerationModalOpen}
