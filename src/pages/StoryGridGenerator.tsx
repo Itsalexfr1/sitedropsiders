@@ -48,7 +48,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
     const [isGenerating, setIsGenerating] = useState(false);
     const [activeTheme, setActiveTheme] = useState<'manual' | 'djs' | 'clubs' | 'festivals'>('manual');
     const [randomLimit, setRandomLimit] = useState(30);
-    const [preventDuplicateNames, setPreventDuplicateNames] = useState(true);
     const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
 
     // Clear items when theme changes
@@ -142,11 +141,8 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         }
 
         // Filter out names that are already locked in the grid to avoid duplicates
-        let filteredSource = [...shuffled];
-        if (preventDuplicateNames) {
-            const currentNames = new Set(items.filter(it => lockedIds.has(it.id)).map(it => it.label.toLowerCase().trim()));
-            filteredSource = shuffled.filter(item => !currentNames.has((item.name || '').toLowerCase().trim()));
-        }
+        const currentNames = new Set(items.filter(it => lockedIds.has(it.id)).map(it => it.label.toLowerCase().trim()));
+        const filteredSource = shuffled.filter(item => !currentNames.has((item.name || '').toLowerCase().trim()));
 
         const selected = filteredSource.slice(0, randomLimit);
 
@@ -167,7 +163,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
             
             return [...lockedItems, ...filteredNew].slice(0, randomLimit);
         });
-    }, [activeTheme, wikiData, randomLimit, lockedIds, preventDuplicateNames]);
+    }, [activeTheme, wikiData, randomLimit, lockedIds]);
 
     const randomizeSelection = () => {
         generateFromWiki();
@@ -297,24 +293,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                 <Settings className="w-3 h-3 text-neon-cyan" /> Mode de génération
                             </label>
-                            
-                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-neon-purple/10 rounded-lg">
-                                        <Users className="w-4 h-4 text-neon-purple" />
-                                    </div>
-                                    <div>
-                                        <span className="text-sm font-medium text-white block">Doublons</span>
-                                        <span className="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Éviter les noms identiques</span>
-                                    </div>
-                                </div>
-                                <button 
-                                    onClick={() => setPreventDuplicateNames(!preventDuplicateNames)}
-                                    className={`w-12 h-6 rounded-full transition-colors relative ${preventDuplicateNames ? 'bg-neon-purple' : 'bg-gray-700'}`}
-                                >
-                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${preventDuplicateNames ? 'left-7' : 'left-1'}`} />
-                                </button>
-                            </div>
 
                             <div className="grid grid-cols-2 gap-2">
                                 {(['manual', 'djs', 'clubs', 'festivals'] as const).map(t => (
