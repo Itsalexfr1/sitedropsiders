@@ -49,11 +49,17 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
     const [activeTheme, setActiveTheme] = useState<'manual' | 'djs' | 'clubs' | 'festivals'>('manual');
     const [randomLimit, setRandomLimit] = useState(30);
     const [preventDuplicateNames, setPreventDuplicateNames] = useState(true);
+    const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
+
+    // Clear items when theme changes
+    useEffect(() => {
+        setItems([]);
+        setLockedIds(new Set());
+    }, [activeTheme]);
     
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeEditId, setActiveEditId] = useState<string | null>(null);
-    const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
     const [mobileTab, setMobileTab] = useState<'config' | 'preview'>('config');
 
     const toggleLock = (id: string) => {
