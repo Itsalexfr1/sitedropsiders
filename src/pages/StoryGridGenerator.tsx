@@ -9,14 +9,16 @@ import {
     Settings,
     Image as ImageIcon,
     Search,
+    Eye,
     Check,
-    Loader2,
     Lock,
     Unlock,
-    Sparkles
+    Sparkles,
+    Loader2
 } from 'lucide-react';
 import { toBlob } from 'html-to-image';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { ExportSuccessModal } from '../components/ExportSuccessModal';
 
 interface StoryItem {
     id: string;
@@ -49,6 +51,15 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
     const [items, setItems] = useState<StoryItem[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [readyBlob, setReadyBlob] = useState<Blob | null>(null);
+    const [readyUrl, setReadyUrl] = useState<string>('');
+    const [readyFilename, setReadyFilename] = useState('');
+
+    useEffect(() => {
+        return () => {
+            if (readyUrl) URL.revokeObjectURL(readyUrl);
+        };
+    }, [readyUrl]);
     const previewRef = useRef<HTMLDivElement>(null);
     const [activeTheme, setActiveTheme] = useState<'manual' | 'djs' | 'clubs' | 'festivals'>('manual');
     const [randomLimit, setRandomLimit] = useState(30);
@@ -67,33 +78,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         }
     }, [showSuccess]);
 
-    const saveOrShareFile = async (blob: Blob, filename: string) => {
-        const file = new File([blob], filename, { type: blob.type });
-        
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-                await navigator.share({
-                    files: [file],
-                    title: filename,
-                });
-                return true;
-            } catch (err) {
-                if ((err as Error).name !== 'AbortError') {
-                    console.warn("Share failed, falling back to download", err);
-                } else {
-                    return false; // User cancelled
-                }
-            }
-        }
-        
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = url;
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-        return true;
-    };
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [activeEditId, setActiveEditId] = useState<string | null>(null);
     const [mobileTab, setMobileTab] = useState<'config' | 'preview'>('config');
@@ -272,8 +256,11 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
             });
 
             if (blob) {
-                const shared = await saveOrShareFile(blob, fileName);
-                if (shared) setShowSuccess(true);
+                const url = URL.createObjectURL(blob);
+                setReadyBlob(blob);
+                setReadyUrl(url);
+                setReadyFilename(fileName);
+                setShowSuccess(true);
             }
 
         } catch (err: any) {
@@ -546,22 +533,20 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                     ref={previewRef}
                                     className="w-full h-full bg-[#050505] flex flex-col items-center p-4 pt-3 relative overflow-hidden"
                                 >
-                                    {/* Success Toast */}
-                                    <AnimatePresence>
-                                        {showSuccess && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: -20, scale: 0.8 }}
-                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.8 }}
-                                                className="absolute top-10 left-1/2 -translate-x-1/2 z-[60] bg-neon-green/20 backdrop-blur-md border border-neon-green/30 px-6 py-3 rounded-2xl flex items-center gap-3 shadow-[0_0_20px_rgba(76,217,100,0.2)]"
-                                            >
-                                                <div className="w-6 h-6 bg-neon-green rounded-full flex items-center justify-center">
-                                                    <Check className="w-4 h-4 text-black" />
-                                                </div>
-                                                <span className="text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap">Prêt ! Enregistre-la dans tes photos</span>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                    {/* Success Modal (Social Studio Style) */}
+                                    <ExportSuccessModal 
+                                        isOpen={showSuccess && !!readyBlob} 
+                                        onClose={() => {
+                                            setShowSuccess(false);
+                                            setReadyBlob(null);
+                                        }}
+                                        readyBlob={readyBlob}
+                                        readyUrl={readyUrl}
+                                        filename={readyFilename}
+                                        type="image"
+                                        title="GÉNÉRATION RÉUSSIE !"
+                                        subtitle="Votre contenu est prêt"
+                                    />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,51,0.08)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,255,243,0.05)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />

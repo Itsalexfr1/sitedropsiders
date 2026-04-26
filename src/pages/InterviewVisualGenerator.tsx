@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Upload, Download, Image, Youtube, Instagram, Trash2, RefreshCw, Eye, Scissors, Check, X, AlertCircle } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import { isSuperAdmin } from '../utils/auth';
+import { ExportSuccessModal } from '../components/ExportSuccessModal';
 
 /* ─────────────────────────────────────────
    Types
@@ -44,6 +45,17 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
     const [dropsidersLogo, setDropsidersLogo] = useState<HTMLImageElement | null>(null);
     const [visualMode, setVisualMode]     = useState<'interview' | 'recap'>('interview');
     const [error, setError] = useState<string | null>(null);
+
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [readyBlob, setReadyBlob] = useState<Blob | null>(null);
+    const [readyUrl, setReadyUrl] = useState<string>('');
+    const [readyFilename, setReadyFilename] = useState('');
+
+    useEffect(() => {
+        return () => {
+            if (readyUrl) URL.revokeObjectURL(readyUrl);
+        };
+    }, [readyUrl]);
 
     // Photo position controls
     const [photoOffsetX, setPhotoOffsetX] = useState(0);   // -100 to +100
@@ -472,11 +484,18 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
     const handleDownload = async () => {
         const url = previewUrl ?? await generate(activeFormat);
         if (!url) return;
+        
         const name = artistName ? artistName.replace(/\s+/g, '_').toLowerCase() : 'dropsiders';
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `dropsiders_${visualMode}_${name}_${activeFormat}.png`;
-        a.click();
+        const fileName = `dropsiders_${visualMode}_${name}_${activeFormat}.png`;
+        
+        // Convert dataURL to blob
+        const res = await fetch(url);
+        const blob = await res.blob();
+        
+        setReadyBlob(blob);
+        setReadyUrl(url);
+        setReadyFilename(fileName);
+        setShowSuccess(true);
     };
 
     // Auto-regenerate
@@ -918,6 +937,20 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
                                     <span className="text-[9px] font-black text-white/50 uppercase tracking-[0.2em]">✦ Glisse pour repositionner</span>
                                 </div>
                             )}
+
+                            <ExportSuccessModal 
+                                isOpen={showSuccess && !!readyBlob} 
+                                onClose={() => {
+                                    setShowSuccess(false);
+                                    setReadyBlob(null);
+                                }}
+                                readyBlob={readyBlob}
+                                readyUrl={readyUrl}
+                                filename={readyFilename}
+                                type="image"
+                                title="GÉNÉRATION RÉUSSIE !"
+                                subtitle="Votre visuel est prêt pour vos réseaux"
+                            />
                         </div>
 
                         {/* Selective Export Buttons */}
@@ -928,10 +961,13 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
                                         const url = activeFormat === 'youtube' ? previewUrl : await generate('youtube');
                                         if (!url) return;
                                         const name = artistName ? artistName.replace(/\s+/g, '_').toLowerCase() : 'dropsiders';
-                                        const a = document.createElement('a');
-                                        a.href = url;
-                                        a.download = `dropsiders_${visualMode}_${name}_youtube.png`;
-                                        a.click();
+                                        const fileName = `dropsiders_${visualMode}_${name}_youtube.png`;
+                                        const res = await fetch(url);
+                                        const blob = await res.blob();
+                                        setReadyBlob(blob);
+                                        setReadyUrl(url);
+                                        setReadyFilename(fileName);
+                                        setShowSuccess(true);
                                     }}
                                     className="flex-1 py-5 bg-white text-black rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-xl"
                                 >
@@ -942,10 +978,13 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
                                         const url = activeFormat === 'instagram' ? previewUrl : await generate('instagram');
                                         if (!url) return;
                                         const name = artistName ? artistName.replace(/\s+/g, '_').toLowerCase() : 'dropsiders';
-                                        const a = document.createElement('a');
-                                        a.href = url;
-                                        a.download = `dropsiders_${visualMode}_${name}_instagram.png`;
-                                        a.click();
+                                        const fileName = `dropsiders_${visualMode}_${name}_instagram.png`;
+                                        const res = await fetch(url);
+                                        const blob = await res.blob();
+                                        setReadyBlob(blob);
+                                        setReadyUrl(url);
+                                        setReadyFilename(fileName);
+                                        setShowSuccess(true);
                                     }}
                                     className="flex-1 py-5 bg-white text-black rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-xl"
                                 >

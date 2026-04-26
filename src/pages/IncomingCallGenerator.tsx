@@ -14,9 +14,11 @@ import {
     Clock,
     Sparkles,
     Lock,
-    Check
+    Check,
+    Eye
 } from 'lucide-react';
 import { toPng, toCanvas, toBlob } from 'html-to-image';
+import { ExportSuccessModal } from '../components/ExportSuccessModal';
 
 interface IncomingCallGeneratorProps {
     isOpen: boolean;
@@ -36,12 +38,15 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
     const [mobileTab, setMobileTab] = useState<'config' | 'preview'>('config');
     const [showSuccess, setShowSuccess] = useState(false);
 
+    const [readyBlob, setReadyBlob] = useState<Blob | null>(null);
+    const [readyUrl, setReadyUrl] = useState<string>('');
+    const [readyFilename, setReadyFilename] = useState('');
+
     useEffect(() => {
-        if (showSuccess) {
-            const timer = setTimeout(() => setShowSuccess(false), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [showSuccess]);
+        return () => {
+            if (readyUrl) URL.revokeObjectURL(readyUrl);
+        };
+    }, [readyUrl]);
 
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,32 +64,6 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
         }
     };
 
-    const saveOrShareFile = async (blob: Blob, filename: string) => {
-        const file = new File([blob], filename, { type: blob.type });
-        
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-                await navigator.share({
-                    files: [file],
-                    title: filename,
-                });
-                return;
-            } catch (err) {
-                if ((err as Error).name !== 'AbortError') {
-                    console.warn("Share failed, falling back to download", err);
-                } else {
-                    return; // User cancelled
-                }
-            }
-        }
-        
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = url;
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(url), 100);
-    };
 
     const handleDownload = async () => {
         if (!previewRef.current) return;
@@ -98,7 +77,10 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
             });
             
             if (blob) {
-                await saveOrShareFile(blob, `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.png`);
+                const url = URL.createObjectURL(blob);
+                setReadyBlob(blob);
+                setReadyUrl(url);
+                setReadyFilename(`appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.png`);
                 setShowSuccess(true);
             }
         } catch (err) {
@@ -188,7 +170,11 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                 };
 
                 exportPromise.then(async (blob) => {
-                    await saveOrShareFile(blob, `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`);
+                    const fileName = `appel-${callerName.toLowerCase().replace(/\s+/g, '-')}.${mimeType.includes('mp4') ? 'mp4' : 'webm'}`;
+                    const url = URL.createObjectURL(blob);
+                    setReadyBlob(blob);
+                    setReadyUrl(url);
+                    setReadyFilename(fileName);
                     setShowSuccess(true);
                     resolve();
                 }).catch(reject);
@@ -224,7 +210,6 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
                     className="relative w-full max-w-6xl h-[90vh] bg-[#0A0A0A] border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col md:flex-row"
                 >
-                    {/* Header Mobile Tabs */}
                     <div className="md:hidden flex border-b border-white/5">
                         <button 
                             onClick={() => setMobileTab('config')}
@@ -241,7 +226,6 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                         <button onClick={onClose} className="p-4 border-l border-white/5"><X className="w-5 h-5 text-white" /></button>
                     </div>
 
-                    {/* Left Side: Controls */}
                     <div className={`${mobileTab === 'config' ? 'block' : 'hidden md:block'} w-full md:w-[400px] p-8 overflow-y-auto border-r border-white/5 space-y-8 custom-scrollbar bg-black/40`}>
                         <div className="hidden md:flex justify-between items-center mb-4">
                             <div className="flex items-center gap-3">
@@ -253,7 +237,6 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                             <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors"><X className="w-5 h-5 text-gray-400" /></button>
                         </div>
 
-                        {/* Caller Info */}
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                 <Type className="w-3 h-3 text-neon-cyan" /> Infos Appelant
@@ -274,7 +257,6 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                             />
                         </div>
 
-                        {/* Call Style Toggle */}
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                 <Lock className="w-3 h-3 text-neon-cyan" /> État du téléphone
@@ -295,7 +277,6 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                             </div>
                         </div>
 
-                        {/* Background Selection */}
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                 <ImageIcon className="w-3 h-3 text-neon-purple" /> Arrière-plan
@@ -334,7 +315,6 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                             />
                         </div>
 
-                        {/* Video Duration Selection */}
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                 <Clock className="w-3 h-3 text-neon-purple" /> Durée Vidéo (s)
@@ -352,7 +332,6 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                             </div>
                         </div>
 
-                        {/* Export */}
                         <div className="pt-4 space-y-3">
                             <button
                                 onClick={handleDownload}
@@ -360,16 +339,11 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                 className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-white/10 active:scale-[0.98] transition-all disabled:opacity-50"
                             >
                                 {isExporting ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        Génération PNG...
-                                    </>
+                                    <Loader2 className="w-5 h-5 animate-spin" />
                                 ) : (
-                                    <>
-                                        <ImageIcon className="w-5 h-5" />
-                                        Exporter PNG
-                                    </>
+                                    <ImageIcon className="w-5 h-5" />
                                 )}
+                                {isExporting ? 'Génération PNG...' : 'Exporter PNG'}
                             </button>
 
                             <button
@@ -377,17 +351,12 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                 disabled={isExporting || isRecording}
                                 className="w-full p-4 bg-gradient-to-r from-neon-cyan to-neon-purple rounded-2xl text-black font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
                             >
-                                        {isRecording ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        Vidéo {recordingProgress}%
-                                    </>
+                                {isRecording ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
                                 ) : (
-                                    <>
-                                        <Video className="w-5 h-5" />
-                                        Exporter MP4 ({videoDuration}s)
-                                    </>
+                                    <Video className="w-5 h-5" />
                                 )}
+                                {isRecording ? `Vidéo ${recordingProgress}%` : `Exporter MP4 (${videoDuration}s)`}
                             </button>
                             
                             <p className="text-[9px] text-gray-500 text-center mt-3 font-bold uppercase tracking-wider">
@@ -396,9 +365,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                         </div>
                     </div>
 
-                    {/* Right Side: Preview */}
                     <div className={`${mobileTab === 'preview' ? 'flex' : 'hidden md:flex'} flex-1 p-4 md:p-12 bg-[#050505] flex-col items-center justify-center relative overflow-hidden group`}>
-                        {/* Static Radial Gradient Background */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,243,0.05)_0%,transparent_70%)] pointer-events-none" />
                         
                         <div className="relative scale-[0.75] sm:scale-[0.85] lg:scale-100 transition-transform duration-500">
@@ -409,27 +376,22 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                     ref={previewRef}
                                     className={`w-full h-full relative flex flex-col items-center pt-24 px-6 overflow-hidden ${bgType === 'transparent' ? 'bg-transparent' : 'bg-[#050505]'}`}
                                 >
-                                    {/* Success Toast */}
-                                    <AnimatePresence>
-                                        {showSuccess && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: -20, scale: 0.8 }}
-                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.8 }}
-                                                className="absolute top-28 z-[60] bg-neon-green/20 backdrop-blur-md border border-neon-green/30 px-6 py-3 rounded-2xl flex items-center gap-3 shadow-[0_0_20px_rgba(76,217,100,0.2)]"
-                                            >
-                                                <div className="w-6 h-6 bg-neon-green rounded-full flex items-center justify-center">
-                                                    <Check className="w-4 h-4 text-black" />
-                                                </div>
-                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Prêt ! Enregistre-la dans tes photos</span>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
+                                    <ExportSuccessModal 
+                                        isOpen={showSuccess && !!readyBlob} 
+                                        onClose={() => {
+                                            setShowSuccess(false);
+                                            setReadyBlob(null);
+                                        }}
+                                        readyBlob={readyBlob}
+                                        readyUrl={readyUrl}
+                                        filename={readyFilename}
+                                        type={readyBlob?.type.includes('video') ? 'video' : 'image'}
+                                        title="GÉNÉRATION RÉUSSIE !"
+                                        subtitle="Votre contenu est prêt"
+                                    />
 
-                                    {/* Dynamic Island */}
                                     <div className="absolute top-5 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-[1.5rem] z-50 border border-white/5" />
 
-                                    {/* BG Content */}
                                     {bgType === 'image' && bgUrl && (
                                         <img src={bgUrl} className="absolute inset-0 w-full h-full object-cover" alt="" />
                                     )}

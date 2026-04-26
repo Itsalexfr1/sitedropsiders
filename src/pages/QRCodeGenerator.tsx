@@ -1,16 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-    X,
-    Download,
-    QrCode,
-    Link,
-    Palette,
-    RefreshCw,
-    Check,
-    Copy,
-} from 'lucide-react';
+import { Check, Download, X, Eye, QrCode, Link, Palette, RefreshCw, Copy } from 'lucide-react';
 import QRCodeStyling from 'qr-code-styling';
+import { ExportSuccessModal } from '../components/ExportSuccessModal';
 
 interface QRCodeGeneratorProps {
     isOpen: boolean;
@@ -40,6 +32,16 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
     const [withLogo, setWithLogo] = useState(true);
     const [copied, setCopied] = useState(false);
     const [size] = useState(300);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [readyBlob, setReadyBlob] = useState<Blob | null>(null);
+    const [readyUrl, setReadyUrl] = useState<string>('');
+    const [readyFilename, setReadyFilename] = useState('');
+
+    useEffect(() => {
+        return () => {
+            if (readyUrl) URL.revokeObjectURL(readyUrl);
+        };
+    }, [readyUrl]);
 
     const qrRef = useRef<HTMLDivElement>(null);
     const qrInstance = useRef<QRCodeStyling | null>(null);
@@ -93,18 +95,21 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
         qrInstance.current.append(qrRef.current);
     }, [url, fgColor, bgColor, dotStyle, withLogo, buildQR, isOpen]);
 
-    const downloadPng = () => {
-        qrInstance.current?.download({
-            name: `dropsiders_qr_${Date.now()}`,
-            extension: 'png',
-        });
-    };
 
-    const downloadSvg = () => {
-        qrInstance.current?.download({
-            name: `dropsiders_qr_${Date.now()}`,
-            extension: 'svg',
-        });
+    const handleExport = async (ext: 'png' | 'svg') => {
+        if (!qrInstance.current) return;
+        
+        const fileName = `dropsiders_qr_${Date.now()}.${ext}`;
+        const blob = await qrInstance.current.getRawData(ext);
+        
+        if (blob) {
+            const blobData = blob as Blob;
+            const url = URL.createObjectURL(blobData);
+            setReadyBlob(blobData);
+            setReadyUrl(url);
+            setReadyFilename(fileName);
+            setShowSuccess(true);
+        }
     };
 
     const copyUrl = () => {
@@ -313,14 +318,14 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
                             {/* Download buttons */}
                             <div className="flex flex-col gap-3 w-full">
                                 <button
-                                    onClick={downloadPng}
+                                    onClick={() => handleExport('png')}
                                     className="w-full py-4 bg-neon-cyan text-black rounded-2xl font-black text-[11px] uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20"
                                 >
                                     <Download className="w-4 h-4" />
                                     Télécharger PNG
                                 </button>
                                 <button
-                                    onClick={downloadSvg}
+                                    onClick={() => handleExport('svg')}
                                     className="w-full py-3 bg-white/5 border border-white/10 text-gray-300 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all flex items-center justify-center gap-3"
                                 >
                                     <Download className="w-4 h-4" />
@@ -337,6 +342,20 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
                         </div>
                     </div>
                 </motion.div>
+
+                <ExportSuccessModal 
+                    isOpen={showSuccess && !!readyBlob} 
+                    onClose={() => {
+                        setShowSuccess(false);
+                        setReadyBlob(null);
+                    }}
+                    readyBlob={readyBlob}
+                    readyUrl={readyUrl}
+                    filename={readyFilename}
+                    type="image"
+                    title="QR CODE PRÊT !"
+                    subtitle="Exportation terminée"
+                />
             </div>
         </AnimatePresence>
     );

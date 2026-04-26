@@ -5,6 +5,7 @@ import {
     RefreshCw, Film, Play, List, Sparkles, Zap, Plus, X, Download, AlertTriangle
 } from 'lucide-react';
 import { isSuperAdmin } from '../utils/auth';
+import { ExportSuccessModal } from '../components/ExportSuccessModal';
 
 interface Clip {
     id: string;
@@ -185,6 +186,17 @@ export function VideoStudioGenerator() {
     const [alignToMusic, setAlignToMusic] = useState(true);
     const [outroClip, setOutroClip] = useState<Clip | null>(null);
     const showLogo = true;
+
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [readyBlob, setReadyBlob] = useState<Blob | null>(null);
+    const [readyUrl, setReadyUrl] = useState<string>('');
+    const [readyFilename, setReadyFilename] = useState('');
+
+    useEffect(() => {
+        return () => {
+            if (readyUrl) URL.revokeObjectURL(readyUrl);
+        };
+    }, [readyUrl]);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const dropsidersLogo = useRef<HTMLImageElement | null>(null);
@@ -433,7 +445,11 @@ export function VideoStudioGenerator() {
                 showAlert("Erreur: Le rendu a été bloqué par votre navigateur. Gardez cette page ouverte et visible pendant la génération.");
             }
             const blob = new Blob(chunks, { type: blobMimeType });
-            setPreviewUrl(URL.createObjectURL(blob));
+            const url = URL.createObjectURL(blob);
+            setReadyBlob(blob);
+            setReadyUrl(url);
+            setReadyFilename(`dropsiders_video_${videoFormat}_${targetDuration}s.${blobMimeType.includes('mp4') ? 'mp4' : 'webm'}`);
+            setShowSuccess(true);
             setIsGenerating(false);
             if (audioContext && audioContext.state !== 'closed') audioContext.close();
         };
@@ -682,6 +698,20 @@ export function VideoStudioGenerator() {
                                 <p className="text-[10px] font-black uppercase tracking-widest">Prévisualisation Vidéo Studio</p>
                             </div>}
                             {isGenerating && <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center gap-6"><div className="text-4xl font-display font-black italic">{progress}%</div><p className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} animate-pulse`}>Sync au tempo...</p></div>}
+                            
+                            <ExportSuccessModal 
+                                isOpen={showSuccess && !!readyBlob} 
+                                onClose={() => {
+                                    setShowSuccess(false);
+                                    setReadyBlob(null);
+                                }}
+                                readyBlob={readyBlob}
+                                readyUrl={readyUrl}
+                                filename={readyFilename}
+                                type="video"
+                                title="VIDÉO PRÊTE !"
+                                subtitle="Enregistrez-la pour vos réseaux"
+                            />
                         </div>
 
                         <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8">

@@ -21,8 +21,11 @@ import {
     Layers, 
     Sparkles, 
     Wand2, 
-    RotateCcw
+    RotateCcw,
+    CheckCircle2,
+    Eye
 } from 'lucide-react';
+import { ExportSuccessModal } from './ExportSuccessModal';
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import { ImageUploadModal } from './ImageUploadModal';
@@ -2873,113 +2876,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             )} {/* end isMobile ternary */}
 
             {/* Video Ready Success Modal (Mobile Only) */}
-            <AnimatePresence>
-                {readyVideoBlob && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
-                        <motion.div
-                            initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                            className="w-full max-w-sm bg-dark-bg border border-white/10 rounded-[3rem] p-8 flex flex-col items-center">
-
-                            <div className="w-20 h-20 bg-neon-green/10 rounded-full flex items-center justify-center mb-6 border border-neon-green/20">
-                                <Check className="w-10 h-10 text-neon-green" />
-                            </div>
-
-                            <h2 className="text-2xl font-black text-white italic uppercase mb-2 text-center leading-none">VIDÉO PRÊTE !</h2>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-4 text-center">Enregistrez-la pour vos réseaux</p>
-
-                            {readyVideoBlob && readyVideoBlob.type.includes('webm') && !isMobile && (
-                                <div className="mb-6 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl">
-                                    <p className="text-[9px] text-yellow-500 font-black uppercase tracking-widest text-center leading-relaxed">
-                                        ⚠️ FORMAT WEBM DÉTECTÉ<br/>
-                                        Si le téléchargement MP4 a échoué, utilisez un iPhone/Safari pour un export direct, ou convertissez ce fichier.
-                                    </p>
-                                </div>
-                            )}
-
-                            {readyVideoBlob && readyVideoBlob.type.includes('mp4') && (
-                                <div className="mb-6 p-2 bg-green-500/10 border border-green-500/20 rounded-2xl">
-                                    <p className="text-[9px] text-green-500 font-black uppercase tracking-widest text-center">✅ FORMAT MP4 COMPATIBLE INSTAGRAM</p>
-                                </div>
-                            )}
-
-                            <div className="w-full aspect-[9/16] max-h-[300px] mb-8 rounded-2xl overflow-hidden bg-black border border-white/5 relative group">
-                                <video src={readyVideoUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline controls />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                            </div>
-
-                            <div className="w-full space-y-3">
-                                <button
-                                    onClick={async () => {
-                                        // Force .mov extension for iPhone compatibility even if blob is different (Safari/Files will handle it)
-                                        const isMOVRequested = true; 
-                                        const extension = isMOVRequested ? 'mov' : (readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm');
-                                        const fileName = `dropsiders-${theme.replace(/ /g, '-')}.${extension}`;
-                                        const file = new File([readyVideoBlob], fileName, { type: readyVideoBlob.type });
-
-                                        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                                            try {
-                                                await navigator.share({
-                                                    files: [file],
-                                                    title: 'Dropsiders Video',
-                                                    text: 'Ma vidéo générée via Dropsiders Social Studio'
-                                                });
-                                                return;
-                                            } catch (err) {
-                                                console.warn("Share failed:", err);
-                                            }
-                                        }
-
-                                        // Fallback: Direct download
-                                        const a = document.createElement('a');
-                                        a.href = readyVideoUrl;
-                                        a.download = fileName;
-                                        document.body.appendChild(a);
-                                        a.click();
-                                        document.body.removeChild(a);
-
-                                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                                        if (isIOS || /OPR\/|Opera\/|Edition\sGX/.test(navigator.userAgent)) {
-                                            setErrorMessage("Maintenez la vidéo qui s'affiche pour l'enregistrer manuellement.");
-                                        }
-                                    }}
-                                    className="w-full py-5 bg-white text-black font-black rounded-2xl uppercase tracking-widest text-[11px] shadow-[0_10px_30px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3"
-                                >
-                                    📥 Enregistrer la vidéo
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        const isMOVRequested = true;
-                                        const extension = isMOVRequested ? 'mov' : (readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm');
-                                        const fileName = `dropsiders-${theme.replace(/ /g, '-')}.${extension}`;
-                                        const a = document.createElement('a');
-                                        a.href = readyVideoUrl;
-                                        a.download = fileName;
-                                        document.body.appendChild(a);
-                                        a.click();
-                                        document.body.removeChild(a);
-                                    }}
-                                    className="w-full py-4 bg-white/5 border border-white/10 text-white font-black rounded-2xl uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-                                >
-                                    <Download className="w-3.5 h-3.5" /> Lien Miroir (Secours)
-                                </button>
-
-                                <button
-                                    onClick={() => {
-                                        if (readyVideoUrl) URL.revokeObjectURL(readyVideoUrl);
-                                        setReadyVideoBlob(null);
-                                        setReadyVideoUrl('');
-                                    }}
-                                    className="w-full py-4 text-gray-500 font-black uppercase text-[10px] tracking-widest hover:text-white transition-colors"
-                                >
-                                    Fermer
-                                </button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <ExportSuccessModal 
+                isOpen={!!readyVideoBlob} 
+                onClose={() => {
+                    if (readyVideoUrl) URL.revokeObjectURL(readyUrl);
+                    setReadyVideoBlob(null);
+                    setReadyVideoUrl('');
+                }}
+                readyBlob={readyVideoBlob}
+                readyUrl={readyVideoUrl}
+                filename={`dropsiders-${theme.replace(/ /g, '-')}.${readyVideoBlob?.type.includes('mp4') ? 'mp4' : 'webm'}`}
+                type="video"
+                title="VIDÉO PRÊTE !"
+                subtitle="Enregistrez-la pour vos réseaux"
+            />
 
             {/* Shared downloader modal (visible on both) */}
             {downloaderModal}
