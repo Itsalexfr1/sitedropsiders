@@ -374,9 +374,9 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                     <div className={`${mobileTab === 'preview' ? 'flex' : 'hidden md:flex'} flex-1 p-4 md:p-12 bg-[#050505] flex-col items-center justify-center relative overflow-hidden group`}>
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,243,0.05)_0%,transparent_70%)] pointer-events-none" />
                         
-                        <div className="relative scale-[0.75] sm:scale-[0.85] lg:scale-100 transition-transform duration-500">
+                        <div className="relative scale-[0.65] sm:scale-[0.85] lg:scale-100 transition-transform duration-500">
                             <div 
-                                className="w-[340px] md:w-[400px] aspect-[9/19.5] bg-black rounded-[3.5rem] border-[8px] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col"
+                                className="w-[400px] aspect-[9/19.5] bg-black rounded-[3.5rem] border-[8px] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col"
                             >
                                 <div 
                                     ref={previewRef}
@@ -399,7 +399,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
                                     {/* Call UI Content */}
                                     <div className="relative z-10 w-full flex flex-col items-center text-center mt-20 px-8">
-                                        <h1 className="text-[32px] md:text-[36px] font-normal text-white mb-1 drop-shadow-2xl tracking-normal whitespace-nowrap overflow-hidden text-ellipsis w-full" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif' }}>
+                                        <h1 className="text-[36px] font-normal text-white mb-1 drop-shadow-2xl tracking-normal whitespace-nowrap overflow-hidden text-ellipsis w-full" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif' }}>
                                             {callerName}
                                         </h1>
                                         <p className="text-[17px] text-white/70 font-normal drop-shadow-md tracking-normal">
