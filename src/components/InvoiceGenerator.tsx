@@ -788,35 +788,38 @@ export function InvoiceGenerator() {
                                             </div>
                                         ) : (
                                             <div className="space-y-3 pb-20">
-                                                {history.map((inv: any) => (
-                                                    <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 lg:p-6 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
-                                                        <div className="hidden lg:flex w-10 h-10 bg-indigo-500/10 rounded-xl items-center justify-center shrink-0">
-                                                            <span className="text-xs font-black text-indigo-400">#{inv.id}</span>
+                                                {history.map((inv: any) => {
+                                                    const shortNumber = inv.number ? inv.number.split('-').pop()?.replace(/^0+/, '') : inv.id;
+                                                    return (
+                                                        <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 lg:p-6 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
+                                                            <div className="hidden lg:flex w-12 h-12 bg-indigo-500/10 rounded-xl items-center justify-center shrink-0 border border-indigo-500/20">
+                                                                <span className="text-sm font-black text-indigo-400">#{shortNumber}</span>
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="font-black text-sm text-white truncate">{inv.client || 'Client inconnu'}</div>
+                                                                <div className="text-xs text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
+                                                                {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 truncate max-w-[250px]">{inv.emailTo}</div>}
+                                                            </div>
+                                                            <div className="text-left lg:text-right shrink-0">
+                                                                <div className="font-black text-lg text-indigo-400">{parseFloat(inv.total || 0).toFixed(2)} €</div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 shrink-0">
+                                                                {inv.pdfUrl && (
+                                                                    <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400 hover:border-indigo-500/50 transition-all">
+                                                                        <BookOpen className="w-3 h-3" /> PDF
+                                                                    </a>
+                                                                )}
+                                                                <button onClick={() => togglePaid(inv.id, inv.paid)}
+                                                                    className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30 hover:border-indigo-500/50'}`}>
+                                                                    {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> En attente</>}
+                                                                </button>
+                                                                <button onClick={() => deleteInvoice(inv.id)} className="p-2 bg-white/5 border border-white/10 rounded-xl text-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all">
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex-1">
-                                                            <div className="font-black text-sm text-white">{inv.client || 'Client inconnu'}</div>
-                                                            <div className="text-xs text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
-                                                            {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 whitespace-nowrap overflow-hidden text-ellipsis truncate max-w-[200px]">{inv.emailTo}</div>}
-                                                        </div>
-                                                        <div className="text-left lg:text-right shrink-0">
-                                                            <div className="font-black text-lg text-indigo-400">{parseFloat(inv.total || 0).toFixed(2)} €</div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 shrink-0">
-                                                            {inv.pdfUrl && (
-                                                                <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400 hover:border-indigo-500/50 transition-all">
-                                                                    <BookOpen className="w-3 h-3" /> PDF
-                                                                </a>
-                                                            )}
-                                                            <button onClick={() => togglePaid(inv.id, inv.paid)}
-                                                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30 hover:border-indigo-500/50'}`}>
-                                                                {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> En attente</>}
-                                                            </button>
-                                                            <button onClick={() => deleteInvoice(inv.id)} className="p-2 bg-white/5 border border-white/10 rounded-xl text-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all">
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         )}
                                     </>
