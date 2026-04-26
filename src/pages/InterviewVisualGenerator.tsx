@@ -5,7 +5,7 @@ import { ChevronLeft, Upload, Download, Image, Youtube, Instagram, Trash2, Refre
 import Cropper from 'react-easy-crop';
 import { isSuperAdmin } from '../utils/auth';
 import { ExportSuccessModal } from '../components/ExportSuccessModal';
-import { ConfirmModal, ConfirmModalData } from '../components/ui/ConfirmModal';
+import { ConfirmModal, type ConfirmModalData } from '../components/ui/ConfirmModal';
 
 /* ─────────────────────────────────────────
    Types

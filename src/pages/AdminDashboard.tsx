@@ -90,7 +90,7 @@ import { PubliGenerator } from "../components/admin/PubliGenerator";
 import { TracklistModal } from "../components/admin/TracklistModal";
 import { QuickEditorWizard } from "../components/admin/QuickEditorWizard";
 import { AudioWaveformSelector } from "../components/admin/AudioWaveformSelector";
-import { ConfirmModal } from "../components/ui/ConfirmModal";
+import { ConfirmModal, type ConfirmModalData } from "../components/ui/ConfirmModal";
 import { PromptModal } from "../components/ui/PromptModal";
 import { AgendaModal } from "../components/AgendaModal";
 import { ImageUploadModal } from "../components/ImageUploadModal";
@@ -851,14 +851,7 @@ export function AdminDashboard() {
     { id: "TEAM", label: "Équipe" },
     { id: "INTERVIEW", label: "Interviews" },
   ];
-  const [confirmModal, setConfirmModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    onConfirm: () => void;
-    type: "danger" | "warning" | "info";
-    confirmText?: string;
-  }>({
+  const [confirmModal, setConfirmModal] = useState<ConfirmModalData>({
     isOpen: false,
     title: "",
     message: "",
