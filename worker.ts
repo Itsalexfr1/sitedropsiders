@@ -235,7 +235,7 @@ async function fetchGitHubFile(filePath, config) {
     const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}?t=${Date.now()}`;
     const response = await fetch(getUrl, {
         headers: { 
-            'Authorization': `token ${TOKEN}`, 
+            'Authorization': `Bearer ${TOKEN}`, 
             'User-Agent': 'Cloudflare-Worker', 
             'Accept': 'application/vnd.github.v3+json' 
         }
@@ -251,7 +251,7 @@ async function fetchGitHubFile(filePath, config) {
         content = utf8Decode(fileData.content);
     } else if (fileData.download_url) {
         const rawRes = await fetch(fileData.download_url, {
-            headers: { 'Authorization': `token ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker' }
+            headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker' }
         });
         if (rawRes.ok) content = await rawRes.text();
         else return null;
@@ -286,7 +286,12 @@ async function saveGitHubFile(filePath, content, message, sha, config) {
     
     const response = await fetch(putUrl, {
         method: 'PUT',
-        headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        headers: { 
+            'Authorization': `Bearer ${TOKEN}`, 
+            'User-Agent': 'Cloudflare-Worker', 
+            'Accept': 'application/vnd.github.v3+json', 
+            'Content-Type': 'application/json' 
+        },
         body: JSON.stringify({ message: finalMessage, content: encodedContent, sha })
     });
 
@@ -4634,7 +4639,11 @@ ${urls.map(u => `  <url>
                 const responseData = file?.content || [];
                 return new Response(JSON.stringify(responseData), { 
                     status: 200, 
-                    headers: { ...headers, 'X-Worker-Version': '1.0.5' } 
+                    headers: { 
+                        ...headers, 
+                        'X-Worker-Version': '1.0.6',
+                        'X-Debug-Time': Date.now().toString()
+                    } 
                 });
             } catch (e: any) {
                 return new Response(JSON.stringify([]), { status: 200, headers });
