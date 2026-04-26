@@ -4021,62 +4021,9 @@ export function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                {/* MAIN ACTION CARDS */}
-                <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Card Generator */}
-                  <button
-                    onClick={() => setIsInterviewGeneratorOpen(true)}
-                    className="relative group overflow-hidden bg-white/5 border border-white/10 rounded-[2.5rem] p-10 text-left hover:border-neon-cyan/50 transition-all flex flex-col justify-between h-[350px]"
-                  >
-                    <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all">
-                      <Sparkles className="w-40 h-40 text-neon-cyan" />
-                    </div>
-                    <div className="relative z-10">
-                      <div className="w-16 h-16 bg-neon-cyan/10 rounded-3xl flex items-center justify-center border border-neon-cyan/30 mb-6 group-hover:scale-110 transition-transform">
-                        <FileText className="w-8 h-8 text-neon-cyan" />
-                      </div>
-                      <h3 className="text-3xl font-display font-black text-white uppercase italic mb-2 tracking-tighter">
-                        Générateur{" "}
-                        <span className="text-neon-cyan">de fiches</span>
-                      </h3>
-                      <p className="text-gray-500 text-xs font-bold uppercase tracking-widest leading-relaxed max-w-[250px]">
-                        Créez des fiches de questions personnalisées pour vos
-                        interviews.
-                      </p>
-                    </div>
-                    <div className="relative z-10 flex items-center gap-2 text-neon-cyan font-black uppercase text-[10px] tracking-widest border border-neon-cyan/20 bg-neon-cyan/10 px-6 py-3 rounded-xl w-max group-hover:bg-neon-cyan group-hover:text-black transition-all">
-                      Ouvrir l'outil <ChevronRight className="w-4 h-4" />
-                    </div>
-                  </button>
-
-                  {/* Visuals Generator */}
-                  <button
-                    onClick={() => navigate("/interview-visuals")}
-                    className="relative group overflow-hidden bg-white/5 border border-white/10 rounded-[2.5rem] p-10 text-left hover:border-pink-500/50 transition-all flex flex-col justify-between h-[350px]"
-                  >
-                    <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all">
-                      <ImageIcon className="w-40 h-40 text-pink-500" />
-                    </div>
-                    <div className="relative z-10">
-                      <div className="w-16 h-16 bg-pink-500/10 rounded-3xl flex items-center justify-center border border-pink-500/30 mb-6 group-hover:scale-110 transition-transform">
-                        <ImageIcon className="w-8 h-8 text-pink-500" />
-                      </div>
-                      <h3 className="text-3xl font-display font-black text-white uppercase italic mb-2 tracking-tighter">
-                        Visuels <span className="text-pink-500">Instagram</span>
-                      </h3>
-                      <p className="text-gray-500 text-xs font-bold uppercase tracking-widest leading-relaxed max-w-[250px]">
-                        Générez des visuels promo pour les réseaux sociaux.
-                      </p>
-                    </div>
-                    <div className="relative z-10 flex items-center gap-2 text-pink-500 font-black uppercase text-[10px] tracking-widest border border-pink-500/20 bg-pink-500/10 px-6 py-3 rounded-xl w-max group-hover:bg-pink-500 group-hover:text-white transition-all">
-                      Gérer les visuels <ChevronRight className="w-4 h-4" />
-                    </div>
-                  </button>
-                </div>
-
-                {/* RANDOMIZER SIDEBAR */}
-                <div className="lg:col-span-4">
+              <div className="grid grid-cols-1 gap-10">
+                {/* RANDOMIZER ONLY */}
+                <div className="w-full">
                   <InterviewRandomizer />
                 </div>
               </div>
@@ -5558,28 +5505,7 @@ export function AdminDashboard() {
                     </Link>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      setIsInterviewGeneratorOpen(true);
-                      setIsInterviewModalOpen(false);
-                    }}
-                    className="w-full p-6 mb-4 bg-neon-red/5 border border-neon-red/20 rounded-3xl flex items-center justify-between hover:bg-neon-red/10 hover:border-neon-red/40 transition-all group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-neon-red/20 rounded-xl border border-neon-red/30">
-                        <Columns className="w-5 h-5 text-neon-red" />
-                      </div>
-                      <div className="text-left">
-                        <h3 className="font-bold text-white uppercase italic tracking-tight">
-                          Générateur de Fiches Questions
-                        </h3>
-                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">
-                          Créer des visuels A5 pour réseaux sociaux
-                        </p>
-                      </div>
-                    </div>
-                    <Plus className="w-5 h-5 text-neon-red group-hover:rotate-90 transition-transform" />
-                  </button>
+
 
                   <Link
                     to="/admin/manage?tab=Interviews"
@@ -6995,7 +6921,7 @@ export function AdminDashboard() {
                         </span>
                       </h2>
                       <p className="text-gray-400 font-medium">
-                        Contrôle des articles, médias et générateur de fiches
+                        Contrôle des articles et médias editorial
                       </p>
                     </div>
                     <button
@@ -7105,45 +7031,7 @@ export function AdminDashboard() {
                       </div>
                     </Link>
 
-                    <button
-                      onClick={() => {
-                        setIsInterviewGeneratorOpen(true);
-                        setIsContenuModalOpen(false);
-                      }}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                        <FileText className="w-6 h-6 text-neon-red" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
-                          Fiches
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Générateur Questions
-                        </p>
-                      </div>
-                    </button>
 
-                    <button
-                      onClick={() => {
-                        setIsInterviewVisualsModalOpen(true);
-                        setIsContenuModalOpen(false);
-                      }}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                        <ImageIcon className="w-6 h-6 text-neon-cyan" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
-                          Visuels
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Générateur Interview
-                        </p>
-                      </div>
-                    </button>
                   </div>
                 </motion.div>
               </div>
