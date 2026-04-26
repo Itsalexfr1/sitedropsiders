@@ -4,7 +4,7 @@ import {
     Sparkles, Copy, Check, Instagram, Facebook,
     RefreshCw, Pencil, Image as ImageIcon, Upload, Trash2,
     Layout, Heart, MessageCircle, Repeat2, Bookmark, Share2,
-    ThumbsUp, Globe, ChevronDown, MoreHorizontal, X
+    ThumbsUp, Globe, ChevronDown, MoreHorizontal, X, ChevronLeft
 } from 'lucide-react';
 import { XIcon } from '../ui/XIcon';
 import { uploadFile } from '../../utils/uploadService';
