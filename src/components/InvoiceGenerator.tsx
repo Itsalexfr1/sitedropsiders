@@ -196,9 +196,7 @@ export function InvoiceGenerator() {
     const [eventDate2, setEventDate2] = useState(''); // optional end date
 
     const [view, setView] = useState<'edit' | 'archive' | 'clients' | 'settings'>('edit');
-    const [history, setHistory] = useState<any[]>([
-        { id: 'TEST-FRONT', client: 'TEST AFFICHAGE', total: 500, date: '2026-04-26', number: 'FRONT-001', paid: false }
-    ]);
+    const [history, setHistory] = useState<any[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
     const [showEmailModal, setShowEmailModal] = useState(false);
@@ -263,7 +261,7 @@ export function InvoiceGenerator() {
         } catch { } finally { setIsLoadingHistory(false); }
     };
     useEffect(() => { 
-        // fetchHistory(); 
+        fetchHistory(); 
     }, []);
 
     const saveSenderSettings = () => {
@@ -506,262 +504,197 @@ export function InvoiceGenerator() {
             <div className="flex-1 overflow-y-auto pb-28 md:pb-8">
                 <AnimatePresence mode="wait">
 
-                    {/* ========== EDIT TAB ========== */}
                     {view === 'edit' && (
                         <motion.div key="edit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8">
+                            className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8 items-start">
 
-                            {/* LEFT */}
-                            <div className="lg:col-span-7 space-y-6">
+                            {/* LEFT: FORM (8 columns) */}
+                            <div className="lg:col-span-8 space-y-6">
 
                                 {/* Invoice meta */}
                                 <div className={cardCls + " space-y-4"}>
                                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Numéro & Date</h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className={labelCls}>N° Facture</label>
-                                            <input type="number" value={invoiceNumber} onChange={e => setInvoiceNumber(parseInt(e.target.value) || 1)}
-                                                className={inputCls + " font-black text-lg"} />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className={labelCls}>N° Facture</label>
+                                                <input type="number" value={invoiceNumber} onChange={e => setInvoiceNumber(parseInt(e.target.value) || 1)}
+                                                    className={inputCls + " font-black text-lg"} />
+                                            </div>
+                                            <div>
+                                                <label className={labelCls}>Date</label>
+                                                <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputCls} />
+                                            </div>
                                         </div>
                                         <div>
-                                            <label className={labelCls}>Date</label>
-                                            <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputCls} />
-                                        </div>
-                                        <div className="col-span-2">
                                             <label className={labelCls}>Échéance (optionnel)</label>
                                             <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className={inputCls} />
                                         </div>
                                     </div>
-                                    <div className="bg-indigo-500/10 rounded-xl px-4 py-2">
+                                    <div className="bg-indigo-500/10 rounded-xl px-4 py-2 flex items-center justify-between">
                                         <p className="text-[10px] text-indigo-300 font-mono">Réf : <span className="text-indigo-200 font-black">{formattedNumber}</span></p>
+                                        <div className="text-[10px] text-indigo-400/50 uppercase font-black">Année {new Date(date).getFullYear()}</div>
                                     </div>
                                 </div>
 
                                 {/* Client */}
                                 <div className={cardCls + " space-y-4"}>
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Client</h3>
+                                        <div className="flex items-center gap-3">
+                                            <Users className="w-4 h-4 text-indigo-400" />
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Destinataire</h3>
+                                        </div>
                                         <div className="flex gap-2">
-                                            <button onClick={saveClient} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-1 transition-all">
-                                                <Save className="w-3 h-3" /> ENREGISTRER CLIENT
+                                            <button onClick={saveClient} className="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-1 transition-all">
+                                                <Save className="w-3 h-3" /> SAUVEGARDER
                                             </button>
                                             {savedClients.length > 0 && (
-                                                <button onClick={() => setShowClientPicker(true)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-1 transition-all">
-                                                    <User className="w-3 h-3" /> Clients ({savedClients.length})
+                                                <button onClick={() => setShowClientPicker(true)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-white/50 flex items-center gap-1 transition-all">
+                                                    <User className="w-3 h-3" /> CARNET ({savedClients.length})
                                                 </button>
                                             )}
                                         </div>
                                     </div>
-                                    {[
-                                        { label: 'Nom / Société', value: clientName, setter: setClientName, placeholder: 'Nom du client' },
-                                        { label: 'Adresse', value: clientAddress, setter: setClientAddress, placeholder: '12 rue des Lilas' },
-                                        { label: 'Ville', value: clientCity, setter: setClientCity, placeholder: 'Paris, 75001' },
-                                        { label: 'Email', value: clientEmail, setter: setClientEmail, placeholder: 'client@exemple.com' },
-                                    ].map(f => (
-                                        <div key={f.label}>
-                                            <label className={labelCls}>{f.label}</label>
-                                            <input value={f.value} onChange={e => f.setter(e.target.value)} placeholder={f.placeholder} className={inputCls} />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="md:col-span-1">
+                                            <label className={labelCls}>Nom / Société</label>
+                                            <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Dropsiders" className={inputCls} />
                                         </div>
-                                    ))}
-                                </div>
-
-                                {/* Bank */}
-                                <div className={cardCls + " space-y-4"}>
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Coordonnées Bancaires</h3>
-                                    <div>
-                                        <label className={labelCls}>IBAN</label>
-                                        <input value={iban} onChange={e => setIban(e.target.value)} placeholder="FR76 0000 0000 0000..." className={inputCls + " font-mono"} />
-                                    </div>
-                                    <div>
-                                        <label className={labelCls}>BIC / SWIFT</label>
-                                        <input value={bic} onChange={e => setBic(e.target.value)} placeholder="REVOFR22XXX" className={inputCls + " font-mono"} />
+                                        <div className="md:col-span-1">
+                                            <label className={labelCls}>Email</label>
+                                            <input value={clientEmail} onChange={e => setClientEmail(e.target.value)} placeholder="client@exemple.com" className={inputCls} />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className={labelCls}>Adresse complète</label>
+                                            <textarea value={clientAddress} onChange={e => setClientAddress(e.target.value)} placeholder="12 rue des Lilas..." className={inputCls + " h-20 resize-none"} />
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Notes */}
+                                {/* Lignes de Facturation */}
                                 <div className={cardCls + " space-y-4"}>
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Notes (optionnel)</h3>
-                                    <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Conditions de paiement, remarques..."
-                                        className={inputCls + " resize-none h-24"} />
-                                </div>
-                            </div>
-
-                            {/* RIGHT */}
-                            <div className="lg:col-span-7 space-y-6">
-                                {/* Event auto-fill */}
-                                <div className={cardCls + " space-y-4"}>
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Événement (auto-remplissage)</h3>
-                                        <button
-                                            onClick={() => {
-                                                if (!eventClub && !eventDate) return;
-                                                const dateStr = eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-                                                const date2Str = eventDate2 ? ` → ${new Date(eventDate2).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}` : '';
-                                                const desc = [lines[0]?.description?.split(' – ')[0] || 'Prestation Light', eventClub, `${dateStr}${date2Str}`].filter(Boolean).join(' – ');
-                                                updateLine(lines[0]?.id, 'description', desc);
-                                            }}
-                                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-[9px] font-black uppercase tracking-widest text-white flex items-center gap-1 transition-all">
-                                            ✦ Appliquer à la 1ère ligne
-                                        </button>
-                                    </div>
-                                    <p className="text-[10px] text-white/20">Remplis les champs ci-dessous pour générer automatiquement la description de la prestation.</p>
-                                    <div>
-                                        <label className={labelCls}>Nom du Club / Lieu</label>
-                                        <input value={eventClub} onChange={e => setEventClub(e.target.value)}
-                                            placeholder="Club XYZ, Salle Metropolis..." className={inputCls} />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <label className={labelCls}>Date début</label>
-                                            <input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputCls} />
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-3">
+                                            <Plus className="w-4 h-4 text-indigo-400" />
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Articles & Services</h3>
                                         </div>
-                                        <div>
-                                            <label className={labelCls}>Date fin (optionnel)</label>
-                                            <input type="date" value={eventDate2} onChange={e => setEventDate2(e.target.value)} className={inputCls} />
-                                        </div>
-                                    </div>
-                                    {(eventClub || eventDate) && (
-                                        <div className="bg-indigo-500/10 rounded-xl px-4 py-2">
-                                            <p className="text-[10px] text-indigo-300 font-mono italic">
-                                                "{[lines[0]?.description?.split(' – ')[0] || 'Prestation Light', eventClub, eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''].filter(Boolean).join(' – ')}"
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className={cardCls + " space-y-4"}>
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Lignes de Facturation</h3>
-                                        <button onClick={addLine} className="px-4 py-2 bg-indigo-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-800 transition-all">
-                                            <Plus className="w-3 h-3" /> Ajouter
+                                        <button onClick={addLine} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20">
+                                            <Plus className="w-3 h-3" /> Ajouter une ligne
                                         </button>
                                     </div>
 
-                                    <div className="grid grid-cols-12 gap-2 px-2">
-                                        <div className="col-span-5 text-[9px] font-black text-gray-400 uppercase tracking-widest">Description</div>
-                                        <div className="col-span-2 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Qté</div>
-                                        <div className="col-span-3 text-[9px] font-black text-gray-400 uppercase tracking-widest text-right">P.U. (€)</div>
-                                        <div className="col-span-2 text-[9px] font-black text-gray-400 uppercase tracking-widest text-right">Total</div>
-                                    </div>
-
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                         {lines.map((line, i) => (
-                                            <motion.div key={line.id} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                                                className="grid grid-cols-12 gap-2 items-center">
-                                                <div className="col-span-5 relative">
-                                                    <input value={line.description} onChange={e => updateLine(line.id, 'description', e.target.value)}
-                                                        placeholder={`Prestation ${i + 1}`}
-                                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-indigo-400 transition-all placeholder:text-gray-300 pr-8" />
-                                                    {savedArticles.length > 0 && (
-                                                        <button onClick={() => setShowArticlePicker(showArticlePicker === line.id ? null : line.id)}
-                                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-300 hover:text-indigo-600 transition-colors" title="Choisir un article">
-                                                            <BookOpen className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    )}
-                                                    {/* Article picker dropdown */}
-                                                    {showArticlePicker === line.id && (
-                                                        <div className="absolute top-full left-0 mt-1 w-72 bg-white border border-indigo-100 rounded-xl shadow-xl z-50 overflow-hidden">
-                                                            {savedArticles.map(a => (
-                                                                <button key={a.id} onClick={() => pickArticle(line.id, a)}
-                                                                    className="w-full px-4 py-3 text-left hover:bg-indigo-50 flex justify-between items-center border-b border-gray-50 last:border-0 transition-all">
-                                                                    <span className="text-sm font-medium text-gray-800">{a.description}</span>
-                                                                    <span className="text-xs font-black text-indigo-600 ml-2 shrink-0">{a.unitPrice.toFixed(2)} €</span>
+                                            <motion.div key={line.id} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}
+                                                className="bg-white/5 border border-white/5 rounded-2xl p-4 space-y-4 relative group">
+                                                <div className="flex items-start gap-4">
+                                                    <div className="flex-1 space-y-3">
+                                                        <div>
+                                                            <label className={labelCls}>Description</label>
+                                                            <div className="relative">
+                                                                <input value={line.description} onChange={e => updateLine(line.id, 'description', e.target.value)}
+                                                                    placeholder={`Prestation ${i + 1}`}
+                                                                    className={inputCls + " pr-10"} />
+                                                                <button onClick={() => setShowArticlePicker(showArticlePicker === line.id ? null : line.id)}
+                                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-400 hover:text-indigo-300 transition-colors">
+                                                                    <BookOpen className="w-4 h-4" />
                                                                 </button>
-                                                            ))}
+                                                                {showArticlePicker === line.id && (
+                                                                    <div className="absolute top-full left-0 mt-2 w-full bg-[#1e223a] border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden backdrop-blur-xl">
+                                                                        {savedArticles.map(a => (
+                                                                            <button key={a.id} onClick={() => { pickArticle(line.id, a); setShowArticlePicker(null); }}
+                                                                                className="w-full px-5 py-4 text-left hover:bg-white/5 flex justify-between items-center border-b border-white/5 last:border-0 transition-all">
+                                                                                <span className="text-sm font-bold text-white">{a.description}</span>
+                                                                                <span className="text-xs font-black text-indigo-400 ml-2 shrink-0">{a.unitPrice.toFixed(2)} €</span>
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    )}
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <input type="number" value={line.quantity} onChange={e => updateLine(line.id, 'quantity', parseFloat(e.target.value) || 0)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm text-center focus:outline-none focus:border-indigo-400 transition-all" />
-                                                </div>
-                                                <div className="col-span-3">
-                                                    <input type="number" value={line.unitPrice} onChange={e => updateLine(line.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm text-right focus:outline-none focus:border-indigo-400 transition-all" />
-                                                </div>
-                                                <div className="col-span-1 text-right text-sm font-bold text-indigo-500">
-                                                    {(line.quantity * line.unitPrice).toFixed(0)}€
-                                                </div>
-                                                <div className="col-span-1 flex justify-end gap-1">
-                                                    <button onClick={() => saveLineAsArticle(line)} title="Sauvegarder comme article"
-                                                        className="p-1 text-gray-200 hover:text-indigo-400 transition-colors">
-                                                        <Save className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    {lines.length > 1 && (
-                                                        <button onClick={() => removeLine(line.id)} className="p-1 text-gray-200 hover:text-red-500 transition-colors">
-                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        <div className="grid grid-cols-3 gap-4">
+                                                            <div>
+                                                                <label className={labelCls}>Quantité</label>
+                                                                <input type="number" value={line.quantity} onChange={e => updateLine(line.id, 'quantity', parseFloat(e.target.value) || 0)}
+                                                                    className={inputCls + " text-center"} />
+                                                            </div>
+                                                            <div>
+                                                                <label className={labelCls}>Prix Unitaire (€)</label>
+                                                                <input type="number" value={line.unitPrice} onChange={e => updateLine(line.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                                                    className={inputCls + " text-right"} />
+                                                            </div>
+                                                            <div>
+                                                                <label className={labelCls}>Total</label>
+                                                                <div className="h-[46px] flex items-center justify-end px-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400 font-black">
+                                                                    {(line.quantity * line.unitPrice).toFixed(2)} €
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col gap-2 pt-6">
+                                                        <button onClick={() => saveLineAsArticle(line)} title="Sauvegarder"
+                                                            className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-white/30 hover:text-indigo-400 transition-all">
+                                                            <Save className="w-4 h-4" />
                                                         </button>
-                                                    )}
+                                                        {lines.length > 1 && (
+                                                            <button onClick={() => removeLine(line.id)}
+                                                                className="p-2.5 bg-white/5 hover:bg-red-500/10 rounded-xl text-white/30 hover:text-red-500 transition-all">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </motion.div>
                                         ))}
                                     </div>
-
-                                    <div className="pt-4 border-t border-white/5">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm text-white/40">Sous-total HT</span>
-                                            <span className="text-sm font-bold text-white/60">{total.toFixed(2)} €</span>
-                                        </div>
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="text-xs text-white/20">TVA</span>
-                                            <span className="text-xs text-white/20">Non applicable (art. 293B CGI)</span>
-                                        </div>
-                                        <div className="bg-indigo-700 rounded-2xl px-6 py-4 flex justify-between items-center">
-                                            <span className="text-white font-black uppercase tracking-widest text-sm">Total TTC</span>
-                                            <span className="text-white font-black text-2xl">{total.toFixed(2)} €</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Mini preview */}
-                                <div className={cardCls}>
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400 mb-4">Aperçu</h3>
-                                    <div className="bg-white/[0.03] border border-white/5 rounded-xl p-5 shadow-inner">
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div>
-                                                <div className="font-black text-sm uppercase text-white">{sender.name}</div>
-                                                <div className="text-[10px] text-indigo-300">{sender.siret}</div>
-                                                <div className="text-[10px] text-indigo-300">{sender.email}</div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="font-black text-base uppercase text-white">FACTURE</div>
-                                                <div className="text-xs text-white/40">{formattedNumber}</div>
-                                                <div className="text-xs text-white/40">{new Date(date).toLocaleDateString('fr-FR')}</div>
-                                            </div>
-                                        </div>
-                                        <div className="h-px bg-white/10 mb-2" />
-                                        <div className="text-[10px] text-white/30 mb-0.5">Facturé à</div>
-                                        <div className="font-bold text-sm text-white">{clientName || '—'}</div>
-                                        <div className="text-xs text-white/40">{clientAddress}</div>
-                                        <div className="h-px bg-white/10 my-2" />
-                                        {lines.filter(l => l.description).map(l => (
-                                            <div key={l.id} className="flex justify-between text-xs py-0.5 text-white/70">
-                                                <span className="font-bold italic">{l.description}</span>
-                                                <span className="font-bold">{(l.quantity * l.unitPrice).toFixed(2)} €</span>
-                                            </div>
-                                        ))}
-                                        <div className="h-px bg-white/10 my-2" />
-                                        <div className="flex justify-between font-black text-sm text-white">
-                                            <span>TOTAL TTC</span>
-                                            <span className="text-indigo-400">{total.toFixed(2)} €</span>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
- 
-                            {/* RIGHT COLUMN: PREVIEW (Sticky) */}
-                            <div className="hidden lg:block lg:col-span-5 sticky top-8">
-                                <div className="bg-white/5 border border-white/10 rounded-3xl shadow-2xl overflow-hidden min-h-[850px] flex flex-col backdrop-blur-sm">
-                                    <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/5">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Aperçu interactif (A4)</h3>
-                                        <div className="flex gap-1.5">
-                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500/20"></div>
-                                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/20"></div>
-                                            <div className="w-2.5 h-2.5 rounded-full bg-green-500/20"></div>
+
+                            {/* RIGHT: PREVIEW & TOTAL (4 columns, Sticky) */}
+                            <div className="lg:col-span-4 lg:sticky lg:top-8 space-y-6">
+                                {/* Total Card */}
+                                <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-[2rem] p-8 text-white shadow-2xl shadow-indigo-500/20 relative overflow-hidden group">
+                                    <div className="relative z-10">
+                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mb-2">Total à régler</div>
+                                        <div className="text-4xl font-black mb-1 flex items-baseline gap-2">
+                                            {total.toFixed(2)}
+                                            <span className="text-xl opacity-60">€</span>
+                                        </div>
+                                        <div className="h-px bg-white/10 my-4" />
+                                        <div className="text-[10px] font-black uppercase tracking-widest opacity-40 leading-relaxed">
+                                            TVA non applicable<br/>Article 293 B du CGI
                                         </div>
                                     </div>
-                                    <div className="flex-1 overflow-auto bg-black/40 p-8 scrollbar-hide">
-                                        <div className="bg-white shadow-2xl mx-auto origin-top" style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.5)' }}>
-                                            <iframe srcDoc={buildInvoiceHTML(getInvoiceData())} title="Preview" className="w-full h-full border-0" style={{ minHeight: '1122px' }} />
+                                    <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700" />
+                                </div>
+
+                                {/* Quick Preview Box */}
+                                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-md">
+                                    <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/5">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Aperçu interactif</h3>
+                                        <div className="flex gap-1">
+                                            <div className="w-2 h-2 rounded-full bg-red-500/40"></div>
+                                            <div className="w-2 h-2 rounded-full bg-yellow-500/40"></div>
+                                            <div className="w-2 h-2 rounded-full bg-green-500/40"></div>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-black/20 flex justify-center">
+                                        {/* Scale down the A4 preview to fit sidebar */}
+                                        <div className="bg-white shadow-2xl origin-top" style={{ width: '210mm', height: '297mm', transform: 'scale(0.25)', marginBottom: '-222mm' }}>
+                                            <iframe srcDoc={buildInvoiceHTML(getInvoiceData())} title="Preview" className="w-full h-full border-0" style={{ pointerEvents: 'none' }} />
+                                        </div>
+                                    </div>
+                                    <div className="p-4 border-t border-white/5 flex flex-col gap-3">
+                                        <button onClick={handlePrint} className="w-full py-3 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gray-200 transition-all">
+                                            <Printer className="w-4 h-4" /> Imprimer / PDF
+                                        </button>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <button onClick={handleDownload} className="py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-white flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
+                                                <BookOpen className="w-3.5 h-3.5" /> HTML
+                                            </button>
+                                            <button onClick={openEmail} className="py-3 bg-indigo-500 rounded-xl text-[9px] font-black uppercase tracking-widest text-white flex items-center justify-center gap-2 hover:bg-indigo-600 transition-all">
+                                                <Send className="w-3.5 h-3.5" /> Email
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -962,6 +895,22 @@ export function InvoiceGenerator() {
                                             placeholder={f.placeholder} className={inputCls} />
                                     </div>
                                 ))}
+                                
+                                {/* Coordonnées Bancaires */}
+                                <div className="pt-6 border-t border-white/5 space-y-4">
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Coordonnées Bancaires</h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className={labelCls}>IBAN</label>
+                                            <input value={iban} onChange={e => setIban(e.target.value)} placeholder="FR76 0000..." className={inputCls + " font-mono"} />
+                                        </div>
+                                        <div>
+                                            <label className={labelCls}>BIC / SWIFT</label>
+                                            <input value={bic} onChange={e => setBic(e.target.value)} placeholder="REVOFR22..." className={inputCls + " font-mono"} />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mt-2">
                                     <p className="text-[10px] text-indigo-400 font-bold">Ces informations apparaîtront sur toutes vos factures générées.</p>
                                 </div>
