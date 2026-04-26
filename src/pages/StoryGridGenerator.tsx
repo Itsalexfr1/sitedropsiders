@@ -19,6 +19,7 @@ import {
 import { toBlob } from 'html-to-image';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { ExportSuccessModal } from '../components/ExportSuccessModal';
+import { resolveImageUrl } from '../utils/image';
 
 interface StoryItem {
     id: string;
@@ -172,10 +173,10 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         // Map to StoryItem with guaranteed unique IDs and cache-busting
         const generationTimestamp = Date.now();
         const wikiItems: StoryItem[] = selected.map((item, idx) => {
-            const rawImg = item.image || item.photo || null;
+            const rawImg = resolveImageUrl(item.image || item.photo || null);
             let displayImg = rawImg;
             
-            if (rawImg && rawImg.startsWith('http') && !rawImg.includes('blob:') && !rawImg.includes('data:')) {
+            if (rawImg && rawImg.startsWith('http') && !rawImg.includes('blob:') && !rawImg.includes('data:') && !rawImg.includes('dropsiders.fr')) {
                 displayImg = `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=300&h=300&fit=cover&v=${generationTimestamp}-${idx}`;
             }
 
@@ -212,8 +213,9 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
             if (item.id === id) {
                 const newItem = { ...item, ...updates };
                 if (updates.image !== undefined) {
-                    const rawImg = newItem.image;
-                    if (rawImg && rawImg.startsWith('http') && !rawImg.includes('blob:') && !rawImg.includes('data:')) {
+                    const rawImg = resolveImageUrl(newItem.image);
+                    newItem.image = rawImg;
+                    if (rawImg && rawImg.startsWith('http') && !rawImg.includes('blob:') && !rawImg.includes('data:') && !rawImg.includes('dropsiders.fr')) {
                         newItem.displayImage = `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=300&h=300&fit=cover&v=${Date.now()}-${item.id}`;
                     } else {
                         newItem.displayImage = rawImg;
