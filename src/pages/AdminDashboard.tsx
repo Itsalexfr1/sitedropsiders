@@ -5967,7 +5967,10 @@ export function AdminDashboard() {
           <AnimatePresence>
             {isInterviewGeneratorOpen && (
               <InterviewGenerator
-                onClose={() => setIsInterviewGeneratorOpen(false)}
+                onClose={() => {
+                  setIsInterviewGeneratorOpen(false);
+                  setIsGeneratorsModalOpen(true);
+                }}
               />
             )}
           </AnimatePresence>
@@ -11000,7 +11003,7 @@ export function AdminDashboard() {
                                               deleteR2Object(item.key),
                                           });
                                         }}
-                                        className="p-2 bg-neon-red/20 hover:bg-neon-red text-neon-red hover:text-white rounded-lg transition-all"
+                                        className="p-2 bg-neon-red/20 hover:bg-neon-red text-neon-red hover:text-black rounded-lg transition-all"
                                         title="Supprimer définitivement"
                                       >
                                         <Trash2 className="w-4 h-4" />
@@ -12007,7 +12010,10 @@ export function AdminDashboard() {
           />
           <ScheduleVisualGenerator
             isOpen={isScheduleModalOpen}
-            onClose={() => setIsScheduleModalOpen(false)}
+            onClose={() => {
+              setIsScheduleModalOpen(false);
+              setIsGeneratorsModalOpen(true);
+            }}
           />
 
           {/* TOP DROPSIDERS MODAL */}
