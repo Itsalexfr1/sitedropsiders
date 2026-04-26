@@ -234,7 +234,11 @@ async function fetchGitHubFile(filePath, config) {
 
     const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}?t=${Date.now()}`;
     const response = await fetch(getUrl, {
-        headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
+        headers: { 
+            'Authorization': `token ${TOKEN}`, 
+            'User-Agent': 'Cloudflare-Worker', 
+            'Accept': 'application/vnd.github.v3+json' 
+        }
     });
     const fileData = await response.json();
     if (!response.ok) {
@@ -247,7 +251,7 @@ async function fetchGitHubFile(filePath, config) {
         content = utf8Decode(fileData.content);
     } else if (fileData.download_url) {
         const rawRes = await fetch(fileData.download_url, {
-            headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker' }
+            headers: { 'Authorization': `token ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker' }
         });
         if (rawRes.ok) content = await rawRes.text();
         else return null;
