@@ -262,7 +262,9 @@ export function InvoiceGenerator() {
             if (res.ok) setHistory(await res.json());
         } catch { } finally { setIsLoadingHistory(false); }
     };
-    useEffect(() => { fetchHistory(); }, []);
+    useEffect(() => { 
+        // fetchHistory(); 
+    }, []);
 
     const saveSenderSettings = () => {
         setSender(senderDraft);
