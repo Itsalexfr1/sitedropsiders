@@ -1847,6 +1847,11 @@ ${urls.map(u => `  <url>
                 return new Response(JSON.stringify({ error: 'Permission refusée : broadcast' }), { status: 403, headers });
             }
 
+            // 6b. Invoices (Master Only)
+            if (path.startsWith('/api/invoices') && !hasAll) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : facturation' }), { status: 403, headers });
+            }
+
             // 7. Spotify
             if (path === '/api/spotify/update' && !hasAll && !userPermissions.includes('musique') && !userPermissions.includes('musique_releases')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : musique' }), { status: 403, headers });
