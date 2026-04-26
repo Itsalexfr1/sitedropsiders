@@ -2879,7 +2879,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <ExportSuccessModal 
                 isOpen={!!readyVideoBlob} 
                 onClose={() => {
-                    if (readyVideoUrl) URL.revokeObjectURL(readyUrl);
+                    if (readyVideoUrl) URL.revokeObjectURL(readyVideoUrl);
                     setReadyVideoBlob(null);
                     setReadyVideoUrl('');
                 }}
