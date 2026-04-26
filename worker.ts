@@ -4633,6 +4633,28 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path === '/api/debug-invoices') {
+            try {
+                const getUrl = `https://api.github.com/repos/${gitConfig.OWNER}/${gitConfig.REPO}/contents/src/data/invoices.json?t=${Date.now()}`;
+                const res = await fetch(getUrl, {
+                    headers: { 
+                        'Authorization': `Bearer ${gitConfig.TOKEN}`, 
+                        'User-Agent': 'Cloudflare-Worker',
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                const data = await res.json();
+                return new Response(JSON.stringify({ 
+                    status: res.status, 
+                    statusText: res.statusText,
+                    config: { OWNER: gitConfig.OWNER, REPO: gitConfig.REPO, hasToken: !!gitConfig.TOKEN },
+                    data 
+                }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/invoices/update' && request.method === 'POST') {
             try {
                 const { id, paid } = await request.json();
