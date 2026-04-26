@@ -14,7 +14,8 @@ import {
     Lock,
     Unlock,
     Sparkles,
-    Loader2
+    Loader2,
+    ChevronLeft
 } from 'lucide-react';
 import { toBlob } from 'html-to-image';
 import { getAuthHeaders, apiFetch } from '../utils/auth';

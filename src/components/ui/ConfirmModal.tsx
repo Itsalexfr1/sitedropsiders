@@ -1,6 +1,15 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Info, X } from 'lucide-react';
 
+export interface ConfirmModalData {
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type?: 'danger' | 'warning' | 'info';
+    confirmText?: string;
+    onConfirm?: () => void;
+}
+
 interface ConfirmModalProps {
     isOpen: boolean;
     title: string;

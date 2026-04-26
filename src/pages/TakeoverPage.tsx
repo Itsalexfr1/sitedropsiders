@@ -3947,7 +3947,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                 return (
                                                     <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all relative overflow-hidden group ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : isPast ? 'opacity-40 grayscale-[0.5] bg-black/20 border-white/5' : 'bg-white/5 border-white/10'}`}>
                                                         {item.image && (<img 
-                                                            src={resolveImageUrl(item.image, item.artist || item.name)} 
+                                                            src={resolveImageUrl(item.image, item.artist)} 
                                                             alt="" 
                                                             className={`absolute inset-0 w-full h-full object-cover object-center ${isPast ? 'opacity-10' : 'opacity-30'} group-hover:opacity-45 group-hover:scale-105 transition-all duration-700 pointer-events-none`} 
                                                         />)}

@@ -1056,9 +1056,9 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
                 message={confirmModal.message}
                 onConfirm={() => {
                     confirmModal.onConfirm?.();
-                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                    setConfirmModal((prev: ConfirmModalData) => ({ ...prev, isOpen: false }));
                 }}
-                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                onCancel={() => setConfirmModal((prev: ConfirmModalData) => ({ ...prev, isOpen: false }))}
                 type={confirmModal.type}
                 confirmText={confirmModal.confirmText}
             />
