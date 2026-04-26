@@ -196,7 +196,9 @@ export function InvoiceGenerator() {
     const [eventDate2, setEventDate2] = useState(''); // optional end date
 
     const [view, setView] = useState<'edit' | 'archive' | 'clients' | 'settings'>('edit');
-    const [history, setHistory] = useState<any[]>([]);
+    const [history, setHistory] = useState<any[]>([
+        { id: 'TEST-FRONT', client: 'TEST AFFICHAGE', total: 500, date: '2026-04-26', number: 'FRONT-001', paid: false }
+    ]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
     const [showEmailModal, setShowEmailModal] = useState(false);
