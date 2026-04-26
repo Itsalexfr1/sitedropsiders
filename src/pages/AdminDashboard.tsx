@@ -5834,10 +5834,14 @@ export function AdminDashboard() {
                       </p>
                     </div>
                     <button
-                      onClick={() => setIsSocialModalOpen(false)}
-                      className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                      onClick={() => {
+                        setIsSocialModalOpen(false);
+                        setIsGeneratorsModalOpen(true);
+                      }}
+                      className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(0,255,243,0.2)]"
                     >
-                      <X className="w-6 h-6" />
+                      <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                      RETOUR
                     </button>
                   </div>
 
@@ -13161,10 +13165,14 @@ export function AdminDashboard() {
                 >
                   <div className="absolute top-6 left-6 md:top-10 md:left-10 z-[120]">
                     <button
-                      onClick={() => setIsRandomizerModalOpen(false)}
-                      className="p-4 bg-white/5 hover:bg-neon-red/20 border border-white/10 rounded-2xl text-gray-500 hover:text-white transition-all shadow-2xl group flex items-center justify-center"
+                      onClick={() => {
+                        setIsRandomizerModalOpen(false);
+                        setIsGeneratorsModalOpen(true);
+                      }}
+                      className="p-4 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black border border-neon-cyan/30 rounded-2xl transition-all shadow-2xl group flex items-center justify-center gap-3 font-black text-[10px] uppercase tracking-widest"
                     >
-                      <X className="w-8 h-8 group-hover:rotate-90 transition-transform" />
+                      <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                      RETOUR AUX GÉNÉRATEURS
                     </button>
                   </div>
                   <div className="flex-1 w-full h-full pt-16 md:pt-20">

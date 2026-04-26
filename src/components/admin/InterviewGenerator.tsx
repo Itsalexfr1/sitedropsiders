@@ -17,7 +17,8 @@ import {
     Languages,
     Eye,
     Settings,
-    Image as ImageIcon
+    Image as ImageIcon,
+    ChevronLeft
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
@@ -500,6 +501,13 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 {/* Header Admin */}
                 <div className="p-8 md:p-10 border-b border-white/5 flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-4">
+                        <button 
+                            onClick={onClose}
+                            className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest group"
+                        >
+                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            RETOUR
+                        </button>
                         <div className={`p-4 rounded-2xl bg-black/40 border ${colors.border}`}>
                             <Layout className={`w-8 h-8 ${colors.main}`} />
                         </div>

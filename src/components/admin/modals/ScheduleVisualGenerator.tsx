@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, Image as ImageIcon, Sparkles, ChevronRight, Type, Upload } from 'lucide-react';
+import { X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, Image as ImageIcon, Sparkles, ChevronRight, Type, Upload, ChevronLeft } from 'lucide-react';
 
 interface DaySchedule {
     id: string;
@@ -364,7 +364,14 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     {/* Header */}
                     <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-neon-cyan/20 rounded-2xl border border-neon-cyan/30">
+                            <button 
+                                onClick={onClose}
+                                className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest group"
+                            >
+                                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                                RETOUR
+                            </button>
+                            <div className="p-3 bg-neon-cyan/10 rounded-2xl border border-neon-cyan/20">
                                 <Calendar className="w-6 h-6 text-neon-cyan" />
                             </div>
                             <div>

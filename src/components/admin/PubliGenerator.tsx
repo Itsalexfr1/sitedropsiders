@@ -301,9 +301,15 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                 className="relative w-full max-w-6xl bg-[#0d0d0d] border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col"
                 style={{ maxHeight: '92vh' }}
             >
-                {/* Header */}
                 <div className="flex-shrink-0 px-8 py-5 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-neon-orange/10 to-transparent">
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={onClose}
+                            className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(0,255,243,0.2)]"
+                        >
+                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            RETOUR
+                        </button>
                         <div className="p-2.5 bg-neon-orange/20 rounded-xl border border-neon-orange/30">
                             <Sparkles className="w-5 h-5 text-neon-orange" />
                         </div>
@@ -324,7 +330,6 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
 
                 {/* Body */}
                 <div className="flex-1 min-h-0 flex flex-col md:flex-row">
-                    {/* LEFT — Inputs */}
                     <div className="md:w-[38%] flex-shrink-0 flex flex-col gap-0 border-r border-white/5 overflow-y-auto custom-scrollbar">
                         <div className="p-6 flex flex-col gap-5 flex-1">
 
