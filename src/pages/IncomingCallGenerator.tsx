@@ -100,17 +100,25 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
         const previewEl = previewRef.current;
         if (!previewEl) return;
         
+        // Force preview tab on mobile to ensure element is visible for capture
+        setMobileTab('preview');
         setIsRecording(true);
         setRecordingProgress(0);
 
         try {
+            // Small delay to ensure tab switch and rendering
+            await new Promise(r => setTimeout(r, 800));
+
             // 1. Capture the UI as a transparent canvas
             const uiCanvas = await toCanvas(previewEl, {
                 pixelRatio: 1, 
                 backgroundColor: 'transparent',
-                filter: (node) => {
-                    if (node instanceof HTMLVideoElement || (node instanceof HTMLImageElement && node.className.includes('absolute inset-0'))) return false;
-                    return true;
+                filter: (node: any) => {
+                    const isVideo = node instanceof HTMLVideoElement;
+                    const isBgImg = node instanceof HTMLImageElement && 
+                                   typeof node.className === 'string' && 
+                                   node.className.includes('absolute inset-0');
+                    return !isVideo && !isBgImg;
                 }
             });
 
