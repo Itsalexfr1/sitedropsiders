@@ -4633,6 +4633,27 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path === '/api/debug-invoices') {
+            const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
+            const REPO = env.GITHUB_REPO || 'sitedropsiders';
+            const TOKEN = env.GITHUB_TOKEN;
+            try {
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/src/data/invoices.json?t=${Date.now()}`;
+                const response = await fetch(getUrl, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
+                });
+                const data = await response.json();
+                return new Response(JSON.stringify({ 
+                    status: response.status, 
+                    hasToken: !!TOKEN, 
+                    tokenStart: TOKEN ? TOKEN.substring(0, 4) : 'none',
+                    data 
+                }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/invoices' && request.method === 'GET') {
             try {
                 const file = await fetchGitHubFile('src/data/invoices.json', gitConfig);
@@ -4642,7 +4663,8 @@ ${urls.map(u => `  <url>
                     headers: { 
                         ...headers, 
                         'X-Worker-Version': '1.0.6',
-                        'X-Debug-Time': Date.now().toString()
+                        'X-Debug-Time': Date.now().toString(),
+                        'X-Debug-Auth': !!env.GITHUB_TOKEN ? 'YES' : 'NO'
                     } 
                 });
             } catch (e: any) {
