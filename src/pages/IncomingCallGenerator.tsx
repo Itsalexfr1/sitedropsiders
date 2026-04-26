@@ -67,12 +67,17 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
     const handleDownload = async () => {
         if (!previewRef.current) return;
+        
+        // Force preview tab on mobile to ensure element is visible for capture
+        setMobileTab('preview');
         setIsExporting(true);
+
         try {
-            await new Promise(r => setTimeout(r, 500));
+            // Small delay to ensure tab switch and rendering
+            await new Promise(r => setTimeout(r, 800));
             
             const blob = await toBlob(previewRef.current, {
-                pixelRatio: 2,
+                pixelRatio: window.innerWidth < 768 ? 1.5 : 2,
                 backgroundColor: bgType === 'transparent' ? undefined : '#000000',
             });
             
@@ -85,6 +90,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
             }
         } catch (err) {
             console.error("Export failed:", err);
+            alert("Erreur lors de l'exportation. Veuillez réessayer.");
         } finally {
             setIsExporting(false);
         }

@@ -243,16 +243,19 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
 
     const downloadImage = async () => {
         if (!previewRef.current || items.length === 0) return;
+        
+        // Force preview tab on mobile to ensure element is visible for capture
+        setMobileTab('preview');
         setIsGenerating(true);
 
-        // Small delay to ensure all images are painted
-        await new Promise(resolve => setTimeout(resolve, 600));
+        // Small delay to ensure tab switch and all images are painted
+        await new Promise(resolve => setTimeout(resolve, 800));
 
         try {
             const fileName = `dropsiders_grid_${Date.now()}.png`;
 
             const blob = await toBlob(previewRef.current, {
-                pixelRatio: 2,
+                pixelRatio: window.innerWidth < 768 ? 1.5 : 2,
                 backgroundColor: '#000000',
                 cacheBust: true,
             });
