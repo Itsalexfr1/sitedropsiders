@@ -24,6 +24,18 @@
     "columns": 1
   },
   {
+    "title": "Questions Aléatoires",
+    "description": "Randomizer d'Interviews",
+    "icon": "Dice5",
+    "category": "STUDIO",
+    "link": "random-questions",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-neon-red/5",
+    "permission": "news",
+    "baseColor": "#ff003c",
+    "columns": 1
+  },
+  {
     "title": "Contenu",
     "description": "News, Musique, Interviews...",
     "icon": "FileText",
