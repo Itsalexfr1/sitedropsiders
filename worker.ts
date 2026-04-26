@@ -4625,14 +4625,16 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/invoices' && request.method === 'GET') {
-            return new Response(JSON.stringify([{
-                "number": "TEST-001",
-                "client": "TEST DEBUG",
-                "total": 1000,
-                "date": "2026-04-26",
-                "id": 999,
-                "paid": false
-            }]), { status: 200, headers });
+            try {
+                const file = await fetchGitHubFile('src/data/invoices.json', gitConfig);
+                const responseData = file?.content || [];
+                return new Response(JSON.stringify(responseData), { 
+                    status: 200, 
+                    headers: { ...headers, 'X-Worker-Version': '1.0.5' } 
+                });
+            } catch (e: any) {
+                return new Response(JSON.stringify([]), { status: 200, headers });
+            }
         }
 
 
