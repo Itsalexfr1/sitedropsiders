@@ -257,7 +257,22 @@ export function InvoiceGenerator() {
             const res = await fetch('/api/invoices?t=' + Date.now(), {
                 headers: { 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }
             });
-            if (res.ok) setHistory(await res.json());
+            if (res.ok) {
+                const data = await res.json();
+                setHistory(data);
+                
+                // Auto-update next invoice number based on history
+                if (data && data.length > 0) {
+                    const numbers = data.map((inv: any) => {
+                        const parts = (inv.number || '').split('-');
+                        return parseInt(parts[parts.length - 1]) || 0;
+                    });
+                    const maxNum = Math.max(...numbers);
+                    if (maxNum >= invoiceNumber) {
+                        setInvoiceNumber(maxNum + 1);
+                    }
+                }
+            }
         } catch { } finally { setIsLoadingHistory(false); }
     };
     useEffect(() => { 
