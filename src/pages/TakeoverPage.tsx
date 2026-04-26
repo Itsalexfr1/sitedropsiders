@@ -4565,7 +4565,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                         </button>
                                         <button
                                             onClick={() => {
-                                                confirmModal.onConfirm();
+                                                confirmModal.onConfirm?.();
                                                 setConfirmModal(null);
                                             }}
                                             className="px-6 py-5 bg-neon-red hover:bg-red-700 shadow-[0_15px_40px_rgba(255,0,51,0.3)] rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.2em] transition-all transform active:scale-95"

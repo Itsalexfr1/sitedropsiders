@@ -10784,7 +10784,7 @@ export function AdminDashboard() {
             title={confirmModal.title}
             message={confirmModal.message}
             onConfirm={() => {
-              confirmModal.onConfirm();
+              confirmModal.onConfirm?.();
               setConfirmModal((prev) => ({ ...prev, isOpen: false }));
             }}
             onCancel={() =>
@@ -10799,7 +10799,7 @@ export function AdminDashboard() {
             message={promptModal.message}
             defaultValue={promptModal.defaultValue}
             onConfirm={(val) => {
-              promptModal.onConfirm(val);
+              promptModal.onConfirm?.(val);
               setPromptModal((prev) => ({ ...prev, isOpen: false }));
             }}
             onClose={() =>
