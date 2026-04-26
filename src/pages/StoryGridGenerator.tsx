@@ -173,7 +173,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         // Map to StoryItem with guaranteed unique IDs and cache-busting
         const generationTimestamp = Date.now();
         const wikiItems: StoryItem[] = selected.map((item, idx) => {
-            const rawImg = resolveImageUrl(item.image || item.photo || null);
+            const rawImg = resolveImageUrl(item.image || item.photo || null, item.name);
             let displayImg = rawImg;
             
             if (rawImg && rawImg.startsWith('http') && !rawImg.includes('blob:') && !rawImg.includes('data:') && !rawImg.includes('dropsiders.fr')) {
@@ -213,7 +213,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
             if (item.id === id) {
                 const newItem = { ...item, ...updates };
                 if (updates.image !== undefined) {
-                    const rawImg = resolveImageUrl(newItem.image);
+                    const rawImg = resolveImageUrl(newItem.image, newItem.label);
                     newItem.image = rawImg;
                     if (rawImg && rawImg.startsWith('http') && !rawImg.includes('blob:') && !rawImg.includes('data:') && !rawImg.includes('dropsiders.fr')) {
                         newItem.displayImage = `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=300&h=300&fit=cover&v=${Date.now()}-${item.id}`;
@@ -284,6 +284,13 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                 {/* Header */}
                 <div className="p-8 border-b border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-4">
+                        <button 
+                            onClick={onClose}
+                            className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest group"
+                        >
+                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            RETOUR
+                        </button>
                         <div className="w-12 h-12 rounded-2xl bg-neon-cyan/10 flex items-center justify-center border border-neon-cyan/20">
                             <LayoutGrid className="w-6 h-6 text-neon-cyan" />
                         </div>
@@ -294,9 +301,10 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                     </div>
                     <button 
                         onClick={onClose}
-                        className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all"
+                        className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest"
                     >
-                        <X className="w-6 h-6" />
+                        <X className="w-4 h-4" />
+                        FERMER
                     </button>
                 </div>
 

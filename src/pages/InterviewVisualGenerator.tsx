@@ -5,6 +5,7 @@ import { ChevronLeft, Upload, Download, Image, Youtube, Instagram, Trash2, Refre
 import Cropper from 'react-easy-crop';
 import { isSuperAdmin } from '../utils/auth';
 import { ExportSuccessModal } from '../components/ExportSuccessModal';
+import { ConfirmModal, ConfirmModalData } from '../components/ui/ConfirmModal';
 
 /* ─────────────────────────────────────────
    Types
@@ -46,6 +47,12 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
     const [dropsidersLogo, setDropsidersLogo] = useState<HTMLImageElement | null>(null);
     const [visualMode, setVisualMode]     = useState<'interview' | 'recap'>('interview');
     const [error, setError] = useState<string | null>(null);
+
+    const [confirmModal, setConfirmModal] = useState<ConfirmModalData>({
+        isOpen: false,
+        title: '',
+        message: '',
+    });
 
     const [showSuccess, setShowSuccess] = useState(false);
     const [readyBlob, setReadyBlob] = useState<Blob | null>(null);
@@ -578,15 +585,48 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
             </AnimatePresence>
 
             {/* Nav */}
-            <div className={`${isModal ? 'absolute' : 'fixed'} top-4 right-4 lg:top-8 lg:right-8 z-[210] items-center gap-6 flex`}>
-                <button
-                    onClick={() => isModal ? onClose?.() : navigate('/admin')}
-                    className="p-3 lg:p-4 bg-white/10 hover:bg-neon-red/20 text-white rounded-2xl border border-white/20 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(255,0,51,0.1)]"
-                >
-                    {isModal ? <X className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />}
-                    {isModal ? 'FERMER' : 'TABLEAU ADMIN'}
-                </button>
+            <div className={`${isModal ? 'absolute' : 'fixed'} top-4 right-4 lg:top-8 lg:right-8 z-[210] flex items-center gap-4`}>
+                {isModal && (
+                    <button
+                        onClick={() => {
+                            setConfirmModal({
+                                isOpen: true,
+                                title: "Quitter le Studio",
+                                message: "Voulez-vous vraiment quitter ? Vos modifications non enregistrées seront perdues.",
+                                type: "warning",
+                                confirmText: "QUITTER",
+                                onConfirm: () => onClose?.()
+                            });
+                        }}
+                        className="p-3 lg:p-4 bg-white/5 hover:bg-neon-red/20 text-white rounded-2xl border border-white/10 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-xl"
+                    >
+                        <X className="w-4 h-4" />
+                        FERMER
+                    </button>
+                )}
+
+                {!isModal && (
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="p-3 lg:p-4 bg-white/5 hover:bg-neon-red/20 text-white rounded-2xl border border-white/10 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-xl"
+                    >
+                        <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        TABLEAU ADMIN
+                    </button>
+                )}
             </div>
+            
+            {isModal && (
+                <div className="absolute top-4 left-4 lg:top-8 lg:left-8 z-[210]">
+                    <button
+                        onClick={onClose}
+                        className="p-3 lg:p-4 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(0,255,243,0.2)]"
+                    >
+                        <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        RETOUR AUX GÉNÉRATEURS
+                    </button>
+                </div>
+            )}
             
             {!isModal && (
                 <div className="flex fixed top-4 left-4 lg:top-8 lg:left-8 z-[210] items-center gap-6">
@@ -1008,6 +1048,19 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
                 type="image"
                 title="VISUEL PRÊT !"
                 subtitle="Enregistrez-le pour vos réseaux"
+            />
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={() => {
+                    confirmModal.onConfirm?.();
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+                confirmText={confirmModal.confirmText}
             />
         </div>
     );

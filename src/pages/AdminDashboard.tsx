@@ -598,12 +598,36 @@ export function AdminDashboard() {
   };
 
   const handleCleanupPastAgenda = async () => {
-    if (
-      !confirm(
-        "Voulez-vous vraiment supprimer tous les événements passés de l'agenda ?",
-      )
-    )
-      return;
+    setConfirmModal({
+      isOpen: true,
+      title: "Nettoyage Agenda",
+      message: "Voulez-vous vraiment supprimer tous les événements passés de l'agenda ?",
+      type: "warning",
+      confirmText: "NETTOYER",
+      onConfirm: async () => {
+        setMaintenanceLoading(true);
+        try {
+          const res = await apiFetch("/api/admin/cleanup-past-agenda", {
+            method: "POST",
+            headers: getAuthHeaders(),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setGlobalAlert({
+              message: `Nettoyage fini : ${data.count} événements passés supprimés !`,
+              type: "info",
+            });
+            setIsScanMenuOpen(false);
+          }
+        } catch (e) {
+          console.error(e);
+          setGlobalAlert({ message: "Échec du nettoyage", type: "danger" });
+        } finally {
+          setMaintenanceLoading(false);
+        }
+      }
+    });
+    return;
     setMaintenanceLoading(true);
     try {
       const res = await apiFetch("/api/admin/cleanup-past-agenda", {
@@ -9010,31 +9034,30 @@ export function AdminDashboard() {
                         </button>
                         <button
                           onClick={async () => {
-                            if (
-                              !window.confirm(
-                                "?? Voulez-vous vraiment supprimer TOUTES les questions Blind Test ? Cette action est irréversible.",
-                              )
-                            )
-                              return;
-                            try {
-                              const res = await apiFetch(
-                                "/api/quiz/reset-blind-test",
-                                {
-                                  method: "POST",
-                                  headers: getAuthHeaders(),
-                                },
-                              );
-                              if (res.ok) {
-                                const data = await res.json();
-                                setGlobalAlert({
-                                  message: `${data.removed} questions Blind Test ont été supprimées avec succès.`,
-                                  type: "info",
-                                });
-                                fetchQuizzes();
+                            setConfirmModal({
+                              isOpen: true,
+                              title: "Reset Blind Test",
+                              message: "Voulez-vous vraiment supprimer TOUTES les questions Blind Test ? Cette action est irréversible.",
+                              type: "danger",
+                              onConfirm: async () => {
+                                try {
+                                  const res = await apiFetch("/api/quiz/reset-blind-test", {
+                                    method: "POST",
+                                    headers: getAuthHeaders(),
+                                  });
+                                  if (res.ok) {
+                                    const data = await res.json();
+                                    setGlobalAlert({
+                                      message: `${data.removed} questions Blind Test ont été supprimées avec succès.`,
+                                      type: "info",
+                                    });
+                                    fetchQuizzes();
+                                  }
+                                } catch (err) {
+                                  console.error("Reset BT error:", err);
+                                }
                               }
-                            } catch (err) {
-                              console.error("Reset BT error:", err);
-                            }
+                            });
                           }}
                           className="px-4 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-xl font-black uppercase text-[10px] hover:bg-orange-500 hover:text-white transition-all flex items-center gap-2"
                         >
@@ -9390,32 +9413,24 @@ export function AdminDashboard() {
                                       </button>
                                       <button
                                         onClick={async () => {
-                                          if (
-                                            !window.confirm(
-                                              "Voulez-vous vraiment supprimer cette question ?",
-                                            )
-                                          )
-                                            return;
-                                          try {
-                                            const res = await apiFetch(
-                                              "/api/quiz/delete",
-                                              {
+                                        setConfirmModal({
+                                          isOpen: true,
+                                          title: "Suppression",
+                                          message: "Voulez-vous vraiment supprimer cette question ?",
+                                          type: "danger",
+                                          onConfirm: async () => {
+                                            try {
+                                              const res = await apiFetch("/api/quiz/delete", {
                                                 method: "POST",
                                                 headers: getAuthHeaders(),
-                                                body: JSON.stringify({
-                                                  id: quiz.id,
-                                                }),
-                                              },
-                                            );
-                                            if (res.ok) fetchQuizzes();
-                                            else
-                                              console.error(
-                                                "Delete failed:",
-                                                await res.text(),
-                                              );
-                                          } catch (err) {
-                                            console.error("Delete error:", err);
+                                                body: JSON.stringify({ id: quiz.id }),
+                                              });
+                                              if (res.ok) fetchQuizzes();
+                                            } catch (err) {
+                                              console.error("Delete error:", err);
+                                            }
                                           }
+                                        });
                                         }}
                                         className="p-3 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-xl shadow-neon-red/10"
                                         title="Supprimer"
@@ -10807,7 +10822,10 @@ export function AdminDashboard() {
           />
           <PubliGenerator
             isOpen={isPubliModalOpen}
-            onClose={() => setIsPubliModalOpen(false)}
+            onClose={() => {
+              setIsPubliModalOpen(false);
+              setIsGeneratorsModalOpen(true);
+            }}
             onOpenSocialStudio={(text, img) => {
               setSelectedSocialArticle({ title: text, image: img });
               setIsPubliModalOpen(false);
@@ -10815,11 +10833,17 @@ export function AdminDashboard() {
           />
           <InterviewVisualGenerator
             isOpen={isInterviewVisualsModalOpen}
-            onClose={() => setIsInterviewVisualsModalOpen(false)}
+            onClose={() => {
+              setIsInterviewVisualsModalOpen(false);
+              setIsGeneratorsModalOpen(true);
+            }}
           />
           <StoryGridGenerator
             isOpen={isStoryGridModalOpen}
-            onClose={() => setIsStoryGridModalOpen(false)}
+            onClose={() => {
+              setIsStoryGridModalOpen(false);
+              setIsGeneratorsModalOpen(true);
+            }}
             wikiData={{
               djs: wikiDjs,
               clubs: wikiClubs,
@@ -10828,11 +10852,17 @@ export function AdminDashboard() {
           />
           <QRCodeGenerator
             isOpen={isQRCodeModalOpen}
-            onClose={() => setIsQRCodeModalOpen(false)}
+            onClose={() => {
+              setIsQRCodeModalOpen(false);
+              setIsGeneratorsModalOpen(true);
+            }}
           />
           <IncomingCallGenerator
             isOpen={isIncomingCallModalOpen}
-            onClose={() => setIsIncomingCallModalOpen(false)}
+            onClose={() => {
+              setIsIncomingCallModalOpen(false);
+              setIsGeneratorsModalOpen(true);
+            }}
           />
           <ModerationModal
             isOpen={isModerationModalOpen}

@@ -15,7 +15,9 @@ import {
     Sparkles,
     Lock,
     Check,
-    Eye
+    Eye,
+    ChevronLeft,
+    Loader2
 } from 'lucide-react';
 import { toPng, toCanvas, toBlob } from 'html-to-image';
 import { ExportSuccessModal } from '../components/ExportSuccessModal';
@@ -226,10 +228,16 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                 >
                     <div className="md:hidden flex border-b border-white/5">
                         <button 
+                            onClick={onClose}
+                            className="p-4 bg-neon-cyan/20 border-r border-white/5 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button 
                             onClick={() => setMobileTab('config')}
                             className={`flex-1 p-4 text-[10px] font-black uppercase tracking-widest transition-all ${mobileTab === 'config' ? 'bg-neon-cyan text-black' : 'text-gray-500'}`}
                         >
-                            Configuration
+                            Config
                         </button>
                         <button 
                             onClick={() => setMobileTab('preview')}
@@ -241,14 +249,26 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                     </div>
 
                     <div className={`${mobileTab === 'config' ? 'block' : 'hidden md:block'} w-full md:w-[400px] p-8 overflow-y-auto border-r border-white/5 space-y-8 custom-scrollbar bg-black/40`}>
-                        <div className="hidden md:flex justify-between items-center mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-neon-cyan/10 rounded-xl">
-                                    <Phone className="w-5 h-5 text-neon-cyan" />
+                        <div className="hidden md:flex flex-col gap-4 mb-8">
+                            <button 
+                                onClick={onClose}
+                                className="w-fit p-3 bg-neon-cyan/10 hover:bg-neon-cyan text-neon-cyan hover:text-black rounded-2xl border border-neon-cyan/20 transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest group"
+                            >
+                                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                                RETOUR
+                            </button>
+                            <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                        <Phone className="w-5 h-5 text-neon-cyan" />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-white uppercase italic tracking-wider">CALL GEN</h2>
                                 </div>
-                                <h2 className="text-xl font-bold text-white uppercase italic tracking-wider">CALL GEN</h2>
+                                <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors flex items-center gap-2">
+                                    <span className="text-[8px] font-black text-gray-600 uppercase">Fermer</span>
+                                    <X className="w-5 h-5 text-gray-400" />
+                                </button>
                             </div>
-                            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors"><X className="w-5 h-5 text-gray-400" /></button>
                         </div>
 
                         <div className="space-y-4">

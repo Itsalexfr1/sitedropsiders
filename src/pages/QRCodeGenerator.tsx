@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Download, X, Eye, QrCode, Link, Palette, RefreshCw, Copy } from 'lucide-react';
+import { Check, Download, X, Eye, QrCode, Link, Palette, RefreshCw, Copy, ChevronLeft } from 'lucide-react';
 import QRCodeStyling from 'qr-code-styling';
 import { ExportSuccessModal } from '../components/ExportSuccessModal';
 
@@ -135,6 +135,13 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
                     {/* Header */}
                     <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-4">
+                            <button 
+                                onClick={onClose}
+                                className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest group"
+                            >
+                                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                                RETOUR
+                            </button>
                             <div className="w-12 h-12 rounded-2xl bg-neon-cyan/10 flex items-center justify-center border border-neon-cyan/20">
                                 <QrCode className="w-6 h-6 text-neon-cyan" />
                             </div>
@@ -149,9 +156,10 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all"
+                            className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 text-gray-400 hover:text-white transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest"
                         >
-                            <X className="w-6 h-6" />
+                            <X className="w-4 h-4" />
+                            FERMER
                         </button>
                     </div>
 

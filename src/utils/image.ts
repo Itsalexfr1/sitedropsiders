@@ -1,3 +1,22 @@
+const FESTIVAL_FALLBACKS = [
+    'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1459749411177-042180ce673c?q=80&w=2070&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=2070&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop',
+];
+
+export function getFallbackImage(seed?: string): string {
+    if (!seed) return FESTIVAL_FALLBACKS[0];
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+        hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % FESTIVAL_FALLBACKS.length;
+    return FESTIVAL_FALLBACKS[index];
+}
+
 /**
  * Ultra-safe resolveImageUrl utility.
  * Resolves image paths to be relative to the current host and handles R2 worker requirements.
@@ -7,8 +26,8 @@
  * Therefore, for a file in the "uploads" folder of the R2 bucket,
  * the URL MUST be: /uploads/uploads/filename.jpg
  */
-export function resolveImageUrl(url: string | undefined | null): string {
-    const fallback = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+export function resolveImageUrl(url: string | undefined | null, seed?: string): string {
+    const fallback = getFallbackImage(seed);
     
     if (!url) return fallback;
     
