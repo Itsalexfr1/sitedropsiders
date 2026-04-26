@@ -343,7 +343,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                 ) : (
                                     <ImageIcon className="w-5 h-5" />
                                 )}
-                                {isExporting ? 'Génération PNG...' : 'Exporter PNG'}
+                                {isExporting ? 'Génération PNG...' : 'GÉNÉRER PNG STORY'}
                             </button>
 
                             <button
@@ -376,19 +376,6 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                                     ref={previewRef}
                                     className={`w-full h-full relative flex flex-col items-center pt-24 px-6 overflow-hidden ${bgType === 'transparent' ? 'bg-transparent' : 'bg-[#050505]'}`}
                                 >
-                                    <ExportSuccessModal 
-                                        isOpen={showSuccess && !!readyBlob} 
-                                        onClose={() => {
-                                            setShowSuccess(false);
-                                            setReadyBlob(null);
-                                        }}
-                                        readyBlob={readyBlob}
-                                        readyUrl={readyUrl}
-                                        filename={readyFilename}
-                                        type={readyBlob?.type.includes('video') ? 'video' : 'image'}
-                                        title="GÉNÉRATION RÉUSSIE !"
-                                        subtitle="Votre contenu est prêt"
-                                    />
 
                                     <div className="absolute top-5 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-[1.5rem] z-50 border border-white/5" />
 
@@ -488,6 +475,19 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                         </div>
                     </div>
                 </motion.div>
+                <ExportSuccessModal 
+                    isOpen={showSuccess && !!readyBlob} 
+                    onClose={() => {
+                        setShowSuccess(false);
+                        setReadyBlob(null);
+                    }}
+                    readyBlob={readyBlob}
+                    readyUrl={readyUrl}
+                    filename={readyFilename}
+                    type={readyBlob?.type.includes('video') ? 'video' : 'image'}
+                    title="GÉNÉRATION RÉUSSIE !"
+                    subtitle="Votre contenu est prêt"
+                />
             </div>
         </AnimatePresence>
     );

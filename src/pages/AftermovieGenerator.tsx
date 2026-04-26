@@ -699,19 +699,6 @@ export function VideoStudioGenerator() {
                             </div>}
                             {isGenerating && <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center gap-6"><div className="text-4xl font-display font-black italic">{progress}%</div><p className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} animate-pulse`}>Sync au tempo...</p></div>}
                             
-                            <ExportSuccessModal 
-                                isOpen={showSuccess && !!readyBlob} 
-                                onClose={() => {
-                                    setShowSuccess(false);
-                                    setReadyBlob(null);
-                                }}
-                                readyBlob={readyBlob}
-                                readyUrl={readyUrl}
-                                filename={readyFilename}
-                                type="video"
-                                title="VIDÉO PRÊTE !"
-                                subtitle="Enregistrez-la pour vos réseaux"
-                            />
                         </div>
 
                         <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8">
@@ -850,6 +837,19 @@ export function VideoStudioGenerator() {
                 </div>
             </div>
             <canvas ref={canvasRef} className="fixed bottom-0 right-0 pointer-events-none z-50 w-[200px] h-[200px]" style={{ opacity: 0.01 }} />
+            <ExportSuccessModal 
+                isOpen={showSuccess && !!readyBlob} 
+                onClose={() => {
+                    setShowSuccess(false);
+                    setReadyBlob(null);
+                }}
+                readyBlob={readyBlob}
+                readyUrl={readyUrl}
+                filename={readyFilename}
+                type="video"
+                title="VIDÉO PRÊTE !"
+                subtitle="Enregistrez-la pour vos réseaux"
+            />
         </div>
     );
 }

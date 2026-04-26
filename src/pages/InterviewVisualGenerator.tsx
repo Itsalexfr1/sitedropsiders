@@ -10,7 +10,7 @@ import { ExportSuccessModal } from '../components/ExportSuccessModal';
    Types
    Update Instagram to 1080x1350 (Portrait)
 ───────────────────────────────────────── */
-type Format = 'youtube' | 'instagram';
+type Format = 'youtube' | 'instagram' | 'story';
 
 const FORMATS = {
     youtube:   { w: 1280, h: 720,  label: 'YouTube Thumbnail', ratio: '16:9', badge: 'YT', icon: Youtube },
@@ -612,7 +612,6 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
                 </motion.div>
 
                 <div className="grid lg:grid-cols-[400px_1fr] gap-8">
-                    {/* (existing content remains here, I am just changing the parent div classes) */}
                     {/* ─── LEFT : CONTROLS ─── */}
                     <div className="space-y-6">
                         {/* Creation Type */}
@@ -627,23 +626,9 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
                         {/* Format */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-4">Format</label>
-                            <div className="grid grid-cols-2 gap-3">
-                                {(Object.entries(FORMATS) as [Format, typeof FORMATS[Format]][]).map(([key, f]) => {
-                                    const Icon = f.icon;
-                                    const active = activeFormat === key;
-                                    return (
-                                        <button
-                                            key={key}
-                                            onClick={() => setActiveFormat(key)}
-                                            className={`flex flex-col items-center gap-2 p-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${active ? 'bg-neon-red/15 border-neon-red/50 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}
-                                        >
-                                            <Icon className="w-6 h-6" />
-                                            <span>{f.label}</span>
-                                            <span className="text-[9px] text-gray-500">{f.w}×{f.h}</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                                <button onClick={() => setActiveFormat('instagram')} className={`py-4 rounded-2xl border text-[10px] font-black transition-all ${activeFormat === 'instagram' ? 'bg-neon-red/10 border-neon-red text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.2)]' : 'bg-white/5 border-white/10 text-gray-500'}`}>4:5 POST</button>
+                                <button onClick={() => setActiveFormat('story')} className={`py-4 rounded-2xl border text-[10px] font-black transition-all ${activeFormat === 'story' ? 'bg-neon-red/10 border-neon-red text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.2)]' : 'bg-white/5 border-white/10 text-gray-500'}`}>9:16 STORY</button>
+                                <button onClick={() => setActiveFormat('youtube')} className={`py-4 rounded-2xl border text-[10px] font-black transition-all ${activeFormat === 'youtube' ? 'bg-neon-red/10 border-neon-red text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.2)]' : 'bg-white/5 border-white/10 text-gray-500'}`}>16:9 YT</button>
                         </div>
 
                         {/* Artiste Input */}
@@ -958,27 +943,10 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
                             <div className="grid grid-cols-2 gap-4">
                                 <button
                                     onClick={async () => {
-                                        const url = activeFormat === 'youtube' ? previewUrl : await generate('youtube');
-                                        if (!url) return;
-                                        const name = artistName ? artistName.replace(/\s+/g, '_').toLowerCase() : 'dropsiders';
-                                        const fileName = `dropsiders_${visualMode}_${name}_youtube.png`;
-                                        const res = await fetch(url);
-                                        const blob = await res.blob();
-                                        setReadyBlob(blob);
-                                        setReadyUrl(url);
-                                        setReadyFilename(fileName);
-                                        setShowSuccess(true);
-                                    }}
-                                    className="flex-1 py-5 bg-white text-black rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-xl"
-                                >
-                                    <Download className="w-4 h-4" /> YouTube (16:9)
-                                </button>
-                                <button
-                                    onClick={async () => {
                                         const url = activeFormat === 'instagram' ? previewUrl : await generate('instagram');
                                         if (!url) return;
                                         const name = artistName ? artistName.replace(/\s+/g, '_').toLowerCase() : 'dropsiders';
-                                        const fileName = `dropsiders_${visualMode}_${name}_instagram.png`;
+                                        const fileName = `dropsiders_post_${name}.png`;
                                         const res = await fetch(url);
                                         const blob = await res.blob();
                                         setReadyBlob(blob);
@@ -988,7 +956,24 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
                                     }}
                                     className="flex-1 py-5 bg-white text-black rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-xl"
                                 >
-                                    <Download className="w-4 h-4" /> Instagram (4:5)
+                                    <Download className="w-4 h-4" /> PNG POST
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        const url = activeFormat === 'story' ? previewUrl : await generate('story');
+                                        if (!url) return;
+                                        const name = artistName ? artistName.replace(/\s+/g, '_').toLowerCase() : 'dropsiders';
+                                        const fileName = `dropsiders_story_${name}.png`;
+                                        const res = await fetch(url);
+                                        const blob = await res.blob();
+                                        setReadyBlob(blob);
+                                        setReadyUrl(url);
+                                        setReadyFilename(fileName);
+                                        setShowSuccess(true);
+                                    }}
+                                    className="flex-1 py-5 bg-white text-black rounded-[24px] text-[10px] font-black uppercase tracking-[0.2em] hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-xl"
+                                >
+                                    <Download className="w-4 h-4" /> PNG STORY
                                 </button>
                             </div>
                         )}
@@ -1010,6 +995,19 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
                     </div>
                 </div>
             </div>
+            <ExportSuccessModal 
+                isOpen={showSuccess && !!readyBlob} 
+                onClose={() => {
+                    setShowSuccess(false);
+                    setReadyBlob(null);
+                }}
+                readyBlob={readyBlob}
+                readyUrl={readyUrl}
+                filename={readyFilename}
+                type="image"
+                title="VISUEL PRÊT !"
+                subtitle="Enregistrez-le pour vos réseaux"
+            />
         </div>
     );
 

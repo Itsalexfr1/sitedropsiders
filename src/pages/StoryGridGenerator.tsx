@@ -534,19 +534,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                     className="w-full h-full bg-[#050505] flex flex-col items-center p-4 pt-3 relative overflow-hidden"
                                 >
                                     {/* Success Modal (Social Studio Style) */}
-                                    <ExportSuccessModal 
-                                        isOpen={showSuccess && !!readyBlob} 
-                                        onClose={() => {
-                                            setShowSuccess(false);
-                                            setReadyBlob(null);
-                                        }}
-                                        readyBlob={readyBlob}
-                                        readyUrl={readyUrl}
-                                        filename={readyFilename}
-                                        type="image"
-                                        title="GÉNÉRATION RÉUSSIE !"
-                                        subtitle="Votre contenu est prêt"
-                                    />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,51,0.08)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,255,243,0.05)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -629,10 +616,23 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                         disabled={isGenerating || items.length === 0 || items.some(it => !it.label.trim())}
                         className="px-12 py-4 bg-neon-cyan text-black rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-neon-cyan/20 hover:scale-[1.02] transition-all flex items-center gap-3 disabled:opacity-50 disabled:hover:scale-100"
                     >
-                        {isGenerating ? 'GÉNÉRATION...' : 'TÉLÉCHARGER LE VISUEL'}
+                        {isGenerating ? 'GÉNÉRATION...' : 'GÉNÉRER PNG STORY'}
                         {!isGenerating && <Download className="w-4 h-4" />}
                     </button>
                 </div>
+                <ExportSuccessModal 
+                    isOpen={showSuccess && !!readyBlob} 
+                    onClose={() => {
+                        setShowSuccess(false);
+                        setReadyBlob(null);
+                    }}
+                    readyBlob={readyBlob}
+                    readyUrl={readyUrl}
+                    filename={readyFilename}
+                    type="image"
+                    title="GÉNÉRATION RÉUSSIE !"
+                    subtitle="Votre contenu est prêt"
+                />
             </div>
         </div>
     );

@@ -322,7 +322,7 @@ export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
                                     className="w-full py-4 bg-neon-cyan text-black rounded-2xl font-black text-[11px] uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20"
                                 >
                                     <Download className="w-4 h-4" />
-                                    Télécharger PNG
+                                    GÉNÉRER PNG
                                 </button>
                                 <button
                                     onClick={() => handleExport('svg')}
