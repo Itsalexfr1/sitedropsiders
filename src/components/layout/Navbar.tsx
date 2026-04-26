@@ -548,7 +548,6 @@ const getThemeColor = (colorClass: string) => {
         case 'neon-green': return 'rgba(57, 255, 20, 0.15)';
         case 'neon-purple': return 'rgba(191, 0, 255, 0.15)';
         case 'neon-cyan': return 'rgba(34, 211, 238, 0.15)';
-        case 'neon-red': return 'rgba(255, 0, 153, 0.15)';
         case 'neon-blue': return 'rgba(0, 191, 255, 0.15)';
         case 'neon-yellow': return 'rgba(255, 240, 31, 0.15)';
         default: return 'rgba(255, 255, 255, 0.1)';
@@ -561,7 +560,6 @@ const getThemeBorder = (colorClass: string) => {
         case 'neon-green': return 'rgba(57, 255, 20, 0.3)';
         case 'neon-purple': return 'rgba(191, 0, 255, 0.3)';
         case 'neon-cyan': return 'rgba(34, 211, 238, 0.3)';
-        case 'neon-red': return 'rgba(255, 0, 153, 0.3)';
         case 'neon-blue': return 'rgba(0, 191, 255, 0.3)';
         case 'neon-yellow': return 'rgba(255, 240, 31, 0.3)';
         default: return 'rgba(255, 255, 255, 0.2)';

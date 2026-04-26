@@ -13,8 +13,9 @@ import { ExportSuccessModal } from '../components/ExportSuccessModal';
 type Format = 'youtube' | 'instagram' | 'story';
 
 const FORMATS = {
-    youtube:   { w: 1280, h: 720,  label: 'YouTube Thumbnail', ratio: '16:9', badge: 'YT', icon: Youtube },
-    instagram: { w: 1080, h: 1350, label: 'Instagram Portrait', ratio: '4:5',  badge: 'IG', icon: Instagram },
+    youtube:   { w: 1280, h: 720,  label: 'YouTube Thumbnail', ratio: '16:9',  badge: 'YT', icon: Youtube },
+    instagram: { w: 1080, h: 1350, label: 'Instagram Portrait',  ratio: '4:5',   badge: 'IG', icon: Instagram },
+    story:     { w: 1080, h: 1920, label: 'Instagram Story',    ratio: '9:16',  badge: 'STORY', icon: Instagram },
 };
 
 /* ─────────────────────────────────────────
