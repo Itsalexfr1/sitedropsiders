@@ -4005,29 +4005,7 @@ export function AdminDashboard() {
                 </div>
               </div>
             </div>
-          ) : dashboardTab === "INTERVIEW" ? (
-            <div className="space-y-12 pb-20">
-              <div className="flex items-center gap-4 mb-10">
-                <div className="p-3 bg-neon-cyan/10 rounded-2xl border border-neon-cyan/20">
-                  <MessageSquare className="w-6 h-6 text-neon-cyan" />
-                </div>
-                <div>
-                  <h2 className="text-4xl font-display font-black text-white uppercase italic leading-none">
-                    Studio <span className="text-neon-cyan">Interviews</span>
-                  </h2>
-                  <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">
-                    Outils de création et gestion des interviews
-                  </p>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 gap-10">
-                {/* RANDOMIZER ONLY */}
-                <div className="w-full">
-                  <InterviewRandomizer />
-                </div>
-              </div>
-            </div>
           ) : dashboardTab === "TOP_DROPSIDERS" ? (
             <div className="space-y-12 pb-20">
               {/* WIKI VOTES SUMMARY & GENERATION AT TOP */}
