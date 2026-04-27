@@ -162,10 +162,11 @@ export function Agenda() {
             if (activeCategory === 'ALL') return true;
             if (activeCategory === 'LIVE') return event.isLiveDropsiders;
             const genre = (event.genre || '').toLowerCase();
+            const type = (event.type || '').toLowerCase();
             const id = activeCategory.toLowerCase();
             if (id === 'progressive house') return genre.includes('progressive');
             if (id === 'drum & bass') return genre.includes('drum') || genre.includes('bass');
-            return genre.includes(id);
+            return genre.includes(id) || type.includes(id);
         });
 
         const upcoming = categoryFiltered.filter((event: any) => {
@@ -209,6 +210,9 @@ export function Agenda() {
     const CATEGORIES = [
         { id: 'ALL', label: t('agenda.filter_all') },
         { id: 'LIVE', label: 'LIVE' },
+        { id: 'FESTIVAL', label: 'FESTIVAL' },
+        { id: 'POOL PARTY', label: 'POOL PARTY' },
+        { id: 'CLUBS', label: 'CLUBS' },
         { id: 'MULTI STYLES', label: 'MULTI STYLES' },
         { id: 'HYBRIDE', label: 'HYBRIDE' },
         { id: 'TECHNO', label: 'TECHNO' },
@@ -252,13 +256,14 @@ export function Agenda() {
                         if (!event.isLiveDropsiders) return false;
                     } else {
                         const genre = (event.genre || '').toLowerCase();
+                        const type = (event.type || '').toLowerCase();
                         const id = activeCategory.toLowerCase();
                         if (id === 'progressive house') {
                             if (!genre.includes('progressive')) return false;
                         } else if (id === 'drum & bass') {
                             if (!genre.includes('drum') && !genre.includes('bass')) return false;
                         } else {
-                            if (!genre.includes(id)) return false;
+                            if (!genre.includes(id) && !type.includes(id)) return false;
                         }
                     }
                 }
