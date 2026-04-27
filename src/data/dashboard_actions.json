@@ -12,19 +12,6 @@
     "columns": 1
   },
   {
-    "title": "Générateurs",
-    "description": "Studio de création visuelle",
-    "icon": "Sparkles",
-    "category": "STUDIO",
-    "link": "#GENERATORS",
-    "color": "border-neon-purple/20 hover:border-neon-purple",
-    "bg": "bg-neon-purple/5",
-    "permission": "social_studio",
-    "baseColor": "#bd00ff",
-    "columns": 1
-  },
-
-  {
     "title": "Contenu",
     "description": "News, Musique, Interviews...",
     "icon": "FileText",
@@ -34,6 +21,18 @@
     "bg": "bg-neon-cyan/5",
     "permission": "news_focus",
     "baseColor": "#37ff00",
+    "columns": 1
+  },
+  {
+    "title": "Générateurs",
+    "description": "Studio de création visuelle",
+    "icon": "Sparkles",
+    "category": "STUDIO",
+    "link": "#GENERATORS",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
+    "permission": "social_studio",
+    "baseColor": "#bd00ff",
     "columns": 1
   },
   {
