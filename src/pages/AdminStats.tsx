@@ -405,7 +405,7 @@ export function AdminStats() {
                             <div className="relative z-10">
                                 <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-2">Click Through Rate</h3>
                                 <div className="text-4xl font-display font-black text-white italic">
-                                    {stats.community.totalVisits > 0 ? (Object.values(stats.community.clicks).reduce((a:any,b:any)=>a+b, 0) / stats.community.totalVisits * 100).toFixed(1) : 0}%
+                                    {stats.community.totalVisits > 0 ? (Object.values(stats.community.clicks || {}).reduce((a: any, b: any) => (Number(a) || 0) + (Number(b) || 0), 0) / stats.community.totalVisits * 100).toFixed(1) : 0}%
                                 </div>
                                 <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-4">Calculé sur les clics de billetterie</p>
                             </div>
