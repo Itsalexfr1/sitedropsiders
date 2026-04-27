@@ -111,7 +111,9 @@ function LoadingPage() {
   );
 }
 
-function Root() {
+import { ExtensionPromotion } from './components/ui/ExtensionPromotion';
+
+function Root({ initialLoad }: { initialLoad: boolean }) {
   const location = useLocation();
 
   return (
@@ -135,6 +137,7 @@ function Root() {
         </AnimatePresence>
       </Layout>
       <CookieConsent />
+      <ExtensionPromotion initialLoad={initialLoad} />
     </>
   );
 }
@@ -142,7 +145,7 @@ function Root() {
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Root />,
+    element: <RootWrapper />,
     errorElement: <ErrorFallback />,
     children: [
       { index: true, element: <Home /> },
@@ -211,9 +214,7 @@ const router = createBrowserRouter([
 
 function App() {
   const [initialLoad, setInitialLoad] = useState(true);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const isMobile = window.innerWidth < 1024;
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 
   // Enregistrement explicite du Service Worker pour les Pushs
   useRegisterSW({
@@ -226,181 +227,20 @@ function App() {
   });
 
   useEffect(() => {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    });
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (isMobile) {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') setDeferredPrompt(null);
-        setShowExtensionPopup(false);
-      } else if (isIOS) {
-        setGlobalAlert({ message: "Sur iPhone : Clique sur 'Partager' (icône flèche) puis 'Sur l'écran d'accueil' 📲", type: "info" });
-      } else {
-        setGlobalAlert({ message: "Ajoute le site à ton écran d'accueil pour profiter de l'App ! 🚀", type: "info" });
-      }
-    } else {
-      setShowExtensionPopup(false);
-      // window.open('...', '_blank');
-    }
-  };
-
-  useEffect(() => {
     // Shorter splash on mobile for faster time-to-interactive
     const timer = setTimeout(() => {
       setInitialLoad(false);
     }, isMobile ? 800 : 2000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [isMobile]);
 
-  const [showExtensionPopup, setShowExtensionPopup] = useState(false);
-
-  useEffect(() => {
-    if (!initialLoad) {
-      // Small delay after splash
-      const delay = setTimeout(() => {
-        setShowExtensionPopup(true);
-      }, 2000);
-      
-      // Auto-close after 10s
-      const autoClose = setTimeout(() => {
-        setShowExtensionPopup(false);
-      }, 12000);
-
-      return () => {
-        clearTimeout(delay);
-        clearTimeout(autoClose);
-      };
-    }
-  }, [initialLoad]);
-
-  useEffect(() => {
-    // Disable scrolling title on mobile - saves CPU cycles from constant DOM mutations
-    if (isMobile) return;
-
-    const originalTitle = document.title;
-    const scrollText = "DROPSIDERS : L'actu de tous les festivals ";
-
-    let position = 0;
-    const interval = setInterval(() => {
-      document.title = scrollText.substring(position) + scrollText.substring(0, position);
-      position++;
-      if (position >= scrollText.length) position = 0;
-    }, 500);
-
-    return () => {
-      clearInterval(interval);
-      document.title = originalTitle;
-    };
-  }, []);
-
-  if (initialLoad) {
-    return (
-      <div className="fixed inset-0 bg-[#050505] z-[9999] flex flex-col items-center justify-center pointer-events-none overflow-hidden">
-        {/* Ambient Glows */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-neon-red/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-neon-cyan/5 rounded-full blur-[100px] animate-pulse [animation-delay:1s]" />
-
-        <div className="relative flex flex-col items-center">
-          <div className="relative w-24 h-24 mb-10">
-            <div className="absolute inset-0 border-4 border-neon-red/20 rounded-full" />
-            <div className="absolute inset-0 border-4 border-t-neon-red rounded-full animate-spin shadow-[0_0_25px_rgba(255,0,51,0.4)]" />
-            <div className="absolute inset-4 border-4 border-neon-cyan/20 rounded-full" />
-            <div className="absolute inset-4 border-4 border-b-neon-cyan rounded-full animate-spin-slow [animation-duration:3s] shadow-[0_0_25px_rgba(0,240,255,0.4)]" />
-          </div>
-
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex overflow-hidden">
-              <motion.div
-                initial={{ y: "100%", opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="text-white font-display font-black uppercase tracking-[0.3em] text-2xl md:text-3xl italic"
-              >
-                DROPSIDERS <span className="text-neon-red">V2</span>
-              </motion.div>
-            </div>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
-              transition={{ delay: 0.5, duration: 1 }}
-              className="text-[10px] text-white/60 font-black uppercase tracking-[0.5em] ml-1.5"
-            >
-              Chargement de l'expérience
-            </motion.div>
-          </div>
-        </div>
-      </div>
-    );
+  function RootWrapper() {
+    return <Root initialLoad={initialLoad} />;
   }
 
   return (
     <UserProvider>
       <RouterProvider router={router} />
-      
-      <AnimatePresence>
-        {showExtensionPopup && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-md"
-          >
-            <div className="bg-black/90 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-6 shadow-2xl flex items-center gap-6 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-r from-neon-red/5 to-neon-purple/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              
-              <div className="relative w-16 h-16 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 flex-shrink-0">
-                <img src="/Logo.png" className="w-10 h-10 object-contain" />
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-neon-red text-white text-[10px] font-black rounded-full flex items-center justify-center animate-bounce shadow-lg">
-                  !
-                </div>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <h3 className="text-white font-black uppercase italic text-sm tracking-tighter">
-                  Dropsiders <span className="text-neon-red">{isMobile ? "L'Application" : "Extension"}</span>
-                </h3>
-                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1">
-                  {isMobile ? "Installe l'app pour recevoir les alertes mobile !" : "Recevez nos alertes flash en temps réel !"}
-                </p>
-                
-                {isMobile ? (
-                  <button 
-                    onClick={handleInstallClick}
-                    className="inline-block mt-3 text-[9px] font-black text-neon-red uppercase tracking-[0.2em] hover:underline"
-                  >
-                    Installer l'App →
-                  </button>
-                ) : (
-                  <div className="flex flex-col gap-1 mt-3">
-                    <span className="text-[8px] font-black bg-white/5 border border-white/10 text-gray-500 py-1 px-2 rounded-lg inline-block w-fit uppercase tracking-widest">
-                      Bientôt disponible
-                    </span>
-                    <button 
-                      disabled
-                      className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] cursor-not-allowed"
-                    >
-                      Installer l'extension →
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <button 
-                onClick={() => setShowExtensionPopup(false)}
-                className="p-2 text-gray-500 hover:text-white transition-colors relative z-10"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </UserProvider>
   );
 }
