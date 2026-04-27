@@ -1,4 +1,4 @@
-﻿import { useEffect, Suspense, useState } from 'react';
+import { useEffect, Suspense, useState } from 'react';
 import { AlertCircle, RefreshCw, X, Bell } from 'lucide-react';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -137,7 +137,7 @@ function Root() {
         </AnimatePresence>
       </Layout>
       <CookieConsent />
-      <ExtensionPromotion />
+      {/* <ExtensionPromotion /> */}
     </>
   );
 }

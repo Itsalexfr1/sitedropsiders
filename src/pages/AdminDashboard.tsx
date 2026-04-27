@@ -154,6 +154,7 @@ export function AdminDashboard() {
     title: "",
     message: "",
     url: "https://dropsiders.fr/news",
+    image: "",
     targetType: "news"
   });
   const [extensionTargetItems, setExtensionTargetItems] = useState<any[]>([]);
@@ -618,15 +619,20 @@ export function AdminDashboard() {
         },
         body: JSON.stringify(extensionNotifData),
       });
+
       if (res.ok) {
         setGlobalAlert({ message: "Notification envoyée à toutes les extensions !", type: "info" });
         setIsExtensionNotifModalOpen(false);
       } else {
-        setGlobalAlert({ message: "Erreur lors de l'envoi de la notification.", type: "danger" });
+        const errorData = await res.json().catch(() => ({}));
+        setGlobalAlert({ 
+          message: `Erreur lors de l'envoi : ${errorData.error || res.statusText}`, 
+          type: "danger" 
+        });
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      setGlobalAlert({ message: "Erreur réseau lors de l'envoi.", type: "danger" });
+      setGlobalAlert({ message: "Erreur réseau : " + e.message, type: "danger" });
     } finally {
       setIsSaving(false);
     }
@@ -1302,24 +1308,26 @@ export function AdminDashboard() {
         title: pushCustomTitle,
         body: pushCustomBody,
         url: selectedPushNews ? selectedPushNews.link : "/",
-        // Indicate it's a manual broadcast to all
         broadcast: true,
       };
 
-      const resp = await fetch("/api/push/broadcast", {
+      const resp = await apiFetch("/api/push/broadcast", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAuthHeaders() },
         body: JSON.stringify(body),
       });
 
       if (resp.ok) {
-        showNotification("Notification envoyée avec succès à tous les abonnés !", "success");
+        const data = await resp.json();
+        showNotification(`Notification envoyée avec succès à ${data.sentTo || 0} abonnés !`, "success");
         setIsNotificationModalOpen(false);
       } else {
-        throw new Error("Erreur lors de l'envoi");
+        const errorData = await resp.json().catch(() => ({}));
+        throw new Error(errorData.error || `Erreur serveur (${resp.status})`);
       }
     } catch (e: any) {
-      showNotification("Erreur : " + e.message, "error");
+      console.error("[PUSH ERROR]", e);
+      showNotification("Erreur système : " + e.message, "error");
     } finally {
       setIsSendingManualPush(false);
     }
@@ -2200,6 +2208,8 @@ export function AdminDashboard() {
               (savedAction) =>
                 savedAction.title !== "Bandeau" &&
                 savedAction.title !== "Toutes les Photos" &&
+                savedAction.title !== "Quizz & CONCOURS" &&
+                savedAction.title !== "Quizz & Concours" &&
                 defaultActions.some(
                   (def) =>
                     def.title.toLowerCase() === savedAction.title.toLowerCase(),
@@ -2239,19 +2249,6 @@ export function AdminDashboard() {
   };
 
   const getFallbackActions = () => [
-    // QUIZZ & CONCOURS
-    {
-      title: "Quizz & CONCOURS",
-      description: "Tirages, Quizz, Participants",
-      icon: "Gamepad2",
-      category: "ALL",
-      link: "#QUIZZ_CONCOURS_MODAL",
-      color: "border-neon-red/20 hover:border-neon-red",
-      bg: "bg-neon-red/5",
-      permission: "all",
-      baseColor: "red",
-      columns: 1,
-    },
     // CONTENU & ÉDITORIAL
     {
       title: "Contenu",
@@ -7146,55 +7143,59 @@ export function AdminDashboard() {
           {/* Modal Extension Notifications */}
           <AnimatePresence>
             {isExtensionNotifModalOpen && (
-              <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[2.5rem] p-5 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] p-4 max-w-lg w-full shadow-2xl relative overflow-hidden"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
 
-                  <div className="flex justify-between items-start mb-12">
+                  <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                      <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter mb-1">
                         ALERTES <span className="text-neon-red">EXTENSION</span>
                       </h2>
-                      <p className="text-gray-400 font-medium">
-                        Envoyer un push aux navigateurs
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                        Push aux navigateurs
                       </p>
                     </div>
                     <button
                       onClick={() => setIsExtensionNotifModalOpen(false)}
-                      className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                      className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all"
                     >
-                      <X className="w-6 h-6" />
+                      <X className="w-5 h-5" />
                     </button>
                   </div>
 
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Titre de l'alerte</label>
-                      <input
-                        type="text"
-                        value={extensionNotifData.title}
-                        onChange={(e) => setExtensionNotifData({ ...extensionNotifData, title: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-neon-red transition-all"
-                        placeholder="Ex: NOUVEL ARTICLE DISPO !"
-                      />
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 block">Titre</label>
+                        <input
+                          type="text"
+                          value={extensionNotifData.title}
+                          onChange={(e) => setExtensionNotifData({ ...extensionNotifData, title: e.target.value })}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-xs outline-none focus:border-neon-red transition-all"
+                          placeholder="Titre..."
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 block">Message</label>
+                        <input
+                          type="text"
+                          value={extensionNotifData.message}
+                          onChange={(e) => setExtensionNotifData({ ...extensionNotifData, message: e.target.value })}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white font-bold text-xs outline-none focus:border-neon-red transition-all"
+                          placeholder="Message..."
+                        />
+                      </div>
                     </div>
+
                     <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Message court</label>
-                      <textarea
-                        value={extensionNotifData.message}
-                        onChange={(e) => setExtensionNotifData({ ...extensionNotifData, message: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold outline-none focus:border-neon-red transition-all h-16 text-xs"
-                        placeholder="Ex: Découvrez notre interview exclusive avec..."
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 block">Cible de la notification</label>
-                      <div className="grid grid-cols-4 gap-1.5 mb-2">
+                      <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Cible</label>
+                      <div className="grid grid-cols-4 gap-1.5">
                         {[
                           { id: 'news', label: 'News', url: '/news', icon: FileText, color: 'neon-blue' },
                           { id: 'agenda', label: 'Agenda', url: '/agenda', icon: Calendar, color: 'neon-green' },
@@ -7208,9 +7209,9 @@ export function AdminDashboard() {
                               e.preventDefault();
                               setExtensionNotifData({ ...extensionNotifData, url: `https://dropsiders.fr${cat.url}`, targetType: cat.id });
                             }}
-                            className={`p-1.5 rounded-xl border transition-all flex flex-col items-center gap-1 ${extensionNotifData.targetType === cat.id ? `bg-white/10 border-white/40 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]` : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
+                            className={`py-1.5 rounded-lg border transition-all flex flex-col items-center gap-1 ${extensionNotifData.targetType === cat.id ? `bg-white/10 border-white/40 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]` : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
                           >
-                            <cat.icon className={`w-3.5 h-3.5 ${extensionNotifData.targetType === cat.id ? cat.color.replace('neon-', 'text-neon-') : ''}`} />
+                            <cat.icon className={`w-3 h-3 ${extensionNotifData.targetType === cat.id ? cat.color.replace('neon-', 'text-neon-') : ''}`} />
                             <span className="text-[7px] font-black uppercase tracking-tighter">{cat.label}</span>
                           </button>
                         ))}
@@ -7218,12 +7219,12 @@ export function AdminDashboard() {
                     </div>
 
                     {/* Liste des 15 derniers items */}
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Sélectionner un contenu (15 derniers)</label>
-                      <div className="max-h-[200px] overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Sélectionner un contenu</label>
+                      <div className="max-h-[160px] overflow-y-auto pr-1.5 custom-scrollbar space-y-1.5">
                         {isFetchingExtensionItems ? (
-                          <div className="py-8 flex justify-center">
-                            <Loader2 className="w-6 h-6 animate-spin text-neon-red" />
+                          <div className="py-4 flex justify-center">
+                            <Loader2 className="w-5 h-5 animate-spin text-neon-red" />
                           </div>
                         ) : extensionTargetItems.length > 0 ? (
                           extensionTargetItems.map((item) => (
@@ -7240,44 +7241,47 @@ export function AdminDashboard() {
                                   ...extensionNotifData,
                                   title: item.title || item.name || "NOUVEAUTÉ !",
                                   message: item.description?.substring(0, 60) || "Découvrez notre nouveau contenu sur Dropsiders !",
-                                  url: `https://dropsiders.fr${path}`
+                                  url: `https://dropsiders.fr${path}`,
+                                  image: item.image || item.cover || ""
                                 });
                               }}
-                              className="w-full bg-white/5 border border-white/5 hover:border-white/20 rounded-xl p-2 flex items-center gap-3 transition-all text-left group"
+                              className="w-full bg-white/5 border border-white/5 hover:border-white/20 rounded-lg p-1.5 flex items-center gap-2 transition-all text-left group"
                             >
-                              <div className="w-8 h-8 rounded-lg bg-black overflow-hidden flex-shrink-0 border border-white/10 group-hover:border-white/30">
+                              <div className="w-7 h-7 rounded-md bg-black overflow-hidden flex-shrink-0 border border-white/10 group-hover:border-white/30">
                                 <img src={item.image || item.cover || "/Logo.png"} className="w-full h-full object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-[10px] font-bold text-white truncate">{item.title || item.name}</h4>
-                                <p className="text-[9px] text-gray-500 font-medium truncate uppercase tracking-widest">{new Date(item.date).toLocaleDateString()}</p>
+                                <h4 className="text-[9px] font-bold text-white truncate uppercase">{item.title || item.name}</h4>
+                                <p className="text-[7px] text-gray-500 font-medium truncate uppercase tracking-widest">{new Date(item.date).toLocaleDateString()}</p>
                               </div>
-                              <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white" />
+                              <ChevronRight className="w-3 h-3 text-gray-700 group-hover:text-white" />
                             </button>
                           ))
                         ) : (
-                          <div className="text-center py-8 text-gray-600 text-[10px] uppercase font-bold">Aucun contenu trouvé</div>
+                          <div className="text-center py-4 text-gray-600 text-[8px] uppercase font-bold tracking-widest">Aucun contenu trouvé</div>
                         )}
                       </div>
                     </div>
 
                     <div className="pt-2 border-t border-white/5">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Vérification de l'Alerte</label>
-                      <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-4">
+                      <div className="bg-black/40 border border-white/5 rounded-xl p-2.5 space-y-2">
+                        <div className="flex justify-between items-center mb-1">
+                           <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest">Aperçu du Push</span>
+                           <div className="text-[7px] text-neon-red font-mono truncate max-w-[150px]">{extensionNotifData.url}</div>
+                        </div>
                         <input
                           type="text"
                           value={extensionNotifData.title}
                           onChange={(e) => setExtensionNotifData({ ...extensionNotifData, title: e.target.value })}
-                          className="w-full bg-transparent text-white font-black uppercase italic text-sm outline-none placeholder:text-gray-700"
-                          placeholder="Titre de la notification"
+                          className="w-full bg-transparent text-white font-black uppercase italic text-xs outline-none placeholder:text-gray-700"
+                          placeholder="Titre..."
                         />
                         <textarea
                           value={extensionNotifData.message}
                           onChange={(e) => setExtensionNotifData({ ...extensionNotifData, message: e.target.value })}
-                          className="w-full bg-transparent text-gray-400 font-medium text-xs outline-none placeholder:text-gray-700 h-12 resize-none"
-                          placeholder="Message de la notification"
+                          className="w-full bg-transparent text-gray-400 font-medium text-[10px] outline-none placeholder:text-gray-700 h-8 resize-none"
+                          placeholder="Message..."
                         />
-                        <div className="text-[9px] text-neon-red font-mono truncate">{extensionNotifData.url}</div>
                       </div>
                     </div>
 
@@ -7326,48 +7330,27 @@ export function AdminDashboard() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
-                    {/* Concours Instagram */}
+                    {/* Quizz & Concours */}
                     <button
                       onClick={() => {
+                        setIsQuizzConcoursModalOpen(true);
                         setIsCommunauteModalOpen(false);
-                        setDashboardTab("COMMUNAUTÉ");
                       }}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
+                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group relative"
                     >
-                      <div className="w-14 h-14 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                        <Instagram className="w-7 h-7 text-neon-red" />
+                      <div className="w-14 h-14 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                        <Gamepad2 className="w-7 h-7 text-neon-purple" />
                       </div>
                       <div className="text-center">
                         <h3 className="text-lg font-bold text-white uppercase italic">
-                          Concours Insta
+                          Quizz & Concours
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">
-                          Tirages au sort
-                        </p>
-                      </div>
-                    </button>
-
-                    {/* Quizz & MP3 */}
-                    <button
-                      onClick={() => {
-                        setIsQuizModalOpen(true);
-                        setIsCommunauteModalOpen(false);
-                      }}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group relative"
-                    >
-                      <div className="w-14 h-14 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
-                        <Gamepad2 className="w-7 h-7 text-neon-green" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
-                          Quizz & MP3
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">
-                          Jeux communautaires
+                          Jeux, Tirages & Participants
                         </p>
                       </div>
                       {pendingQuizzesCount > 0 && (
-                        <div className="absolute top-3 right-3 w-5 h-5 bg-neon-green rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
+                        <div className="absolute top-3 right-3 w-5 h-5 bg-neon-purple rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
                           <span className="text-[9px] font-black text-black">
                             {pendingQuizzesCount}
                           </span>
@@ -8980,176 +8963,108 @@ export function AdminDashboard() {
           {/* Modal Notifications */}
           <AnimatePresence>
             {isNotificationModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-lg w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] p-5 max-w-lg w-full shadow-2xl relative overflow-hidden"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue" />
 
-                  <div className="flex justify-between items-start mb-12">
+                  <div className="flex justify-between items-start mb-6">
                     <div>
-                      <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                        Push{" "}
-                        <span className="text-neon-red">Notifications</span>
+                      <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter mb-1">
+                        Push <span className="text-neon-red">Notifications</span>
                       </h2>
-                      <p className="text-gray-400 font-medium">
-                        Gérer les alertes en direct
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                        Alertes en direct
                       </p>
                     </div>
                     <button
                       onClick={() => setIsNotificationModalOpen(false)}
-                      className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                      className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all"
                     >
-                      <X className="w-6 h-6" />
+                      <X className="w-5 h-5" />
                     </button>
                   </div>
 
-                  <div className="space-y-6">
-                    <div className="p-6 bg-white/5 border border-white/5 rounded-3xl text-center relative overflow-hidden group">
-                      <div className="absolute inset-0 bg-neon-red/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="w-16 h-16 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/30 mx-auto mb-4 group-hover:scale-110 transition-transform duration-500">
-                        <Bell className="w-8 h-8 text-neon-red" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-white uppercase italic mb-1">
-                        Système Actif
-                      </h3>
-                      <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
-                        Le service de push est opérationnel
-                      </p>
-                    </div>
-
+                  <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl">
+                      <div className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-xl">
                         <div className="flex flex-col">
-                          <span className="text-[8px] font-black text-neon-blue uppercase tracking-widest mb-1">
-                            Push
-                          </span>
-                          <span className="text-xl font-black text-white">
-                            {pushSubscribersCount ?? 0}
-                          </span>
+                          <span className="text-[7px] font-black text-neon-blue uppercase tracking-widest">Abonnés</span>
+                          <span className="text-lg font-black text-white">{pushSubscribersCount ?? 0}</span>
                         </div>
-                        <div className="w-8 h-8 bg-neon-blue/10 rounded-lg flex items-center justify-center border border-neon-blue/20">
-                          <Users className="w-4 h-4 text-neon-blue" />
-                        </div>
+                        <Users className="w-4 h-4 text-neon-blue/40" />
                       </div>
-                      <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl">
+                      <div className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-xl">
                         <div className="flex flex-col">
-                          <span className="text-[8px] font-black text-neon-purple uppercase tracking-widest mb-1">
-                            News
-                          </span>
-                          <span className="text-xl font-black text-white italic">
-                            Auto
-                          </span>
+                          <span className="text-[7px] font-black text-neon-purple uppercase tracking-widest">Service</span>
+                          <span className="text-lg font-black text-white italic uppercase tracking-tighter">Actif</span>
                         </div>
-                        <div className="w-8 h-8 bg-neon-purple/10 rounded-lg flex items-center justify-center border border-neon-purple/20">
-                          <Mail className="w-4 h-4 text-neon-purple" />
-                        </div>
+                        <Zap className="w-4 h-4 text-neon-purple/40" />
                       </div>
                     </div>
 
-                    <div className="p-4 bg-neon-purple/5 border border-neon-purple/20 rounded-2xl flex gap-4 items-start">
-                      <Zap className="w-5 h-5 text-neon-purple shrink-0 mt-0.5" />
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
-                        Le nouveau système demande ésormais l'accord pour les
-                        notifications et la newsletter dès l'entrée sur le site.
-                      </p>
-                    </div>
-
-                    <div className="space-y-4 pt-4 border-t border-white/5">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Plus className="w-4 h-4 text-neon-red" />
-                        <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
-                          Envoi Manuel Sur Mesure
-                        </h4>
-                      </div>
-
+                    <div className="space-y-3 pt-2 border-t border-white/5">
                       {/* Sélecteur de News */}
-                      <div className="space-y-2">
-                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">
-                          1. Cible (Optionnel)
-                        </label>
-                        <div className="relative group/select">
+                      <div>
+                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1.5 block pl-1">Cible (Optionnel)</label>
+                        <div className="relative">
                           <select
                             onChange={(e) => {
-                              const news = pushNewsList.find(
-                                (n) => n.id === e.target.value,
-                              );
+                              const news = pushNewsList.find((n) => n.id === e.target.value);
                               setSelectedPushNews(news);
                               if (news) {
-                                setPushCustomTitle(
-                                  news.title || "DROPSIDERS NEWS",
-                                );
+                                setPushCustomTitle(news.title || "DROPSIDERS NEWS");
                                 setPushCustomBody(news.summary || "");
                               }
                             }}
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-white appearance-none focus:border-neon-red/50 outline-none transition-all cursor-pointer"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[10px] font-bold text-white appearance-none focus:border-neon-red/50 outline-none transition-all cursor-pointer"
                           >
-                            <option value="">
-                              -- Lien : Page d'accueil --
-                            </option>
+                            <option value="">-- Lien : Page d'accueil --</option>
                             {pushNewsList.map((n) => (
-                              <option
-                                key={n.id}
-                                value={n.id}
-                                className="bg-dark-bg text-white"
-                              >
-                                [{n.category}] {n.title}
-                              </option>
+                              <option key={n.id} value={n.id} className="bg-dark-bg text-white">[{n.category}] {n.title}</option>
                             ))}
                           </select>
-                          <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none group-hover/select:text-white transition-colors" />
+                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" />
                         </div>
                       </div>
 
                       {/* Titre & Message */}
-                      <div className="space-y-3">
-                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">
-                          2. Contenu du Push
-                        </label>
+                      <div className="space-y-2">
+                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1.5 block pl-1">Contenu</label>
                         <input
                           type="text"
                           value={pushCustomTitle}
                           onChange={(e) => setPushCustomTitle(e.target.value)}
-                          placeholder="Titre de la notification..."
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-black text-neon-red placeholder:text-gray-700 outline-none focus:border-neon-red/50 transition-all uppercase tracking-tight"
+                          placeholder="Titre..."
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[10px] font-black text-neon-red placeholder:text-gray-700 outline-none focus:border-neon-red/50 transition-all uppercase"
                         />
                         <textarea
                           value={pushCustomBody}
                           onChange={(e) => setPushCustomBody(e.target.value)}
-                          placeholder="Message personnalisé pour les abonnés..."
+                          placeholder="Message..."
                           rows={2}
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-white placeholder:text-gray-700 outline-none focus:border-neon-red/50 transition-all resize-none"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[10px] font-bold text-white placeholder:text-gray-700 outline-none focus:border-neon-red/50 transition-all resize-none"
                         />
                       </div>
 
                       <button
                         type="button"
                         onClick={handleSendManualPush}
-                        disabled={
-                          isSendingManualPush ||
-                          !pushCustomTitle ||
-                          !pushCustomBody
-                        }
-                        className={`w-full py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 relative overflow-hidden group/push ${
-                          isSendingManualPush
-                            ? "bg-white/10 text-gray-500 cursor-not-allowed"
-                            : "bg-white text-black hover:bg-neon-red hover:text-white shadow-[0_10px_30px_rgba(255,255,255,0.05)]"
+                        disabled={isSendingManualPush || !pushCustomTitle || !pushCustomBody}
+                        className={`w-full py-4 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-3 relative overflow-hidden group/push ${
+                          isSendingManualPush ? "bg-white/10 text-gray-500 cursor-not-allowed" : "bg-white text-black hover:bg-neon-red hover:text-white shadow-xl"
                         }`}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue opacity-0 group-hover/push:opacity-20 transition-opacity" />
                         {isSendingManualPush ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-neon-red border-t-transparent animate-spin rounded-full" />
-                            Envoi en cours...
-                          </>
+                          <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
                           <>
-                            <Zap className="w-4 h-4" />
+                            <Megaphone className="w-4 h-4" />
                             Diffuser aux {pushSubscribersCount || 0} abonnés
-                            <ArrowRight className="w-4 h-4 group-hover/push:translate-x-1 transition-transform" />
                           </>
                         )}
                       </button>
@@ -9157,9 +9072,9 @@ export function AdminDashboard() {
 
                     <button
                       onClick={() => setIsNotificationModalOpen(false)}
-                      className="w-full py-4 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[8px] transition-all border border-white/10"
+                      className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-gray-600 hover:text-white rounded-xl font-black uppercase tracking-[0.2em] text-[7px] transition-all border border-white/10"
                     >
-                      Annuler l'opération
+                      Annuler
                     </button>
                   </div>
                 </motion.div>

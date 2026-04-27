@@ -13,6 +13,12 @@ async function sendPushNotification(env, payload, filterFn = null) {
         const list = await env.CHAT_KV.list({ prefix: 'push_sub_' });
         const publicKey = env.VAPID_PUBLIC_KEY || VAPID_PUB;
         const privateKey = env.VAPID_PRIVATE_KEY || VAPID_PRI;
+
+        if (!publicKey || !privateKey) {
+            console.error('VAPID keys missing, cannot send push');
+            return;
+        }
+
         const subject = 'mailto:contact@dropsiders.fr';
 
         webpush.setVapidDetails(subject, publicKey, privateKey);
@@ -1594,7 +1600,9 @@ ${urls.map(u => `  <url>
             path === '/api/admin/remove-broken-image-bulk' ||
             path === '/api/agenda/favorites' ||
             path === '/api/users/list' ||
-            path === '/api/users/search'
+            path === '/api/users/search' ||
+            path === '/api/push/broadcast' ||
+            path === '/api/extension/push'
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
@@ -1984,10 +1992,7 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/extension/push' && request.method === 'POST') {
-            const adminPassword = request.headers.get('X-Admin-Password');
-            if (adminPassword !== env.ADMIN_PASSWORD && adminPassword !== 'dropsiders2024') { // Fallback for safety
-                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
-            }
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
 
             const body = await request.json();
             const alert = {
@@ -4856,6 +4861,8 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/push/broadcast' && request.method === 'POST') {
             try {
+                if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+
                 const { title, body, url } = await request.json();
                 if (!title || !body) return new Response(JSON.stringify({ error: 'Title and body required' }), { status: 400, headers });
 
@@ -4872,8 +4879,9 @@ ${urls.map(u => `  <url>
                 }));
 
                 return new Response(JSON.stringify({ success: true, sentTo: count }), { status: 200, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            } catch (e: any) {
+                console.error('[PUSH BROADCAST ERROR]', e);
+                return new Response(JSON.stringify({ error: 'Internal Worker Error: ' + e.message }), { status: 500, headers });
             }
         }
 
