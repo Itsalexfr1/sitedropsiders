@@ -149,6 +149,13 @@ export function AdminDashboard() {
   const [isEditorsModalOpen, setIsEditorsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+  const [isExtensionNotifModalOpen, setIsExtensionNotifModalOpen] = useState(false);
+  const [extensionNotifData, setExtensionNotifData] = useState({
+    title: "",
+    message: "",
+    url: "https://dropsiders.fr",
+    image: ""
+  });
   const [socialLinks, setSocialLinks] = useState({ instagram: "", tiktok: "" });
   const [newsTabs, setNewsTabs] = useState({
     all: "Toutes",
@@ -594,6 +601,31 @@ export function AdminDashboard() {
       setGlobalAlert({ message: "Échec du nettoyage", type: "danger" });
     } finally {
       setMaintenanceLoading(false);
+    }
+  };
+
+  const sendExtensionNotif = async () => {
+    setIsSaving(true);
+    try {
+      const res = await apiFetch("/api/extension/push", {
+        method: "POST",
+        headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(extensionNotifData),
+      });
+      if (res.ok) {
+        setGlobalAlert({ message: "Notification envoyée à toutes les extensions !", type: "info" });
+        setIsExtensionNotifModalOpen(false);
+      } else {
+        setGlobalAlert({ message: "Erreur lors de l'envoi de la notification.", type: "danger" });
+      }
+    } catch (e) {
+      console.error(e);
+      setGlobalAlert({ message: "Erreur réseau lors de l'envoi.", type: "danger" });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -7053,7 +7085,101 @@ export function AdminDashboard() {
                       </div>
                     </Link>
 
+                    <button
+                      onClick={() => {
+                        setIsExtensionNotifModalOpen(true);
+                        setIsContenuModalOpen(false);
+                      }}
+                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                    >
+                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                        <Bell className="w-6 h-6 text-neon-red" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-white uppercase italic">
+                          Notifications
+                        </h3>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
+                          Extension Push
+                        </p>
+                      </div>
+                    </button>
 
+
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* Modal Extension Notifications */}
+          <AnimatePresence>
+            {isExtensionNotifModalOpen && (
+              <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
+
+                  <div className="flex justify-between items-start mb-12">
+                    <div>
+                      <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                        ALERTES <span className="text-neon-red">EXTENSION</span>
+                      </h2>
+                      <p className="text-gray-400 font-medium">
+                        Envoyer un push aux navigateurs
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setIsExtensionNotifModalOpen(false)}
+                      className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Titre de l'alerte</label>
+                      <input
+                        type="text"
+                        value={extensionNotifData.title}
+                        onChange={(e) => setExtensionNotifData({ ...extensionNotifData, title: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-neon-red transition-all"
+                        placeholder="Ex: NOUVEL ARTICLE DISPO !"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Message court</label>
+                      <textarea
+                        value={extensionNotifData.message}
+                        onChange={(e) => setExtensionNotifData({ ...extensionNotifData, message: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-neon-red transition-all h-24"
+                        placeholder="Ex: Découvrez notre interview exclusive avec..."
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">URL de redirection</label>
+                      <input
+                        type="text"
+                        value={extensionNotifData.url}
+                        onChange={(e) => setExtensionNotifData({ ...extensionNotifData, url: e.target.value })}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-neon-red transition-all"
+                        placeholder="https://dropsiders.fr/..."
+                      />
+                    </div>
+
+                    <button
+                      onClick={sendExtensionNotif}
+                      disabled={isSaving || !extensionNotifData.title || !extensionNotifData.message}
+                      className="w-full py-5 bg-neon-red text-white font-black uppercase italic tracking-widest text-xs rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-[0_0_25px_rgba(255,18,65,0.4)]"
+                    >
+                      {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Megaphone className="w-5 h-5" />}
+                      DIFFUSER L'ALERTE MAINTENANT
+                    </button>
                   </div>
                 </motion.div>
               </div>
