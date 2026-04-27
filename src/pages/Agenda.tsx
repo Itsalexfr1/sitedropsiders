@@ -385,8 +385,20 @@ export function Agenda() {
             gradient: isMulti
                 ? 'linear-gradient(to right, #00f0ff, #0070ff, #bd00ff)'
                 : isHybride
-                    ? 'linear-gradient(to right, #ffcc00, #ff6600, #ff0033)'
-                    : undefined
+                    ? 'linear-gradient(to right, #fff01f, #ff6700, #e60026)'
+                    : g.includes('hard techno')
+                        ? 'linear-gradient(to right, #ff00ff, #e60026)'
+                        : g.includes('afro house')
+                            ? 'linear-gradient(to right, #ffbf00, #ff6700)'
+                            : g.includes('indie dance')
+                                ? 'linear-gradient(to right, #00ccff, #008899)'
+                                : g.includes('bass music')
+                                    ? 'linear-gradient(to right, #ccff00, #39ff14)'
+                                    : g.includes('dubstep')
+                                        ? 'linear-gradient(to right, #6600ff, #bc13fe)'
+                                        : g.includes('tech house')
+                                            ? 'linear-gradient(to right, #0070ff, #008899)'
+                                            : undefined
         };
     };
 
