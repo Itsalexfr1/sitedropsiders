@@ -213,6 +213,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
             hoverText: (isMulti || isHybride) ? 'hover:text-white' : (isWhite ? 'hover:text-white' : `hover:text-neon-${color}`),
             groupHoverText: (isMulti || isHybride) ? 'group-hover:text-white' : (isWhite ? 'group-hover:text-white' : `group-hover:text-neon-${color}`),
             shadow: (isMulti || isHybride) ? 'hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]' : `hover:shadow-[0_0_15px_var(--color-neon-${color})]`,
+            isLight: g.includes('bass music') || g.includes('melodic') || g.includes('afro house'),
             gradient: isMulti
                 ? 'linear-gradient(to right, #00f0ff, #0070ff, #bd00ff)'
                 : isHybride
@@ -375,16 +376,11 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                                     {event.type}
                                                 </span>
                                                 <span
-                                                    className={`text-[8px] font-black ${genreStyles.text} border ${genreStyles.borderMedium} px-2 py-0.5 rounded-full uppercase tracking-tighter`}
-                                                    style={genreStyles.gradient ? { backgroundImage: genreStyles.gradient, border: 'none', color: 'white' } : {}}
+                                                    className={`text-[8px] font-black ${genreStyles.isLight ? 'text-black border-black/20' : `${genreStyles.text} border ${genreStyles.borderMedium}`} px-2 py-0.5 rounded-full uppercase tracking-tighter`}
+                                                    style={genreStyles.gradient ? { backgroundImage: genreStyles.gradient, border: 'none', color: genreStyles.isLight ? 'black' : 'white' } : {}}
                                                 >
                                                     {event.genre}
                                                 </span>
-                                                {event.isWeekly && (
-                                                    <span className="text-[8px] font-bold text-white bg-white/10 px-1.5 py-0.5 rounded-full border border-white/20 uppercase">
-                                                        {language === 'fr' ? 'Hebdo' : 'Weekly'}
-                                                    </span>
-                                                )}
                                             </div>
                                             <h4
                                                 className={`font-display font-bold text-white flex items-center gap-2 ${styles.groupHoverText} transition-all duration-300 line-clamp-4 uppercase italic tracking-tighter text-sm`}

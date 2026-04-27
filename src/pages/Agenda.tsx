@@ -371,6 +371,7 @@ export function Agenda() {
         const isHybride = g.includes('hybride');
         const isWhite = color === 'white';
         const isFestival = t === 'festival';
+        const isLight = g.includes('bass music') || g.includes('melodic') || g.includes('afro house');
 
         return {
             text: ((isMulti || isHybride) && !isFestival) ? 'text-white' : (isWhite ? 'text-white' : `text-neon-${color}`),
@@ -382,6 +383,7 @@ export function Agenda() {
             hoverText: ((isMulti || isHybride) && !isFestival) ? 'hover:text-white' : (isWhite ? 'hover:text-white' : `hover:text-neon-${color}`),
             groupHoverText: ((isMulti || isHybride) && !isFestival) ? 'group-hover:text-white' : (isWhite ? 'group-hover:text-white' : `group-hover:text-neon-${color}`),
             shadow: ((isMulti || isHybride) && !isFestival) ? 'hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]' : `hover:shadow-[0_0_15px_var(--color-neon-${color})]`,
+            isLight,
             gradient: isMulti
                 ? 'linear-gradient(to right, #00f0ff, #0070ff, #bd00ff)'
                 : isHybride
@@ -716,7 +718,7 @@ export function Agenda() {
                                                             {event.type}
                                                         </span>
                                                         <span 
-                                                            className={`text-[8px] font-black px-2 py-1 rounded-lg border backdrop-blur-md uppercase ${getEventStyles(event.genre, "").gradient ? 'text-white border-white/20' : `${getEventStyles(event.genre, "").bg} ${getEventStyles(event.genre, "").text} ${getEventStyles(event.genre, "").borderMedium}`}`}
+                                                            className={`text-[8px] font-black px-2 py-1 rounded-lg border backdrop-blur-md uppercase ${getEventStyles(event.genre, "").gradient ? (getEventStyles(event.genre, "").isLight ? 'text-black border-black/20' : 'text-white border-white/20') : `${getEventStyles(event.genre, "").bg} ${getEventStyles(event.genre, "").text} ${getEventStyles(event.genre, "").borderMedium}`}`}
                                                             style={getEventStyles(event.genre, "").gradient ? { background: getEventStyles(event.genre, "").gradient } : {}}
                                                         >
                                                             {event.genre}
@@ -798,7 +800,7 @@ export function Agenda() {
                                                                         {event.type}
                                                                     </span>
                                                                     <span 
-                                                                        className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getEventStyles(event.genre, "").gradient ? 'text-white border-white/20' : `${getEventStyles(event.genre, "").bg} ${getEventStyles(event.genre, "").text} border ${getEventStyles(event.genre, "").borderMedium}`}`}
+                                                                        className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getEventStyles(event.genre, "").gradient ? (getEventStyles(event.genre, "").isLight ? 'text-black border-black/20' : 'text-white border-white/20') : `${getEventStyles(event.genre, "").bg} ${getEventStyles(event.genre, "").text} border ${getEventStyles(event.genre, "").borderMedium}`}`}
                                                                         style={getEventStyles(event.genre, "").gradient ? { background: getEventStyles(event.genre, "").gradient } : {}}
                                                                     >
                                                                         {event.genre}
@@ -927,8 +929,8 @@ export function Agenda() {
                                                                 <div className="space-y-2">
                                                                     <div className="flex flex-wrap items-center gap-2">
                                                                         <span 
-                                                                            className={`text-[10px] md:text-sm font-black uppercase tracking-[0.3em] ${getEventStyles(event.genre, "").gradient ? '' : getEventStyles(event.genre, "").text}`}
-                                                                            style={getEventStyles(event.genre, "").gradient ? { background: getEventStyles(event.genre, "").gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' } : {}}
+                                                                            className={`text-[10px] md:text-sm font-black uppercase tracking-[0.3em] ${getEventStyles(event.genre, "").gradient ? (getEventStyles(event.genre, "").isLight ? 'text-black/80' : '') : getEventStyles(event.genre, "").text}`}
+                                                                            style={getEventStyles(event.genre, "").gradient ? { background: getEventStyles(event.genre, "").gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: getEventStyles(event.genre, "").isLight ? '#000' : 'transparent' } : {}}
                                                                         >
                                                                             {event.genre}
                                                                         </span>
