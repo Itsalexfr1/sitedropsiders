@@ -7149,7 +7149,7 @@ export function AdminDashboard() {
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2.5rem] p-6 max-w-xl w-full shadow-2xl relative overflow-hidden"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
 
@@ -7192,7 +7192,7 @@ export function AdminDashboard() {
                     </div>
                     <div>
                       <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 block">Cible de la notification</label>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-4 gap-2">
                         {[
                           { id: 'news', label: 'News', url: '/news', icon: FileText, color: 'neon-blue' },
                           { id: 'agenda', label: 'Agenda', url: '/agenda', icon: Calendar, color: 'neon-green' },
@@ -7202,10 +7202,10 @@ export function AdminDashboard() {
                           <button
                             key={cat.id}
                             onClick={() => setExtensionNotifData({ ...extensionNotifData, url: `https://dropsiders.fr${cat.url}`, targetType: cat.id })}
-                            className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${extensionNotifData.targetType === cat.id ? `bg-white/10 border-white/40 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]` : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
+                            className={`p-2 rounded-xl border transition-all flex flex-col items-center gap-1 ${extensionNotifData.targetType === cat.id ? `bg-white/10 border-white/40 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]` : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
                           >
-                            <cat.icon className={`w-5 h-5 ${extensionNotifData.targetType === cat.id ? cat.color.replace('neon-', 'text-neon-') : ''}`} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">{cat.label}</span>
+                            <cat.icon className={`w-4 h-4 ${extensionNotifData.targetType === cat.id ? cat.color.replace('neon-', 'text-neon-') : ''}`} />
+                            <span className="text-[9px] font-black uppercase tracking-tighter">{cat.label}</span>
                           </button>
                         ))}
                       </div>
