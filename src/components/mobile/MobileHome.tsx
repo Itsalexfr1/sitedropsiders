@@ -254,6 +254,14 @@ export function MobileHome() {
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/40 to-transparent opacity-80" />
 
                             <div className="flex-1" />
+                            <div className="flex flex-wrap items-center gap-2 mb-3 relative z-10">
+                                <span className="text-[9px] font-black text-white bg-neon-cyan/40 px-2 py-0.5 rounded-md border border-neon-cyan/30 uppercase tracking-widest">
+                                    {event.type}
+                                </span>
+                                <span className="text-[9px] font-black text-white bg-white/10 px-2 py-0.5 rounded-md border border-white/20 uppercase tracking-widest">
+                                    {event.genre}
+                                </span>
+                            </div>
                             <div className="text-neon-cyan text-sm font-black mb-3 flex items-center gap-2 relative z-10 uppercase tracking-widest">
                                 <div className="w-2 h-2 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
                                 {new Date(event.date || event.startDate || 0).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: 'short' }).toUpperCase()}

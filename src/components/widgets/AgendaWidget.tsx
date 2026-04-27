@@ -163,18 +163,41 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
         return () => clearInterval(interval);
     }, [takeoverEnabled, takeoverSettings?.lineup]);
 
-    const getEventStyles = (genre: string) => {
+    const getEventStyles = (genre: string, type: string) => {
         const g = (genre || '').toLowerCase().trim();
-        let color = 'cyan'; // Default
+        const t = (type || '').toLowerCase().trim();
+        let color = 'cyan';
 
-        if (g.includes('melodic')) color = 'yellow';
-        else if (g.includes('techno')) color = 'red';
+        // Type Colors (Prioritaires)
+        if (t === 'festival') color = 'red';
+        else if (t === 'pool party') color = 'cyan';
+        else if (t === 'concert') color = 'pink';
+        else if (t === 'clubs') color = 'blue';
+        else if (t === 'showcase') color = 'purple';
+        else if (t === 'résidence') color = 'yellow';
+        else if (t === 'opening') color = 'orange';
+        else if (t === 'events') color = 'white';
+        else if (t === 'live take over') color = 'red';
+        else if (t === 'jeux concours') color = 'yellow';
+        
+        // Genre Colors (Fallback si le type n'est pas déjà coloré spécifiquement ou pour nuancer)
+        if (g.includes('melodic techno')) color = 'yellow';
         else if (g.includes('tech house')) color = 'blue';
-        else if (g.includes('big room')) color = 'purple';
+        else if (g.includes('afro house')) color = 'amber';
+        else if (g.includes('indie dance')) color = 'sky';
+        else if (g.includes('bass music')) color = 'lime';
+        else if (g.includes('hard techno')) color = 'fuchsia';
+        else if (g.includes('techno')) color = 'red';
         else if (g.includes('house')) color = 'pink';
-        else if (g.includes('hardmusic')) color = 'orange';
-        else if (g.includes('multi styles')) color = 'blue';
+        else if (g.includes('big room')) color = 'purple';
+        else if (g.includes('hardstyle')) color = 'orange';
+        else if (g.includes('trance')) color = 'cyan';
+        else if (g.includes('progressive')) color = 'white';
+        else if (g.includes('drum')) color = 'green';
+        else if (g.includes('multi styles')) color = 'emerald';
         else if (g.includes('hybride')) color = 'red';
+        else if (g.includes('hardcore')) color = 'orange';
+        else if (g.includes('dubstep')) color = 'indigo';
 
         const isMulti = g.includes('multi styles');
         const isHybride = g.includes('hybride');
@@ -193,8 +216,20 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
             gradient: isMulti
                 ? 'linear-gradient(to right, #00f0ff, #0070ff, #bd00ff)'
                 : isHybride
-                    ? 'linear-gradient(to right, #ffcc00, #ff6600, #ff0033)'
-                    : undefined
+                    ? 'linear-gradient(to right, #fff01f, #ff6700, #e60026)'
+                    : g.includes('hard techno')
+                        ? 'linear-gradient(to right, #ff00ff, #e60026)'
+                        : g.includes('afro house')
+                            ? 'linear-gradient(to right, #ffbf00, #ff6700)'
+                            : g.includes('indie dance')
+                                ? 'linear-gradient(to right, #00ccff, #008899)'
+                                : g.includes('bass music')
+                                    ? 'linear-gradient(to right, #ccff00, #39ff14)'
+                                    : g.includes('dubstep')
+                                        ? 'linear-gradient(to right, #6600ff, #bc13fe)'
+                                        : g.includes('tech house')
+                                            ? 'linear-gradient(to right, #0070ff, #008899)'
+                                            : undefined
         };
     };
 
@@ -296,7 +331,10 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                     </Link>
                 )}
                 {upcomingEvents.map((event: any, index: number) => {
-                    const styles = getEventStyles(event.genre);
+                    const styles = getEventStyles(event.genre, event.type);
+                    const typeStyles = getEventStyles('', event.type);
+                    const genreStyles = getEventStyles(event.genre, '');
+
                     return (
                         <Link
                             key={event.compositeId}
@@ -331,8 +369,14 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                         <div className="flex flex-col min-w-0 flex-1 mr-3">
                                             <div className="flex items-center flex-wrap gap-1 mb-1">
                                                 <span
-                                                    className={`text-[9px] font-black ${styles.text} border ${styles.borderMedium} px-2 py-0.5 rounded-full uppercase tracking-tighter`}
-                                                    style={styles.gradient ? { backgroundImage: styles.gradient, border: 'none', color: 'white' } : {}}
+                                                    className={`text-[8px] font-black ${typeStyles.text} border ${typeStyles.borderMedium} px-2 py-0.5 rounded-full uppercase tracking-tighter`}
+                                                    style={typeStyles.gradient ? { backgroundImage: typeStyles.gradient, border: 'none', color: 'white' } : {}}
+                                                >
+                                                    {event.type}
+                                                </span>
+                                                <span
+                                                    className={`text-[8px] font-black ${genreStyles.text} border ${genreStyles.borderMedium} px-2 py-0.5 rounded-full uppercase tracking-tighter`}
+                                                    style={genreStyles.gradient ? { backgroundImage: genreStyles.gradient, border: 'none', color: 'white' } : {}}
                                                 >
                                                     {event.genre}
                                                 </span>
