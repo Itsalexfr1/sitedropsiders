@@ -153,8 +153,8 @@ export function AdminDashboard() {
   const [extensionNotifData, setExtensionNotifData] = useState({
     title: "",
     message: "",
-    url: "https://dropsiders.fr",
-    image: ""
+    url: "https://dropsiders.fr/news",
+    targetType: "news"
   });
   const [socialLinks, setSocialLinks] = useState({ instagram: "", tiktok: "" });
   const [newsTabs, setNewsTabs] = useState({
@@ -7162,13 +7162,33 @@ export function AdminDashboard() {
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">URL de redirection</label>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 block">Cible de la notification</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { id: 'news', label: 'News', url: '/news', icon: FileText, color: 'neon-blue' },
+                          { id: 'agenda', label: 'Agenda', url: '/agenda', icon: Calendar, color: 'neon-green' },
+                          { id: 'recaps', label: 'Récaps', url: '/recaps', icon: Video, color: 'neon-red' },
+                          { id: 'interviews', label: 'Interviews', url: '/interviews', icon: Mic, color: 'neon-purple' },
+                        ].map((cat) => (
+                          <button
+                            key={cat.id}
+                            onClick={() => setExtensionNotifData({ ...extensionNotifData, url: `https://dropsiders.fr${cat.url}`, targetType: cat.id })}
+                            className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${extensionNotifData.targetType === cat.id ? `bg-white/10 border-white/40 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]` : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
+                          >
+                            <cat.icon className={`w-5 h-5 ${extensionNotifData.targetType === cat.id ? cat.color.replace('neon-', 'text-neon-') : ''}`} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">{cat.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-white/5">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Lien final (Auto)</label>
                       <input
                         type="text"
                         value={extensionNotifData.url}
-                        onChange={(e) => setExtensionNotifData({ ...extensionNotifData, url: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-neon-red transition-all"
-                        placeholder="https://dropsiders.fr/..."
+                        readOnly
+                        className="w-full bg-black/20 border border-white/5 rounded-xl p-3 text-gray-500 font-mono text-[10px] outline-none"
                       />
                     </div>
 
