@@ -43,6 +43,12 @@ html.light-mode {
   --color-neon-orange: #ff6700;
   --color-neon-yellow: #fff01f;
   --color-neon-blue: #0070ff;
+  --color-neon-lime: #ccff00;
+  --color-neon-fuchsia: #ff00ff;
+  --color-neon-indigo: #6600ff;
+  --color-neon-amber: #ffbf00;
+  --color-neon-sky: #00ccff;
+  --color-neon-emerald: #00ffa3;
   --color-dark-bg: var(--bg-primary);
   --color-dark-card: var(--bg-card);
   --color-gray-50: #fafafa;
@@ -161,6 +167,12 @@ html.light-mode {
   html.light-mode .text-neon-green { color: #008800 !important; }
   html.light-mode .text-neon-blue { color: #0055cc !important; }
   html.light-mode .text-neon-yellow { color: #b38600 !important; }
+  html.light-mode .text-neon-lime { color: #88b300 !important; }
+  html.light-mode .text-neon-fuchsia { color: #cc00cc !important; }
+  html.light-mode .text-neon-indigo { color: #4400cc !important; }
+  html.light-mode .text-neon-amber { color: #b38600 !important; }
+  html.light-mode .text-neon-sky { color: #0088b3 !important; }
+  html.light-mode .text-neon-emerald { color: #00b372 !important; }
 
   html.light-mode .logo-img {
     filter: invert(1) brightness(0.2);
@@ -332,6 +344,30 @@ body {
 
   .glow-card-pink:hover {
     box-shadow: 0 0 50px rgba(255, 0, 153, 0.25) !important;
+  }
+  
+  .glow-card-lime:hover {
+    box-shadow: 0 0 50px rgba(204, 255, 0, 0.25) !important;
+  }
+  
+  .glow-card-fuchsia:hover {
+    box-shadow: 0 0 50px rgba(255, 0, 255, 0.25) !important;
+  }
+  
+  .glow-card-indigo:hover {
+    box-shadow: 0 0 50px rgba(102, 0, 255, 0.25) !important;
+  }
+  
+  .glow-card-amber:hover {
+    box-shadow: 0 0 50px rgba(255, 191, 0, 0.25) !important;
+  }
+  
+  .glow-card-sky:hover {
+    box-shadow: 0 0 50px rgba(0, 204, 255, 0.25) !important;
+  }
+  
+  .glow-card-emerald:hover {
+    box-shadow: 0 0 50px rgba(0, 255, 163, 0.25) !important;
   }
 
   /* Titres Internes - Force compacité */

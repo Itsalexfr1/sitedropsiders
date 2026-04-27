@@ -152,10 +152,14 @@ export function Profile() {
         if (t === 'festival' || g.includes('techno') || g.includes('hybride') || g.includes('hardcore')) return 'neon-red';
         if (g.includes('house') || g.includes('tech house')) return 'neon-blue';
         if (g.includes('melodic') || t === 'jeux concours') return 'neon-yellow';
-        if (g.includes('big room') || g.includes('hard techno')) return 'neon-purple';
-        if (g.includes('drum') || g.includes('bass music') || g.includes('dubstep')) return 'neon-green';
-        if (g.includes('afro house')) return 'neon-pink';
-        if (g.includes('indie dance')) return 'neon-cyan';
+        if (g.includes('big room')) return 'neon-purple';
+        if (g.includes('hard techno')) return 'neon-fuchsia';
+        if (g.includes('drum')) return 'neon-green';
+        if (g.includes('bass music')) return 'neon-lime';
+        if (g.includes('dubstep')) return 'neon-indigo';
+        if (g.includes('afro house')) return 'neon-amber';
+        if (g.includes('indie dance')) return 'neon-sky';
+        if (g.includes('multi styles')) return 'neon-emerald';
         if (g.includes('trance') || t === 'concert') return 'neon-cyan';
         return 'neon-red';
     };

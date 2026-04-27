@@ -354,17 +354,18 @@ export function Agenda() {
         else if (g.includes('tech house')) color = 'blue';
         else if (g.includes('big room')) color = 'purple';
         else if (g.includes('house')) color = 'pink';
-        else if (g.includes('hardmusic')) color = 'orange';
+        else if (g.includes('hardstyle')) color = 'orange';
         else if (g.includes('trance')) color = 'cyan';
         else if (g.includes('progressive')) color = 'white';
-        else if (g.includes('drum') || g.includes('bass') || g.includes('dubstep')) color = 'green';
-        else if (g.includes('multi styles')) color = 'blue';
+        else if (g.includes('drum')) color = 'green';
+        else if (g.includes('multi styles')) color = 'emerald';
         else if (g.includes('hybride')) color = 'red';
-        else if (g.includes('hardcore')) color = 'red';
-        else if (g.includes('hard techno')) color = 'purple';
-        else if (g.includes('afro house')) color = 'orange';
-        else if (g.includes('indie dance')) color = 'cyan';
-        else if (g.includes('bass music') || g.includes('dubstep')) color = 'green';
+        else if (g.includes('hardcore')) color = 'orange';
+        else if (g.includes('hard techno')) color = 'fuchsia';
+        else if (g.includes('afro house')) color = 'amber';
+        else if (g.includes('indie dance')) color = 'sky';
+        else if (g.includes('bass music')) color = 'lime';
+        else if (g.includes('dubstep')) color = 'indigo';
 
         const isMulti = g.includes('multi styles');
         const isHybride = g.includes('hybride');
