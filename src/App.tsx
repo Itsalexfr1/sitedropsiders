@@ -211,7 +211,9 @@ const router = createBrowserRouter([
 
 function App() {
   const [initialLoad, setInitialLoad] = useState(true);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const isMobile = window.innerWidth < 1024;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
 
   // Enregistrement explicite du Service Worker pour les Pushs
   useRegisterSW({
@@ -222,6 +224,31 @@ function App() {
       console.error('SW registration error', error);
     }
   });
+
+  useEffect(() => {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    });
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (isMobile) {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') setDeferredPrompt(null);
+        setShowExtensionPopup(false);
+      } else if (isIOS) {
+        setGlobalAlert({ message: "Sur iPhone : Clique sur 'Partager' (icône flèche) puis 'Sur l'écran d'accueil' 📲", type: "info" });
+      } else {
+        setGlobalAlert({ message: "Ajoute le site à ton écran d'accueil pour profiter de l'App ! 🚀", type: "info" });
+      }
+    } else {
+      setShowExtensionPopup(false);
+      // window.open('...', '_blank');
+    }
+  };
 
   useEffect(() => {
     // Shorter splash on mobile for faster time-to-interactive
@@ -336,20 +363,32 @@ function App() {
 
               <div className="flex-1 min-w-0">
                 <h3 className="text-white font-black uppercase italic text-sm tracking-tighter">
-                  Dropsiders <span className="text-neon-red">Extension</span>
+                  Dropsiders <span className="text-neon-red">{isMobile ? "L'Application" : "Extension"}</span>
                 </h3>
                 <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-1">
-                  Recevez nos alertes flash en temps réel !
+                  {isMobile ? "Installe l'app pour recevoir les alertes mobile !" : "Recevez nos alertes flash en temps réel !"}
                 </p>
-                <button 
-                  onClick={() => {
-                      setShowExtensionPopup(false);
-                      window.open('https://dropsiders.fr', '_blank'); // Rediriger vers une page d'install ou zip
-                  }}
-                  className="inline-block mt-3 text-[9px] font-black text-neon-red uppercase tracking-[0.2em] hover:underline"
-                >
-                  Installer l'extension →
-                </button>
+                
+                {isMobile ? (
+                  <button 
+                    onClick={handleInstallClick}
+                    className="inline-block mt-3 text-[9px] font-black text-neon-red uppercase tracking-[0.2em] hover:underline"
+                  >
+                    Installer l'App →
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-1 mt-3">
+                    <span className="text-[8px] font-black bg-white/5 border border-white/10 text-gray-500 py-1 px-2 rounded-lg inline-block w-fit uppercase tracking-widest">
+                      Bientôt disponible
+                    </span>
+                    <button 
+                      disabled
+                      className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] cursor-not-allowed"
+                    >
+                      Installer l'extension →
+                    </button>
+                  </div>
+                )}
               </div>
 
               <button 
