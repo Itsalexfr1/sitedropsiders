@@ -380,8 +380,8 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                 <option value="Résidence">Résidence</option>
                                 <option value="Opening">Opening</option>
                                 <option value="Events">Events</option>
-                                <option value="Clubs">Clubs</option>
                                 <option value="Pool Party">Pool Party</option>
+                                <option value="Clubs">Clubs</option>
                                 <option value="Live Take Over">LIVE TAKE OVER</option>
                             </select>
                         </div>
