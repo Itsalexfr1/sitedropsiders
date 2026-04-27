@@ -152,8 +152,9 @@ export function Profile() {
         if (t === 'festival' || g.includes('techno') || g.includes('hybride') || g.includes('hardcore')) return 'neon-red';
         if (g.includes('house') || g.includes('tech house')) return 'neon-blue';
         if (g.includes('melodic') || t === 'jeux concours') return 'neon-yellow';
-        if (g.includes('big room') || g.includes('drum') || g.includes('hard techno') || g.includes('bass music') || g.includes('dubstep')) return 'neon-purple';
-        if (g.includes('afro house')) return 'neon-blue';
+        if (g.includes('big room') || g.includes('hard techno')) return 'neon-purple';
+        if (g.includes('drum') || g.includes('bass music') || g.includes('dubstep')) return 'neon-green';
+        if (g.includes('afro house')) return 'neon-pink';
         if (g.includes('indie dance')) return 'neon-cyan';
         if (g.includes('trance') || t === 'concert') return 'neon-cyan';
         return 'neon-red';

@@ -99,28 +99,17 @@ export function Agenda() {
         setIsBulkUpdating(true);
         try {
             const ids = Array.from(selectedEvents);
-            let successCount = 0;
+            const response = await fetch('/api/agenda/bulk-update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    ids,
+                    genre: bulkGenre || undefined,
+                    type: bulkType || undefined
+                }),
+            });
 
-            for (const id of ids) {
-                const event = agendaData.find(e => e.id === id);
-                if (!event) continue;
-
-                const payload = {
-                    ...event,
-                    genre: bulkGenre || event.genre,
-                    type: bulkType || event.type
-                };
-
-                const response = await fetch('/api/agenda/update', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify(payload),
-                });
-
-                if (response.ok) successCount++;
-            }
-
-            if (successCount > 0) {
+            if (response.ok) {
                 await fetchAgenda();
                 setSelectedEvents(new Set());
                 setIsBulkEditModalOpen(false);
@@ -368,14 +357,14 @@ export function Agenda() {
         else if (g.includes('hardmusic')) color = 'orange';
         else if (g.includes('trance')) color = 'cyan';
         else if (g.includes('progressive')) color = 'white';
-        else if (g.includes('drum') || g.includes('bass')) color = 'purple';
+        else if (g.includes('drum') || g.includes('bass') || g.includes('dubstep')) color = 'green';
         else if (g.includes('multi styles')) color = 'blue';
         else if (g.includes('hybride')) color = 'red';
         else if (g.includes('hardcore')) color = 'red';
         else if (g.includes('hard techno')) color = 'purple';
         else if (g.includes('afro house')) color = 'orange';
         else if (g.includes('indie dance')) color = 'cyan';
-        else if (g.includes('bass music') || g.includes('dubstep')) color = 'purple';
+        else if (g.includes('bass music') || g.includes('dubstep')) color = 'green';
 
         const isMulti = g.includes('multi styles');
         const isHybride = g.includes('hybride');

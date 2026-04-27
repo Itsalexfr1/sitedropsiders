@@ -3767,6 +3767,40 @@ ${urls.map(u => `  <url>
         }
 
         // --- API: UPDATE AGENDA ---
+        if (path === '/api/agenda/bulk-update' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const FILE_PATH = 'src/data/agenda.json';
+            try {
+                const body = await request.json();
+                const { ids, genre, type } = body;
+                if (!ids || !Array.isArray(ids)) return new Response(JSON.stringify({ error: 'Missing IDs' }), { status: 400, headers });
+
+                const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
+                if (!agendaFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+
+                let currentData = agendaFile.content;
+                let count = 0;
+
+                ids.forEach(id => {
+                    const index = currentData.findIndex(item => String(item.id) === String(id));
+                    if (index !== -1) {
+                        if (genre) currentData[index].genre = genre;
+                        if (type) currentData[index].type = type;
+                        count++;
+                    }
+                });
+
+                if (count > 0) {
+                    const saveRes = await saveGitHubFile(FILE_PATH, currentData, `Bulk update agenda: ${count} items`, agendaFile.sha, gitConfig);
+                    if (!saveRes.ok) return new Response(JSON.stringify({ error: 'Error saving', detail: saveRes.error }), { status: 502, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true, updated: count }), { headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/agenda/update' && request.method === 'POST') {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/agenda.json';
