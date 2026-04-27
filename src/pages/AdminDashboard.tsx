@@ -156,6 +156,8 @@ export function AdminDashboard() {
     url: "https://dropsiders.fr/news",
     targetType: "news"
   });
+  const [extensionTargetItems, setExtensionTargetItems] = useState<any[]>([]);
+  const [isFetchingExtensionItems, setIsFetchingExtensionItems] = useState(false);
   const [socialLinks, setSocialLinks] = useState({ instagram: "", tiktok: "" });
   const [newsTabs, setNewsTabs] = useState({
     all: "Toutes",
@@ -628,6 +630,33 @@ export function AdminDashboard() {
       setIsSaving(false);
     }
   };
+
+  const fetchExtensionTargetItems = async () => {
+    setIsFetchingExtensionItems(true);
+    try {
+      let endpoint = "/api/news";
+      if (extensionNotifData.targetType === "agenda") endpoint = "/api/agenda";
+      if (extensionNotifData.targetType === "recaps") endpoint = "/api/recaps";
+      if (extensionNotifData.targetType === "interviews") endpoint = "/api/wiki/list?type=djs"; // Interviews are in djs wiki usually or dedicated
+      
+      const res = await apiFetch(endpoint);
+      if (res.ok) {
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : [];
+        setExtensionTargetItems(list.slice(0, 15));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsFetchingExtensionItems(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isExtensionNotifModalOpen) {
+      fetchExtensionTargetItems();
+    }
+  }, [isExtensionNotifModalOpen, extensionNotifData.targetType]);
 
   const handleCleanupPastAgenda = async () => {
     setConfirmModal({
@@ -7182,14 +7211,66 @@ export function AdminDashboard() {
                       </div>
                     </div>
 
+                    {/* Liste des 15 derniers items */}
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Sélectionner un contenu (15 derniers)</label>
+                      <div className="max-h-[200px] overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                        {isFetchingExtensionItems ? (
+                          <div className="py-8 flex justify-center">
+                            <Loader2 className="w-6 h-6 animate-spin text-neon-red" />
+                          </div>
+                        ) : extensionTargetItems.length > 0 ? (
+                          extensionTargetItems.map((item) => (
+                            <button
+                              key={item.id}
+                              onClick={() => {
+                                let path = `/${extensionNotifData.targetType}/${item.id}`;
+                                if (extensionNotifData.targetType === 'interviews') path = `/wiki/dj/${item.id}`;
+                                if (extensionNotifData.targetType === 'recaps') path = `/recap/${item.id}`;
+                                
+                                setExtensionNotifData({
+                                  ...extensionNotifData,
+                                  title: item.title || item.name || "NOUVEAUTÉ !",
+                                  message: item.description?.substring(0, 60) || "Découvrez notre nouveau contenu sur Dropsiders !",
+                                  url: `https://dropsiders.fr${path}`
+                                });
+                              }}
+                              className="w-full bg-white/5 border border-white/5 hover:border-white/20 rounded-xl p-3 flex items-center gap-4 transition-all text-left group"
+                            >
+                              <div className="w-10 h-10 rounded-lg bg-black overflow-hidden flex-shrink-0 border border-white/10 group-hover:border-white/30">
+                                <img src={item.image || item.cover || "/Logo.png"} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-[11px] font-bold text-white truncate">{item.title || item.name}</h4>
+                                <p className="text-[9px] text-gray-500 font-medium truncate uppercase tracking-widest">{new Date(item.date).toLocaleDateString()}</p>
+                              </div>
+                              <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white" />
+                            </button>
+                          ))
+                        ) : (
+                          <div className="text-center py-8 text-gray-600 text-[10px] uppercase font-bold">Aucun contenu trouvé</div>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="pt-2 border-t border-white/5">
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Lien final (Auto)</label>
-                      <input
-                        type="text"
-                        value={extensionNotifData.url}
-                        readOnly
-                        className="w-full bg-black/20 border border-white/5 rounded-xl p-3 text-gray-500 font-mono text-[10px] outline-none"
-                      />
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Vérification de l'Alerte</label>
+                      <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-4">
+                        <input
+                          type="text"
+                          value={extensionNotifData.title}
+                          onChange={(e) => setExtensionNotifData({ ...extensionNotifData, title: e.target.value })}
+                          className="w-full bg-transparent text-white font-black uppercase italic text-sm outline-none placeholder:text-gray-700"
+                          placeholder="Titre de la notification"
+                        />
+                        <textarea
+                          value={extensionNotifData.message}
+                          onChange={(e) => setExtensionNotifData({ ...extensionNotifData, message: e.target.value })}
+                          className="w-full bg-transparent text-gray-400 font-medium text-xs outline-none placeholder:text-gray-700 h-12 resize-none"
+                          placeholder="Message de la notification"
+                        />
+                        <div className="text-[9px] text-neon-red font-mono truncate">{extensionNotifData.url}</div>
+                      </div>
                     </div>
 
                     <button
