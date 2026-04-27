@@ -600,7 +600,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
 
                 {/* Link URL */}
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lien de l'événement (Billetterie/Infos) <span className="text-neon-red">*</span></label>
+                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Site Officiel <span className="text-neon-red">*</span></label>
                     <div className="relative group">
                         <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
                         <input
