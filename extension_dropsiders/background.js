@@ -63,13 +63,18 @@ function showNotification(id, title, message, url) {
     message: message,
     priority: 2
   });
+  // Store the URL for this specific notification
+  chrome.storage.local.set({ [`url_${id}`]: url });
 }
 
 // Handle notification click
 chrome.notifications.onClicked.addListener((notificationId) => {
-  // Extract URL from context or use default
-  // For simplicity, we open the site
-  chrome.tabs.create({ url: 'https://dropsiders.fr' });
+  chrome.storage.local.get([`url_${notificationId}`], (result) => {
+    const url = result[`url_${notificationId}`] || 'https://dropsiders.fr';
+    chrome.tabs.create({ url: url });
+    // Cleanup
+    chrome.storage.local.remove([`url_${notificationId}`]);
+  });
 });
 
 // Helper functions for storage
