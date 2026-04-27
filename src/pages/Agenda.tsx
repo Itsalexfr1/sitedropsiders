@@ -200,6 +200,12 @@ export function Agenda() {
         return Array.from(monthKeys).sort();
     }, [activeCategory, agendaData]);
 
+    const currentLiveEvent = useMemo(() => {
+        if (!takeoverEnabled) return null;
+        const today = new Date().toISOString().split('T')[0];
+        return agendaData.find(e => e.isLiveDropsiders && (e.startDate === today || e.date === today));
+    }, [agendaData, takeoverEnabled]);
+
     // Set initial selected month or reset if not available for new category
     useEffect(() => {
         if (months.length > 0) {
@@ -627,7 +633,7 @@ export function Agenda() {
                                         </div>
                                         
                                         <h2 className="text-2xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-tight mb-4 group-hover:text-neon-red transition-colors duration-300 truncate">
-                                            {takeoverSettings?.title || 'DROPSIDERS LIVE'}
+                                            {takeoverSettings?.title || currentLiveEvent?.title || 'DROPSIDERS LIVE'}
                                         </h2>
                                         
                                         <p className="text-gray-400 text-sm md:text-base font-medium max-w-xl">
@@ -881,9 +887,9 @@ export function Agenda() {
                                                         <div className="flex flex-col md:flex-row gap-8 md:gap-14 items-center">
                                                             <div className="w-full md:w-1/3 group">
                                                                 <div 
-                                                                    className={`relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 ${event.isLiveDropsiders ? 'cursor-pointer' : ''}`}
+                                                                    className={`relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 ${event.isLiveDropsiders && takeoverEnabled ? 'cursor-pointer' : ''}`}
                                                                     onClick={() => {
-                                                                        if (event.isLiveDropsiders) {
+                                                                        if (event.isLiveDropsiders && takeoverEnabled) {
                                                                             window.location.href = '/live';
                                                                         }
                                                                     }}
@@ -896,7 +902,7 @@ export function Agenda() {
                                                                             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
                                                                         }}
                                                                     />
-                                                                    {event.isLiveDropsiders && (
+                                                                    {event.isLiveDropsiders && takeoverEnabled && (
                                                                         <div className="absolute inset-0 bg-neon-red/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                                                             <span className="bg-neon-red text-white px-4 py-2 rounded-full text-xs font-black uppercase italic animate-pulse">REJOINDRE LE LIVE</span>
                                                                         </div>
