@@ -1829,6 +1829,39 @@ ${generateSocialsHtml()}
         }
     };
 
+    const handleExtensionPush = async () => {
+        if (!shareModalConfig) return;
+        
+        setStatus('loading');
+        try {
+            const response = await fetch('/api/extension/push', {
+                method: 'POST',
+                headers: {
+                    ...getAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: shareModalConfig.title,
+                    message: "Nouvelle publication sur Dropsiders !",
+                    url: shareModalConfig.url,
+                    image: imageUrl
+                })
+            });
+            
+            if (response.ok) {
+                setMessage("Notification envoyée à toutes les extensions !");
+                setStatus('success');
+            } else {
+                setMessage("Erreur lors de l'envoi de la notification.");
+                setStatus('error');
+            }
+        } catch (e) {
+            setMessage("Erreur réseau.");
+            setStatus('error');
+        }
+        setTimeout(() => setStatus('idle'), 3000);
+    };
+
     const closeMobileEditor = () => {
         setIsMobileEditorActive(false);
         setActiveWidgetId(null);
@@ -4949,6 +4982,13 @@ ${generateSocialsHtml()}
                                     <SnapchatIcon className="w-5 h-5" />
                                     Snapchat
                                 </a>
+                                <button 
+                                    onClick={handleExtensionPush}
+                                    className="flex items-center justify-center gap-3 w-full py-4 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl font-black uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all text-[11px]"
+                                >
+                                    <Send className="w-5 h-5" />
+                                    Notifier via Extension
+                                </button>
                             </div>
 
                             <button

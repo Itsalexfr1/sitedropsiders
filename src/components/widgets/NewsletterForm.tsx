@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Mail, User, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
+import { trackInteraction } from '../../utils/analytics';
 
 interface NewsletterFormProps {
     variant?: 'default' | 'compact';
@@ -60,6 +61,9 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                 setErrorMessage(data.error || t('newsletter_form.error_server'));
                 return;
             }
+
+            // Track successful conversion
+            trackInteraction('click', 'conversion', 'newsletter_signup');
 
             setStatus('success');
             setEmail('');

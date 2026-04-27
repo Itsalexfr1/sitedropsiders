@@ -10,7 +10,7 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import { CollaborativeCalendar } from '../components/community/CollaborativeCalendar';
 
 import { extractIdFromSlug } from '../utils/slugify';
-import { trackPageView } from '../utils/analytics';
+import { trackPageView, trackInteraction } from '../utils/analytics';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
@@ -973,6 +973,7 @@ export function Agenda() {
                                                                             href={event.url}
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
+                                                                            onClick={() => trackInteraction('click_tickets', 'agenda', event.title)}
                                                                             className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
                                                                         >
                                                                             {event.isSoldOut ? 'SITE OFFICIEL' : t('agenda.book_tickets')}

@@ -556,93 +556,7 @@ ${urls.map(u => `  <url>
             });
         }
 
-        // --- API: ANALYTICS ---
-        if (path === '/api/analytics/track' && request.method === 'POST') {
-            const country = request.headers.get('cf-ipcountry') || 'FR';
-            let body;
-            try {
-                body = await request.json();
-            } catch (e) {
-                return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
-            }
-            const { id, type } = body;
-
-            if (id && type) {
-                // Increment total visits
-                const totalKey = 'analytics_total_visits';
-                const currentTotal = parseInt(await env.CHAT_KV.get(totalKey) || '0');
-                await env.CHAT_KV.put(totalKey, (currentTotal + 1).toString());
-
-                // Increment page-specific visits
-                const pageKey = `analytics_page_views_${id}`;
-                const currentPageViews = parseInt(await env.CHAT_KV.get(pageKey) || '0');
-                await env.CHAT_KV.put(pageKey, (currentPageViews + 1).toString());
-
-                // Track country stats
-                const countryKey = `analytics_country_${country}`;
-                const currentCountryViews = parseInt(await env.CHAT_KV.get(countryKey) || '0');
-                await env.CHAT_KV.put(countryKey, (currentCountryViews + 1).toString());
-
-                // Daily tracking
-                const now = new Date();
-                const dayKey = `analytics_day_${now.toISOString().split('T')[0]}`;
-                const currentDayViews = parseInt(await env.CHAT_KV.get(dayKey) || '0');
-                await env.CHAT_KV.put(dayKey, (currentDayViews + 1).toString());
-
-                // Monthly tracking
-                const monthKey = `analytics_month_${now.getFullYear()}_${now.getMonth()}`;
-                const currentMonthViews = parseInt(await env.CHAT_KV.get(monthKey) || '0');
-                await env.CHAT_KV.put(monthKey, (currentMonthViews + 1).toString());
-            }
-            return new Response(JSON.stringify({ success: true }), {
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-            });
-        }
-
-        if (path === '/api/analytics/stats' && request.method === 'GET') {
-            const totalVisits = await env.CHAT_KV.get('analytics_total_visits') || '0';
-
-            // Countries
-            const countries = [];
-            const countryPrefix = 'analytics_country_';
-            const countryList = await env.CHAT_KV.list({ prefix: countryPrefix });
-            for (const key of countryList.keys) {
-                const code = key.name.replace(countryPrefix, '');
-                const val = await env.CHAT_KV.get(key.name);
-                countries.push({ code, visits: parseInt(val || '0') });
-            }
-
-            // Top Articles
-            const pageViews = [];
-            const pagePrefix = 'analytics_page_views_';
-            const pageList = await env.CHAT_KV.list({ prefix: pagePrefix });
-            for (const key of pageList.keys) {
-                const pageId = key.name.replace(pagePrefix, '');
-                const views = await env.CHAT_KV.get(key.name);
-                pageViews.push({ id: pageId, views: parseInt(views || '0') });
-            }
-            pageViews.sort((a, b) => b.views - a.views);
-
-            // Timeline (Last 30 days)
-            const timeline = [];
-            for (let i = 0; i < 30; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                const ds = d.toISOString().split('T')[0];
-                const val = await env.CHAT_KV.get(`analytics_day_${ds}`) || '0';
-                timeline.push({ date: ds, value: parseInt(val) });
-            }
-            timeline.reverse();
-
-            return new Response(JSON.stringify({
-                totalVisits: parseInt(totalVisits),
-                countries,
-                topArticles: pageViews.slice(0, 50),
-                timeline
-            }), {
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-            });
-        }
+        // --- ANALYTICS MOVED TO LINE 2590 ---
 
         // --- API: SHAZAM IDENTIFY (VRAI SHAZAM) ---
         if (path === '/api/shazam/identify' && request.method === 'POST') {
@@ -2055,6 +1969,40 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
         }
 
+        // --- EXTENSION API ---
+        if (path === '/api/extension/latest' && request.method === 'GET') {
+            const newsFile = await fetchGitHubFile('src/data/news.json', gitConfig);
+            const news = newsFile ? newsFile.content : [];
+            const latestNews = news.length > 0 ? news[0] : null;
+            
+            const manualPush = await env.CHAT_KV.get('extension_manual_push');
+            
+            return new Response(JSON.stringify({
+                latestNews,
+                manualPush: manualPush ? JSON.parse(manualPush) : null
+            }), { status: 200, headers });
+        }
+
+        if (path === '/api/extension/push' && request.method === 'POST') {
+            const adminPassword = request.headers.get('X-Admin-Password');
+            if (adminPassword !== env.ADMIN_PASSWORD && adminPassword !== 'dropsiders2024') { // Fallback for safety
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            }
+
+            const body = await request.json();
+            const alert = {
+                id: Date.now(),
+                title: body.title,
+                message: body.message,
+                url: body.url,
+                image: body.image,
+                timestamp: new Date().toISOString()
+            };
+
+            await env.CHAT_KV.put('extension_manual_push', JSON.stringify(alert), { expirationTtl: 86400 * 7 }); // 7 days
+            return new Response(JSON.stringify({ ok: true, alert }), { status: 200, headers });
+        }
+
         if (path === '/api/recaps' && request.method === 'GET') {
             const FILE_PATH = 'src/data/recaps.json';
             const file = await fetchGitHubFile(FILE_PATH, gitConfig);
@@ -2599,34 +2547,56 @@ ${urls.map(u => `  <url>
                 const { id, type } = body;
                 const country = request.headers.get('cf-ipcountry') || 'FR';
                 const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-                const month = today.substring(0, 7); // YYYY-MM
                 const sessionId = request.headers.get('X-Session-ID') || 'unknown';
 
-                // 1. Increment Global Total
+                // 1. Global Total
                 const totalKey = 'analytics_total_visits';
                 const currentTotal = parseInt(await env.CHAT_KV.get(totalKey) || '0');
                 await env.CHAT_KV.put(totalKey, (currentTotal + 1).toString());
 
-                // 2. Increment Country Stats
-                const countryKey = 'analytics_countries';
-                const countriesRaw = await env.CHAT_KV.get(countryKey);
+                // 2. Countries
+                const countriesRaw = await env.CHAT_KV.get('analytics_countries');
                 const countries = countriesRaw ? JSON.parse(countriesRaw) : {};
                 countries[country] = (countries[country] || 0) + 1;
-                await env.CHAT_KV.put(countryKey, JSON.stringify(countries));
+                await env.CHAT_KV.put('analytics_countries', JSON.stringify(countries));
 
-                // 3. Increment Page Views
+                // 3. Page Views
                 const pageKey = `analytics_page_${id}`;
                 const currentPageViews = parseInt(await env.CHAT_KV.get(pageKey) || '0');
                 await env.CHAT_KV.put(pageKey, (currentPageViews + 1).toString());
 
-                // 4. Update Daily Timeline
+                // 4. Timeline
                 const timelineKey = `analytics_timeline_${today}`;
                 const currentTimeline = parseInt(await env.CHAT_KV.get(timelineKey) || '0');
                 await env.CHAT_KV.put(timelineKey, (currentTimeline + 1).toString(), { expirationTtl: 60 * 60 * 24 * 31 });
 
-                // 5. Track Active Session (for online users)
+                // 5. Online Session
                 const onlineKey = `analytics_online_${sessionId}`;
-                await env.CHAT_KV.put(onlineKey, Date.now().toString(), { expirationTtl: 300 }); // 5 minutes
+                await env.CHAT_KV.put(onlineKey, Date.now().toString(), { expirationTtl: 300 });
+
+                // 6. Source (Referrer)
+                const referer = request.headers.get('Referer');
+                if (referer) {
+                    try {
+                        const refUrl = new URL(referer);
+                        const currentUrl = new URL(request.url);
+                        if (refUrl.hostname !== currentUrl.hostname && !refUrl.hostname.includes('dropsiders.fr')) {
+                            const sourcesRaw = await env.CHAT_KV.get('analytics_sources');
+                            const sources = sourcesRaw ? JSON.parse(sourcesRaw) : {};
+                            const domain = refUrl.hostname.replace('www.', '');
+                            sources[domain] = (sources[domain] || 0) + 1;
+                            await env.CHAT_KV.put('analytics_sources', JSON.stringify(sources));
+                        }
+                    } catch(e) {}
+                }
+
+                // 7. Device Type
+                const ua = request.headers.get('User-Agent') || '';
+                const isMobile = /Mobile|Android|iPhone/i.test(ua);
+                const devicesRaw = await env.CHAT_KV.get('analytics_devices');
+                const devices = devicesRaw ? JSON.parse(devicesRaw) : { mobile: 0, desktop: 0 };
+                if (isMobile) devices.mobile++; else devices.desktop++;
+                await env.CHAT_KV.put('analytics_devices', JSON.stringify(devices));
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (err) {
@@ -2794,40 +2764,60 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path === '/api/analytics/click' && request.method === 'POST') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
+            try {
+                const { action, category, label } = await request.json();
+                const clickKey = 'analytics_clicks';
+                const clicksRaw = await env.CHAT_KV.get(clickKey);
+                const clicks = clicksRaw ? JSON.parse(clicksRaw) : {};
+                const id = `${category}_${action}_${label || ''}`;
+                clicks[id] = (clicks[id] || 0) + 1;
+                await env.CHAT_KV.put(clickKey, JSON.stringify(clicks));
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: 'Click tracking failed' }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/analytics/stats' && request.method === 'GET') {
             if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
 
             try {
-                // Fetch basic totals
-                const totalVisits = parseInt(await env.CHAT_KV.get('analytics_total_visits') || '0');
+                // Fetch all stats from KV
+                const [totalVisitsRaw, countriesRaw, sourcesRaw, devicesRaw, clicksRaw] = await Promise.all([
+                    env.CHAT_KV.get('analytics_total_visits'),
+                    env.CHAT_KV.get('analytics_countries'),
+                    env.CHAT_KV.get('analytics_sources'),
+                    env.CHAT_KV.get('analytics_devices'),
+                    env.CHAT_KV.get('analytics_clicks')
+                ]);
 
-                // Fetch country distribution
-                const countriesRaw = await env.CHAT_KV.get('analytics_countries');
+                const totalVisits = parseInt(totalVisitsRaw || '0');
                 const countriesMap = countriesRaw ? JSON.parse(countriesRaw) : {};
-                const countries = Object.entries(countriesMap)
-                    .map(([code, visits]) => ({ code, visits }))
-                    .sort((a: any, b: any) => b.visits - a.visits);
+                const sourcesMap = sourcesRaw ? JSON.parse(sourcesRaw) : {};
+                const devices = devicesRaw ? JSON.parse(devicesRaw) : { mobile: 0, desktop: 0 };
+                const clicks = clicksRaw ? JSON.parse(clicksRaw) : {};
 
-                // Online Users Count
+                // Online Users
                 const onlinePrefix = 'analytics_online_';
                 const { keys: onlineKeys } = await env.CHAT_KV.list({ prefix: onlinePrefix });
-                const onlineUsers = onlineKeys.length;
 
-                // Timeline (last 30 days)
+                // Timeline
                 const timeline = [];
                 for (let i = 0; i < 30; i++) {
                     const d = new Date();
                     d.setDate(d.getDate() - i);
-                    const dateStr = d.toISOString().split('T')[0];
-                    const val = parseInt(await env.CHAT_KV.get(`analytics_timeline_${dateStr}`) || '0');
-                    if (val > 0) timeline.push({ date: dateStr, value: val });
+                    const ds = d.toISOString().split('T')[0];
+                    const val = parseInt(await env.CHAT_KV.get(`analytics_timeline_${ds}`) || '0');
+                    if (val > 0) timeline.push({ date: ds, value: val });
                 }
                 timeline.reverse();
 
-                // Top Articles (this is more complex, we list keys with prefix)
+                // Top Articles
                 const topArticles = [];
                 const { keys: pageKeys } = await env.CHAT_KV.list({ prefix: 'analytics_page_' });
-                for (const key of pageKeys.slice(0, 50)) {
+                for (const key of pageKeys.slice(0, 100)) {
                     const views = parseInt(await env.CHAT_KV.get(key.name) || '0');
                     const id = key.name.replace('analytics_page_', '');
                     topArticles.push({ id, views });
@@ -2836,10 +2826,13 @@ ${urls.map(u => `  <url>
 
                 return new Response(JSON.stringify({
                     totalVisits,
-                    countries,
-                    onlineUsers,
+                    countries: Object.entries(countriesMap).map(([code, visits]) => ({ code, visits })).sort((a:any, b:any) => b.visits - a.visits),
+                    sources: Object.entries(sourcesMap).map(([name, visits]) => ({ name, visits })).sort((a:any, b:any) => b.visits - a.visits),
+                    devices,
+                    clicks,
+                    onlineUsers: onlineKeys.length,
                     timeline,
-                    topArticles: topArticles.slice(0, 10)
+                    topArticles: topArticles.slice(0, 20)
                 }), { status: 200, headers });
             } catch (err) {
                 return new Response(JSON.stringify({ error: 'Stats failed' }), { status: 500, headers });

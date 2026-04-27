@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Dropsiders Alerts",
+  "version": "1.0.0",
+  "description": "Recevez des alertes en temps réel pour les nouvelles publications de Dropsiders.",
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "permissions": [
+    "notifications",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://dropsiders.fr/*",
+    "https://dropsiders.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  }
+}
