@@ -703,7 +703,10 @@ export function Agenda() {
                                                         <span className={`text-[8px] font-black px-2 py-1 rounded-lg border backdrop-blur-md ${getEventStyles("", event.type).bg} ${getEventStyles("", event.type).text} ${getEventStyles("", event.type).borderMedium} uppercase`}>
                                                             {event.type}
                                                         </span>
-                                                        <span className={`text-[8px] font-black px-2 py-1 rounded-lg border backdrop-blur-md ${getEventStyles(event.genre, "").bg} ${getEventStyles(event.genre, "").text} ${getEventStyles(event.genre, "").borderMedium} uppercase`}>
+                                                        <span 
+                                                            className={`text-[8px] font-black px-2 py-1 rounded-lg border backdrop-blur-md uppercase ${getEventStyles(event.genre, "").gradient ? 'text-white border-white/20' : `${getEventStyles(event.genre, "").bg} ${getEventStyles(event.genre, "").text} ${getEventStyles(event.genre, "").borderMedium}`}`}
+                                                            style={getEventStyles(event.genre, "").gradient ? { background: getEventStyles(event.genre, "").gradient } : {}}
+                                                        >
                                                             {event.genre}
                                                         </span>
                                                     </div>
@@ -782,7 +785,10 @@ export function Agenda() {
                                                                     <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getEventStyles("", event.type).bg} ${getEventStyles("", event.type).text} border ${getEventStyles("", event.type).borderMedium}`}>
                                                                         {event.type}
                                                                     </span>
-                                                                    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getEventStyles(event.genre, "").bg} ${getEventStyles(event.genre, "").text} border ${getEventStyles(event.genre, "").borderMedium}`}>
+                                                                    <span 
+                                                                        className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getEventStyles(event.genre, "").gradient ? 'text-white border-white/20' : `${getEventStyles(event.genre, "").bg} ${getEventStyles(event.genre, "").text} border ${getEventStyles(event.genre, "").borderMedium}`}`}
+                                                                        style={getEventStyles(event.genre, "").gradient ? { background: getEventStyles(event.genre, "").gradient } : {}}
+                                                                    >
                                                                         {event.genre}
                                                                     </span>
                                                                     {event.isLiveDropsiders && (
@@ -908,7 +914,10 @@ export function Agenda() {
                                                             <div className="flex-1 space-y-6 md:space-y-8">
                                                                 <div className="space-y-2">
                                                                     <div className="flex flex-wrap items-center gap-2">
-                                                                        <span className={`text-[10px] md:text-sm font-black uppercase tracking-[0.3em] ${getEventStyles(event.genre, "").text}`}>
+                                                                        <span 
+                                                                            className={`text-[10px] md:text-sm font-black uppercase tracking-[0.3em] ${getEventStyles(event.genre, "").gradient ? '' : getEventStyles(event.genre, "").text}`}
+                                                                            style={getEventStyles(event.genre, "").gradient ? { background: getEventStyles(event.genre, "").gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' } : {}}
+                                                                        >
                                                                             {event.genre}
                                                                         </span>
                                                                         <span className="text-white/20">•</span>
