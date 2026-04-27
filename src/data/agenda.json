@@ -6204,5 +6204,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1004,
+    "title": "EDC Week : Deorro",
+    "date": "2026-05-13",
+    "startDate": "2026-05-13",
+    "endDate": "2026-05-13",
+    "venue": "Marquee",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Pool Party",
+    "image": "/uploads/uploads/80ccd8e32f30bf10-image_1775518959897_y6fpmqobg.avif",
+    "url": "https://taogroup.com/event/5-13-2026-deorro-marquee-dayclub/",
+    "genre": "Big Room",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
