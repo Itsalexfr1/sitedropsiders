@@ -939,39 +939,41 @@ export function Agenda() {
                                                                 </div>
 
                                                                 <div className="flex flex-wrap gap-4 md:gap-6 pt-2">
-                                                                    {event.type === 'Jeux Concours' ? (
-                                                                        <>
-                                                                            {isContestActive && (
-                                                                                <button
-                                                                                    onClick={() => {
-                                                                                        window.location.href = '/communaute?tab=CONCOURS';
-                                                                                    }}
-                                                                                    className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
-                                                                                >
-                                                                                    Participer au Concours
-                                                                                </button>
-                                                                            )}
+                                                                    {!event.isSoldOut && (
+                                                                        event.type === 'Jeux Concours' ? (
+                                                                            <>
+                                                                                {isContestActive && (
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            window.location.href = '/communaute?tab=CONCOURS';
+                                                                                        }}
+                                                                                        className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
+                                                                                    >
+                                                                                        {event.buttonText || 'Participer au Concours'}
+                                                                                    </button>
+                                                                                )}
 
-                                                                            {event.url && !event.url.includes('tab=CONCOURS') && (
-                                                                                <a
-                                                                                    href={event.url}
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="flex-1 md:flex-none px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all text-center text-xs md:text-sm"
-                                                                                >
-                                                                                    Billetterie & Infos
-                                                                                </a>
-                                                                            )}
-                                                                        </>
-                                                                    ) : (
-                                                                        <a
-                                                                            href={event.url}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
-                                                                        >
-                                                                            {t('agenda.book_tickets')}
-                                                                        </a>
+                                                                                {event.url && !event.url.includes('tab=CONCOURS') && (
+                                                                                    <a
+                                                                                        href={event.url}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        className="flex-1 md:flex-none px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all text-center text-xs md:text-sm"
+                                                                                    >
+                                                                                        {event.buttonText || 'Billetterie & Infos'}
+                                                                                    </a>
+                                                                                )}
+                                                                            </>
+                                                                        ) : (
+                                                                            <a
+                                                                                href={event.url}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
+                                                                            >
+                                                                                {event.buttonText || t('agenda.book_tickets')}
+                                                                            </a>
+                                                                        )
                                                                     )}
 
                                                                     {!isPast && (

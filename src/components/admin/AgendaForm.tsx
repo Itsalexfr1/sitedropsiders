@@ -33,6 +33,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
     const [isContest, setIsContest] = useState(false);
     const [additionalDates, setAdditionalDates] = useState<string[]>([]);
     const [year, setYear] = useState(new Date().getFullYear().toString());
+    const [buttonText, setButtonText] = useState('');
     const [showUploadModal, setShowUploadModal] = useState(false);
 
     // Autocomplete State
@@ -121,6 +122,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
             setIsContest(editingItem.isContest || false);
             setAdditionalDates(editingItem.additionalDates || []);
             setYear(editingItem.year || (editingItem.startDate || editingItem.date || '').split('-')[0] || new Date().getFullYear().toString());
+            setButtonText(editingItem.buttonText || '');
         }
     }, [isEditing, editingItem]);
 
@@ -186,6 +188,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                 isLiveDropsiders,
                 isContest,
                 year: year || startDate.split('-')[0],
+                buttonText,
                 additionalDates: additionalDates.filter(d => d),
                 month: new Date(startDate).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
             };
@@ -609,6 +612,22 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                             required
                         />
                     </div>
+                </div>
+                
+                {/* Button Text Override */}
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Texte du bouton (Optionnel)</label>
+                    <div className="relative group">
+                        <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
+                        <input
+                            type="text"
+                            value={buttonText}
+                            onChange={(e) => setButtonText(e.target.value)}
+                            placeholder="Par défaut: RÉSERVER MES TICKETS"
+                            className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow transition-all"
+                        />
+                    </div>
+                    <p className="text-[10px] text-gray-500 italic">Laissez vide pour utiliser le texte par défaut.</p>
                 </div>
 
                 {/* Submit Button */}
