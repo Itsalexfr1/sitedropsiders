@@ -606,7 +606,8 @@ export function AdminDashboard() {
     }
   };
 
-  const sendExtensionNotif = async () => {
+  const sendExtensionNotif = async (e?: any) => {
+    if (e && e.preventDefault) e.preventDefault();
     setIsSaving(true);
     try {
       const res = await apiFetch("/api/extension/push", {
@@ -1288,7 +1289,8 @@ export function AdminDashboard() {
     }
   };
 
-  const handleSendManualPush = async () => {
+  const handleSendManualPush = async (e?: any) => {
+    if (e && e.preventDefault) e.preventDefault();
     if (!pushCustomTitle || !pushCustomBody) {
       showNotification("Veuillez remplir le titre et le message.", "error");
       return;
@@ -7149,7 +7151,7 @@ export function AdminDashboard() {
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[2.5rem] p-6 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                  className="bg-dark-bg border border-white/10 rounded-[2.5rem] p-5 max-w-xl w-full shadow-2xl relative overflow-hidden"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
 
@@ -7186,13 +7188,13 @@ export function AdminDashboard() {
                       <textarea
                         value={extensionNotifData.message}
                         onChange={(e) => setExtensionNotifData({ ...extensionNotifData, message: e.target.value })}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white font-bold outline-none focus:border-neon-red transition-all h-24"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold outline-none focus:border-neon-red transition-all h-16 text-xs"
                         placeholder="Ex: Découvrez notre interview exclusive avec..."
                       />
                     </div>
                     <div>
                       <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 block">Cible de la notification</label>
-                      <div className="grid grid-cols-4 gap-2">
+                      <div className="grid grid-cols-4 gap-1.5 mb-2">
                         {[
                           { id: 'news', label: 'News', url: '/news', icon: FileText, color: 'neon-blue' },
                           { id: 'agenda', label: 'Agenda', url: '/agenda', icon: Calendar, color: 'neon-green' },
@@ -7201,18 +7203,22 @@ export function AdminDashboard() {
                         ].map((cat) => (
                           <button
                             key={cat.id}
-                            onClick={() => setExtensionNotifData({ ...extensionNotifData, url: `https://dropsiders.fr${cat.url}`, targetType: cat.id })}
-                            className={`p-2 rounded-xl border transition-all flex flex-col items-center gap-1 ${extensionNotifData.targetType === cat.id ? `bg-white/10 border-white/40 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]` : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setExtensionNotifData({ ...extensionNotifData, url: `https://dropsiders.fr${cat.url}`, targetType: cat.id });
+                            }}
+                            className={`p-1.5 rounded-xl border transition-all flex flex-col items-center gap-1 ${extensionNotifData.targetType === cat.id ? `bg-white/10 border-white/40 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]` : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
                           >
-                            <cat.icon className={`w-4 h-4 ${extensionNotifData.targetType === cat.id ? cat.color.replace('neon-', 'text-neon-') : ''}`} />
-                            <span className="text-[9px] font-black uppercase tracking-tighter">{cat.label}</span>
+                            <cat.icon className={`w-3.5 h-3.5 ${extensionNotifData.targetType === cat.id ? cat.color.replace('neon-', 'text-neon-') : ''}`} />
+                            <span className="text-[7px] font-black uppercase tracking-tighter">{cat.label}</span>
                           </button>
                         ))}
                       </div>
                     </div>
 
                     {/* Liste des 15 derniers items */}
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Sélectionner un contenu (15 derniers)</label>
                       <div className="max-h-[200px] overflow-y-auto pr-2 custom-scrollbar space-y-2">
                         {isFetchingExtensionItems ? (
@@ -7223,7 +7229,9 @@ export function AdminDashboard() {
                           extensionTargetItems.map((item) => (
                             <button
                               key={item.id}
-                              onClick={() => {
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
                                 let path = `/${extensionNotifData.targetType}/${item.id}`;
                                 if (extensionNotifData.targetType === 'interviews') path = `/wiki/dj/${item.id}`;
                                 if (extensionNotifData.targetType === 'recaps') path = `/recap/${item.id}`;
@@ -7235,13 +7243,13 @@ export function AdminDashboard() {
                                   url: `https://dropsiders.fr${path}`
                                 });
                               }}
-                              className="w-full bg-white/5 border border-white/5 hover:border-white/20 rounded-xl p-3 flex items-center gap-4 transition-all text-left group"
+                              className="w-full bg-white/5 border border-white/5 hover:border-white/20 rounded-xl p-2 flex items-center gap-3 transition-all text-left group"
                             >
-                              <div className="w-10 h-10 rounded-lg bg-black overflow-hidden flex-shrink-0 border border-white/10 group-hover:border-white/30">
+                              <div className="w-8 h-8 rounded-lg bg-black overflow-hidden flex-shrink-0 border border-white/10 group-hover:border-white/30">
                                 <img src={item.image || item.cover || "/Logo.png"} className="w-full h-full object-cover" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-[11px] font-bold text-white truncate">{item.title || item.name}</h4>
+                                <h4 className="text-[10px] font-bold text-white truncate">{item.title || item.name}</h4>
                                 <p className="text-[9px] text-gray-500 font-medium truncate uppercase tracking-widest">{new Date(item.date).toLocaleDateString()}</p>
                               </div>
                               <ChevronRight className="w-4 h-4 text-gray-700 group-hover:text-white" />
@@ -7274,6 +7282,7 @@ export function AdminDashboard() {
                     </div>
 
                     <button
+                      type="button"
                       onClick={sendExtensionNotif}
                       disabled={isSaving || !extensionNotifData.title || !extensionNotifData.message}
                       className="w-full py-5 bg-neon-red text-white font-black uppercase italic tracking-widest text-xs rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-[0_0_25px_rgba(255,18,65,0.4)]"
@@ -9117,6 +9126,7 @@ export function AdminDashboard() {
                       </div>
 
                       <button
+                        type="button"
                         onClick={handleSendManualPush}
                         disabled={
                           isSendingManualPush ||
