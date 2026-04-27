@@ -179,7 +179,9 @@ export function Agenda() {
         { id: 'PROGRESSIVE HOUSE', label: 'PROGRESSIVE HOUSE' },
         { id: 'DRUM & BASS', label: 'DRUM & BASS' },
         { id: 'HARDCORE', label: 'HARDCORE' },
-        { id: 'HARDTECHNO', label: 'HARDTECHNO' }
+        { id: 'HARD TECHNO', label: 'HARD TECHNO' },
+        { id: 'AFRO HOUSE', label: 'AFRO HOUSE' },
+        { id: 'INDIE DANCE', label: 'INDIE DANCE' }
     ];
 
     // Filter events by category AND month
@@ -304,7 +306,11 @@ export function Agenda() {
         else if (g.includes('multi styles')) color = 'blue';
         else if (g.includes('hybride')) color = 'red';
         else if (g.includes('hardcore')) color = 'red';
-        else if (g.includes('hardtechno')) color = 'purple';
+        else if (g.includes('hard techno')) color = 'purple';
+        else if (g.includes('afro house')) color = 'orange';
+        else if (g.includes('indie dance')) color = 'cyan';
+        else if (t === 'clubs') color = 'blue';
+        else if (t === 'pool party') color = 'cyan';
         
         if (t === 'jeux concours') color = 'yellow';
 

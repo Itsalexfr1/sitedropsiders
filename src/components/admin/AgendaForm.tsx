@@ -380,6 +380,8 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                 <option value="Résidence">Résidence</option>
                                 <option value="Opening">Opening</option>
                                 <option value="Events">Events</option>
+                                <option value="Clubs">Clubs</option>
+                                <option value="Pool Party">Pool Party</option>
                                 <option value="Live Take Over">LIVE TAKE OVER</option>
                             </select>
                         </div>
@@ -405,7 +407,9 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                 <option value="Drum & Bass">Drum & Bass</option>
                                 <option value="House">House</option>
                                 <option value="Hardcore">Hardcore</option>
-                                <option value="HardTechno">HardTechno</option>
+                                <option value="Hard Techno">Hard Techno</option>
+                                <option value="Afro House">Afro House</option>
+                                <option value="Indie Dance">Indie Dance</option>
                             </select>
                         </div>
                     </div>
