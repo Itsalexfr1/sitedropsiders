@@ -1,4 +1,4 @@
-import { useEffect, Suspense, useState } from 'react';
+﻿import { useEffect, Suspense, useState } from 'react';
 import { AlertCircle, RefreshCw, X, Bell } from 'lucide-react';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -83,8 +83,8 @@ function ErrorFallback() {
               Oups, une petite <span className="text-neon-red">erreur</span> !
             </h2>
             <p className="text-gray-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
-              Le site a reçu une mise à jour ou un petit grain de sable s'est glissé. 
-              <br />Rafraîchis la page pour profiter de la dernière version.
+              Le site a reÃ§u une mise Ã  jour ou un petit grain de sable s'est glissÃ©. 
+              <br />RafraÃ®chis la page pour profiter de la derniÃ¨re version.
             </p>
           </div>
 
@@ -92,7 +92,7 @@ function ErrorFallback() {
             onClick={() => window.location.reload()}
             className="w-full mt-10 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_10px_20px_rgba(0,0,0,0.4)] hover:shadow-neon-red/20 active:scale-95"
           >
-            <RefreshCw className="w-4 h-4 animate-spin-slow" /> RAFRAÎCHIR LA EXPÉRIENCE
+            <RefreshCw className="w-4 h-4 animate-spin-slow" /> RAFRAÃŽCHIR LA EXPÃ‰RIENCE
           </button>
         </div>
       </div>
@@ -266,7 +266,7 @@ function App() {
               transition={{ delay: 0.5, duration: 1 }}
               className="text-[10px] text-white/60 font-black uppercase tracking-[0.5em] ml-1.5"
             >
-              Chargement de l'expérience
+              Chargement de l'expÃ©rience
             </motion.div>
           </div>
         </div>
@@ -282,5 +282,3 @@ function App() {
 }
 
 export default App;
-/ /   B u i l d   t r i g g e r :   0 4 / 2 7 / 2 0 2 6   1 9 : 3 3 : 4 9  
- 
