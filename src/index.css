@@ -340,15 +340,9 @@ body {
   }
 
   /* Cacher les H1 doublons */
+  /* Decorative line REMOVED */
   .premium-h1::after {
-    content: '';
-    display: block;
-    width: 60px;
-    height: 4px;
-    background-color: var(--color-neon-red, #ff0033);
-    margin: 1rem auto 0;
-    border-radius: 2px;
-    box-shadow: 0 0 10px var(--color-neon-red, #ff0033);
+    display: none;
   }
 
   .article-body-premium h2,

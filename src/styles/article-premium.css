@@ -49,16 +49,9 @@
     display: inline-block;
 }
 
-/* Red Underline Effect */
+/* Red Underline Effect REMOVED */
 .article-premium-wrapper .jw-heading-130::after {
-    content: '';
-    display: block;
-    width: 60px;
-    height: 4px;
-    background-color: var(--theme-color, #ff0033);
-    margin: 1.5rem auto 0;
-    border-radius: 2px;
-    box-shadow: 0 0 10px var(--theme-color, #ff0033);
+    display: none;
 }
 
 /* --- META DATA (Date, Badges) --- */
@@ -341,7 +334,7 @@
 .article-body-premium .premium-section-title,
 .premium-section-title {
     color: var(--theme-color, #ff0033);
-    border-bottom: 2px solid var(--theme-color, rgba(255, 0, 51, 0.2));
+    border-bottom: none;
     display: inline-block;
     padding-bottom: 0.5rem;
     margin-bottom: 2rem;
