@@ -6165,5 +6165,24 @@
     "isSoldOut": true,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1002,
+    "title": "RÜFÜS DU SOL ",
+    "date": "2026-05-10",
+    "startDate": "2026-05-10",
+    "endDate": "2026-05-10",
+    "venue": "Adidas Arena",
+    "location": "PARIS",
+    "country": "FRANCE",
+    "type": "Concert",
+    "image": "/uploads/uploads/a56b7b50941f72ca-1215439_rufus_du_sol_en_concer.jpg",
+    "url": "https://billetterie.adidasarena.com/fr/manifestation/rufus-du-sol-billet/idmanif/639756/codtypadh/FTT/numadh/01/codeconf/FTMS01",
+    "genre": "Melodic Techno",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
