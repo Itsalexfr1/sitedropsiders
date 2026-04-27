@@ -50,6 +50,10 @@ export function Agenda() {
     const [isContestActive, setIsContestActive] = useState(false);
     const [takeoverEnabled, setTakeoverEnabled] = useState(false);
     const [takeoverSettings, setTakeoverSettings] = useState<any>(null);
+    const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false);
+    const [bulkGenre, setBulkGenre] = useState('');
+    const [bulkType, setBulkType] = useState('');
+    const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
     const fetchAgenda = async () => {
         try {
@@ -84,6 +88,49 @@ export function Agenda() {
         const stored = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
         setPermissions(stored);
     }, []);
+
+    const handleBulkUpdate = async () => {
+        if (selectedEvents.size === 0) return;
+        if (!bulkGenre && !bulkType) {
+            setIsBulkEditModalOpen(false);
+            return;
+        }
+
+        setIsBulkUpdating(true);
+        try {
+            const ids = Array.from(selectedEvents);
+            let successCount = 0;
+
+            for (const id of ids) {
+                const event = agendaData.find(e => e.id === id);
+                if (!event) continue;
+
+                const payload = {
+                    ...event,
+                    genre: bulkGenre || event.genre,
+                    type: bulkType || event.type
+                };
+
+                const response = await fetch('/api/agenda/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(payload),
+                });
+
+                if (response.ok) successCount++;
+            }
+
+            if (successCount > 0) {
+                await fetchAgenda();
+                setSelectedEvents(new Set());
+                setIsBulkEditModalOpen(false);
+            }
+        } catch (error) {
+            console.error('Bulk update failed:', error);
+        } finally {
+            setIsBulkUpdating(false);
+        }
+    };
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -181,7 +228,9 @@ export function Agenda() {
         { id: 'HARDCORE', label: 'HARDCORE' },
         { id: 'HARD TECHNO', label: 'HARD TECHNO' },
         { id: 'AFRO HOUSE', label: 'AFRO HOUSE' },
-        { id: 'INDIE DANCE', label: 'INDIE DANCE' }
+        { id: 'INDIE DANCE', label: 'INDIE DANCE' },
+        { id: 'BASS MUSIC', label: 'BASS MUSIC' },
+        { id: 'DUBSTEP', label: 'DUBSTEP' }
     ];
 
     // Filter events by category AND month
@@ -320,6 +369,7 @@ export function Agenda() {
         else if (g.includes('hard techno')) color = 'purple';
         else if (g.includes('afro house')) color = 'orange';
         else if (g.includes('indie dance')) color = 'cyan';
+        else if (g.includes('bass music') || g.includes('dubstep')) color = 'purple';
 
         const isMulti = g.includes('multi styles');
         const isHybride = g.includes('hybride');
@@ -417,6 +467,17 @@ export function Agenda() {
                             </div>
                             <div className="h-6 w-[1px] bg-white/10" />
                             <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => {
+                                        setBulkGenre('');
+                                        setBulkType('');
+                                        setIsBulkEditModalOpen(true);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan/30 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
+                                >
+                                    <Edit2 className="w-4 h-4" />
+                                    Modifier
+                                </button>
                                 <button
                                     onClick={() => {
                                         setItemToDelete(Array.from(selectedEvents));
@@ -627,11 +688,7 @@ export function Agenda() {
 
                                         {/* Mobile Variant */}
                                         <div className="absolute inset-0 md:hidden block" onClick={() => { 
-                                            if (event.isLiveDropsiders) {
-                                                window.location.href = '/live';
-                                            } else if (event.url) {
-                                                window.location.href = event.url;
-                                            }
+                                            setExpandedEvent(expandedEvent === event.compositeId ? null : event.compositeId);
                                         }}>
                                             {event.image && (
                                                 <img
@@ -823,7 +880,14 @@ export function Agenda() {
                                                     >
                                                         <div className="flex flex-col md:flex-row gap-8 md:gap-14 items-center">
                                                             <div className="w-full md:w-1/3 group">
-                                                                <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
+                                                                <div 
+                                                                    className={`relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 ${event.isLiveDropsiders ? 'cursor-pointer' : ''}`}
+                                                                    onClick={() => {
+                                                                        if (event.isLiveDropsiders) {
+                                                                            window.location.href = '/live';
+                                                                        }
+                                                                    }}
+                                                                >
                                                                     <img 
                                                                         src={resolveImageUrl(event.image)} 
                                                                         alt="" 
@@ -832,6 +896,11 @@ export function Agenda() {
                                                                             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
                                                                         }}
                                                                     />
+                                                                    {event.isLiveDropsiders && (
+                                                                        <div className="absolute inset-0 bg-neon-red/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                            <span className="bg-neon-red text-white px-4 py-2 rounded-full text-xs font-black uppercase italic animate-pulse">REJOINDRE LE LIVE</span>
+                                                                        </div>
+                                                                    )}
                                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                                                 </div>
                                                             </div>
@@ -926,17 +995,78 @@ export function Agenda() {
                 <div className="mt-20 pt-16 border-t border-white/10 relative">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80vw] h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
                     <CollaborativeCalendar />
-                </div>
+                    <AgendaModal
+                        isOpen={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        editingItem={editingEvent}
+                        onSuccess={() => {
+                            setIsEditModalOpen(false);
+                            fetchAgenda();
+                        }}
+                    />
 
-                <AgendaModal
-                    isOpen={isEditModalOpen}
-                    onClose={() => {
-                        setIsEditModalOpen(false);
-                        setEditingEvent(null);
-                    }}
-                    onSuccess={fetchAgenda}
-                    editingItem={editingEvent}
-                />
+                    {/* Bulk Edit Modal */}
+                    <ConfirmationModal
+                        isOpen={isBulkEditModalOpen}
+                        title="Modification Groupée"
+                        message={`Tu vas modifier ${selectedEvents.size} événement(s). Sélectionne les nouveaux paramètres :`}
+                        confirmLabel={isBulkUpdating ? "Mise à jour..." : "Appliquer"}
+                        cancelLabel="Annuler"
+                        onConfirm={handleBulkUpdate}
+                        onCancel={() => setIsBulkEditModalOpen(false)}
+                        accentColor="neon-cyan"
+                    >
+                        <div className="mt-6 space-y-4 text-left">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nouveau Genre Musical</label>
+                                <select 
+                                    value={bulkGenre}
+                                    onChange={(e) => setBulkGenre(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white outline-none appearance-none cursor-pointer"
+                                >
+                                    <option value="">-- Ne pas modifier --</option>
+                                    <option value="Big Room">Big Room</option>
+                                    <option value="Tech House">Tech House</option>
+                                    <option value="Techno">Techno</option>
+                                    <option value="Melodic Techno">Melodic Techno</option>
+                                    <option value="Trance">Trance</option>
+                                    <option value="Progressive House">Progressive House</option>
+                                    <option value="Multi Styles">Multi Styles</option>
+                                    <option value="Hybride">Hybride</option>
+                                    <option value="Hardstyle">Hardstyle</option>
+                                    <option value="Drum & Bass">Drum & Bass</option>
+                                    <option value="House">House</option>
+                                    <option value="Hardcore">Hardcore</option>
+                                    <option value="Hard Techno">Hard Techno</option>
+                                    <option value="Afro House">Afro House</option>
+                                    <option value="Indie Dance">Indie Dance</option>
+                                    <option value="Bass Music">Bass Music</option>
+                                    <option value="Dubstep">Dubstep</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Nouveau Type d'Événement</label>
+                                <select 
+                                    value={bulkType}
+                                    onChange={(e) => setBulkType(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white outline-none appearance-none cursor-pointer"
+                                >
+                                    <option value="">-- Ne pas modifier --</option>
+                                    <option value="Festival">Festival</option>
+                                    <option value="Showcase">Showcase</option>
+                                    <option value="Concert">Concert</option>
+                                    <option value="Résidence">Résidence</option>
+                                    <option value="Opening">Opening</option>
+                                    <option value="Events">Events</option>
+                                    <option value="Clubs">Clubs</option>
+                                    <option value="Pool Party">Pool Party</option>
+                                    <option value="Live Take Over">LIVE TAKE OVER</option>
+                                </select>
+                            </div>
+                        </div>
+                    </ConfirmationModal>
+                </div>
 
                 <ConfirmationModal
                     isOpen={isDeleting}

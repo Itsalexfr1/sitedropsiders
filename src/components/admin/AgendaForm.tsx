@@ -410,6 +410,8 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                 <option value="Hard Techno">Hard Techno</option>
                                 <option value="Afro House">Afro House</option>
                                 <option value="Indie Dance">Indie Dance</option>
+                                <option value="Bass Music">Bass Music</option>
+                                <option value="Dubstep">Dubstep</option>
                             </select>
                         </div>
                     </div>
