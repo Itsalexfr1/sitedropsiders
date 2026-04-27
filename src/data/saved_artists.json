@@ -12,5 +12,19 @@
       "soundcloud": "https://soundcloud.com/tomorrowland",
       "beatport": "https://www.beatport.com/fr/label/tomorrowland-music/98617?srsltid=AfmBOopcUq9yxp00zBXA8TqKznN80PXy5GhSm8Nb5nPTeivKTxX-iZq0"
     }
+  },
+  {
+    "name": "KASKADE",
+    "socials": {
+      "website": "https://www.kaskademusic.com",
+      "instagram": "http://instagram.com/kaskade",
+      "tiktok": "https://www.tiktok.com/@kaskade?lang=en",
+      "youtube": "http://youtube.com/kaskade",
+      "facebook": "https://www.facebook.com/kaskade/",
+      "x": "https://x.com/kaskade",
+      "spotify": "https://open.spotify.com/artist/6TQj5BFPooTa08A7pk8AQ1?si=7EB7v006SBaD0NWppbmzjQ",
+      "soundcloud": "http://www.soundcloud.com/kaskade",
+      "beatport": "https://www.beatport.com/fr/artist/kaskade/370"
+    }
   }
 ]
