@@ -7,9 +7,10 @@ interface ConfirmationModalProps {
     message: string;
     confirmLabel?: string;
     cancelLabel?: string;
-    onConfirm: () => void;
-    onCancel: () => void;
+    onConfirm: () => void | Promise<void>;
+    onCancel: () => void | Promise<void>;
     accentColor?: 'neon-red' | 'neon-blue' | 'neon-cyan' | 'neon-purple' | 'neon-yellow';
+    children?: React.ReactNode;
 }
 
 export function ConfirmationModal({
@@ -20,7 +21,8 @@ export function ConfirmationModal({
     cancelLabel = "Rester",
     onConfirm,
     onCancel,
-    accentColor = 'neon-red'
+    accentColor = 'neon-red',
+    children
 }: ConfirmationModalProps) {
 
     const colors = {
@@ -66,6 +68,12 @@ export function ConfirmationModal({
                             <p className="text-gray-400 font-medium mb-10 leading-relaxed text-lg">
                                 {message}
                             </p>
+
+                            {children && (
+                                <div className="w-full mb-10">
+                                    {children}
+                                </div>
+                            )}
 
                             <div className="flex flex-col w-full gap-4">
                                 <button
