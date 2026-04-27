@@ -698,10 +698,15 @@ export function Agenda() {
                                             )}
                                             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
                                             <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl border backdrop-blur-md ${styles.bg} ${styles.text} ${styles.borderMedium} uppercase`}>
-                                                        {event.genre}
-                                                    </span>
+                                                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                                                    <div className="flex gap-2">
+                                                        <span className={`text-[8px] font-black px-2 py-1 rounded-lg border backdrop-blur-md ${getEventStyles("", event.type).bg} ${getEventStyles("", event.type).text} ${getEventStyles("", event.type).borderMedium} uppercase`}>
+                                                            {event.type}
+                                                        </span>
+                                                        <span className={`text-[8px] font-black px-2 py-1 rounded-lg border backdrop-blur-md ${getEventStyles(event.genre, "").bg} ${getEventStyles(event.genre, "").text} ${getEventStyles(event.genre, "").borderMedium} uppercase`}>
+                                                            {event.genre}
+                                                        </span>
+                                                    </div>
                                                     <span className="text-white/60 text-[10px] font-black uppercase tracking-widest">
                                                         {new Date(event.startDate || event.date).toLocaleString(locale, { month: 'short', day: 'numeric' })}
                                                     </span>
@@ -772,12 +777,12 @@ export function Agenda() {
                                                                 </span>
                                                             </div>
 
-                                                            <div className="min-w-0">
+                                                                <div className="min-w-0">
                                                                 <div className="hidden md:flex flex-wrap gap-2 mb-2.5">
-                                                                    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${styles.bg} ${styles.text} border ${styles.borderMedium}`}>
+                                                                    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getEventStyles("", event.type).bg} ${getEventStyles("", event.type).text} border ${getEventStyles("", event.type).borderMedium}`}>
                                                                         {event.type}
                                                                     </span>
-                                                                    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/5 text-gray-300 border border-white/10`}>
+                                                                    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getEventStyles(event.genre, "").bg} ${getEventStyles(event.genre, "").text} border ${getEventStyles(event.genre, "").borderMedium}`}>
                                                                         {event.genre}
                                                                     </span>
                                                                     {event.isLiveDropsiders && (
@@ -902,9 +907,15 @@ export function Agenda() {
                                                             </div>
                                                             <div className="flex-1 space-y-6 md:space-y-8">
                                                                 <div className="space-y-2">
-                                                                    <span className={`text-[10px] md:text-sm font-black uppercase tracking-[0.3em] ${styles.text}`}>
-                                                                        {event.genre} • {event.type}
-                                                                    </span>
+                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                        <span className={`text-[10px] md:text-sm font-black uppercase tracking-[0.3em] ${getEventStyles(event.genre, "").text}`}>
+                                                                            {event.genre}
+                                                                        </span>
+                                                                        <span className="text-white/20">•</span>
+                                                                        <span className={`text-[10px] md:text-sm font-black uppercase tracking-[0.3em] ${getEventStyles("", event.type).text}`}>
+                                                                            {event.type}
+                                                                        </span>
+                                                                    </div>
                                                                     <h3 className="text-3xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
                                                                         {event.title}
                                                                     </h3>
