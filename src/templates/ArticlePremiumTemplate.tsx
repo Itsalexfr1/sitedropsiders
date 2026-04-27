@@ -930,8 +930,6 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                 <div className="flex flex-col gap-1">
                                                     <div className="flex items-center gap-3">
                                                         <span className="text-neon-red text-[10px] tracking-[0.4em] font-black uppercase whitespace-nowrap">{t('article_detail.must_watch')}</span>
-                                                        <div className="h-[1px] w-8 bg-neon-red/30"></div>
-                                                        <span className="text-white/20 text-sm font-black tracking-tighter">»»</span>
                                                     </div>
                                                     <span className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-lg">
                                                         {isInterview ? "VIDÉO DE L'INTERVIEW" : t('article_detail.video_title')}
