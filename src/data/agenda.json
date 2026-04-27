@@ -6185,5 +6185,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1003,
+    "title": "Opening Omnia Dayclub with Martin Garrix",
+    "date": "2026-05-17",
+    "startDate": "2026-05-17",
+    "endDate": "2026-05-17",
+    "venue": "Omnia Dayclub",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Pool Party",
+    "image": "/uploads/uploads/f7d99aa8f8ef670e-martin_garrix_to_headline_vega.jpg",
+    "url": "https://tickets.taogroup.com/e/omnia-dayclub-las-vegas-5-17-2026/tickets",
+    "genre": "Progressive House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
