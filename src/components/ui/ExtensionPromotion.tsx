@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bell } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 
-export function ExtensionPromotion({ initialLoad }: { initialLoad: boolean }) {
+export function ExtensionPromotion() {
   const [showPopup, setShowPopup] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const { setGlobalAlert } = useUser();
+  const { showNotification } = useUser();
   
   const isMobile = window.innerWidth < 1024;
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
@@ -19,15 +19,13 @@ export function ExtensionPromotion({ initialLoad }: { initialLoad: boolean }) {
   }, []);
 
   useEffect(() => {
-    if (!initialLoad) {
-      const delay = setTimeout(() => setShowPopup(true), 2000);
-      const autoClose = setTimeout(() => setShowPopup(false), 12000);
-      return () => {
-        clearTimeout(delay);
-        clearTimeout(autoClose);
-      };
-    }
-  }, [initialLoad]);
+    const delay = setTimeout(() => setShowPopup(true), 2000);
+    const autoClose = setTimeout(() => setShowPopup(false), 12000);
+    return () => {
+      clearTimeout(delay);
+      clearTimeout(autoClose);
+    };
+  }, []);
 
   const handleInstallClick = async () => {
     if (isMobile) {
@@ -37,9 +35,9 @@ export function ExtensionPromotion({ initialLoad }: { initialLoad: boolean }) {
         if (outcome === 'accepted') setDeferredPrompt(null);
         setShowPopup(false);
       } else if (isIOS) {
-        setGlobalAlert({ message: "Sur iPhone : Clique sur 'Partager' (icône flèche) puis 'Sur l'écran d'accueil' 📲", type: "info" });
+        showNotification("Sur iPhone : Clique sur 'Partager' (icône flèche) puis 'Sur l'écran d'accueil' 📲", "info");
       } else {
-        setGlobalAlert({ message: "Ajoute le site à ton écran d'accueil pour profiter de l'App ! 🚀", type: "info" });
+        showNotification("Ajoute le site à ton écran d'accueil pour profiter de l'App ! 🚀", "info");
       }
     } else {
       setShowPopup(false);
@@ -47,10 +45,7 @@ export function ExtensionPromotion({ initialLoad }: { initialLoad: boolean }) {
       link.href = '/extension_dropsiders.zip';
       link.download = 'extension_dropsiders.zip';
       link.click();
-      setGlobalAlert({ 
-        message: "Extension téléchargée ! Pour l'installer : décompresse le zip, va sur chrome://extensions, active le 'Mode développeur' et clique sur 'Charger l'extension décompressée' 🚀", 
-        type: "info" 
-      });
+      showNotification("Extension téléchargée ! Pour l'installer : décompresse le zip, va sur chrome://extensions, active le 'Mode développeur' et clique sur 'Charger l'extension décompressée' 🚀", "info");
     }
   };
 
