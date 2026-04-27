@@ -292,8 +292,19 @@ export function Agenda() {
         const t = (type || '').toLowerCase().trim();
         let color = 'cyan';
 
+        // Type Colors (Prioritaires)
         if (t === 'festival') color = 'red';
-        else if (t === 'concert') color = 'cyan';
+        else if (t === 'pool party') color = 'cyan';
+        else if (t === 'concert') color = 'pink';
+        else if (t === 'clubs') color = 'blue';
+        else if (t === 'showcase') color = 'purple';
+        else if (t === 'résidence') color = 'yellow';
+        else if (t === 'opening') color = 'orange';
+        else if (t === 'events') color = 'white';
+        else if (t === 'live take over') color = 'red';
+        else if (t === 'jeux concours') color = 'yellow';
+        
+        // Genre Colors (Fallback si le type n'est pas déjà coloré spécifiquement ou pour nuancer)
         else if (g.includes('melodic')) color = 'yellow';
         else if (g.includes('techno')) color = 'red';
         else if (g.includes('tech house')) color = 'blue';
@@ -309,10 +320,6 @@ export function Agenda() {
         else if (g.includes('hard techno')) color = 'purple';
         else if (g.includes('afro house')) color = 'orange';
         else if (g.includes('indie dance')) color = 'cyan';
-        else if (t === 'clubs') color = 'blue';
-        else if (t === 'pool party') color = 'cyan';
-        
-        if (t === 'jeux concours') color = 'yellow';
 
         const isMulti = g.includes('multi styles');
         const isHybride = g.includes('hybride');
