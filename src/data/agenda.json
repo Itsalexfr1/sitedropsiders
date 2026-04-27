@@ -3330,25 +3330,7 @@
     "isSoldOut": false,
     "isLiveDropsiders": false
   },
-  {
-    "id": 406,
-    "title": "ANTS",
-    "date": "2026-05-30",
-    "startDate": "2026-05-30",
-    "endDate": "2026-05-30",
-    "venue": "Ushuaîa",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/62e1b8908ecd0b23-fiesta_ants_ushuaia_ibiza_welc.webp",
-    "url": "https://www.theushuaiaexperience.com/en/club/calendar",
-    "genre": "Tech House",
-    "month": "MAI",
-    "isWeekly": true,
-    "dayOfWeek": 6,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
-  },
+
   {
     "id": 407,
     "title": "ANTS",
