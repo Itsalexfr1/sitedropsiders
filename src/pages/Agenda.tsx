@@ -349,11 +349,15 @@ export function Agenda() {
         else if (t === 'jeux concours') color = 'yellow';
         
         // Genre Colors (Fallback si le type n'est pas déjà coloré spécifiquement ou pour nuancer)
-        else if (g.includes('melodic')) color = 'yellow';
-        else if (g.includes('techno')) color = 'red';
+        if (g.includes('melodic techno')) color = 'yellow';
         else if (g.includes('tech house')) color = 'blue';
-        else if (g.includes('big room')) color = 'purple';
+        else if (g.includes('afro house')) color = 'amber';
+        else if (g.includes('indie dance')) color = 'sky';
+        else if (g.includes('bass music')) color = 'lime';
+        else if (g.includes('hard techno')) color = 'fuchsia';
+        else if (g.includes('techno')) color = 'red';
         else if (g.includes('house')) color = 'pink';
+        else if (g.includes('big room')) color = 'purple';
         else if (g.includes('hardstyle')) color = 'orange';
         else if (g.includes('trance')) color = 'cyan';
         else if (g.includes('progressive')) color = 'white';
@@ -361,10 +365,6 @@ export function Agenda() {
         else if (g.includes('multi styles')) color = 'emerald';
         else if (g.includes('hybride')) color = 'red';
         else if (g.includes('hardcore')) color = 'orange';
-        else if (g.includes('hard techno')) color = 'fuchsia';
-        else if (g.includes('afro house')) color = 'amber';
-        else if (g.includes('indie dance')) color = 'sky';
-        else if (g.includes('bass music')) color = 'lime';
         else if (g.includes('dubstep')) color = 'indigo';
 
         const isMulti = g.includes('multi styles');
