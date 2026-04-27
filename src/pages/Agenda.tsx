@@ -761,13 +761,7 @@ export function Agenda() {
                                                 )}
                                                 <div
                                                     className="flex-1 p-3 md:p-6 cursor-pointer hover:bg-white/10 transition-colors"
-                                                    onClick={() => {
-                                                        if (event.isLiveDropsiders) {
-                                                            window.location.href = '/live';
-                                                        } else {
-                                                            toggleEvent(event.compositeId);
-                                                        }
-                                                    }}
+                                                    onClick={() => toggleEvent(event.compositeId)}
                                                 >
                                                     <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
                                                         <div className="flex items-center gap-4 md:gap-6">
