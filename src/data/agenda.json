@@ -6223,5 +6223,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1005,
+    "title": "EDC Week : NGHTMRE",
+    "date": "2026-05-18",
+    "startDate": "2026-05-18",
+    "endDate": "2026-05-18",
+    "venue": "Marquee Dayclub",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Pool Party",
+    "image": "/uploads/uploads/65c03e345b0eb183-260518_mdc_edcweek_nghtmre_108.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/ung684tinq55imih",
+    "genre": "Bass Music",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
