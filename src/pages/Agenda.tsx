@@ -948,7 +948,7 @@ export function Agenda() {
                                                                                     }}
                                                                                     className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
                                                                                 >
-                                                                                    {event.isSoldOut ? 'SITE OFFICIEL' : (event.buttonText || 'Participer au Concours')}
+                                                                                    {event.isSoldOut ? 'SITE OFFICIEL' : 'Participer au Concours'}
                                                                                 </button>
                                                                             )}
 
@@ -959,7 +959,7 @@ export function Agenda() {
                                                                                     rel="noopener noreferrer"
                                                                                     className="flex-1 md:flex-none px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all text-center text-xs md:text-sm"
                                                                                 >
-                                                                                    {event.isSoldOut ? 'SITE OFFICIEL' : (event.buttonText || 'Billetterie & Infos')}
+                                                                                    {event.isSoldOut ? 'SITE OFFICIEL' : 'Billetterie & Infos'}
                                                                                 </a>
                                                                             )}
                                                                         </>
@@ -970,7 +970,7 @@ export function Agenda() {
                                                                             rel="noopener noreferrer"
                                                                             className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
                                                                         >
-                                                                            {event.isSoldOut ? 'SITE OFFICIEL' : (event.buttonText || t('agenda.book_tickets'))}
+                                                                            {event.isSoldOut ? 'SITE OFFICIEL' : t('agenda.book_tickets')}
                                                                         </a>
                                                                     )}
 
