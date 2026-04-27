@@ -923,13 +923,19 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     (article.category === 'Interview' || article.category === 'Interviews' ? article.showVideo === true : article.showVideo !== false) &&
                                     !article.category?.includes('Interview Video') && (
                                         <div className="mt-16 mb-16">
-                                            <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex flex-col items-center justify-center gap-4 group text-center">
-                                                <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 group-hover:bg-neon-red/20 transition-all">
-                                                    <Play className="w-6 h-6 text-neon-red fill-neon-red animate-pulse" />
+                                            <h3 className="flex items-center gap-5 mb-12 group">
+                                                <div className="w-14 h-14 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 group-hover:bg-neon-red/20 transition-all shadow-[0_0_20px_rgba(255,0,51,0.1)]">
+                                                    <Play className="w-7 h-7 text-neon-red fill-neon-red animate-pulse" />
                                                 </div>
-                                                <div className="flex flex-col text-center">
-                                                    <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1">{t('article_detail.must_watch')}</span>
-                                                    {isInterview ? "VIDÉO DE L'INTERVIEW" : t('article_detail.video_title')}
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-neon-red text-[10px] tracking-[0.4em] font-black uppercase whitespace-nowrap">{t('article_detail.must_watch')}</span>
+                                                        <div className="h-[1px] w-8 bg-neon-red/30"></div>
+                                                        <span className="text-white/20 text-sm font-black tracking-tighter">»»</span>
+                                                    </div>
+                                                    <span className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-lg">
+                                                        {isInterview ? "VIDÉO DE L'INTERVIEW" : t('article_detail.video_title')}
+                                                    </span>
                                                 </div>
                                             </h3>
                                             <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
