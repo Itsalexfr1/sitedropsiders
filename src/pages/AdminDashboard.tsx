@@ -7021,13 +7021,13 @@ export function AdminDashboard() {
                         setIsNewsModalOpen(true);
                         setIsContenuModalOpen(false);
                       }}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
+                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
                     >
                       <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center border border-neon-blue/30 group-hover:scale-110 transition-transform">
                         <FileText className="w-6 h-6 text-neon-blue" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
                           News
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
@@ -7041,13 +7041,13 @@ export function AdminDashboard() {
                         setIsMusiqueModalOpen(true);
                         setIsContenuModalOpen(false);
                       }}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
+                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
                     >
                       <div className="w-12 h-12 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
                         <Music className="w-6 h-6 text-neon-green" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
                           Musique
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
@@ -7061,13 +7061,13 @@ export function AdminDashboard() {
                         setIsInterviewModalOpen(true);
                         setIsContenuModalOpen(false);
                       }}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
                     >
                       <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
                         <Mic className="w-6 h-6 text-neon-purple" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
                           Interviews
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
@@ -7081,13 +7081,13 @@ export function AdminDashboard() {
                         setIsRecapModalOpen(true);
                         setIsContenuModalOpen(false);
                       }}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
                     >
                       <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
                         <Video className="w-6 h-6 text-neon-red" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
                           Récaps
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
@@ -7099,13 +7099,13 @@ export function AdminDashboard() {
                     <Link
                       to="/news/create?tab=Focus"
                       onClick={() => setIsContenuModalOpen(false)}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
                     >
                       <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
                         <Zap className="w-6 h-6 text-neon-purple" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
                           News Focus
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
@@ -7119,13 +7119,13 @@ export function AdminDashboard() {
                         setIsExtensionNotifModalOpen(true);
                         setIsContenuModalOpen(false);
                       }}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
                     >
                       <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
                         <Bell className="w-6 h-6 text-neon-red" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
                           Notifications
                         </h3>
                         <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
