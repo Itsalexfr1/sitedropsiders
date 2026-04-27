@@ -375,6 +375,9 @@ export function NewsCreate() {
             if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
                 setShowSuggestions(false);
             }
+            if (artistSuggestionRef.current && !artistSuggestionRef.current.contains(event.target as Node)) {
+                setShowArtistSuggestions(false);
+            }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -486,6 +489,86 @@ export function NewsCreate() {
     const [suggestedTitles, setSuggestedTitles] = useState<string[]>([]);
     const [videoStartTime, setVideoStartTime] = useState<number>(0);
     const [videoAutoplay, setVideoAutoplay] = useState<boolean>(false);
+
+    // Saved Artists Logic for 'SUIVRE' section
+    const [savedArtists, setSavedArtists] = useState<{ name: string; socials: any }[]>([]);
+
+    useEffect(() => {
+        fetch('/api/saved-artists')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setSavedArtists(data);
+                }
+            })
+            .catch(err => console.error("Error fetching saved artists:", err));
+    }, []);
+    const [showArtistSuggestions, setShowArtistSuggestions] = useState(false);
+    const artistSuggestionRef = useRef<HTMLDivElement>(null);
+
+    const saveArtistSocials = async () => {
+        if (!artistNameLabel.trim()) {
+            setMessage("Veuillez indiquer le nom de l'artiste pour enregistrer ses réseaux.");
+            setStatus('error');
+            return;
+        }
+        
+        const hasSocials = Object.values(artistSocials).some(v => v.trim());
+        if (!hasSocials) {
+            setMessage("Veuillez remplir au moins un réseau social.");
+            setStatus('error');
+            return;
+        }
+
+        const newSavedArtists = [...savedArtists];
+        const existingIndex = newSavedArtists.findIndex(a => a.name.toLowerCase() === artistNameLabel.toLowerCase());
+        
+        if (existingIndex >= 0) {
+            newSavedArtists[existingIndex] = { name: artistNameLabel.toUpperCase(), socials: artistSocials };
+        } else {
+            newSavedArtists.push({ name: artistNameLabel.toUpperCase(), socials: artistSocials });
+        }
+        
+        try {
+            const response = await fetch('/api/saved-artists/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSavedArtists)
+            });
+            const res = await response.json();
+            if (res.success) {
+                setSavedArtists(newSavedArtists);
+                setMessage(`Réseaux de ${artistNameLabel.toUpperCase()} enregistrés dans le cloud !`);
+                setStatus('success');
+            } else {
+                setMessage("Erreur lors de l'enregistrement : " + res.error);
+                setStatus('error');
+            }
+        } catch (e) {
+            setMessage("Erreur réseau lors de l'enregistrement.");
+            setStatus('error');
+        }
+        setTimeout(() => setStatus('idle'), 3000);
+    };
+
+    const deleteSavedArtist = async (e: React.MouseEvent, name: string) => {
+        e.stopPropagation();
+        const newSavedArtists = savedArtists.filter(a => a.name !== name);
+        
+        try {
+            const response = await fetch('/api/saved-artists/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSavedArtists)
+            });
+            const res = await response.json();
+            if (res.success) {
+                setSavedArtists(newSavedArtists);
+            }
+        } catch (e) {
+            console.error("Error deleting saved artist:", e);
+        }
+    };
 
     // Fetch item if missing from state but ID is present
     useEffect(() => {
@@ -2310,15 +2393,69 @@ ${generateSocialsHtml()}
                                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                     <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
                                 </label>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 relative">
                                     <span className="text-[9px] font-black text-gray-500 uppercase">Suivre : {Object.values(artistSocials).some(v => v.trim()) && <span className="text-neon-red">*</span>}</span>
-                                    <input
-                                        type="text"
-                                        value={artistNameLabel}
-                                        onChange={(e) => setArtistNameLabel(e.target.value)}
-                                        className={`bg-black/40 border ${Object.values(artistSocials).some(v => v.trim()) && !artistNameLabel.trim() ? 'border-neon-red/50 shadow-[0_0_10px_rgba(255,0,81,0.1)]' : 'border-white/10'} rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest transition-all`}
-                                        placeholder="NOM DE L'ARTISTE"
-                                    />
+                                    <div className="relative flex items-center">
+                                        <input
+                                            type="text"
+                                            value={artistNameLabel}
+                                            onChange={(e) => {
+                                                setArtistNameLabel(e.target.value);
+                                                setShowArtistSuggestions(true);
+                                            }}
+                                            onFocus={() => setShowArtistSuggestions(true)}
+                                            className={`bg-black/40 border ${Object.values(artistSocials).some(v => v.trim()) && !artistNameLabel.trim() ? 'border-neon-red/50 shadow-[0_0_10px_rgba(255,0,81,0.1)]' : 'border-white/10'} rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest transition-all`}
+                                            placeholder="NOM DE L'ARTISTE"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={saveArtistSocials}
+                                            className="ml-2 px-3 py-1.5 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-lg hover:bg-neon-cyan/20 transition-all text-[9px] font-black uppercase tracking-widest"
+                                        >
+                                            {savedArtists.some(a => a.name.toLowerCase() === artistNameLabel.toLowerCase()) ? 'METTRE À JOUR' : 'ENREGISTRER'}
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {showArtistSuggestions && artistNameLabel.trim().length > 0 && (
+                                                <motion.div
+                                                    ref={artistSuggestionRef}
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    className="absolute z-[110] left-0 right-0 top-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl min-w-[200px]"
+                                                >
+                                                    {savedArtists
+                                                        .filter(a => a.name.toLowerCase().includes(artistNameLabel.toLowerCase()))
+                                                        .map((artist, idx) => (
+                                                            <div
+                                                                key={idx}
+                                                                className="flex items-center justify-between group/item px-3 py-2.5 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 cursor-pointer"
+                                                                onClick={() => {
+                                                                    setArtistNameLabel(artist.name);
+                                                                    setArtistSocials(artist.socials);
+                                                                    setShowArtistSuggestions(false);
+                                                                }}
+                                                            >
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-[10px] text-white font-black uppercase tracking-widest group-hover/item:text-neon-cyan transition-colors">{artist.name}</span>
+                                                                    <span className="text-[8px] text-gray-500 uppercase font-bold">{Object.values(artist.socials).filter(v => (v as string).trim()).length} réseaux enregistrés</span>
+                                                                </div>
+                                                                <button
+                                                                    onClick={(e) => deleteSavedArtist(e, artist.name)}
+                                                                    className="p-1 opacity-0 group-hover/item:opacity-100 hover:text-neon-red transition-all"
+                                                                >
+                                                                    <X className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        ))
+                                                    }
+                                                    {savedArtists.filter(a => a.name.toLowerCase().includes(artistNameLabel.toLowerCase())).length === 0 && (
+                                                        <div className="px-3 py-3 text-[9px] text-gray-500 uppercase font-bold text-center">Aucun artiste enregistré</div>
+                                                    )}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

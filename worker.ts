@@ -216,6 +216,7 @@ const WIKI_DJS_PATH = 'src/data/wiki_djs.json';
 const WIKI_CLUBS_PATH = 'src/data/wiki_clubs.json';
 const WIKI_FESTIVALS_PATH = 'src/data/wiki_festivals.json';
 const INTERVIEW_QUESTIONS_PATH = 'src/data/interview_questions.json';
+const SAVED_ARTISTS_PATH = 'src/data/saved_artists.json';
 
 // Simple un-expiring cache per isolate for performance
 const githubCache = new Map();
@@ -3451,6 +3452,21 @@ ${urls.map(u => `  <url>
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
+        }
+
+        // --- API: SAVED ARTISTS ---
+        if (path === '/api/saved-artists' && request.method === 'GET') {
+            const file = await fetchGitHubFile(SAVED_ARTISTS_PATH, gitConfig);
+            if (!file) return new Response(JSON.stringify([]), { status: 200, headers });
+            return new Response(JSON.stringify(file.content), { status: 200, headers });
+        }
+
+        if (path === '/api/saved-artists/update' && request.method === 'POST') {
+            const newArtists = await request.json();
+            const file = await fetchGitHubFile(SAVED_ARTISTS_PATH, gitConfig);
+            const sha = file ? file.sha : undefined;
+            const saved = await saveGitHubFile(SAVED_ARTISTS_PATH, newArtists, `Update saved artists`, sha, gitConfig);
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         // --- API: CREATE NEWS ---
