@@ -338,10 +338,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const y = (canvas.height - bgVideo.videoHeight * scale) / 2;
                 ctx.drawImage(bgVideo, x, y, bgVideo.videoWidth * scale, bgVideo.videoHeight * scale);
             } else if (img) {
-                const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-                const x = (canvas.width - img.width * scale) / 2;
-                const y = (canvas.height - img.height * scale) / 2;
-                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                if (theme === 'SPOTLIGHT') {
+                    const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                    const iw = img.width * scale;
+                    const ih = img.height * scale;
+                    // Position photo on the right
+                    const x = canvas.width - iw;
+                    const y = (canvas.height - ih) / 2;
+                    ctx.drawImage(img, x, y, iw, ih);
+                } else {
+                    const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                    const x = (canvas.width - img.width * scale) / 2;
+                    const y = (canvas.height - img.height * scale) / 2;
+                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                }
             } else {
                 if (!isTransparent) {
                     ctx.fillStyle = '#111';
@@ -360,7 +370,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             const activeData = activeColor;
             // Shrunk gradient for Top 5 (Request 6), restored for others
-            if (theme !== 'TRACKLIST') {
+            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
                     : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
