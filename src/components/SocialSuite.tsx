@@ -2410,17 +2410,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                     <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo Artiste</label>
-                    <input type="file" onChange={handleArtistLogoChange} className="hidden" id="artist-logo-up" accept="image/*" />
-                    <button onClick={() => document.getElementById('artist-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
-                        {artistLogo ? (
-                            <img src={artistLogo} alt="Artist Logo" className="w-full h-full object-contain p-2" />
-                        ) : (
-                            <>
-                                <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
-                                <span className="text-[8px] font-black text-gray-600 uppercase">Logo Artiste</span>
-                            </>
+                    <div className="relative group/logo">
+                        {artistLogo && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setArtistLogo(''); artistLogoRef.current = null; }}
+                                className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-all opacity-100"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
                         )}
-                    </button>
+                        <input type="file" onChange={handleArtistLogoChange} className="hidden" id="artist-logo-up" accept="image/*" />
+                        <button onClick={() => document.getElementById('artist-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
+                            {artistLogo ? (
+                                <img src={artistLogo} alt="Artist Logo" className="w-full h-full object-contain p-2" />
+                            ) : (
+                                <>
+                                    <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
+                                    <span className="text-[8px] font-black text-gray-600 uppercase">Logo Artiste</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
                     {!artistLogo && (
                         <input 
                             value={artistNameText}
@@ -2444,17 +2454,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
                 <div className="space-y-2">
                     <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo Festival</label>
-                    <input type="file" onChange={handleFestivalLogoChange} className="hidden" id="fest-logo-up" accept="image/*" />
-                    <button onClick={() => document.getElementById('fest-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
-                        {festivalLogo ? (
-                            <img src={festivalLogo} alt="Fest Logo" className="w-full h-full object-contain p-2" />
-                        ) : (
-                            <>
-                                <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
-                                <span className="text-[8px] font-black text-gray-600 uppercase">Logo Festival</span>
-                            </>
+                    <div className="relative group/logo">
+                        {festivalLogo && (
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); setFestivalLogo(''); festivalLogoRef.current = null; }}
+                                className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-all opacity-100"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
                         )}
-                    </button>
+                        <input type="file" onChange={handleFestivalLogoChange} className="hidden" id="fest-logo-up" accept="image/*" />
+                        <button onClick={() => document.getElementById('fest-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
+                            {festivalLogo ? (
+                                <img src={festivalLogo} alt="Fest Logo" className="w-full h-full object-contain p-2" />
+                            ) : (
+                                <>
+                                    <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
+                                    <span className="text-[8px] font-black text-gray-600 uppercase">Logo Festival</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
                     {!festivalLogo && (
                         <input 
                             value={festivalNameText}
