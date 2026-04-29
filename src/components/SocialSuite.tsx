@@ -1156,19 +1156,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowBlur = 15;
                     
                     // Tagline (White, small)
+                    let taglineY = 420;
                     if (tagline) {
                         ctx.fillStyle = '#ffffff';
                         ctx.font = '800 28px "Montserrat", sans-serif';
                         ctx.letterSpacing = '3px';
-                        ctx.fillText(tagline, 80, 420); // Remonté de 520 à 420
+                        
+                        const taglinePart1 = lines[0] || '';
+                        const taglinePart2 = lines[1] || '';
+                        
+                        ctx.fillText(taglinePart1, 80, taglineY);
+                        if (taglinePart2) {
+                            taglineY += 40;
+                            ctx.fillText(taglinePart2, 80, taglineY);
+                        }
                         
                         // Decorative Red Bar
                         ctx.fillStyle = activeColor.color;
-                        ctx.fillRect(80, 470, 70, 8); // Remonté de 570 à 470
+                        ctx.fillRect(80, taglineY + 50, 70, 8);
                     }
 
                     // Stage Section
-                    let currY = 600; // Remonté de 680 à 600
+                    let currY = taglineY + 180; // Dynamique selon le nombre de lignes de la tagline
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
                     ctx.font = '900 32px "Orbitron", sans-serif';
                     ctx.letterSpacing = '4px';
@@ -2487,28 +2496,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Tagline / Phrase</label>
-                <input 
-                    value={customText.split('\n')[0] || ''} 
-                    onChange={e => {
-                        const lines = customText.split('\n');
-                        lines[0] = e.target.value;
-                        setCustomText(lines.join('\n'));
-                    }} 
-                    placeholder="EX: FROM ROOTS TO BASS ICON" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px]" 
-                />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Tagline / Phrase (Ligne 1 & 2)</label>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nom Stage</label>
+                    <input 
+                        value={customText.split('\n')[0] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            lines[0] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="LIGNE 1 (EX: FROM UNDERGROUND ROOTS)" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px]" 
+                    />
                     <input 
                         value={customText.split('\n')[1] || ''} 
                         onChange={e => {
                             const lines = customText.split('\n');
                             while (lines.length < 2) lines.push('');
                             lines[1] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="LIGNE 2 (EX: TO BASS CULTURE ICON)" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px]" 
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nom Stage</label>
+                    <input 
+                        value={customText.split('\n')[2] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            while (lines.length < 3) lines.push('');
+                            lines[2] = e.target.value;
                             setCustomText(lines.join('\n'));
                         }} 
                         placeholder="BASSPOD" 
@@ -2518,11 +2540,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Jour</label>
                     <input 
-                        value={customText.split('\n')[2] || ''} 
+                        value={customText.split('\n')[3] || ''} 
                         onChange={e => {
                             const lines = customText.split('\n');
-                            while (lines.length < 3) lines.push('');
-                            lines[2] = e.target.value;
+                            while (lines.length < 4) lines.push('');
+                            lines[3] = e.target.value;
                             setCustomText(lines.join('\n'));
                         }} 
                         placeholder="SATURDAY" 
