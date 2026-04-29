@@ -1160,15 +1160,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.fillStyle = '#ffffff';
                         ctx.font = '800 28px "Montserrat", sans-serif';
                         ctx.letterSpacing = '3px';
-                        ctx.fillText(tagline, 80, 520);
+                        ctx.fillText(tagline, 80, 420); // Remonté de 520 à 420
                         
                         // Decorative Red Bar
                         ctx.fillStyle = activeColor.color;
-                        ctx.fillRect(80, 570, 70, 8);
+                        ctx.fillRect(80, 470, 70, 8); // Remonté de 570 à 470
                     }
 
                     // Stage Section
-                    let currY = 680;
+                    let currY = 600; // Remonté de 680 à 600
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
                     ctx.font = '900 32px "Orbitron", sans-serif';
                     ctx.letterSpacing = '4px';
@@ -1180,7 +1180,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillText(stageName, 80, currY + 85);
 
                     // Day Section
-                    currY += 230;
+                    currY += 210; // Réduit l'espacement entre Stage et Day (était 230)
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
                     ctx.font = '900 32px "Orbitron", sans-serif';
                     ctx.letterSpacing = '4px';
