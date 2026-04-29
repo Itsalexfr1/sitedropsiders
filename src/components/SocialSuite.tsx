@@ -1186,7 +1186,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = activeColor.color; // Yellow
                     ctx.font = '900 italic 85px "Orbitron", sans-serif';
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(stageName, 100, currY + 85); // Décalage augmenté à 20px (100 - 80)
+                    ctx.fillText(stageName, 75, currY + 85); // Décalage vers la gauche (75 au lieu de 80)
 
                     // Day Section
                     currY += 210;
@@ -1199,7 +1199,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = activeColor.color; // Yellow
                     ctx.font = '900 italic 85px "Orbitron", sans-serif';
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(dayName, 100, currY + 85); // Décalage augmenté à 20px (100 - 80)
+                    ctx.fillText(dayName, 75, currY + 85); // Décalage vers la gauche (75 au lieu de 80)
                     
                     ctx.restore();
                 }
