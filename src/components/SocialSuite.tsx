@@ -1180,7 +1180,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
                     ctx.font = '900 32px "Orbitron", sans-serif';
                     ctx.letterSpacing = '4px';
-                    ctx.fillText('DAY', 80, currY);
+                    ctx.fillText('JOUR', 80, currY);
                     
                     ctx.fillStyle = activeColor.color; // Yellow
                     ctx.font = '900 italic 85px "Orbitron", sans-serif';
