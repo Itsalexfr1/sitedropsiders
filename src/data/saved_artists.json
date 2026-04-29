@@ -26,5 +26,20 @@
       "soundcloud": "http://www.soundcloud.com/kaskade",
       "beatport": "https://www.beatport.com/fr/artist/kaskade/370"
     }
+  },
+  {
+    "name": "INSOMNIAC",
+    "socials": {
+      "website": "https://www.insomniac.com",
+      "instagram": "https://www.instagram.com/insomniacevents/",
+      "tiktok": "https://www.tiktok.com/@insomniacevents",
+      "youtube": "https://www.youtube.com/user/insomniacevents",
+      "facebook": "https://www.facebook.com/insomniacevents",
+      "x": "https://twitter.com/insomniacevents",
+      "spotify": "https://open.spotify.com/user/insomniac_events?si=a9RlONJtQCi_oW7ed949Xw",
+      "soundcloud": "https://soundcloud.com/insomniacevents",
+      "beatport": "https://www.beatport.com/fr/label/insomniac-music-group/99218?srsltid=AfmBOooYVWISLbVltiEhQw3E4o5F9X5MS1aqQrG9sYi4ItL5vm3VZ8I8",
+      "snapchat": "https://www.snapchat.com/add/insomniacevents"
+    }
   }
 ]
