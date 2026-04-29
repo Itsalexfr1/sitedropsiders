@@ -134,6 +134,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const festivalLogoRef = useRef<HTMLImageElement | null>(null); // NEW
     const [bgOffsetX, setBgOffsetX] = useState<number>(0);
     const [bgOffsetY, setBgOffsetY] = useState<number>(0);
+    const [artistNameText, setArtistNameText] = useState('');
+    const [festivalNameText, setFestivalNameText] = useState('');
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
@@ -1114,7 +1116,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = fadeGrad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // 2. Artist Logo (Top Left)
+                // 2. Artist Logo or Name (Top Left)
                 if (artistLogoRef.current) {
                     const logo = artistLogoRef.current;
                     const maxW = 500;
@@ -1126,6 +1128,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.save();
                     ctx.filter = 'brightness(0) invert(1)'; // Effet négatif (blanc)
                     ctx.drawImage(logo, 80, 200, lw, lh);
+                    ctx.restore();
+                } else if (artistNameText) {
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 italic 80px "Orbitron", sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                    ctx.shadowBlur = 15;
+                    ctx.fillText(artistNameText.toUpperCase(), 80, 300);
                     ctx.restore();
                 }
 
@@ -1176,7 +1187,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // 4. Festival Logo (Bottom Left)
+                // 4. Festival Logo or Name (Bottom Left)
                 if (festivalLogoRef.current) {
                     const fest = festivalLogoRef.current;
                     const maxW = 350;
@@ -1186,6 +1197,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const ratio = Math.min(maxW / lw, maxH / lh);
                     lw *= ratio; lh *= ratio;
                     ctx.drawImage(fest, 80, canvas.height - 180, lw, lh);
+                } else if (festivalNameText) {
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 italic 45px "Montserrat", sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.letterSpacing = '2px';
+                    ctx.fillText(festivalNameText.toUpperCase(), 80, canvas.height - 120);
+                    ctx.restore();
                 }
 
                 // 5. Dropsiders Logo (Top Right) - Aligned with other themes
@@ -1518,7 +1537,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -2390,11 +2409,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             <img src={artistLogo} alt="Artist Logo" className="w-full h-full object-contain p-2" />
                         ) : (
                             <>
-                                <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-cyan" />
+                                <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
                                 <span className="text-[8px] font-black text-gray-600 uppercase">Logo Artiste</span>
                             </>
                         )}
                     </button>
+                    {!artistLogo && (
+                        <input 
+                            value={artistNameText}
+                            onChange={e => setArtistNameText(e.target.value)}
+                            placeholder="Ou nom artiste..."
+                            className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[9px] text-white uppercase font-bold"
+                        />
+                    )}
                 </div>
                 <div className="space-y-2">
                     <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo Festival</label>
@@ -2409,6 +2436,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             </>
                         )}
                     </button>
+                    {!festivalLogo && (
+                        <input 
+                            value={festivalNameText}
+                            onChange={e => setFestivalNameText(e.target.value)}
+                            placeholder="Ou nom festival..."
+                            className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[9px] text-white uppercase font-bold"
+                        />
+                    )}
                 </div>
             </div>
 
