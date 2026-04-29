@@ -132,6 +132,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const artistLogoRef = useRef<HTMLImageElement | null>(null); // NEW
     const [festivalLogo, setFestivalLogo] = useState<string>(''); // NEW
     const festivalLogoRef = useRef<HTMLImageElement | null>(null); // NEW
+    const [bgOffsetX, setBgOffsetX] = useState<number>(0);
+    const [bgOffsetY, setBgOffsetY] = useState<number>(0);
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
@@ -342,9 +344,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
                     const iw = img.width * scale;
                     const ih = img.height * scale;
-                    // Position photo on the right
-                    const x = canvas.width - iw;
-                    const y = (canvas.height - ih) / 2;
+                    // Position photo on the right with manual offset
+                    const x = (canvas.width - iw) + bgOffsetX;
+                    const y = ((canvas.height - ih) / 2) + bgOffsetY;
                     ctx.drawImage(img, x, y, iw, ih);
                 } else {
                     const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
@@ -1103,10 +1105,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
 
             } else if (theme === 'SPOTLIGHT') {
-                // 1. Black Fade from left
-                const fadeGrad = ctx.createLinearGradient(0, 0, canvas.width * 0.7, 0);
+                // 1. Black Fade from left (Darker and deeper for text legibility)
+                const fadeGrad = ctx.createLinearGradient(0, 0, canvas.width * 0.8, 0);
                 fadeGrad.addColorStop(0, '#000000');
-                fadeGrad.addColorStop(0.5, 'rgba(0,0,0,0.8)');
+                fadeGrad.addColorStop(0.4, '#000000'); // Deeper black area
+                fadeGrad.addColorStop(0.7, 'rgba(0,0,0,0.6)');
                 fadeGrad.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = fadeGrad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1512,7 +1515,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -2448,6 +2451,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         placeholder="SATURDAY" 
                         className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs" 
                     />
+                </div>
+            </div>
+
+            {/* Background Offsets for Spotlight */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-4">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ajuster la position de la photo</p>
+                <div className="space-y-3">
+                    <div className="space-y-1">
+                        <div className="flex justify-between text-[8px] font-black uppercase text-gray-500">
+                            <span>Horizontal (Gauche/Droite)</span>
+                            <span className="text-white">{bgOffsetX}px</span>
+                        </div>
+                        <input 
+                            type="range" min="-800" max="800" value={bgOffsetX} 
+                            onChange={e => setBgOffsetX(parseInt(e.target.value))}
+                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <div className="flex justify-between text-[8px] font-black uppercase text-gray-500">
+                            <span>Vertical (Haut/Bas)</span>
+                            <span className="text-white">{bgOffsetY}px</span>
+                        </div>
+                        <input 
+                            type="range" min="-800" max="800" value={bgOffsetY} 
+                            onChange={e => setBgOffsetY(parseInt(e.target.value))}
+                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
+                        />
+                    </div>
+                    <button onClick={() => { setBgOffsetX(0); setBgOffsetY(0); }} className="w-full py-1.5 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-gray-500 uppercase hover:text-white transition-all">Réinitialiser Position</button>
                 </div>
             </div>
         </div>
