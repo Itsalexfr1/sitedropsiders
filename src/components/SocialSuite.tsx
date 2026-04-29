@@ -1148,7 +1148,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const lines = customText.split('\n').map(l => l.trim().toUpperCase());
                     const tagline = lines[0] || '';
                     const stageName = lines[1] || '';
-                    const dayName = lines[2] || '';
+                    // dayName est récupéré plus bas via lines[2]
 
                     ctx.save();
                     ctx.textAlign = 'left';
@@ -1163,7 +1163,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.letterSpacing = '3px';
                         
                         const taglinePart1 = lines[0] || '';
-                        const taglinePart2 = lines[1] || '';
+                        const taglinePart2 = lines[3] || '';
                         
                         ctx.fillText(taglinePart1, 80, taglineY);
                         if (taglinePart2) {
@@ -1195,6 +1195,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.letterSpacing = '4px';
                     ctx.fillText('JOUR', 80, currY);
                     
+                    const dayName = lines[2] || ''; // Retour à l'index 2
                     ctx.fillStyle = activeColor.color; // Yellow
                     ctx.font = '900 italic 85px "Orbitron", sans-serif';
                     ctx.letterSpacing = '-2px';
@@ -2431,7 +2432,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <input type="file" onChange={handleArtistLogoChange} className="hidden" id="artist-logo-up" accept="image/*" />
                         <button onClick={() => document.getElementById('artist-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
                             {artistLogo ? (
-                                <img src={artistLogo} alt="Artist Logo" className="w-full h-full object-contain p-2" />
+                                <img 
+                                    src={artistLogo} 
+                                    alt="Artist Logo" 
+                                    className="w-full h-full object-contain p-2 transition-all" 
+                                    style={{ filter: isArtistLogoNegative ? 'brightness(0) invert(1)' : 'none' }}
+                                />
                             ) : (
                                 <>
                                     <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
@@ -2509,11 +2515,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px]" 
                     />
                     <input 
-                        value={customText.split('\n')[1] || ''} 
+                        value={customText.split('\n')[3] || ''} 
                         onChange={e => {
                             const lines = customText.split('\n');
-                            while (lines.length < 2) lines.push('');
-                            lines[1] = e.target.value;
+                            while (lines.length < 4) lines.push('');
+                            lines[3] = e.target.value;
                             setCustomText(lines.join('\n'));
                         }} 
                         placeholder="LIGNE 2 (EX: TO BASS CULTURE ICON)" 
@@ -2526,11 +2532,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nom Stage</label>
                     <input 
-                        value={customText.split('\n')[2] || ''} 
+                        value={customText.split('\n')[1] || ''} 
                         onChange={e => {
                             const lines = customText.split('\n');
-                            while (lines.length < 3) lines.push('');
-                            lines[2] = e.target.value;
+                            while (lines.length < 2) lines.push('');
+                            lines[1] = e.target.value;
                             setCustomText(lines.join('\n'));
                         }} 
                         placeholder="BASSPOD" 
@@ -2540,11 +2546,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Jour</label>
                     <input 
-                        value={customText.split('\n')[3] || ''} 
+                        value={customText.split('\n')[2] || ''} 
                         onChange={e => {
                             const lines = customText.split('\n');
-                            while (lines.length < 4) lines.push('');
-                            lines[3] = e.target.value;
+                            while (lines.length < 3) lines.push('');
+                            lines[2] = e.target.value;
                             setCustomText(lines.join('\n'));
                         }} 
                         placeholder="SATURDAY" 
