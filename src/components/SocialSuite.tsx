@@ -66,7 +66,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -130,6 +130,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [showBottomLogo, setShowBottomLogo] = useState(false);
     const [artistLogo, setArtistLogo] = useState<string>(''); // NEW
     const artistLogoRef = useRef<HTMLImageElement | null>(null); // NEW
+    const [festivalLogo, setFestivalLogo] = useState<string>(''); // NEW
+    const festivalLogoRef = useRef<HTMLImageElement | null>(null); // NEW
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
@@ -237,6 +239,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
         'INTERVIEW': { label: 'INTERVIEW', grad: '255, 0, 51', color: '#ff0033' },
+        'SPOTLIGHT': { label: 'SPOTLIGHT', grad: '255, 0, 51', color: '#ff0033' },
     };
 
     useEffect(() => {
@@ -263,6 +266,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         imgObj.onload = () => {
             artistLogoRef.current = imgObj;
             setArtistLogo(url);
+            generateImage();
+        };
+    };
+
+    const handleFestivalLogoChange = (e: any) => {
+        const file = e.target?.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        const imgObj = new Image();
+        imgObj.crossOrigin = "anonymous";
+        imgObj.src = url;
+        imgObj.onload = () => {
+            festivalLogoRef.current = imgObj;
+            setFestivalLogo(url);
             generateImage();
         };
     };
@@ -1075,6 +1092,97 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText('DROPSIDERS.FR', centerX, canvas.height - 100);
                 ctx.restore();
 
+            } else if (theme === 'SPOTLIGHT') {
+                // 1. Black Fade from left
+                const fadeGrad = ctx.createLinearGradient(0, 0, canvas.width * 0.7, 0);
+                fadeGrad.addColorStop(0, '#000000');
+                fadeGrad.addColorStop(0.5, 'rgba(0,0,0,0.8)');
+                fadeGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = fadeGrad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 2. Artist Logo (Top Left)
+                if (artistLogoRef.current) {
+                    const logo = artistLogoRef.current;
+                    const maxW = 500;
+                    const maxH = 220;
+                    let lw = logo.width;
+                    let lh = logo.height;
+                    const ratio = Math.min(maxW / lw, maxH / lh);
+                    lw *= ratio; lh *= ratio;
+                    ctx.drawImage(logo, 80, 200, lw, lh);
+                }
+
+                // 3. Texts (Tagline, Stage & Day)
+                if (customText) {
+                    const lines = customText.split('\n').map(l => l.trim().toUpperCase());
+                    const tagline = lines[0] || '';
+                    const stageName = lines[1] || '';
+                    const dayName = lines[2] || '';
+
+                    ctx.save();
+                    ctx.textAlign = 'left';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 15;
+                    
+                    // Tagline (White, small)
+                    if (tagline) {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = '800 28px "Montserrat", sans-serif';
+                        ctx.letterSpacing = '3px';
+                        ctx.fillText(tagline, 80, 520);
+                    }
+
+                    // Stage Section
+                    let currY = 680;
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.font = '900 32px "Orbitron", sans-serif';
+                    ctx.letterSpacing = '4px';
+                    ctx.fillText('STAGE', 80, currY);
+                    
+                    ctx.fillStyle = activeColor.color; // Yellow
+                    ctx.font = '900 italic 85px "Orbitron", sans-serif';
+                    ctx.letterSpacing = '-2px';
+                    ctx.fillText(stageName, 80, currY + 85);
+
+                    // Day Section
+                    currY += 230;
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.font = '900 32px "Orbitron", sans-serif';
+                    ctx.letterSpacing = '4px';
+                    ctx.fillText('DAY', 80, currY);
+                    
+                    ctx.fillStyle = activeColor.color; // Yellow
+                    ctx.font = '900 italic 85px "Orbitron", sans-serif';
+                    ctx.letterSpacing = '-2px';
+                    ctx.fillText(dayName, 80, currY + 85);
+                    
+                    ctx.restore();
+                }
+
+                // 4. Festival Logo (Bottom Left)
+                if (festivalLogoRef.current) {
+                    const fest = festivalLogoRef.current;
+                    const maxW = 350;
+                    const maxH = 120;
+                    let lw = fest.width;
+                    let lh = fest.height;
+                    const ratio = Math.min(maxW / lw, maxH / lh);
+                    lw *= ratio; lh *= ratio;
+                    ctx.drawImage(fest, 80, canvas.height - 180, lw, lh);
+                }
+
+                // 5. Dropsiders Logo (Top Right)
+                if (logoRef.current) {
+                    const logo = logoRef.current;
+                    const lw = 220;
+                    const lh = (logo.height / logo.width) * lw;
+                    ctx.save();
+                    ctx.filter = 'brightness(0) invert(1)'; // White logo
+                    ctx.drawImage(logo, canvas.width - lw - 60, 80, lw, lh);
+                    ctx.restore();
+                }
+
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -1392,7 +1500,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -1793,6 +1901,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => setTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
             <button onClick={() => setTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
             <button onClick={() => setTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
+            <button onClick={() => setTheme('SPOTLIGHT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
             
             {activeTab === 'REEL' && (
                 <>
@@ -2252,6 +2361,86 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
+    const spotlightEditor = (
+        <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo Artiste</label>
+                    <input type="file" onChange={handleArtistLogoChange} className="hidden" id="artist-logo-up" accept="image/*" />
+                    <button onClick={() => document.getElementById('artist-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
+                        {artistLogo ? (
+                            <img src={artistLogo} alt="Artist Logo" className="w-full h-full object-contain p-2" />
+                        ) : (
+                            <>
+                                <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-cyan" />
+                                <span className="text-[8px] font-black text-gray-600 uppercase">Logo Artiste</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo Festival</label>
+                    <input type="file" onChange={handleFestivalLogoChange} className="hidden" id="fest-logo-up" accept="image/*" />
+                    <button onClick={() => document.getElementById('fest-logo-up')?.click()} className="w-full aspect-square bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden">
+                        {festivalLogo ? (
+                            <img src={festivalLogo} alt="Fest Logo" className="w-full h-full object-contain p-2" />
+                        ) : (
+                            <>
+                                <Plus className="w-5 h-5 text-gray-600 group-hover:text-neon-red" />
+                                <span className="text-[8px] font-black text-gray-600 uppercase">Logo Festival</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Tagline / Phrase</label>
+                <input 
+                    value={customText.split('\n')[0] || ''} 
+                    onChange={e => {
+                        const lines = customText.split('\n');
+                        lines[0] = e.target.value;
+                        setCustomText(lines.join('\n'));
+                    }} 
+                    placeholder="EX: FROM ROOTS TO BASS ICON" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px]" 
+                />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nom Stage</label>
+                    <input 
+                        value={customText.split('\n')[1] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            while (lines.length < 2) lines.push('');
+                            lines[1] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="BASSPOD" 
+                        className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs" 
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Jour</label>
+                    <input 
+                        value={customText.split('\n')[2] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            while (lines.length < 3) lines.push('');
+                            lines[2] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="SATURDAY" 
+                        className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs" 
+                    />
+                </div>
+            </div>
+        </div>
+    );
+
     const exportButtons = (
         <div className="space-y-2">
             <button onClick={addVisualToList} className="w-full py-2.5 bg-white/5 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter à la liste</button>
@@ -2459,6 +2648,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Détails Tracklist</span>{tracklistEditor}</>
                             ) : theme === 'INTERVIEW' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Interview & Logo</span>{interviewEditor}</>
+                            ) : theme === 'SPOTLIGHT' ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Spotlight & Logos</span>{spotlightEditor}</>
                             ) : (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
                             )}
@@ -2765,7 +2956,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : textEditor}
+                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : textEditor}
                                     </div>
                                 )}
 
