@@ -1182,14 +1182,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.drawImage(fest, 80, canvas.height - 180, lw, lh);
                 }
 
-                // 5. Dropsiders Logo (Top Right)
+                // 5. Dropsiders Logo (Top Right) - Aligned with other themes
                 if (logoRef.current) {
                     const logo = logoRef.current;
-                    const lw = 220;
+                    const lw = 320;
                     const lh = (logo.height / logo.width) * lw;
+                    const xOffset = bgVideo ? 140 : 40;
+                    const yOffset = bgVideo ? 70 : 20;
                     ctx.save();
                     ctx.filter = 'brightness(0) invert(1)'; // White logo
-                    ctx.drawImage(logo, canvas.width - lw - 60, 80, lw, lh);
+                    ctx.drawImage(logo, canvas.width - lw - xOffset, yOffset, lw, lh);
                     ctx.restore();
                 }
 
