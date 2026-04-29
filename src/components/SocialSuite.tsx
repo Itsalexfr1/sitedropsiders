@@ -1161,6 +1161,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.font = '800 28px "Montserrat", sans-serif';
                         ctx.letterSpacing = '3px';
                         ctx.fillText(tagline, 80, 520);
+                        
+                        // Decorative Red Bar
+                        ctx.fillStyle = activeColor.color;
+                        ctx.fillRect(80, 570, 70, 8);
                     }
 
                     // Stage Section
