@@ -1186,20 +1186,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = activeColor.color; // Yellow
                     ctx.font = '900 italic 85px "Orbitron", sans-serif';
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(stageName, 85, currY + 85); // Petit décalage de 5px pour l'italique
+                    ctx.fillText(stageName, 100, currY + 85); // Décalage augmenté à 20px (100 - 80)
 
                     // Day Section
-                    currY += 210; // Réduit l'espacement entre Stage et Day (était 230)
+                    currY += 210;
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
                     ctx.font = '900 32px "Orbitron", sans-serif';
                     ctx.letterSpacing = '4px';
                     ctx.fillText('JOUR', 80, currY);
                     
-                    const dayName = lines[2] || ''; // Retour à l'index 2
+                    const dayName = lines[2] || '';
                     ctx.fillStyle = activeColor.color; // Yellow
                     ctx.font = '900 italic 85px "Orbitron", sans-serif';
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(dayName, 85, currY + 85); // Petit décalage de 5px pour l'italique
+                    ctx.fillText(dayName, 100, currY + 85); // Décalage augmenté à 20px (100 - 80)
                     
                     ctx.restore();
                 }
