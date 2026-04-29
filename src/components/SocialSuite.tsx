@@ -1120,8 +1120,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // 2. Artist Logo or Name (Top Left)
                 if (artistLogoRef.current) {
                     const logo = artistLogoRef.current;
-                    const maxW = 500;
-                    const maxH = 220;
+                    const maxW = 420; // Réduit de 500
+                    const maxH = 180; // Réduit de 220
                     let lw = logo.width;
                     let lh = logo.height;
                     const ratio = Math.min(maxW / lw, maxH / lh);
@@ -1130,7 +1130,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (isArtistLogoNegative) {
                         ctx.filter = 'brightness(0) invert(1)'; // Effet négatif (blanc)
                     }
-                    ctx.drawImage(logo, 80, 200, lw, lh);
+                    ctx.drawImage(logo, 80, 150, lw, lh); // Remonté de 200 à 150
                     ctx.restore();
                 } else if (artistNameText) {
                     ctx.save();
@@ -1139,7 +1139,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textAlign = 'left';
                     ctx.shadowColor = 'rgba(0,0,0,0.5)';
                     ctx.shadowBlur = 15;
-                    ctx.fillText(artistNameText.toUpperCase(), 80, 300);
+                    ctx.fillText(artistNameText.toUpperCase(), 80, 280); // Remonté de 300 à 280
                     ctx.restore();
                 }
 
@@ -1156,7 +1156,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowBlur = 15;
                     
                     // Tagline (White, small)
-                    let taglineY = 420;
+                    let taglineY = 440; // Descendu de 420 à 440 pour laisser plus d'air sous le logo
                     if (tagline) {
                         ctx.fillStyle = '#ffffff';
                         ctx.font = '800 28px "Montserrat", sans-serif';
