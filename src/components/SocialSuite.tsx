@@ -1177,7 +1177,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = activeColor.color; // Yellow
                     ctx.font = '900 italic 85px "Orbitron", sans-serif';
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(stageName, 80, currY + 85);
+                    ctx.fillText(stageName, 85, currY + 85); // Petit décalage de 5px pour l'italique
 
                     // Day Section
                     currY += 210; // Réduit l'espacement entre Stage et Day (était 230)
@@ -1189,7 +1189,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = activeColor.color; // Yellow
                     ctx.font = '900 italic 85px "Orbitron", sans-serif';
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(dayName, 80, currY + 85);
+                    ctx.fillText(dayName, 85, currY + 85); // Petit décalage de 5px pour l'italique
                     
                     ctx.restore();
                 }
