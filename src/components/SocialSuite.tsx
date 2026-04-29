@@ -1123,7 +1123,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let lh = logo.height;
                     const ratio = Math.min(maxW / lw, maxH / lh);
                     lw *= ratio; lh *= ratio;
+                    ctx.save();
+                    ctx.filter = 'brightness(0) invert(1)'; // Effet négatif (blanc)
                     ctx.drawImage(logo, 80, 200, lw, lh);
+                    ctx.restore();
                 }
 
                 // 3. Texts (Tagline, Stage & Day)
