@@ -136,6 +136,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [bgOffsetY, setBgOffsetY] = useState<number>(0);
     const [artistNameText, setArtistNameText] = useState('');
     const [festivalNameText, setFestivalNameText] = useState('');
+    const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
@@ -1126,7 +1127,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const ratio = Math.min(maxW / lw, maxH / lh);
                     lw *= ratio; lh *= ratio;
                     ctx.save();
-                    ctx.filter = 'brightness(0) invert(1)'; // Effet négatif (blanc)
+                    if (isArtistLogoNegative) {
+                        ctx.filter = 'brightness(0) invert(1)'; // Effet négatif (blanc)
+                    }
                     ctx.drawImage(logo, 80, 200, lw, lh);
                     ctx.restore();
                 } else if (artistNameText) {
@@ -1537,7 +1540,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -2421,6 +2424,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             placeholder="Ou nom artiste..."
                             className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[9px] text-white uppercase font-bold"
                         />
+                    )}
+                    {artistLogo && (
+                        <div className="flex items-center gap-2 px-1">
+                            <input 
+                                type="checkbox" 
+                                checked={isArtistLogoNegative} 
+                                onChange={e => setIsArtistLogoNegative(e.target.checked)}
+                                className="w-3 h-3 accent-neon-red"
+                                id="logo-neg-toggle"
+                            />
+                            <label htmlFor="logo-neg-toggle" className="text-[8px] font-black text-gray-500 uppercase cursor-pointer">Effet Négatif (Blanc)</label>
+                        </div>
                     )}
                 </div>
                 <div className="space-y-2">
