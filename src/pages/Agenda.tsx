@@ -879,7 +879,7 @@ export function Agenda() {
                                                         initial={{ height: 0, opacity: 0 }}
                                                         animate={{ height: 'auto', opacity: 1 }}
                                                         exit={{ height: 0, opacity: 0 }}
-                                                        className="border-t border-white/5 bg-black/40 p-5 md:p-12"
+                                                        className="border-t border-white/5 bg-black/80 backdrop-blur-xl p-5 md:p-12"
                                                     >
                                                         <div className="flex flex-col md:flex-row gap-8 md:gap-14 items-center">
                                                             <div className="w-full md:w-1/3 group">
@@ -908,16 +908,15 @@ export function Agenda() {
                                                                 </div>
                                                             </div>
                                                             <div className="flex-1 space-y-6 md:space-y-8">
-                                                                <div className="space-y-2">
-                                                                    <div className="flex flex-wrap items-center gap-2">
+                                                                     <div className="flex flex-wrap items-center gap-3">
                                                                         <span 
-                                                                            className={`text-[10px] md:text-sm font-black uppercase tracking-[0.3em] ${getEventStyles(event.genre, "").gradient ? (getEventStyles(event.genre, "").isLight ? 'text-black/80' : '') : getEventStyles(event.genre, "").text}`}
-                                                                            style={getEventStyles(event.genre, "").gradient ? { background: getEventStyles(event.genre, "").gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: getEventStyles(event.genre, "").isLight ? '#000' : 'transparent' } : {}}
+                                                                            className={`text-[12px] md:text-base font-black uppercase tracking-[0.3em] ${getEventStyles(event.genre, "").gradient ? 'drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]' : getEventStyles(event.genre, "").text}`}
+                                                                            style={getEventStyles(event.genre, "").gradient ? { background: getEventStyles(event.genre, "").gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' } : {}}
                                                                         >
                                                                             {event.genre}
                                                                         </span>
                                                                         <span className="text-white/20">•</span>
-                                                                        <span className={`text-[10px] md:text-sm font-black uppercase tracking-[0.3em] ${getEventStyles("", event.type).text}`}>
+                                                                        <span className={`text-[12px] md:text-base font-black uppercase tracking-[0.3em] ${getEventStyles("", event.type).text} drop-shadow-[0_0_10px_rgba(255,0,51,0.3)]`}>
                                                                             {event.type}
                                                                         </span>
                                                                     </div>
