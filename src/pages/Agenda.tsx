@@ -908,7 +908,8 @@ export function Agenda() {
                                                                 </div>
                                                             </div>
                                                             <div className="flex-1 space-y-6 md:space-y-8">
-                                                                     <div className="flex flex-wrap items-center gap-3">
+                                                                <div className="space-y-2">
+                                                                    <div className="flex flex-wrap items-center gap-3">
                                                                         <span 
                                                                             className={`text-[12px] md:text-base font-black uppercase tracking-[0.3em] ${getEventStyles(event.genre, "").gradient ? 'drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]' : getEventStyles(event.genre, "").text}`}
                                                                             style={getEventStyles(event.genre, "").gradient ? { background: getEventStyles(event.genre, "").gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' } : {}}
