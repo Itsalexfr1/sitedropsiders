@@ -41,5 +41,19 @@
       "beatport": "https://www.beatport.com/fr/label/insomniac-music-group/99218?srsltid=AfmBOooYVWISLbVltiEhQw3E4o5F9X5MS1aqQrG9sYi4ItL5vm3VZ8I8",
       "snapchat": "https://www.snapchat.com/add/insomniacevents"
     }
+  },
+  {
+    "name": "AMF",
+    "socials": {
+      "website": "https://amf-festival.com",
+      "instagram": "https://www.instagram.com/amffestival/",
+      "tiktok": "https://www.tiktok.com/@amffestival",
+      "youtube": "https://www.youtube.com/user/amsterdammusicfest",
+      "facebook": "https://www.facebook.com/amffestival",
+      "x": "https://twitter.com/_AMFofficial",
+      "spotify": "",
+      "soundcloud": "",
+      "beatport": ""
+    }
   }
 ]
