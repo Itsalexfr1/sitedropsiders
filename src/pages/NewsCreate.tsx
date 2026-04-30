@@ -2105,13 +2105,13 @@ ${generateSocialsHtml()}
                                                     boxShadow: isSelected ? `0 0 30px ${editorColor}55` : 'none'
                                                 }}
                                             >
-                                                {editor.username.substring(0, 1)}
+                                                {(editor.username || editor.name || 'A').substring(0, 1)}
                                             </div>
                                             <div className="text-center">
                                                 <p className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? 'text-white' : 'text-white/30'}`}>
                                                     {editorDisplay}
                                                 </p>
-                                                <p className="text-[8px] font-bold text-white/20 uppercase tracking-tighter">@{editor.username}</p>
+                                                <p className="text-[8px] font-bold text-white/20 uppercase tracking-tighter">@{editor.username || 'user'}</p>
                                             </div>
                                             {isSelected && (
                                                 <motion.div
