@@ -94,19 +94,19 @@ export function Navbar() {
     const navItems = [
         { name: navLabels.news || t('nav.news'), path: '/news', color: 'neon-red' },
         { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
-        { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
+        { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-orange' },
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
-        { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-red' },
+        { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-pink' },
         { name: 'TOP', path: '/top-dropsiders', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
         { name: navLabels.vols || t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
-        { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-yellow' },
-        ...(shopEnabled && !shopPasswordProtected ? [{ name: 'SHOP', path: '/shop', color: 'neon-red' }] : []),
+        { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-lime' },
+        ...(shopEnabled && !shopPasswordProtected ? [{ name: 'SHOP', path: '/shop', color: 'neon-blue' }] : []),
         ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{
             name: 'LIVE',
             path: '/live',
             icon: Video,
             isLive: true,
-            color: 'neon-red',
+            color: 'neon-fuchsia',
             onClick: () => {
                 sessionStorage.removeItem('exited_live');
             }
@@ -550,6 +550,11 @@ const getThemeColor = (colorClass: string) => {
         case 'neon-cyan': return 'rgba(34, 211, 238, 0.15)';
         case 'neon-blue': return 'rgba(0, 191, 255, 0.15)';
         case 'neon-yellow': return 'rgba(255, 240, 31, 0.15)';
+        case 'neon-orange': return 'rgba(255, 103, 0, 0.15)';
+        case 'neon-pink': return 'rgba(255, 0, 127, 0.15)';
+        case 'neon-lime': return 'rgba(204, 255, 0, 0.15)';
+        case 'neon-emerald': return 'rgba(0, 255, 163, 0.15)';
+        case 'neon-fuchsia': return 'rgba(255, 0, 255, 0.15)';
         default: return 'rgba(255, 255, 255, 0.1)';
     }
 };
@@ -562,6 +567,11 @@ const getThemeBorder = (colorClass: string) => {
         case 'neon-cyan': return 'rgba(34, 211, 238, 0.3)';
         case 'neon-blue': return 'rgba(0, 191, 255, 0.3)';
         case 'neon-yellow': return 'rgba(255, 240, 31, 0.3)';
+        case 'neon-orange': return 'rgba(255, 103, 0, 0.3)';
+        case 'neon-pink': return 'rgba(255, 0, 127, 0.3)';
+        case 'neon-lime': return 'rgba(204, 255, 0, 0.3)';
+        case 'neon-emerald': return 'rgba(0, 255, 163, 0.3)';
+        case 'neon-fuchsia': return 'rgba(255, 0, 255, 0.3)';
         default: return 'rgba(255, 255, 255, 0.2)';
     }
 };
@@ -598,6 +608,11 @@ function NavItem({ item, isActive }: NavItemProps) {
                                     item.color === 'neon-red' ? "text-neon-red drop-shadow-[0_0_8px_rgba(255,0,153,0.5)]" :
                                         item.color === 'neon-blue' ? "text-neon-blue drop-shadow-[0_0_8px_rgba(0,191,255,0.5)]" :
                                             item.color === 'neon-yellow' ? "text-neon-yellow drop-shadow-[0_0_8px_rgba(255,240,31,0.5)]" :
+                                            item.color === 'neon-orange' ? "text-neon-orange drop-shadow-[0_0_8px_rgba(255,103,0,0.5)]" :
+                                            item.color === 'neon-pink' ? "text-neon-pink drop-shadow-[0_0_8px_rgba(255,0,127,0.5)]" :
+                                            item.color === 'neon-lime' ? "text-neon-lime drop-shadow-[0_0_8px_rgba(204,255,0,0.5)]" :
+                                            item.color === 'neon-emerald' ? "text-neon-emerald drop-shadow-[0_0_8px_rgba(0,255,163,0.5)]" :
+                                            item.color === 'neon-fuchsia' ? "text-neon-fuchsia drop-shadow-[0_0_8px_rgba(255,0,255,0.5)]" :
                                                 "text-neon-red drop-shadow-[0_0_8px_rgba(255,18,65,0.5)]")
                         : "text-gray-400 hover:text-white"
                 )}
@@ -669,6 +684,11 @@ function NavItem({ item, isActive }: NavItemProps) {
                             item.color === 'neon-red' ? "bg-neon-red shadow-[0_0_15px_rgba(255,0,153,0.8)]" :
                             item.color === 'neon-blue' ? "bg-neon-blue shadow-[0_0_15px_rgba(0,191,255,0.8)]" :
                             item.color === 'neon-yellow' ? "bg-neon-yellow shadow-[0_0_15px_rgba(255,240,31,0.8)]" :
+                            item.color === 'neon-orange' ? "bg-neon-orange shadow-[0_0_15px_rgba(255,103,0,0.8)]" :
+                            item.color === 'neon-pink' ? "bg-neon-pink shadow-[0_0_15px_rgba(255,0,127,0.8)]" :
+                            item.color === 'neon-lime' ? "bg-neon-lime shadow-[0_0_15px_rgba(204,255,0,0.8)]" :
+                            item.color === 'neon-emerald' ? "bg-neon-emerald shadow-[0_0_15px_rgba(0,255,163,0.8)]" :
+                            item.color === 'neon-fuchsia' ? "bg-neon-fuchsia shadow-[0_0_15px_rgba(255,0,255,0.8)]" :
                             "bg-neon-red shadow-[0_0_15px_rgba(255,18,65,0.8)]"
                         )}
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}

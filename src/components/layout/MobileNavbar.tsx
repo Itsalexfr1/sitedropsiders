@@ -48,9 +48,9 @@ export function MobileNavbar() {
             label: isLiveActive ? 'LIVE' : (navLabels.communaute || 'Communaute'),
             path: isLiveActive ? '/live' : '/communaute',
             isCenter: true,
-            color: isLiveActive ? 'neon-red' : 'neon-red'
+            color: isLiveActive ? 'neon-fuchsia' : 'neon-pink'
         },
-        { icon: Calendar, label: navLabels.agenda || 'Agenda', path: '/agenda' },
+        { icon: Calendar, label: navLabels.agenda || 'Agenda', path: '/agenda', color: 'neon-cyan' },
         {
             icon: MoreHorizontal,
             label: 'Plus',
@@ -63,16 +63,16 @@ export function MobileNavbar() {
 
     const menuItems = [
         // Live moved to center if active
-        { icon: Newspaper, label: navLabels.news || 'News', path: '/news', color: 'text-neon-cyan' },
+        { icon: Newspaper, label: navLabels.news || 'News', path: '/news', color: 'text-neon-red' },
         { icon: Plane, label: navLabels.voyage || t('nav.voyage'), path: '/voyage', color: 'text-neon-green' },
         { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
-        { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
-        { icon: Users, label: navLabels.team || t('nav.team'), path: '/team', color: 'text-neon-yellow' },
+        { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-neon-orange' },
+        { icon: Users, label: navLabels.team || t('nav.team'), path: '/team', color: 'text-neon-lime' },
         { 
             icon: () => <span className="text-[10px] font-black leading-none">SHOP</span>, 
             label: navLabels.shop || t('nav.shop'), 
             path: '/shop', 
-            color: 'text-neon-red' 
+            color: 'text-neon-blue' 
         },
         { 
             icon: User, 
@@ -96,8 +96,8 @@ export function MobileNavbar() {
 
                     if (item.isCenter) {
                         const styleClasses = isLiveActive
-                            ? "bg-neon-red/40 border-neon-red/50 shadow-[0_0_30px_rgba(255,0,51,0.4)]"
-                            : "bg-neon-red/40 border-neon-red/50 shadow-[0_0_30px_rgba(255,105,180,0.4)]";
+                            ? "bg-neon-fuchsia/40 border-neon-fuchsia/50 shadow-[0_0_30px_rgba(255,0,255,0.4)]"
+                            : "bg-neon-pink/40 border-neon-pink/50 shadow-[0_0_30px_rgba(255,0,127,0.4)]";
 
                         return (
                             <Link
@@ -136,7 +136,12 @@ export function MobileNavbar() {
                                     className="absolute inset-0 bg-white/5 border border-white/10 rounded-2xl -z-10"
                                 />
                             )}
-                            <Icon className={`w-6 h-6 transition-all duration-300 ${isActive ? 'scale-110 text-neon-red' : 'scale-90 group-active:scale-75 opacity-60'}`} />
+                            <Icon className={twMerge(
+                                "w-6 h-6 transition-all duration-300",
+                                isActive 
+                                    ? `scale-110 ${item.color ? (item.color.startsWith('text-') ? item.color : `text-${item.color}`) : 'text-neon-red'}` 
+                                    : "scale-90 group-active:scale-75 opacity-60"
+                            )} />
                         </Link>
                     );
                 })}

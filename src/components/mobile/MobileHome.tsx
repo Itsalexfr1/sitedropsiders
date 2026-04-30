@@ -356,10 +356,10 @@ export function MobileHome() {
             <section className="pt-8 border-t border-white/5">
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
-                        <MessageSquare className="w-4 h-4 text-neon-blue shadow-[0_0_10px_rgba(0,100,255,0.5)]" />
+                        <MessageSquare className="w-4 h-4 text-neon-orange shadow-[0_0_10px_rgba(255,103,0,0.5)]" />
                         {t('home.latest_interviews')}
                     </h2>
-                    <Link to="/interviews" className="text-[10px] font-black uppercase tracking-widest text-neon-blue px-2 py-1 rounded-lg hover:bg-neon-blue/10 transition-colors">{t('home.view_all')}</Link>
+                    <Link to="/interviews" className="text-[10px] font-black uppercase tracking-widest text-neon-orange px-2 py-1 rounded-lg hover:bg-neon-orange/10 transition-colors">{t('home.view_all')}</Link>
                 </div>
                 <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
                     {interviewsHighlight.map((interview) => (
@@ -384,7 +384,7 @@ export function MobileHome() {
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
-                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-blue transition-colors"
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-orange transition-colors"
                                     dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[interview.id] || interview.title) : interview.title) }}
                                 />
                                 <div className="flex items-center gap-3 text-white/60">
