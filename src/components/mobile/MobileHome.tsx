@@ -71,8 +71,7 @@ export function MobileHome() {
         const today = new Date().toISOString().split('T')[0];
         
         const combined = [
-            ...recapsData.map(r => ({ ...r, contentType: 'recap' })),
-            ...galerieData.map(g => ({ ...g, contentType: 'gallery', image: g.cover }))
+            ...recapsData.map(r => ({ ...r, contentType: 'recap' }))
         ];
 
         return combined

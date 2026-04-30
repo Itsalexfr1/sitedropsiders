@@ -15,7 +15,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
     const [galerieData, setGalerieData] = useState<any[]>([]);
 
     const latestRecaps = useMemo(() => {
-        // Combine recaps and gallery items
+        // Filter to only include recaps, not gallery items
         const combined = [
             ...(recapsData as any[]).map(item => {
                 let title = item.title || "";
@@ -23,18 +23,6 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                     title = `Récap : ${title}`;
                 }
                 return { ...item, contentType: 'recap', title: title.toUpperCase() };
-            }),
-            ...(galerieData as any[]).map(item => {
-                let title = item.title || "";
-                if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
-                    title = `Récap : ${title}`;
-                }
-                return { 
-                    ...item, 
-                    contentType: 'gallery',
-                    image: item.cover, // Gallery uses 'cover', Recap uses 'image'
-                    title: title.toUpperCase()
-                };
             })
         ];
 
