@@ -94,11 +94,11 @@ export function Navbar() {
     const navItems = [
         { name: navLabels.news || t('nav.news'), path: '/news', color: 'neon-red' },
         { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
-        { name: navLabels.vols || t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
+        { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-red' },
         { name: 'TOP', path: '/top-dropsiders', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
-        { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
+        { name: navLabels.vols || t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-yellow' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: 'SHOP', path: '/shop', color: 'neon-red' }] : []),
         ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{

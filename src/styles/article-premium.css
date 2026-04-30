@@ -47,6 +47,7 @@
     color: white;
     text-align: center;
     display: inline-block;
+    text-shadow: 0 0 20px var(--theme-color, rgba(255, 0, 51, 0.4));
 }
 
 /* Red Underline Effect REMOVED */
@@ -328,6 +329,7 @@
     text-transform: uppercase;
     color: var(--theme-color, #ff0033);
     text-align: center;
+    text-shadow: 0 0 15px var(--theme-color, rgba(255, 0, 51, 0.4));
 }
 
 .article-premium-wrapper .premium-section-title,
@@ -340,6 +342,7 @@
     margin-bottom: 2rem;
     width: 100%;
     text-align: center;
+    text-shadow: 0 0 15px var(--theme-color, rgba(255, 0, 51, 0.4));
 }
 
 /* --- LINKS --- */
