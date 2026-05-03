@@ -580,31 +580,41 @@ export function AdminEditors() {
                 </div>
             </div>
 
-            {/* Modal Assignation */}
+            {/* Full Screen Permissions Interface */}
             <AnimatePresence>
                 {showAddModal && (
-                    <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                    <div className="fixed inset-0 z-[150] bg-black/98 backdrop-blur-2xl">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-3xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]"
+                            initial={{ opacity: 0, x: '100%' }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: '100%' }}
+                            transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+                            className="bg-dark-bg w-full h-full relative overflow-hidden flex flex-col"
                         >
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
-
-                            <div className="flex justify-between items-center mb-10">
-                                <div>
-                                    <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
-                                        {isEditing ? 'Modifier les' : 'Assigner de nouvelles'} <span className="text-neon-red">Permissions</span>
-                                    </h2>
-                                    <p className="text-gray-500 font-bold uppercase text-[9px] tracking-[0.3em] mt-1">Liez un compte communautaire à un rôle staff</p>
+                            {/* Header (Fixed) */}
+                            <div className="p-6 md:p-10 border-b border-white/10 flex justify-between items-center bg-black/20 backdrop-blur-md">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-14 h-14 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/20">
+                                        <Users className="w-7 h-7 text-neon-red" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tighter">
+                                            {isEditing ? 'Modifier les' : 'Assigner de nouvelles'} <span className="text-neon-red">Permissions</span>
+                                        </h2>
+                                        <p className="text-gray-500 font-bold uppercase text-[10px] tracking-[0.3em] mt-1">Gestion des accès et rôles éditeurs</p>
+                                    </div>
                                 </div>
-                                <button onClick={() => setShowAddModal(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-500 transition-all">
+                                <button 
+                                    onClick={() => setShowAddModal(false)} 
+                                    className="group flex items-center gap-3 px-6 py-4 bg-white/5 hover:bg-neon-red/10 border border-white/10 hover:border-neon-red/30 rounded-2xl text-gray-500 hover:text-neon-red transition-all"
+                                >
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Fermer</span>
                                     <X className="w-6 h-6" />
                                 </button>
                             </div>
 
-                            <form onSubmit={handleSavePermissions} className="space-y-8 overflow-y-auto pr-4 custom-scrollbar">
+                            <form onSubmit={handleSavePermissions} className="flex-1 overflow-y-auto custom-scrollbar">
+                                <div className="max-w-5xl mx-auto p-6 md:p-12 space-y-12">
                                 <div className="space-y-6">
                                     <div className="mb-8">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 block">Méthode de création</label>
@@ -780,16 +790,21 @@ export function AdminEditors() {
                                             ))}
                                         </div>
                                     </div>
+                                    </div>
+                                    <div className="pb-32" />
                                 </div>
 
-                                <button
-                                    disabled={isSaving || !newEditor.email}
-                                    type="submit"
-                                    className="w-full py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-neon-red/80 disabled:opacity-50 transition-all shadow-2xl shadow-neon-red/30 active:scale-95 text-xs"
-                                >
-                                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                                    {isEditing ? 'Mettre à jour les accès' : 'Confirmer l\'accès Staff'}
-                                </button>
+                                {/* Sticky Footer for Save Button */}
+                                <div className="fixed bottom-0 left-0 right-0 p-6 md:p-10 bg-black/40 backdrop-blur-2xl border-t border-white/10 flex justify-center z-20">
+                                    <button
+                                        disabled={isSaving || !newEditor.email}
+                                        type="submit"
+                                        className="max-w-xl w-full py-6 bg-neon-red text-white rounded-[2rem] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-4 hover:bg-neon-red/80 disabled:opacity-50 transition-all shadow-[0_0_30px_rgba(255,18,65,0.3)] active:scale-95 text-sm"
+                                    >
+                                        {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                        {isEditing ? 'Enregistrer les modifications' : 'Confirmer l\'accès Staff'}
+                                    </button>
+                                </div>
                             </form>
                         </motion.div>
                     </div>
