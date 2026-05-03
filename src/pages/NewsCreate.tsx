@@ -5,7 +5,7 @@ import {
     Underline as UnderlineIcon, Check, Wand2, MapPin, Calendar, Globe, Youtube, 
     Columns, List, Trash2, ArrowLeft, User, CheckCircle2, Send, Star, FileText,
     Music, AlertCircle, Edit2, CaseUpper, Upload, Clock, Facebook, Instagram,
-    ChevronUp, ChevronDown, Link2, Palette, X, Eye, Quote,
+    ChevronUp, ChevronDown, Link2, Palette, X, Eye, Quote, Save,
 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
@@ -752,17 +752,17 @@ export function NewsCreate() {
             initialDataLoaded.current = true;
         };
 
-        if (editingItem && String(editingItem.id) === String(currentId)) {
+        if (editingItem && String(editingItem.id) === String(id)) {
             parseAndInitialize(editingItem, editingItem.content || '');
             if (!editingItem.content) {
-                fetch(`/api/news/content?id=${currentId}`, { headers: getAuthHeaders() })
+                fetch(`/api/news/content?id=${id}`, { headers: getAuthHeaders() })
                     .then(res => res.json())
                     .then(data => parseAndInitialize(data.article || editingItem, data.content || ''))
                     .catch(() => setIsLoading(false));
             }
         } else {
             setIsLoading(true);
-            fetch(`/api/news/content?id=${currentId}`, { headers: getAuthHeaders() })
+            fetch(`/api/news/content?id=${id}`, { headers: getAuthHeaders() })
                 .then(res => {
                     if (!res.ok) throw new Error('Fetch failed');
                     return res.json();
@@ -773,7 +773,7 @@ export function NewsCreate() {
                     setIsLoading(false);
                 });
         }
-    }, [currentId, editingItem]);
+    }, [id, editingItem]);
 
     const [linkModal, setLinkModal] = useState<{
         show: boolean;
