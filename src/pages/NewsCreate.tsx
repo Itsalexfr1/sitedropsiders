@@ -417,7 +417,8 @@ export function NewsCreate() {
     // Widget System State
     const [widgets, setWidgets] = useState<{ id: string, content: string }[]>(() => {
         const isInterviewVideo = type === 'Interview' && (searchParams.get('subtype') === 'video');
-        if (isInterviewVideo) return [];
+        const isMusique = type === 'Musique';
+        if (isInterviewVideo || isMusique) return [];
         return [
             { id: 'initial-1', content: '<h2 class="premium-section-title">TITRE DE L\'ARTICLE</h2>' }
         ];
@@ -446,7 +447,10 @@ export function NewsCreate() {
         (searchParams.get('tab') as 'News' | 'Musique' | 'Focus') ||
         (type === 'Musique' ? 'Musique' : 'News')
     );
-    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: true }]);
+    const [musicItems, setMusicItems] = useState<{ id: string, title: string, media: string, imageUrl: string, playerType: 'spotify' | 'youtube' | 'beatport', description: string, canVote: boolean }[]>(() => {
+        if (type === 'Musique') return [];
+        return [{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: true }];
+    });
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,
         type: 'image' | 'gallery' | 'video' | 'spotify' | 'beatport',
