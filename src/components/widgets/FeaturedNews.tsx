@@ -8,6 +8,7 @@ import { resolveImageUrl } from '../../utils/image';
 import { useState, useEffect, useMemo } from 'react';
 import { fetchWithFallback } from '../../utils/fetcher';
 import { getCategoryColor } from '../../utils/theme';
+import { standardizeContent } from '../../utils/standardizer';
 
 export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;

@@ -9,6 +9,7 @@ import { translateText } from '../../utils/translate';
 import { resolveImageUrl } from '../../utils/image';
 import { fetchWithFallback } from '../../utils/fetcher';
 import { getCategoryColor } from '../../utils/theme';
+import { standardizeContent } from '../../utils/standardizer';
 
 export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
