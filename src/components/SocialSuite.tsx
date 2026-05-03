@@ -243,7 +243,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
-        'INTERVIEW': { label: 'INTERVIEW', grad: '255, 0, 51', color: '#ff0033' },
+        'INTERVIEW': { label: 'INTERVIEW', grad: '255, 103, 0', color: '#ff6700' },
         'SPOTLIGHT': { label: 'SPOTLIGHT', grad: '255, 0, 51', color: '#ff0033' },
     };
 

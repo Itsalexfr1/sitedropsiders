@@ -399,7 +399,7 @@ body {
 
   .premium-text-bold {
     @apply font-bold uppercase;
-    color: var(--color-neon-red);
+    color: var(--theme-color, var(--color-neon-red));
   }
 
   [style*="color"] .premium-text-bold,

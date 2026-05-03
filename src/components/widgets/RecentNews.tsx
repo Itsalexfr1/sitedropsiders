@@ -170,7 +170,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                                 whileHover={{ scale: 1.02 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
-                                className={`h-full relative rounded-2xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-xl glow-card-${accentColor}`}
+                                className={`h-full relative rounded-2xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-xl glow-card-${getCategoryColor(item.category).replace('neon-', '')}`}
                             >
                                 <img
                                     src={resolveImageUrl(item.image || item.cover)}
@@ -188,9 +188,14 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                                         <span>•</span>
                                         <span>{new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' })}</span>
                                     </div>
-                                    <h4 className="text-white font-display font-bold text-xs md:text-sm leading-tight uppercase italic tracking-tight">
-                                        {translatedTitles[item.id] || item.title}
-                                    </h4>
+                                    <h4 
+                                        className="font-display font-bold text-xs md:text-sm leading-tight uppercase italic tracking-tight" 
+                                        style={{ 
+                                            color: `var(--color-${getCategoryColor(item.category)})`,
+                                            '--theme-color': `var(--color-${getCategoryColor(item.category)})`
+                                        } as any}
+                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                    />
                                 </div>
                             </motion.div>
                         </Link>

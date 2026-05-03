@@ -162,12 +162,19 @@ export function MobileHome() {
                                 }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
-                            <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
-                                <span className={`text-xs font-black uppercase tracking-[0.2em] text-${getCategoryColor(news.category)}`}>{news.category}</span>
+                            <div 
+                                className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border rounded-xl shadow-lg z-10"
+                                style={{ borderColor: `var(--color-${getCategoryColor(news.category)})` }}
+                            >
+                                <span className={`text-xs font-black uppercase tracking-[0.2em]`} style={{ color: `var(--color-${getCategoryColor(news.category)})` }}>{news.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
-                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white italic leading-[1.1] uppercase line-clamp-4 drop-shadow-2xl group-active:text-neon-red transition-colors"
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black italic leading-[1.1] uppercase line-clamp-4 drop-shadow-2xl transition-colors"
+                                    style={{ 
+                                        color: `var(--color-${getCategoryColor(news.category)})`,
+                                        '--theme-color': `var(--color-${getCategoryColor(news.category)})`
+                                    } as any}
                                     dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[news.id] || news.title) : news.title) }}
                                 />
                             </div>
@@ -204,12 +211,16 @@ export function MobileHome() {
                                 }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
-                            <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
-                                <span className={`text-xs font-black uppercase tracking-[0.2em] text-${getCategoryColor(news.category)}`}>{news.category}</span>
+                            <div 
+                                className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border rounded-xl shadow-lg z-10"
+                                style={{ borderColor: `var(--color-${getCategoryColor(news.category)})` }}
+                            >
+                                <span className={`text-xs font-black uppercase tracking-[0.2em]`} style={{ color: `var(--color-${getCategoryColor(news.category)})` }}>{news.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
-                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-red transition-colors"
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl transition-colors"
+                                    style={{ '--hover-color': `var(--color-${getCategoryColor(news.category)})` } as any}
                                     dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[news.id] || news.title) : news.title) }}
                                 />
                                 <div className="flex items-center gap-3 text-white/60">
@@ -378,12 +389,16 @@ export function MobileHome() {
                                 }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
-                            <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
-                                <span className={`text-xs font-black uppercase tracking-[0.2em] text-${getCategoryColor(interview.category)}`}>{interview.category}</span>
+                            <div 
+                                className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border rounded-xl shadow-lg z-10"
+                                style={{ borderColor: `var(--color-${getCategoryColor(interview.category)})` }}
+                            >
+                                <span className={`text-xs font-black uppercase tracking-[0.2em]`} style={{ color: `var(--color-${getCategoryColor(interview.category)})` }}>{interview.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
-                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-orange transition-colors"
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl transition-colors"
+                                    style={{ '--hover-color': `var(--color-${getCategoryColor(interview.category)})` } as any}
                                     dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[interview.id] || interview.title) : interview.title) }}
                                 />
                                 <div className="flex items-center gap-3 text-white/60">

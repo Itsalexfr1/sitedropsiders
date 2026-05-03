@@ -809,7 +809,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     </div>
                                 )}
                                 <h1
-                                    className="text-3xl sm:text-4xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-[0.9] drop-shadow-2xl premium-h1 text-center"
+                                    className="text-3xl sm:text-4xl md:text-7xl font-display font-black uppercase italic tracking-tighter leading-[0.9] drop-shadow-2xl premium-h1 text-center"
+                                    style={{ color: 'var(--theme-color)' }}
                                     dangerouslySetInnerHTML={{ __html: standardizeText(displayTitle) }}
                                 />
                             </>

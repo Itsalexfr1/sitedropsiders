@@ -136,8 +136,11 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                     whileHover={{ scale: 1.05 }}
                     onMouseEnter={playHoverSound}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className={`h-full relative rounded-3xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-2xl glow-card-${accentColor}`}
-                    onMouseOver={(e) => e.currentTarget.style.borderColor = `${color}80`}
+                    className={`h-full relative rounded-3xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-2xl glow-card-${heroNews.isFocus ? accentColor : getCategoryColor(heroNews.category).replace('neon-', '')}`}
+                    onMouseOver={(e) => {
+                        const itemColor = heroNews.isFocus ? color : `var(--color-${getCategoryColor(heroNews.category)})`;
+                        e.currentTarget.style.borderColor = `${itemColor}80`;
+                    }}
                     onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                 >
                     <div
@@ -168,9 +171,14 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                             <span>•</span>
                             <span>{new Date(heroNews.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
-                        <h2 className="text-2xl md:text-4xl font-display font-bold text-white leading-tight transition-colors group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-                            {translatedTitle || heroNews.title}
-                        </h2>
+                        <h2 
+                            className="text-2xl md:text-4xl font-display font-bold leading-tight transition-colors group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                            style={{ 
+                                color: heroNews.isFocus ? 'white' : `var(--color-${getCategoryColor(heroNews.category)})`,
+                                '--theme-color': heroNews.isFocus ? 'white' : `var(--color-${getCategoryColor(heroNews.category)})`
+                            } as any}
+                            dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitle || heroNews.title) }}
+                        />
                     </div>
 
                     <div className="absolute top-6 left-6">

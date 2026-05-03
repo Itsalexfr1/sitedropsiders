@@ -317,7 +317,8 @@ export function News() {
                                     {heroArticle.isFocus ? '⭐ FOCUS' : heroArticle.category}
                                 </span>
                                 <h2
-                                    className="text-sm font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-3 group-active:text-neon-red transition-colors duration-200"
+                                    className="text-sm font-display font-black italic uppercase leading-tight tracking-tight line-clamp-3 group-active:text-neon-red transition-colors duration-200"
+                                    style={{ color: heroArticle.isFocus ? 'white' : `var(--color-${getCategoryColor(heroArticle.category)})` }}
                                     dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[heroArticle.id] || heroArticle.title) }}
                                 />
                                 <span className="text-white/50 text-[10px] font-bold mt-1 block">{heroArticle.date?.split('T')[0]}</span>
@@ -624,7 +625,8 @@ export function News() {
                                                             </div>
                                                         </div>
                                                         <h2
-                                                            className="text-xl font-display font-black text-white mb-4 group-hover:text-neon-red transition-colors line-clamp-2 uppercase italic leading-tight tracking-tight h-12"
+                                                            className="text-xl font-display font-black mb-4 group-hover:text-neon-red transition-colors line-clamp-2 uppercase italic leading-tight tracking-tight h-12"
+                                                            style={{ color: item.isFocus ? 'white' : `var(--color-${getCategoryColor(item.category)})` }}
                                                             dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
                                                         />
                                                         <p

@@ -309,20 +309,33 @@ export function NewsCreate() {
     const [artistNameLabel, setArtistNameLabel] = useState('');
     // Push notification options removed
     const [showSocialSuite, setShowSocialSuite] = useState(false);
-    const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
-    const [socialSuiteData, setSocialSuiteData] = useState<{
+    const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);    const [socialSuiteData, setSocialSuiteData] = useState<{
         title: string,
         imageUrl: string,
         type: string,
         category: string,
-        articleId: string
+        articleId: string,
+        isFocus?: boolean
     } | null>(null);
+
     const [shareModalConfig, setShareModalConfig] = useState<{
         show: boolean;
         title: string;
         url: string;
         socialSuiteData: any;
     } | null>(null);
+
+    // Mapping function for Social Studio themes
+    const getInitialSocialTheme = (category: string, isFocus?: boolean): any => {
+        if (isFocus) return 'FOCUS';
+        const cat = category?.toLowerCase() || '';
+        if (cat.includes('musique')) return 'MUSIQUE';
+        if (cat.includes('interview')) return 'INTERVIEW';
+        if (cat.includes('focus')) return 'FOCUS';
+        if (cat.includes('recap')) return 'RECAP';
+        return 'NEWS';
+    };
+
     const [activeWidgetId, setActiveWidgetId] = useState<string | null>(null);
     const [isMobileEditorActive, setIsMobileEditorActive] = useState(false);
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -1761,7 +1774,8 @@ ${generateSocialsHtml()}
                         imageUrl: finalImageUrl,
                         type: type,
                         category: finalCategory,
-                        articleId: newArticleId
+                        articleId: newArticleId,
+                        isFocus: isFocus
                     }
                 });
 
@@ -2074,6 +2088,7 @@ ${generateSocialsHtml()}
                                     title={socialSuiteData.title}
                                     imageUrl={socialSuiteData.imageUrl}
                                     onClose={() => setShowSocialSuite(false)}
+                                    initialTheme={getInitialSocialTheme(socialSuiteData.category, socialSuiteData.isFocus)}
                                 />
                             )}
                         </AnimatePresence>
@@ -4940,71 +4955,84 @@ ${generateSocialsHtml()}
             {/* Share Success Modal */}
             <AnimatePresence>
                 {shareModalConfig?.show && (
-                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative text-center"
+                            className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10 max-w-md w-full shadow-[0_0_50px_rgba(0,0,0,0.5)] relative text-center overflow-hidden"
                         >
-                            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center border border-green-500/40 mx-auto mb-6">
-                                <Check className="w-8 h-8 text-green-500" />
-                            </div>
+                            {/* Decorative Glow */}
+                            <div className="absolute -top-24 -left-24 w-48 h-48 bg-neon-cyan/20 blur-[80px]" />
+                            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-neon-red/20 blur-[80px]" />
 
-                            <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
-                                Article Publié !
-                            </h3>
-                            <p className="text-gray-400 text-xs uppercase tracking-widest font-bold mb-8">
-                                Partagez-le directement sur vos réseaux
-                            </p>
+                            <div className="relative z-10">
+                                <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center border border-green-500/20 mx-auto mb-8 shadow-[0_0_20px_rgba(34,197,94,0.1)]">
+                                    <Check className="w-10 h-10 text-green-500" />
+                                </div>
 
-                            <div className="space-y-3 mb-8">
-                                <a 
-                                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareModalConfig.url)}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="flex items-center justify-center gap-3 w-full py-4 bg-[#1877F2]/10 border border-[#1877F2]/30 text-[#1877F2] rounded-xl font-black uppercase tracking-widest hover:bg-[#1877F2] hover:text-white transition-all text-[11px]"
+                                <h3 className="text-3xl font-display font-black text-white uppercase italic mb-3 tracking-tight">
+                                    Article Publié !
+                                </h3>
+                                <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-black mb-10">
+                                    Diffusion immédiate activée
+                                </p>
+
+                                <div className="grid grid-cols-2 gap-3 mb-8">
+                                    <a 
+                                        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareModalConfig.url)}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="flex flex-col items-center justify-center gap-3 py-6 bg-white/[0.03] border border-white/10 text-white rounded-3xl hover:bg-[#1877F2]/10 hover:border-[#1877F2]/40 transition-all group"
+                                    >
+                                        <Facebook className="w-6 h-6 text-gray-400 group-hover:text-[#1877F2] transition-colors" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">Facebook</span>
+                                    </a>
+                                    <a 
+                                        href={`https://x.com/intent/tweet?url=${encodeURIComponent(shareModalConfig.url)}&text=${encodeURIComponent(shareModalConfig.title)}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="flex flex-col items-center justify-center gap-3 py-6 bg-white/[0.03] border border-white/10 text-white rounded-3xl hover:bg-white/10 hover:border-white/40 transition-all group"
+                                    >
+                                        <XIcon className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">Twitter / X</span>
+                                    </a>
+                                    <a 
+                                        href={`https://snapchat.com/scan?attachmentUrl=${encodeURIComponent(shareModalConfig.url)}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="flex flex-col items-center justify-center gap-3 py-6 bg-white/[0.03] border border-white/10 text-white rounded-3xl hover:bg-[#FFFC00]/10 hover:border-[#FFFC00]/40 transition-all group"
+                                    >
+                                        <SnapchatIcon className="w-6 h-6 text-gray-400 group-hover:text-[#FFFC00] transition-colors" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">Snapchat</span>
+                                    </a>
+                                    <button 
+                                        onClick={handleExtensionPush}
+                                        className="flex flex-col items-center justify-center gap-3 py-6 bg-white/[0.03] border border-white/10 text-white rounded-3xl hover:bg-neon-red/10 hover:border-neon-red/40 transition-all group"
+                                    >
+                                        <Send className="w-6 h-6 text-gray-400 group-hover:text-neon-red transition-colors" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">Extension</span>
+                                    </button>
+                                </div>
+
+                                <button
+                                    onClick={() => {
+                                        setSocialSuiteData(shareModalConfig.socialSuiteData);
+                                        setShowSocialSuite(true);
+                                        setShareModalConfig(null);
+                                    }}
+                                    className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-neon-cyan hover:shadow-[0_0_30px_rgba(0,240,255,0.4)] transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                                 >
-                                    <Facebook className="w-5 h-5" />
-                                    Facebook
-                                </a>
-                                <a 
-                                    href={`https://x.com/intent/tweet?url=${encodeURIComponent(shareModalConfig.url)}&text=${encodeURIComponent(shareModalConfig.title)}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="flex items-center justify-center gap-3 w-full py-4 bg-white/5 border border-white/10 text-white rounded-xl font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all text-[11px]"
+                                    Ouvrir Social Studio
+                                </button>
+                                
+                                <button
+                                    onClick={() => setShareModalConfig(null)}
+                                    className="mt-6 text-[10px] font-black text-gray-500 hover:text-white uppercase tracking-widest transition-colors"
                                 >
-                                    <XIcon className="w-4 h-4 ml-1" />
-                                    X
-                                </a>
-                                <a 
-                                    href={`https://snapchat.com/scan?attachmentUrl=${encodeURIComponent(shareModalConfig.url)}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="flex items-center justify-center gap-3 w-full py-4 bg-[#FFFC00]/10 border border-[#FFFC00]/30 text-[#FFFC00] rounded-xl font-black uppercase tracking-widest hover:bg-[#FFFC00] hover:text-black transition-all text-[11px]"
-                                >
-                                    <SnapchatIcon className="w-5 h-5" />
-                                    Snapchat
-                                </a>
-                                <button 
-                                    onClick={handleExtensionPush}
-                                    className="flex items-center justify-center gap-3 w-full py-4 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl font-black uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all text-[11px]"
-                                >
-                                    <Send className="w-5 h-5" />
-                                    Notifier via Extension
+                                    Plus tard
                                 </button>
                             </div>
-
-                            <button
-                                onClick={() => {
-                                    setSocialSuiteData(shareModalConfig.socialSuiteData);
-                                    setShowSocialSuite(true);
-                                    setShareModalConfig(null);
-                                }}
-                                className="w-full py-4 bg-neon-cyan text-black rounded-xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(0,255,243,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all text-[11px]"
-                            >
-                                Continuer vers le Social Studio
-                            </button>
                         </motion.div>
                     </div>
                 )}
