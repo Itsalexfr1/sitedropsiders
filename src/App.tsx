@@ -121,13 +121,13 @@ function Root() {
       <ScrollToTop />
       <GoogleAdSense />
       <Layout>
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.div
-            key={location.pathname}
+            key={location.pathname + location.search}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="w-full"
           >
             <Suspense fallback={<LoadingPage />}>

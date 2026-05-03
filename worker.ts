@@ -1974,7 +1974,14 @@ ${urls.map(u => `  <url>
         if (path === '/api/news' && request.method === 'GET') {
             const FILE_PATH = 'src/data/news.json';
             const file = await fetchGitHubFile(FILE_PATH, gitConfig);
-            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
+            let news = file ? file.content : [];
+            
+            // Si non authentifié, on masque les brouillons
+            if (!authenticated) {
+                news = news.filter((item: any) => !item.isDraft);
+            }
+            
+            return new Response(JSON.stringify(news), { status: 200, headers });
         }
 
         // --- EXTENSION API ---
@@ -3513,7 +3520,7 @@ ${urls.map(u => `  <url>
 
             try {
                 const body = await request.json();
-                const { title, date, summary, content, image, category, isFeatured, isFocus, author, youtubeId: bodyYoutubeId, showVideo, year, sendPush } = body;
+                const { title, date, summary, content, image, category, isFeatured, isFocus, isDraft, author, youtubeId: bodyYoutubeId, showVideo, year, sendPush } = body;
                 if (!title || !content) return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
 
                 // 1. Update news.json (Metadata only)
@@ -3543,6 +3550,7 @@ ${urls.map(u => `  <url>
                     category: category || 'News',
                     isFeatured: isFeatured || false,
                     isFocus: isFocus || false,
+                    isDraft: isDraft || false,
                     year: year || undefined,
                     link: `https://dropsiders.fr/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
                     author: author || requestUsername || 'Alex'
@@ -3653,7 +3661,7 @@ ${urls.map(u => `  <url>
             const FILE_PATH = 'src/data/news.json';
             try {
                 const body = await request.json();
-                const { id, title, summary, content, image, category, date, isFeatured, isFocus, author, youtubeId: bodyYoutubeId, showVideo: bodyShowVideo, year, sendPush } = body;
+                const { id, title, summary, content, image, category, date, isFeatured, isFocus, isDraft, author, youtubeId: bodyYoutubeId, showVideo: bodyShowVideo, year, sendPush } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
@@ -3685,6 +3693,7 @@ ${urls.map(u => `  <url>
                     date: date || existing.date,
                     isFeatured: isFeatured !== undefined ? isFeatured : existing.isFeatured,
                     isFocus: isFocus !== undefined ? isFocus : existing.isFocus,
+                    isDraft: isDraft !== undefined ? isDraft : existing.isDraft,
                     year: year !== undefined ? (year || undefined) : existing.year,
                     author: author || existing.author || requestUsername || 'Alex'
                 };

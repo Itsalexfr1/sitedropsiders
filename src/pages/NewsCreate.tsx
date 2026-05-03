@@ -248,6 +248,7 @@ export function NewsCreate() {
     const editingItem = location.state?.item;
 
     const [title, setTitle] = useState(editingItem?.title || '');
+    const [isDraft, setIsDraft] = useState(editingItem?.isDraft || false);
     const [locationInput, setLocationInput] = useState(editingItem?.location || '');
     const [country, setCountry] = useState(editingItem?.country || '');
     const [isAutoLocating, setIsAutoLocating] = useState(false);
@@ -273,7 +274,11 @@ export function NewsCreate() {
     const [editorsList, setEditorsList] = useState<any[]>([]);
 
     const [author, setAuthor] = useState(() => {
-        return localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
+        try {
+            return localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
+        } catch (e) {
+            return 'Alex';
+        }
     });
     
     useEffect(() => {
@@ -503,6 +508,14 @@ export function NewsCreate() {
     });
     const [duoModal, setDuoModal] = useState({ show: false, urls: ['', ''], widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined, aspectRatio: '3/4' });
     const [isLoading, setIsLoading] = useState(isEditing);
+
+    // Safety initialization for creation mode
+    useEffect(() => {
+        if (!isEditing) {
+            setIsLoading(false);
+            initialDataLoaded.current = false;
+        }
+    }, [isEditing]);
     const [suggestedTitles, setSuggestedTitles] = useState<string[]>([]);
     const [videoStartTime, setVideoStartTime] = useState<number>(0);
     const [videoAutoplay, setVideoAutoplay] = useState<boolean>(false);
@@ -598,6 +611,7 @@ export function NewsCreate() {
 
         const parseAndInitialize = (articleData: any, fullContent: string) => {
             if (articleData.title) setTitle(articleData.title);
+            if (articleData.isDraft !== undefined) setIsDraft(articleData.isDraft);
             if (articleData.location) setLocationInput(articleData.location);
             if (articleData.country) setCountry(articleData.country);
             if (articleData.image) setImageUrl(articleData.image);
@@ -743,16 +757,23 @@ export function NewsCreate() {
             if (!editingItem.content) {
                 fetch(`/api/news/content?id=${currentId}`, { headers: getAuthHeaders() })
                     .then(res => res.json())
-                    .then(data => parseAndInitialize(data.article || editingItem, data.content || ''));
+                    .then(data => parseAndInitialize(data.article || editingItem, data.content || ''))
+                    .catch(() => setIsLoading(false));
             }
         } else {
             setIsLoading(true);
             fetch(`/api/news/content?id=${currentId}`, { headers: getAuthHeaders() })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error('Fetch failed');
+                    return res.json();
+                })
                 .then(data => parseAndInitialize(data.article || {}, data.content || ''))
-                .catch(() => setIsLoading(false));
+                .catch((err) => {
+                    console.error("Error fetching article content:", err);
+                    setIsLoading(false);
+                });
         }
-    }, [searchParams, editingItem]);
+    }, [currentId, editingItem]);
 
     const [linkModal, setLinkModal] = useState<{
         show: boolean;
@@ -811,7 +832,7 @@ export function NewsCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, locationInput, imageUrl, widgets, date, category, youtubeId, isFeatured, musicItems, artistSocials, interviewQuestions]);
+    }, [title, locationInput, imageUrl, widgets, date, category, youtubeId, isFeatured, isDraft, musicItems, artistSocials, interviewQuestions]);
 
 
 
@@ -823,9 +844,16 @@ export function NewsCreate() {
 
     // Confirm navigation handled by ConfirmationModal component in JSX
 
-    // Prompt before window reload/close supprimé pour éviter la fenêtre native Windows
+    // Prompt before window reload/close (native browser safety)
     useEffect(() => {
-        // La protection se fait uniquement via le react router (ConfirmationModal)
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = ''; // Trigger the browser's native confirmation dialog
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [isDirty]);
 
 
@@ -1537,8 +1565,9 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
         }
     };
 
-    const handleSubmit = async (_publishNow = false, scheduleDate?: string) => {
+    const handleSubmit = async (_publishNow = false, scheduleDate?: string, forcedDraft?: boolean) => {
         let finalDate = scheduleDate || ((_publishNow && !isEditing) ? new Date().toISOString().slice(0, 16) : date);
+        const finalIsDraft = forcedDraft !== undefined ? forcedDraft : isDraft;
 
         const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
 
@@ -1747,6 +1776,7 @@ ${generateSocialsHtml()}
                 year: year || undefined,
                 isFocus,
                 isFeatured,
+                isDraft: finalIsDraft,
                 author
             };
 
@@ -1779,7 +1809,7 @@ ${generateSocialsHtml()}
                     }
                 });
 
-                setMessage(isEditing ? 'Article mis à jour avec succès !' : (finalDate > new Date().toISOString().slice(0, 16) ? 'Article programmé avec succès !' : 'Article publié avec succès !'));
+                setMessage(isEditing ? 'Article mis à jour avec succès !' : (finalIsDraft ? 'Article enregistré en brouillon !' : (finalDate > new Date().toISOString().slice(0, 16) ? 'Article programmé avec succès !' : 'Article publié avec succès !')));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 if (!isEditing) {
@@ -1937,7 +1967,7 @@ ${generateSocialsHtml()}
                         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                             <button
                                 type="button"
-                                onClick={() => handleSubmit(true)}
+                                onClick={() => handleSubmit(true, undefined, false)}
                                 disabled={status === 'loading'}
                                 className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-2xl group ${status === 'loading'
                                     ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
@@ -1959,6 +1989,19 @@ ${generateSocialsHtml()}
                             >
                                 <Calendar className="w-4 h-4" />
                                 <span>PROGRAMMER</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => handleSubmit(false, undefined, true)}
+                                disabled={status === 'loading'}
+                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all border backdrop-blur-md ${status === 'loading'
+                                    ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
+                                    : 'bg-white/5 border-white/10 text-white hover:bg-neon-cyan/10 hover:border-neon-cyan/40 hover:text-neon-cyan hover:scale-105 active:scale-95'
+                                    }`}
+                            >
+                                <Save className="w-4 h-4" />
+                                <span>BROUILLON</span>
                             </button>
                             {isEditing && (
                                 <button
@@ -4063,7 +4106,7 @@ ${generateSocialsHtml()}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <button
-                                onClick={() => handleSubmit(true)}
+                                onClick={() => handleSubmit(true, undefined, false)}
                                 disabled={status === 'loading'}
                                 className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
                                     ? 'bg-gray-600 cursor-not-allowed'
@@ -4084,6 +4127,18 @@ ${generateSocialsHtml()}
                             >
                                 <Calendar className="w-5 h-5" />
                                 {status === 'loading' ? 'Programmation...' : 'Programmer l\'article'}
+                            </button>
+
+                            <button
+                                onClick={() => handleSubmit(false, undefined, true)}
+                                disabled={status === 'loading'}
+                                className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
+                                    ? 'bg-gray-600 cursor-not-allowed'
+                                    : 'bg-white/5 border border-white/10 hover:bg-neon-cyan/10 hover:border-neon-cyan/30 hover:text-neon-cyan hover:scale-[1.02]'
+                                    } text-white flex items-center justify-center gap-2`}
+                            >
+                                <Save className="w-5 h-5" />
+                                {status === 'loading' ? 'Sauvegarde...' : 'Enregistrer brouillon'}
                             </button>
                         </div>
 
@@ -5104,7 +5159,7 @@ ${generateSocialsHtml()}
                                     <button
                                         onClick={() => {
                                             setShowScheduleModal(false);
-                                            handleSubmit(false);
+                                            handleSubmit(false, undefined, false);
                                         }}
                                         className="w-full py-4 bg-gradient-to-r from-neon-orange to-neon-red text-white rounded-xl font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-neon-red/20"
                                     >

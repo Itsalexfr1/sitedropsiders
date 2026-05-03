@@ -938,6 +938,9 @@ export function AdminManage() {
                                                             title="Voir l'article"
                                                         >
                                                             {item.title}
+                                                            {item.isDraft && (
+                                                                <span className="px-1.5 py-0.5 rounded-md bg-white/10 border border-white/10 text-[8px] font-black text-white/40 uppercase tracking-widest flex-shrink-0">Brouillon</span>
+                                                            )}
                                                             <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
                                                             {(() => {
                                                                 const locationMap: Record<string, string> = {
