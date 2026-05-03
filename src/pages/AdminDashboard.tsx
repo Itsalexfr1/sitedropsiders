@@ -5967,7 +5967,18 @@ export function AdminDashboard() {
                             key={article.id}
                             onClick={() => {
                               setSelectedSocialArticle(article);
-                              setSelectedSocialTheme(undefined);
+                              
+                              // Auto-map category to Social Studio theme
+                              const cat = (article.category || "").toLowerCase();
+                              let theme: any = "NEWS";
+                              
+                              if (article.isFocus) theme = "FOCUS";
+                              else if (cat.includes("musique") || cat.includes("music")) theme = "MUSIQUE";
+                              else if (cat.includes("interview")) theme = "INTERVIEW";
+                              else if (cat.includes("recap")) theme = "RECAP";
+                              else if (cat.includes("focus")) theme = "FOCUS";
+                              
+                              setSelectedSocialTheme(theme);
                               setIsSocialModalOpen(false);
                             }}
                             className="w-full p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center gap-4 hover:bg-white/10 hover:border-white/20 transition-all group text-left"

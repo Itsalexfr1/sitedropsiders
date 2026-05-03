@@ -596,6 +596,16 @@ export function AdminManage() {
         { type: 'Communauté', icon: <ImageIcon className="w-4 h-4" />, color: 'text-neon-red' },
     ];
 
+    const getInitialSocialTheme = (category: string = '', isFocus?: boolean) => {
+        if (isFocus) return 'FOCUS';
+        const cat = category.toLowerCase();
+        if (cat.includes('musique') || cat.includes('music')) return 'MUSIQUE';
+        if (cat.includes('interview')) return 'INTERVIEW';
+        if (cat.includes('recap')) return 'RECAP';
+        if (cat.includes('focus')) return 'FOCUS';
+        return 'NEWS';
+    };
+
     return (
         <div className="min-h-screen bg-dark-bg py-32">
             <div className="max-w-full mx-auto px-4 md:px-12">
@@ -1231,6 +1241,7 @@ export function AdminManage() {
                         title={socialItem.title}
                         imageUrl={socialItem.image}
                         onClose={() => setSocialItem(null)}
+                        initialTheme={getInitialSocialTheme(socialItem.category, socialItem.isFocus)}
                     />
                 )}
             </AnimatePresence>
