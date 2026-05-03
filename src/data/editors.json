@@ -52,5 +52,22 @@
       "messages_contact"
     ],
     "created": "2026-04-23T20:19:05.128Z"
+  },
+  {
+    "email": "tanguypollet98@gmail.com",
+    "username": "Tanguy",
+    "pseudo": "Tanguy",
+    "role": "Editeur",
+    "permissions": [
+      "news_focus",
+      "musique_releases",
+      "recaps_festivals",
+      "interviews_video",
+      "agenda_events",
+      "social_studio",
+      "messages_contact"
+    ],
+    "created": "2026-05-03T21:49:24.941Z",
+    "verified": false
   }
 ]
