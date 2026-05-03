@@ -16,6 +16,7 @@ interface Editor {
     created: string;
     permissions?: string[];
     verified?: boolean;
+    role?: string;
 }
 
 const PERMISSION_CATEGORIES = [
@@ -110,10 +111,12 @@ export function AdminEditors() {
     const [searchParams] = useSearchParams();
     const initialEmail = searchParams.get('email') || '';
 
-    const [newEditor, setNewEditor] = useState<{ email: string; pseudo: string; permissions: string[] }>({
+    const [addMethod, setAddMethod] = useState<'social' | 'email'>('social');
+    const [newEditor, setNewEditor] = useState<{ email: string; pseudo: string; permissions: string[]; role?: string }>({
         email: initialEmail || '',
         pseudo: '',
-        permissions: []
+        permissions: [],
+        role: ''
     });
 
     // Update email if initialEmail changes
@@ -214,25 +217,32 @@ export function AdminEditors() {
                 body: JSON.stringify({
                     email: newEditor.email,
                     pseudo: newEditor.pseudo,
+                    role: newEditor.role,
                     permissions: newEditor.permissions,
+                    isInvite: addMethod === 'email' && !isEditing
                 })
             });
 
             if (response.ok) {
-                // Send invite email with code if it's a new editor
+                // Send invite email (now handles both cases in backend)
                 if (!isEditing) {
                     await apiFetch('/api/editors/send-invite', {
                         method: 'POST',
                         headers: getAuthHeaders(),
-                        body: JSON.stringify({ email: newEditor.email, pseudo: newEditor.pseudo })
+                        body: JSON.stringify({ 
+                            email: newEditor.email, 
+                            pseudo: newEditor.pseudo,
+                            isInvite: addMethod === 'email'
+                        })
                     });
                 }
                 await fetchEditors();
                 setShowAddModal(false);
-                setNewEditor({ email: '', pseudo: '', permissions: [] });
+                setNewEditor({ email: '', pseudo: '', permissions: [], role: '' });
                 setFoundUser(null);
                 showNotification(
-                    isEditing ? 'Permissions mises à jour !' : `Invitation envoyée à ${newEditor.email} par email !`,
+                    isEditing ? 'Permissions mises à jour !' : 
+                    addMethod === 'email' ? `Invitation envoyée à ${newEditor.email} !` : `Permissions activées pour ${newEditor.email} !`,
                     'success'
                 );
             } else {
@@ -267,10 +277,12 @@ export function AdminEditors() {
 
     const handleEditClick = (editor: Editor) => {
         setIsEditing(true);
+        setAddMethod('social');
         setNewEditor({
             email: editor.email,
             pseudo: editor.pseudo || editor.username || '',
             permissions: editor.permissions || [],
+            role: (editor as any).role || ''
         });
         setFoundUser(editor);
         setShowAddModal(true);
@@ -278,7 +290,8 @@ export function AdminEditors() {
 
     const handleOpenAddModal = () => {
         setIsEditing(false);
-        setNewEditor({ email: '', pseudo: '', permissions: [] });
+        setAddMethod('social');
+        setNewEditor({ email: '', pseudo: '', permissions: [], role: '' });
         setFoundUser(null);
         setShowAddModal(true);
     };
@@ -409,9 +422,18 @@ export function AdminEditors() {
                                                     <h3 className="text-2xl font-display font-black uppercase italic tracking-tight" style={getAuthorTextStyle(editor.username || 'Utilisateur')}>
                                                         {editor.name || editor.username || 'Utilisateur'}
                                                     </h3>
-                                                    {editor.permissions?.includes('all') && (
+                                                    {editor.permissions?.includes('all') ? (
                                                         <span className="px-3 py-1 bg-neon-red text-white text-[8px] font-black rounded-lg uppercase tracking-widest shadow-[0_0_15px_rgba(255,18,65,0.4)]">
                                                             Master Admin
+                                                        </span>
+                                                    ) : editor.role && (
+                                                        <span className="px-3 py-1 bg-white/10 text-white text-[8px] font-black rounded-lg uppercase tracking-widest border border-white/10">
+                                                            {editor.role}
+                                                        </span>
+                                                    )}
+                                                    {editor.verified === false && (
+                                                        <span className="px-3 py-1 bg-neon-cyan/20 text-neon-cyan text-[8px] font-black rounded-lg uppercase tracking-widest border border-neon-cyan/30 animate-pulse">
+                                                            En attente de validation
                                                         </span>
                                                     )}
                                                 </div>
@@ -518,7 +540,8 @@ export function AdminEditors() {
                                             <button 
                                                 type="button"
                                                 onClick={() => {
-                                                    setNewEditor({ email: user.email, pseudo: user.username || user.pseudo || '', permissions: [] });
+                                                    setAddMethod('social');
+                                                    setNewEditor({ email: user.email, pseudo: user.username || user.pseudo || '', permissions: [], role: '' });
                                                     setFoundUser(user);
                                                     setShowAddModal(true);
                                                     setIsEditing(false);
@@ -583,54 +606,106 @@ export function AdminEditors() {
 
                             <form onSubmit={handleSavePermissions} className="space-y-8 overflow-y-auto pr-4 custom-scrollbar">
                                 <div className="space-y-6">
-                                    <div>
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">Email du compte Dropsiders</label>
-                                        <div className="flex gap-3">
-                                            <div className="relative flex-1">
+                                    <div className="mb-8">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 block">Méthode de création</label>
+                                        <div className="flex p-1 bg-white/5 rounded-2xl border border-white/10">
+                                            <button 
+                                                type="button"
+                                                onClick={() => setAddMethod('social')}
+                                                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${addMethod === 'social' ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Lier Compte Social
+                                            </button>
+                                            <button 
+                                                type="button"
+                                                onClick={() => setAddMethod('email')}
+                                                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${addMethod === 'email' ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Invitation Email
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {addMethod === 'social' ? (
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">Email du compte Google/Discord</label>
+                                            <div className="flex gap-3">
+                                                <div className="relative flex-1">
+                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
+                                                    <input
+                                                        required
+                                                        type="email"
+                                                        disabled={isEditing}
+                                                        value={newEditor.email}
+                                                        onChange={e => {
+                                                            setNewEditor({ ...newEditor, email: e.target.value.toLowerCase() });
+                                                            setFoundUser(null);
+                                                        }}
+                                                        className={`w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white text-sm font-bold focus:outline-none focus:border-neon-red transition-all ${isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        placeholder="jean.dupont@gmail.com"
+                                                    />
+                                                </div>
+                                                {!isEditing && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => searchUser(newEditor.email)}
+                                                        disabled={isSearchingUser || !newEditor.email.includes('@')}
+                                                        className="px-6 bg-white/5 border border-white/10 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest hover:bg-white/10 disabled:opacity-30 transition-all"
+                                                    >
+                                                        {isSearchingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Vérifier'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <p className="mt-2 text-[9px] text-gray-500 uppercase tracking-widest italic">
+                                                L'utilisateur doit déjà avoir un compte communautaire pour être lié directement.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">Email de l'invité</label>
+                                            <div className="relative">
                                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
                                                 <input
                                                     required
                                                     type="email"
-                                                    disabled={isEditing}
                                                     value={newEditor.email}
-                                                    onChange={e => {
-                                                        setNewEditor({ ...newEditor, email: e.target.value.toLowerCase() });
-                                                        setFoundUser(null);
-                                                    }}
-                                                    className={`w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white text-sm font-bold focus:outline-none focus:border-neon-red transition-all ${isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    placeholder="jean.dupont@gmail.com"
+                                                    onChange={e => setNewEditor({ ...newEditor, email: e.target.value.toLowerCase() })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white text-sm font-bold focus:outline-none focus:border-neon-red transition-all"
+                                                    placeholder="nouveau.redacteur@exemple.com"
                                                 />
                                             </div>
-                                            {!isEditing && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => searchUser(newEditor.email)}
-                                                    disabled={isSearchingUser || !newEditor.email.includes('@')}
-                                                    className="px-6 bg-white/5 border border-white/10 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest hover:bg-white/10 disabled:opacity-30 transition-all"
-                                                >
-                                                    {isSearchingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Vérifier'}
-                                                </button>
-                                            )}
+                                            <p className="mt-2 text-[9px] text-neon-cyan uppercase tracking-widest font-black">
+                                                Un email de validation sera envoyé à cette adresse pour activer le compte.
+                                            </p>
                                         </div>
-                                    </div>
+                                    )}
 
-                                    <div>
-                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">
-                                            Pseudo Éditeur <span className="text-neon-red">*</span>
-                                        </label>
-                                        <div className="relative">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">
+                                                Prénom / Pseudo <span className="text-neon-red">*</span>
+                                            </label>
                                             <input
                                                 type="text"
                                                 value={newEditor.pseudo}
                                                 onChange={e => setNewEditor({ ...newEditor, pseudo: e.target.value })}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-white text-sm font-bold focus:outline-none focus:border-neon-red transition-all"
-                                                placeholder="Pseudo utilisé pour les articles..."
+                                                placeholder="Ex: Jean D."
                                                 required
                                             />
                                         </div>
-                                        <p className="mt-1 text-[9px] text-gray-500 uppercase tracking-widest">
-                                            Il sera utilisé pour signer les News et les e-mails. L'éditeur validera ensuite son compte grâce au code reçu par e-mail.
-                                        </p>
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">
+                                                Rôle affiché
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={newEditor.role || ''}
+                                                onChange={e => setNewEditor({ ...newEditor, role: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-white text-sm font-bold focus:outline-none focus:border-neon-red transition-all"
+                                                placeholder="Ex: Rédacteur Musique"
+                                            />
+                                        </div>
                                     </div>
 
 

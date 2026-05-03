@@ -2222,7 +2222,7 @@ ${urls.map(u => `  <url>
                        await saveGitHubFile('src/data/settings.json', settingsFile.content, 'Update Alex phone', settingsFile.sha, gitConfig);
                     }
                 } else {
-                    const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                    const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
                     if (editorsFile && editorsFile.content) {
                         const editorIndex = editorsFile.content.findIndex((e: any) => e.email?.toLowerCase() === cleanEmail);
                         if (editorIndex !== -1) {
@@ -2230,9 +2230,15 @@ ${urls.map(u => `  <url>
                             permissions = editor.permissions || [];
                             sessionId = editor.session_id || 'editor-initial-id';
 
+                            // Auto-verify if it was an invitation
+                            if (editorsFile.content[editorIndex].verified === false) {
+                                editorsFile.content[editorIndex].verified = true;
+                                await saveGitHubFile(EDITORS_PATH, editorsFile.content, `Verify editor account: ${cleanEmail}`, editorsFile.sha, gitConfig);
+                            }
+
                             if (phone && !editor.phone) {
                                 editorsFile.content[editorIndex].phone = phone;
-                                await saveGitHubFile('src/data/editors.json', editorsFile.content, `Update phone for editor ${cleanEmail}`, editorsFile.sha, gitConfig);
+                                await saveGitHubFile(EDITORS_PATH, editorsFile.content, `Update phone for editor ${cleanEmail}`, editorsFile.sha, gitConfig);
                             }
                         } else {
                              return new Response(JSON.stringify({ error: 'Éditeur introuvable dans la db' }), { status: 400, headers });
@@ -2347,7 +2353,7 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/editors/update-permissions' && request.method === 'POST') {
-            const { email, permissions, pseudo } = await request.json();
+            const { email, permissions, pseudo, role, isInvite } = await request.json();
             const cleanEmail = email.toLowerCase().trim();
             const file = await fetchGitHubFile(EDITORS_PATH, gitConfig) || { content: [], sha: null };
 
@@ -2360,14 +2366,17 @@ ${urls.map(u => `  <url>
                     file.content[index].username = pseudo;
                     file.content[index].pseudo = pseudo;
                 }
+                if (role !== undefined) file.content[index].role = role;
             } else {
                 // Create new editor mapping
                 file.content.push({
                     email: cleanEmail,
                     username: pseudo || '',
                     pseudo: pseudo || '',
+                    role: role || '',
                     permissions: permissions || [],
-                    created: new Date().toISOString()
+                    created: new Date().toISOString(),
+                    verified: !isInvite // If it's a direct invitation, it needs verification
                 });
             }
 
@@ -2387,27 +2396,57 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/editors/send-invite' && request.method === 'POST') {
-            const { email, pseudo } = await request.json();
+            const { email, pseudo, isInvite } = await request.json();
             const cleanEmail = email.toLowerCase().trim();
 
             const BREVO_KEY = env.BREVO_API_KEY;
             if (BREVO_KEY) {
+                const subject = isInvite ? `DROPSIDERS : Invitation à rejoindre l'équipe rédaction` : `Vos accès Dropsiders ont été activés !`;
+                const title = isInvite ? `INVITATION STAFF` : `ACCÈS APPROUVÉ`;
+                const message = isInvite 
+                    ? `Vous avez été invité à rejoindre l'équipe de rédaction de <strong>Dropsiders</strong> en tant que <strong>${pseudo || 'Editeur'}</strong>.`
+                    : `Bonjour <strong>${pseudo || 'Editeur'}</strong>, vos permissions d'accès au back-office ont été configurées avec succès.`;
+                const subtext = isInvite
+                    ? `Pour finaliser la création de votre compte, cliquez sur le bouton ci-dessous pour valider votre adresse e-mail et configurer votre accès.`
+                    : `Rendez-vous sur l'administration pour vous connecter via votre compte social (Google ou Discord). Un code de sécurité vous sera envoyé par mail lors de votre première connexion.`;
+                const buttonLabel = isInvite ? `Valider mon compte` : `Accéder au tableau de bord`;
+                const buttonUrl = isInvite ? `https://dropsiders.fr/admin?validate=true&email=${encodeURIComponent(cleanEmail)}` : `https://dropsiders.fr/admin`;
+
                 const payload = {
-                    sender: { name: 'Dropsiders', email: 'security@dropsiders.fr' },
+                    sender: { name: 'Dropsiders Security', email: 'security@dropsiders.fr' },
                     to: [{ email: cleanEmail }],
-                    subject: `Vos accès Dropsiders ont été activés !`,
+                    subject: subject,
                     htmlContent: `
-                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #1a1a1a; background-color: #0d0d0d; color: #ffffff; border-radius: 20px;">
-                            <div style="text-align: center; margin-bottom: 30px;">
-                                <h1 style="color: #ff1241; font-style: italic; text-transform: uppercase;">DROPSIDERS STAFF</h1>
+                        <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #000000; color: #ffffff; border-radius: 30px; border: 1px solid #333;">
+                            <div style="text-align: center; margin-bottom: 40px;">
+                                <h1 style="color: #ff1241; font-style: italic; text-transform: uppercase; font-size: 32px; letter-spacing: -2px; margin: 0;">DROPSIDERS</h1>
+                                <p style="color: #555; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 4px; margin-top: 5px;">Back-Office Access Control</p>
                             </div>
-                            <h2 style="text-align: center; font-size: 24px; text-transform: uppercase; letter-spacing: 2px;">Accès Approuvé</h2>
-                            <p style="text-align: center; color: #888; font-size: 14px;">Bonjour <strong style="color: #fff;">${pseudo || 'Editeur'}</strong>, vos permissions ont été attribuées.</p>
-                            <p style="text-align: center; color: #888; font-size: 14px; margin-top: 20px;">Rendez-vous sur l'administration pour vous connecter via Google/Discord. Un code de sécurité vous sera envoyé par mail à chaque connexion sur un nouvel appareil.</p>
-                            <div style="text-align: center; margin: 40px 0;">
-                                <a href="https://dropsiders.fr/admin" style="background-color: #ff1241; color: #ffffff; padding: 15px 30px; text-decoration: none; font-weight: bold; border-radius: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">
-                                    Accéder au tableau de bord
-                                </a>
+                            
+                            <div style="background-color: #0a0a0a; border: 1px solid #222; border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center;">
+                                <div style="display: inline-block; padding: 10px 20px; background-color: #ff1241; border-radius: 10px; color: #fff; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px;">
+                                    ${title}
+                                </div>
+                                <h2 style="font-size: 20px; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; font-style: italic;">Bienvenue dans la team !</h2>
+                                <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 25px;">
+                                    ${message}
+                                </p>
+                                <p style="color: #888; font-size: 12px; line-height: 1.6; margin-bottom: 30px;">
+                                    ${subtext}
+                                </p>
+                                
+                                <div style="margin-top: 30px;">
+                                    <a href="${buttonUrl}" style="background-color: #ffffff; color: #000000; padding: 18px 35px; text-decoration: none; font-weight: 900; border-radius: 15px; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; display: inline-block; box-shadow: 0 10px 20px rgba(255,255,255,0.1);">
+                                        ${buttonLabel}
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center; border-top: 1px solid #222; padding-top: 30px;">
+                                <p style="color: #444; font-size: 10px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">
+                                    Ceci est un message automatique de sécurité.<br/>
+                                    Ne pas répondre à cet e-mail.
+                                </p>
                             </div>
                         </div>
                     `

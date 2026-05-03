@@ -335,6 +335,20 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
     // ─────────────────────────────────────────────────────────────────────────
     // RENDER
     // ─────────────────────────────────────────────────────────────────────────
+    const [isValidating, setIsValidating] = useState(false);
+    const [validationEmail, setValidationEmail] = useState('');
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('validate') === 'true' && params.get('email')) {
+            setIsValidating(true);
+            setValidationEmail(params.get('email') || '');
+        }
+    }, []);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RENDER
+    // ─────────────────────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen flex items-center justify-center px-4 py-32">
             {/* Background */}
@@ -358,17 +372,35 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
                                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-red rounded-t-[2.5rem]" />
 
                                 <div className="flex justify-center mb-8">
-                                    <div className="p-5 bg-neon-red/10 rounded-[2rem] border border-neon-red/20 shadow-[0_0_40px_rgba(255,18,65,0.2)]">
-                                        <Shield className="w-10 h-10 text-neon-red" />
+                                    <div className={`p-5 rounded-[2rem] border shadow-[0_0_40px_rgba(255,18,65,0.2)] ${isValidating ? 'bg-green-500/10 border-green-500/20' : 'bg-neon-red/10 border-neon-red/20'}`}>
+                                        {isValidating ? (
+                                            <CheckCircle2 className="w-10 h-10 text-green-400" />
+                                        ) : (
+                                            <Shield className="w-10 h-10 text-neon-red" />
+                                        )}
                                     </div>
                                 </div>
 
-                                <h2 className="text-3xl font-display font-black text-white text-center mb-2 uppercase italic tracking-tighter">
-                                    Accès <span className="text-neon-red">Restreint</span>
-                                </h2>
-                                <p className="text-center text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mb-10">
-                                    Identifiez-vous via votre compte social
-                                </p>
+                                {isValidating ? (
+                                    <>
+                                        <h2 className="text-3xl font-display font-black text-white text-center mb-2 uppercase italic tracking-tighter">
+                                            Validation <span className="text-green-400">Compte</span>
+                                        </h2>
+                                        <p className="text-center text-gray-400 text-xs font-bold mb-8 leading-relaxed">
+                                            Bienvenue ! Votre invitation pour <span className="text-white">{validationEmail}</span> est prête.<br/>
+                                            Connectez-vous ci-dessous pour l'activer.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <h2 className="text-3xl font-display font-black text-white text-center mb-2 uppercase italic tracking-tighter">
+                                            Accès <span className="text-neon-red">Restreint</span>
+                                        </h2>
+                                        <p className="text-center text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mb-10">
+                                            Identifiez-vous via votre compte social
+                                        </p>
+                                    </>
+                                )}
 
                                 {error && (
                                     <motion.div
@@ -425,7 +457,7 @@ export function AdminLoginScreen({ onAuthenticated }: AdminLoginScreenProps) {
                                 <div className="mt-10 pt-6 border-t border-white/5">
                                     <p className="text-[9px] text-gray-600 uppercase tracking-[0.2em] text-center leading-relaxed">
                                         Espace réservé à l'équipe Dropsiders.<br />
-                                        Une vérification SMS sera requise après connexion.
+                                        Une vérification par Email sera requise après connexion.
                                     </p>
                                 </div>
                             </div>
