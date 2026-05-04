@@ -6100,25 +6100,6 @@
     "additionalDates": []
   },
   {
-    "id": 1001,
-    "title": "Black Coffee - Live Orchestra @ Arènes De Nîmes",
-    "date": "2026-05-08",
-    "startDate": "2026-05-08",
-    "endDate": "2026-05-08",
-    "venue": "Arenes de Nimes",
-    "location": "NIMES",
-    "country": "FRANCE",
-    "type": "Concert",
-    "image": "/uploads/uploads/05bc46a1c56b0051-shotgun_soldout.png",
-    "url": "https://shotgun.live/fr/events/black-coffee-arenes-de-nimes",
-    "genre": "Afro House",
-    "month": "MAI",
-    "isWeekly": false,
-    "isSoldOut": true,
-    "isLiveDropsiders": false,
-    "additionalDates": []
-  },
-  {
     "id": 1002,
     "title": "RÜFÜS DU SOL ",
     "date": "2026-05-10",
