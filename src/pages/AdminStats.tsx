@@ -11,6 +11,8 @@ import { Link } from 'react-router-dom';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { twMerge } from 'tailwind-merge';
 
+import { Badge } from '../components/ui/Badge';
+
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 // --- CUSTOM UI COMPONENTS ---
@@ -28,18 +30,6 @@ const GlassCard = ({ children, className, delay = 0 }: { children: React.ReactNo
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         {children}
     </motion.div>
-);
-
-const Badge = ({ children, color = "red" }: { children: React.ReactNode, color?: string }) => (
-    <span className={twMerge(
-        "px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border",
-        color === "red" ? "bg-neon-red/10 text-neon-red border-neon-red/20" :
-        color === "blue" ? "bg-neon-blue/10 text-neon-blue border-neon-blue/20" :
-        color === "green" ? "bg-green-500/10 text-green-500 border-green-500/20" :
-        "bg-white/10 text-white border-white/20"
-    )}>
-        {children}
-    </span>
 );
 
 // --- ADVANCED SVG CHARTS WITH FORECASTING ---

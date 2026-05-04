@@ -25,7 +25,7 @@ const XIcon = (props: any) => (
 );
 
 export function Footer() {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
     const [socials, setSocials] = useState(settings.socials || { instagram: 'dropsiders.eu', tiktok: '@dropsiders.eu' });
