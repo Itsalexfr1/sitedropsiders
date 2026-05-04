@@ -1,24 +1,15 @@
 {
-  "author": {
-    "id": "1481163258080788602",
-    "name": "Dropsiders"
-  },
-  "category": "music",
-  "description": {
-    "en": "Show your activity on Dropsiders! The ultimate Hardstyle media.",
-    "fr": "Affichez votre activité sur Dropsiders ! Le média Hardstyle de référence."
-  },
-  "logo": "https://dropsiders.fr/logo_presentation.png",
   "name": "Dropsiders",
   "service": "dropsiders.fr",
   "url": [
     "dropsiders.fr",
-    "www.dropsiders.fr",
-    "localhost"
+    "www.dropsiders.fr"
   ],
-  "regExp": "^(?:https?://)?(?:www\\.)?(?:dropsiders\\.fr|localhost)(?:/.*)?$",
-  "version": "1.0.4",
-  "settings": [],
+  "version": "1.1.2",
   "color": "#ff1241",
-  "tags": ["hardstyle", "music", "festivals", "events"]
+  "category": "music",
+  "author": {
+    "name": "Dropsiders",
+    "id": "1481163258080788602"
+  }
 }
