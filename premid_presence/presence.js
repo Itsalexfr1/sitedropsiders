@@ -1,43 +1,38 @@
 const presence = new Presence({
-    clientId: "1481163258080788602"
+	clientId: "1481163258080788602"
 });
 
 presence.on("Update", () => {
-    const data = {
-        details: "Sur le site",
-        state: "Dropsiders.fr",
-        largeImageKey: "logo_presentation", // Utilisation de la clé d'asset si possible, sinon URL complète
-        largeImageText: "Dropsiders",
-        startTimestamp: Math.floor(Date.now() / 1000)
-    };
+	const data = {
+		details: "Explorant l'univers Hardstyle",
+		state: "Sur Dropsiders.fr",
+		largeImageKey: "https://dropsiders.fr/logo_presentation.png",
+		largeImageText: "Dropsiders - Media Hardstyle",
+		smallImageKey: "https://dropsiders.fr/icon.png",
+		smallImageText: "Dropsiders",
+		startTimestamp: Date.now()
+	};
 
-    // On force l'image par défaut si l'URL ne marche pas
-    const defaultImage = "https://dropsiders.fr/logo_presentation.png";
-    data.largeImageKey = defaultImage;
+	const url = window.location.pathname;
+	console.log("[Dropsiders PreMiD] Path detected:", url);
 
-    const url = window.location.href;
-    const path = window.location.pathname;
+	if (url.includes("/news/")) {
+		const title = document.querySelector("h1")?.innerText || "une news";
+		data.details = "Lit une News";
+		data.state = title;
+	} else if (url.includes("/agenda")) {
+		data.details = "Consulte l'Agenda";
+		data.state = "Découvre les prochains événements";
+	} else if (url.includes("/recaps")) {
+		data.details = "Regarde un Récap";
+		data.state = "Revivre les meilleurs moments";
+	} else if (url.includes("/live")) {
+		data.details = "Regarde le Live 🔴";
+		data.state = "En plein set Hardstyle";
+	} else if (url === "/") {
+		data.details = "Page d'Accueil";
+		data.state = "Dernières sorties Hardstyle";
+	}
 
-    if (path.includes("/news/")) {
-        data.details = "Lit une News";
-        data.state = document.title.split('|')[0].trim();
-    } 
-    else if (path.includes("/agenda")) {
-        data.details = "Consulte l'Agenda";
-        data.state = "Cherche un festival";
-    }
-    else if (path.includes("/recaps/")) {
-        data.details = "Regarde un Récap";
-        data.state = document.title.split('|')[0].trim();
-    }
-    else if (path.includes("/live")) {
-        data.details = "Regarde Dropsiders TV";
-        data.state = "En direct";
-    }
-    else {
-        data.details = "Exploration";
-        data.state = "Page d'accueil";
-    }
-
-    presence.setActivity(data);
+	presence.setActivity(data);
 });

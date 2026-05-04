@@ -5,17 +5,20 @@
   },
   "category": "music",
   "description": {
-    "en": "Show your activity on Dropsiders!",
-    "fr": "Affichez votre activité sur Dropsiders !"
+    "en": "Show your activity on Dropsiders! The ultimate Hardstyle media.",
+    "fr": "Affichez votre activité sur Dropsiders ! Le média Hardstyle de référence."
   },
   "logo": "https://dropsiders.fr/logo_presentation.png",
   "name": "Dropsiders",
   "service": "dropsiders.fr",
   "url": [
     "dropsiders.fr",
-    "www.dropsiders.fr"
+    "www.dropsiders.fr",
+    "localhost"
   ],
-  "version": "1.0.1",
+  "regExp": "^(?:https?://)?(?:www\\.)?(?:dropsiders\\.fr|localhost)(?:/.*)?$",
+  "version": "1.0.4",
   "settings": [],
-  "color": "#ff1241"
+  "color": "#ff1241",
+  "tags": ["hardstyle", "music", "festivals", "events"]
 }
