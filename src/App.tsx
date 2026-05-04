@@ -64,6 +64,8 @@ const Profile = lazyRetry(() => import('./pages/Profile').then(m => m.Profile));
 const AdminPdfs = lazyRetry(() => import('./pages/AdminPdfs').then(m => m.AdminPdfs));
 const AdminInterviewQuestions = lazyRetry(() => import('./pages/AdminInterviewQuestions').then(m => m.AdminInterviewQuestions));
 const PublicProfile = lazyRetry(() => import('./pages/PublicProfile').then(m => m.PublicProfile));
+const About = lazyRetry(() => import('./pages/About').then(m => m.About));
+
 
 function ErrorFallback() {
   return (
@@ -176,6 +178,8 @@ const router = createBrowserRouter([
       { path: "kit-media", element: <KitMedia /> },
       { path: "clips", element: <ClipsPage /> },
       { path: "contact", element: <Contact /> },
+      { path: "a-propos", element: <About /> },
+
       
       // Protected Area Group (Shared Authentication Context)
       {

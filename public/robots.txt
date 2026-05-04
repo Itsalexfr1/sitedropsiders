@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /admin
-Disallow: /api
-Disallow: /auth
+Disallow: /login
+Disallow: /api/*
 
-Sitemap: https://www.dropsiders.fr/sitemap.xml
+Sitemap: https://dropsiders.fr/sitemap.xml

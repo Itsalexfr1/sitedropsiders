@@ -20,13 +20,18 @@ export function GoogleAdSense() {
         const isExcluded = excludedPaths.some(path => location.pathname.startsWith(path));
 
         if (!isExcluded) {
-            // Check if script already exists
             if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
                 const script = document.createElement('script');
                 script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3678332774662079";
                 script.async = true;
                 script.crossOrigin = "anonymous";
                 document.head.appendChild(script);
+            }
+        } else {
+            // Remove script if we are in an excluded zone
+            const existingScript = document.querySelector('script[src*="adsbygoogle.js"]');
+            if (existingScript) {
+                existingScript.remove();
             }
         }
     }, [location]);

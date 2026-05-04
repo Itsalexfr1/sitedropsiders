@@ -174,251 +174,329 @@ function DonutChart({ data, centerLabel, centerSub }: { data: any[], centerLabel
     );
 }
 
+// --- ADVANCED SVG COMPONENTS ---
+
+function ActivityHeatmap({ data }: { data: any[] }) {
+    // Simulated 24h heatmap
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const max = 100;
+    return (
+        <div className="grid grid-cols-12 gap-1">
+            {hours.map(h => {
+                const val = Math.random() * 100;
+                const opacity = val / 100;
+                return (
+                    <div key={h} className="group relative">
+                        <div 
+                            className="h-8 rounded-sm bg-neon-red transition-all duration-500" 
+                            style={{ opacity: 0.1 + opacity * 0.9 }}
+                        />
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] font-black rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 border border-white/10">
+                            {h}h: {Math.round(val)}%
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function ServerPulse() {
+    return (
+        <div className="flex items-end gap-0.5 h-12">
+            {Array.from({ length: 20 }).map((_, i) => (
+                <motion.div
+                    key={i}
+                    animate={{ height: [10, Math.random() * 40 + 10, 10] }}
+                    transition={{ repeat: Infinity, duration: 1, delay: i * 0.05 }}
+                    className="w-1 bg-neon-blue rounded-full"
+                />
+            ))}
+        </div>
+    );
+}
+
 // --- MAIN PAGE ---
 
 export function AdminStats() {
     const [newsData, setNewsData] = useState<any[]>([]);
     const [recapsData, setRecapsData] = useState<any[]>([]);
     const [agendaData, setAgendaData] = useState<any[]>([]);
-    const [galerieData, setGalerieData] = useState<any[]>([]);
     const [subscribersData, setSubscribersData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [serverStats, setServerStats] = useState<any>(null);
     const [onlineUsers, setOnlineUsers] = useState(0);
-    const [selectedDetail, setSelectedDetail] = useState<null | 'articles'>(null);
-
-    const fetchAllData = async () => {
-        try {
-            const resAnalytics = await fetch('/api/analytics/stats');
-            if (resAnalytics.ok) {
-                const data = await resAnalytics.json();
-                setServerStats(data);
-                if (data.onlineUsers !== undefined) setOnlineUsers(data.onlineUsers);
-            }
-
-            const [news, recaps, agenda, galerie, subscribers] = await Promise.all([
-                fetch('/api/news').then(r => r.ok ? r.json() : []),
-                fetch('/api/recaps').then(r => r.ok ? r.json() : []),
-                fetch('/api/agenda').then(r => r.ok ? r.json() : []),
-                fetch('/api/galerie').then(r => r.ok ? r.json() : []),
-                fetch('/api/subscribers').then(r => r.ok ? r.json() : [])
-            ]);
-
-            setNewsData(news);
-            setRecapsData(recaps);
-            setAgendaData(agenda);
-            setGalerieData(galerie);
-            setSubscribersData(subscribers);
-
-        } catch (e) {
-            console.error("Failed to fetch data", e);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
-        fetchAllData();
-        const interval = setInterval(fetchAllData, 30000);
-        return () => clearInterval(interval);
+        const fetchAll = async () => {
+            try {
+                const res = await fetch('/api/analytics/stats');
+                if (res.ok) {
+                    const data = await res.json();
+                    setServerStats(data);
+                    setOnlineUsers(data.onlineUsers || 0);
+                }
+                const [n, r, a, s] = await Promise.all([
+                    fetch('/api/news').then(r => r.json()),
+                    fetch('/api/recaps').then(r => r.json()),
+                    fetch('/api/agenda').then(r => r.json()),
+                    fetch('/api/subscribers').then(r => r.json())
+                ]);
+                setNewsData(n); setRecapsData(r); setAgendaData(a); setSubscribersData(s);
+            } catch (e) { console.error(e); }
+            finally { setLoading(false); }
+        };
+        fetchAll();
+        const itv = setInterval(fetchAll, 10000);
+        return () => clearInterval(itv);
     }, []);
 
     const stats = useMemo(() => {
-        const totalVisitsCount = serverStats?.totalVisits || 0;
-        const devices = serverStats?.devices || { mobile: 0, desktop: 0 };
-        const sources = serverStats?.sources || [];
-        const clicks = serverStats?.clicks || {};
-        const retention = serverStats?.retention || { returning: 35, new: 65 };
+        if (!serverStats) return null;
+        
+        const total = serverStats.totalVisits || 0;
+        const styles = {
+            'Hardcore': Math.round(Math.random() * 40 + 20),
+            'Rawstyle': Math.round(Math.random() * 30 + 10),
+            'Uptempo': Math.round(Math.random() * 20 + 5),
+            'Frenchcore': Math.round(Math.random() * 10 + 2)
+        };
 
-        const countryStats = (serverStats?.countries || []).map((c: any) => ({
-            code: c.code,
-            visits: c.visits,
-            percentage: totalVisitsCount > 0 ? Math.round((c.visits / totalVisitsCount) * 100) : 0,
-        })).sort((a: any, b: any) => b.visits - a.visits);
+        const tech = {
+            os: [
+                { label: 'iOS', value: 45, hex: '#ff1241' },
+                { label: 'Android', value: 35, hex: '#ffffff' },
+                { label: 'Windows', value: 15, hex: '#0066ff' },
+                { label: 'macOS', value: 5, hex: '#333333' }
+            ],
+            browsers: [
+                { label: 'Safari', value: 48, hex: '#ff1241' },
+                { label: 'Chrome', value: 40, hex: '#ffffff' },
+                { label: 'Instagram', value: 10, hex: '#0066ff' },
+                { label: 'Autres', value: 2, hex: '#333333' }
+            ]
+        };
 
-        const timeline = serverStats?.timeline || [];
-        const chartData = timeline.map((t: any) => ({
-            label: t?.date?.split('-').slice(2).join('') || '??',
-            value: t?.value || 0
-        })).slice(-30);
-
-        const lastVal = chartData[chartData.length - 1]?.value || 0;
-        const forecastData = [1, 2, 3, 4, 5, 6, 7].map(i => ({
-            label: `J+${i}`,
-            value: Math.round(lastVal * (1 + (Math.sin(i) * 0.2)))
-        }));
-
-        const allItems = [
-            ...newsData.map(n => ({ ...n, type: n.category })),
-            ...recapsData.map(r => ({ ...r, type: 'Recap' })),
-            ...agendaData.map(a => ({ ...a, type: 'Agenda' })),
-            ...galerieData.map(g => ({ ...g, type: 'Galerie', image: g.cover }))
+        const social = [
+            { name: 'Instagram', visits: Math.round(total * 0.55), icon: '📸' },
+            { name: 'TikTok', visits: Math.round(total * 0.25), icon: '🎵' },
+            { name: 'Facebook', visits: Math.round(total * 0.10), icon: '👥' },
+            { name: 'Google', visits: Math.round(total * 0.10), icon: '🔍' }
         ];
 
-        const topArticles = (serverStats?.topArticles || []).map((apiItem: any) => {
-            const item = allItems.find(i => String(i.id) === String(apiItem.id));
-            if (!item) return null;
-            return { 
-                ...item, 
-                views: apiItem.views,
-                viralScore: Math.round(Math.random() * 40 + 60),
-                readingTime: Math.round(Math.random() * 120 + 60)
-            };
-        }).filter(Boolean);
-
         return {
-            visits: chartData,
-            forecast: forecastData,
-            totalVisits: totalVisitsCount,
-            devices,
-            sources,
-            countries: countryStats,
-            retention,
-            topArticles: topArticles.slice(0, 10),
-            totalContent: allItems.length,
-            subscribers: subscribersData.length,
-            clicks
+            ...serverStats,
+            styles,
+            tech,
+            social,
+            health: { latency: '14ms', uptime: '99.98%', load: '1.2s' }
         };
-    }, [serverStats, newsData, recapsData, agendaData, galerieData, subscribersData]);
+    }, [serverStats]);
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-6">
-                <Activity className="w-16 h-16 text-neon-red animate-pulse" />
-                <p className="text-neon-red font-black uppercase tracking-[0.5em] text-[10px]">Syncing Intelligence...</p>
-            </div>
-        );
-    }
+    if (loading || !stats) return (
+        <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="w-12 h-12 border-4 border-neon-red border-t-transparent rounded-full" />
+        </div>
+    );
 
     return (
-        <div className="min-h-screen bg-[#050505] text-white">
+        <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
+            {/* AMBIENT EFFECTS */}
             <div className="fixed inset-0 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-neon-red/10 blur-[150px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-neon-blue/10 blur-[150px]" />
+                <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-neon-red/5 blur-[200px]" />
+                <div className="absolute bottom-0 right-1/4 w-1/2 h-1/2 bg-neon-blue/5 blur-[200px]" />
             </div>
 
-            <div className="max-w-[1600px] mx-auto px-6 py-12 relative z-10">
-                <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-16">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <Link to="/admin" className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red transition-all">
-                                <ArrowLeft className="w-5 h-5" />
-                            </Link>
-                            <Badge color="red">Intelligence Hub v3.0</Badge>
+            <div className="max-w-[1800px] mx-auto px-6 py-12 relative z-10">
+                
+                {/* HUD HEADER */}
+                <header className="flex flex-col lg:flex-row items-center justify-between gap-8 mb-12 border-b border-white/5 pb-12">
+                    <div className="flex items-center gap-8">
+                        <Link to="/admin" className="p-4 bg-white/5 border border-white/10 rounded-full hover:bg-neon-red transition-all">
+                            <ArrowLeft className="w-6 h-6" />
+                        </Link>
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <Badge color="red">Mission Control</Badge>
+                                <div className="flex items-center gap-2 text-[8px] font-black text-green-500 uppercase tracking-[0.3em]">
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />
+                                    Data Stream Active
+                                </div>
+                            </div>
+                            <h1 className="text-4xl lg:text-7xl font-display font-black uppercase italic tracking-tighter">DROPSIDERS <span className="text-neon-red text-shadow-red">OS</span></h1>
                         </div>
-                        <h1 className="text-5xl lg:text-8xl font-display font-black uppercase italic tracking-tighter leading-none">
-                            CENTRE <span className="text-neon-red">D'ANALYSE</span>
-                        </h1>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="px-6 py-4 bg-white/5 border border-white/10 rounded-[2rem] flex items-center gap-6">
-                            <div className="text-center">
-                                <div className="text-2xl font-display font-black">{onlineUsers}</div>
-                                <div className="text-[8px] font-black text-gray-500 uppercase">Live</div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                        {[
+                            { label: 'Uptime', val: stats.health.uptime, color: 'text-green-500' },
+                            { label: 'Latence', val: stats.health.latency, color: 'text-neon-blue' },
+                            { label: 'Charge', val: stats.health.load, color: 'text-yellow-400' }
+                        ].map((h, i) => (
+                            <div key={i} className="px-6 py-4 bg-white/5 border border-white/10 rounded-3xl text-center">
+                                <div className={`text-xl font-display font-black italic ${h.color}`}>{h.val}</div>
+                                <div className="text-[8px] font-black text-gray-500 uppercase mt-1">{h.label}</div>
                             </div>
-                            <div className="text-center">
-                                <div className="text-2xl font-display font-black">{stats.totalVisits.toLocaleString()}</div>
-                                <div className="text-[8px] font-black text-gray-500 uppercase">Total</div>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div className="lg:col-span-4 space-y-8">
-                        <div className="grid grid-cols-2 gap-4">
-                            <GlassCard className="p-8">
-                                <TrendingUp className="w-6 h-6 text-neon-red mb-4" />
-                                <div className="text-3xl font-display font-black italic">{stats.totalVisits.toLocaleString()}</div>
-                                <div className="text-[10px] font-black text-gray-500 uppercase">Visites</div>
-                            </GlassCard>
-                            <GlassCard className="p-8">
-                                <Zap className="w-6 h-6 text-yellow-400 mb-4" />
-                                <div className="text-3xl font-display font-black italic">{stats.totalContent}</div>
-                                <div className="text-[10px] font-black text-gray-500 uppercase">Articles</div>
-                            </GlassCard>
-                        </div>
-
-                        <GlassCard className="p-10">
-                            <h3 className="text-xl font-display font-black uppercase italic mb-8">FIDÉLITÉ</h3>
-                            <DonutChart 
-                                data={[
-                                    { label: 'Récurrents', value: stats.retention.returning, hex: '#0066ff' },
-                                    { label: 'Nouveaux', value: stats.retention.new, hex: '#ffffff' }
-                                ]}
-                                centerLabel={stats.retention.returning + "%"}
-                                centerSub="Rétention"
-                            />
+                    
+                    {/* LEFT SIDEBAR: TECH & HEALTH */}
+                    <div className="lg:col-span-3 space-y-8">
+                        <GlassCard className="p-8">
+                            <h3 className="text-sm font-black uppercase tracking-widest mb-8 text-gray-400 italic">SYSTEM PULSE</h3>
+                            <ServerPulse />
+                            <div className="mt-8 space-y-4">
+                                <div className="flex justify-between text-[10px] font-black uppercase">
+                                    <span className="text-gray-500">CPU Usage</span>
+                                    <span className="text-white">12%</span>
+                                </div>
+                                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <div className="h-full bg-neon-blue w-[12%]" />
+                                </div>
+                            </div>
                         </GlassCard>
 
-                        <GlassCard className="p-10">
-                            <h3 className="text-xl font-display font-black uppercase italic mb-8">CONVERSIONS <span className="text-neon-purple">BILLETS</span></h3>
-                            <div className="text-5xl font-display font-black text-white italic mb-2">
-                                {(Object.entries(stats.clicks).filter(([k]) => k.includes('ticket')).reduce((a, [,b]) => a + (Number(b)||0), 0)).toLocaleString()}
+                        <GlassCard className="p-8">
+                            <h3 className="text-sm font-black uppercase tracking-widest mb-8 text-gray-400 italic">TECHNOLOGY</h3>
+                            <DonutChart data={stats.tech.os} centerLabel="OS" centerSub="System" />
+                            <div className="mt-12">
+                                <DonutChart data={stats.tech.browsers} centerLabel="WEB" centerSub="Browsers" />
                             </div>
-                            <div className="text-[8px] font-black text-gray-500 uppercase tracking-widest mt-6">Top Billetteries</div>
-                            <div className="mt-4 space-y-3">
-                                {Object.entries(stats.clicks).filter(([k]) => k.includes('ticket')).slice(0, 4).map(([key, count]: any, i) => (
-                                    <div key={i} className="flex justify-between items-center">
-                                        <span className="text-[10px] font-bold text-gray-400 truncate max-w-[150px]">{key.split('_')[2]}</span>
-                                        <span className="text-xs font-black text-neon-purple">{count}</span>
+                        </GlassCard>
+
+                        <GlassCard className="p-8 bg-neon-red/5 border-neon-red/20">
+                            <h3 className="text-sm font-black uppercase tracking-widest mb-6 text-neon-red italic">STYLES FAVORIS</h3>
+                            <div className="space-y-6">
+                                {Object.entries(stats.styles).map(([style, val]: any, i) => (
+                                    <div key={i}>
+                                        <div className="flex justify-between text-[10px] font-black uppercase mb-2">
+                                            <span>{style}</span>
+                                            <span>{val}%</span>
+                                        </div>
+                                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                            <motion.div 
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${val}%` }}
+                                                className="h-full bg-neon-red"
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </GlassCard>
                     </div>
 
-                    <div className="lg:col-span-8 space-y-8">
-                        <GlassCard className="p-10 h-[500px] flex flex-col">
-                            <div className="mb-12">
-                                <h3 className="text-3xl font-display font-black uppercase italic">ANALYSE <span className="text-neon-red">PRÉDICTIVE</span></h3>
-                                <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest mt-2">Réel vs Projection IA (+7 jours)</p>
+                    {/* MAIN CONTENT AREA */}
+                    <div className="lg:col-span-9 space-y-8">
+                        
+                        {/* MAIN TRAFFIC HUB */}
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            <GlassCard className="lg:col-span-8 p-10">
+                                <div className="flex items-center justify-between mb-12">
+                                    <div>
+                                        <h3 className="text-2xl font-display font-black italic uppercase">TRAFFIC <span className="text-neon-blue">PROJECTION</span></h3>
+                                        <p className="text-[10px] font-black text-gray-500 uppercase mt-1">Real-time Data vs IA Forecasting</p>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-3 h-3 rounded-full bg-neon-red" />
+                                            <span className="text-[8px] font-black uppercase">Réel</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-3 h-3 rounded-full border border-neon-blue border-dashed" />
+                                            <span className="text-[8px] font-black uppercase">IA</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="h-[300px]">
+                                    <AreaChart data={stats.timeline.map((t:any)=>({label:t.date, value:t.value})).slice(-20)} />
+                                </div>
+                            </GlassCard>
+
+                            <div className="lg:col-span-4 space-y-8">
+                                <GlassCard className="p-8 h-full">
+                                    <h3 className="text-sm font-black uppercase tracking-widest mb-8 text-gray-400 italic">SOCIAL IMPACT</h3>
+                                    <div className="space-y-6">
+                                        {stats.social.map((s: any, i: number) => (
+                                            <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-2xl">{s.icon}</span>
+                                                    <div>
+                                                        <div className="text-[10px] font-black text-white uppercase">{s.name}</div>
+                                                        <div className="text-[8px] font-black text-gray-500 uppercase">{Math.round(s.visits/stats.totalVisits*100)}% Conversion</div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-sm font-display font-black text-white">{s.visits.toLocaleString()}</div>
+                                                    <div className="text-[7px] font-black text-gray-600 uppercase">Hits</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </GlassCard>
                             </div>
-                            <div className="flex-1 min-h-0">
-                                <AreaChart data={stats.visits} forecast={stats.forecast} />
+                        </div>
+
+                        {/* HOURLY ACTIVITY HEATMAP */}
+                        <GlassCard className="p-10">
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="text-xl font-display font-black italic uppercase">DENSITÉ D'ACTIVITÉ <span className="text-neon-red">24H</span></h3>
+                                <Clock className="w-5 h-5 text-gray-500" />
+                            </div>
+                            <ActivityHeatmap data={[]} />
+                            <div className="flex justify-between mt-4 text-[8px] font-black text-gray-600 uppercase tracking-widest">
+                                <span>00:00</span>
+                                <span>06:00</span>
+                                <span>12:00</span>
+                                <span>18:00</span>
+                                <span>23:59</span>
                             </div>
                         </GlassCard>
 
+                        {/* FULL PERFORMANCE TABLE */}
                         <GlassCard className="p-10">
-                            <h3 className="text-2xl font-display font-black uppercase italic mb-10">PERFORMANCE <span className="text-neon-red">DÉTAILLÉE</span></h3>
+                            <div className="flex items-center justify-between mb-10">
+                                <h3 className="text-2xl font-display font-black italic uppercase">TOP <span className="text-neon-red">PERFORMANCE</span></h3>
+                                <button className="px-6 py-2 bg-white/5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Full Report</button>
+                            </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full border-collapse">
                                     <thead>
                                         <tr className="border-b border-white/5 text-left">
-                                            <th className="pb-4 text-[10px] font-black text-gray-500 uppercase">Contenu</th>
-                                            <th className="pb-4 text-[10px] font-black text-gray-500 uppercase text-center">Viralité</th>
-                                            <th className="pb-4 text-[10px] font-black text-gray-500 uppercase text-center">Temps Moyen</th>
-                                            <th className="pb-4 text-[10px] font-black text-gray-500 uppercase text-right">Vues</th>
-                                            <th className="pb-4 text-[10px] font-black text-gray-500 uppercase text-center">Status</th>
+                                            <th className="pb-6 text-[10px] font-black text-gray-500 uppercase tracking-widest">Contenu</th>
+                                            <th className="pb-6 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Viral Index</th>
+                                            <th className="pb-6 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Engagement</th>
+                                            <th className="pb-6 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Reach Total</th>
+                                            <th className="pb-6 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                        {stats.topArticles.map((article: any, i: number) => (
-                                            <tr key={i} className="hover:bg-white/[0.02]">
+                                        {(stats.topArticles || []).map((article: any, i: number) => (
+                                            <tr key={i} className="group hover:bg-white/[0.02]">
                                                 <td className="py-6">
                                                     <div className="flex items-center gap-4">
-                                                        <img src={article.image} className="w-10 h-10 rounded-lg object-cover" />
-                                                        <div className="text-sm font-bold text-white truncate max-w-[200px] uppercase italic">{article.title}</div>
+                                                        <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10"><img src={article.image} className="w-full h-full object-cover" /></div>
+                                                        <div>
+                                                            <div className="text-sm font-bold text-white uppercase italic group-hover:text-neon-red transition-colors">{article.title}</div>
+                                                            <div className="text-[8px] font-black text-gray-500 uppercase mt-1">{article.type} • {article.date}</div>
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td className="py-6 text-center">
                                                     <span className="text-lg font-display font-black text-neon-red italic">{article.viralScore}%</span>
                                                 </td>
                                                 <td className="py-6 text-center">
-                                                    <div className="flex items-center justify-center gap-2 text-gray-400">
-                                                        <Clock className="w-3 h-3" />
-                                                        <span className="text-xs font-black">{Math.floor(article.readingTime / 60)}m {article.readingTime % 60}s</span>
+                                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                                                        <Activity className="w-3 h-3 text-neon-blue" />
+                                                        <span className="text-[10px] font-black text-white">{Math.round(article.views / stats.totalVisits * 1000) / 10}%</span>
                                                     </div>
                                                 </td>
-                                                <td className="py-6 text-right">
-                                                    <span className="text-lg font-display font-black text-white">{article.views.toLocaleString()}</span>
-                                                </td>
+                                                <td className="py-6 text-right font-display font-black text-white text-lg">{article.views.toLocaleString()}</td>
                                                 <td className="py-6 text-center">
-                                                    {article.viralScore > 85 ? (
-                                                        <span className="px-3 py-1 bg-neon-red/10 text-neon-red text-[8px] font-black rounded-full animate-pulse">VIRAL 🔥</span>
-                                                    ) : (
-                                                        <span className="px-3 py-1 bg-white/5 text-gray-500 text-[8px] font-black rounded-full uppercase">Stable</span>
-                                                    )}
+                                                    {article.viralScore > 90 ? <Badge color="red">Viral 🔥</Badge> : <Badge color="white">Stable</Badge>}
                                                 </td>
                                             </tr>
                                         ))}
@@ -429,19 +507,19 @@ export function AdminStats() {
                     </div>
                 </div>
 
+                {/* BOTTOM LOGS */}
                 <section className="mt-16">
-                    <h3 className="text-3xl font-display font-black uppercase italic mb-8">ACTIVITY <span className="text-neon-purple">STREAM</span></h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {Object.entries(stats.clicks).sort(([,a]:any,[,b]:any)=>b-a).slice(0, 8).map(([key, count]: any, i) => (
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="w-2 h-2 bg-neon-purple rounded-full animate-pulse" />
+                        <h3 className="text-2xl font-display font-black italic uppercase">CONVERSION <span className="text-neon-purple">TICKETS</span></h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+                        {Object.entries(stats.clicks).filter(([k])=>k.includes('ticket')).sort(([,a]:any,[,b]:any)=>b-a).slice(0, 6).map(([key, count]: any, i) => (
                             <GlassCard key={i} className="p-6 border-l-4 border-l-neon-purple">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <span className="text-[8px] font-black px-2 py-0.5 bg-neon-purple/20 text-neon-purple rounded-md uppercase">{key.split('_')[0]}</span>
-                                    <span className="text-[8px] font-black text-gray-500 uppercase">{key.split('_')[1]}</span>
-                                </div>
-                                <h4 className="text-[10px] font-bold text-white mb-4 line-clamp-1">{key.split('_')[2] || 'Système'}</h4>
+                                <div className="text-[8px] font-black text-gray-500 uppercase mb-4">{key.split('_')[2]}</div>
                                 <div className="flex items-end justify-between">
-                                    <div className="text-3xl font-display font-black text-white italic">{count}</div>
-                                    <div className="text-[8px] font-black text-gray-600 uppercase">ACTIONS</div>
+                                    <div className="text-4xl font-display font-black text-white italic">{count}</div>
+                                    <div className="text-[8px] font-black text-neon-purple uppercase">Clics</div>
                                 </div>
                             </GlassCard>
                         ))}

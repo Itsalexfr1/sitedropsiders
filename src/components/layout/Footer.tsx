@@ -246,6 +246,9 @@ export function Footer() {
                         <Link to="/mentions-legales" className="text-[10px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
                             <ZoomText text={t('footer.legal')} />
                         </Link>
+                        <Link to="/a-propos" className="text-[10px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
+                            <ZoomText text={language === 'en' ? 'About Us' : 'À propos'} />
+                        </Link>
                         <Link to="/cookies" className="text-[10px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
                             <ZoomText text={t('footer.cookies')} />
                         </Link>
