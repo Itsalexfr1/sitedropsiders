@@ -209,13 +209,7 @@ function ServerPulse() {
 // --- MAIN PAGE ---
 
 export function AdminStats() {
-    const [newsData, setNewsData] = useState<any[]>([]);
-    const [recapsData, setRecapsData] = useState<any[]>([]);
-    const [agendaData, setAgendaData] = useState<any[]>([]);
-    const [subscribersData, setSubscribersData] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [serverStats, setServerStats] = useState<any>(null);
-    const [onlineUsers, setOnlineUsers] = useState(0);
+    const [period, setPeriod] = useState<7 | 30 | 90>(7);
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -237,7 +231,7 @@ export function AdminStats() {
             finally { setLoading(false); }
         };
         fetchAll();
-        const itv = setInterval(fetchAll, 10000);
+        const itv = setInterval(fetchAll, 30000); // 30s instead of 10s for performance
         return () => clearInterval(itv);
     }, []);
 
@@ -245,43 +239,62 @@ export function AdminStats() {
         if (!serverStats) return null;
         
         const total = serverStats.totalVisits || 0;
-        const styles = {
-            'Hardcore': Math.round(Math.random() * 40 + 20),
-            'Rawstyle': Math.round(Math.random() * 30 + 10),
-            'Uptempo': Math.round(Math.random() * 20 + 5),
-            'Frenchcore': Math.round(Math.random() * 10 + 2)
-        };
 
+        // 1. Filter Timeline based on period
+        const filteredTimeline = (serverStats.timeline || []).slice(-period);
+
+        // 2. Calculate Top Performance from real data
+        const allContent = [
+            ...newsData.map(n => ({ ...n, type: 'News' })),
+            ...recapsData.map(r => ({ ...r, type: 'Recap' }))
+        ];
+
+        // Map views from serverStats.topArticles
+        const viewsMap = Object.fromEntries((serverStats.topArticles || []).map((a: any) => [a.id, a.views]));
+
+        const topArticles = allContent
+            .map(article => ({
+                ...article,
+                views: viewsMap[article.id] || 0
+            }))
+            .filter(a => a.views > 0)
+            .sort((a, b) => b.views - a.views)
+            .slice(0, 15)
+            .map(article => {
+                // Viral score calculation: views relative to total visits
+                const viralScore = Math.min(100, Math.round((article.views / (total || 1)) * 1000));
+                return {
+                    ...article,
+                    viralScore
+                };
+            });
+
+        // 3. Tech & Social (Already real from serverStats)
         const tech = {
-            os: [
-                { label: 'iOS', value: 45, hex: '#ff1241' },
-                { label: 'Android', value: 35, hex: '#ffffff' },
-                { label: 'Windows', value: 15, hex: '#0066ff' },
-                { label: 'macOS', value: 5, hex: '#333333' }
+            os: serverStats.os?.length ? serverStats.os : [
+                { label: 'iOS', value: 0, hex: '#ff1241' },
+                { label: 'Android', value: 0, hex: '#ffffff' }
             ],
-            browsers: [
-                { label: 'Safari', value: 48, hex: '#ff1241' },
-                { label: 'Chrome', value: 40, hex: '#ffffff' },
-                { label: 'Instagram', value: 10, hex: '#0066ff' },
-                { label: 'Autres', value: 2, hex: '#333333' }
+            browsers: serverStats.browsers?.length ? serverStats.browsers : [
+                { label: 'Chrome', value: 0, hex: '#ff1241' },
+                { label: 'Safari', value: 0, hex: '#ffffff' }
             ]
         };
 
-        const social = [
-            { name: 'Instagram', visits: Math.round(total * 0.55), icon: '📸' },
-            { name: 'TikTok', visits: Math.round(total * 0.25), icon: '🎵' },
-            { name: 'Facebook', visits: Math.round(total * 0.10), icon: '👥' },
-            { name: 'Google', visits: Math.round(total * 0.10), icon: '🔍' }
-        ];
+        const styles = (serverStats.categories || []).sort((a:any, b:any) => b.value - a.value).slice(0, 5);
+
+        const social = serverStats.sources || [];
 
         return {
             ...serverStats,
+            timeline: filteredTimeline,
+            topArticles,
             styles,
             tech,
             social,
-            health: { latency: '14ms', uptime: '99.98%', load: '1.2s' }
+            health: { latency: '14ms', uptime: '99.99%', load: 'Normal' }
         };
-    }, [serverStats]);
+    }, [serverStats, newsData, recapsData, period]);
 
     if (loading || !stats) return (
         <div className="min-h-screen bg-[#050505] flex items-center justify-center">
@@ -310,27 +323,42 @@ export function AdminStats() {
                                 <Badge color="red">Mission Control</Badge>
                                 <div className="flex items-center gap-2 text-[8px] font-black text-green-500 uppercase tracking-[0.3em]">
                                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />
-                                    Data Stream Active
+                                    Live Stream Active
                                 </div>
                             </div>
                             <h1 className="text-4xl lg:text-7xl font-display font-black uppercase italic tracking-tighter">DROPSIDERS <span className="text-neon-red text-shadow-red">OS</span></h1>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
-                        {[
-                            { label: 'Uptime', val: stats.health.uptime, color: 'text-green-500' },
-                            { label: 'Latence', val: stats.health.latency, color: 'text-neon-blue' },
-                            { label: 'Charge', val: stats.health.load, color: 'text-yellow-400' }
-                        ].map((h, i) => (
-                            <div key={i} className="px-6 py-4 bg-white/5 border border-white/10 rounded-3xl text-center">
-                                <div className={`text-xl font-display font-black italic ${h.color}`}>{h.val}</div>
-                                <div className="text-[8px] font-black text-gray-500 uppercase mt-1">{h.label}</div>
-                            </div>
-                        ))}
+                    <div className="flex items-center gap-6">
+                        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10">
+                            {[7, 30, 90].map((d) => (
+                                <button
+                                    key={d}
+                                    onClick={() => setPeriod(d as any)}
+                                    className={twMerge(
+                                        "px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all",
+                                        period === d ? "bg-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.4)]" : "text-gray-500 hover:text-white"
+                                    )}
+                                >
+                                    {d}J
+                                </button>
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            {[
+                                { label: 'Visites Total', val: stats.totalVisits.toLocaleString(), color: 'text-white' },
+                                { label: 'Online Now', val: stats.onlineUsers, color: 'text-green-500' },
+                                { label: 'Période', val: period + ' Jours', color: 'text-neon-blue' }
+                            ].map((h, i) => (
+                                <div key={i} className="px-6 py-4 bg-white/5 border border-white/10 rounded-3xl text-center">
+                                    <div className={`text-xl font-display font-black italic ${h.color}`}>{h.val}</div>
+                                    <div className="text-[8px] font-black text-gray-500 uppercase mt-1">{h.label}</div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </header>
-
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     
                     {/* LEFT SIDEBAR: TECH & HEALTH */}
@@ -360,17 +388,26 @@ export function AdminStats() {
                         <GlassCard className="p-8 bg-neon-red/5 border-neon-red/20">
                             <h3 className="text-sm font-black uppercase tracking-widest mb-6 text-neon-red italic">STYLES FAVORIS</h3>
                             <div className="space-y-6">
-                                {Object.entries(stats.styles).map(([style, val]: any, i) => (
+                                {stats.styles.map((s: any, i: number) => (
                                     <div key={i}>
                                         <div className="flex justify-between text-[10px] font-black uppercase mb-2">
-                                            <span>{style}</span>
-                                            <span>{val}%</span>
+                                            <span>{s.label}</span>
+                                            <span>{Math.round((s.value / (stats.totalVisits || 1)) * 100)}%</span>
                                         </div>
                                         <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                                             <motion.div 
                                                 initial={{ width: 0 }}
-                                                animate={{ width: `${val}%` }}
-                                                className="h-full bg-neon-red"
+                                                animate={{ width: `${Math.round((s.value / (stats.totalVisits || 1)) * 100)}%` }}
+                                                className="h-full"
+                                                style={{ backgroundColor: s.hex }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                                {stats.styles.length === 0 && <div className="text-[10px] text-gray-600 uppercase font-black">Aucune donnée</div>}
+                            </div>
+                        </GlassCard>
+                    </div>
                                             />
                                         </div>
                                     </div>
@@ -399,35 +436,47 @@ export function AdminStats() {
                                             <div className="w-3 h-3 rounded-full border border-neon-blue border-dashed" />
                                             <span className="text-[8px] font-black uppercase">IA</span>
                                         </div>
-                                    </div>
-                                </div>
+                                    </div></div>
                                 <div className="h-[300px]">
-                                    <AreaChart data={stats.timeline.map((t:any)=>({label:t.date, value:t.value})).slice(-20)} />
+                                    <AreaChart data={stats.timeline.map((t:any)=>({label: t.date.split('-').slice(1).reverse().join('/'), value: t.value}))} />
                                 </div>
                             </GlassCard>
 
                             <div className="lg:col-span-4 space-y-8">
                                 <GlassCard className="p-8 h-full">
                                     <h3 className="text-sm font-black uppercase tracking-widest mb-8 text-gray-400 italic">SOCIAL IMPACT</h3>
-                                    <div className="space-y-6">
-                                        {stats.social.map((s: any, i: number) => (
-                                            <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
-                                                <div className="flex items-center gap-4">
-                                                    <span className="text-2xl">{s.icon}</span>
-                                                    <div>
-                                                        <div className="text-[10px] font-black text-white uppercase">{s.name}</div>
-                                                        <div className="text-[8px] font-black text-gray-500 uppercase">{Math.round(s.visits/stats.totalVisits*100)}% Conversion</div>
+                                    <div className="space-y-4">
+                                        {stats.social.map((s: any, i: number) => {
+                                            const getIcon = (name: string) => {
+                                                const n = name.toLowerCase();
+                                                if (n.includes('instagram')) return '📸';
+                                                if (n.includes('tiktok')) return '🎵';
+                                                if (n.includes('facebook')) return '👥';
+                                                if (n.includes('google')) return '🔍';
+                                                if (n.includes('t.co') || n.includes('twitter') || n.includes('x.com')) return '🐦';
+                                                return '🌐';
+                                            };
+                                            return (
+                                                <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="text-2xl">{getIcon(s.name)}</span>
+                                                        <div>
+                                                            <div className="text-[10px] font-black text-white uppercase truncate max-w-[120px]">{s.name}</div>
+                                                            <div className="text-[8px] font-black text-gray-500 uppercase">{Math.round(s.visits / (stats.totalVisits || 1) * 100)}% Traffic</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-sm font-display font-black text-white">{s.visits.toLocaleString()}</div>
+                                                        <div className="text-[7px] font-black text-gray-600 uppercase">Visites</div>
                                                     </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <div className="text-sm font-display font-black text-white">{s.visits.toLocaleString()}</div>
-                                                    <div className="text-[7px] font-black text-gray-600 uppercase">Hits</div>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
+                                        {stats.social.length === 0 && <div className="text-[10px] text-gray-600 uppercase font-black text-center py-8">Aucun référent détecté</div>}
                                     </div>
                                 </GlassCard>
                             </div>
+                   </div>
                         </div>
 
                         {/* HOURLY ACTIVITY HEATMAP */}

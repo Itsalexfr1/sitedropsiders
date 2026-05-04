@@ -2600,7 +2600,7 @@ ${urls.map(u => `  <url>
 
             try {
                 const body = await request.json();
-                const { id, type } = body;
+                const { id, type, category } = body;
                 const country = request.headers.get('cf-ipcountry') || 'FR';
                 const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
                 const sessionId = request.headers.get('X-Session-ID') || 'unknown';
@@ -2621,10 +2621,18 @@ ${urls.map(u => `  <url>
                 const currentPageViews = parseInt(await env.CHAT_KV.get(pageKey) || '0');
                 await env.CHAT_KV.put(pageKey, (currentPageViews + 1).toString());
 
-                // 4. Timeline
+                // 3b. Category Tracking
+                if (category) {
+                    const catRaw = await env.CHAT_KV.get('analytics_categories');
+                    const categories = catRaw ? JSON.parse(catRaw) : {};
+                    categories[category] = (categories[category] || 0) + 1;
+                    await env.CHAT_KV.put('analytics_categories', JSON.stringify(categories));
+                }
+
+                // 4. Timeline (Stored for 90 days now)
                 const timelineKey = `analytics_timeline_${today}`;
                 const currentTimeline = parseInt(await env.CHAT_KV.get(timelineKey) || '0');
-                await env.CHAT_KV.put(timelineKey, (currentTimeline + 1).toString(), { expirationTtl: 60 * 60 * 24 * 31 });
+                await env.CHAT_KV.put(timelineKey, (currentTimeline + 1).toString(), { expirationTtl: 60 * 60 * 24 * 90 });
 
                 // 5. Online Session
                 const onlineKey = `analytics_online_${sessionId}`;
@@ -2646,8 +2654,37 @@ ${urls.map(u => `  <url>
                     } catch(e) {}
                 }
 
-                // 7. Device Type
+                // 7. Tech Distribution (OS & Browsers)
                 const ua = request.headers.get('User-Agent') || '';
+                
+                // Detect OS
+                let os = 'Autre';
+                if (/iPhone|iPad|iPod/i.test(ua)) os = 'iOS';
+                else if (/Android/i.test(ua)) os = 'Android';
+                else if (/Windows/i.test(ua)) os = 'Windows';
+                else if (/Macintosh|Mac OS X/i.test(ua)) os = 'macOS';
+                else if (/Linux/i.test(ua)) os = 'Linux';
+
+                const osRaw = await env.CHAT_KV.get('analytics_os');
+                const osData = osRaw ? JSON.parse(osRaw) : {};
+                osData[os] = (osData[os] || 0) + 1;
+                await env.CHAT_KV.put('analytics_os', JSON.stringify(osData));
+
+                // Detect Browser
+                let browser = 'Autre';
+                if (/Instagram/i.test(ua)) browser = 'Instagram';
+                else if (/FBAN|FBAV/i.test(ua)) browser = 'Facebook';
+                else if (/Chrome/i.test(ua)) browser = 'Chrome';
+                else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+                else if (/Firefox/i.test(ua)) browser = 'Firefox';
+                else if (/Edg/i.test(ua)) browser = 'Edge';
+
+                const browsersRaw = await env.CHAT_KV.get('analytics_browsers');
+                const browsersData = browsersRaw ? JSON.parse(browsersRaw) : {};
+                browsersData[browser] = (browsersData[browser] || 0) + 1;
+                await env.CHAT_KV.put('analytics_browsers', JSON.stringify(browsersData));
+
+                // Device Type (Mobile/Desktop)
                 const isMobile = /Mobile|Android|iPhone/i.test(ua);
                 const devicesRaw = await env.CHAT_KV.get('analytics_devices');
                 const devices = devicesRaw ? JSON.parse(devicesRaw) : { mobile: 0, desktop: 0 };
@@ -2841,12 +2878,15 @@ ${urls.map(u => `  <url>
 
             try {
                 // Fetch all stats from KV
-                const [totalVisitsRaw, countriesRaw, sourcesRaw, devicesRaw, clicksRaw] = await Promise.all([
+                const [totalVisitsRaw, countriesRaw, sourcesRaw, devicesRaw, clicksRaw, osRaw, browsersRaw, categoriesRaw] = await Promise.all([
                     env.CHAT_KV.get('analytics_total_visits'),
                     env.CHAT_KV.get('analytics_countries'),
                     env.CHAT_KV.get('analytics_sources'),
                     env.CHAT_KV.get('analytics_devices'),
-                    env.CHAT_KV.get('analytics_clicks')
+                    env.CHAT_KV.get('analytics_clicks'),
+                    env.CHAT_KV.get('analytics_os'),
+                    env.CHAT_KV.get('analytics_browsers'),
+                    env.CHAT_KV.get('analytics_categories')
                 ]);
 
                 const totalVisits = parseInt(totalVisitsRaw || '0');
@@ -2854,19 +2894,24 @@ ${urls.map(u => `  <url>
                 const sourcesMap = sourcesRaw ? JSON.parse(sourcesRaw) : {};
                 const devices = devicesRaw ? JSON.parse(devicesRaw) : { mobile: 0, desktop: 0 };
                 const clicks = clicksRaw ? JSON.parse(clicksRaw) : {};
+                const osMap = osRaw ? JSON.parse(osMap) : {};
+                const browsersMap = browsersRaw ? JSON.parse(browsersRaw) : {};
+                const categoriesMap = categoriesRaw ? JSON.parse(categoriesRaw) : {};
 
                 // Online Users
                 const onlinePrefix = 'analytics_online_';
                 const { keys: onlineKeys } = await env.CHAT_KV.list({ prefix: onlinePrefix });
 
-                // Timeline
+                // Timeline (Last 90 days)
                 const timeline = [];
-                for (let i = 0; i < 30; i++) {
+                for (let i = 0; i < 90; i++) {
                     const d = new Date();
                     d.setDate(d.getDate() - i);
                     const ds = d.toISOString().split('T')[0];
                     const val = parseInt(await env.CHAT_KV.get(`analytics_timeline_${ds}`) || '0');
-                    if (val > 0) timeline.push({ date: ds, value: val });
+                    // Even if 0, we might want it for the chart, but to save bandwidth we only send non-zero if needed
+                    // Actually, for a chart, we need the zeros to show the full period
+                    timeline.push({ date: ds, value: val });
                 }
                 timeline.reverse();
 
@@ -2880,15 +2925,21 @@ ${urls.map(u => `  <url>
                 }
                 topArticles.sort((a, b) => b.views - a.views);
 
+                // Colors for charts
+                const colors = ['#ff1241', '#ffffff', '#0066ff', '#333333', '#ffcc00', '#9900ff'];
+
                 return new Response(JSON.stringify({
                     totalVisits,
                     countries: Object.entries(countriesMap).map(([code, visits]) => ({ code, visits })).sort((a:any, b:any) => b.visits - a.visits),
                     sources: Object.entries(sourcesMap).map(([name, visits]) => ({ name, visits })).sort((a:any, b:any) => b.visits - a.visits),
                     devices,
                     clicks,
+                    os: Object.entries(osMap).map(([label, value], i) => ({ label, value, hex: colors[i % colors.length] })),
+                    browsers: Object.entries(browsersMap).map(([label, value], i) => ({ label, value, hex: colors[i % colors.length] })),
+                    categories: Object.entries(categoriesMap).map(([label, value], i) => ({ label, value, hex: colors[i % colors.length] })),
                     onlineUsers: onlineKeys.length,
                     timeline,
-                    topArticles: topArticles.slice(0, 20)
+                    topArticles: topArticles.slice(0, 50) // More articles
                 }), { status: 200, headers });
             } catch (err) {
                 return new Response(JSON.stringify({ error: 'Stats failed' }), { status: 500, headers });
