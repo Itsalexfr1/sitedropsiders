@@ -6,6 +6,8 @@ interface SEOProps {
     description?: string;
     image?: string;
     article?: boolean;
+    date?: string;
+    category?: string;
 }
 
 const DEFAULT_TITLE = "DROPSIDERS : L'actu de tous les festivals";
@@ -13,7 +15,7 @@ const DEFAULT_DESC = "Découvrez toute l'actualité des festivals EDM, Techno, H
 const DEFAULT_IMAGE = "https://dropsiders.fr/logo_presentation.png";
 const BASE_URL = "https://www.dropsiders.fr";
 
-export function SEO({ title, description, image, article }: SEOProps) {
+export function SEO({ title, description, image, article, date, category }: SEOProps) {
     const { pathname } = useLocation();
 
     useEffect(() => {
@@ -72,7 +74,43 @@ export function SEO({ title, description, image, article }: SEOProps) {
             document.head.appendChild(canonical);
         }
 
-    }, [title, description, image, article, pathname]);
+        // 6. JSON-LD Structured Data
+        let schemaTag = document.querySelector('script[type="application/ld+json"]');
+        if (!schemaTag) {
+            schemaTag = document.createElement('script');
+            schemaTag.setAttribute('type', 'application/ld+json');
+            document.head.appendChild(schemaTag);
+        }
+
+        const schema: any = {
+            "@context": "https://schema.org",
+            "@type": article ? "NewsArticle" : "WebSite",
+            "url": currentUrl,
+            "name": fullTitle,
+            "description": metaDesc,
+            "image": currentImg,
+        };
+
+        if (article) {
+            schema.headline = title;
+            schema.datePublished = date || new Date().toISOString();
+            schema.author = {
+                "@type": "Organization",
+                "name": "Dropsiders"
+            };
+            schema.publisher = {
+                "@type": "Organization",
+                "name": "Dropsiders",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://dropsiders.fr/logo_presentation.png"
+                }
+            };
+        }
+
+        schemaTag.textContent = JSON.stringify(schema);
+
+    }, [title, description, image, article, date, category, pathname]);
 
     return null;
 }

@@ -1,0 +1,21 @@
+{
+  "author": {
+    "id": "1481163258080788602",
+    "name": "Dropsiders"
+  },
+  "category": "music",
+  "description": {
+    "en": "Show your activity on Dropsiders!",
+    "fr": "Affichez votre activité sur Dropsiders !"
+  },
+  "logo": "https://dropsiders.fr/logo_presentation.png",
+  "name": "Dropsiders",
+  "service": "dropsiders.fr",
+  "url": [
+    "dropsiders.fr",
+    "www.dropsiders.fr"
+  ],
+  "version": "1.0.1",
+  "settings": [],
+  "color": "#ff1241"
+}

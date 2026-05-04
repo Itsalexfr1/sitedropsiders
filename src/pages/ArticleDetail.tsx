@@ -130,6 +130,7 @@ export function ArticleDetail() {
                 description={article.summary}
                 image={article.image}
                 article={true}
+                date={article.date}
             />
             <ArticlePremiumTemplate
                 article={article}

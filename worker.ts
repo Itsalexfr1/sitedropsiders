@@ -495,16 +495,20 @@ export default {
                 { loc: '/', priority: '1.0' },
                 { loc: '/news', priority: '0.8' },
                 { loc: '/recaps', priority: '0.8' },
-                { loc: '/agenda', priority: '0.8' },
+                { loc: '/agenda', priority: '0.9' },
                 { loc: '/galerie', priority: '0.7' },
-                { loc: '/community', priority: '0.6' }
+                { loc: '/community', priority: '0.6' },
+                { loc: '/shop', priority: '0.5' },
+                { loc: '/voyage', priority: '0.6' }
             ];
 
             try {
                 const git = { OWNER, REPO, TOKEN };
-                const news = await fetchGitHubFile('src/data/news.json', git);
-                const recaps = await fetchGitHubFile('src/data/recaps.json', git);
-                const agenda = await fetchGitHubFile('src/data/agenda.json', git);
+                const [news, recaps, agenda] = await Promise.all([
+                    fetchGitHubFile('src/data/news.json', git),
+                    fetchGitHubFile('src/data/recaps.json', git),
+                    fetchGitHubFile('src/data/agenda.json', git)
+                ]);
 
                 if (news?.content) {
                     news.content.forEach(item => {
@@ -520,7 +524,8 @@ export default {
                 }
                 if (agenda?.content) {
                     agenda.content.forEach(item => {
-                        urls.push({ loc: `/agenda` }); // Agenda is one page for now? Or depends on structure.
+                        const slug = `${item.id}-${item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+                        urls.push({ loc: `/agenda?event=${slug}`, lastmod: item.startDate || item.date });
                     });
                 }
 
@@ -7195,8 +7200,7 @@ ${urls.map(u => `  <url>
         } else {
             return new Response("Not Found (No Assets Binding)", { status: 404 });
         }
-
-        const contentType = response.headers.get("content-type");
+const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("text/html")) {
             const origin = url.origin;
             let title = "DROPSIDERS : L'actu de tous les festivals";
@@ -7208,6 +7212,7 @@ ${urls.map(u => `  <url>
             const recapMatch = path.match(/^\/recaps\/([^\/]+)/);
             const interviewMatch = path.match(/^\/interviews\/([^\/]+)/);
             const galerieMatch = path.match(/^\/galerie\/([^\/]+)/);
+            const agendaEventParam = url.searchParams.get('event');
 
             let id = null;
             let dataSource = null;
@@ -7229,6 +7234,13 @@ ${urls.map(u => `  <url>
             } else if (galerieMatch) {
                 id = galerieMatch[1];
                 dataSource = 'src/data/galerie.json';
+            } else if (path.startsWith('/agenda') && agendaEventParam) {
+                const slug = agendaEventParam;
+                const endMatch = slug.match(/-(\d+)$/);
+                const startMatch = slug.match(/^(\d+)[_-]/);
+                const pureIdMatch = slug.match(/^(\d+)$/);
+                id = endMatch ? endMatch[1] : (startMatch ? startMatch[1] : (pureIdMatch ? pureIdMatch[1] : slug));
+                dataSource = 'src/data/agenda.json';
             }
 
             if (id && dataSource) {
@@ -7248,11 +7260,14 @@ ${urls.map(u => `  <url>
                 title = `${foundItem.title.replace(/<[^>]*>/g, '').trim()} | Dropsiders`;
                 if (foundItem.summary) {
                     description = foundItem.summary.replace(/<[^>]*>/g, '').substring(0, 160).trim();
+                } else if (foundItem.location) {
+                    description = `${foundItem.genre || foundItem.type || 'Festival'} @ ${foundItem.location}${foundItem.venue ? ` (${foundItem.venue})` : ''} - ${foundItem.startDate || foundItem.date || ''}`;
                 } else if (foundItem.category) {
                     description = `${foundItem.category} - ${foundItem.date || ''} | Dropsiders`;
                 }
 
                 if (foundItem.cover) image = foundItem.cover;
+                else if (foundItem.poster) image = foundItem.poster;
                 else if (foundItem.image) image = foundItem.image;
                 else if (foundItem.images && foundItem.images.length > 0) image = foundItem.images[0];
             }

@@ -111,6 +111,7 @@ export function RecapDetail() {
                 description={recap.summary}
                 image={recap.image}
                 article={true}
+                date={recap.date}
             />
             <ArticlePremiumTemplate
                 article={recap}
