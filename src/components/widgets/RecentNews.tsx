@@ -190,9 +190,8 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                                         <span>{new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' })}</span>
                                     </div>
                                     <h4 
-                                        className="font-display font-bold text-xs md:text-sm leading-tight uppercase italic tracking-tight" 
+                                        className="font-display font-bold text-xs md:text-sm leading-tight uppercase italic tracking-tight text-white group-hover:text-[var(--theme-color)] transition-colors duration-200" 
                                         style={{ 
-                                            color: `var(--color-${getCategoryColor(item.category)})`,
                                             '--theme-color': `var(--color-${getCategoryColor(item.category)})`
                                         } as any}
                                         dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
@@ -219,7 +218,12 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                                         <span style={{ color: `var(--color-${getCategoryColor(item.category)})` }}>{item.category}</span>
                                         <span>{new Date(item.date).toLocaleDateString()}</span>
                                     </div>
-                                    <h5 className="text-[11px] font-bold text-white line-clamp-4 leading-tight uppercase italic">{translatedTitles[item.id] || item.title}</h5>
+                                    <h5 
+                                        className="text-[11px] font-bold text-white line-clamp-4 leading-tight uppercase italic group-hover:text-[var(--theme-color)] transition-colors duration-200"
+                                        style={{ '--theme-color': `var(--color-${getCategoryColor(item.category)})` } as any}
+                                    >
+                                        {translatedTitles[item.id] || item.title}
+                                    </h5>
                                 </div>
                             </Link>
                         ))}

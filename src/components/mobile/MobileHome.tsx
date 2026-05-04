@@ -170,9 +170,8 @@ export function MobileHome() {
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
-                                    className="text-[1.25rem] sm:text-2xl font-display font-black italic leading-[1.1] uppercase line-clamp-4 drop-shadow-2xl transition-colors"
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black italic leading-[1.1] uppercase line-clamp-4 drop-shadow-2xl transition-colors text-white group-active:text-[var(--theme-color)]"
                                     style={{ 
-                                        color: `var(--color-${getCategoryColor(news.category)})`,
                                         '--theme-color': `var(--color-${getCategoryColor(news.category)})`
                                     } as any}
                                     dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[news.id] || news.title) : news.title) }}
@@ -219,8 +218,8 @@ export function MobileHome() {
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
-                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl transition-colors"
-                                    style={{ '--hover-color': `var(--color-${getCategoryColor(news.category)})` } as any}
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl transition-colors group-active:text-[var(--theme-color)]"
+                                    style={{ '--theme-color': `var(--color-${getCategoryColor(news.category)})` } as any}
                                     dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[news.id] || news.title) : news.title) }}
                                 />
                                 <div className="flex items-center gap-3 text-white/60">
@@ -342,7 +341,8 @@ export function MobileHome() {
 
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
-                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-purple transition-colors"
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-[var(--theme-color)] transition-colors"
+                                    style={{ '--theme-color': `var(--color-neon-purple)` } as any}
                                     dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[recap.id] || recap.title) : recap.title) }}
                                 />
                                 <div className="flex items-center gap-3 text-white/60">
@@ -397,8 +397,8 @@ export function MobileHome() {
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
-                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl transition-colors"
-                                    style={{ '--hover-color': `var(--color-${getCategoryColor(interview.category)})` } as any}
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl transition-colors group-active:text-[var(--theme-color)]"
+                                    style={{ '--theme-color': `var(--color-${getCategoryColor(interview.category)})` } as any}
                                     dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[interview.id] || interview.title) : interview.title) }}
                                 />
                                 <div className="flex items-center gap-3 text-white/60">

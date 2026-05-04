@@ -173,10 +173,9 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                             <span>{new Date(heroNews.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
                         <h2 
-                            className="text-2xl md:text-4xl font-display font-bold leading-tight transition-colors group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                            className="text-2xl md:text-4xl font-display font-bold leading-tight transition-colors text-white group-hover:text-[var(--theme-color)] group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]"
                             style={{ 
-                                color: heroNews.isFocus ? 'white' : `var(--color-${getCategoryColor(heroNews.category)})`,
-                                '--theme-color': heroNews.isFocus ? 'white' : `var(--color-${getCategoryColor(heroNews.category)})`
+                                '--theme-color': heroNews.isFocus ? '#eab308' : `var(--color-${getCategoryColor(heroNews.category)})`
                             } as any}
                             dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitle || heroNews.title) }}
                         />
