@@ -233,9 +233,23 @@ export function InvoiceGeneratorMobile() {
             
             // Generate PDF on frontend
             const element = document.createElement('div');
+            element.style.position = 'fixed';
+            element.style.left = '-9999px';
+            element.style.top = '0';
+            element.style.width = '210mm'; // Standard A4 width
             element.innerHTML = buildHTML();
-            const opt = { margin: 0, filename: `Facture_${formattedNumber}.pdf`, image: { type: 'jpeg' as const, quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } };
-            const pdfDataUri = await html2pdf().from(element).set(opt).outputPdf('datauristring');
+            document.body.appendChild(element);
+
+            const opt = { 
+                margin: 0, 
+                filename: `Facture_${formattedNumber}.pdf`, 
+                image: { type: 'jpeg' as const, quality: 0.98 }, 
+                html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
+            };
+            
+            const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+            document.body.removeChild(element);
 
             const res = await fetch('/api/facture/send', { 
                 method: 'POST', 

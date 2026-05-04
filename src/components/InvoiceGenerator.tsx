@@ -366,9 +366,23 @@ export function InvoiceGenerator() {
             const html2pdf = (html2pdfModule as any).default || html2pdfModule;
 
             const element = document.createElement('div');
+            element.style.position = 'fixed';
+            element.style.left = '-9999px';
+            element.style.top = '0';
+            element.style.width = '210mm'; // Standard A4 width
             element.innerHTML = html;
-            const opt = { margin: 0, filename: `Facture_${formattedNumber}.pdf`, image: { type: 'jpeg' as const, quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } };
-            const pdfDataUri = await html2pdf().from(element).set(opt).outputPdf('datauristring');
+            document.body.appendChild(element);
+
+            const opt = { 
+                margin: 0, 
+                filename: `Facture_${formattedNumber}.pdf`, 
+                image: { type: 'jpeg' as const, quality: 0.98 }, 
+                html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
+            };
+            
+            const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+            document.body.removeChild(element);
 
             const adminUser = localStorage.getItem('admin_user') || '';
             const adminPass = localStorage.getItem('admin_password') || '';
