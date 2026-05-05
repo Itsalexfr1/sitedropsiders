@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { StarField } from '../components/ui/StarField';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 
 export function AdminSettings() {
     const navigate = useNavigate();
@@ -32,6 +33,19 @@ export function AdminSettings() {
     const [isRevoking, setIsRevoking] = useState(false);
     const [isTestingPush, setIsTestingPush] = useState(false);
     const [subscribersCount, setSubscribersCount] = useState<number | null>(null);
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        accentColor: 'neon-red' | 'neon-purple' | 'neon-yellow' | 'neon-cyan';
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => {},
+        accentColor: 'neon-purple'
+    });
 
     // Toast State
     const [toast, setToast] = useState<{
@@ -143,55 +157,70 @@ export function AdminSettings() {
     };
 
     const handleRevokeSessions = async () => {
-        if (!confirm('Voulez-vous vraiment déconnecter tous les autres appareils ? Vous resterez connecté sur celui-ci.')) return;
-
-        setIsRevoking(true);
-        try {
-            const res = await apiFetch('/api/auth/revoke-all', {
-                method: 'POST',
-                headers: getAuthHeaders()
-            });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.sessionId) {
-                    localStorage.setItem('admin_session_id', data.sessionId);
-                    showNotification('Toutes les autres sessions ont été révoquées !', 'success');
+        setConfirmModal({
+            isOpen: true,
+            title: "Sécurité",
+            message: "Voulez-vous vraiment déconnecter tous les autres appareils ? Vous resterez connecté sur celui-ci.",
+            accentColor: 'neon-red',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                setIsRevoking(true);
+                try {
+                    const res = await apiFetch('/api/auth/revoke-all', {
+                        method: 'POST',
+                        headers: getAuthHeaders()
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.sessionId) {
+                            localStorage.setItem('admin_session_id', data.sessionId);
+                            showNotification('Toutes les autres sessions ont été révoquées !', 'success');
+                        }
+                    } else {
+                        const errorData = await res.json().catch(() => ({}));
+                        showNotification(errorData.error || 'Erreur lors de la révocation', 'error');
+                    }
+                } catch (e: any) {
+                    showNotification('Erreur réseau', 'error');
+                } finally {
+                    setIsRevoking(false);
                 }
-            } else {
-                const errorData = await res.json().catch(() => ({}));
-                showNotification(errorData.error || 'Erreur lors de la révocation', 'error');
             }
-        } catch (e: any) {
-            showNotification('Erreur réseau', 'error');
-        } finally {
-            setIsRevoking(false);
-        }
+        });
     };
 
     const handleTestPush = async () => {
-        if (!window.confirm('Voulez-vous envoyer une notification de test à TOUS les abonnés ?')) return;
-        setIsTestingPush(true);
-        try {
-            const res = await apiFetch('/api/push/test', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({
-                    password: adminPassword,
-                    title: "DROPSIDERS : TEST RÉUSSI 🚀",
-                    body: "Ton système de notifications push est maintenant 100% opérationnel !"
-                })
-            });
-            if (res.ok) {
-                showNotification('Notification de test envoyée !');
-            } else {
-                const err = await res.json();
-                showNotification(err.error || 'Erreur lors de l\'envoi', 'error');
+        setConfirmModal({
+            isOpen: true,
+            title: "Notification Push",
+            message: "Voulez-vous envoyer une notification de test à TOUS les abonnés ?",
+            accentColor: 'neon-red',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                setIsTestingPush(true);
+                try {
+                    const res = await apiFetch('/api/push/test', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({
+                            password: adminPassword,
+                            title: "DROPSIDERS : TEST RÉUSSI 🚀",
+                            body: "Ton système de notifications push est maintenant 100% opérationnel !"
+                        })
+                    });
+                    if (res.ok) {
+                        showNotification('Notification de test envoyée !');
+                    } else {
+                        const err = await res.json();
+                        showNotification(err.error || 'Erreur lors de l\'envoi', 'error');
+                    }
+                } catch (e) {
+                    showNotification('Erreur réseau', 'error');
+                } finally {
+                    setIsTestingPush(false);
+                }
             }
-        } catch (e) {
-            showNotification('Erreur réseau', 'error');
-        } finally {
-            setIsTestingPush(false);
-        }
+        });
     };
 
     const handleResetLeaderboard = async (type: 'xp' | 'wiki' | 'all') => {
@@ -199,23 +228,30 @@ export function AdminSettings() {
                        type === 'wiki' ? "Voulez-vous vraiment remettre à zéro tous les votes et notes des DJs, Clubs et Festivals ?" :
                        "Voulez-vous vraiment remettre à zéro TOUS les classements (XP + Wiki) ?";
         
-        if (!window.confirm(message)) return;
+        setConfirmModal({
+            isOpen: true,
+            title: "Réinitialisation",
+            message: message,
+            accentColor: 'neon-yellow',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const res = await apiFetch('/api/admin/reset-leaderboards', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ type })
+                    });
 
-        try {
-            const res = await apiFetch('/api/admin/reset-leaderboards', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ type })
-            });
-
-            if (res.ok) {
-                showNotification("Réinitialisation effectuée avec succès !", 'success');
-            } else {
-                showNotification("Erreur lors de la réinitialisation.", 'error');
+                    if (res.ok) {
+                        showNotification("Réinitialisation effectuée avec succès !", 'success');
+                    } else {
+                        showNotification("Erreur lors de la réinitialisation.", 'error');
+                    }
+                } catch (e) {
+                    showNotification("Erreur réseau.", 'error');
+                }
             }
-        } catch (e) {
-            showNotification("Erreur réseau.", 'error');
-        }
+        });
     };
 
     if (!isAdmin) return null;
@@ -669,6 +705,17 @@ export function AdminSettings() {
                         </div>
                     </div>
                 </div>
+
+                <ConfirmationModal
+                    isOpen={confirmModal.isOpen}
+                    title={confirmModal.title}
+                    message={confirmModal.message}
+                    confirmLabel="Confirmer"
+                    cancelLabel="Annuler"
+                    onConfirm={confirmModal.onConfirm}
+                    onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                    accentColor={confirmModal.accentColor}
+                />
             </div>
         </div>
     );

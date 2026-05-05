@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useUser } from '../../context/UserContext';
 import { UserAuthModal } from '../auth/UserAuthModal';
+import { ConfirmationModal } from '../ConfirmationModal';
 
 interface Track {
     title: string;
@@ -27,6 +28,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [votedTracks, setVotedTracks] = useState<string[]>([]);
     const [previewVideo, setPreviewVideo] = useState<string | null>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const { user } = useUser();
     const color = resolvedColor || 'var(--color-neon-cyan)';
     const searchTimeout = useRef<any>(null);
@@ -137,8 +139,12 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const handleDelete = async (title: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (!isAdmin) return;
-        if (!confirm(`Supprimer "${title}" du classement ?`)) return;
+        setDeleteConfirm(title);
+    };
 
+    const confirmDelete = async () => {
+        if (!deleteConfirm) return;
+        const title = deleteConfirm;
         try {
             const res = await fetch('/api/music/delete', {
                 method: 'POST',
@@ -151,6 +157,8 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
             }
         } catch (err) {
             console.error('Failed to delete track:', err);
+        } finally {
+            setDeleteConfirm(null);
         }
     };
 
@@ -479,6 +487,17 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
             </AnimatePresence>
 
             <UserAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+
+            <ConfirmationModal
+                isOpen={!!deleteConfirm}
+                title="Suppression"
+                message={`Voulez-vous vraiment supprimer "${deleteConfirm}" du classement ?`}
+                confirmLabel="Supprimer"
+                cancelLabel="Annuler"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteConfirm(null)}
+                accentColor="neon-red"
+            />
         </div>
     );
 }

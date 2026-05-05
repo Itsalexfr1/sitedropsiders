@@ -8,6 +8,7 @@ import {
 import { Link } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { uploadFile } from '../utils/uploadService';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 
 interface PDF {
     id: string;
@@ -26,6 +27,7 @@ export function AdminPdfs() {
     const [status, setStatus] = useState<{ type: 'success' | 'error' | 'loading' | 'idle', message: string }>({ type: 'idle', message: '' });
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
     const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     
     // New PDF state
     const [newPdfTitle, setNewPdfTitle] = useState('');
@@ -120,8 +122,13 @@ export function AdminPdfs() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer ce document ?')) return;
+    const handleDelete = (id: string) => {
+        setDeleteConfirmId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteConfirmId) return;
+        const id = deleteConfirmId;
 
         try {
             const res = await fetch('/api/pdfs/delete', {
@@ -140,6 +147,7 @@ export function AdminPdfs() {
         } catch (error) {
             setStatus({ type: 'error', message: 'Erreur lors de la suppression.' });
         } finally {
+            setDeleteConfirmId(null);
             setTimeout(() => setStatus({ type: 'idle', message: '' }), 3000);
         }
     };
@@ -409,6 +417,16 @@ export function AdminPdfs() {
                     </div>
                 )}
             </AnimatePresence>
+            <ConfirmationModal
+                isOpen={!!deleteConfirmId}
+                title="Suppression"
+                message="Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible."
+                confirmLabel="Supprimer"
+                cancelLabel="Annuler"
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteConfirmId(null)}
+                accentColor="neon-red"
+            />
         </div>
     );
 }
