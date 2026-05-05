@@ -60,18 +60,6 @@
     "columns": 1
   },
   {
-    "title": "Quizz & CONCOURS",
-    "description": "Tirages, Quizz, Participants",
-    "icon": "Gamepad2",
-    "category": "ALL",
-    "link": "#QUIZZ_CONCOURS_MODAL",
-    "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-neon-red/5",
-    "permission": "all",
-    "baseColor": "#00fffb",
-    "columns": 1
-  },
-  {
     "title": "Communauté",
     "description": "Modération & Galerie",
     "icon": "MessageSquare",
@@ -120,18 +108,6 @@
     "columns": 1
   },
   {
-    "title": "Documents PDF",
-    "description": "Hébergement & Partage",
-    "icon": "Download",
-    "category": "WIKI",
-    "link": "/admin/pdfs",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "news",
-    "baseColor": "#00ccff",
-    "columns": 1
-  },
-  {
     "title": "L'Équipe & Éditeurs",
     "description": "Accès & Membres",
     "icon": "Users",
@@ -151,6 +127,18 @@
     "link": "video-ai-translator",
     "permission": "news",
     "baseColor": "#00fffb",
+    "columns": 1
+  },
+  {
+    "title": "Documents PDF",
+    "description": "Hébergement & Partage",
+    "icon": "Download",
+    "category": "WIKI",
+    "link": "/admin/pdfs",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "news",
+    "baseColor": "#00ccff",
     "columns": 1
   }
 ]
