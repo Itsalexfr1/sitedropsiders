@@ -589,7 +589,12 @@ Alex (Dropsiders)`;
             setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, interviewDate, interviewFestival, currentName));
             const djPart = djName ? ` – ${djName}` : '';
             const festPart = interviewFestival ? ` – ${interviewFestival}` : ' – EDC Las Vegas';
-            setMailSubject(`Demande d’interview${djPart}${festPart} – Media Dropsiders (Alex)`);
+            
+            if (accreditationLang === 'FR') {
+                setMailSubject(`Demande d’interview${djPart}${festPart} – Media Dropsiders (Alex)`);
+            } else {
+                setMailSubject(`Interview Request${djPart}${festPart} – Media Dropsiders (Alex)`);
+            }
         } else {
             // Standard press release
             setReplyBody(getPressReleaseTemplate(accreditationLang, currentName));
