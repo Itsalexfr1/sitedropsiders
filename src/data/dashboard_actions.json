@@ -8,7 +8,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "superadmin",
-    "baseColor": "#ff7300",
+    "baseColor": "#ff0000",
     "columns": 1
   },
   {
@@ -56,7 +56,7 @@
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
-    "baseColor": "#dcb88e",
+    "baseColor": "#c0a577",
     "columns": 1
   },
   {
