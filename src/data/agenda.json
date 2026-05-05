@@ -6174,5 +6174,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1006,
+    "title": "CERCLE FESTIVAL MEXIQUE",
+    "date": "2026-11-14",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-15",
+    "venue": "CRANIA",
+    "location": "SAN JOSÉ DEL CABO",
+    "country": "MEXIQUE",
+    "type": "Festival",
+    "image": "/uploads/c989706d642eeda7-1_1_flyer_cf_mexico_annonce.jpeg",
+    "url": "https://forms.cercle.io/pre_register_festival_mexico_26",
+    "genre": "House",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
