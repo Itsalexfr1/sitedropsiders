@@ -504,7 +504,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
             const location = festivalName.toLowerCase().includes('edc') ? "Las Vegas" : "le lieu du festival";
             const dateInfo = date ? `(autour du ${date})` : '';
 
-            return `Hello [Nom du manager],
+            return `Hello,
 
 Je m'appelle Alex, je suis journaliste pour Dropsiders, média français spécialisé dans la musique électronique et la culture DJ.
 
@@ -522,8 +522,7 @@ Dropsiders a pour but de mettre en avant la scène électronique mondiale auprè
 
 Seriez-vous disponible pour caler un court créneau durant le week-end ${dateInfo} ?
 
-Lien des questions :
-https://dropsiders.fr/uploads/pdfs/5efcee3d6da91551-Interview_Cards_Dropsiders_VER.pdf
+<a href="https://dropsiders.fr/uploads/pdfs/5efcee3d6da91551-Interview_Cards_Dropsiders_VER.pdf" style="color:#ff1241; font-weight:bold; text-decoration:underline;">Cliquez ici pour voir l'exemple des questions (PDF)</a>
 
 Dans l'attente de votre réponse,
 
@@ -536,7 +535,7 @@ Alex (Dropsiders)`;
             const locationEN = festivalNameEN.toLowerCase().includes('edc') ? "Las Vegas" : "the festival location";
             const dateInfoEN = date ? `(around ${date})` : '';
 
-            return `Hello [Manager Name],
+            return `Hello,
 
 My name is Alex, I am a journalist for Dropsiders, a French media specialized in electronic music and DJ culture.
 
@@ -554,8 +553,7 @@ Dropsiders aims to highlight the global electronic scene to the French-speaking 
 
 Would you be available to schedule a short slot during the weekend ${dateInfoEN} ?
 
-Example of questions:
-https://dropsiders.fr/uploads/pdfs/1a7e292d6bf86432-Interview_Cards_Dropsiders_VER.pdf
+<a href="https://dropsiders.fr/uploads/pdfs/1a7e292d6bf86432-Interview_Cards_Dropsiders_VER.pdf" style="color:#ff1241; font-weight:bold; text-decoration:underline;">Click here to see the example questions (PDF)</a>
 
 Looking forward to your response,
 
