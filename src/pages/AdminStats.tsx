@@ -408,13 +408,6 @@ export function AdminStats() {
                             </div>
                         </GlassCard>
                     </div>
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </GlassCard>
-                    </div>
 
                     {/* MAIN CONTENT AREA */}
                     <div className="lg:col-span-9 space-y-8">
@@ -476,7 +469,6 @@ export function AdminStats() {
                                     </div>
                                 </GlassCard>
                             </div>
-                   </div>
                         </div>
 
                         {/* HOURLY ACTIVITY HEATMAP */}

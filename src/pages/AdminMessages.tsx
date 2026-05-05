@@ -499,51 +499,72 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
 
     const getInterviewTemplate = (lang: 'FR' | 'EN', dj: string, type: string, date: string, festival: string, name: string) => {
         if (lang === 'FR') {
-            return `Bonjour,
+            const artistName = dj || "[Nom de l’Artiste]";
+            const festivalName = festival || "l'EDC Las Vegas";
+            const location = festivalName.toLowerCase().includes('edc') ? "Las Vegas" : "le lieu du festival";
+            const dateInfo = date ? `(autour du ${date})` : '';
 
-Dropsiders est un média immersif de référence dédié à la culture électronique. Nous souhaiterions vous proposer une interview exclusive pour mettre en avant l'artiste :
+            return `Hello [Nom du manager],
 
-ARTISTE : ${dj || "[NOM DE L'ARTISTE]"}
-FESTIVAL : ${festival || "[NOM DU FESTIVAL]"}
-DATE : ${date || "[DATE]"}
-FORMAT : Interview ${type}
+Je m'appelle Alex, je suis journaliste pour Dropsiders, média français spécialisé dans la musique électronique et la culture DJ.
 
-Travailler avec Dropsiders, c'est bénéficier d'une vitrine premium et "carrée" :
-- Articles interactifs haute performance (lecteur audio IA, design immersif).
-- Découvrez nos dernières interviews ici : https://dropsiders.fr/interviews
-- <a href="https://dropsiders.fr/uploads/pdfs/1a7e292d6bf86432-Interview_Cards_Dropsiders_VER.pdf" style="color:#ff0033; font-weight:bold;">Cliquez ici pour voir un exemple des questions qui seront posées</a>
-- Visibilité accrue via notre Agenda et notre nouvel espace Communauté (Votes, Avis).
-- Promotion ciblée sur nos réseaux sociaux (Instagram, TikTok).
-- Audience de passionnés et de professionnels ultra-engagés.
+Nous suivons de très près l'actualité de ${artistName} et, comme je serai présent à ${location} avec une accréditation presse officielle pour ${festivalName}, je souhaiterais organiser une rencontre privilégiée avec lui/elle.
 
-Nous serions ravis de collaborer pour mettre en lumière l'actualité de votre artiste.
+L'idée est de proposer à notre communauté une interview dynamique axée sur son actualité, sa vision du mix et son expérience sur une scène aussi légendaire que celle de ${festivalName}.
 
-Dans l'attente de votre retour,
-${name ? name + '\n' : ''}L'équipe Dropsiders.`;
+Infos pratiques :
+
+Format : Interview ${type.toLowerCase()} (vidéo format réseaux sociaux ou écrit).
+Lieu : En backstage ou zone presse de ${festivalName}.
+Timing : 10-15 minutes maximum.
+
+Dropsiders a pour but de mettre en avant la scène électronique mondiale auprès du public francophone, et la présence de ${artistName} sur nos supports serait un vrai plus pour notre couverture du festival.
+
+Seriez-vous disponible pour caler un court créneau durant le week-end ${dateInfo} ?
+
+Lien des questions :
+https://dropsiders.fr/uploads/pdfs/5efcee3d6da91551-Interview_Cards_Dropsiders_VER.pdf
+
+Dans l'attente de votre réponse,
+
+Musicalement,
+
+Alex (Dropsiders)`;
         } else {
-            return `Hello,
+            const artistNameEN = dj || "[Artist Name]";
+            const festivalNameEN = festival || "EDC Las Vegas";
+            const locationEN = festivalNameEN.toLowerCase().includes('edc') ? "Las Vegas" : "the festival location";
+            const dateInfoEN = date ? `(around ${date})` : '';
 
-Dropsiders is a leading immersive media dedicated to electronic culture. We would like to propose an exclusive interview to highlight the artist:
+            return `Hello [Manager Name],
 
-ARTIST: ${dj || "[ARTIST NAME]"}
-FESTIVAL: ${festival || "[FESTIVAL NAME]"}
-DATE: ${date || "[DATE]"}
-FORMAT: ${type} Interview
+My name is Alex, I am a journalist for Dropsiders, a French media specialized in electronic music and DJ culture.
 
-Partnering with Dropsiders means benefiting from a premium and professional showcase:
-- High-performance interactive articles (AI audio player, immersive design).
-- Check out our latest interviews here: https://dropsiders.fr/interviews
-- <a href="https://dropsiders.fr/uploads/pdfs/1a7e292d6bf86432-Interview_Cards_Dropsiders_VER.pdf" style="color:#ff0033; font-weight:bold;">Click here to see an example of the questions that will be asked</a>
-- Increased visibility through our Agenda and our new Community hub (Votes, Reviews).
-- Targeted promotion on our social networks (Instagram, TikTok).
-- Highly engaged audience of fans and industry professionals.
+We are closely following ${artistNameEN}'s news and, as I will be present at ${locationEN} with an official press accreditation for ${festivalNameEN}, I would like to organize a privileged meeting with him/her.
 
-We would be delighted to collaborate to highlight your artist's latest news.
+The idea is to offer our community a dynamic interview focused on his/her latest news, vision of mixing, and experience on a stage as legendary as ${festivalNameEN}.
 
-Looking forward to hearing from you,
-${name ? name + '\n' : ''}The Dropsiders Team.`;
+Practical info:
+
+Format: ${type} interview (social media video format or written).
+Location: In backstage or press area of ${festivalNameEN}.
+Timing: 10-15 minutes maximum.
+
+Dropsiders aims to highlight the global electronic scene to the French-speaking audience, and having ${artistNameEN} on our platforms would be a real asset for our festival coverage.
+
+Would you be available to schedule a short slot during the weekend ${dateInfoEN} ?
+
+Example of questions:
+https://dropsiders.fr/uploads/pdfs/1a7e292d6bf86432-Interview_Cards_Dropsiders_VER.pdf
+
+Looking forward to your response,
+
+Musically,
+
+Alex (Dropsiders)`;
         }
     };
+
 
     useEffect(() => {
         if (!isNewMail) return;
@@ -568,14 +589,9 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
             }
         } else if (isInterviewMode) {
             setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, interviewDate, interviewFestival, currentName));
-            const djPart = djName ? ` - ${djName.toUpperCase()}` : '';
-            const festPart = interviewFestival ? ` @ ${interviewFestival.toUpperCase()}` : '';
-            if (accreditationLang === 'FR') {
-                setMailSubject(`DEMANDE INTERVIEW ${interviewType.toUpperCase()}${djPart}${festPart} - DROPSIDERS`);
-            } else {
-                const typeEN = interviewType === 'Vidéo' ? 'VIDEO' : 'WRITTEN';
-                setMailSubject(`${typeEN} INTERVIEW REQUEST${djPart}${festPart} - DROPSIDERS`);
-            }
+            const djPart = djName ? ` – ${djName}` : '';
+            const festPart = interviewFestival ? ` – ${interviewFestival}` : ' – EDC Las Vegas';
+            setMailSubject(`Demande d’interview${djPart}${festPart} – Media Dropsiders (Alex)`);
         } else {
             // Standard press release
             setReplyBody(getPressReleaseTemplate(accreditationLang, currentName));
