@@ -210,6 +210,13 @@ function ServerPulse() {
 
 export function AdminStats() {
     const [period, setPeriod] = useState<7 | 30 | 90>(7);
+    const [serverStats, setServerStats] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [onlineUsers, setOnlineUsers] = useState(0);
+    const [newsData, setNewsData] = useState<any[]>([]);
+    const [recapsData, setRecapsData] = useState<any[]>([]);
+    const [agendaData, setAgendaData] = useState<any[]>([]);
+    const [subscribersData, setSubscribersData] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -245,8 +252,8 @@ export function AdminStats() {
 
         // 2. Calculate Top Performance from real data
         const allContent = [
-            ...newsData.map(n => ({ ...n, type: 'News' })),
-            ...recapsData.map(r => ({ ...r, type: 'Recap' }))
+            ...newsData.map((n: any) => ({ ...n, type: 'News' })),
+            ...recapsData.map((r: any) => ({ ...r, type: 'Recap' }))
         ];
 
         // Map views from serverStats.topArticles
