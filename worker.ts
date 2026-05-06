@@ -3282,25 +3282,25 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/pro-order' && request.method === 'POST') {
             const order = await request.json();
-            const { company, email, productName, price, attachment, invoiceNumber } = order;
+            const { company, email, productName, price, invoiceNumber } = order;
 
             if (env.BREVO_API_KEY) {
-                // 1. Notify Admin
+                // ONLY Notify Admin of the new request
                 const adminPayload = {
                     sender: { name: 'Dropsiders Pro', email: 'pro@dropsiders.fr' },
                     to: [{ email: 'contact@dropsiders.fr' }],
-                    subject: `[COMMANDE PRO] ${company} - ${productName}`,
+                    subject: `[NOUVELLE DEMANDE PRO] ${company} - ${productName}`,
                     htmlContent: `
                         <div style="font-family: sans-serif; max-width: 600px; padding: 30px; background: #050505; color: #fff; border-radius: 20px;">
-                            <h2 style="color: #ff0033; text-transform: uppercase; font-style: italic;">Nouvelle Commande Pro</h2>
+                            <h2 style="color: #ff0033; text-transform: uppercase; font-style: italic;">Nouvelle Demande de Service</h2>
                             <hr style="border-color: #222;" />
                             <p><strong>Structure:</strong> ${company}</p>
                             <p><strong>Email:</strong> ${email}</p>
                             <p><strong>Service:</strong> ${productName}</p>
                             <p><strong>Montant:</strong> ${price}€ HT</p>
-                            <p><strong>Facture N°:</strong> ${invoiceNumber || 'N/A'}</p>
+                            <p><strong>Référence:</strong> ${invoiceNumber}</p>
                             <hr style="border-color: #222;" />
-                            <p style="font-size: 12px; color: #666;">Action requise : Vérifiez le règlement et activez le service.</p>
+                            <p style="font-size: 12px; color: #666;">Allez dans l'onglet "Archive" de votre boutique pro pour valider la commande et envoyer la facture une fois le paiement reçu.</p>
                         </div>
                     `
                 };
@@ -3310,51 +3310,44 @@ ${urls.map(u => `  <url>
                     headers: { 'accept': 'application/json', 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json' },
                     body: JSON.stringify(adminPayload)
                 });
-
-                // 2. Send Invoice/Ticket to Customer
-                if (email) {
-                    const clientPayload: any = {
-                        sender: { name: 'Dropsiders Pro', email: 'pro@dropsiders.fr' },
-                        to: [{ email: email }],
-                        subject: `[Dropsiders] Votre Ticket de Paiement & Facture - ${invoiceNumber}`,
-                        htmlContent: `
-                            <div style="font-family: sans-serif; max-width: 600px; padding: 30px; background: #050505; color: #fff; border-radius: 20px; border: 1px solid #333;">
-                                <div style="text-align: center; margin-bottom: 30px;">
-                                    <h1 style="color: #ff0033; margin: 0; font-size: 24px; text-transform: uppercase; font-style: italic;">Dropsiders</h1>
-                                    <p style="color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 2px;">Professional Services</p>
-                                </div>
-                                <h2 style="font-size: 18px; margin-bottom: 20px;">Merci pour votre confiance, ${company} !</h2>
-                                <p style="color: #ccc; line-height: 1.6;">Nous avons bien reçu votre demande pour le service <strong>${productName}</strong>.</p>
-                                <p style="color: #ccc; line-height: 1.6;">Vous trouverez ci-joint votre <strong>Ticket de Paiement / Facture Pro-Forma</strong> au format PDF.</p>
-                                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin: 25px 0;">
-                                    <p style="margin: 5px 0; font-size: 14px;"><strong>Montant total :</strong> ${price}€ HT</p>
-                                    <p style="margin: 5px 0; font-size: 14px;"><strong>Référence :</strong> ${invoiceNumber}</p>
-                                </div>
-                                <p style="color: #666; font-size: 12px; font-style: italic;">Le service sera activé dès réception définitive de votre règlement.</p>
-                                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #222; text-align: center; color: #444; font-size: 10px;">
-                                    Dropsiders Media Group • Paris, France • dropsiders.fr
-                                </div>
-                            </div>
-                        `
-                    };
-
-                    if (attachment) {
-                        clientPayload.attachment = [
-                            {
-                                content: attachment,
-                                name: `Facture_Dropsiders_${invoiceNumber}.pdf`
-                            }
-                        ];
-                    }
-
-                    await fetch('https://api.brevo.com/v3/smtp/email', {
-                        method: 'POST',
-                        headers: { 'accept': 'application/json', 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json' },
-                        body: JSON.stringify(clientPayload)
-                    });
-                }
             }
 
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/pro-order/validate' && request.method === 'POST') {
+            const { company, email, productName, price, invoiceNumber, attachment } = await request.json();
+
+            if (env.BREVO_API_KEY && email) {
+                const clientPayload: any = {
+                    sender: { name: 'Dropsiders Pro', email: 'pro@dropsiders.fr' },
+                    to: [{ email: email }],
+                    subject: `[Dropsiders] Votre Facture & Ticket de Confirmation - ${invoiceNumber}`,
+                    htmlContent: `
+                        <div style="font-family: sans-serif; max-width: 600px; padding: 30px; background: #050505; color: #fff; border-radius: 20px; border: 1px solid #333;">
+                            <h1 style="color: #ff0033; text-align: center; text-transform: uppercase; font-style: italic;">Dropsiders</h1>
+                            <h2 style="font-size: 18px; margin: 20px 0;">Paiement Validé - Merci ${company} !</h2>
+                            <p>Votre règlement pour le service <strong>${productName}</strong> a été confirmé.</p>
+                            <p>Vous trouverez ci-joint votre facture acquittée au format PDF.</p>
+                            <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; margin: 20px 0;">
+                                <p><strong>Montant :</strong> ${price}€ HT</p>
+                                <p><strong>Référence :</strong> ${invoiceNumber}</p>
+                            </div>
+                            <p style="font-size: 12px; color: #666;">Nos équipes vont maintenant procéder à l'activation de vos services.</p>
+                        </div>
+                    `
+                };
+
+                if (attachment) {
+                    clientPayload.attachment = [{ content: attachment, name: `Facture_${invoiceNumber}.pdf` }];
+                }
+
+                await fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: { 'accept': 'application/json', 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json' },
+                    body: JSON.stringify(clientPayload)
+                });
+            }
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 

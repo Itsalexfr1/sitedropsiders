@@ -321,26 +321,15 @@ export function ProShop() {
         return doc.output('datauristring').split(',')[1]; // Base64 only
     };
 
-    const handleConfirmDetails = (e: React.FormEvent) => {
-        e.preventDefault();
-        setCheckoutStep('payment_choice');
-    };
-
     const handlePayment = async () => {
         setCheckoutStep('payment');
         
-        // At this point we assume they have chosen their method or are about to
         const companyInput = document.querySelector('input[placeholder*="Sony"]') as HTMLInputElement;
         const emailInput = document.querySelector('input[placeholder*="pro@domain.com"]') as HTMLInputElement;
         
         const company = companyInput?.value || 'Inconnu';
         const email = emailInput?.value || '';
         const invoiceNumber = `DS-${Date.now().toString().slice(-6)}`;
-
-        let attachment = null;
-        if (selectedProduct) {
-            attachment = generateInvoicePDF(company, email, selectedProduct, invoiceNumber);
-        }
 
         try {
             await fetch('/api/pro-order', {
@@ -351,10 +340,22 @@ export function ProShop() {
                     email,
                     productName: selectedProduct?.name,
                     price: selectedProduct?.price,
-                    invoiceNumber,
-                    attachment
+                    invoiceNumber
                 })
             });
+            
+            // Add to local archive (mock)
+            setOrders(prev => [{
+                id: Date.now(),
+                date: new Date().toLocaleDateString('fr-FR'),
+                company,
+                email,
+                service: selectedProduct?.name,
+                price: selectedProduct?.price,
+                status: 'En attente',
+                reference: invoiceNumber
+            }, ...prev]);
+
         } catch (e) {
             console.error('Failed to notify admin', e);
         }
@@ -362,6 +363,40 @@ export function ProShop() {
         setTimeout(() => {
             setCheckoutStep('success');
         }, 2000);
+    };
+
+    const handleConfirmDetails = (e: React.FormEvent) => {
+        e.preventDefault();
+        setCheckoutStep('payment_choice');
+    };
+
+    const handleValidateOrder = async (order: any) => {
+        const product = dynamicProducts.find(p => p.name.includes(order.service) || order.service.includes(p.name));
+        if (!product) return;
+
+        const invoiceNumber = order.reference || `DS-${Date.now().toString().slice(-6)}`;
+        const attachment = generateInvoicePDF(order.company, order.email, product, invoiceNumber);
+
+        try {
+            const res = await fetch('/api/pro-order/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    company: order.company,
+                    email: order.email,
+                    productName: order.service,
+                    price: order.price,
+                    invoiceNumber,
+                    attachment
+                })
+            });
+            if (res.ok) {
+                // Update local orders state to 'Payé'
+                setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: 'Payé' } : o));
+            }
+        } catch (e) {
+            console.error('Validation error', e);
+        }
     };
 
     if (!isAuthorized) {
@@ -552,9 +587,9 @@ export function ProShop() {
                                         value={configData.pro_payment_destination}
                                         onChange={(e) => setConfigData({ ...configData, pro_payment_destination: e.target.value })}
                                         className="w-full h-32 bg-black/50 border border-white/10 rounded-2xl p-6 text-xs font-bold focus:border-neon-red outline-none transition-all"
-                                        placeholder="Collez ici votre IBAN ou lien Stripe..."
+                                        placeholder="IBAN (BUNQ, Revolut, etc.) ou lien Stripe/PayPal..."
                                     />
-                                    <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest p-2">Pour la CB, collez votre lien Stripe Payment Link ici.</p>
+                                    <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest p-2">Supporte les liens Stripe, PayPal.me ou les IBAN (BUNQ/Revolut).</p>
                                 </div>
                             </div>
 
@@ -603,6 +638,7 @@ export function ProShop() {
                                         <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Service</th>
                                         <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Montant</th>
                                         <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Statut</th>
+                                        <th className="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -619,6 +655,16 @@ export function ProShop() {
                                                 <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${order.status === 'Payé' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'}`}>
                                                     {order.status}
                                                 </span>
+                                            </td>
+                                            <td className="px-8 py-6 text-right">
+                                                {order.status === 'En attente' && (
+                                                    <button 
+                                                        onClick={() => handleValidateOrder(order)}
+                                                        className="px-4 py-2 bg-green-500 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-green-600 transition-all"
+                                                    >
+                                                        Valider & Facturer
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
@@ -786,14 +832,12 @@ export function ProShop() {
                                                 </div>
                                             </div>
 
-                                            {!paymentDestination.startsWith('http') && (
-                                                <button 
-                                                    onClick={() => handlePayment()}
-                                                    className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-gray-200 transition-all"
-                                                >
-                                                    J'ai effectué le règlement <Check className="w-5 h-5" />
-                                                </button>
-                                            )}
+                                            <button 
+                                                onClick={() => handlePayment()}
+                                                className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-gray-200 transition-all"
+                                            >
+                                                Envoyer ma demande <ArrowRight className="w-5 h-5" />
+                                            </button>
 
                                             <button 
                                                 onClick={() => setCheckoutStep('details')}
