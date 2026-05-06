@@ -118,6 +118,7 @@ import { IncomingCallGenerator } from "./IncomingCallGenerator";
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 export function AdminDashboard() {
+  const navigate = useNavigate();
   const { showNotification } = useUser();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState("");

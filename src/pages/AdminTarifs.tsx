@@ -14,6 +14,7 @@ interface PriceItem {
     id: string;
     label: string;
     price: string;
+    hidden?: boolean;
 }
 
 interface PackItem {
@@ -45,6 +46,7 @@ export function AdminTarifs() {
     const gridRef = useRef<HTMLDivElement>(null);
     const [prices, setPrices] = useState<PriceItem[]>(DEFAULT_PRICES);
     const [packs, setPacks] = useState<PackItem[]>(DEFAULT_PACKS);
+    const [activeTab, setActiveTab] = useState<'individual' | 'packs'>('individual');
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
 
@@ -59,8 +61,11 @@ export function AdminTarifs() {
         try {
             const dataUrl = await toPng(gridRef.current, {
                 quality: 1,
-                pixelRatio: 2,
-                backgroundColor: '#050505'
+                pixelRatio: 3, // Higher quality for print/pro use
+                backgroundColor: '#050505',
+                style: {
+                    borderRadius: '0', // No rounded corners for full export
+                }
             });
             const link = document.createElement('a');
             link.download = `Dropsiders_Tarifs_${new Date().getFullYear()}.png`;
@@ -80,14 +85,28 @@ export function AdminTarifs() {
             const dataUrl = await toPng(gridRef.current, {
                 quality: 1,
                 pixelRatio: 2,
-                backgroundColor: '#050505'
+                backgroundColor: '#050505',
+                style: {
+                    borderRadius: '0',
+                }
             });
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgProps = pdf.getImageProperties(dataUrl);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
             
-            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            const img = new Image();
+            img.src = dataUrl;
+            await new Promise((resolve) => (img.onload = resolve));
+            
+            // Calculate dimensions in mm (A4 width is 210mm)
+            const pdfWidth = 210;
+            const pdfHeight = (img.height * pdfWidth) / img.width;
+            
+            // Create PDF with the exact height needed to avoid truncation
+            const pdf = new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: [pdfWidth, pdfHeight]
+            });
+            
+            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
             pdf.save(`Dropsiders_Tarifs_${new Date().getFullYear()}.pdf`);
         } catch (err) {
             console.error('Failed to generate PDF', err);
@@ -96,8 +115,22 @@ export function AdminTarifs() {
         }
     };
 
-    const updatePrice = (id: string, value: string) => {
-        setPrices(prev => prev.map(p => p.id === id ? { ...p, price: value } : p));
+    const updatePrice = (id: string, field: keyof PriceItem, value: any) => {
+        setPrices(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+    };
+
+    const addPrice = () => {
+        const newPrice: PriceItem = {
+            id: Date.now().toString(),
+            label: 'Nouveau Tarif',
+            price: '0',
+            hidden: false
+        };
+        setPrices(prev => [...prev, newPrice]);
+    };
+
+    const removePrice = (id: string) => {
+        setPrices(prev => prev.filter(p => p.id !== id));
     };
 
     const updatePack = (id: string, field: keyof PackItem, value: any) => {
@@ -142,31 +175,86 @@ export function AdminTarifs() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                     {/* Editor Side */}
-                    <div className="lg:col-span-5 space-y-8">
-                        <section className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl">
+                    <div className="lg:col-span-5 space-y-6">
+                        {/* Tabs Navigation */}
+                        <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/10">
+                            <button 
+                                onClick={() => setActiveTab('individual')}
+                                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'individual' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                Tarifs Individuels
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('packs')}
+                                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'packs' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                Formules Packs
+                            </button>
+                        </div>
+
+                        {activeTab === 'individual' ? (
+                            <section className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl">
                             <h3 className="text-sm font-black uppercase tracking-widest text-neon-red mb-8 flex items-center gap-2">
                                 <Zap className="w-4 h-4" /> Tarifs Individuels
                             </h3>
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 {prices.map(p => (
-                                    <div key={p.id} className="flex items-center gap-4">
-                                        <div className="flex-1">
-                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">{p.label}</label>
-                                            <div className="relative">
+                                    <div key={p.id} className={`p-4 rounded-2xl border transition-all ${p.hidden ? 'bg-white/[0.02] border-white/5 opacity-50' : 'bg-white/5 border-white/10'}`}>
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => updatePrice(p.id, 'hidden', !p.hidden)}
+                                                    className={`p-2 rounded-lg transition-all ${p.hidden ? 'bg-gray-500/20 text-gray-500' : 'bg-neon-cyan/20 text-neon-cyan'}`}
+                                                    title={p.hidden ? "Afficher sur la grille" : "Masquer sur la grille"}
+                                                >
+                                                    {p.hidden ? <LayoutGrid className="w-3.5 h-3.5 opacity-50" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                                </button>
+                                                <button 
+                                                    onClick={() => removePrice(p.id)}
+                                                    className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">Tarif #{p.id.slice(-4)}</span>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Label du service</label>
                                                 <input 
                                                     type="text" 
-                                                    value={p.price}
-                                                    onChange={(e) => updatePrice(p.id, e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:border-neon-red transition-all"
+                                                    value={p.label}
+                                                    onChange={(e) => updatePrice(p.id, 'label', e.target.value)}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-neon-red transition-all"
+                                                    placeholder="Nom du service..."
                                                 />
-                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">€ HT</span>
+                                            </div>
+                                            <div>
+                                                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Prix</label>
+                                                <div className="relative">
+                                                    <input 
+                                                        type="text" 
+                                                        value={p.price}
+                                                        onChange={(e) => updatePrice(p.id, 'price', e.target.value)}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-neon-red transition-all"
+                                                    />
+                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">€ HT</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
+
+                                <button 
+                                    onClick={addPrice}
+                                    className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white hover:border-white/40 hover:bg-white/10 transition-all flex items-center justify-center gap-3"
+                                >
+                                    <Plus className="w-4 h-4" /> Ajouter un tarif
+                                </button>
                             </div>
                         </section>
-
+                        ) : (
                         <section className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl">
                             <h3 className="text-sm font-black uppercase tracking-widest text-neon-red mb-8 flex items-center gap-2">
                                 <Sparkles className="w-4 h-4" /> Formules de Partenariat
@@ -210,6 +298,7 @@ export function AdminTarifs() {
                                 ))}
                             </div>
                         </section>
+                        )}
                     </div>
 
                     {/* Preview Side */}
@@ -226,8 +315,8 @@ export function AdminTarifs() {
                             {/* THE ACTUAL GRID TO CAPTURE */}
                             <div 
                                 ref={gridRef}
-                                className="w-full bg-[#050505] p-16 rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden flex flex-col items-center"
-                                style={{ minHeight: '1000px' }}
+                                className="w-[1000px] bg-[#050505] p-16 rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden flex flex-col items-center shrink-0 origin-top"
+                                style={{ transform: 'scale(0.65)', marginBottom: '-350px' }}
                             >
                                 {/* Background Decorations for PNG/PDF */}
                                 <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
@@ -277,7 +366,7 @@ export function AdminTarifs() {
                                          TARIFS À LA CARTE
                                     </h3>
                                     <div className="grid grid-cols-2 gap-x-16 gap-y-10">
-                                        {prices.map((item, idx) => (
+                                        {prices.filter(p => !p.hidden).map((item, idx) => (
                                             <div key={idx} className="flex items-center justify-between group border-b border-white/10 pb-6">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-2 h-2 rounded-full bg-neon-red shadow-[0_0_10px_red]" />
