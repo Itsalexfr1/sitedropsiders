@@ -4,7 +4,7 @@ import {
     ShoppingBag, Lock, ShieldCheck, Check, 
     ArrowRight, Star, Zap, CreditCard, 
     ChevronRight, X, Loader2, Sparkles,
-    LayoutGrid, Phone, Palette, MessageSquare
+    LayoutGrid, Phone, Palette, MessageSquare, Save
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -72,7 +72,14 @@ export function ProShop() {
     
     // Dynamic products from generator
     const [dynamicProducts, setDynamicProducts] = useState<ProProduct[]>([]);
+    const [activeTab, setActiveTab] = useState<'shop' | 'config'>('shop');
+    const [isSavingConfig, setIsSavingConfig] = useState(false);
     const qrRef = React.useRef<HTMLDivElement>(null);
+
+    const [configData, setConfigData] = useState({
+        pro_payment_destination: '',
+        pro_access_code: 'PRO'
+    });
 
     useEffect(() => {
         if (checkoutStep === 'success' && paymentDestination && qrRef.current) {
@@ -108,7 +115,13 @@ export function ProShop() {
                 const res = await fetch('/api/settings');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.pro_payment_destination) setPaymentDestination(data.pro_payment_destination);
+                    if (data.pro_payment_destination) {
+                        setPaymentDestination(data.pro_payment_destination);
+                        setConfigData(prev => ({ ...prev, pro_payment_destination: data.pro_payment_destination }));
+                    }
+                    if (data.pro_access_code) {
+                        setConfigData(prev => ({ ...prev, pro_access_code: data.pro_access_code }));
+                    }
                 }
             } catch (e) {
                 console.error('Failed to fetch settings', e);
@@ -185,14 +198,31 @@ export function ProShop() {
 
     const handleAuth = (e: React.FormEvent) => {
         e.preventDefault();
-        // Default pro code: DROPSIDERSPRO2026
-        if (accessCode.toUpperCase() === 'PRO' || accessCode.toUpperCase() === 'DROPSIDERSPRO') {
+        const code = accessCode.toUpperCase();
+        if (code === 'PRO' || code === 'DROPSIDERSPRO' || code === configData.pro_access_code.toUpperCase()) {
             setIsAuthorized(true);
             localStorage.setItem('pro_auth', 'true');
             setAuthError(false);
         } else {
             setAuthError(true);
             setTimeout(() => setAuthError(false), 2000);
+        }
+    };
+
+    const handleSaveConfig = async () => {
+        setIsSavingConfig(true);
+        try {
+            await fetch('/api/settings/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(configData)
+            });
+            setPaymentDestination(configData.pro_payment_destination);
+            // Show success (optional toast)
+        } catch (e) {
+            console.error('Save error', e);
+        } finally {
+            setIsSavingConfig(false);
         }
     };
 
@@ -391,8 +421,27 @@ export function ProShop() {
                         <h1 className="text-6xl md:text-8xl font-display font-black uppercase italic tracking-tighter leading-[0.8] mb-6">
                             BOUTIQUE <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-400 to-gray-800">PARTENAIRES.</span>
                         </h1>
+                        
+                        {/* Tab Switcher */}
+                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-2xl w-fit mb-8">
+                            <button 
+                                onClick={() => setActiveTab('shop')}
+                                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'shop' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                Catalogue
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('config')}
+                                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'config' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                Configuration
+                            </button>
+                        </div>
+
                         <p className="text-gray-500 text-sm font-bold uppercase tracking-widest max-w-xl">
-                            Accédez à nos services premium conçus pour maximiser l'impact de votre marque sur l'écosystème Dropsiders.
+                            {activeTab === 'shop' 
+                                ? "Accédez à nos services premium conçus pour maximiser l'impact de votre marque sur l'écosystème Dropsiders."
+                                : "Gérez les paramètres d'accès et les instructions de paiement de votre boutique professionnelle."}
                         </p>
                     </div>
 
@@ -409,47 +458,106 @@ export function ProShop() {
                     </div>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-32">
-                    {dynamicProducts.map((product) => (
-                        <motion.div 
-                            key={product.id}
-                            whileHover={{ y: -10 }}
-                            className="bg-white/5 border border-white/10 rounded-[3rem] p-10 flex flex-col hover:border-white/20 transition-all group relative overflow-hidden"
-                        >
-                            <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-${product.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
-                            
-                            <div className={`w-16 h-16 rounded-2xl bg-${product.color}/10 border border-${product.color}/20 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform text-${product.color}`}>
-                                {product.icon}
-                            </div>
-
-                            <h3 className="text-2xl font-display font-black uppercase italic mb-4 tracking-tighter leading-none">{product.name}</h3>
-                            <p className="text-gray-500 text-[11px] font-bold leading-relaxed mb-8 flex-1">
-                                {product.description}
-                            </p>
-
-                            <div className="space-y-3 mb-10">
-                                {product.features.map((feature, i) => (
-                                    <div key={i} className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-gray-300">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-neon-red" />
-                                        {feature}
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="flex items-end justify-between mt-auto pt-8 border-t border-white/5">
-                                <div className="text-3xl font-display font-black italic">
-                                    {product.price}<span className="text-sm text-gray-500 ml-1">€ HT</span>
+                {activeTab === 'shop' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-32">
+                        {dynamicProducts.map((product) => (
+                            <motion.div 
+                                key={product.id}
+                                whileHover={{ y: -10 }}
+                                className="bg-white/5 border border-white/10 rounded-[3rem] p-10 flex flex-col hover:border-white/20 transition-all group relative overflow-hidden"
+                            >
+                                <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-${product.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+                                
+                                <div className={`w-16 h-16 rounded-2xl bg-${product.color}/10 border border-${product.color}/20 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform text-${product.color}`}>
+                                    {product.icon}
                                 </div>
-                                <button 
-                                    onClick={() => startCheckout(product)}
-                                    className="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:bg-neon-red hover:text-white transition-all shadow-xl"
-                                >
-                                    <ShoppingBag className="w-5 h-5" />
-                                </button>
+
+                                <h3 className="text-2xl font-display font-black uppercase italic mb-4 tracking-tighter leading-none">{product.name}</h3>
+                                <p className="text-gray-500 text-[11px] font-bold leading-relaxed mb-8 flex-1">
+                                    {product.description}
+                                </p>
+
+                                <div className="space-y-3 mb-10">
+                                    {product.features.map((feature, i) => (
+                                        <div key={i} className="flex items-center gap-3 text-[9px] font-black uppercase tracking-widest text-gray-300">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-neon-red" />
+                                            {feature}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex items-end justify-between mt-auto pt-8 border-t border-white/5">
+                                    <div className="text-3xl font-display font-black italic">
+                                        {product.price}<span className="text-sm text-gray-500 ml-1">€ HT</span>
+                                    </div>
+                                    <button 
+                                        onClick={() => startCheckout(product)}
+                                        className="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:bg-neon-red hover:text-white transition-all shadow-xl"
+                                    >
+                                        <ShoppingBag className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                ) : (
+                    <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="max-w-4xl mb-32 space-y-8"
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {/* Payment Destination */}
+                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 space-y-6">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-12 h-12 bg-neon-red/10 rounded-2xl flex items-center justify-center text-neon-red border border-neon-red/20">
+                                        <CreditCard className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-display font-black uppercase italic">Paiement Pro</h3>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">RIB ou Lien de paiement (Stripe/PayPal)</label>
+                                    <textarea 
+                                        value={configData.pro_payment_destination}
+                                        onChange={(e) => setConfigData({ ...configData, pro_payment_destination: e.target.value })}
+                                        className="w-full h-32 bg-black/50 border border-white/10 rounded-2xl p-6 text-xs font-bold focus:border-neon-red outline-none transition-all"
+                                        placeholder="Collez ici votre IBAN ou lien Stripe..."
+                                    />
+                                </div>
                             </div>
-                        </motion.div>
-                    ))}
-                </div>
+
+                            {/* Access Code */}
+                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 space-y-6">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-12 h-12 bg-neon-cyan/10 rounded-2xl flex items-center justify-center text-neon-cyan border border-neon-cyan/20">
+                                        <Lock className="w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-xl font-display font-black uppercase italic">Accès Boutique</h3>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">Code d'accès partenaire</label>
+                                    <input 
+                                        type="text"
+                                        value={configData.pro_access_code}
+                                        onChange={(e) => setConfigData({ ...configData, pro_access_code: e.target.value })}
+                                        className="w-full bg-black/50 border border-white/10 rounded-2xl px-6 py-4 text-xs font-bold focus:border-neon-red outline-none transition-all"
+                                        placeholder="Ex: PARTNER2026"
+                                    />
+                                    <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest p-2">Le code par défaut reste "PRO".</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={handleSaveConfig}
+                            disabled={isSavingConfig}
+                            className="px-12 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest italic shadow-lg shadow-red-900/20 hover:bg-red-600 transition-all flex items-center gap-3 disabled:opacity-50"
+                        >
+                            {isSavingConfig ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                            Enregistrer les paramètres
+                        </button>
+                    </motion.div>
+                )}
 
                 {/* Info Section */}
                 <section className="bg-white/5 border border-white/10 rounded-[4rem] p-16 md:p-24 relative overflow-hidden">
