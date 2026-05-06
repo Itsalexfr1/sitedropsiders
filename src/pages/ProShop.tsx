@@ -4,7 +4,8 @@ import {
     ShoppingBag, Lock, ShieldCheck, Check, 
     ArrowRight, Star, Zap, CreditCard, 
     ChevronRight, X, Loader2, Sparkles,
-    LayoutGrid, Phone, Palette, MessageSquare, Save
+    LayoutGrid, Phone, Palette, MessageSquare, Save,
+    ArrowLeft, Instagram
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -247,11 +248,11 @@ export function ProShop() {
                 // Add individual items defaults
                 const individuals = [
                     { id: '1', name: 'ARTICLE SUR LE SITE', price: 100, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> },
-                    { id: '2', name: 'POST INSTAGRAM', price: 50, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> },
-                    { id: '3', name: 'INSTAGRAM STORY', price: 30, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> },
-                    { id: '4', name: 'PACK 1 STORY + 1 POST', price: 70, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> },
-                    { id: '5', name: "AJOUT DANS L'AGENDA", price: 30, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> },
-                    { id: '6', name: 'RÉEL INSTAGRAM + TIKTOK', price: 100, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> }
+                    { id: '2', name: 'POST INSTAGRAM', price: 50, color: 'neon-purple', icon: <Instagram className="w-8 h-8" /> },
+                    { id: '3', name: 'INSTAGRAM STORY', price: 30, color: 'neon-red', icon: <Zap className="w-8 h-8" /> },
+                    { id: '4', name: 'PACK 1 STORY + 1 POST', price: 70, color: 'neon-orange', icon: <LayoutGrid className="w-8 h-8" /> },
+                    { id: '5', name: "AJOUT DANS L'AGENDA", price: 30, color: 'neon-green' as any, icon: <Clock className="w-8 h-8" /> },
+                    { id: '6', name: 'RÉEL INSTAGRAM + TIKTOK', price: 100, color: 'neon-blue' as any, icon: <Phone className="w-8 h-8" /> }
                 ];
 
                 individuals.forEach(item => {
@@ -285,7 +286,8 @@ export function ProShop() {
             });
 
             // Add Individual Prices (not hidden)
-            prices.filter((p: any) => !p.hidden).forEach((p: any) => {
+            const palette = ['neon-cyan', 'neon-purple', 'neon-red', 'neon-orange', 'neon-green', 'neon-blue'];
+            prices.filter((p: any) => !p.hidden).forEach((p: any, idx: number) => {
                 proItems.push({
                     id: p.id,
                     name: p.label,
@@ -293,7 +295,7 @@ export function ProShop() {
                     price: parseInt(p.price) || 0,
                     icon: <Sparkles className="w-8 h-8" />,
                     features: ['Activation sous 24h', 'Rapport de perf', 'Support Dédié'],
-                    color: 'neon-cyan'
+                    color: palette[idx % palette.length] as any
                 });
             });
 
@@ -610,6 +612,15 @@ export function ProShop() {
             </div>
 
             <div className="max-w-7xl mx-auto relative z-10">
+                <div className="mb-12">
+                    <Link 
+                        to="/" 
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/10 transition-all group"
+                    >
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        Retour au site
+                    </Link>
+                </div>
                 <header className="flex flex-col md:flex-row items-end justify-between gap-8 mb-24">
                     <div>
                         <div className="flex items-center gap-3 mb-6">
