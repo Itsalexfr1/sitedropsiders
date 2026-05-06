@@ -100,7 +100,7 @@ export function ProShop() {
     const [configData, setConfigData] = useState({
         accessCode: 'DROPSIDERSPRO',
         paymentDestination: 'https://bunq.me/itsalexalex01',
-        taxRate: 20,
+        taxRate: 0,
         displayMode: 'HT' as 'HT' | 'TTC'
     });
 
@@ -410,23 +410,38 @@ export function ProShop() {
 
         // Totals Breakdown
         const totalsY = 120;
-        doc.setFontSize(9);
-        doc.setTextColor(150, 150, 150);
-        doc.text('TOTAL HT', 130, totalsY);
-        doc.setTextColor(255, 255, 255);
-        doc.text(`${priceHT.toFixed(2)}€`, 180, totalsY, { align: 'right' });
+        
+        if (taxRate > 0) {
+            doc.setFontSize(9);
+            doc.setTextColor(150, 150, 150);
+            doc.text('TOTAL HT', 130, totalsY);
+            doc.setTextColor(255, 255, 255);
+            doc.text(`${priceHT.toFixed(2)}€`, 180, totalsY, { align: 'right' });
 
-        doc.setTextColor(150, 150, 150);
-        doc.text(`TVA (${taxRate}%)`, 130, totalsY + 7);
-        doc.setTextColor(255, 255, 255);
-        doc.text(`${tvaAmount.toFixed(2)}€`, 180, totalsY + 7, { align: 'right' });
+            doc.setTextColor(150, 150, 150);
+            doc.text(`TVA (${taxRate}%)`, 130, totalsY + 7);
+            doc.setTextColor(255, 255, 255);
+            doc.text(`${tvaAmount.toFixed(2)}€`, 180, totalsY + 7, { align: 'right' });
 
-        doc.setFillColor(neonRed[0], neonRed[1], neonRed[2]);
-        doc.rect(125, totalsY + 12, 75, 10, 'F');
-        doc.setFontSize(11);
-        doc.setTextColor(255, 255, 255);
-        doc.text('TOTAL TTC', 130, totalsY + 19);
-        doc.text(`${priceTTC.toFixed(2)}€`, 195, totalsY + 19, { align: 'right' });
+            doc.setFillColor(neonRed[0], neonRed[1], neonRed[2]);
+            doc.rect(125, totalsY + 12, 75, 10, 'F');
+            doc.setFontSize(11);
+            doc.setTextColor(255, 255, 255);
+            doc.text('TOTAL TTC', 130, totalsY + 19);
+            doc.text(`${priceTTC.toFixed(2)}€`, 195, totalsY + 19, { align: 'right' });
+        } else {
+            // Auto-entrepreneur simplified block
+            doc.setFillColor(neonRed[0], neonRed[1], neonRed[2]);
+            doc.rect(125, totalsY, 75, 12, 'F');
+            doc.setFontSize(12);
+            doc.setTextColor(255, 255, 255);
+            doc.text('TOTAL À RÉGLER', 130, totalsY + 8);
+            doc.text(`${priceTTC.toFixed(2)}€`, 195, totalsY + 8, { align: 'right' });
+            
+            doc.setFontSize(7);
+            doc.setTextColor(150, 150, 150);
+            doc.text('TVA non applicable, art. 293 B du CGI', 125, totalsY + 18);
+        }
 
         // Payment Instructions
         doc.setTextColor(150, 150, 150);
