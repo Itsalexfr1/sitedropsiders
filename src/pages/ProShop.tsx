@@ -82,6 +82,7 @@ export function ProShop() {
     const [checkoutDriveLink, setCheckoutDriveLink] = useState('');
     const [checkoutPressKit, setCheckoutPressKit] = useState('');
     const [paymentDestination, setPaymentDestination] = useState('https://bunq.me/itsalexalex01');
+    const [hasOpenedPaymentLink, setHasOpenedPaymentLink] = useState(false);
     
     // Dynamic products from generator
     const [dynamicProducts, setDynamicProducts] = useState<ProProduct[]>([]);
@@ -344,6 +345,7 @@ export function ProShop() {
         setSelectedProduct(product);
         setIsCheckingOut(true);
         setCheckoutStep('details');
+        setHasOpenedPaymentLink(false);
     };
 
     const generateInvoicePDF = (company: string, email: string, product: ProProduct, invoiceId: string) => {
@@ -1034,39 +1036,55 @@ export function ProShop() {
                                                 <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
                                                     <div className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-4">Moyen de paiement</div>
                                                     
-                                                    {paymentDestination ? (
+                                                                                           {paymentDestination.startsWith('http') ? (
                                                         <div className="space-y-4">
-                                                            {paymentDestination.startsWith('http') ? (
+                                                            {!hasOpenedPaymentLink ? (
                                                                 <a 
                                                                     href={getDynamicPaymentLink(paymentDestination, selectedProduct?.price || 0)} 
                                                                     target="_blank" 
                                                                     rel="noopener noreferrer"
-                                                                    onClick={() => handlePayment()}
+                                                                    onClick={() => setHasOpenedPaymentLink(true)}
                                                                     className="flex items-center justify-center gap-3 w-full py-5 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
                                                                 >
-                                                                    Payer {selectedProduct?.price}€ par Carte <CreditCard className="w-5 h-5" />
+                                                                    Procéder au règlement ({selectedProduct?.price}€) <CreditCard className="w-5 h-5" />
                                                                 </a>
                                                             ) : (
                                                                 <div className="space-y-4">
-                                                                    <div className="bg-black/40 border border-white/5 p-4 rounded-xl">
-                                                                        <p className="text-white font-bold text-xs break-all leading-relaxed">
-                                                                            {paymentDestination}
+                                                                    <div className="p-4 bg-white/5 border border-white/10 rounded-xl text-center">
+                                                                        <p className="text-[9px] text-gray-400 font-bold uppercase leading-relaxed">
+                                                                            Le lien de paiement s'est ouvert dans un nouvel onglet.
                                                                         </p>
                                                                     </div>
-                                                                    <div className="flex justify-center bg-white p-3 rounded-2xl">
-                                                                        <div ref={qrRef} className="w-[120px] h-[120px]" />
-                                                                    </div>
+                                                                    <button 
+                                                                        onClick={() => handlePayment()}
+                                                                        className="flex items-center justify-center gap-3 w-full py-5 bg-green-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-green-600 transition-all"
+                                                                    >
+                                                                        J'ai effectué le règlement <Check className="w-5 h-5" />
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => setHasOpenedPaymentLink(false)}
+                                                                        className="w-full text-[8px] font-black uppercase text-gray-600 hover:text-white transition-colors"
+                                                                    >
+                                                                        Revenir au lien de paiement
+                                                                    </button>
                                                                 </div>
                                                             )}
                                                         </div>
                                                     ) : (
-                                                        <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest text-center py-4">
-                                                            Aucune instruction configurée.
-                                                        </p>
+                                                        <div className="space-y-4">
+                                                            <div className="bg-black/40 border border-white/5 p-4 rounded-xl">
+                                                                <p className="text-white font-bold text-xs break-all leading-relaxed">
+                                                                    {paymentDestination}
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex justify-center bg-white p-3 rounded-2xl">
+                                                                <div ref={qrRef} className="w-[120px] h-[120px]" />
+                                                            </div>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
-
+ 
                                             {paymentDestination ? (
                                                 !paymentDestination.startsWith('http') && (
                                                     <button 
