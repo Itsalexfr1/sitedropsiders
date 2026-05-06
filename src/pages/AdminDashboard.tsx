@@ -928,7 +928,6 @@ export function AdminDashboard() {
     type: "danger",
   });
 
-  const navigate = useNavigate();
 
   // Selection Interviews pour l'accueil
   const [allInterviews, setAllInterviews] = useState<any[]>([]);
