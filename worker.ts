@@ -3282,7 +3282,7 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/pro-order' && request.method === 'POST') {
             const order = await request.json();
-            const { company, email, productName, price, invoiceNumber, details } = order;
+            const { company, email, productName, price, invoiceNumber, details, driveLink, pressKit } = order;
 
             if (env.BREVO_API_KEY) {
                 // ONLY Notify Admin of the new request
@@ -3299,6 +3299,10 @@ ${urls.map(u => `  <url>
                             <p><strong>Service:</strong> ${productName}</p>
                             <p><strong>Montant:</strong> ${price}€ HT</p>
                             <p><strong>Référence:</strong> ${invoiceNumber}</p>
+                            <hr style="border-color: #222;" />
+                            <p><strong>Assets :</strong></p>
+                            <p>Drive Visuels : ${driveLink || 'Non fourni'}</p>
+                            <p>Press Kit : ${pressKit || 'Non fourni'}</p>
                             <hr style="border-color: #222;" />
                             <p><strong>Détails de la demande :</strong></p>
                             <div style="background: #1a1a1a; padding: 15px; border-radius: 10px; border-left: 4px solid #ff0033;">

@@ -79,6 +79,8 @@ export function ProShop() {
     const [checkoutEmail, setCheckoutEmail] = useState('');
     const [checkoutCompany, setCheckoutCompany] = useState('');
     const [checkoutDetails, setCheckoutDetails] = useState('');
+    const [checkoutDriveLink, setCheckoutDriveLink] = useState('');
+    const [checkoutPressKit, setCheckoutPressKit] = useState('');
     const [paymentDestination, setPaymentDestination] = useState('');
     
     // Dynamic products from generator
@@ -408,6 +410,8 @@ export function ProShop() {
         const company = checkoutCompany || 'Inconnu';
         const email = checkoutEmail || '';
         const details = checkoutDetails || 'Aucun détail fourni';
+        const driveLink = checkoutDriveLink || '';
+        const pressKit = checkoutPressKit || '';
         const invoiceNumber = `DS-${Date.now().toString().slice(-6)}`;
 
         try {
@@ -418,6 +422,8 @@ export function ProShop() {
                     company,
                     email,
                     details,
+                    driveLink,
+                    pressKit,
                     productName: selectedProduct?.name,
                     price: selectedProduct?.price,
                     invoiceNumber
@@ -431,6 +437,8 @@ export function ProShop() {
                 company,
                 email,
                 details,
+                driveLink,
+                pressKit,
                 service: selectedProduct?.name,
                 price: selectedProduct?.price,
                 status: 'En attente',
@@ -735,6 +743,14 @@ export function ProShop() {
                                             <td className="px-8 py-6">
                                                 <div className="text-xs font-bold uppercase tracking-tight">{order.service}</div>
                                                 {order.details && <div className="text-[9px] text-gray-500 mt-1 max-w-[200px] truncate">{order.details}</div>}
+                                                <div className="flex gap-2 mt-2">
+                                                    {order.driveLink && (
+                                                        <a href={order.driveLink} target="_blank" rel="noopener noreferrer" className="text-[8px] font-black uppercase text-neon-cyan hover:underline">Drive</a>
+                                                    )}
+                                                    {order.pressKit && (
+                                                        <a href={order.pressKit} target="_blank" rel="noopener noreferrer" className="text-[8px] font-black uppercase text-neon-purple hover:underline">Press Kit</a>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-8 py-6 text-sm font-display font-black italic">{order.price}€</td>
                                             <td className="px-8 py-6">
@@ -882,13 +898,35 @@ export function ProShop() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Détails de la demande (Lien, description, dates...)</label>
+                                                    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Détails de la demande (Description, dates...)</label>
                                                     <textarea 
                                                         value={checkoutDetails}
                                                         onChange={(e) => setCheckoutDetails(e.target.value)}
                                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none h-24 resize-none" 
                                                         placeholder="Expliquez-nous brièvement votre besoin..."
                                                     />
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Lien Drive (Visuels)</label>
+                                                        <input 
+                                                            type="url" 
+                                                            value={checkoutDriveLink}
+                                                            onChange={(e) => setCheckoutDriveLink(e.target.value)}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" 
+                                                            placeholder="https://drive.google.com/..." 
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Press Kit (Lien)</label>
+                                                        <input 
+                                                            type="url" 
+                                                            value={checkoutPressKit}
+                                                            onChange={(e) => setCheckoutPressKit(e.target.value)}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" 
+                                                            placeholder="Lien Dropbox, Website..." 
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
                                             <button 
