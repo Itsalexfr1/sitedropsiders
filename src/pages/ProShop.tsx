@@ -89,6 +89,12 @@ export function ProShop() {
     // Dynamic products from generator
     const [dynamicProducts, setDynamicProducts] = useState<ProProduct[]>([]);
     const [activeTab, setActiveTab] = useState<'shop' | 'config' | 'archive'>(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
+        if (tabParam === 'config' || tabParam === 'archive') {
+            return tabParam as any;
+        }
+
         const savedTab = sessionStorage.getItem('pro_active_tab');
         if (savedTab === 'config' || savedTab === 'archive') {
             sessionStorage.removeItem('pro_active_tab');

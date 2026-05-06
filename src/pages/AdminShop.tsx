@@ -400,7 +400,7 @@ export function AdminShop() {
                                             </div>
                                         )}
 
-                                        <div className="pt-4 border-t border-white/5">
+                                        <div className="pt-4 border-t border-white/5 space-y-4">
                                             <Link
                                                 to="/shop"
                                                 target="_blank"
@@ -408,6 +408,17 @@ export function AdminShop() {
                                             >
                                                 <span className="text-[10px] font-black text-gray-400 group-hover/link:text-white uppercase tracking-widest transition-colors">Voir la page shop</span>
                                                 <ExternalLink className="w-4 h-4 text-gray-600 group-hover/link:text-neon-red transition-colors" />
+                                            </Link>
+
+                                            <Link
+                                                to="/pro/boutique?tab=config"
+                                                className="flex items-center justify-between p-4 bg-neon-red/5 hover:bg-neon-red/10 border border-neon-red/10 hover:border-neon-red/30 rounded-2xl transition-all group/pro"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <Lock className="w-4 h-4 text-neon-red" />
+                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Accès Config Pro B2B</span>
+                                                </div>
+                                                <ChevronRight className="w-4 h-4 text-gray-600 group-pro:text-neon-red transition-colors" />
                                             </Link>
                                         </div>
                                     </div>

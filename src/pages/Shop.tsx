@@ -232,6 +232,12 @@ export function Shop() {
                         icon: <Settings2 className="w-3.5 h-3.5" />,
                         to: '/admin/shop',
                         permission: 'shop'
+                    },
+                    {
+                        label: 'Config B2B',
+                        icon: <Lock className="w-3.5 h-3.5" />,
+                        to: '/pro/boutique?tab=config',
+                        permission: 'shop'
                     }
                 ]}
             />
@@ -259,15 +265,7 @@ export function Shop() {
                             <h1 className={`${isMini ? 'text-4xl md:text-5xl' : 'text-4xl md:text-7xl'} font-display font-black text-white uppercase italic tracking-tighter leading-tight`}>
                                 {t('shop.title')}<span className="text-neon-red">{t('shop.title_span')}</span>
                             </h1>
-                            {!isMini && (
-                                <Link 
-                                    to="/pro/boutique" 
-                                    className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all flex items-center gap-3 group shrink-0 mb-2"
-                                >
-                                    <Lock className="w-3.5 h-3.5 text-neon-red group-hover:text-white transition-colors" /> 
-                                    Espace Professionnel
-                                </Link>
-                            )}
+                            {/* Espace Professionnel moved to Admin Edit Bar (doublon) */}
                         </div>
 
                         <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">

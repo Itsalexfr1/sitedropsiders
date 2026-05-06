@@ -142,11 +142,8 @@ export function ShopMenuModal({ isOpen, onClose }: ShopMenuModalProps) {
                                 </Link>
 
                                 <Link
-                                    to="/pro/boutique"
-                                    onClick={() => {
-                                        sessionStorage.setItem('pro_active_tab', 'config');
-                                        onClose();
-                                    }}
+                                    to="/pro/boutique?tab=config"
+                                    onClick={onClose}
                                     className="p-5 bg-white/5 border border-white/10 rounded-2xl flex flex-col gap-3 hover:bg-white/10 transition-all group"
                                 >
                                     <Settings2 className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
@@ -154,11 +151,8 @@ export function ShopMenuModal({ isOpen, onClose }: ShopMenuModalProps) {
                                 </Link>
 
                                 <Link
-                                    to="/pro/boutique"
-                                    onClick={() => {
-                                        sessionStorage.setItem('pro_active_tab', 'archive');
-                                        onClose();
-                                    }}
+                                    to="/pro/boutique?tab=archive"
+                                    onClick={onClose}
                                     className="p-5 bg-white/5 border border-white/10 rounded-2xl flex flex-col gap-3 hover:bg-white/10 transition-all group"
                                 >
                                     <CheckCircle2 className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />

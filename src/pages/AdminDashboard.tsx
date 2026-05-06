@@ -2338,18 +2338,7 @@ export function AdminDashboard() {
       baseColor: "pink",
       columns: 2,
     },
-    {
-      title: "Boutique Pro",
-      description: "Accès Partenaires & Pro",
-      icon: "Lock",
-      category: "SHOP",
-      link: "/pro/boutique",
-      color: "border-neon-red/20 hover:border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.1)]",
-      bg: "bg-neon-red/5",
-      permission: "shop",
-      baseColor: "red",
-      columns: 1,
-    },
+
     {
       title: "Messagerie & Newsletter",
       description: "Emails, Contact & Newsletter",
