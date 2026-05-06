@@ -531,6 +531,16 @@ export function ProShopModal({ isOpen, onClose }: ProShopModalProps) {
                                                         <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest block mb-1">Détails de la demande</label>
                                                         <textarea value={checkoutDetails} onChange={e => setCheckoutDetails(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-xs font-bold outline-none focus:border-neon-red h-24" placeholder="Dates, description..." />
                                                     </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest block mb-1">Lien Drive / Photos</label>
+                                                            <input value={checkoutDriveLink} onChange={e => setCheckoutDriveLink(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-xs font-bold outline-none focus:border-neon-red" placeholder="Lien Google Drive, WeTransfer..." />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest block mb-1">Press Kit / Dropbox</label>
+                                                            <input value={checkoutPressKit} onChange={e => setCheckoutPressKit(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-xs font-bold outline-none focus:border-neon-red" placeholder="Lien Dropbox, Site Web..." />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <button type="submit" className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-2">Suivant <ArrowRight className="w-5 h-5" /></button>
                                             </form>
