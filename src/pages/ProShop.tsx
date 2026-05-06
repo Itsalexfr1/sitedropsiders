@@ -65,7 +65,7 @@ export function ProShop() {
     const { t } = useLanguage();
     const [accessCode, setAccessCode] = useState('');
     const [isAuthorized, setIsAuthorized] = useState(localStorage.getItem('pro_auth') === 'true');
-    const [isSuperAdmin, setIsSuperAdmin] = useState(localStorage.getItem('pro_super_admin') === 'true');
+    const [isSuperAdmin, setIsSuperAdmin] = useState(localStorage.getItem('admin_auth') === 'true');
     const [authError, setAuthError] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<ProProduct | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -86,15 +86,18 @@ export function ProShop() {
 
     useEffect(() => {
         const savedAuth = localStorage.getItem('pro_auth');
-        const savedSuper = localStorage.getItem('pro_super_admin');
+        const globalAdmin = localStorage.getItem('admin_auth') === 'true';
+        
         if (savedAuth === 'true') {
             setIsAuthorized(true);
-            if (savedSuper === 'true') setIsSuperAdmin(true);
         }
-        if (!isSuperAdmin && activeTab !== 'shop') {
+        
+        setIsSuperAdmin(globalAdmin);
+
+        if (!globalAdmin && activeTab !== 'shop') {
             setActiveTab('shop');
         }
-    }, [isSuperAdmin]);
+    }, [isSuperAdmin, activeTab]);
 
     useEffect(() => {
         if (checkoutStep === 'success' && paymentDestination && qrRef.current) {
@@ -263,21 +266,11 @@ export function ProShop() {
     const handleAuth = (e: React.FormEvent) => {
         e.preventDefault();
         const code = accessCode.toUpperCase();
-        const isMaster = code === 'DROPSIDERSPRO';
         const isPartner = code === 'PRO' || code === configData.pro_access_code.toUpperCase();
 
-        if (isMaster || isPartner) {
+        if (isPartner) {
             setIsAuthorized(true);
             localStorage.setItem('pro_auth', 'true');
-            
-            if (isMaster) {
-                setIsSuperAdmin(true);
-                localStorage.setItem('pro_super_admin', 'true');
-            } else {
-                setIsSuperAdmin(false);
-                localStorage.removeItem('pro_super_admin');
-            }
-            
             setAuthError(false);
         } else {
             setAuthError(true);
@@ -786,13 +779,11 @@ export function ProShop() {
                         <button 
                             onClick={() => {
                                 localStorage.removeItem('pro_auth');
-                                localStorage.removeItem('pro_super_admin');
                                 setIsAuthorized(false);
-                                setIsSuperAdmin(false);
                             }}
                             className="text-[10px] font-black uppercase tracking-[0.5em] hover:text-neon-red transition-colors"
                         >
-                            Logout
+                            Déconnexion Boutique
                         </button>
                     </div>
                 </footer>
