@@ -67,7 +67,7 @@ export function ProShop() {
     const [authError, setAuthError] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<ProProduct | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
-    const [checkoutStep, setCheckoutStep] = useState<'details' | 'payment' | 'success'>('details');
+    const [checkoutStep, setCheckoutStep] = useState<'details' | 'payment_choice' | 'payment' | 'success'>('details');
     const [paymentDestination, setPaymentDestination] = useState('');
     
     // Dynamic products from generator
@@ -314,12 +314,17 @@ export function ProShop() {
         return doc.output('datauristring').split(',')[1]; // Base64 only
     };
 
-    const handlePayment = async (e: React.FormEvent) => {
+    const handleConfirmDetails = (e: React.FormEvent) => {
         e.preventDefault();
-        setCheckoutStep('payment');
+        setCheckoutStep('payment_choice');
+    };
 
-        const companyInput = (e.currentTarget as any).querySelector('input[placeholder*="Sony"]');
-        const emailInput = (e.currentTarget as any).querySelector('input[placeholder*="pro@domain.com"]');
+    const handlePayment = async () => {
+        setCheckoutStep('payment');
+        
+        // At this point we assume they have chosen their method or are about to
+        const companyInput = document.querySelector('input[placeholder*="Sony"]') as HTMLInputElement;
+        const emailInput = document.querySelector('input[placeholder*="pro@domain.com"]') as HTMLInputElement;
         
         const company = companyInput?.value || 'Inconnu';
         const email = emailInput?.value || '';
@@ -655,7 +660,7 @@ export function ProShop() {
                                 {/* Right Side - Steps */}
                                 <div className="md:col-span-3 p-12">
                                     {checkoutStep === 'details' && (
-                                        <form onSubmit={handlePayment} className="space-y-8">
+                                        <form onSubmit={handleConfirmDetails} className="space-y-8">
                                             <h4 className="text-xl font-display font-black uppercase italic tracking-tight">Coordonnées</h4>
                                             <div className="space-y-4">
                                                 <div>
@@ -671,9 +676,68 @@ export function ProShop() {
                                                 type="submit"
                                                 className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-gray-200 transition-all"
                                             >
-                                                Confirmer & Payer <CreditCard className="w-5 h-5" />
+                                                Poursuivre vers le règlement <ArrowRight className="w-5 h-5" />
                                             </button>
                                         </form>
+                                    )}
+
+                                    {checkoutStep === 'payment_choice' && (
+                                        <div className="space-y-8">
+                                            <h4 className="text-xl font-display font-black uppercase italic tracking-tight">Règlement</h4>
+                                            
+                                            <div className="space-y-4">
+                                                <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                                                    <div className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-4">Moyen de paiement</div>
+                                                    
+                                                    {paymentDestination ? (
+                                                        <div className="space-y-4">
+                                                            {paymentDestination.startsWith('http') ? (
+                                                                <a 
+                                                                    href={paymentDestination} 
+                                                                    target="_blank" 
+                                                                    rel="noopener noreferrer"
+                                                                    onClick={() => handlePayment()}
+                                                                    className="flex items-center justify-center gap-3 w-full py-5 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
+                                                                >
+                                                                    Payer par Carte <CreditCard className="w-5 h-5" />
+                                                                </a>
+                                                            ) : (
+                                                                <div className="space-y-4">
+                                                                    <div className="bg-black/40 border border-white/5 p-4 rounded-xl">
+                                                                        <p className="text-white font-bold text-xs break-all leading-relaxed">
+                                                                            {paymentDestination}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div className="flex justify-center bg-white p-3 rounded-2xl">
+                                                                        <div ref={qrRef} className="w-[120px] h-[120px]" />
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest text-center py-4">
+                                                            Aucune instruction configurée.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {!paymentDestination.startsWith('http') && (
+                                                <button 
+                                                    onClick={() => handlePayment()}
+                                                    className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-gray-200 transition-all"
+                                                >
+                                                    J'ai effectué le règlement <Check className="w-5 h-5" />
+                                                </button>
+                                            )}
+
+                                            <button 
+                                                onClick={() => setCheckoutStep('details')}
+                                                className="w-full text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 hover:text-white transition-colors"
+                                            >
+                                                Retour aux coordonnées
+                                            </button>
+                                        </div>
                                     )}
 
                                     {checkoutStep === 'payment' && (
@@ -689,36 +753,11 @@ export function ProShop() {
                                             <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-8 border border-green-500/20 text-green-500">
                                                 <Check className="w-10 h-10" />
                                             </div>
-                                            <h4 className="text-3xl font-display font-black uppercase italic tracking-tight mb-4">Succès !</h4>
-                                            <p className="text-gray-400 text-sm font-medium mb-6">
-                                                Votre commande a été validée. 
+                                            <h4 className="text-3xl font-display font-black uppercase italic tracking-tight mb-4">Commande Validée</h4>
+                                            <p className="text-gray-400 text-sm font-medium mb-12 leading-relaxed">
+                                                Merci pour votre confiance. <br />
+                                                Votre demande a été transmise à notre équipe.
                                             </p>
-                                            
-                                            {paymentDestination && (
-                                                <div className="w-full flex flex-col md:flex-row gap-6 mb-8">
-                                                    <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 text-left">
-                                                        <div className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-2">Instructions de règlement</div>
-                                                        {paymentDestination.startsWith('http') ? (
-                                                            <a 
-                                                                href={paymentDestination} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer"
-                                                                className="flex items-center justify-center gap-3 w-full py-4 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
-                                                            >
-                                                                Payer par Carte <CreditCard className="w-4 h-4" />
-                                                            </a>
-                                                        ) : (
-                                                            <p className="text-white font-bold text-xs break-all selection:bg-neon-red leading-relaxed">
-                                                                {paymentDestination}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                    
-                                                    <div className="bg-white p-3 rounded-2xl flex items-center justify-center shadow-xl shadow-red-900/10">
-                                                        <div ref={qrRef} className="w-[120px] h-[120px] flex items-center justify-center overflow-hidden" />
-                                                    </div>
-                                                </div>
-                                            )}
 
                                             <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest mb-8">
                                                 Un email de confirmation vient de vous être envoyé.
