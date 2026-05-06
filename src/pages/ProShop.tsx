@@ -111,19 +111,62 @@ export function ProShop() {
         }
     }, [checkoutStep, paymentDestination]);
 
+    const getDynamicPaymentLink = (baseUrl: string, price: number) => {
+        if (!baseUrl || !baseUrl.startsWith('http')) return baseUrl;
+        try {
+            const url = new URL(baseUrl);
+            const host = url.hostname.toLowerCase();
+            
+            // BUNQ: bunq.me/username/amount
+            if (host.includes('bunq.me')) {
+                const parts = url.pathname.split('/').filter(p => p);
+                return `https://bunq.me/${parts[0]}/${price}`;
+            }
+            
+            // PayPal: paypal.me/username/amount
+            if (host.includes('paypal.me')) {
+                const parts = url.pathname.split('/').filter(p => p);
+                return `https://paypal.me/${parts[0]}/${price}`;
+            }
+
+            // Revolut: revolut.me/username/amount
+            if (host.includes('revolut.me')) {
+                const parts = url.pathname.split('/').filter(p => p);
+                return `https://revolut.me/${parts[0]}/${price}`;
+            }
+
+            return baseUrl;
+        } catch (e) {
+            return baseUrl;
+        }
+    };
+
     useEffect(() => {
         const fetchSettings = async () => {
             try {
                 const res = await fetch('/api/settings');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.pro_payment_destination) {
-                        setPaymentDestination(data.pro_payment_destination);
-                        setConfigData(prev => ({ ...prev, pro_payment_destination: data.pro_payment_destination }));
+                if (data.pro_payment_destination) {
+                    setPaymentDestination(data.pro_payment_destination);
+                    setConfigData(prev => ({ ...prev, pro_payment_destination: data.pro_payment_destination }));
+                    
+                    const finalLink = getDynamicPaymentLink(data.pro_payment_destination, selectedProduct?.price || 0);
+                    if (finalLink && qrRef.current) {
+                        const qrCode = new QRCodeStyling({
+                            width: 120,
+                            height: 120,
+                            data: finalLink,
+                            dotsOptions: { color: "#ff0033", type: "rounded" },
+                            backgroundOptions: { color: "#ffffff" },
+                            cornersSquareOptions: { type: "extra-rounded" }
+                        });
+                        qrRef.current.innerHTML = '';
+                        qrCode.append(qrRef.current);
                     }
-                    if (data.pro_access_code) {
-                        setConfigData(prev => ({ ...prev, pro_access_code: data.pro_access_code }));
-                    }
+                }
+                if (data.pro_access_code) {
+                    setConfigData(prev => ({ ...prev, pro_access_code: data.pro_access_code }));
                 }
                 const ordersRes = await fetch('/api/pro-orders');
                 if (ordersRes.ok) {
@@ -201,7 +244,7 @@ export function ProShop() {
 
         fetchSettings();
         loadDynamicItems();
-    }, []);
+    }, [selectedProduct, checkoutStep]);
 
     const handleAuth = (e: React.FormEvent) => {
         e.preventDefault();
@@ -803,13 +846,13 @@ export function ProShop() {
                                                         <div className="space-y-4">
                                                             {paymentDestination.startsWith('http') ? (
                                                                 <a 
-                                                                    href={paymentDestination} 
+                                                                    href={getDynamicPaymentLink(paymentDestination, selectedProduct?.price || 0)} 
                                                                     target="_blank" 
                                                                     rel="noopener noreferrer"
                                                                     onClick={() => handlePayment()}
                                                                     className="flex items-center justify-center gap-3 w-full py-5 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
                                                                 >
-                                                                    Payer par Carte <CreditCard className="w-5 h-5" />
+                                                                    Payer {selectedProduct?.price}€ par Carte <CreditCard className="w-5 h-5" />
                                                                 </a>
                                                             ) : (
                                                                 <div className="space-y-4">
