@@ -81,7 +81,7 @@ export function ProShop() {
     const [checkoutDetails, setCheckoutDetails] = useState('');
     const [checkoutDriveLink, setCheckoutDriveLink] = useState('');
     const [checkoutPressKit, setCheckoutPressKit] = useState('');
-    const [paymentDestination, setPaymentDestination] = useState('');
+    const [paymentDestination, setPaymentDestination] = useState('https://bunq.me/itsalexalex01');
     
     // Dynamic products from generator
     const [dynamicProducts, setDynamicProducts] = useState<ProProduct[]>([]);
@@ -98,9 +98,23 @@ export function ProShop() {
     const qrRef = React.useRef<HTMLDivElement>(null);
 
     const [configData, setConfigData] = useState({
-        pro_payment_destination: 'https://bunq.me/itsalexalex01',
-        pro_access_code: 'PRO'
+        accessCode: 'DROPSIDERSPRO',
+        paymentDestination: 'https://bunq.me/itsalexalex01'
     });
+
+    useEffect(() => {
+        const savedCode = localStorage.getItem('pro_access_code');
+        const savedPayment = localStorage.getItem('pro_payment_destination');
+        
+        if (savedCode || savedPayment) {
+            const finalPayment = savedPayment || 'https://bunq.me/itsalexalex01';
+            setPaymentDestination(finalPayment);
+            setConfigData({
+                accessCode: savedCode || 'DROPSIDERSPRO',
+                paymentDestination: finalPayment
+            });
+        }
+    }, []);
 
     useEffect(() => {
         const savedAuth = localStorage.getItem('pro_auth');
@@ -184,26 +198,26 @@ export function ProShop() {
                 const res = await fetch('/api/settings');
                 if (res.ok) {
                     const data = await res.json();
-                    if (data.pro_payment_destination) {
-                        setPaymentDestination(data.pro_payment_destination);
-                        setConfigData(prev => ({ ...prev, pro_payment_destination: data.pro_payment_destination }));
-                        
-                        const finalLink = getDynamicPaymentLink(data.pro_payment_destination, selectedProduct?.price || 0);
-                        if (finalLink && qrRef.current) {
-                            const qrCode = new QRCodeStyling({
-                                width: 120,
-                                height: 120,
-                                data: finalLink,
-                                dotsOptions: { color: "#ff0033", type: "rounded" },
-                                backgroundOptions: { color: "#ffffff" },
-                                cornersSquareOptions: { type: "extra-rounded" }
-                            });
-                            qrRef.current.innerHTML = '';
-                            qrCode.append(qrRef.current);
-                        }
-                    }
-                    if (data.pro_access_code) {
-                        setConfigData(prev => ({ ...prev, pro_access_code: data.pro_access_code }));
+                    const finalPayment = data.paymentDestination || data.pro_payment_destination || 'https://bunq.me/itsalexalex01';
+                    const finalCode = data.accessCode || data.pro_access_code || 'DROPSIDERSPRO';
+
+                    setPaymentDestination(finalPayment);
+                    setConfigData({
+                        accessCode: finalCode,
+                        paymentDestination: finalPayment
+                    });
+
+                    if (qrRef.current) {
+                        const qrCode = new QRCodeStyling({
+                            width: 120,
+                            height: 120,
+                            data: getDynamicPaymentLink(finalPayment, selectedProduct?.price || 0),
+                            dotsOptions: { color: "#ff0033", type: "rounded" },
+                            backgroundOptions: { color: "#ffffff" },
+                            cornersSquareOptions: { type: "extra-rounded" }
+                        });
+                        qrRef.current.innerHTML = '';
+                        qrCode.append(qrRef.current);
                     }
                 }
                 const ordersRes = await fetch('/api/pro-orders');
@@ -287,7 +301,7 @@ export function ProShop() {
     const handleAuth = (e: React.FormEvent) => {
         e.preventDefault();
         const code = accessCode.toUpperCase();
-        const isPartner = code === 'PRO' || code === configData.pro_access_code.toUpperCase();
+        const isPartner = code === 'PRO' || code === configData.accessCode.toUpperCase();
 
         if (isPartner) {
             setIsAuthorized(true);
@@ -305,9 +319,15 @@ export function ProShop() {
             await fetch('/api/settings/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(configData)
+                body: JSON.stringify({
+                    ...configData,
+                    pro_payment_destination: configData.paymentDestination,
+                    pro_access_code: configData.accessCode
+                })
             });
-            setPaymentDestination(configData.pro_payment_destination);
+            setPaymentDestination(configData.paymentDestination);
+            localStorage.setItem('pro_payment_destination', configData.paymentDestination);
+            localStorage.setItem('pro_access_code', configData.accessCode);
             // Show success (optional toast)
         } catch (e) {
             console.error('Save error', e);
@@ -675,8 +695,8 @@ export function ProShop() {
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">RIB ou Lien de paiement (Stripe/PayPal)</label>
                                     <textarea 
-                                        value={configData.pro_payment_destination}
-                                        onChange={(e) => setConfigData({ ...configData, pro_payment_destination: e.target.value })}
+                                        value={configData.paymentDestination}
+                                        onChange={(e) => setConfigData({ ...configData, paymentDestination: e.target.value })}
                                         className="w-full h-32 bg-black/50 border border-white/10 rounded-2xl p-6 text-xs font-bold focus:border-neon-red outline-none transition-all"
                                         placeholder="IBAN (BUNQ, Revolut, etc.) ou lien Stripe/PayPal..."
                                     />
@@ -695,8 +715,8 @@ export function ProShop() {
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">Code d'accès partenaire</label>
                                     <input 
                                         type="text"
-                                        value={configData.pro_access_code}
-                                        onChange={(e) => setConfigData({ ...configData, pro_access_code: e.target.value })}
+                                        value={configData.accessCode}
+                                        onChange={(e) => setConfigData({ ...configData, accessCode: e.target.value })}
                                         className="w-full bg-black/50 border border-white/10 rounded-2xl px-6 py-4 text-xs font-bold focus:border-neon-red outline-none transition-all"
                                         placeholder="Ex: PARTNER2026"
                                     />
