@@ -79,7 +79,7 @@ export function ProShop() {
     const qrRef = React.useRef<HTMLDivElement>(null);
 
     const [configData, setConfigData] = useState({
-        pro_payment_destination: '',
+        pro_payment_destination: 'https://bunq.me/itsalexalex01',
         pro_access_code: 'PRO'
     });
 
