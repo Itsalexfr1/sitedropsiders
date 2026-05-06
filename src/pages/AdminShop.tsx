@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Plus, X, Trash2, Image as ImageIcon, Check, Edit2, ChevronUp, ChevronDown, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Plus, X, Trash2, Image as ImageIcon, Check, Edit2, ChevronUp, ChevronDown, ExternalLink, Lock, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
