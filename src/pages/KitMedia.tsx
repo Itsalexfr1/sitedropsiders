@@ -627,6 +627,66 @@ const KitMedia = () => {
 
                 <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full border-t border-white/5">
                     <div className="text-center mb-16">
+                        <p className="text-neon-red text-[10px] font-black tracking-[0.5em] uppercase mb-4">Tarification</p>
+                        <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter">
+                            {language === 'fr' ? "NOS SOLUTIONS MÉDIAS" : "OUR MEDIA SOLUTIONS"}
+                        </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+                        {[
+                            { name: "STARDUST", price: "90€", items: language === 'fr' ? ["1 Post Instagram", "1 Story Pack", "1 Mention News", "Relais Facebook"] : ["1 Instagram Post", "1 Story Pack", "1 News Mention", "Facebook Share"] },
+                            { name: "SPOTLIGHT", price: "180€", items: language === 'fr' ? ["1 Article Dédié", "1 Post Instagram", "1 Story Pack"] : ["1 Dedicated Article", "1 Instagram Post", "1 Story Pack"], featured: true },
+                            { name: "PULSE", price: "320€", items: language === 'fr' ? ["1 Article Premium", "2 Posts Instagram", "3 Stories Pack", "Newsletter"] : ["1 Premium Article", "2 Instagram Posts", "3 Stories Pack", "Newsletter"] },
+                            { name: "IMMERSIVE", price: "700€", items: language === 'fr' ? ["1 Post Instagram", "1 Story Pack", "Couverture Live", "Récap Vidéo (Team)"] : ["1 Instagram Post", "1 Story Pack", "Live Coverage", "Video Recap (Team)"] }
+                        ].map((pkg, i) => (
+                            <motion.div
+                                key={i}
+                                whileHover={{ y: -10 }}
+                                className={`p-8 rounded-[2.5rem] border ${pkg.featured ? 'bg-white/10 border-neon-red shadow-[0_0_40px_rgba(255,51,51,0.1)]' : 'bg-white/5 border-white/10'} relative overflow-hidden group`}
+                            >
+                                {pkg.featured && <div className="absolute top-4 right-4 px-3 py-1 bg-neon-red text-white text-[8px] font-black rounded-full uppercase tracking-widest">Most Popular</div>}
+                                <h3 className="text-xl font-black mb-1 italic tracking-tighter uppercase">{pkg.name}</h3>
+                                <div className="text-4xl font-black mb-6 flex items-baseline gap-1">
+                                    {pkg.price}<span className="text-xs text-gray-500 font-bold uppercase tracking-widest">HT</span>
+                                </div>
+                                <ul className="space-y-3 mb-8">
+                                    {pkg.items.map((item, idx) => (
+                                        <li key={idx} className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest group-hover:text-white transition-colors">
+                                            <div className="w-1 h-1 bg-neon-red rounded-full" /> {item}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <div className="bg-white/5 border border-white/10 rounded-[3rem] p-12 mb-32">
+                        <h3 className="text-2xl font-display font-black uppercase mb-12 tracking-tight flex items-center gap-4">
+                             <span className="w-8 h-px bg-neon-red"></span>
+                             {language === 'fr' ? "TARIFS À LA CARTE" : "A LA CARTE RATES"}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-8">
+                            {[
+                                { label: language === 'fr' ? "Article Sponsorisé" : "Sponsored Article", price: "125€", icon: <FileText className="w-4 h-4" /> },
+                                { label: language === 'fr' ? "Instagram Post (Feed)" : "Instagram Post (Feed)", price: "90€", icon: <Instagram className="w-4 h-4" /> },
+                                { label: language === 'fr' ? "Pack Stories (3 slides)" : "Stories Pack (3 slides)", price: "45€", icon: <Zap className="w-4 h-4" /> },
+                                { label: language === 'fr' ? "Vidéo TikTok / Reel" : "TikTok / Reel Video", price: "110€", icon: <Mic className="w-4 h-4" /> },
+                                { label: language === 'fr' ? "Mise en avant Agenda" : "Agenda Spotlight", price: "60€", icon: <Users className="w-4 h-4" /> },
+                                { label: language === 'fr' ? "Placement Newsletter" : "Newsletter Placement", price: "75€", icon: <ExternalLink className="w-4 h-4" /> }
+                            ].map((item, idx) => (
+                                <div key={idx} className="flex items-center justify-between group border-b border-white/5 pb-4">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-neon-red opacity-50 group-hover:opacity-100 transition-opacity">{item.icon}</span>
+                                        <span className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">{item.label}</span>
+                                    </div>
+                                    <span className="text-sm font-black text-white italic">{item.price}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="text-center mb-16">
                         <p className="text-neon-red text-[10px] font-black tracking-[0.5em] uppercase mb-4">Let's build something</p>
                         <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter">
                             {language === 'fr' ? "OPPORTUNITÉS DE COLLABORATION" : "COLLABORATION OPPORTUNITIES"}

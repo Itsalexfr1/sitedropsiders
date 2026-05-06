@@ -50,6 +50,7 @@ const KitMedia = lazyRetry(() => import('./pages/KitMedia'));
 const AdminHome = lazyRetry(() => import('./pages/AdminHome').then(m => m.AdminHome));
 const AdminSettings = lazyRetry(() => import('./pages/AdminSettings').then(m => m.AdminSettings));
 const AdminFactures = lazyRetry(() => import('./pages/AdminFactures').then(m => m.AdminFactures));
+const AdminTarifs = lazyRetry(() => import('./pages/AdminTarifs').then(m => m.AdminTarifs));
 const AdminMessages = lazyRetry(() => import('./pages/AdminMessages').then(m => m.AdminMessages));
 const AdminBanner = lazyRetry(() => import('./pages/AdminBanner').then(m => m.AdminBanner));
 const Contact = lazyRetry(() => import('./pages/Contact').then(m => m.Contact));
@@ -196,6 +197,7 @@ const router = createBrowserRouter([
           { path: "admin/settings", element: <AdminSettings /> },
           { path: "admin/messages", element: <AdminMessages /> },
           { path: "admin/factures", element: <AdminFactures /> },
+          { path: "admin/tarifs", element: <AdminTarifs /> },
           { path: "admin/banner", element: <AdminBanner /> },
           { path: "admin/pdfs", element: <AdminPdfs /> },
           { path: "admin/interview-questions", element: <AdminInterviewQuestions /> },
