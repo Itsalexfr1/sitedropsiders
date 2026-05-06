@@ -70,6 +70,8 @@ export function ProShop() {
     const [selectedProduct, setSelectedProduct] = useState<ProProduct | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [checkoutStep, setCheckoutStep] = useState<'details' | 'payment_choice' | 'payment' | 'success'>('details');
+    const [checkoutEmail, setCheckoutEmail] = useState('');
+    const [checkoutCompany, setCheckoutCompany] = useState('');
     const [paymentDestination, setPaymentDestination] = useState('');
     
     // Dynamic products from generator
@@ -386,11 +388,8 @@ export function ProShop() {
     const handlePayment = async () => {
         setCheckoutStep('payment');
         
-        const companyInput = document.querySelector('input[placeholder*="Sony"]') as HTMLInputElement;
-        const emailInput = document.querySelector('input[placeholder*="pro@domain.com"]') as HTMLInputElement;
-        
-        const company = companyInput?.value || 'Inconnu';
-        const email = emailInput?.value || '';
+        const company = checkoutCompany || 'Inconnu';
+        const email = checkoutEmail || '';
         const invoiceNumber = `DS-${Date.now().toString().slice(-6)}`;
 
         try {
@@ -839,11 +838,25 @@ export function ProShop() {
                                             <div className="space-y-4">
                                                 <div>
                                                     <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Nom de la structure</label>
-                                                    <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" placeholder="Ex: Sony Music, Tomorrowland..." />
+                                                    <input 
+                                                        required 
+                                                        type="text" 
+                                                        value={checkoutCompany}
+                                                        onChange={(e) => setCheckoutCompany(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" 
+                                                        placeholder="Ex: Sony Music, Tomorrowland..." 
+                                                    />
                                                 </div>
                                                 <div>
                                                     <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Email professionnel</label>
-                                                    <input required type="email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" placeholder="pro@domain.com" />
+                                                    <input 
+                                                        required 
+                                                        type="email" 
+                                                        value={checkoutEmail}
+                                                        onChange={(e) => setCheckoutEmail(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" 
+                                                        placeholder="pro@domain.com" 
+                                                    />
                                                 </div>
                                             </div>
                                             <button 
@@ -896,12 +909,14 @@ export function ProShop() {
                                                 </div>
                                             </div>
 
-                                            <button 
-                                                onClick={() => handlePayment()}
-                                                className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-gray-200 transition-all"
-                                            >
-                                                Envoyer ma demande <ArrowRight className="w-5 h-5" />
-                                            </button>
+                                            {!paymentDestination.startsWith('http') && (
+                                                <button 
+                                                    onClick={() => handlePayment()}
+                                                    className="w-full py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
+                                                >
+                                                    Confirmer ma demande <ArrowRight className="w-5 h-5" />
+                                                </button>
+                                            )}
 
                                             <button 
                                                 onClick={() => setCheckoutStep('details')}
