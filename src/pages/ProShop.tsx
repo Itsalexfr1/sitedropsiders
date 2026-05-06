@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { jsPDF } from 'jspdf';
 import QRCodeStyling from 'qr-code-styling';
-import { History, LayoutPanelLeft } from 'lucide-react';
+import { History, LayoutPanelLeft, Clock } from 'lucide-react';
 import { isSuperAdmin as checkSuperAdmin } from '../utils/auth';
 
 interface ProProduct {
@@ -451,7 +451,7 @@ export function ProShop() {
 
         setTimeout(() => {
             setCheckoutStep('success');
-        }, 2000);
+        }, 3000);
     };
 
     const handleConfirmDetails = (e: React.FormEvent) => {
@@ -979,13 +979,22 @@ export function ProShop() {
                                                 </div>
                                             </div>
 
-                                            {!paymentDestination.startsWith('http') && (
-                                                <button 
-                                                    onClick={() => handlePayment()}
-                                                    className="w-full py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
-                                                >
-                                                    Confirmer ma demande <ArrowRight className="w-5 h-5" />
-                                                </button>
+                                            {paymentDestination ? (
+                                                !paymentDestination.startsWith('http') && (
+                                                    <button 
+                                                        onClick={() => handlePayment()}
+                                                        className="w-full py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
+                                                    >
+                                                        Confirmer ma demande <ArrowRight className="w-5 h-5" />
+                                                    </button>
+                                                )
+                                            ) : (
+                                                <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
+                                                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2">Paiement non configuré</p>
+                                                    <p className="text-[9px] text-gray-500 font-bold uppercase leading-relaxed">
+                                                        Veuillez contacter l'administrateur pour finaliser cette commande.
+                                                    </p>
+                                                </div>
                                             )}
 
                                             <button 
@@ -1005,20 +1014,23 @@ export function ProShop() {
                                         </div>
                                     )}
 
-                                    {checkoutStep === 'success' && (
+                                     {checkoutStep === 'success' && (
                                         <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-                                            <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-8 border border-green-500/20 text-green-500">
-                                                <Check className="w-10 h-10" />
+                                            <div className="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center mb-8 border border-orange-500/20 text-orange-500">
+                                                <Clock className="w-10 h-10 animate-pulse" />
                                             </div>
-                                            <h4 className="text-3xl font-display font-black uppercase italic tracking-tight mb-4">Commande Validée</h4>
+                                            <h4 className="text-3xl font-display font-black uppercase italic tracking-tight mb-4">Demande Transmise</h4>
                                             <p className="text-gray-400 text-sm font-medium mb-12 leading-relaxed">
-                                                Merci pour votre confiance. <br />
-                                                Votre demande a été transmise à notre équipe.
+                                                Votre demande de service a bien été enregistrée. <br />
+                                                Elle est actuellement <span className="text-white">en attente de règlement</span>.
                                             </p>
 
-                                            <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest mb-8">
-                                                Un email de confirmation vient de vous être envoyé.
-                                            </p>
+                                            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 w-full text-left">
+                                                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2">Prochaine étape</p>
+                                                <p className="text-xs font-bold text-gray-300 leading-relaxed">
+                                                    Dès que votre paiement sera réceptionné, nous validerons manuellement votre commande et vous recevrez votre facture ainsi que vos accès par email.
+                                                </p>
+                                            </div>
 
                                             <button 
                                                 onClick={() => setIsCheckingOut(false)}
