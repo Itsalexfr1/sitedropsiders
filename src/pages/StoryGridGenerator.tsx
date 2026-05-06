@@ -545,14 +545,14 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                             <div className="w-[360px] aspect-[9/16] bg-black rounded-[4rem] border-[8px] border-white/5 shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden relative flex flex-col">
                                 <div 
                                     ref={previewRef}
-                                    className="w-full h-full bg-[#050505] flex flex-col items-center p-4 pt-3 relative overflow-hidden"
+                                    className="w-full h-full bg-[#050505] flex flex-col items-center justify-center p-4 py-3 relative overflow-hidden"
                                 >
                                     {/* Success Modal (Social Studio Style) */}
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,51,0.08)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,255,243,0.05)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
-                                    <div className="flex flex-col items-center pt-1 mb-2">
+                                    <div className="flex flex-col items-center pt-0 mb-2">
                                         <div className="relative group">
                                             <img 
                                                 src="/Logo.png" 
