@@ -147,26 +147,27 @@ export function ProShop() {
                 const res = await fetch('/api/settings');
                 if (res.ok) {
                     const data = await res.json();
-                if (data.pro_payment_destination) {
-                    setPaymentDestination(data.pro_payment_destination);
-                    setConfigData(prev => ({ ...prev, pro_payment_destination: data.pro_payment_destination }));
-                    
-                    const finalLink = getDynamicPaymentLink(data.pro_payment_destination, selectedProduct?.price || 0);
-                    if (finalLink && qrRef.current) {
-                        const qrCode = new QRCodeStyling({
-                            width: 120,
-                            height: 120,
-                            data: finalLink,
-                            dotsOptions: { color: "#ff0033", type: "rounded" },
-                            backgroundOptions: { color: "#ffffff" },
-                            cornersSquareOptions: { type: "extra-rounded" }
-                        });
-                        qrRef.current.innerHTML = '';
-                        qrCode.append(qrRef.current);
+                    if (data.pro_payment_destination) {
+                        setPaymentDestination(data.pro_payment_destination);
+                        setConfigData(prev => ({ ...prev, pro_payment_destination: data.pro_payment_destination }));
+                        
+                        const finalLink = getDynamicPaymentLink(data.pro_payment_destination, selectedProduct?.price || 0);
+                        if (finalLink && qrRef.current) {
+                            const qrCode = new QRCodeStyling({
+                                width: 120,
+                                height: 120,
+                                data: finalLink,
+                                dotsOptions: { color: "#ff0033", type: "rounded" },
+                                backgroundOptions: { color: "#ffffff" },
+                                cornersSquareOptions: { type: "extra-rounded" }
+                            });
+                            qrRef.current.innerHTML = '';
+                            qrCode.append(qrRef.current);
+                        }
                     }
-                }
-                if (data.pro_access_code) {
-                    setConfigData(prev => ({ ...prev, pro_access_code: data.pro_access_code }));
+                    if (data.pro_access_code) {
+                        setConfigData(prev => ({ ...prev, pro_access_code: data.pro_access_code }));
+                    }
                 }
                 const ordersRes = await fetch('/api/pro-orders');
                 if (ordersRes.ok) {
