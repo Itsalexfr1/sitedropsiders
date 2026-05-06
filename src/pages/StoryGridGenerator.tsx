@@ -562,7 +562,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                         </div>
                                     </div>
 
-                                    <div className="w-full flex-1 overflow-hidden relative z-10 flex items-end">
+                                    <div className="w-full flex-1 overflow-hidden relative z-10 flex items-center">
                                         <div className="grid gap-x-1 gap-y-1 grid-cols-5">
                                             {items.map(item => (
                                                 <div key={item.id} className="flex flex-col items-center gap-1">
