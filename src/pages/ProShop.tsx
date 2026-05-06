@@ -77,7 +77,14 @@ export function ProShop() {
     
     // Dynamic products from generator
     const [dynamicProducts, setDynamicProducts] = useState<ProProduct[]>([]);
-    const [activeTab, setActiveTab] = useState<'shop' | 'config' | 'archive'>('shop');
+    const [activeTab, setActiveTab] = useState<'shop' | 'config' | 'archive'>(() => {
+        const savedTab = sessionStorage.getItem('pro_active_tab');
+        if (savedTab === 'config' || savedTab === 'archive') {
+            sessionStorage.removeItem('pro_active_tab');
+            return savedTab;
+        }
+        return 'shop';
+    });
     const [isSavingConfig, setIsSavingConfig] = useState(false);
     const [orders, setOrders] = useState<any[]>([]);
     const qrRef = React.useRef<HTMLDivElement>(null);

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { X, ShoppingBag, Plus, CreditCard, Users, Tag, ExternalLink, Package } from 'lucide-react';
+import { X, ShoppingBag, Plus, CreditCard, Users, Tag, ExternalLink, Package, Shield, Settings2, CheckCircle2 } from 'lucide-react';
 
 interface ShopMenuModalProps {
     isOpen: boolean;
@@ -114,16 +114,57 @@ export function ShopMenuModal({ isOpen, onClose }: ShopMenuModalProps) {
                                 href="https://fourthwall.com/dashboard"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-6 bg-neon-red/5 border border-neon-red/20 rounded-3xl flex items-center gap-5 hover:bg-neon-red/20 hover:border-neon-red/50 transition-all group"
+                                className="p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-5 hover:bg-white/10 transition-all group"
                             >
-                                <div className="w-14 h-14 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/20 group-hover:scale-110 transition-transform flex-shrink-0">
-                                    <ExternalLink className="w-7 h-7 text-neon-red" />
+                                <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform flex-shrink-0">
+                                    <ExternalLink className="w-7 h-7 text-white" />
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-black text-white uppercase italic leading-none mb-1">Fourthwall</h3>
-                                    <p className="text-[10px] text-neon-red font-bold uppercase tracking-widest">Dashboard Externe</p>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Dashboard Externe</p>
                                 </div>
                             </a>
+                        </div>
+
+                        {/* Boutique Pro Section */}
+                        <div className="mt-12 pt-8 border-t border-white/10 relative z-10">
+                            <h4 className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                                <Shield className="w-3.5 h-3.5" /> Espace Partenaires (B2B)
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <Link
+                                    to="/pro/boutique"
+                                    onClick={onClose}
+                                    className="p-5 bg-neon-red/10 border border-neon-red/20 rounded-2xl flex flex-col gap-3 hover:bg-neon-red/20 hover:border-neon-red/40 transition-all group"
+                                >
+                                    <Package className="w-5 h-5 text-neon-red" />
+                                    <div className="text-xs font-black text-white uppercase italic tracking-tight">Catalogue Pro</div>
+                                </Link>
+
+                                <Link
+                                    to="/pro/boutique"
+                                    onClick={() => {
+                                        sessionStorage.setItem('pro_active_tab', 'config');
+                                        onClose();
+                                    }}
+                                    className="p-5 bg-white/5 border border-white/10 rounded-2xl flex flex-col gap-3 hover:bg-white/10 transition-all group"
+                                >
+                                    <Settings2 className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                                    <div className="text-xs font-black text-white uppercase italic tracking-tight">Config B2B</div>
+                                </Link>
+
+                                <Link
+                                    to="/pro/boutique"
+                                    onClick={() => {
+                                        sessionStorage.setItem('pro_active_tab', 'archive');
+                                        onClose();
+                                    }}
+                                    className="p-5 bg-white/5 border border-white/10 rounded-2xl flex flex-col gap-3 hover:bg-white/10 transition-all group"
+                                >
+                                    <CheckCircle2 className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                                    <div className="text-xs font-black text-white uppercase italic tracking-tight">Archives Pro</div>
+                                </Link>
+                            </div>
                         </div>
                         
                         <div className="mt-10 pt-8 border-t border-white/5 flex items-center justify-between">
