@@ -3260,15 +3260,6 @@ export function AdminDashboard() {
                 ))}
               </div>
             </div>
-          ) :
-div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              </div>
-            </div>
           ) : dashboardTab === "R2" ? (
             <div className="pb-20">
               <R2Explorer />
@@ -12225,7 +12216,7 @@ div>
                                             method: "POST",
                                             headers: getAuthHeaders(),
                                             body: JSON.stringify({ members: newTeam }),
-                                          }).then(r => r.ok && showNotification("Supprimé", "success"));
+                                          }).then(r => { if (r.ok) showNotification("Supprimé", "success"); });
                                         }
                                       });
                                     }}
@@ -12304,7 +12295,7 @@ div>
                                             method: "POST",
                                             headers: getAuthHeaders(),
                                             body: JSON.stringify({ username: editor.username }),
-                                          }).then(r => r.ok && fetchEditors());
+                                            }).then(r => { if (r.ok) fetchEditors(); });
                                         }
                                       });
                                     }}

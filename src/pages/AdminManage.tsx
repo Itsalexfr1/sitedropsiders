@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink, Camera, RefreshCw, ChevronUp, ChevronDown, Save, Instagram, Sparkles } from 'lucide-react';
+import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink, Camera, RefreshCw, ChevronUp, ChevronDown, Save, Instagram, Sparkles, Users, Mail, ShieldCheck, User, ShieldAlert, ArrowRight, Shield } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { SocialSuite } from '../components/SocialSuite';
