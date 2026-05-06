@@ -26,19 +26,19 @@ interface PackItem {
 }
 
 const DEFAULT_PRICES: PriceItem[] = [
-    { id: '1', label: 'Article Sponsorisé', price: '125' },
-    { id: '2', label: 'Instagram Post (Feed)', price: '90' },
-    { id: '3', label: 'Pack Stories (3 slides)', price: '45' },
-    { id: '4', label: 'Vidéo TikTok / Reel', price: '110' },
-    { id: '5', label: 'Mise en avant Agenda', price: '60' },
-    { id: '6', label: 'Placement Newsletter', price: '75' }
+    { id: '1', label: 'ARTICLE SUR LE SITE', price: '100', hidden: false },
+    { id: '2', label: 'POST INSTAGRAM', price: '50', hidden: false },
+    { id: '3', label: 'INSTAGRAM STORY', price: '30', hidden: false },
+    { id: '4', label: 'PACK 1 STORY + 1 POST', price: '70', hidden: false },
+    { id: '5', label: "AJOUT DANS L'AGENDA", price: '30', hidden: false },
+    { id: '6', label: 'RÉEL INSTAGRAM + TIKTOK', price: '100', hidden: false },
 ];
 
 const DEFAULT_PACKS: PackItem[] = [
-    { id: 'p1', name: 'STARDUST', price: '90', items: ["1 Post Instagram", "1 Story Pack", "1 Mention News", "Relais Facebook"] },
-    { id: 'p2', name: 'SPOTLIGHT', price: '180', items: ["1 Article Dédié", "1 Post Instagram", "1 Story Pack"], featured: true },
-    { id: 'p3', name: 'PULSE', price: '320', items: ["1 Article Premium", "2 Posts Instagram", "3 Stories Pack", "Newsletter"] },
-    { id: 'p4', name: 'IMMERSIVE', price: '700', items: ["1 Post Instagram", "1 Story Pack", "Couverture Live", "Récap Vidéo (Team)"] }
+    { id: 'p1', name: 'STARDUST', price: '80', items: ["1 POST INSTAGRAM", "1 STORY", "AJOUT DANS L'AGENDA"] },
+    { id: 'p2', name: 'SPOTLIGHT', price: '150', items: ["1 ARTICLE DÉDIÉ", "1 POST INSTAGRAM", "2 STORY", "AJOUT DANS L'AGENDA"], featured: true },
+    { id: 'p3', name: 'PULSE', price: '200', items: ["2 POSTS INSTAGRAM", "3 STORIES", "1 RÉEL", "AJOUT DANS L'AGENDA"] },
+    { id: 'p4', name: 'IMMERSIVE', price: '350', items: ["1 ARTICLE", "3 POST INSTAGRAM", "5 STORY", "3 RÉELS", "AJOUT DANS L'AGENDA"] }
 ];
 
 export function AdminTarifs() {
