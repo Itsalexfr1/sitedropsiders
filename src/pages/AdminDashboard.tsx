@@ -3217,7 +3217,17 @@ export function AdminDashboard() {
                     isActive
                       ? "bg-white/10 text-white border border-white/20 shadow-lg"
                       : "text-gray-500 hover:text-gray-300"
-                       {dashboardTab === "TEAM" ? (
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="space-y-16 relative">
+          {dashboardTab === "TEAM" ? (
             <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
               <div className="w-24 h-24 bg-neon-purple/10 rounded-[2rem] flex items-center justify-center border border-neon-purple/20 mb-8 animate-pulse">
                 <ShieldCheck className="w-12 h-12 text-neon-purple" />
