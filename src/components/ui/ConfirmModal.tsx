@@ -7,6 +7,7 @@ export interface ConfirmModalData {
     message: string;
     type?: 'danger' | 'warning' | 'info';
     confirmText?: string;
+    cancelText?: string;
     onConfirm?: () => void;
 }
 

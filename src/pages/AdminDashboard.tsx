@@ -224,7 +224,7 @@ export function AdminDashboard() {
   const [isQRCodeModalOpen, setIsQRCodeModalOpen] = useState(false);
   const [isIncomingCallModalOpen, setIsIncomingCallModalOpen] = useState(false);
   const [isVideoAITranslatorModalOpen, setIsVideoAITranslatorModalOpen] = useState(false);
-  const [teamModalTab, setTeamModalTab] = useState<"MEMBERS" | "TEAM" | "EDITORS">("MEMBERS");
+  const [teamModalTab, setTeamModalTab] = useState<"MEMBERS" | "TEAM" | "EDITORS" | "REQUESTS">("MEMBERS");
 
   const [isLoadingSocial, setIsLoadingSocial] = useState(false);
   const [bannerState, setBannerState] = useState({
@@ -1551,10 +1551,10 @@ export function AdminDashboard() {
             title: "Demandes Mix Studio",
             message: `Il y a ${pending.length} demande(s) d'accès au Studio en attente de validation. Voulez-vous les traiter maintenant ?`,
             type: "info",
-            confirmLabel: "Gérer les accès",
-            cancelLabel: "Plus tard",
+            confirmText: "Gérer les accès",
+            cancelText: "Plus tard",
             onConfirm: () => {
-              setTeamModalTab("MEMBERS");
+              setTeamModalTab("REQUESTS");
               setIsTeamManagementModalOpen(true);
             }
           });
