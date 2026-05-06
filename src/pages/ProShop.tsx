@@ -111,10 +111,11 @@ export function ProShop() {
         if (savedCode || savedPayment) {
             const finalPayment = savedPayment || 'https://bunq.me/itsalexalex01';
             setPaymentDestination(finalPayment);
-            setConfigData({
+            setConfigData(prev => ({
+                ...prev,
                 accessCode: savedCode || 'DROPSIDERSPRO',
                 paymentDestination: finalPayment
-            });
+            }));
         }
     }, []);
 
@@ -204,10 +205,11 @@ export function ProShop() {
                     const finalCode = data.accessCode || data.pro_access_code || 'DROPSIDERSPRO';
 
                     setPaymentDestination(finalPayment);
-                    setConfigData({
+                    setConfigData(prev => ({
+                        ...prev,
                         accessCode: finalCode,
                         paymentDestination: finalPayment
-                    });
+                    }));
 
                     if (qrRef.current) {
                         const qrCode = new QRCodeStyling({
