@@ -108,18 +108,6 @@
     "columns": 1
   },
   {
-    "title": "L'Équipe & Éditeurs",
-    "description": "Accès & Membres",
-    "icon": "Users",
-    "category": "TEAM",
-    "link": "#",
-    "color": "border-neon-purple/20 hover:border-neon-purple",
-    "bg": "bg-neon-purple/5",
-    "permission": "all",
-    "baseColor": "#ff0000",
-    "columns": 1
-  },
-  {
     "title": "Video Translator AI",
     "description": "Analyse & Traduit MP4",
     "icon": "Video",
@@ -127,6 +115,18 @@
     "link": "video-ai-translator",
     "permission": "news",
     "baseColor": "#00fffb",
+    "columns": 1
+  },
+  {
+    "title": "MEMBRES & TEAM",
+    "description": "Accès & Membres",
+    "icon": "Users",
+    "category": "TEAM",
+    "link": "#",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
+    "permission": "all",
+    "baseColor": "#401aff",
     "columns": 1
   },
   {
