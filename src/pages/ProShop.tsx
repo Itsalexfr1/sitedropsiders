@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { jsPDF } from 'jspdf';
 import QRCodeStyling from 'qr-code-styling';
-import { History, LayoutPanelLeft, Clock } from 'lucide-react';
+import { History, LayoutPanelLeft, Clock, Image } from 'lucide-react';
 import { isSuperAdmin as checkSuperAdmin } from '../utils/auth';
 
 interface ProProduct {
@@ -83,6 +83,7 @@ export function ProShop() {
     const [checkoutPressKit, setCheckoutPressKit] = useState('');
     const [paymentDestination, setPaymentDestination] = useState('https://bunq.me/itsalexalex01');
     const [hasOpenedPaymentLink, setHasOpenedPaymentLink] = useState(false);
+    const [paymentProof, setPaymentProof] = useState<string | null>(null);
     
     // Dynamic products from generator
     const [dynamicProducts, setDynamicProducts] = useState<ProProduct[]>([]);
@@ -485,7 +486,8 @@ export function ProShop() {
                     pressKit,
                     productName: selectedProduct?.name,
                     price: selectedProduct?.price,
-                    invoiceNumber
+                    invoiceNumber,
+                    paymentProof
                 })
             });
             
@@ -501,7 +503,8 @@ export function ProShop() {
                 service: selectedProduct?.name,
                 price: selectedProduct?.price,
                 status: 'En attente',
-                reference: invoiceNumber
+                reference: invoiceNumber,
+                paymentProof
             }, ...prev]);
 
         } catch (e) {
@@ -840,6 +843,9 @@ export function ProShop() {
                                                     {order.pressKit && (
                                                         <a href={order.pressKit} target="_blank" rel="noopener noreferrer" className="text-[8px] font-black uppercase text-neon-purple hover:underline">Press Kit</a>
                                                     )}
+                                                    {order.paymentProof && (
+                                                        <a href={order.paymentProof} target="_blank" rel="noopener noreferrer" className="text-[8px] font-black uppercase text-green-500 hover:underline">Preuve</a>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6 text-sm font-display font-black italic">{order.price}€</td>
@@ -1049,17 +1055,36 @@ export function ProShop() {
                                                                     Procéder au règlement ({selectedProduct?.price}€) <CreditCard className="w-5 h-5" />
                                                                 </a>
                                                             ) : (
-                                                                <div className="space-y-4">
-                                                                    <div className="p-4 bg-white/5 border border-white/10 rounded-xl text-center">
-                                                                        <p className="text-[9px] text-gray-400 font-bold uppercase leading-relaxed">
-                                                                            Le lien de paiement s'est ouvert dans un nouvel onglet.
-                                                                        </p>
+                                                                    <div className="space-y-2">
+                                                                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest px-2 block">Preuve de paiement (Capture d'écran BUNQ)</label>
+                                                                        <div className="relative">
+                                                                            <input 
+                                                                                type="file"
+                                                                                accept="image/*,application/pdf"
+                                                                                onChange={(e) => {
+                                                                                    const file = e.target.files?.[0];
+                                                                                    if (file) {
+                                                                                        const reader = new FileReader();
+                                                                                        reader.onloadend = () => setPaymentProof(reader.result as string);
+                                                                                        reader.readAsDataURL(file);
+                                                                                    }
+                                                                                }}
+                                                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                                            />
+                                                                            <div className={`w-full py-4 border-2 border-dashed ${paymentProof ? 'border-green-500/50 bg-green-500/5' : 'border-white/10 bg-white/5'} rounded-xl flex items-center justify-center gap-3 transition-all`}>
+                                                                                {paymentProof ? <Check className="w-4 h-4 text-green-500" /> : <Image className="w-4 h-4 text-gray-500" />}
+                                                                                <span className="text-[10px] font-black uppercase text-gray-400">
+                                                                                    {paymentProof ? 'Preuve jointe' : 'Uploader ma preuve'}
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
                                                                     <button 
+                                                                        disabled={!paymentProof}
                                                                         onClick={() => handlePayment()}
-                                                                        className="flex items-center justify-center gap-3 w-full py-5 bg-green-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-green-600 transition-all"
+                                                                        className="flex items-center justify-center gap-3 w-full py-5 bg-green-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-green-600 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                                                                     >
-                                                                        J'ai effectué le règlement <Check className="w-5 h-5" />
+                                                                        Valider ma demande <ArrowRight className="w-5 h-5" />
                                                                     </button>
                                                                     <button 
                                                                         onClick={() => setHasOpenedPaymentLink(false)}

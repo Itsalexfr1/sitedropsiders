@@ -458,9 +458,12 @@ export function AdminTarifs() {
                                 </div>
 
                                 {/* Footer */}
-                                <div className="mt-32 pt-12 border-t border-white/10 w-full flex justify-between items-center opacity-40">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.4em]">Dropsiders Media Group © 2026</p>
-                                    <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em]">Confidential Business Document</p>
+                                <div className="mt-32 pt-12 border-t border-white/10 w-full flex flex-col gap-4 opacity-40">
+                                    <div className="flex justify-between items-center w-full">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.4em]">Dropsiders Media Group © 2026</p>
+                                        <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em]">Confidential Business Document</p>
+                                    </div>
+                                    <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest text-center">TVA non applicable, art. 293 B du CGI</p>
                                 </div>
                             </div>
                         </div>

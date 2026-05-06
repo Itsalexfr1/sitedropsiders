@@ -3282,7 +3282,7 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/pro-order' && request.method === 'POST') {
             const order = await request.json();
-            const { company, email, productName, price, invoiceNumber, details, driveLink, pressKit } = order;
+            const { company, email, productName, price, invoiceNumber, details, driveLink, pressKit, paymentProof } = order;
 
             if (env.BREVO_API_KEY) {
                 // ONLY Notify Admin of the new request
@@ -3303,13 +3303,14 @@ ${urls.map(u => `  <url>
                             <p><strong>Assets :</strong></p>
                             <p>Drive Visuels : ${driveLink || 'Non fourni'}</p>
                             <p>Press Kit : ${pressKit || 'Non fourni'}</p>
+                            <p><strong>Preuve de Paiement :</strong> ${paymentProof ? 'JOINTE (Vérifier dans l\'archive)' : 'NON FOURNIE'}</p>
                             <hr style="border-color: #222;" />
                             <p><strong>Détails de la demande :</strong></p>
                             <div style="background: #1a1a1a; padding: 15px; border-radius: 10px; border-left: 4px solid #ff0033;">
                                 ${details || 'Aucun détail fourni'}
                             </div>
                             <hr style="border-color: #222;" />
-                            <p style="font-size: 12px; color: #666;">Allez dans l'onglet "Archive" de votre boutique pro pour valider la commande et envoyer la facture une fois le paiement reçu.</p>
+                            <p style="font-size: 12px; color: #666;">Allez dans l'onglet "Archive" de votre boutique pro pour visualiser la preuve et valider la commande.</p>
                         </div>
                     `
                 };

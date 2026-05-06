@@ -85,7 +85,9 @@ formulas.forEach(f => {
 doc.setFontSize(8);
 doc.setTextColor(150, 150, 150);
 doc.setFont("helvetica", "italic");
-doc.text("Document confidentiel - Dropsiders Media Group 2026", 105, 285, { align: "center" });
+doc.text("Document confidentiel - Dropsiders Media Group 2026", 105, 280, { align: "center" });
+doc.setFontSize(7);
+doc.text("TVA non applicable, art. 293 B du CGI", 105, 285, { align: "center" });
 
 const buffer = Buffer.from(doc.output('arraybuffer'));
 fs.writeFileSync("c:/Users/alexf/Documents/Site Dropsiders V2/Dropsiders_Tarifs_2026.pdf", buffer);
