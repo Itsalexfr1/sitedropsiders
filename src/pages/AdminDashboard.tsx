@@ -1531,9 +1531,36 @@ export function AdminDashboard() {
       fetchMessagesCount();
       fetchTeam();
       fetchEditors();
+      fetchPendingMixRequests();
       if (isContestModeEnabled) fetchContestResults();
     }
   }, [isAuthenticated, isContestModeEnabled]);
+
+  const fetchPendingMixRequests = async () => {
+    try {
+      const res = await fetch("/api/admin/users", { headers: getAuthHeaders() });
+      if (res.ok) {
+        const users = await res.json();
+        const pending = users.filter((u: any) => u.mixStatus === "pending");
+        if (pending.length > 0) {
+          setConfirmModal({
+            isOpen: true,
+            title: "Demandes Mix Studio",
+            message: `Il y a ${pending.length} demande(s) d'accès au Studio en attente de validation. Voulez-vous les traiter maintenant ?`,
+            type: "info",
+            confirmLabel: "Gérer les accès",
+            cancelLabel: "Plus tard",
+            onConfirm: () => {
+              setTeamModalTab("MEMBERS");
+              setIsTeamManagementModalOpen(true);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch pending mix requests", e);
+    }
+  };
 
   const fetchInterviews = async () => {
     try {
