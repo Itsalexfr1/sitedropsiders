@@ -336,6 +336,134 @@ export default {
             return new Response(null, { headers });
         }
 
+        // --- AUTH CHECK ---
+        const decodePass = (p: string) => p && p.startsWith('b64:') ? atob(p.slice(4)) : p;
+        const adminPassword = (env.ADMIN_PASSWORD || '').trim();
+        const requestPassword = (request.headers.get('X-Admin-Password') || '').trim();
+        const requestUsername = (request.headers.get('X-Admin-Username') || '').trim();
+
+        const isAuthRoute = (
+            path.startsWith('/api/news/create') ||
+            path.startsWith('/api/recaps/create') ||
+            (path.startsWith('/api/agenda/create') || (path === '/api/agenda' && request.method === 'POST')) ||
+            path.startsWith('/api/galerie/create') ||
+            path.startsWith('/api/newsletter/send') ||
+            path.startsWith('/api/news/update') ||
+            path.startsWith('/api/recaps/update') ||
+            path.startsWith('/api/agenda/update') ||
+            path.endsWith('/delete') ||
+            path === '/api/subscribers' ||
+            path === '/api/spotify/update' ||
+            path === '/api/team/update' ||
+            path === '/api/settings/update' ||
+            path === '/api/shop/create' ||
+            path === '/api/shop/update' ||
+            path === '/api/photos/moderate' ||
+            path === '/api/photos/pending' ||
+            path === '/api/photos/delete' ||
+            path === '/api/shop/delete' ||
+            path === '/api/quiz/update' ||
+            path === '/api/quiz/submit' ||
+            path === '/api/dashboard-actions/update' ||
+            path.startsWith('/api/editors') ||
+            path === '/api/auth/revoke-all' ||
+            path.startsWith('/api/contacts') ||
+            path === '/api/chat/clear' ||
+            path === '/api/chat/delete' ||
+            path === '/api/chat/ban' ||
+            path === '/api/chat/unban' ||
+            path === '/api/chat/banned' ||
+            path === '/api/media/comment/delete' ||
+            path === '/api/quiz/pending' ||
+            path === '/api/quiz/moderate' ||
+            path === '/api/covoit/delete' ||
+            path === '/api/avis/moderate' ||
+            path === '/api/facture/send' ||
+            path.startsWith('/api/invoices') ||
+            path === '/api/upload' ||
+            path === '/api/user/mixes' ||
+            path.startsWith('/api/pdfs') ||
+            path.startsWith('/api/instagram-contest') ||
+            path.startsWith('/api/quiz/contest') ||
+            path === '/api/wiki/update-photo' ||
+            path === '/api/wiki/approve-bulk' ||
+            path === '/api/r2/stats' ||
+            path === '/api/r2/duplicates' ||
+            path === '/api/admin/broken-images' ||
+            path === '/api/broken-images' ||
+            path === '/api/admin/validate-photo' ||
+            path === '/api/admin/validate-photo-bulk' ||
+            path === '/api/admin/unused-r2-images' ||
+            path === '/api/admin/bulk-update-year' ||
+            path === '/api/admin/cleanup-past-agenda' ||
+            path === '/api/admin/reset-leaderboards' ||
+            path === '/api/music/reset' ||
+            path === '/api/admin/clean-encoding' ||
+            path === '/api/quiz/reset-blind-test' ||
+            path === '/api/r2/delete' ||
+            path === '/api/r2/list' ||
+            path === '/api/admin/remove-broken-image' ||
+            path === '/api/admin/auto-fix-photos' ||
+            path === '/api/wiki/add' ||
+            path === '/api/wiki/update' ||
+            path === '/api/wiki/delete' ||
+            path === '/api/admin/remove-broken-image-bulk' ||
+            path === '/api/agenda/favorites' ||
+            path === '/api/users/list' ||
+            path === '/api/users/search' ||
+            path === '/api/push/broadcast' ||
+            path === '/api/extension/push' ||
+            path === '/api/admin/users' ||
+            path === '/api/admin/users/approve-mix'
+        );
+
+        let authenticated = false;
+        let userPermissions = [];
+
+        if (isAuthRoute) {
+            const requestSessionId = request.headers.get('X-Session-ID');
+            const isMasterPass = requestPassword && requestPassword === adminPassword;
+
+            if (isMasterPass) {
+                authenticated = true;
+                userPermissions = ['all'];
+            }
+            else {
+                const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
+                const masterSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
+                
+                if (requestSessionId && requestSessionId === masterSessionId) {
+                    const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
+                    if (isSuperEmail || requestUsername === 'alex') {
+                        authenticated = true;
+                        userPermissions = ['all'];
+                    }
+                }
+            }
+
+            if (!authenticated && requestUsername) {
+                const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
+                if (editorsFile && editorsFile.content) {
+                    const editor = editorsFile.content.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
+                    if (editor) {
+                        const epass = decodePass((editor.password || '').trim());
+                        const isPasswordMatch = requestPassword && epass === requestPassword;
+                        const isSessionMatch = requestSessionId && requestSessionId === (editor.session_id || 'editor-initial-id');
+                        if (isPasswordMatch || isSessionMatch) {
+                             authenticated = true;
+                             userPermissions = editor.permissions || [];
+                        }
+                    }
+                }
+            }
+
+            if (!authenticated) {
+                return new Response(JSON.stringify({
+                    error: 'Accès non autorisé'
+                }), { status: 401, headers });
+            }
+        }
+
         // --- DISCORD OAUTH ---
         const DISCORD_CLIENT_ID = '1481163258080788602';
         const DISCORD_REDIRECT_URI = path.startsWith('/auth/discord') 
@@ -1308,7 +1436,7 @@ ${urls.map(u => `  <url>
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
                             'Origin': 'https://cobalt.tools',
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
                         },
                         body: JSON.stringify({
                             url: targetUrl,
@@ -1620,85 +1748,6 @@ ${urls.map(u => `  <url>
             return str;
         };
 
-        // --- AUTH CHECK ---
-        // Helper: decode passwords stored as b64:<base64value> in editors.json
-        const decodePass = (p: string) => p && p.startsWith('b64:') ? atob(p.slice(4)) : p;
-        const adminPassword = (env.ADMIN_PASSWORD || '').trim();
-        const requestPassword = (request.headers.get('X-Admin-Password') || '').trim();
-        const requestUsername = (request.headers.get('X-Admin-Username') || '').trim();
-
-        const isAuthRoute = (
-            path.startsWith('/api/news/create') ||
-            path.startsWith('/api/recaps/create') ||
-            (path.startsWith('/api/agenda/create') || (path === '/api/agenda' && request.method === 'POST')) ||
-            path.startsWith('/api/galerie/create') ||
-            path.startsWith('/api/newsletter/send') ||
-            path.startsWith('/api/news/update') ||
-            path.startsWith('/api/recaps/update') ||
-            path.startsWith('/api/agenda/update') ||
-            path.endsWith('/delete') ||
-            path === '/api/subscribers' ||
-            path === '/api/spotify/update' ||
-            path === '/api/team/update' ||
-            path === '/api/settings/update' ||
-            path === '/api/shop/create' ||
-            path === '/api/shop/update' ||
-            path === '/api/photos/moderate' ||
-            path === '/api/photos/pending' ||
-            path === '/api/photos/delete' ||
-            path === '/api/shop/delete' ||
-            path === '/api/quiz/update' ||
-            path === '/api/quiz/submit' ||
-            path === '/api/dashboard-actions/update' ||
-            path.startsWith('/api/editors') ||
-            path === '/api/auth/revoke-all' ||
-            path.startsWith('/api/contacts') ||
-            path === '/api/chat/clear' ||
-            path === '/api/chat/delete' ||
-            path === '/api/chat/ban' ||
-            path === '/api/chat/unban' ||
-            path === '/api/chat/banned' ||
-            path === '/api/media/comment/delete' ||
-            path === '/api/quiz/pending' ||
-            path === '/api/quiz/moderate' ||
-            path === '/api/covoit/delete' ||
-            path === '/api/avis/moderate' ||
-            path === '/api/facture/send' ||
-            path.startsWith('/api/invoices') ||
-            path === '/api/upload' ||
-            path === '/api/user/mixes' ||
-            path.startsWith('/api/pdfs') ||
-            path.startsWith('/api/instagram-contest') ||
-            path.startsWith('/api/quiz/contest') ||
-            path === '/api/wiki/update-photo' ||
-            path === '/api/wiki/approve-bulk' ||
-            path === '/api/r2/stats' ||
-            path === '/api/r2/duplicates' ||
-            path === '/api/admin/broken-images' ||
-            path === '/api/broken-images' ||
-            path === '/api/admin/validate-photo' ||
-            path === '/api/admin/validate-photo-bulk' ||
-            path === '/api/admin/unused-r2-images' ||
-            path === '/api/admin/bulk-update-year' ||
-            path === '/api/admin/cleanup-past-agenda' ||
-            path === '/api/admin/reset-leaderboards' ||
-            path === '/api/music/reset' ||
-            path === '/api/admin/clean-encoding' ||
-            path === '/api/quiz/reset-blind-test' ||
-            path === '/api/r2/delete' ||
-            path === '/api/r2/list' ||
-            path === '/api/admin/remove-broken-image' ||
-            path === '/api/admin/auto-fix-photos' ||
-            path === '/api/wiki/add' ||
-            path === '/api/wiki/update' ||
-            path === '/api/wiki/delete' ||
-            path === '/api/admin/remove-broken-image-bulk' ||
-            path === '/api/agenda/favorites' ||
-            path === '/api/users/list' ||
-            path === '/api/users/search' ||
-            path === '/api/push/broadcast' ||
-            path === '/api/extension/push'
-        );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
         // Helper: generate a short stable KV key from endpoint URL

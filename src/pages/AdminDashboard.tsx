@@ -2384,7 +2384,7 @@ export function AdminDashboard() {
 
     // GESTION TEAM
     {
-      title: "L'Équipe & Éditeurs",
+      title: "MEMBRES & TEAM",
       description: "Accès & Membres",
       icon: "Users",
       category: "TEAM",
@@ -3263,7 +3263,7 @@ export function AdminDashboard() {
                 <ShieldCheck className="w-12 h-12 text-neon-purple" />
               </div>
               <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter mb-4">
-                Hub de Gestion <span className="text-neon-purple">Équipe</span>
+                Hub de Gestion <span className="text-neon-purple">MEMBRES & TEAM</span>
               </h2>
               <p className="text-gray-500 max-w-md mx-auto mb-10 font-medium leading-relaxed">
                 Gérez les membres du site, l'équipe officielle Dropsiders et les accès éditeurs depuis notre nouvelle interface centralisée.
@@ -3273,7 +3273,7 @@ export function AdminDashboard() {
                 className="px-10 py-5 bg-neon-purple text-white font-black uppercase italic tracking-[0.2em] text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_20px_50px_rgba(147,51,234,0.3)] flex items-center gap-4"
               >
                 <Users className="w-5 h-5" />
-                OUVRIR LA GESTION ÉQUIPE
+                OUVRIR LA GESTION MEMBRES & TEAM
               </button>
               
               <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
@@ -4354,7 +4354,7 @@ export function AdminDashboard() {
                             } else if (
                               action.title === "L'ÉQUIPE" ||
                               action.link === "#TEAM_MANAGEMENT_MODAL" ||
-                              action.title === "L'Équipe & Éditeurs" ||
+                              action.title === "MEMBRES & TEAM" ||
                               action.title === "Comptes Membres"
                             ) {
                               e.preventDefault();
@@ -12116,7 +12116,7 @@ export function AdminDashboard() {
                       <div>
                         <h2 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter flex items-center gap-3">
                           <ShieldCheck className="w-8 h-8 text-neon-purple" />
-                          Gestion <span className="text-neon-purple">Équipe</span>
+                          Gestion <span className="text-neon-purple">MEMBRES & TEAM</span>
                         </h2>
                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
                           Membres, Staff & Éditeurs Dropsiders
