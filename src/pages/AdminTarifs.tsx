@@ -110,30 +110,17 @@ export function AdminTarifs() {
             img.src = dataUrl;
             await new Promise((resolve) => (img.onload = resolve));
             
-            // Standard A4 dimensions
+            // Calculate dynamic height to maintain aspect ratio without white borders
             const pdfWidth = 210;
-            const pdfHeight = 297;
-            const imgAspect = img.width / img.height;
-            const pdfAspect = pdfWidth / pdfHeight;
+            const pdfHeight = (img.height * pdfWidth) / img.width;
             
-            let finalWidth, finalHeight, x, y;
+            const pdf = new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: [pdfWidth, pdfHeight]
+            });
             
-            if (imgAspect > pdfAspect) {
-                // Image is wider than A4
-                finalWidth = pdfWidth;
-                finalHeight = pdfWidth / imgAspect;
-                x = 0;
-                y = (pdfHeight - finalHeight) / 2;
-            } else {
-                // Image is taller than A4
-                finalHeight = pdfHeight;
-                finalWidth = pdfHeight * imgAspect;
-                x = (pdfWidth - finalWidth) / 2;
-                y = 0;
-            }
-
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight, undefined, 'FAST');
+            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
             pdf.save(`Dropsiders_Tarifs_${new Date().getFullYear()}.pdf`);
         } catch (err) {
             console.error('Failed to generate PDF', err);
