@@ -65,6 +65,7 @@ export function ProShop() {
     const { t } = useLanguage();
     const [accessCode, setAccessCode] = useState('');
     const [isAuthorized, setIsAuthorized] = useState(localStorage.getItem('pro_auth') === 'true');
+    const [isSuperAdmin, setIsSuperAdmin] = useState(localStorage.getItem('pro_super_admin') === 'true');
     const [authError, setAuthError] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<ProProduct | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -82,6 +83,18 @@ export function ProShop() {
         pro_payment_destination: 'https://bunq.me/itsalexalex01',
         pro_access_code: 'PRO'
     });
+
+    useEffect(() => {
+        const savedAuth = localStorage.getItem('pro_auth');
+        const savedSuper = localStorage.getItem('pro_super_admin');
+        if (savedAuth === 'true') {
+            setIsAuthorized(true);
+            if (savedSuper === 'true') setIsSuperAdmin(true);
+        }
+        if (!isSuperAdmin && activeTab !== 'shop') {
+            setActiveTab('shop');
+        }
+    }, [isSuperAdmin]);
 
     useEffect(() => {
         if (checkoutStep === 'success' && paymentDestination && qrRef.current) {
@@ -250,9 +263,21 @@ export function ProShop() {
     const handleAuth = (e: React.FormEvent) => {
         e.preventDefault();
         const code = accessCode.toUpperCase();
-        if (code === 'PRO' || code === 'DROPSIDERSPRO' || code === configData.pro_access_code.toUpperCase()) {
+        const isMaster = code === 'DROPSIDERSPRO';
+        const isPartner = code === 'PRO' || code === configData.pro_access_code.toUpperCase();
+
+        if (isMaster || isPartner) {
             setIsAuthorized(true);
             localStorage.setItem('pro_auth', 'true');
+            
+            if (isMaster) {
+                setIsSuperAdmin(true);
+                localStorage.setItem('pro_super_admin', 'true');
+            } else {
+                setIsSuperAdmin(false);
+                localStorage.removeItem('pro_super_admin');
+            }
+            
             setAuthError(false);
         } else {
             setAuthError(true);
@@ -513,27 +538,29 @@ export function ProShop() {
                             BOUTIQUE <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-400 to-gray-800">PARTENAIRES.</span>
                         </h1>
                         
-                        {/* Tab Switcher */}
-                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-2xl w-fit mb-8">
-                            <button 
-                                onClick={() => setActiveTab('shop')}
-                                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'shop' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
-                            >
-                                Catalogue
-                            </button>
-                            <button 
-                                onClick={() => setActiveTab('config')}
-                                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'config' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
-                            >
-                                Configuration
-                            </button>
-                            <button 
-                                onClick={() => setActiveTab('archive')}
-                                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'archive' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
-                            >
-                                Archive
-                            </button>
-                        </div>
+                        {/* Tab Switcher - ONLY FOR SUPER ADMIN */}
+                        {isSuperAdmin && (
+                            <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-2xl w-fit mb-8">
+                                <button 
+                                    onClick={() => setActiveTab('shop')}
+                                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'shop' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    Catalogue
+                                </button>
+                                <button 
+                                    onClick={() => setActiveTab('config')}
+                                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'config' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    Configuration
+                                </button>
+                                <button 
+                                    onClick={() => setActiveTab('archive')}
+                                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'archive' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    Archive
+                                </button>
+                            </div>
+                        )}
 
                         <p className="text-gray-500 text-sm font-bold uppercase tracking-widest max-w-xl">
                             {activeTab === 'shop' && "Accédez à nos services premium conçus pour maximiser l'impact de votre marque sur l'écosystème Dropsiders."}
@@ -759,7 +786,9 @@ export function ProShop() {
                         <button 
                             onClick={() => {
                                 localStorage.removeItem('pro_auth');
+                                localStorage.removeItem('pro_super_admin');
                                 setIsAuthorized(false);
+                                setIsSuperAdmin(false);
                             }}
                             className="text-[10px] font-black uppercase tracking-[0.5em] hover:text-neon-red transition-colors"
                         >
