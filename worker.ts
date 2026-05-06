@@ -3280,6 +3280,39 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
+        if (path === '/api/pro-order' && request.method === 'POST') {
+            const order = await request.json();
+            const { company, email, productName, price } = order;
+
+            if (env.BREVO_API_KEY) {
+                const payload = {
+                    sender: { name: 'Dropsiders Pro', email: 'pro@dropsiders.fr' },
+                    to: [{ email: 'contact@dropsiders.fr' }],
+                    subject: `[COMMANDE PRO] ${company} - ${productName}`,
+                    htmlContent: `
+                        <div style="font-family: sans-serif; max-width: 600px; padding: 30px; background: #050505; color: #fff; border-radius: 20px;">
+                            <h2 style="color: #ff0033; text-transform: uppercase; font-style: italic;">Nouvelle Commande Pro</h2>
+                            <hr style="border-color: #222;" />
+                            <p><strong>Structure:</strong> ${company}</p>
+                            <p><strong>Email:</strong> ${email}</p>
+                            <p><strong>Service:</strong> ${productName}</p>
+                            <p><strong>Montant:</strong> ${price}€ HT</p>
+                            <hr style="border-color: #222;" />
+                            <p style="font-size: 12px; color: #666;">Action requise : Vérifiez le règlement (RIB ou Stripe) et activez le service.</p>
+                        </div>
+                    `
+                };
+
+                await fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: { 'accept': 'application/json', 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
+
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
         // --- API: HOME LAYOUT MANAGEMENT ---
         if (path === '/api/home-layout' && request.method === 'GET') {
             const LAYOUT_PATH = 'src/data/home_layout.json';

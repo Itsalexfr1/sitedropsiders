@@ -145,11 +145,32 @@ export function ProShop() {
         setCheckoutStep('details');
     };
 
-    const handlePayment = () => {
+    const handlePayment = async (e: React.FormEvent) => {
+        e.preventDefault();
         setCheckoutStep('payment');
+
+        // Extract form data (assuming simple inputs for now, or adding refs)
+        const companyInput = (e.currentTarget as any).querySelector('input[placeholder*="Sony"]');
+        const emailInput = (e.currentTarget as any).querySelector('input[placeholder*="pro@domain.com"]');
+
+        try {
+            await fetch('/api/pro-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    company: companyInput?.value || 'Inconnu',
+                    email: emailInput?.value || 'Non renseigné',
+                    productName: selectedProduct?.name,
+                    price: selectedProduct?.price
+                })
+            });
+        } catch (e) {
+            console.error('Failed to notify admin', e);
+        }
+
         setTimeout(() => {
             setCheckoutStep('success');
-        }, 3000);
+        }, 2000);
     };
 
     if (!isAuthorized) {
@@ -377,25 +398,25 @@ export function ProShop() {
                                 {/* Right Side - Steps */}
                                 <div className="md:col-span-3 p-12">
                                     {checkoutStep === 'details' && (
-                                        <div className="space-y-8">
+                                        <form onSubmit={handlePayment} className="space-y-8">
                                             <h4 className="text-xl font-display font-black uppercase italic tracking-tight">Coordonnées</h4>
                                             <div className="space-y-4">
                                                 <div>
                                                     <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Nom de la structure</label>
-                                                    <input type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" placeholder="Ex: Sony Music, Tomorrowland..." />
+                                                    <input required type="text" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" placeholder="Ex: Sony Music, Tomorrowland..." />
                                                 </div>
                                                 <div>
                                                     <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Email professionnel</label>
-                                                    <input type="email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" placeholder="pro@domain.com" />
+                                                    <input required type="email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" placeholder="pro@domain.com" />
                                                 </div>
                                             </div>
                                             <button 
-                                                onClick={() => setCheckoutStep('payment')}
+                                                type="submit"
                                                 className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-gray-200 transition-all"
                                             >
-                                                Paiement sécurisé <CreditCard className="w-5 h-5" />
+                                                Confirmer & Payer <CreditCard className="w-5 h-5" />
                                             </button>
-                                        </div>
+                                        </form>
                                     )}
 
                                     {checkoutStep === 'payment' && (
