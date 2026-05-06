@@ -11,6 +11,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { jsPDF } from 'jspdf';
 import QRCodeStyling from 'qr-code-styling';
 import { History, LayoutPanelLeft } from 'lucide-react';
+import { isSuperAdmin as checkSuperAdmin } from '../utils/auth';
 
 interface ProProduct {
     id: string;
@@ -65,7 +66,12 @@ export function ProShop() {
     const { t } = useLanguage();
     const [accessCode, setAccessCode] = useState('');
     const [isAuthorized, setIsAuthorized] = useState(localStorage.getItem('pro_auth') === 'true');
-    const [isSuperAdmin, setIsSuperAdmin] = useState(localStorage.getItem('admin_auth') === 'true');
+    const [isSuperAdmin, setIsSuperAdmin] = useState(() => {
+        const user = localStorage.getItem('admin_user');
+        const authV1 = localStorage.getItem('admin_auth') === 'true';
+        const authV2 = localStorage.getItem('admin_auth_v2') === 'true';
+        return (authV1 || authV2) && checkSuperAdmin(user);
+    });
     const [authError, setAuthError] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<ProProduct | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -96,7 +102,10 @@ export function ProShop() {
 
     useEffect(() => {
         const savedAuth = localStorage.getItem('pro_auth');
-        const globalAdmin = localStorage.getItem('admin_auth') === 'true';
+        const user = localStorage.getItem('admin_user');
+        const authV1 = localStorage.getItem('admin_auth') === 'true';
+        const authV2 = localStorage.getItem('admin_auth_v2') === 'true';
+        const globalAdmin = (authV1 || authV2) && checkSuperAdmin(user);
         
         if (savedAuth === 'true') {
             setIsAuthorized(true);
