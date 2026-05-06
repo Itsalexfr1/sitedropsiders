@@ -434,7 +434,7 @@ export function ProShop() {
             doc.rect(125, totalsY + 12, 75, 10, 'F');
             doc.setFontSize(11);
             doc.setTextColor(255, 255, 255);
-            doc.text('TOTAL TTC', 130, totalsY + 19);
+            doc.text('TOTAL RÉGLÉ', 130, totalsY + 19);
             doc.text(`${priceTTC.toFixed(2)}€`, 195, totalsY + 19, { align: 'right' });
         } else {
             // Auto-entrepreneur simplified block
@@ -442,7 +442,7 @@ export function ProShop() {
             doc.rect(125, totalsY, 75, 12, 'F');
             doc.setFontSize(12);
             doc.setTextColor(255, 255, 255);
-            doc.text('TOTAL À RÉGLER', 130, totalsY + 8);
+            doc.text('TOTAL RÉGLÉ', 130, totalsY + 8);
             doc.text(`${priceTTC.toFixed(2)}€`, 195, totalsY + 8, { align: 'right' });
             
             doc.setFontSize(7);
@@ -969,7 +969,7 @@ export function ProShop() {
                                         {selectedProduct.description}
                                     </p>
                                     <div className="mt-auto">
-                                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Total à régler</div>
+                                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Total réglé</div>
                                         <div className="text-4xl font-display font-black italic">
                                             {selectedProduct.price}<span className="text-sm text-gray-500 ml-1">€ HT</span>
                                         </div>
