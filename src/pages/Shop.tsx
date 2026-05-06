@@ -8,7 +8,6 @@ import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { Settings2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { resolveImageUrl } from '../utils/image';
-import { ProShopModal } from '../components/pro/ProShopModal';
 
 export function Shop() {
     const isMini = new URLSearchParams(window.location.search).get('mini') === 'true';
@@ -25,7 +24,6 @@ export function Shop() {
     const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState<'Tous' | 'Vetements' | 'Accessoires'>('Tous');
     const [selectedProductUrl, setSelectedProductUrl] = useState<string | null>(null);
-    const [isProShopOpen, setIsProShopOpen] = useState(new URLSearchParams(window.location.search).get('pro') === 'true');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -262,15 +260,13 @@ export function Shop() {
                                 {t('shop.title')}<span className="text-neon-red">{t('shop.title_span')}</span>
                             </h1>
                             {!isMini && (
-                                <div className="flex gap-4 mb-2">
-                                    <button 
-                                        onClick={() => setIsProShopOpen(true)}
-                                        className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all flex items-center gap-3 group shrink-0"
-                                    >
-                                        <Lock className="w-3.5 h-3.5 text-neon-red group-hover:text-white transition-colors" /> 
-                                        Espace Professionnel
-                                    </button>
-                                </div>
+                                <Link 
+                                    to="/pro/boutique" 
+                                    className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all flex items-center gap-3 group shrink-0 mb-2"
+                                >
+                                    <Lock className="w-3.5 h-3.5 text-neon-red group-hover:text-white transition-colors" /> 
+                                    Espace Professionnel
+                                </Link>
                             )}
                         </div>
 
@@ -396,11 +392,6 @@ export function Shop() {
                     </div>
                 )}
             </AnimatePresence>
-
-            <ProShopModal 
-                isOpen={isProShopOpen} 
-                onClose={() => setIsProShopOpen(false)} 
-            />
         </div>
         </>
     );

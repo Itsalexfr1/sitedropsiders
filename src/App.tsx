@@ -1,6 +1,6 @@
 import { useEffect, Suspense, useState } from 'react';
 import { AlertCircle, RefreshCw, X, Bell } from 'lucide-react';
-import { createBrowserRouter, RouterProvider, Outlet, useLocation, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -66,6 +66,7 @@ const AdminPdfs = lazyRetry(() => import('./pages/AdminPdfs').then(m => m.AdminP
 const AdminInterviewQuestions = lazyRetry(() => import('./pages/AdminInterviewQuestions').then(m => m.AdminInterviewQuestions));
 const PublicProfile = lazyRetry(() => import('./pages/PublicProfile').then(m => m.PublicProfile));
 const About = lazyRetry(() => import('./pages/About').then(m => m.About));
+const ProShop = lazyRetry(() => import('./pages/ProShop').then(m => m.ProShop));
 
 
 function ErrorFallback() {
@@ -180,7 +181,7 @@ const router = createBrowserRouter([
       { path: "clips", element: <ClipsPage /> },
       { path: "contact", element: <Contact /> },
       { path: "a-propos", element: <About /> },
-      { path: "pro/boutique", element: <Navigate to="/shop?pro=true" replace /> },
+      { path: "pro/boutique", element: <ProShop /> },
 
       
       // Protected Area Group (Shared Authentication Context)
