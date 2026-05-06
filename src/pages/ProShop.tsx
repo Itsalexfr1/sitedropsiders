@@ -99,7 +99,9 @@ export function ProShop() {
 
     const [configData, setConfigData] = useState({
         accessCode: 'DROPSIDERSPRO',
-        paymentDestination: 'https://bunq.me/itsalexalex01'
+        paymentDestination: 'https://bunq.me/itsalexalex01',
+        taxRate: 20,
+        displayMode: 'HT' as 'HT' | 'TTC'
     });
 
     useEffect(() => {
@@ -349,6 +351,11 @@ export function ProShop() {
             format: 'a4'
         });
 
+        const taxRate = configData.taxRate || 0;
+        const priceHT = configData.displayMode === 'TTC' ? product.price / (1 + taxRate / 100) : product.price;
+        const tvaAmount = priceHT * (taxRate / 100);
+        const priceTTC = priceHT + tvaAmount;
+
         // Styles & colors
         const neonRed = [255, 0, 51];
         
@@ -392,21 +399,34 @@ export function ProShop() {
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(8);
         doc.text('DÉSIGNATION DU SERVICE', 15, 86);
-        doc.text('PRIX UNITAIRE HT', 160, 86);
+        doc.text('MONTANT HT', 160, 86);
 
         // Table Content
         doc.setDrawColor(40, 40, 40);
         doc.line(10, 105, 200, 105);
         doc.setFontSize(10);
         doc.text(product.name.toUpperCase(), 15, 98);
-        doc.text(`${product.price}€`, 160, 98);
+        doc.text(`${priceHT.toFixed(2)}€`, 160, 98);
 
-        // Total
-        doc.setFontSize(12);
-        doc.text('TOTAL À RÉGLER (HT)', 120, 120);
-        doc.setTextColor( neonRed[0], neonRed[1], neonRed[2] );
-        doc.setFontSize(18);
-        doc.text(`${product.price},00€`, 160, 120);
+        // Totals Breakdown
+        const totalsY = 120;
+        doc.setFontSize(9);
+        doc.setTextColor(150, 150, 150);
+        doc.text('TOTAL HT', 130, totalsY);
+        doc.setTextColor(255, 255, 255);
+        doc.text(`${priceHT.toFixed(2)}€`, 180, totalsY, { align: 'right' });
+
+        doc.setTextColor(150, 150, 150);
+        doc.text(`TVA (${taxRate}%)`, 130, totalsY + 7);
+        doc.setTextColor(255, 255, 255);
+        doc.text(`${tvaAmount.toFixed(2)}€`, 180, totalsY + 7, { align: 'right' });
+
+        doc.setFillColor(neonRed[0], neonRed[1], neonRed[2]);
+        doc.rect(125, totalsY + 12, 75, 10, 'F');
+        doc.setFontSize(11);
+        doc.setTextColor(255, 255, 255);
+        doc.text('TOTAL TTC', 130, totalsY + 19);
+        doc.text(`${priceTTC.toFixed(2)}€`, 195, totalsY + 19, { align: 'right' });
 
         // Payment Instructions
         doc.setTextColor(150, 150, 150);
@@ -652,7 +672,7 @@ export function ProShop() {
 
                                 <div className="flex items-end justify-between mt-auto pt-8 border-t border-white/5">
                                     <div className="text-3xl font-display font-black italic">
-                                        {product.price}<span className="text-sm text-gray-500 ml-1">€ HT</span>
+                                        {product.price}<span className="text-sm text-gray-500 ml-1">€ {configData.displayMode}</span>
                                     </div>
                                     <button 
                                         onClick={() => startCheckout(product)}
@@ -721,6 +741,37 @@ export function ProShop() {
                                         placeholder="Ex: PARTNER2026"
                                     />
                                     <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest p-2">Le code par défaut reste "PRO".</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 space-y-6">
+                            <div className="flex items-center gap-4 mb-4">
+                                <div className="w-12 h-12 bg-neon-purple/10 rounded-2xl flex items-center justify-center text-neon-purple border border-neon-purple/20">
+                                    <Zap className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-xl font-display font-black uppercase italic">Taxes & Affichage</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">Taux de TVA (%)</label>
+                                    <input 
+                                        type="number"
+                                        value={configData.taxRate}
+                                        onChange={(e) => setConfigData({ ...configData, taxRate: parseInt(e.target.value) || 0 })}
+                                        className="w-full bg-black/50 border border-white/10 rounded-2xl px-6 py-4 text-xs font-bold focus:border-neon-red outline-none transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">Mode d'affichage</label>
+                                    <select 
+                                        value={configData.displayMode}
+                                        onChange={(e) => setConfigData({ ...configData, displayMode: e.target.value as 'HT' | 'TTC' })}
+                                        className="w-full bg-black/50 border border-white/10 rounded-2xl px-6 py-4 text-xs font-bold focus:border-neon-red outline-none transition-all appearance-none cursor-pointer"
+                                    >
+                                        <option value="HT">Hors Taxe (HT)</option>
+                                        <option value="TTC">Toutes Taxes Comprises (TTC)</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
