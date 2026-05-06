@@ -976,8 +976,7 @@ export function ProShop() {
                                     </div>
                                 </div>
 
-                                {/* Right Side - Steps */}
-                                <div className="md:col-span-3 p-12">
+                                            <div className="md:col-span-3 p-12">
                                     {checkoutStep === 'details' && (
                                         <form onSubmit={handleConfirmDetails} className="space-y-8">
                                             <h4 className="text-xl font-display font-black uppercase italic tracking-tight">Coordonnées</h4>
@@ -1053,7 +1052,7 @@ export function ProShop() {
                                                 <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
                                                     <div className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-4">Moyen de paiement</div>
                                                     
-                                                                                           {paymentDestination.startsWith('http') ? (
+                                                    {paymentDestination.startsWith('http') ? (
                                                         <div className="space-y-4">
                                                             {!hasOpenedPaymentLink ? (
                                                                 <a 
@@ -1066,6 +1065,7 @@ export function ProShop() {
                                                                     Procéder au règlement ({selectedProduct?.price}€) <CreditCard className="w-5 h-5" />
                                                                 </a>
                                                             ) : (
+                                                                <div className="space-y-4">
                                                                     <div className="space-y-2">
                                                                         <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest px-2 block">Preuve de paiement (Capture d'écran BUNQ)</label>
                                                                         <div className="relative">
@@ -1120,17 +1120,17 @@ export function ProShop() {
                                                     )}
                                                 </div>
                                             </div>
- 
-                                            {paymentDestination ? (
-                                                !paymentDestination.startsWith('http') && (
-                                                    <button 
-                                                        onClick={() => handlePayment()}
-                                                        className="w-full py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
-                                                    >
-                                                        Confirmer ma demande <ArrowRight className="w-5 h-5" />
-                                                    </button>
-                                                )
-                                            ) : (
+
+                                            {paymentDestination && !paymentDestination.startsWith('http') && (
+                                                <button 
+                                                    onClick={() => handlePayment()}
+                                                    className="w-full py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest italic flex items-center justify-center gap-3 hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
+                                                >
+                                                    Confirmer ma demande <ArrowRight className="w-5 h-5" />
+                                                </button>
+                                            )}
+
+                                            {!paymentDestination && (
                                                 <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
                                                     <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2">Paiement non configuré</p>
                                                     <p className="text-[9px] text-gray-500 font-bold uppercase leading-relaxed">
@@ -1156,7 +1156,7 @@ export function ProShop() {
                                         </div>
                                     )}
 
-                                     {checkoutStep === 'success' && (
+                                    {checkoutStep === 'success' && (
                                         <div className="flex flex-col items-center justify-center h-full py-12 text-center">
                                             <div className="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center mb-8 border border-orange-500/20 text-orange-500">
                                                 <Clock className="w-10 h-10 animate-pulse" />
