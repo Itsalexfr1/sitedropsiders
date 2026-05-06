@@ -10,11 +10,14 @@ interface CommunityUser {
     avatar?: string | null;
     provider: string;
     lastSeen: string;
+    mixStatus?: 'none' | 'pending' | 'approved';
 }
 
-export function AdminMembersList({ onEditPermissions, authHeaders }: { 
+export function AdminMembersList({ onEditPermissions, authHeaders, filterStatus, onStatusChange }: { 
     onEditPermissions?: (email: string) => void;
     authHeaders?: any;
+    filterStatus?: 'none' | 'pending' | 'approved';
+    onStatusChange?: () => void;
 }) {
     const [users, setUsers] = useState<CommunityUser[]>([]);
     const [loading, setLoading] = useState(true);
@@ -46,10 +49,28 @@ export function AdminMembersList({ onEditPermissions, authHeaders }: {
         fetchUsers();
     }, []);
 
-    const filteredUsers = users.filter(user => 
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredUsers = users.filter(user => {
+        const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesStatus = !filterStatus || user.mixStatus === filterStatus;
+        return matchesSearch && matchesStatus;
+    });
+
+    const handleApproveMix = async (email: string, status: 'approved' | 'none') => {
+        try {
+            const res = await fetch('/api/admin/users/approve-mix', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ email, status })
+            });
+            if (res.ok) {
+                setUsers(prev => prev.map(u => u.email === email ? { ...u, mixStatus: status } : u));
+                if (onStatusChange) onStatusChange();
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     const getProviderBadge = (provider: string) => {
         switch(provider) {
@@ -138,7 +159,7 @@ export function AdminMembersList({ onEditPermissions, authHeaders }: {
                                     </div>
                                 </div>
 
-                                <div className="mt-6 flex items-center justify-between">
+                                <div className="mt-6 flex items-center justify-between gap-4">
                                     <div className="flex flex-col">
                                         <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest leading-none mb-1">Dernière visite</span>
                                         <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
@@ -146,9 +167,36 @@ export function AdminMembersList({ onEditPermissions, authHeaders }: {
                                             {new Date(user.lastSeen).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                                         </span>
                                     </div>
-                                    <span className={`px-2 py-1 rounded-lg border text-[8px] font-black uppercase tracking-widest ${getProviderBadge(user.provider)}`}>
-                                        {user.provider}
-                                    </span>
+                                    
+                                    <div className="flex gap-2">
+                                        {user.mixStatus === 'pending' ? (
+                                            <>
+                                                <button 
+                                                    onClick={() => handleApproveMix(user.email, 'approved')}
+                                                    className="px-3 py-1.5 bg-green-500 text-white text-[9px] font-black uppercase rounded-lg shadow-lg shadow-green-500/20"
+                                                >
+                                                    Accepter
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleApproveMix(user.email, 'none')}
+                                                    className="px-3 py-1.5 bg-red-500/20 text-red-500 text-[9px] font-black uppercase rounded-lg border border-red-500/30"
+                                                >
+                                                    Refuser
+                                                </button>
+                                            </>
+                                        ) : user.mixStatus === 'approved' ? (
+                                            <button 
+                                                onClick={() => handleApproveMix(user.email, 'none')}
+                                                className="px-3 py-1.5 bg-green-500/10 text-green-500 text-[9px] font-black uppercase rounded-lg border border-green-500/30 flex items-center gap-1.5"
+                                            >
+                                                <ShieldCheck className="w-3 h-3" /> Accès OK
+                                            </button>
+                                        ) : (
+                                            <span className={`px-2 py-1 rounded-lg border text-[8px] font-black uppercase tracking-widest ${getProviderBadge(user.provider)}`}>
+                                                {user.provider}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Quick Actions */}

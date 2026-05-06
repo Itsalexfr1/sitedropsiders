@@ -917,7 +917,7 @@ export function AdminDashboard() {
     { id: "WIKI", label: "DJs / Clubs / Festivals" },
     { id: "STUDIO", label: "Studio" },
     { id: "SHOP", label: "Boutique" },
-    { id: "TEAM", label: "Équipe" },
+    { id: "TEAM", label: "MEMBRES & TEAM" },
     { id: "INTERVIEW", label: "Interviews" },
   ];
   const [confirmModal, setConfirmModal] = useState<ConfirmModalData>({
@@ -1075,6 +1075,8 @@ export function AdminDashboard() {
       setIsQuizLoading(false);
     }
   };
+
+  const [pendingMixCount, setPendingMixCount] = useState(0);
 
   const fetchContestResults = async () => {
     setIsQuizLoading(true);
@@ -1542,6 +1544,7 @@ export function AdminDashboard() {
       if (res.ok) {
         const users = await res.json();
         const pending = users.filter((u: any) => u.mixStatus === "pending");
+        setPendingMixCount(pending.length);
         if (pending.length > 0) {
           setConfirmModal({
             isOpen: true,
@@ -12122,14 +12125,21 @@ export function AdminDashboard() {
 
                       <div className="flex items-center bg-black/40 border border-white/10 rounded-2xl p-1.5 gap-1.5">
                         {[
-                          { id: "MEMBERS", label: "Membres", icon: Users, color: "neon-cyan" },
-                          { id: "TEAM", label: "Staff", icon: ShieldCheck, color: "neon-purple" },
-                          { id: "EDITORS", label: "Éditeurs", icon: Shield, color: "neon-red" },
+                          { id: "MEMBERS", label: "MEMBRES", icon: Users, color: "neon-cyan" },
+                          { id: "TEAM", label: "TEAM", icon: ShieldCheck, color: "neon-purple" },
+                          { 
+                            id: "REQUESTS", 
+                            label: "DEMANDES", 
+                            icon: Bell, 
+                            color: "neon-yellow", 
+                            badge: pendingMixCount > 0 ? pendingMixCount : null 
+                          },
+                          { id: "EDITORS", label: "ÉDITEURS", icon: Shield, color: "neon-red" },
                         ].map((t) => (
                           <button
                             key={t.id}
                             onClick={() => setTeamModalTab(t.id as any)}
-                            className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 ${
+                            className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 relative ${
                               teamModalTab === t.id
                                 ? `bg-${t.color} text-white shadow-lg`
                                 : "text-gray-500 hover:text-gray-300"
@@ -12137,6 +12147,11 @@ export function AdminDashboard() {
                           >
                             <t.icon className="w-3.5 h-3.5" />
                             {t.label}
+                            {t.badge && (
+                              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full border-2 border-[#0a0a0a] animate-pulse">
+                                {t.badge}
+                              </span>
+                            )}
                           </button>
                         ))}
                       </div>
@@ -12255,6 +12270,35 @@ export function AdminDashboard() {
                               </motion.div>
                             ))}
                           </div>
+                        </motion.div>
+                      )}
+
+                      {teamModalTab === "REQUESTS" && (
+                        <motion.div
+                          key="requests"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 20 }}
+                          className="space-y-6"
+                        >
+                          <div className="flex items-center gap-4 mb-8">
+                            <div className="p-3 bg-neon-yellow/10 rounded-2xl border border-neon-yellow/20">
+                              <Bell className="w-6 h-6 text-neon-yellow" />
+                            </div>
+                            <div>
+                              <h3 className="text-2xl font-display font-black text-white uppercase italic leading-none">
+                                Demandes <span className="text-neon-yellow">Accès Studio</span>
+                              </h3>
+                              <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                                Validez les demandes d'upload MP3
+                              </p>
+                            </div>
+                          </div>
+                          <AdminMembersList 
+                            authHeaders={getAuthHeaders()} 
+                            filterStatus="pending"
+                            onStatusChange={() => fetchPendingMixRequests()}
+                          />
                         </motion.div>
                       )}
 
