@@ -147,7 +147,6 @@ export function AdminDashboard() {
   const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
-  const [isEditorsModalOpen, setIsEditorsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
   const [isExtensionNotifModalOpen, setIsExtensionNotifModalOpen] = useState(false);
@@ -225,6 +224,7 @@ export function AdminDashboard() {
   const [isQRCodeModalOpen, setIsQRCodeModalOpen] = useState(false);
   const [isIncomingCallModalOpen, setIsIncomingCallModalOpen] = useState(false);
   const [isVideoAITranslatorModalOpen, setIsVideoAITranslatorModalOpen] = useState(false);
+  const [teamModalTab, setTeamModalTab] = useState<"MEMBERS" | "TEAM" | "EDITORS">("MEMBERS");
 
   const [isLoadingSocial, setIsLoadingSocial] = useState(false);
   const [bannerState, setBannerState] = useState({
@@ -3217,232 +3217,41 @@ export function AdminDashboard() {
                     isActive
                       ? "bg-white/10 text-white border border-white/20 shadow-lg"
                       : "text-gray-500 hover:text-gray-300"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="space-y-16 relative">
-          {dashboardTab === "TEAM" ? (
-            <div className="space-y-12 pb-20">
-              {/* CENTRALIZED MEMBER LIST */}
-              <AdminMembersList
-                authHeaders={getAuthHeaders()}
-                onEditPermissions={(email) =>
-                  navigate(`/admin/editors?email=${encodeURIComponent(email)}`)
-                }
-              />
-
-              <div className="border-t border-white/5 pt-12">
-                {/* ÉDITEURS */}
-                <div>
-                  <div className="flex justify-between items-center mb-8">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-neon-red/10 rounded-2xl border border-neon-red/20">
-                        <Shield className="w-6 h-6 text-neon-red" />
-                      </div>
-                      <div>
-                        <h2 className="text-3xl font-display font-black text-white uppercase italic leading-none">
-                          Gestion{" "}
-                          <span className="text-neon-red">Éditeurs</span>
-                        </h2>
-                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">
-                          Accès back-office & permissions
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        navigate("/admin/editors");
-                      }}
-                      className="px-6 py-3 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20"
-                    >
-                      Nouvel Éditeur
-                    </button>
+                       {dashboardTab === "TEAM" ? (
+            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+              <div className="w-24 h-24 bg-neon-purple/10 rounded-[2rem] flex items-center justify-center border border-neon-purple/20 mb-8 animate-pulse">
+                <ShieldCheck className="w-12 h-12 text-neon-purple" />
+              </div>
+              <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter mb-4">
+                Hub de Gestion <span className="text-neon-purple">Équipe</span>
+              </h2>
+              <p className="text-gray-500 max-w-md mx-auto mb-10 font-medium leading-relaxed">
+                Gérez les membres du site, l'équipe officielle Dropsiders et les accès éditeurs depuis notre nouvelle interface centralisée.
+              </p>
+              <button
+                onClick={() => setIsTeamManagementModalOpen(true)}
+                className="px-10 py-5 bg-neon-purple text-white font-black uppercase italic tracking-[0.2em] text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_20px_50px_rgba(147,51,234,0.3)] flex items-center gap-4"
+              >
+                <Users className="w-5 h-5" />
+                OUVRIR LA GESTION ÉQUIPE
+              </button>
+              
+              <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
+                {[
+                  { title: "MEMBRES", desc: "Comptes utilisateurs", icon: Users, color: "text-neon-cyan" },
+                  { title: "STAFF", desc: "Équipe publique", icon: ShieldCheck, color: "text-neon-purple" },
+                  { title: "ÉDITEURS", desc: "Accès back-office", icon: Shield, color: "text-neon-red" }
+                ].map((item, i) => (
+                  <div key={i} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-4">
+                    <item.icon className={`w-8 h-8 ${item.color}`} />
+                    <h3 className="text-white font-bold uppercase italic">{item.title}</h3>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.desc}</p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <AnimatePresence>
-                      {editors.map((editor) => (
-                        <motion.div
-                          key={editor.username}
-                          layout
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="bg-white/5 border border-white/10 rounded-2xl p-6 group hover:border-white/20 transition-all relative overflow-hidden"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-full bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red">
-                              <User className="w-6 h-6" />
-                            </div>
-                            <div>
-                              <h3 className="text-lg font-bold text-white uppercase italic">
-                                {editor.name || editor.username}
-                              </h3>
-                              <p className="text-gray-500 text-xs font-mono">
-                                @{editor.username}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-4 flex flex-wrap gap-2">
-                            {(editor.permissions || []).map((p: string) => (
-                              <span
-                                key={p}
-                                className="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[8px] text-gray-400 font-bold uppercase tracking-widest"
-                              >
-                                {p}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="mt-6 pt-4 border-t border-white/5 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                            <button
-                              onClick={() => {
-                                navigate("/admin/editors");
-                              }}
-                              className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-all"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                setConfirmModal({
-                                  isOpen: true,
-                                  title: "Supprimer Éditeur",
-                                  message: `Voulez-vous vraiment supprimer l'éditeur ${editor.pseudo || editor.username} ?`,
-                                  type: "danger",
-                                  onConfirm: () => {
-                                    apiFetch("/api/editors/delete", {
-                                      method: "POST",
-                                      headers: getAuthHeaders(),
-                                      body: JSON.stringify({
-                                        username: editor.username,
-                                      }),
-                                    }).then((r) => {
-                                      if (r.ok) {
-                                        showNotification("Éditeur supprimé.", "success");
-                                        fetchEditors();
-                                      }
-                                    });
-                                  }
-                                });
-                              }}
-                              className="p-2 hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-500 transition-all"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </div>
-
-                {/* TEAM SITE */}
-                <div>
-                  <div className="flex justify-between items-center mb-8">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-neon-purple/10 rounded-2xl border border-neon-purple/20">
-                        <Users className="w-6 h-6 text-neon-purple" />
-                      </div>
-                      <div>
-                        <h2 className="text-3xl font-display font-black text-white uppercase italic leading-none">
-                          Gérer{" "}
-                          <span className="text-neon-purple">La Team</span>
-                        </h2>
-                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">
-                          Équipe affichée sur la page Team
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setGlobalAlert({
-                          message:
-                            "L'ajout direct de nouveaux articles via cette interface sera bientôt disponible.",
-                          type: "info",
-                        });
-                      }}
-                      className="px-6 py-3 bg-neon-purple text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-purple/80 transition-all shadow-lg shadow-neon-purple/20"
-                    >
-                      Ajouter Membre
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                    <AnimatePresence>
-                      {teamMembers.map((member) => (
-                        <motion.div
-                          key={member.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="bg-white/5 border border-white/10 rounded-3xl p-4 group hover:border-neon-purple/30 transition-all relative overflow-hidden"
-                        >
-                          <div className="aspect-[4/5] rounded-2xl overflow-hidden mb-4 bg-black/40 border border-white/5 relative">
-                            <img
-                              src={member.image}
-                              alt={member.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                            <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                              <p className="text-[8px] font-black text-neon-purple uppercase tracking-widest">
-                                {member.role}
-                              </p>
-                              <h4 className="text-sm font-bold text-white uppercase italic tracking-tight">
-                                {member.name}
-                              </h4>
-                            </div>
-                          </div>
-                          <div className="flex justify-between gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                            <button
-                              onClick={() => {
-                                setGlobalAlert({
-                                  message:
-                                    "La modification d'articles anciens sera disponible dans une prochaine version.",
-                                  type: "info",
-                                });
-                              }}
-                              className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-widest transition-all"
-                            >
-                              Modifier
-                            </button>
-                            <button
-                               onClick={() => {
-                                setConfirmModal({
-                                  isOpen: true,
-                                  title: "Supprimer de la Team",
-                                  message: `Voulez-vous vraiment supprimer ${member.name} de la team ?`,
-                                  type: "danger",
-                                  onConfirm: () => {
-                                    const newTeam = teamMembers.filter(
-                                      (m) => m.id !== member.id,
-                                    );
-                                    // Optimistic UI Update
-                                    setTeamMembers(newTeam);
-                                    
-                                    apiFetch("/api/team/update", {
-                                      method: "POST",
-                                      headers: getAuthHeaders(),
-                                      body: JSON.stringify({ members: newTeam }),
-                                    }).then((r) => {
-                                      if (r.ok) {
-                                        showNotification(`${member.name} supprimé de la team.`, "success");
-                                        fetchTeam();
-                                      } else {
-                                        showNotification("Erreur lors de la mise à jour.", "error");
-                                        fetchTeam(); // Revert
-                                      }
-                                    });
-                                  }
-                                });
-                              }}
-                              className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
+                ))}
+              </div>
+            </div>
+          ) :
+div>
                         </motion.div>
                       ))}
                     </AnimatePresence>
@@ -7512,55 +7321,6 @@ export function AdminDashboard() {
 
           {/* Modal Éditeurs */}
           <AnimatePresence>
-            {isEditorsModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
-                >
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
-
-                  <div className="flex justify-between items-start mb-12">
-                    <div>
-                      <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                        Gestion <span className="text-neon-red">Éditeurs</span>
-                      </h2>
-                      <p className="text-gray-400 font-medium">
-                        Contrôle des accès
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setIsEditorsModalOpen(false)}
-                      className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
-                    >
-                      <X className="w-6 h-6" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    <Link
-                      to="/admin/editors"
-                      onClick={() => setIsEditorsModalOpen(false)}
-                      className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform flex-shrink-0">
-                        <Lock className="w-6 h-6 text-neon-red" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">
-                          Comptes Éditeurs
-                        </h3>
-                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
-                          Créer & Gérer les permissions
-                        </p>
-                      </div>
-                    </Link>
-                  </div>
-                </motion.div>
-              </div>
-            )}
           </AnimatePresence>
 
           {/* Modal Mots de passe */}
@@ -12302,7 +12062,7 @@ export function AdminDashboard() {
             )}
           </AnimatePresence>
 
-          {/* GESTION ÉQUIPE MODAL */}
+          {/* GESTION ÉQUIPE MODAL - NEW PREMIUM LAYOUT */}
           <AnimatePresence>
             {isTeamManagementModalOpen && (
               <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
@@ -12311,81 +12071,244 @@ export function AdminDashboard() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setIsTeamManagementModalOpen(false)}
-                  className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                  className="absolute inset-0 bg-black/95 backdrop-blur-md"
                 />
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl p-10"
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  className="relative w-full max-w-6xl h-[85vh] bg-[#0a0a0a] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col"
                 >
-                  <div className="flex justify-between items-center mb-10">
-                    <div>
-                      <h2 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">
-                        Gestion <span className="text-neon-purple">Équipe</span>
-                      </h2>
-                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-                        Membres, Staff & Éditeurs
-                      </p>
+                  {/* Header with Tabs */}
+                  <div className="px-10 py-8 border-b border-white/5 bg-gradient-to-r from-neon-purple/10 to-transparent shrink-0">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                      <div>
+                        <h2 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter flex items-center gap-3">
+                          <ShieldCheck className="w-8 h-8 text-neon-purple" />
+                          Gestion <span className="text-neon-purple">Équipe</span>
+                        </h2>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                          Membres, Staff & Éditeurs Dropsiders
+                        </p>
+                      </div>
+
+                      <div className="flex items-center bg-black/40 border border-white/10 rounded-2xl p-1.5 gap-1.5">
+                        {[
+                          { id: "MEMBERS", label: "Membres", icon: Users, color: "neon-cyan" },
+                          { id: "TEAM", label: "Staff", icon: ShieldCheck, color: "neon-purple" },
+                          { id: "EDITORS", label: "Éditeurs", icon: Shield, color: "neon-red" },
+                        ].map((t) => (
+                          <button
+                            key={t.id}
+                            onClick={() => setTeamModalTab(t.id as any)}
+                            className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 ${
+                              teamModalTab === t.id
+                                ? `bg-${t.color} text-white shadow-lg`
+                                : "text-gray-500 hover:text-gray-300"
+                            }`}
+                          >
+                            <t.icon className="w-3.5 h-3.5" />
+                            {t.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => setIsTeamManagementModalOpen(false)}
+                        className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                      >
+                        <X className="w-6 h-6" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setIsTeamManagementModalOpen(false)}
-                      className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
-                    >
-                      <X className="w-6 h-6" />
-                    </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                      {
-                        id: "MEMBERS",
-                        title: "Membres",
-                        icon: Users,
-                        color: "text-neon-cyan",
-                        bg: "bg-neon-cyan/10",
-                        tab: "TEAM",
-                      },
-                      {
-                        id: "TEAM",
-                        title: "La Team",
-                        icon: ShieldCheck,
-                        color: "text-neon-purple",
-                        bg: "bg-neon-purple/10",
-                        tab: "TEAM",
-                      },
-                      {
-                        id: "EDITORS",
-                        title: "Éditeurs",
-                        icon: Shield,
-                        color: "text-neon-red",
-                        bg: "bg-neon-red/10",
-                        tab: "TEAM",
-                      },
-                    ].map((card) => (
-                      <button
-                        key={card.id}
-                        onClick={() => {
-                          setDashboardTab(card.tab as any);
-                          setIsTeamManagementModalOpen(false);
-                        }}
-                        className="p-8 rounded-[2rem] border border-white/10 bg-white/5 hover:bg-white/10 transition-all flex flex-col items-center gap-4 group"
-                      >
-                        <div
-                          className={`w-16 h-16 ${card.bg} rounded-2xl flex items-center justify-center border border-white/5 group-hover:scale-110 transition-transform`}
+                  {/* Content Area */}
+                  <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-black/20">
+                    <AnimatePresence mode="wait">
+                      {teamModalTab === "MEMBERS" && (
+                        <motion.div
+                          key="members"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 20 }}
+                          className="space-y-6"
                         >
-                          <card.icon className={`w-8 h-8 ${card.color}`} />
-                        </div>
-                        <div className="text-center">
-                          <h3 className="text-lg font-bold text-white uppercase italic">
-                            {card.title}
-                          </h3>
-                          <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-                            Gérer l'accès
-                          </p>
-                        </div>
-                      </button>
-                    ))}
+                          <AdminMembersList
+                            authHeaders={getAuthHeaders()}
+                            onEditPermissions={(email) => {
+                              setTeamModalTab("EDITORS");
+                              // You could also auto-open editor edit here if needed
+                            }}
+                          />
+                        </motion.div>
+                      )}
+
+                      {teamModalTab === "TEAM" && (
+                        <motion.div
+                          key="team"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 20 }}
+                          className="space-y-8"
+                        >
+                          <div className="flex justify-between items-center mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="p-3 bg-neon-purple/10 rounded-2xl border border-neon-purple/20">
+                                <Users className="w-6 h-6 text-neon-purple" />
+                              </div>
+                              <div>
+                                <h3 className="text-2xl font-display font-black text-white uppercase italic leading-none">
+                                  Gérer <span className="text-neon-purple">La Team</span>
+                                </h3>
+                                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                                  Équipe affichée sur la page publique
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setGlobalAlert({
+                                  message: "L'ajout direct sera bientôt disponible.",
+                                  type: "info",
+                                });
+                              }}
+                              className="px-6 py-3 bg-neon-purple text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-purple/20"
+                            >
+                              Ajouter Membre
+                            </button>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                            {teamMembers.map((member) => (
+                              <motion.div
+                                key={member.id}
+                                className="bg-white/5 border border-white/10 rounded-[2rem] p-4 group hover:border-neon-purple/30 transition-all relative overflow-hidden"
+                              >
+                                <div className="aspect-[4/5] rounded-xl overflow-hidden mb-4 bg-black/40 border border-white/5 relative">
+                                  <img
+                                    src={member.image}
+                                    alt={member.name}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                  />
+                                  <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                    <p className="text-[8px] font-black text-neon-purple uppercase tracking-widest">
+                                      {member.role}
+                                    </p>
+                                    <h4 className="text-sm font-bold text-white uppercase italic tracking-tight">
+                                      {member.name}
+                                    </h4>
+                                  </div>
+                                </div>
+                                <div className="flex justify-between gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                  <button className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-widest">Modifier</button>
+                                  <button
+                                    onClick={() => {
+                                      setConfirmModal({
+                                        isOpen: true,
+                                        title: "Supprimer",
+                                        message: `Supprimer ${member.name} ?`,
+                                        type: "danger",
+                                        onConfirm: () => {
+                                          const newTeam = teamMembers.filter(m => m.id !== member.id);
+                                          setTeamMembers(newTeam);
+                                          apiFetch("/api/team/update", {
+                                            method: "POST",
+                                            headers: getAuthHeaders(),
+                                            body: JSON.stringify({ members: newTeam }),
+                                          }).then(r => r.ok && showNotification("Supprimé", "success"));
+                                        }
+                                      });
+                                    }}
+                                    className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {teamModalTab === "EDITORS" && (
+                        <motion.div
+                          key="editors"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 20 }}
+                          className="space-y-8"
+                        >
+                          <div className="flex justify-between items-center mb-8">
+                            <div className="flex items-center gap-4">
+                              <div className="p-3 bg-neon-red/10 rounded-2xl border border-neon-red/20">
+                                <Shield className="w-6 h-6 text-neon-red" />
+                              </div>
+                              <div>
+                                <h3 className="text-2xl font-display font-black text-white uppercase italic leading-none">
+                                  Gestion <span className="text-neon-red">Éditeurs</span>
+                                </h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                                  Accès au back-office & permissions
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => navigate("/admin/editors")}
+                              className="px-6 py-3 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20"
+                            >
+                              Nouvel Éditeur
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {editors.map((editor) => (
+                              <motion.div
+                                key={editor.username}
+                                className="bg-white/5 border border-white/10 rounded-[2.5rem] p-6 group hover:border-neon-red/30 transition-all relative overflow-hidden"
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className="w-14 h-14 rounded-2xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red shadow-lg shadow-neon-red/5">
+                                    <User className="w-7 h-7" />
+                                  </div>
+                                  <div>
+                                    <h4 className="text-lg font-bold text-white uppercase italic">{editor.name || editor.username}</h4>
+                                    <p className="text-gray-500 text-xs font-mono">@{editor.username}</p>
+                                  </div>
+                                </div>
+                                <div className="mt-6 flex flex-wrap gap-2">
+                                  {(editor.permissions || []).map((p: string) => (
+                                    <span key={p} className="px-2 py-1 bg-white/5 border border-white/5 rounded-lg text-[8px] text-gray-400 font-black uppercase tracking-widest">{p}</span>
+                                  ))}
+                                </div>
+                                <div className="mt-8 pt-4 border-t border-white/5 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                  <button onClick={() => navigate("/admin/editors")} className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all"><Pencil className="w-4 h-4" /></button>
+                                  <button
+                                    onClick={() => {
+                                      setConfirmModal({
+                                        isOpen: true,
+                                        title: "Supprimer",
+                                        message: `Supprimer l'éditeur ${editor.username} ?`,
+                                        type: "danger",
+                                        onConfirm: () => {
+                                          apiFetch("/api/editors/delete", {
+                                            method: "POST",
+                                            headers: getAuthHeaders(),
+                                            body: JSON.stringify({ username: editor.username }),
+                                          }).then(r => r.ok && fetchEditors());
+                                        }
+                                      });
+                                    }}
+                                    className="p-2.5 bg-red-500/10 hover:bg-red-500 rounded-xl text-red-500 hover:text-white transition-all"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </motion.div>
               </div>

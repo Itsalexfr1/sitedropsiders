@@ -12,7 +12,7 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 
 
 export function Profile() {
-    const { user, updateUser, logout, isLoggedIn, showNotification } = useUser();
+    const { user, updateUser, logout, isLoggedIn, showNotification, deleteAccount } = useUser();
     const navigate = useNavigate();
     
     const [username, setUsername] = useState(user?.username || '');
@@ -30,6 +30,7 @@ export function Profile() {
     const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null);
     const [userMixes, setUserMixes] = useState<any[]>([]);
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
         if (user?.email) {
@@ -144,6 +145,28 @@ export function Profile() {
                 .catch(err => console.error(err));
         }
     }, [user?.agendaFavorites]);
+
+    const handleRequestAccess = async () => {
+        if (!user?.email) return;
+        
+        try {
+            const res = await fetch('/api/user/request-mix-access', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email })
+            });
+            
+            if (res.ok) {
+                // Update local user state
+                updateUser({ mixStatus: 'pending' } as any);
+                showNotification("Demande envoyée aux administrateurs.", 'success');
+            } else {
+                showNotification("Erreur lors de l'envoi de la demande.", 'error');
+            }
+        } catch (e) {
+            showNotification("Erreur réseau.", 'error');
+        }
+    };
 
     const getEventColor = (genre: string, type: string) => {
         const g = (genre || '').toLowerCase().trim();
@@ -283,22 +306,24 @@ export function Profile() {
 
                     {/* Right Content: Tabs & Details */}
                     <div className="lg:col-span-8 space-y-8">
-                        <div className="flex gap-4 p-2 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md w-fit">
-                            {[
-                                { id: 'overview', label: 'Vue d\'ensemble', icon: <User className="w-4 h-4" /> },
-                                { id: 'mixes', label: 'Mix Studio', icon: <Headphones className="w-4 h-4" /> },
-                                { id: 'reviews', label: 'Avis & Notes', icon: <MessageSquare className="w-4 h-4" /> },
-                                { id: 'favorites', label: 'Favoris', icon: <Music className="w-4 h-4" /> },
-                                { id: 'settings', label: 'Sécurité', icon: <Settings className="w-4 h-4" /> }
-                            ].map(tab => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id as any)}
-                                    className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.id ? 'bg-white text-black shadow-xl scale-[1.02]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                                >
-                                    {tab.icon} {tab.label}
-                                </button>
-                            ))}
+                        <div className="sticky top-16 lg:static z-30 -mx-6 px-6 lg:mx-0 lg:px-0 py-4 lg:py-0 bg-[#050505]/80 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border-b border-white/5 lg:border-none mb-4 lg:mb-8">
+                            <div className="flex gap-2 md:gap-4 p-2 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md overflow-x-auto no-scrollbar scroll-smooth w-full lg:w-fit flex-nowrap">
+                                {[
+                                    { id: 'overview', label: 'Vue d\'ensemble', icon: <User className="w-4 h-4" /> },
+                                    { id: 'mixes', label: 'Mix Studio', icon: <Headphones className="w-4 h-4" /> },
+                                    { id: 'reviews', label: 'Avis & Notes', icon: <MessageSquare className="w-4 h-4" /> },
+                                    { id: 'favorites', label: 'Favoris', icon: <Music className="w-4 h-4" /> },
+                                    { id: 'settings', label: 'Sécurité', icon: <Settings className="w-4 h-4" /> }
+                                ].map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id as any)}
+                                        className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shrink-0 ${activeTab === tab.id ? 'bg-white text-black shadow-xl scale-[1.02]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                    >
+                                        {tab.icon} {tab.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
 
                         <AnimatePresence mode="wait">
@@ -377,41 +402,70 @@ export function Profile() {
                                             <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Mix Studio</h3>
                                         </div>
                                         
-                                        <div className="flex gap-2 justify-center mb-6">
-                                            {['Track', 'Remix', 'Edit', 'Mix'].map(type => (
-                                                <button 
-                                                    key={type}
-                                                    onClick={() => setUploadType(type as any)}
-                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${uploadType === type ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.4)]' : 'bg-white/5 text-gray-500 hover:text-white border border-white/10'}`}
-                                                >
-                                                    {type}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        
-                                        <div className="p-8 border-2 border-dashed border-neon-purple/30 bg-neon-purple/5 rounded-[32px] text-center hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all cursor-pointer group flex flex-col items-center gap-4 relative overflow-hidden">
-                                            <input 
-                                                type="file" 
-                                                accept="audio/mpeg" 
-                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        if (file.size > 150 * 1024 * 1024) {
-                                                            showNotification("Le fichier est trop volumineux. La limite est de 150 Mo.", 'error');
-                                                            return;
-                                                        }
-                                                        setSelectedAudioFile(file);
-                                                        setIsUploadModalOpen(true);
-                                                    }
-                                                }}
-                                            />
-                                            <UploadCloud className="w-12 h-12 text-neon-purple/50 group-hover:text-neon-purple transition-colors group-hover:-translate-y-1 transform duration-300" />
-                                            <div>
-                                                <p className="text-xs font-black text-white uppercase tracking-widest mb-1 group-hover:text-neon-purple transition-colors">Uploader un nouveau {uploadType}</p>
-                                                <p className="text-[10px] text-gray-400 font-bold uppercase italic">Format MP3 uniquement - Max 150 Mo</p>
+                                        {user?.mixStatus === 'approved' ? (
+                                            <>
+                                                <div className="flex gap-2 justify-center mb-6">
+                                                    {['Track', 'Remix', 'Edit', 'Mix'].map(type => (
+                                                        <button 
+                                                            key={type}
+                                                            onClick={() => setUploadType(type as any)}
+                                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${uploadType === type ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.4)]' : 'bg-white/5 text-gray-500 hover:text-white border border-white/10'}`}
+                                                        >
+                                                            {type}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                
+                                                <div className="p-8 border-2 border-dashed border-neon-purple/30 bg-neon-purple/5 rounded-[32px] text-center hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all cursor-pointer group flex flex-col items-center gap-4 relative overflow-hidden">
+                                                    <input 
+                                                        type="file" 
+                                                        accept="audio/mpeg" 
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                if (file.size > 150 * 1024 * 1024) {
+                                                                    showNotification("Le fichier est trop volumineux. La limite est de 150 Mo.", 'error');
+                                                                    return;
+                                                                }
+                                                                setSelectedAudioFile(file);
+                                                                setIsUploadModalOpen(true);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <UploadCloud className="w-12 h-12 text-neon-purple/50 group-hover:text-neon-purple transition-colors group-hover:-translate-y-1 transform duration-300" />
+                                                    <div>
+                                                        <p className="text-xs font-black text-white uppercase tracking-widest mb-1 group-hover:text-neon-purple transition-colors">Uploader un nouveau {uploadType}</p>
+                                                        <p className="text-[10px] text-gray-400 font-bold uppercase italic">Format MP3 uniquement - Max 150 Mo</p>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="p-10 border-2 border-dashed border-white/10 rounded-[32px] text-center space-y-6">
+                                                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+                                                    <Shield className="w-8 h-8 text-gray-500" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <h4 className="text-sm font-black text-white uppercase tracking-widest italic">Accès Restreint</h4>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase italic max-w-xs mx-auto leading-relaxed">
+                                                        L'ajout de mixes au Studio est réservé aux membres autorisés par l'équipe Dropsiders.
+                                                    </p>
+                                                </div>
+                                                
+                                                {user?.mixStatus === 'pending' ? (
+                                                    <div className="px-6 py-3 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] inline-block">
+                                                        Demande en cours d'examen...
+                                                    </div>
+                                                ) : (
+                                                    <button 
+                                                        onClick={handleRequestAccess}
+                                                        className="px-8 py-4 bg-neon-purple/10 hover:bg-neon-purple text-neon-purple hover:text-white border border-neon-purple/30 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_20px_rgba(191,0,255,0.1)] hover:shadow-neon-purple/30 active:scale-95"
+                                                    >
+                                                        Demander l'accès au Studio
+                                                    </button>
+                                                )}
                                             </div>
-                                        </div>
+                                        )}
 
                                         <div className="space-y-4 pt-4 border-t border-white/5">
                                             <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Mes Mixes Publics</h4>
@@ -635,8 +689,13 @@ export function Profile() {
 
                                         <div className="p-8 border-2 border-dashed border-red-500/20 rounded-[32px] text-center space-y-4">
                                             <p className="text-[10px] text-red-500 font-black uppercase tracking-[0.2em]">Zone de Danger</p>
-                                            <p className="text-xs text-gray-600 font-medium italic">La suppression de votre profil est irréversible et effacera tous vos scores et favoris.</p>
-                                            <button className="px-8 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Réinitialiser mon profil</button>
+                                            <p className="text-xs text-gray-600 font-medium italic">La suppression de votre profil est irréversible et effacera tous vos scores, mixes et favoris.</p>
+                                            <button 
+                                                onClick={() => setShowDeleteConfirm(true)}
+                                                className="px-8 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/30 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                            >
+                                                Supprimer mon compte
+                                            </button>
                                         </div>
                                     </div>
                                 )}
@@ -676,6 +735,23 @@ export function Profile() {
                     setDeleteTargetId(null);
                 }}
                 onCancel={() => setDeleteTargetId(null)}
+                accentColor="neon-red"
+            />
+
+            <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                title="Supprimer mon compte ?"
+                message="Es-tu sûr de vouloir supprimer définitivement ton compte Dropsiders ? Toutes tes données (XP, Drops, Mixes, Favoris) seront effacées. Cette action est irréversible."
+                confirmLabel="Supprimer définitivement"
+                cancelLabel="Annuler"
+                onConfirm={async () => {
+                    const success = await deleteAccount();
+                    if (success) {
+                        navigate('/');
+                    }
+                    setShowDeleteConfirm(false);
+                }}
+                onCancel={() => setShowDeleteConfirm(false)}
                 accentColor="neon-red"
             />
             </div>

@@ -16,6 +16,7 @@ interface UserProfile {
     drops: number;
     createdAt: string;
     newsletter?: boolean;
+    mixStatus?: 'none' | 'pending' | 'approved';
 }
 
 
@@ -30,6 +31,7 @@ interface UserContextType {
     toggleAgendaFavorite: (eventId: number) => void;
     updateUser: (updates: Partial<UserProfile>) => void;
     earnPoints: (xp: number, drops: number) => void;
+    deleteAccount: () => Promise<boolean>;
     isAuthModalOpen: boolean;
     setIsAuthModalOpen: (open: boolean) => void;
     showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
@@ -253,6 +255,32 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('admin_session_id');
         localStorage.removeItem('admin_provider');
         localStorage.removeItem('admin_password');
+        localStorage.removeItem('dropsiders_registered_users'); // Also clear the local registry
+    };
+
+    const deleteAccount = async (): Promise<boolean> => {
+        if (!user || !user.email) return false;
+        
+        try {
+            const res = await fetch('/api/users/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email })
+            });
+            
+            if (res.ok) {
+                logout();
+                showNotification('Compte supprimé avec succès.', 'success');
+                return true;
+            } else {
+                showNotification('Erreur lors de la suppression du compte.', 'error');
+                return false;
+            }
+        } catch (e) {
+            console.error('Delete account failed', e);
+            showNotification('Erreur réseau lors de la suppression.', 'error');
+            return false;
+        }
     };
 
     const updateScore = (gameId: string, score: number) => {
@@ -336,6 +364,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             toggleAgendaFavorite,
             updateUser,
             earnPoints,
+            deleteAccount,
             isAuthModalOpen,
             setIsAuthModalOpen,
             showNotification

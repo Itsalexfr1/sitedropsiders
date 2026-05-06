@@ -90,7 +90,7 @@ async function fetchJson(file: string): Promise<any[]> {
     return [];
 }
 
-type ContentType = 'News' | 'Musique' | 'Recaps' | 'Interviews' | 'Agenda' | 'Communauté' | 'Focus';
+type ContentType = 'News' | 'Musique' | 'Recaps' | 'Interviews' | 'Agenda' | 'Communauté' | 'Focus' | 'Membres';
 
 export function AdminManage() {
     const [searchParams] = useSearchParams();
@@ -278,6 +278,9 @@ export function AdminManage() {
                 data = await fetchJson('agenda.json');
             } else if (activeTab === 'Communauté') {
                 data = await fetchJson('galerie.json');
+            } else if (activeTab === 'Membres') {
+                const res = await fetch('/api/admin/users', { headers: getAuthHeaders() });
+                if (res.ok) data = await res.json();
             }
             setItems(data);
         } catch (error: any) {
@@ -343,6 +346,23 @@ export function AdminManage() {
         }
 
         navigate(editPath, { state: { isEditing: true, item } });
+    };
+
+    const handleApproveMix = async (email: string, status: 'approved' | 'none') => {
+        try {
+            const res = await fetch('/api/admin/users/approve-mix', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ email, status })
+            });
+            if (res.ok) {
+                setItems(prev => prev.map(u => u.email === email ? { ...u, mixStatus: status } : u));
+                setMessage(status === 'approved' ? 'Accès Studio accordé !' : 'Accès Studio révoqué.');
+                setTimeout(() => setMessage(''), 3000);
+            }
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleToggleFeatured = async (item: any) => {
@@ -594,6 +614,7 @@ export function AdminManage() {
         { type: 'Focus', icon: <Star className="w-4 h-4" />, color: 'text-neon-yellow' },
         { type: 'Agenda', icon: <Calendar className="w-4 h-4" />, color: 'text-neon-yellow' },
         { type: 'Communauté', icon: <ImageIcon className="w-4 h-4" />, color: 'text-neon-red' },
+        { type: 'Membres', icon: <Users className="w-4 h-4" />, color: 'text-neon-green' },
     ];
 
     const getInitialSocialTheme = (category: string = '', isFocus?: boolean) => {
@@ -871,17 +892,62 @@ export function AdminManage() {
                                         {isAdmin && (
                                             <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest w-10">Sup.</th>
                                         )}
-                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Image</th>
-                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Titre</th>
-                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Auteur</th>
-                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Année</th>
-                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Recaps' || activeTab === 'Agenda' ? 'Date Event' : 'Date'}</th>
+                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Membres' ? 'Avatar' : 'Image'}</th>
+                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Membres' ? 'Utilisateur' : 'Titre'}</th>
+                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Membres' ? 'Email' : 'Auteur'}</th>
+                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Membres' ? 'Statut Studio' : 'Année'}</th>
+                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Membres' ? 'Dernière Connexion' : (activeTab === 'Recaps' || activeTab === 'Agenda' ? 'Date Event' : 'Date')}</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     {paginatedItems.map((item) => {
-                                        const isSelected = selectedIds.includes(item.id);
+                                        const isSelected = selectedIds.includes(activeTab === 'Membres' ? item.email : item.id);
+                                        
+                                        if (activeTab === 'Membres') {
+                                            return (
+                                                <tr key={item.email} className={`hover:bg-white/[0.02] transition-colors group ${isSelected ? 'bg-white/[0.03]' : ''}`}>
+                                                    <td className="px-6 py-4">
+                                                        <input type="checkbox" checked={isSelected} onChange={() => setSelectedIds(isSelected ? selectedIds.filter(id => id !== item.email) : [...selectedIds, item.email])} className="w-4 h-4 rounded border-white/20 bg-black text-neon-red focus:ring-neon-red focus:ring-offset-black" />
+                                                    </td>
+                                                    {isAdmin && <td className="px-6 py-4 opacity-20">---</td>}
+                                                    <td className="px-6 py-4">
+                                                        <div className="w-10 h-10 rounded-full overflow-hidden bg-white/5 border border-white/10">
+                                                            {item.avatar ? <img src={item.avatar} alt="" className="w-full h-full object-cover" /> : <User className="w-5 h-5 m-2.5 text-gray-600" />}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="font-bold text-white uppercase italic text-xs">{item.username}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-xs text-gray-400">{item.email}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${
+                                                            item.mixStatus === 'approved' ? 'text-neon-green border-neon-green/30 bg-neon-green/10' :
+                                                            item.mixStatus === 'pending' ? 'text-neon-yellow border-neon-yellow/30 bg-neon-yellow/10 animate-pulse' :
+                                                            'text-gray-500 border-white/10 bg-white/5'
+                                                        }`}>
+                                                            {item.mixStatus === 'approved' ? 'Approuvé' : item.mixStatus === 'pending' ? 'En Attente' : 'Aucun'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs text-gray-500 italic">
+                                                        {item.lastSeen ? new Date(item.lastSeen).toLocaleString('fr-FR') : 'Jamais'}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <div className="flex justify-end gap-2">
+                                                            {item.mixStatus === 'pending' ? (
+                                                                <button onClick={() => handleApproveMix(item.email, 'approved')} className="px-3 py-1 bg-neon-green/20 text-neon-green border border-neon-green/30 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-neon-green hover:text-white transition-all">Approuver</button>
+                                                            ) : item.mixStatus === 'approved' ? (
+                                                                <button onClick={() => handleApproveMix(item.email, 'none')} className="px-3 py-1 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">Révoquer</button>
+                                                            ) : (
+                                                                <button onClick={() => handleApproveMix(item.email, 'approved')} className="px-3 py-1 bg-white/5 text-gray-500 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all">Autoriser</button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        }
                                         return (
                                             <tr key={item.id} className={`hover:bg-white/[0.02] transition-colors group ${isSelected ? 'bg-white/[0.03]' : ''}`}>
                                                 <td className="px-6 py-4">

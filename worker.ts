@@ -1016,7 +1016,7 @@ ${urls.map(u => `  <url>
                             date: new Date().toISOString(),
                             source: provider || 'site_creation'
                         });
-                        await updateGitHubFile(subPath, subs, 'Auto-subscribe from new account creation', fileData?.sha, gitConfigSub);
+                        await saveGitHubFile(subPath, subs, 'Auto-subscribe from new account creation', fileData?.sha, gitConfigSub);
                     }
                 } catch(e) {
                     console.error('Newsletter auto-sub error', e);
@@ -1052,6 +1052,24 @@ ${urls.map(u => `  <url>
             }
 
             return new Response(JSON.stringify({ success: true, user: userData }), { headers });
+        }
+
+        if (path === '/api/users/delete' && request.method === 'POST') {
+            const body = await request.json();
+            const { email } = body;
+            if (!email) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+
+            const cleanEmail = email.toLowerCase().trim();
+            
+            // Delete from KV
+            await env.CHAT_KV.delete(`community_user_${cleanEmail}`);
+            await env.CHAT_KV.delete(`community_player_xp_${cleanEmail}`);
+            await env.CHAT_KV.delete(`user_mixes:${cleanEmail}`);
+            
+            // Note: We don't automatically delete from GitHub subscribers for safety, 
+            // but we could if requested. For now, we focus on profile/game data.
+
+            return new Response(JSON.stringify({ success: true }), { headers });
         }
 
 
@@ -1405,6 +1423,78 @@ ${urls.map(u => `  <url>
                 await env.CHAT_KV.put(kvKey, JSON.stringify(updated));
                 return new Response(JSON.stringify({ success: true }), { headers });
             }
+        }
+
+        if (path === '/api/user/request-mix-access' && request.method === 'POST') {
+            const body = await request.json();
+            const { email } = body;
+            if (!email) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+
+            const cleanEmail = email.toLowerCase().trim();
+            const userKey = `community_user_${cleanEmail}`;
+            
+            const userDataRaw = await env.CHAT_KV.get(userKey);
+            if (!userDataRaw) return new Response(JSON.stringify({ error: 'Utilisateur non trouvé' }), { status: 404, headers });
+            
+            const userData = JSON.parse(userDataRaw);
+            userData.mixStatus = 'pending';
+            
+            await env.CHAT_KV.put(userKey, JSON.stringify(userData));
+
+            // Notify Admin
+            if (env.BREVO_API_KEY) {
+                const payload = {
+                    sender: { name: 'Dropsiders Studio', email: 'studio@dropsiders.fr' },
+                    to: [{ email: 'contact@dropsiders.fr' }],
+                    subject: `[STUDIO REQUEST] ${userData.username}`,
+                    htmlContent: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px;">
+                            <h2>Nouvelle demande d'accès au Studio</h2>
+                            <p>L'utilisateur <strong>${userData.username}</strong> souhaite pouvoir uploader ses mixes sur le site.</p>
+                            <p><strong>Email:</strong> ${userData.email}</p>
+                            <div style="margin-top: 30px; padding: 15px; background: #f4f4f4; border-radius: 10px;">
+                                <p>Pour valider cette demande, rends-toi dans le dashboard admin ou réponds directement à cet email.</p>
+                            </div>
+                        </div>
+                    `
+                };
+
+                fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: { 'accept': 'application/json', 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(e => console.error('[STUDIO] Brevo notification error', e));
+            }
+
+            return new Response(JSON.stringify({ success: true, user: userData }), { headers });
+        }
+
+        if (path === '/api/admin/users' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            
+            const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
+            const users = [];
+            for (const key of list.keys) {
+                const val = await env.CHAT_KV.get(key.name);
+                if (val) users.push(JSON.parse(val));
+            }
+            return new Response(JSON.stringify(users), { headers });
+        }
+
+        if (path === '/api/admin/users/approve-mix' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { email, status } = await request.json();
+            if (!email) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+            
+            const userKey = `community_user_${email.toLowerCase().trim()}`;
+            const userDataRaw = await env.CHAT_KV.get(userKey);
+            if (!userDataRaw) return new Response(JSON.stringify({ error: 'Utilisateur non trouvé' }), { status: 404, headers });
+            
+            const userData = JSON.parse(userDataRaw);
+            userData.mixStatus = status || 'approved';
+            
+            await env.CHAT_KV.put(userKey, JSON.stringify(userData));
+            return new Response(JSON.stringify({ success: true, user: userData }), { headers });
         }
 
         if (path === '/api/r2/delete' && request.method === 'POST') {
