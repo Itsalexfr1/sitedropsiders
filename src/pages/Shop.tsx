@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Construction, Loader2, ExternalLink } from 'lucide-react';
+import { ShoppingBag, Construction, Loader2, ExternalLink, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AVAILABLE_COLORS } from '../data/colors';
 import { useState, useEffect } from 'react';
@@ -255,9 +255,20 @@ export function Shop() {
                             <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">{t('shop.badge')}</span>
                         </div>
                         
-                        <h1 className={`${isMini ? 'text-4xl md:text-5xl' : 'text-4xl md:text-7xl'} font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-tight`}>
-                            {t('shop.title')}<span className="text-neon-red">{t('shop.title_span')}</span>
-                        </h1>
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
+                            <h1 className={`${isMini ? 'text-4xl md:text-5xl' : 'text-4xl md:text-7xl'} font-display font-black text-white uppercase italic tracking-tighter leading-tight`}>
+                                {t('shop.title')}<span className="text-neon-red">{t('shop.title_span')}</span>
+                            </h1>
+                            {!isMini && (
+                                <Link 
+                                    to="/pro/boutique" 
+                                    className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all flex items-center gap-3 group shrink-0 mb-2"
+                                >
+                                    <Lock className="w-3.5 h-3.5 text-neon-red group-hover:text-white transition-colors" /> 
+                                    Espace Professionnel
+                                </Link>
+                            )}
+                        </div>
 
                         <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">
                             {t('shop.subtitle')}
