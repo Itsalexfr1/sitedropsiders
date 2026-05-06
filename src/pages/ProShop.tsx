@@ -440,9 +440,20 @@ export function ProShop() {
                                             {paymentDestination && (
                                                 <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 text-left">
                                                     <div className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-2">Instructions de règlement</div>
-                                                    <p className="text-white font-bold text-xs break-all selection:bg-neon-red">
-                                                        {paymentDestination}
-                                                    </p>
+                                                    {paymentDestination.startsWith('http') ? (
+                                                        <a 
+                                                            href={paymentDestination} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center justify-center gap-3 w-full py-4 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
+                                                        >
+                                                            Payer par Carte <CreditCard className="w-4 h-4" />
+                                                        </a>
+                                                    ) : (
+                                                        <p className="text-white font-bold text-xs break-all selection:bg-neon-red">
+                                                            {paymentDestination}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             )}
 
