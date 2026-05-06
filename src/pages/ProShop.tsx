@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { jsPDF } from 'jspdf';
 
 interface ProProduct {
     id: string;
@@ -145,23 +146,115 @@ export function ProShop() {
         setCheckoutStep('details');
     };
 
+    const generateInvoicePDF = (company: string, email: string, product: ProProduct, invoiceId: string) => {
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        // Styles & colors
+        const neonRed = [255, 0, 51];
+        
+        // Background
+        doc.setFillColor(5, 5, 5);
+        doc.rect(0, 0, 210, 297, 'F');
+
+        // Header Decoration
+        doc.setDrawColor( neonRed[0], neonRed[1], neonRed[2] );
+        doc.setLineWidth(1);
+        doc.line(10, 10, 30, 10);
+        
+        // Brand
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DROPSIDERS', 10, 25);
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text('PROFESSIONAL SERVICES • MEDIA GROUP', 10, 30);
+
+        // Invoice Info
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(14);
+        doc.text('TICKET DE PAIEMENT & FACTURE', 10, 50);
+        doc.setFontSize(9);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`N° RÉFÉRENCE : ${invoiceId}`, 10, 56);
+        doc.text(`DATE : ${new Date().toLocaleDateString('fr-FR')}`, 10, 61);
+
+        // Client Info
+        doc.setTextColor( neonRed[0], neonRed[1], neonRed[2] );
+        doc.text('DESTINATAIRE', 120, 50);
+        doc.setTextColor(255, 255, 255);
+        doc.text(company.toUpperCase(), 120, 56);
+        doc.text(email, 120, 61);
+
+        // Table Header
+        doc.setFillColor(20, 20, 20);
+        doc.rect(10, 80, 190, 10, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(8);
+        doc.text('DÉSIGNATION DU SERVICE', 15, 86);
+        doc.text('PRIX UNITAIRE HT', 160, 86);
+
+        // Table Content
+        doc.setDrawColor(40, 40, 40);
+        doc.line(10, 105, 200, 105);
+        doc.setFontSize(10);
+        doc.text(product.name.toUpperCase(), 15, 98);
+        doc.text(`${product.price}€`, 160, 98);
+
+        // Total
+        doc.setFontSize(12);
+        doc.text('TOTAL À RÉGLER (HT)', 120, 120);
+        doc.setTextColor( neonRed[0], neonRed[1], neonRed[2] );
+        doc.setFontSize(18);
+        doc.text(`${product.price},00€`, 160, 120);
+
+        // Payment Instructions
+        doc.setTextColor(150, 150, 150);
+        doc.setFontSize(8);
+        doc.text('INSTRUCTIONS DE RÈGLEMENT', 10, 150);
+        doc.rect(10, 153, 190, 20, 'S');
+        doc.text(paymentDestination || 'Virement Bancaire / Carte Bancaire', 15, 163);
+
+        // Footer
+        doc.setTextColor(50, 50, 50);
+        doc.setFontSize(7);
+        doc.text('Dropsiders Media - SIRET : 88472910300012 - Paris, France', 105, 280, { align: 'center' });
+        doc.text('Document généré numériquement - Valeur de ticket de confirmation', 105, 285, { align: 'center' });
+
+        return doc.output('datauristring').split(',')[1]; // Base64 only
+    };
+
     const handlePayment = async (e: React.FormEvent) => {
         e.preventDefault();
         setCheckoutStep('payment');
 
-        // Extract form data (assuming simple inputs for now, or adding refs)
         const companyInput = (e.currentTarget as any).querySelector('input[placeholder*="Sony"]');
         const emailInput = (e.currentTarget as any).querySelector('input[placeholder*="pro@domain.com"]');
+        
+        const company = companyInput?.value || 'Inconnu';
+        const email = emailInput?.value || '';
+        const invoiceNumber = `DS-${Date.now().toString().slice(-6)}`;
+
+        let attachment = null;
+        if (selectedProduct) {
+            attachment = generateInvoicePDF(company, email, selectedProduct, invoiceNumber);
+        }
 
         try {
             await fetch('/api/pro-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    company: companyInput?.value || 'Inconnu',
-                    email: emailInput?.value || 'Non renseigné',
+                    company,
+                    email,
                     productName: selectedProduct?.name,
-                    price: selectedProduct?.price
+                    price: selectedProduct?.price,
+                    invoiceNumber,
+                    attachment
                 })
             });
         } catch (e) {
