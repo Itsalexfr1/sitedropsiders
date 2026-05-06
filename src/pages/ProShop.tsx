@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { jsPDF } from 'jspdf';
 import QRCodeStyling from 'qr-code-styling';
+import { History, LayoutPanelLeft } from 'lucide-react';
 
 interface ProProduct {
     id: string;
@@ -72,8 +73,9 @@ export function ProShop() {
     
     // Dynamic products from generator
     const [dynamicProducts, setDynamicProducts] = useState<ProProduct[]>([]);
-    const [activeTab, setActiveTab] = useState<'shop' | 'config'>('shop');
+    const [activeTab, setActiveTab] = useState<'shop' | 'config' | 'archive'>('shop');
     const [isSavingConfig, setIsSavingConfig] = useState(false);
+    const [orders, setOrders] = useState<any[]>([]);
     const qrRef = React.useRef<HTMLDivElement>(null);
 
     const [configData, setConfigData] = useState({
@@ -122,6 +124,11 @@ export function ProShop() {
                     if (data.pro_access_code) {
                         setConfigData(prev => ({ ...prev, pro_access_code: data.pro_access_code }));
                     }
+                }
+                const ordersRes = await fetch('/api/pro-orders');
+                if (ordersRes.ok) {
+                    const ordersData = await ordersRes.json();
+                    setOrders(ordersData);
                 }
             } catch (e) {
                 console.error('Failed to fetch settings', e);
@@ -441,12 +448,18 @@ export function ProShop() {
                             >
                                 Configuration
                             </button>
+                            <button 
+                                onClick={() => setActiveTab('archive')}
+                                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'archive' ? 'bg-neon-red text-white shadow-lg shadow-red-900/20' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                Archive
+                            </button>
                         </div>
 
                         <p className="text-gray-500 text-sm font-bold uppercase tracking-widest max-w-xl">
-                            {activeTab === 'shop' 
-                                ? "Accédez à nos services premium conçus pour maximiser l'impact de votre marque sur l'écosystème Dropsiders."
-                                : "Gérez les paramètres d'accès et les instructions de paiement de votre boutique professionnelle."}
+                            {activeTab === 'shop' && "Accédez à nos services premium conçus pour maximiser l'impact de votre marque sur l'écosystème Dropsiders."}
+                            {activeTab === 'config' && "Gérez les paramètres d'accès et les instructions de paiement de votre boutique professionnelle."}
+                            {activeTab === 'archive' && "Historique complet des commandes passées sur la boutique partenaire."}
                         </p>
                     </div>
 
@@ -505,14 +518,27 @@ export function ProShop() {
                             </motion.div>
                         ))}
                     </div>
-                ) : (
+                ) : activeTab === 'config' ? (
                     <motion.div 
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="max-w-4xl mb-32 space-y-8"
+                        className="max-w-4xl mb-32 space-y-12"
                     >
+                        <div className="bg-white/5 border border-neon-red/30 rounded-[2.5rem] p-10 flex items-center justify-between group overflow-hidden relative">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 rounded-full blur-3xl -mr-32 -mt-32" />
+                            <div className="relative z-10">
+                                <h3 className="text-2xl font-display font-black uppercase italic mb-2 tracking-tight">Gestion des Produits</h3>
+                                <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Ajouter, modifier ou supprimer des packs et services</p>
+                            </div>
+                            <Link 
+                                to="/admin/tarifs"
+                                className="relative z-10 px-8 py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-neon-red hover:text-white transition-all flex items-center gap-3"
+                            >
+                                Ouvrir l'Éditeur <LayoutPanelLeft className="w-4 h-4" />
+                            </Link>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Payment Destination */}
                             <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 space-y-6">
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="w-12 h-12 bg-neon-red/10 rounded-2xl flex items-center justify-center text-neon-red border border-neon-red/20">
@@ -528,10 +554,10 @@ export function ProShop() {
                                         className="w-full h-32 bg-black/50 border border-white/10 rounded-2xl p-6 text-xs font-bold focus:border-neon-red outline-none transition-all"
                                         placeholder="Collez ici votre IBAN ou lien Stripe..."
                                     />
+                                    <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest p-2">Pour la CB, collez votre lien Stripe Payment Link ici.</p>
                                 </div>
                             </div>
 
-                            {/* Access Code */}
                             <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 space-y-6">
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="w-12 h-12 bg-neon-cyan/10 rounded-2xl flex items-center justify-center text-neon-cyan border border-neon-cyan/20">
@@ -561,6 +587,44 @@ export function ProShop() {
                             {isSavingConfig ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             Enregistrer les paramètres
                         </button>
+                    </motion.div>
+                ) : (
+                    <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="max-w-6xl mb-32"
+                    >
+                        <div className="bg-white/5 border border-white/10 rounded-[3rem] overflow-hidden">
+                            <table className="w-full border-collapse">
+                                <thead>
+                                    <tr className="bg-white/5 border-b border-white/10">
+                                        <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Date</th>
+                                        <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Structure</th>
+                                        <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Service</th>
+                                        <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Montant</th>
+                                        <th className="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {orders.map((order) => (
+                                        <tr key={order.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                                            <td className="px-8 py-6 text-xs font-bold text-gray-400">{order.date}</td>
+                                            <td className="px-8 py-6">
+                                                <div className="text-sm font-black uppercase italic">{order.company}</div>
+                                                <div className="text-[10px] text-gray-600 font-bold">{order.email}</div>
+                                            </td>
+                                            <td className="px-8 py-6 text-xs font-bold uppercase tracking-tight">{order.service}</td>
+                                            <td className="px-8 py-6 text-sm font-display font-black italic">{order.price}€</td>
+                                            <td className="px-8 py-6">
+                                                <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${order.status === 'Payé' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'}`}>
+                                                    {order.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </motion.div>
                 )}
 
