@@ -59,14 +59,22 @@ export function AdminTarifs() {
         if (!gridRef.current) return;
         setIsGenerating(true);
         try {
+            // Temporary reset scale for clean capture
+            const originalTransform = gridRef.current.style.transform;
+            gridRef.current.style.transform = 'none';
+            
             const dataUrl = await toPng(gridRef.current, {
                 quality: 1,
-                pixelRatio: 3, // Higher quality for print/pro use
+                pixelRatio: 3,
                 backgroundColor: '#050505',
                 style: {
-                    borderRadius: '0', // No rounded corners for full export
+                    borderRadius: '0',
+                    margin: '0',
                 }
             });
+            
+            gridRef.current.style.transform = originalTransform;
+
             const link = document.createElement('a');
             link.download = `Dropsiders_Tarifs_${new Date().getFullYear()}.png`;
             link.href = dataUrl;
@@ -82,31 +90,50 @@ export function AdminTarifs() {
         if (!gridRef.current) return;
         setIsGenerating(true);
         try {
+            // Temporary reset scale for clean capture
+            const originalTransform = gridRef.current.style.transform;
+            gridRef.current.style.transform = 'none';
+
             const dataUrl = await toPng(gridRef.current, {
                 quality: 1,
                 pixelRatio: 2,
                 backgroundColor: '#050505',
                 style: {
                     borderRadius: '0',
+                    margin: '0',
                 }
             });
             
+            gridRef.current.style.transform = originalTransform;
+
             const img = new Image();
             img.src = dataUrl;
             await new Promise((resolve) => (img.onload = resolve));
             
-            // Calculate dimensions in mm (A4 width is 210mm)
+            // Standard A4 dimensions
             const pdfWidth = 210;
-            const pdfHeight = (img.height * pdfWidth) / img.width;
+            const pdfHeight = 297;
+            const imgAspect = img.width / img.height;
+            const pdfAspect = pdfWidth / pdfHeight;
             
-            // Create PDF with the exact height needed to avoid truncation
-            const pdf = new jsPDF({
-                orientation: 'p',
-                unit: 'mm',
-                format: [pdfWidth, pdfHeight]
-            });
+            let finalWidth, finalHeight, x, y;
             
-            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+            if (imgAspect > pdfAspect) {
+                // Image is wider than A4
+                finalWidth = pdfWidth;
+                finalHeight = pdfWidth / imgAspect;
+                x = 0;
+                y = (pdfHeight - finalHeight) / 2;
+            } else {
+                // Image is taller than A4
+                finalHeight = pdfHeight;
+                finalWidth = pdfHeight * imgAspect;
+                x = (pdfWidth - finalWidth) / 2;
+                y = 0;
+            }
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            pdf.addImage(dataUrl, 'PNG', x, y, finalWidth, finalHeight, undefined, 'FAST');
             pdf.save(`Dropsiders_Tarifs_${new Date().getFullYear()}.pdf`);
         } catch (err) {
             console.error('Failed to generate PDF', err);
@@ -135,6 +162,37 @@ export function AdminTarifs() {
 
     const updatePack = (id: string, field: keyof PackItem, value: any) => {
         setPacks(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+    };
+
+    const addPackItem = (packId: string) => {
+        setPacks(prev => prev.map(p => {
+            if (p.id === packId) {
+                return { ...p, items: [...p.items, "Nouveau service"] };
+            }
+            return p;
+        }));
+    };
+
+    const removePackItem = (packId: string, itemIndex: number) => {
+        setPacks(prev => prev.map(p => {
+            if (p.id === packId) {
+                const newItems = [...p.items];
+                newItems.splice(itemIndex, 1);
+                return { ...p, items: newItems };
+            }
+            return p;
+        }));
+    };
+
+    const updatePackItem = (packId: string, itemIndex: number, value: string) => {
+        setPacks(prev => prev.map(p => {
+            if (p.id === packId) {
+                const newItems = [...p.items];
+                newItems[itemIndex] = value;
+                return { ...p, items: newItems };
+            }
+            return p;
+        }));
     };
 
     return (
@@ -280,13 +338,32 @@ export function AdminTarifs() {
                                                 />
                                             </div>
                                         </div>
-                                        <div>
-                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Inclusions (séparées par des virgules)</label>
-                                            <textarea 
-                                                value={pkg.items.join(', ')} 
-                                                onChange={(e) => updatePack(pkg.id, 'items', e.target.value.split(',').map(s => s.trim()))}
-                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-medium h-20 resize-none"
-                                            />
+                                        <div className="space-y-3">
+                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest block">Inclusions du pack</label>
+                                            <div className="space-y-2">
+                                                {pkg.items.map((item, idx) => (
+                                                    <div key={idx} className="flex gap-2">
+                                                        <input 
+                                                            value={item} 
+                                                            onChange={(e) => updatePackItem(pkg.id, idx, e.target.value)}
+                                                            className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-medium focus:border-neon-red focus:outline-none transition-all"
+                                                            placeholder="Ex: 1 Post Instagram..."
+                                                        />
+                                                        <button 
+                                                            onClick={() => removePackItem(pkg.id, idx)}
+                                                            className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                                <button 
+                                                    onClick={() => addPackItem(pkg.id)}
+                                                    className="w-full py-2 bg-white/5 border border-dashed border-white/20 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-white hover:border-white/40 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <Plus className="w-3 h-3" /> Ajouter une ligne
+                                                </button>
+                                            </div>
                                         </div>
                                         <button 
                                             onClick={() => updatePack(pkg.id, 'featured', !pkg.featured)}
@@ -315,8 +392,8 @@ export function AdminTarifs() {
                             {/* THE ACTUAL GRID TO CAPTURE */}
                             <div 
                                 ref={gridRef}
-                                className="w-[1000px] bg-[#050505] p-16 rounded-[3rem] border border-white/10 shadow-2xl relative overflow-hidden flex flex-col items-center shrink-0 origin-top"
-                                style={{ transform: 'scale(0.65)', marginBottom: '-350px' }}
+                                className="w-[1000px] bg-[#050505] p-12 md:p-20 border border-white/10 shadow-2xl relative overflow-hidden flex flex-col items-center shrink-0 origin-top"
+                                style={{ transform: 'scale(0.65)', marginBottom: '-450px', minHeight: '1414px' }}
                             >
                                 {/* Background Decorations for PNG/PDF */}
                                 <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
