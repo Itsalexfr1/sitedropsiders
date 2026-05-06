@@ -21,42 +21,42 @@ interface ProProduct {
     color: string;
 }
 
-const PRO_PRODUCTS: ProProduct[] = [
+const DEFAULT_PRO_PRODUCTS: ProProduct[] = [
     {
-        id: 'pro-media-kit',
-        name: 'Pack Media Kit Pro',
-        description: 'Génération de kit média personnalisé avec consultation stratégique et export haute résolution illimité.',
-        price: 150,
-        icon: <Palette className="w-8 h-8" />,
-        features: ['Consultation 30min', 'Export PDF/PNG 4K', 'Modifications illimitées', 'Accès Prioritaire'],
-        color: 'neon-red'
-    },
-    {
-        id: 'pro-spotlight',
-        name: 'Campagne Spotlight',
-        description: 'Mise en avant maximale sur la home pendant 7 jours + boost social média dédié.',
-        price: 290,
-        icon: <Sparkles className="w-8 h-8" />,
-        features: ['Home Banner 7j', 'Post Instagram Dédié', 'Story Pack (3 slides)', 'Ciblage Audience'],
+        id: 'p1',
+        name: 'Pack STARDUST',
+        description: 'Solution d\'entrée de gamme pour une visibilité efficace sur nos réseaux.',
+        price: 80,
+        icon: <Zap className="w-8 h-8" />,
+        features: ["1 POST INSTAGRAM", "1 STORY", "AJOUT DANS L'AGENDA"],
         color: 'neon-purple'
     },
     {
-        id: 'pro-data-control',
-        name: 'Accès Data Control',
-        description: 'Accès complet au dashboard analytique en temps réel pour suivre l\'impact de vos campagnes.',
-        price: 90,
-        icon: <LayoutGrid className="w-8 h-8" />,
-        features: ['Stats Temps Réel', 'Rapports Hebdomadaires', 'Export CSV Data', 'Support Dédié'],
-        color: 'neon-cyan'
+        id: 'p2',
+        name: 'Pack SPOTLIGHT',
+        description: 'La formule recommandée pour une mise en avant éditoriale et sociale complète.',
+        price: 150,
+        icon: <Sparkles className="w-8 h-8" />,
+        features: ["1 ARTICLE DÉDIÉ", "1 POST INSTAGRAM", "2 STORY", "AJOUT DANS L'AGENDA"],
+        color: 'neon-red'
     },
     {
-        id: 'pro-direct-line',
-        name: 'Ligne Directe Team',
-        description: 'Un accès direct à notre équipe éditoriale pour des publications en urgence et du contenu sur-mesure.',
-        price: 500,
-        icon: <Phone className="w-8 h-8" />,
-        features: ['Publication < 2h', 'Slack Privé', 'Contenu Exclusif', 'Disponibilité 24/7'],
+        id: 'p3',
+        name: 'Pack PULSE',
+        description: 'Visibilité intensive incluant du contenu vidéo court (Réels).',
+        price: 200,
+        icon: <Zap className="w-8 h-8" />,
+        features: ["2 POSTS INSTAGRAM", "3 STORIES", "1 RÉEL", "AJOUT DANS L'AGENDA"],
         color: 'neon-orange'
+    },
+    {
+        id: 'p4',
+        name: 'Pack IMMERSIVE',
+        description: 'L\'expérience ultime pour une couverture totale sur tous nos supports.',
+        price: 350,
+        icon: <Star className="w-8 h-8" />,
+        features: ["1 ARTICLE", "3 POST INSTAGRAM", "5 STORY", "3 RÉELS", "AJOUT DANS L'AGENDA"],
+        color: 'neon-cyan'
     }
 ];
 
@@ -119,6 +119,32 @@ export function ProShop() {
             const savedPrices = localStorage.getItem('dropsiders_prices');
             const savedPacks = localStorage.getItem('dropsiders_packs');
             
+            if (!savedPrices && !savedPacks) {
+                // If nothing in localStorage, use hardcoded defaults + individual items
+                const initialItems = [...DEFAULT_PRO_PRODUCTS];
+                
+                // Add individual items defaults
+                const individuals = [
+                    { id: '1', name: 'ARTICLE SUR LE SITE', price: 100, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> },
+                    { id: '2', name: 'POST INSTAGRAM', price: 50, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> },
+                    { id: '3', name: 'INSTAGRAM STORY', price: 30, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> },
+                    { id: '4', name: 'PACK 1 STORY + 1 POST', price: 70, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> },
+                    { id: '5', name: "AJOUT DANS L'AGENDA", price: 30, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> },
+                    { id: '6', name: 'RÉEL INSTAGRAM + TIKTOK', price: 100, color: 'neon-cyan', icon: <Sparkles className="w-8 h-8" /> }
+                ];
+
+                individuals.forEach(item => {
+                    initialItems.push({
+                        ...item,
+                        description: `Service à l'unité : ${item.name}. Idéal pour un boost ponctuel.`,
+                        features: ['Activation sous 24h', 'Rapport de perf', 'Support Dédié']
+                    });
+                });
+
+                setDynamicProducts(initialItems);
+                return;
+            }
+
             const prices = savedPrices ? JSON.parse(savedPrices) : [];
             const packs = savedPacks ? JSON.parse(savedPacks) : [];
 
