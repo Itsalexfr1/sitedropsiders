@@ -28,6 +28,7 @@ export function AdminSettings() {
     const [isContestActive, setIsContestActive] = useState(false);
     const [googleSearchKey, setGoogleSearchKey] = useState('');
     const [googleCx, setGoogleCx] = useState('');
+    const [proPaymentDestination, setProPaymentDestination] = useState('');
 
     const [isSaving, setIsSaving] = useState(false);
     const [isRevoking, setIsRevoking] = useState(false);
@@ -81,6 +82,7 @@ export function AdminSettings() {
                     if (data.is_contest_active !== undefined) setIsContestActive(data.is_contest_active);
                     if (data.google_search_key) setGoogleSearchKey(data.google_search_key);
                     if (data.google_cx) setGoogleCx(data.google_cx);
+                    if (data.pro_payment_destination) setProPaymentDestination(data.pro_payment_destination);
                 }
 
                 const resAuth = await apiFetch('/api/editors', { headers: getAuthHeaders() });
@@ -116,7 +118,8 @@ export function AdminSettings() {
                 contest_festival_handle: contestFestivalHandle,
                 is_contest_active: isContestActive,
                 google_search_key: googleSearchKey,
-                google_cx: googleCx
+                google_cx: googleCx,
+                pro_payment_destination: proPaymentDestination
             };
 
             const saveRes = await apiFetch('/api/settings/update', {
@@ -422,6 +425,28 @@ export function AdminSettings() {
                                 </div>
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
                                     Nécessaire pour la recherche d'images Google dans le Cloud Upload.
+                                </p>
+                            </div>
+
+                            {/* Pro Payment Destination */}
+                            <div className="pt-8 border-t border-white/5">
+                                <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3 ml-1">
+                                    DESTINATION DES PAIEMENTS PRO (RIB OU LIEN STRIPE)
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                        <CreditCard className="w-5 h-5 text-neon-red/50" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={proPaymentDestination}
+                                        onChange={(e) => setProPaymentDestination(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-bold text-xs focus:outline-none focus:border-neon-red transition-all"
+                                        placeholder="Ex: FR76... ou https://buy.stripe.com/..."
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic uppercase">
+                                    Ces informations seront affichées aux professionnels lors de la finalisation de leur commande sur la boutique pro.
                                 </p>
                             </div>
                         </div>

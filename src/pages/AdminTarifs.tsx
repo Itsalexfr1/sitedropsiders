@@ -44,11 +44,26 @@ const DEFAULT_PACKS: PackItem[] = [
 export function AdminTarifs() {
     const [currentUser] = useState(localStorage.getItem('admin_user')?.toLowerCase() || '');
     const gridRef = useRef<HTMLDivElement>(null);
-    const [prices, setPrices] = useState<PriceItem[]>(DEFAULT_PRICES);
-    const [packs, setPacks] = useState<PackItem[]>(DEFAULT_PACKS);
+    const [prices, setPrices] = useState<PriceItem[]>(() => {
+        const saved = localStorage.getItem('dropsiders_prices');
+        return saved ? JSON.parse(saved) : DEFAULT_PRICES;
+    });
+    const [packs, setPacks] = useState<PackItem[]>(() => {
+        const saved = localStorage.getItem('dropsiders_packs');
+        return saved ? JSON.parse(saved) : DEFAULT_PACKS;
+    });
     const [activeTab, setActiveTab] = useState<'individual' | 'packs'>('individual');
     const [isGenerating, setIsGenerating] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+
+    // Save to localStorage when changed
+    useEffect(() => {
+        localStorage.setItem('dropsiders_prices', JSON.stringify(prices));
+    }, [prices]);
+
+    useEffect(() => {
+        localStorage.setItem('dropsiders_packs', JSON.stringify(packs));
+    }, [packs]);
 
     // Security Check
     if (!isSuperAdmin(currentUser)) {

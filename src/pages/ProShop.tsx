@@ -66,6 +66,65 @@ export function ProShop() {
     const [selectedProduct, setSelectedProduct] = useState<ProProduct | null>(null);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [checkoutStep, setCheckoutStep] = useState<'details' | 'payment' | 'success'>('details');
+    const [paymentDestination, setPaymentDestination] = useState('');
+    
+    // Dynamic products from generator
+    const [dynamicProducts, setDynamicProducts] = useState<ProProduct[]>([]);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.pro_payment_destination) setPaymentDestination(data.pro_payment_destination);
+                }
+            } catch (e) {
+                console.error('Failed to fetch settings', e);
+            }
+        };
+
+        const loadDynamicItems = () => {
+            const savedPrices = localStorage.getItem('dropsiders_prices');
+            const savedPacks = localStorage.getItem('dropsiders_packs');
+            
+            const prices = savedPrices ? JSON.parse(savedPrices) : [];
+            const packs = savedPacks ? JSON.parse(savedPacks) : [];
+
+            const proItems: ProProduct[] = [];
+
+            // Add Packs first
+            packs.forEach((p: any) => {
+                proItems.push({
+                    id: p.id,
+                    name: `Pack ${p.name}`,
+                    description: `Formule de partenariat complète incluant ${p.items.length} services majeurs.`,
+                    price: parseInt(p.price) || 0,
+                    icon: <Zap className="w-8 h-8" />,
+                    features: p.items,
+                    color: p.featured ? 'neon-red' : 'neon-purple'
+                });
+            });
+
+            // Add Individual Prices (not hidden)
+            prices.filter((p: any) => !p.hidden).forEach((p: any) => {
+                proItems.push({
+                    id: p.id,
+                    name: p.label,
+                    description: `Service à l'unité : ${p.label}. Idéal pour un boost ponctuel.`,
+                    price: parseInt(p.price) || 0,
+                    icon: <Sparkles className="w-8 h-8" />,
+                    features: ['Activation sous 24h', 'Rapport de perf', 'Support Dédié'],
+                    color: 'neon-cyan'
+                });
+            });
+
+            setDynamicProducts(proItems);
+        };
+
+        fetchSettings();
+        loadDynamicItems();
+    }, []);
 
     const handleAuth = (e: React.FormEvent) => {
         e.preventDefault();
@@ -181,7 +240,7 @@ export function ProShop() {
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-32">
-                    {PRO_PRODUCTS.map((product) => (
+                    {dynamicProducts.map((product) => (
                         <motion.div 
                             key={product.id}
                             whileHover={{ y: -10 }}
@@ -353,9 +412,23 @@ export function ProShop() {
                                                 <Check className="w-10 h-10" />
                                             </div>
                                             <h4 className="text-3xl font-display font-black uppercase italic tracking-tight mb-4">Succès !</h4>
-                                            <p className="text-gray-400 text-sm font-medium mb-12">
-                                                Votre commande a été validée. Un email de confirmation vient de vous être envoyé.
+                                            <p className="text-gray-400 text-sm font-medium mb-6">
+                                                Votre commande a été validée. 
                                             </p>
+                                            
+                                            {paymentDestination && (
+                                                <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 text-left">
+                                                    <div className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-2">Instructions de règlement</div>
+                                                    <p className="text-white font-bold text-xs break-all selection:bg-neon-red">
+                                                        {paymentDestination}
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            <p className="text-gray-500 text-[10px] uppercase font-black tracking-widest mb-8">
+                                                Un email de confirmation vient de vous être envoyé.
+                                            </p>
+
                                             <button 
                                                 onClick={() => setIsCheckingOut(false)}
                                                 className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all"
