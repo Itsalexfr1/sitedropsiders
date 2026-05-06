@@ -9,6 +9,7 @@ import {
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { jsPDF } from 'jspdf';
+import QRCodeStyling from 'qr-code-styling';
 
 interface ProProduct {
     id: string;
@@ -71,6 +72,35 @@ export function ProShop() {
     
     // Dynamic products from generator
     const [dynamicProducts, setDynamicProducts] = useState<ProProduct[]>([]);
+    const qrRef = React.useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (checkoutStep === 'success' && paymentDestination && qrRef.current) {
+            const qrCode = new QRCodeStyling({
+                width: 200,
+                height: 200,
+                type: 'svg',
+                data: paymentDestination,
+                dotsOptions: {
+                    color: "#ff0033",
+                    type: "rounded"
+                },
+                backgroundOptions: {
+                    color: "transparent",
+                },
+                cornersSquareOptions: {
+                    type: 'extra-rounded',
+                    color: '#ff0033'
+                },
+                imageOptions: {
+                    crossOrigin: 'anonymous',
+                    margin: 5
+                }
+            });
+            qrRef.current.innerHTML = '';
+            qrCode.append(qrRef.current);
+        }
+    }, [checkoutStep, paymentDestination]);
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -531,22 +561,28 @@ export function ProShop() {
                                             </p>
                                             
                                             {paymentDestination && (
-                                                <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 text-left">
-                                                    <div className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-2">Instructions de règlement</div>
-                                                    {paymentDestination.startsWith('http') ? (
-                                                        <a 
-                                                            href={paymentDestination} 
-                                                            target="_blank" 
-                                                            rel="noopener noreferrer"
-                                                            className="flex items-center justify-center gap-3 w-full py-4 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
-                                                        >
-                                                            Payer par Carte <CreditCard className="w-4 h-4" />
-                                                        </a>
-                                                    ) : (
-                                                        <p className="text-white font-bold text-xs break-all selection:bg-neon-red">
-                                                            {paymentDestination}
-                                                        </p>
-                                                    )}
+                                                <div className="w-full flex flex-col md:flex-row gap-6 mb-8">
+                                                    <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 text-left">
+                                                        <div className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-2">Instructions de règlement</div>
+                                                        {paymentDestination.startsWith('http') ? (
+                                                            <a 
+                                                                href={paymentDestination} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center justify-center gap-3 w-full py-4 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-all shadow-lg shadow-red-900/20"
+                                                            >
+                                                                Payer par Carte <CreditCard className="w-4 h-4" />
+                                                            </a>
+                                                        ) : (
+                                                            <p className="text-white font-bold text-xs break-all selection:bg-neon-red leading-relaxed">
+                                                                {paymentDestination}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    <div className="bg-white p-3 rounded-2xl flex items-center justify-center shadow-xl shadow-red-900/10">
+                                                        <div ref={qrRef} className="w-[120px] h-[120px] flex items-center justify-center overflow-hidden" />
+                                                    </div>
                                                 </div>
                                             )}
 
