@@ -72,6 +72,7 @@ export function ProShop() {
     const [checkoutStep, setCheckoutStep] = useState<'details' | 'payment_choice' | 'payment' | 'success'>('details');
     const [checkoutEmail, setCheckoutEmail] = useState('');
     const [checkoutCompany, setCheckoutCompany] = useState('');
+    const [checkoutDetails, setCheckoutDetails] = useState('');
     const [paymentDestination, setPaymentDestination] = useState('');
     
     // Dynamic products from generator
@@ -390,6 +391,7 @@ export function ProShop() {
         
         const company = checkoutCompany || 'Inconnu';
         const email = checkoutEmail || '';
+        const details = checkoutDetails || 'Aucun détail fourni';
         const invoiceNumber = `DS-${Date.now().toString().slice(-6)}`;
 
         try {
@@ -399,6 +401,7 @@ export function ProShop() {
                 body: JSON.stringify({
                     company,
                     email,
+                    details,
                     productName: selectedProduct?.name,
                     price: selectedProduct?.price,
                     invoiceNumber
@@ -411,6 +414,7 @@ export function ProShop() {
                 date: new Date().toLocaleDateString('fr-FR'),
                 company,
                 email,
+                details,
                 service: selectedProduct?.name,
                 price: selectedProduct?.price,
                 status: 'En attente',
@@ -712,7 +716,10 @@ export function ProShop() {
                                                 <div className="text-sm font-black uppercase italic">{order.company}</div>
                                                 <div className="text-[10px] text-gray-600 font-bold">{order.email}</div>
                                             </td>
-                                            <td className="px-8 py-6 text-xs font-bold uppercase tracking-tight">{order.service}</td>
+                                            <td className="px-8 py-6">
+                                                <div className="text-xs font-bold uppercase tracking-tight">{order.service}</div>
+                                                {order.details && <div className="text-[9px] text-gray-500 mt-1 max-w-[200px] truncate">{order.details}</div>}
+                                            </td>
                                             <td className="px-8 py-6 text-sm font-display font-black italic">{order.price}€</td>
                                             <td className="px-8 py-6">
                                                 <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${order.status === 'Payé' ? 'bg-green-500/10 text-green-500' : 'bg-orange-500/10 text-orange-500'}`}>
@@ -856,6 +863,15 @@ export function ProShop() {
                                                         onChange={(e) => setCheckoutEmail(e.target.value)}
                                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none" 
                                                         placeholder="pro@domain.com" 
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1 block">Détails de la demande (Lien, description, dates...)</label>
+                                                    <textarea 
+                                                        value={checkoutDetails}
+                                                        onChange={(e) => setCheckoutDetails(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-neon-red outline-none h-24 resize-none" 
+                                                        placeholder="Expliquez-nous brièvement votre besoin..."
                                                     />
                                                 </div>
                                             </div>
