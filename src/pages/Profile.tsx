@@ -306,23 +306,41 @@ export function Profile() {
 
                     {/* Right Content: Tabs & Details */}
                     <div className="lg:col-span-8 space-y-8">
-                        <div className="sticky top-16 lg:static z-30 -mx-6 px-6 lg:mx-0 lg:px-0 py-4 lg:py-0 bg-[#050505]/80 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none border-b border-white/5 lg:border-none mb-4 lg:mb-8">
-                            <div className="flex gap-2 md:gap-4 p-2 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md overflow-x-auto no-scrollbar scroll-smooth w-full lg:w-fit flex-nowrap">
+                        {/* Modern Tab Navigation */}
+                        <div className="sticky top-16 lg:static z-30 -mx-6 px-6 lg:mx-0 lg:px-0 py-4 lg:py-0 bg-[#050505]/80 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none mb-8">
+                            <div className="relative p-1.5 bg-white/[0.03] border border-white/10 rounded-[2rem] backdrop-blur-2xl flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth w-full lg:w-fit">
                                 {[
-                                    { id: 'overview', label: 'Vue d\'ensemble', icon: <User className="w-4 h-4" /> },
-                                    { id: 'mixes', label: 'Mix Studio', icon: <Headphones className="w-4 h-4" /> },
-                                    { id: 'reviews', label: 'Avis & Notes', icon: <MessageSquare className="w-4 h-4" /> },
-                                    { id: 'favorites', label: 'Favoris', icon: <Music className="w-4 h-4" /> },
-                                    { id: 'settings', label: 'Sécurité', icon: <Settings className="w-4 h-4" /> }
-                                ].map(tab => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id as any)}
-                                        className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shrink-0 ${activeTab === tab.id ? 'bg-white text-black shadow-xl scale-[1.02]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                                    >
-                                        {tab.icon} {tab.label}
-                                    </button>
-                                ))}
+                                    { id: 'overview', label: 'Vue d\'ensemble', icon: User, color: 'text-neon-cyan' },
+                                    { id: 'mixes', label: 'Mix Studio', icon: Headphones, color: 'text-neon-purple' },
+                                    { id: 'reviews', label: 'Avis & Notes', icon: MessageSquare, color: 'text-yellow-500' },
+                                    { id: 'favorites', label: 'Favoris', icon: Music, color: 'text-neon-red' },
+                                    { id: 'settings', label: 'Sécurité', icon: Settings, color: 'text-gray-400' }
+                                ].map(tab => {
+                                    const isActive = activeTab === tab.id;
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActiveTab(tab.id as any)}
+                                            className={twMerge(
+                                                "relative flex items-center gap-3 px-6 py-3.5 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 shrink-0 group",
+                                                isActive 
+                                                    ? "text-black bg-white shadow-[0_10px_30px_rgba(255,255,255,0.2)]" 
+                                                    : "text-gray-500 hover:text-white hover:bg-white/5"
+                                            )}
+                                        >
+                                            <tab.icon className={twMerge(
+                                                "w-4 h-4 transition-transform duration-500",
+                                                isActive ? "text-black scale-110" : `${tab.color} group-hover:scale-110`
+                                            )} />
+                                            <span className="relative z-10">{tab.label}</span>
+                                            
+                                            {/* Glow for inactive tabs on hover */}
+                                            {!isActive && (
+                                                <div className="absolute inset-0 rounded-[1.2rem] opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-tr from-white/[0.02] to-transparent" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
