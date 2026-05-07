@@ -8,7 +8,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "news_focus",
-    "baseColor": "#37ff00",
+    "baseColor": "#ff8a8a",
     "columns": 1
   },
   {
@@ -20,7 +20,7 @@
     "color": "border-neon-purple/20 hover:border-neon-purple",
     "bg": "bg-neon-purple/5",
     "permission": "social_studio",
-    "baseColor": "#bd00ff",
+    "baseColor": "#ff8fe1",
     "columns": 1
   },
   {
@@ -32,7 +32,7 @@
     "color": "border-neon-yellow/20 hover:border-neon-yellow",
     "bg": "bg-neon-yellow/5",
     "permission": "agenda_events",
-    "baseColor": "#009dff",
+    "baseColor": "#a8a6f7",
     "columns": 1
   },
   {
@@ -44,7 +44,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "superadmin",
-    "baseColor": "#ff0000",
+    "baseColor": "#7a95ff",
     "columns": 1
   },
   {
@@ -56,7 +56,7 @@
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
-    "baseColor": "#c0a577",
+    "baseColor": "#75ffd1",
     "columns": 1
   },
   {
@@ -68,7 +68,7 @@
     "color": "border-neon-purple/20 hover:border-neon-purple",
     "bg": "bg-neon-purple/5",
     "permission": "community_mod",
-    "baseColor": "#c7a8f5",
+    "baseColor": "#ffdd00",
     "columns": 1
   },
   {
@@ -80,7 +80,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "stats_analytics",
-    "baseColor": "#000000",
+    "baseColor": "#37ff00",
     "columns": 1
   },
   {
@@ -92,7 +92,7 @@
     "color": "border-neon-yellow/20 hover:border-neon-yellow",
     "bg": "bg-neon-yellow/5",
     "permission": "community_mod",
-    "baseColor": "#b9c1fd",
+    "baseColor": "#ff7300",
     "columns": 1
   },
   {
@@ -104,7 +104,7 @@
     "color": "border-neon-pink/20 hover:border-neon-pink",
     "bg": "bg-neon-pink/5",
     "permission": "shop",
-    "baseColor": "#ffae00",
+    "baseColor": "#ffffff",
     "columns": 1
   },
   {
@@ -114,7 +114,7 @@
     "category": "ALL",
     "link": "video-ai-translator",
     "permission": "news",
-    "baseColor": "#00fffb",
+    "baseColor": "#d400ff",
     "columns": 1
   },
   {
@@ -126,7 +126,7 @@
     "color": "border-neon-purple/20 hover:border-neon-purple",
     "bg": "bg-neon-purple/5",
     "permission": "all",
-    "baseColor": "#401aff",
+    "baseColor": "#ff0000",
     "columns": 1
   },
   {
@@ -138,7 +138,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "news",
-    "baseColor": "#00ccff",
+    "baseColor": "#000000",
     "columns": 1
   }
 ]
