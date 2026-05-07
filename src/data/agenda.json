@@ -3549,25 +3549,6 @@
     "isLiveDropsiders": false
   },
   {
-    "id": 425,
-    "title": "Tomorrowland présent Dimitri Vegas & Like Mike",
-    "date": "2026-05-06",
-    "startDate": "2026-05-06",
-    "endDate": "2026-05-06",
-    "venue": "Ushuaïa",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/f479be33201d25e3-fiesta_tomorrowland_dimitri_ve.jpeg",
-    "url": "https://www.theushuaiaexperience.com/en/club/calendar",
-    "genre": "Big Room",
-    "month": "MAI",
-    "isWeekly": true,
-    "dayOfWeek": 3,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
-  },
-  {
     "id": 426,
     "title": "Tomorrowland présent Dimitri Vegas & Like Mike",
     "date": "2026-05-13",
