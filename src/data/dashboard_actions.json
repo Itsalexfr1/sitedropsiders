@@ -1,17 +1,5 @@
 [
   {
-    "title": "Accueil",
-    "description": "Spotify, Sections & Vues",
-    "icon": "LayoutDashboard",
-    "category": "ALL",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "superadmin",
-    "baseColor": "#ff0000",
-    "columns": 1
-  },
-  {
     "title": "Contenu",
     "description": "News, Musique, Interviews...",
     "icon": "FileText",
@@ -45,6 +33,18 @@
     "bg": "bg-neon-yellow/5",
     "permission": "agenda_events",
     "baseColor": "#009dff",
+    "columns": 1
+  },
+  {
+    "title": "Accueil",
+    "description": "Spotify, Sections & Vues",
+    "icon": "LayoutDashboard",
+    "category": "ALL",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "superadmin",
+    "baseColor": "#ff0000",
     "columns": 1
   },
   {
