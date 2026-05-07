@@ -382,7 +382,7 @@ export function ImageUploadModal({
                     
                     const response = await fetch('/api/upload', {
                          method: 'POST',
-                         headers: { 'Content-Type': 'application/json' },
+                         headers: { ...getAuthHeaders(null), 'Content-Type': 'application/json' },
                          body: JSON.stringify({ filename, content: base64, type: 'image/jpeg' })
                     });
 
@@ -407,7 +407,7 @@ export function ImageUploadModal({
 
                     const response = await fetch('/api/upload', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { ...getAuthHeaders(null), 'Content-Type': 'application/json' },
                         body: JSON.stringify({ filename, content: base64, type: fileType })
                     });
 
