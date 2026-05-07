@@ -139,6 +139,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
     const [citationAuthor, setCitationAuthor] = useState('');
     const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
+    const [conseilsTitle, setConseilsTitle] = useState('LE TITRE ICI');
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
@@ -1352,31 +1353,55 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             } else if (theme === 'CONSEILS') {
                 const centerX = canvas.width / 2;
-                
+                ctx.save();
+                let y = 250;
+
+                if (conseilsTitle) {
+                    ctx.font = '900 70px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 10;
+                    
+                    const safeW = 900;
+                    const words = conseilsTitle.split(' ');
+                    let currentLine = '';
+                    
+                    words.forEach(word => {
+                        const testLine = currentLine + word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width > safeW) {
+                            drawRichText(ctx, currentLine.toUpperCase(), centerX, y, activeData.color, 'center');
+                            currentLine = word + ' ';
+                            y += 85;
+                        } else {
+                            currentLine = testLine;
+                        }
+                    });
+                    drawRichText(ctx, currentLine.toUpperCase(), centerX, y, activeData.color, 'center');
+                    y += 80;
+                }
+
+                if (artistLogoRef.current) {
+                    const img = artistLogoRef.current;
+                    const maxW = 840;
+                    const maxH = 500;
+                    let lw = img.width;
+                    let lh = img.height;
+                    const ratio = Math.min(maxW / lw, maxH / lh);
+                    lw *= ratio; lh *= ratio;
+                    
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                    ctx.shadowBlur = 20;
+                    ctx.drawImage(img, centerX - (lw / 2), y + 20, lw, lh);
+                    ctx.restore();
+                    
+                    y += lh + 100;
+                }
+
                 if (customText) {
                     const lines = customText.split('\n').filter(l => l.trim() !== '');
 
-                    ctx.save();
-                    let y = 250;
-                    
-                    let drawImageIndex = -1;
-                    if (artistLogoRef.current) {
-                        drawImageIndex = 1;
-                    }
-
-                    lines.forEach((line, index) => {
-                        let align: 'center' | 'left' = 'left';
-                        if (index < 2 && !artistLogoRef.current) align = 'center';
-                        else if (index === 0) align = 'center';
-                        
-                        if (index === 0) {
-                            ctx.font = '900 70px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
-                        } else if (index === 1 && !artistLogoRef.current) {
-                            ctx.font = '800 45px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
-                        } else {
-                            ctx.font = '800 48px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
-                        }
-
+                    lines.forEach((line) => {
+                        ctx.font = '800 40px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                         ctx.shadowColor = 'rgba(0,0,0,0.8)';
                         ctx.shadowBlur = 10;
                         
@@ -1387,38 +1412,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         words.forEach(word => {
                             const testLine = currentLine + word + ' ';
                             if (ctx.measureText(stripTags(testLine)).width > safeW) {
-                                drawRichText(ctx, currentLine.toUpperCase(), align === 'center' ? centerX : 120, y, index === 0 ? activeData.color : '#ffffff', align);
+                                drawRichText(ctx, currentLine.toUpperCase(), 120, y, '#ffffff', 'left');
                                 currentLine = word + ' ';
-                                y += (index === 0 ? 85 : 65);
+                                y += 55;
                             } else {
                                 currentLine = testLine;
                             }
                         });
-                        drawRichText(ctx, currentLine.toUpperCase(), align === 'center' ? centerX : 120, y, index === 0 ? activeData.color : '#ffffff', align);
+                        drawRichText(ctx, currentLine.toUpperCase(), 120, y, '#ffffff', 'left');
 
-                        y += (index === 0 ? 80 : 70);
-
-                        if (index === drawImageIndex && artistLogoRef.current) {
-                            const img = artistLogoRef.current;
-                            const maxW = 840;
-                            const maxH = 500;
-                            let lw = img.width;
-                            let lh = img.height;
-                            const ratio = Math.min(maxW / lw, maxH / lh);
-                            lw *= ratio; lh *= ratio;
-                            
-                            ctx.save();
-                            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                            ctx.shadowBlur = 20;
-                            ctx.drawImage(img, centerX - (lw / 2), y + 20, lw, lh);
-                            ctx.restore();
-                            
-                            y += lh + 80;
-                        }
+                        y += 65;
                     });
-
-                    ctx.restore();
                 }
+                ctx.restore();
 
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
@@ -2756,6 +2762,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <Upload className="w-4 h-4 text-neon-cyan" /> {artistLogo ? 'Modifier Image Cloud' : 'Importer Cloud'}
                     </button>
                 </div>
+            </div>
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Titre des conseils</label>
+                <input 
+                    value={conseilsTitle} 
+                    onChange={e => setConseilsTitle(e.target.value)} 
+                    placeholder="EX: 3 ASTUCES POUR MIXER" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md" 
+                />
             </div>
             {textEditor}
         </div>
