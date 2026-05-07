@@ -66,7 +66,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -137,6 +137,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [artistNameText, setArtistNameText] = useState('');
     const [festivalNameText, setFestivalNameText] = useState('');
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
+    const [citationAuthor, setCitationAuthor] = useState('');
+    const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
@@ -245,6 +247,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
         'INTERVIEW': { label: 'INTERVIEW', grad: '255, 255, 255', color: '#ffffff' },
         'SPOTLIGHT': { label: 'SPOTLIGHT', grad: '255, 0, 51', color: '#ff0033' },
+        'CITATION': { label: 'CITATION', grad: '255, 255, 255', color: '#ffffff' },
+        'CONSEILS': { label: 'CONSEILS', grad: '255, 0, 51', color: '#ff0033' },
     };
 
     useEffect(() => {
@@ -369,13 +373,70 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (theme === 'PLANNING') {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+            } else if (theme === 'CITATION' || theme === 'CONSEILS') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
+
+            const activeData = activeColor;
+            const stripTags = (s: string) => s.replace(/\[[CB]:[^\]]+\]|\[\/[CB]\]|\*/gi, '');
+            const parseRichText = (str: string) => {
+                let processed = str.replace(/\*(.*?)\*/g, `[C:${activeData.color}]$1[/C]`);
+                const segments: { text: string; color?: string; bg?: string }[] = [];
+                const regex = /\[([CB]):([^\]]+)\](.*?)\[\/\1\]|([^\[]+|\[(?!([CB]):[^\]]+\]))/gi;
+                let match;
+                while ((match = regex.exec(processed)) !== null) {
+                    if (match[1]) {
+                        segments.push({ text: match[3], color: match[1] === 'C' ? match[2] : undefined, bg: match[1] === 'B' ? match[2] : undefined });
+                    } else if (match[4]) {
+                        segments.push({ text: match[4] });
+                    }
+                }
+                return segments;
+            };
+
+            const drawRichText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, defaultColor: string, align: 'left'|'center'|'right' = 'left') => {
+                const segments = parseRichText(text);
+                let currentX = x;
+                
+                if (align === 'center') {
+                    let totalWidth = 0;
+                    segments.forEach(seg => { totalWidth += ctx.measureText(seg.text).width; });
+                    currentX = x - (totalWidth / 2);
+                } else if (align === 'right') {
+                    let totalWidth = 0;
+                    segments.forEach(seg => { totalWidth += ctx.measureText(seg.text).width; });
+                    currentX = x - totalWidth;
+                }
+
+                ctx.save();
+                ctx.textAlign = 'left';
+                segments.forEach(seg => {
+                    const segWidth = ctx.measureText(seg.text).width;
+                    const effectiveBg = seg.bg || (textBgColor !== 'transparent' ? textBgColor : null);
+                    if (effectiveBg) {
+                        ctx.save();
+                        ctx.globalAlpha = 0.9;
+                        ctx.fillStyle = effectiveBg;
+                        const px = 12;
+                        const matchFont = ctx.font.match(/(\d+(?:\.\d+)?)px/);
+                        const fSize = matchFont ? parseFloat(matchFont[1]) : 40;
+                        ctx.beginPath();
+                        ctx.roundRect(currentX - px/2, y - fSize + 15, segWidth + px, fSize + 8, 12);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                    ctx.fillStyle = seg.color || defaultColor;
+                    ctx.fillText(seg.text, currentX, y);
+                    currentX += segWidth;
+                });
+                ctx.restore();
+            };
 
             if (!showText) return; 
 
-            const activeData = activeColor;
             // Shrunk gradient for Top 5 (Request 6), restored for others
-            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT') {
+            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'CONSEILS') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
                     : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
@@ -1237,6 +1298,114 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
+            } else if (theme === 'CITATION') {
+                const safeW = 880;
+                
+                if (customText) {
+                    const lines = customText.split('\n').filter(l => l.trim() !== '');
+                    const quote = lines.join('\n');
+
+                    ctx.save();
+                    
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 italic 140px "Montserrat", sans-serif';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillText('“', 80, 400);
+
+                    ctx.font = '700 48px "Montserrat", sans-serif';
+                    ctx.letterSpacing = "-1px";
+                    
+                    const words = quote.split(' ');
+                    let line = '';
+                    let y = 480;
+                    
+                    words.forEach(word => {
+                        const testLine = line + word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width > safeW) {
+                            drawRichText(ctx, line, 80, y, '#ffffff', 'left');
+                            line = word + ' ';
+                            y += 65;
+                        } else {
+                            line = testLine;
+                        }
+                    });
+                    drawRichText(ctx, line, 80, y, '#ffffff', 'left');
+                    
+                    if (citationAuthor) {
+                        y += 100;
+                        ctx.font = '600 italic 36px "Montserrat", sans-serif';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(citationAuthor.toUpperCase(), 80, y);
+                    }
+                    
+                    if (citationMedia) {
+                        y += (citationAuthor ? 40 : 100);
+                        ctx.font = '400 italic 28px "Montserrat", sans-serif';
+                        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                        ctx.fillText(citationMedia, 80, y);
+                    }
+                    
+                    ctx.restore();
+                }
+
+            } else if (theme === 'CONSEILS') {
+                const centerX = canvas.width / 2;
+                
+                if (customText) {
+                    const lines = customText.split('\n').filter(l => l.trim() !== '');
+
+                    ctx.save();
+                    let y = 250;
+                    
+                    let drawImageIndex = -1;
+                    if (artistLogoRef.current) {
+                        drawImageIndex = 1;
+                    }
+
+                    lines.forEach((line, index) => {
+                        let align: 'center' | 'left' = 'left';
+                        if (index < 2 && !artistLogoRef.current) align = 'center';
+                        else if (index === 0) align = 'center';
+                        
+                        if (index === 0) {
+                            ctx.font = '900 70px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                        } else if (index === 1 && !artistLogoRef.current) {
+                            ctx.font = '800 45px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                        } else {
+                            ctx.font = '800 48px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                        }
+
+                        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                        ctx.shadowBlur = 10;
+                        
+                        drawRichText(ctx, line.toUpperCase(), align === 'center' ? centerX : 120, y, index === 0 ? activeData.color : '#ffffff', align);
+
+                        y += (index === 0 ? 80 : 70);
+
+                        if (index === drawImageIndex && artistLogoRef.current) {
+                            const img = artistLogoRef.current;
+                            const maxW = 840;
+                            const maxH = 500;
+                            let lw = img.width;
+                            let lh = img.height;
+                            const ratio = Math.min(maxW / lw, maxH / lh);
+                            lw *= ratio; lh *= ratio;
+                            
+                            ctx.save();
+                            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                            ctx.shadowBlur = 20;
+                            ctx.drawImage(img, centerX - (lw / 2), y + 20, lw, lh);
+                            ctx.restore();
+                            
+                            y += lh + 80;
+                        }
+                    });
+
+                    ctx.restore();
+                }
+
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -1280,7 +1449,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const paragraphs = textToRender.toUpperCase().split('\n');
                 const lines: string[] = [];
                 ctx.font = `900 italic ${fontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
-                const stripTags = (s: string) => s.replace(/\[[CB]:[^\]]+\]|\[\/[CB]\]/gi, '');
                 for (const para of paragraphs) {
                     if (para.trim() === '') { lines.push(''); continue; }
                     const words = para.split(' ');
@@ -1317,68 +1485,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.textBaseline = 'middle';
                 ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
                 ctx.restore();
-                const parseRichText = (str: string) => {
-                    const segments: { text: string; color?: string; bg?: string }[] = [];
-                    const regex = /\[([CB]):([^\]]+)\](.*?)\[\/\1\]|([^\[]+|\[(?!([CB]):[^\]]+\]))/gi;
-                    let match;
-                    while ((match = regex.exec(str)) !== null) {
-                        if (match[1]) {
-                            const type = match[1];
-                            const color = match[2];
-                            const content = match[3];
-                            segments.push({
-                                text: content,
-                                color: type === 'C' ? color : undefined,
-                                bg: type === 'B' ? color : undefined
-                            });
-                        } else if (match[4]) {
-                            segments.push({ text: match[4] });
-                        }
-                    }
-                    return segments;
-                };
 
                 const maxLines = effectiveTab === 'PUBLICATION' ? 8 : 10;
                 lines.slice(0, maxLines).forEach((line, i) => {
                     if (line !== '') {
                         const yPos = startY + (i * lineHeight);
-                        const segments = parseRichText(line);
-
-                        // Calculate total width for centering
-                        let totalWidth = 0;
-                        segments.forEach(seg => {
-                            totalWidth += ctx.measureText(seg.text).width;
-                        });
-
-                        let currentX = (canvas.width - totalWidth) / 2;
-
-                        segments.forEach(seg => {
-                            const segWidth = ctx.measureText(seg.text).width;
-
-                            // Draw segment background
-                            const effectiveBg = seg.bg || (textBgColor !== 'transparent' ? textBgColor : null);
-                            if (effectiveBg) {
-                                ctx.save();
-                                ctx.globalAlpha = 0.9;
-                                ctx.fillStyle = effectiveBg;
-                                const px = 12;
-                                const rectH = fontSize + 8;
-                                const rectW = segWidth + px;
-                                const rectX = currentX - px / 2;
-                                const rectY = yPos - fontSize + 15;
-
-                                ctx.beginPath();
-                                ctx.roundRect(rectX, rectY, rectW, rectH, 12); // Premium rounded corners
-                                ctx.fill();
-                                ctx.restore();
-                            }
-
-                            // Draw segment text
-                            ctx.fillStyle = seg.color || textColor;
-                            ctx.fillText(seg.text, currentX + segWidth / 2, yPos);
-
-                            currentX += segWidth;
-                        });
+                        drawRichText(ctx, line, canvas.width / 2, yPos, textColor, 'center');
                     }
                 });
 
@@ -1956,6 +2068,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => setTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
             <button onClick={() => setTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
             <button onClick={() => setTheme('SPOTLIGHT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
+            <button onClick={() => setTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
+            <button onClick={() => setTheme('CONSEILS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONSEILS</button>
             
             {activeTab === 'REEL' && (
                 <>
@@ -2587,6 +2701,71 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     </div>
                     <button onClick={() => { setBgOffsetX(0); setBgOffsetY(0); }} className="w-full py-1.5 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-gray-500 uppercase hover:text-white transition-all">Réinitialiser Position</button>
                 </div>
+        </div>
+    );
+
+    const conseilsEditor = (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Image Centrale (Optionnelle)</label>
+                <div className="relative group/logo">
+                    {artistLogo && (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); setArtistLogo(''); artistLogoRef.current = null; }}
+                            className="absolute top-2 right-2 z-10 p-1.5 bg-black/60 hover:bg-red-500 text-white rounded-full transition-all opacity-100"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    )}
+                    <input type="file" onChange={handleArtistLogoChange} className="hidden" id="conseils-img-up" accept="image/*" />
+                    <button onClick={() => document.getElementById('conseils-img-up')?.click()} className="w-full aspect-video bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-all group overflow-hidden relative">
+                        {artistLogo ? (
+                            <img 
+                                src={artistLogo} 
+                                alt="Image Centrale" 
+                                className="w-full h-full object-cover transition-all" 
+                            />
+                        ) : (
+                            <>
+                                <ImageIcon className="w-8 h-8 text-white/20 group-hover:text-neon-cyan transition-colors" />
+                                <span className="text-[10px] font-black text-white/50 uppercase group-hover:text-white transition-colors">Ajouter Image Centrale</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+                <div className="flex gap-2">
+                    <button onClick={() => {
+                        setR2TargetType('logo');
+                        setIsR2ModalOpen(true);
+                    }} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                        <Upload className="w-4 h-4 text-neon-cyan" /> {artistLogo ? 'Modifier Image Cloud' : 'Importer Cloud'}
+                    </button>
+                </div>
+            </div>
+            {textEditor}
+        </div>
+    );
+
+    const citationEditor = (
+        <div className="space-y-4">
+            {textEditor}
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Auteur de la citation</label>
+                <input 
+                    value={citationAuthor} 
+                    onChange={e => setCitationAuthor(e.target.value)} 
+                    placeholder="EX: LAURENT GARNIER" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md" 
+                />
+            </div>
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Média / Contexte</label>
+                <input 
+                    value={citationMedia} 
+                    onChange={e => setCitationMedia(e.target.value)} 
+                    placeholder="EX: pour Toca UOL" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic focus:border-white/40 outline-none transition-all shadow-md" 
+                />
             </div>
         </div>
     );
@@ -2800,6 +2979,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Interview & Logo</span>{interviewEditor}</>
                             ) : theme === 'SPOTLIGHT' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Spotlight & Logos</span>{spotlightEditor}</>
+                            ) : theme === 'CONSEILS' ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Conseils & Image</span>{conseilsEditor}</>
+                            ) : theme === 'CITATION' ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
                             ) : (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
                             )}
@@ -3106,7 +3289,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : textEditor}
+                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : textEditor}
                                     </div>
                                 )}
 
