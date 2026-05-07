@@ -1380,7 +1380,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.shadowColor = 'rgba(0,0,0,0.8)';
                         ctx.shadowBlur = 10;
                         
-                        drawRichText(ctx, line.toUpperCase(), align === 'center' ? centerX : 120, y, index === 0 ? activeData.color : '#ffffff', align);
+                        const safeW = 840;
+                        const words = line.split(' ');
+                        let currentLine = '';
+                        
+                        words.forEach(word => {
+                            const testLine = currentLine + word + ' ';
+                            if (ctx.measureText(stripTags(testLine)).width > safeW) {
+                                drawRichText(ctx, currentLine.toUpperCase(), align === 'center' ? centerX : 120, y, index === 0 ? activeData.color : '#ffffff', align);
+                                currentLine = word + ' ';
+                                y += (index === 0 ? 85 : 65);
+                            } else {
+                                currentLine = testLine;
+                            }
+                        });
+                        drawRichText(ctx, currentLine.toUpperCase(), align === 'center' ? centerX : 120, y, index === 0 ? activeData.color : '#ffffff', align);
 
                         y += (index === 0 ? 80 : 70);
 
