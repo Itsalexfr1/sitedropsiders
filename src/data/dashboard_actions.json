@@ -44,7 +44,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "superadmin",
-    "baseColor": "#7a95ff",
+    "baseColor": "#ffffff",
     "columns": 1
   },
   {
