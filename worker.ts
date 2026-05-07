@@ -2245,7 +2245,7 @@ ${urls.map(u => `  <url>
             if (!email) return new Response(JSON.stringify({ error: 'Email manquant' }), { status: 400, headers });
             const cleanEmail = email.toLowerCase().trim();
 
-            const isSuper = (cleanEmail === 'alexflex30@gmail.com' || cleanEmail === 'contact@dropsiders.fr');
+            const isSuper = (cleanEmail === 'alexflex30@gmail.com' || cleanEmail === 'contact@dropsiders.fr' || cleanEmail === 'alex@dropsiders.fr');
             
             if (isSuper) {
                 const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
