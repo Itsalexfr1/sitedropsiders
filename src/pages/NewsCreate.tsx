@@ -1320,18 +1320,64 @@ export function NewsCreate() {
                     }
 
                     const sbKey = 'GNOH62OMJTZUVJCH4ITXB4CANAIV0250UHXI9WR4QH1M93XMR96WOBP2057PHLEH8C7RIFRSBPXN4RYV';
-                    const rules = encodeURIComponent('{"title":"title"}');
-                    // render_js=true + premium_proxy=true = ~25 credits but reliably bypasses Cloudflare
+                    // Extract title + og:title + og:description — artist is often in og:title or og:description
+                    const rules = encodeURIComponent(JSON.stringify({
+                        title: 'title',
+                        og_title: 'meta[property="og:title"]@content',
+                        og_description: 'meta[property="og:description"]@content',
+                        artist_link: 'a.interior-track-artists-link@text',
+                    }));
                     const sbUrl = `https://app.scrapingbee.com/api/v1/?api_key=${sbKey}&url=${encodeURIComponent(url)}&extract_rules=${rules}&render_js=true&premium_proxy=true`;
 
                     const response = await fetch(sbUrl);
                     if (!response.ok) throw new Error("ScrapingBee failure");
                     const data = await response.json();
 
-                    if (data && data.title && !data.title.includes('Just a moment') && !data.title.includes('Cloudflare') && !data.title.includes('Access denied')) {
-                        // Beatport page title format: "Artist Name - Track Name (Mix) | Beatport"
-                        const rawTitle = data.title.split('|')[0].trim(); // strip "| Beatport"
-                        title = rawTitle;
+                    console.log('[Beatport] ScrapingBee raw:', data);
+
+                    const isBlocked = (s: string) => !s || s.includes('Just a moment') || s.includes('Cloudflare') || s.includes('Access denied');
+
+                    // Try to build "Artist - Title" from available fields
+                    // og:title is typically "Track Name (Mix) by Artist" or "Artist - Track Name | Beatport"
+                    // og:description is typically "Listen to Track Name by Artist on Beatport"
+                    let fullTitle = '';
+
+                    if (data.og_title && !isBlocked(data.og_title)) {
+                        const og = data.og_title;
+                        // Format 1: "Artist - Track Name" or "Artist - Track Name (Mix)"
+                        if (og.includes(' - ')) {
+                            fullTitle = og.split('|')[0].trim();
+                        }
+                        // Format 2: "Track Name by Artist" → invert to "Artist - Track Name"
+                        else if (og.toLowerCase().includes(' by ')) {
+                            const parts = og.split(/\s+by\s+/i);
+                            if (parts.length >= 2) fullTitle = `${parts[1].trim()} - ${parts[0].trim()}`;
+                        } else {
+                            fullTitle = og.split('|')[0].trim();
+                        }
+                    }
+
+                    // If og:title had no artist, try og:description
+                    if ((!fullTitle || !fullTitle.includes(' - ')) && data.og_description && !isBlocked(data.og_description)) {
+                        const desc = data.og_description;
+                        // "Listen to Track Name by Artist on Beatport" → "Artist - Track Name"
+                        const byMatch = desc.match(/Listen to (.+?) by (.+?) on Beatport/i);
+                        if (byMatch) fullTitle = `${byMatch[2].trim()} - ${byMatch[1].trim()}`;
+                    }
+
+                    // If we got an artist link from the page DOM, use it
+                    if ((!fullTitle || !fullTitle.includes(' - ')) && data.artist_link) {
+                        const trackName = (data.og_title || data.title || slugTitle).split('|')[0].trim();
+                        fullTitle = `${data.artist_link} - ${trackName}`;
+                    }
+
+                    // Last ScrapingBee fallback: raw title tag
+                    if (!fullTitle && data.title && !isBlocked(data.title)) {
+                        fullTitle = data.title.split('|')[0].trim();
+                    }
+
+                    if (fullTitle && !isBlocked(fullTitle)) {
+                        title = fullTitle;
                         resolved = true;
 
                         sCredits -= 25;
@@ -1342,7 +1388,7 @@ export function NewsCreate() {
                             alert(`🚨 ATTENTION : Ton quota théorique de crédits ScrapingBee atteint ${sCredits} ! \nPense à recréer un nouveau compte très vite.`);
                         }
                     } else {
-                        throw new Error("ScrapingBee returned CF page");
+                        throw new Error("ScrapingBee returned CF page or no usable data");
                     }
                 } catch (_) { /* fall through to next attempt */ }
 
