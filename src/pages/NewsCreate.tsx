@@ -1296,14 +1296,10 @@ export function NewsCreate() {
                 if (data.title) title = data.title;
             }
 
-            // 3. Beatport Title Fetch
+            // 3. Beatport Title Fetch (render_js=false, 5 crédits — rapide)
             else if (url.includes('beatport.com') || url.match(/^\d+$/)) {
-                // Extract slug and ID from URL (handles /fr/ locale prefix)
-                const idMatch = url.match(/\/(?:track|release)\/[^/]+\/(\d+)/);
-                const typeMatch = url.match(/\/(track|release)\//);
+                // Extract slug from URL (handles /fr/ locale prefix)
                 const slugMatch = url.match(/\/(?:track|release)\/([^/]+)\/\d+/);
-                const bpId = idMatch ? idMatch[1] : null;
-                const bpType = typeMatch ? typeMatch[1] : 'track';
                 const slugRaw = slugMatch ? slugMatch[1] : null;
                 const slugTitle = slugRaw
                     ? slugRaw.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -1311,114 +1307,41 @@ export function NewsCreate() {
 
                 let resolved = false;
 
-                // Attempt 1: ScrapingBee with JS rendering + premium proxy (bypasses Cloudflare)
+                // Attempt 1: ScrapingBee render_js=false (5 crédits, rapide)
                 try {
                     let sCredits = parseInt(localStorage.getItem('scrapingbee_credits') || '1000');
                     if (sCredits <= 0) {
-                        alert("Le compteur ScrapingBee interne est à 0. Pense à le remettre à zéro dans tes paramètres de navigateur après avoir créé un compte !");
                         throw new Error("No credits");
                     }
 
                     const sbKey = 'GNOH62OMJTZUVJCH4ITXB4CANAIV0250UHXI9WR4QH1M93XMR96WOBP2057PHLEH8C7RIFRSBPXN4RYV';
-                    // Extract title + og:title + og:description — artist is often in og:title or og:description
-                    const rules = encodeURIComponent(JSON.stringify({
-                        title: 'title',
-                        og_title: 'meta[property="og:title"]@content',
-                        og_description: 'meta[property="og:description"]@content',
-                        artist_link: 'a.interior-track-artists-link@text',
-                    }));
-                    const sbUrl = `https://app.scrapingbee.com/api/v1/?api_key=${sbKey}&url=${encodeURIComponent(url)}&extract_rules=${rules}&render_js=true&premium_proxy=true`;
+                    const rules = encodeURIComponent('{"title":"title"}');
+                    const sbUrl = `https://app.scrapingbee.com/api/v1/?api_key=${sbKey}&url=${encodeURIComponent(url)}&extract_rules=${rules}&render_js=false`;
 
                     const response = await fetch(sbUrl);
                     if (!response.ok) throw new Error("ScrapingBee failure");
                     const data = await response.json();
 
-                    console.log('[Beatport] ScrapingBee raw:', data);
+                    const rawTitle = (data?.title || '').split('|')[0].trim();
+                    const isBlocked = !rawTitle || rawTitle.includes('Just a moment') || rawTitle.includes('Cloudflare') || rawTitle.includes('Access denied');
 
-                    const isBlocked = (s: string) => !s || s.includes('Just a moment') || s.includes('Cloudflare') || s.includes('Access denied');
-
-                    // Try to build "Artist - Title" from available fields
-                    // og:title is typically "Track Name (Mix) by Artist" or "Artist - Track Name | Beatport"
-                    // og:description is typically "Listen to Track Name by Artist on Beatport"
-                    let fullTitle = '';
-
-                    if (data.og_title && !isBlocked(data.og_title)) {
-                        const og = data.og_title;
-                        // Format 1: "Artist - Track Name" or "Artist - Track Name (Mix)"
-                        if (og.includes(' - ')) {
-                            fullTitle = og.split('|')[0].trim();
-                        }
-                        // Format 2: "Track Name by Artist" → invert to "Artist - Track Name"
-                        else if (og.toLowerCase().includes(' by ')) {
-                            const parts = og.split(/\s+by\s+/i);
-                            if (parts.length >= 2) fullTitle = `${parts[1].trim()} - ${parts[0].trim()}`;
-                        } else {
-                            fullTitle = og.split('|')[0].trim();
-                        }
-                    }
-
-                    // If og:title had no artist, try og:description
-                    if ((!fullTitle || !fullTitle.includes(' - ')) && data.og_description && !isBlocked(data.og_description)) {
-                        const desc = data.og_description;
-                        // "Listen to Track Name by Artist on Beatport" → "Artist - Track Name"
-                        const byMatch = desc.match(/Listen to (.+?) by (.+?) on Beatport/i);
-                        if (byMatch) fullTitle = `${byMatch[2].trim()} - ${byMatch[1].trim()}`;
-                    }
-
-                    // If we got an artist link from the page DOM, use it
-                    if ((!fullTitle || !fullTitle.includes(' - ')) && data.artist_link) {
-                        const trackName = (data.og_title || data.title || slugTitle).split('|')[0].trim();
-                        fullTitle = `${data.artist_link} - ${trackName}`;
-                    }
-
-                    // Last ScrapingBee fallback: raw title tag
-                    if (!fullTitle && data.title && !isBlocked(data.title)) {
-                        fullTitle = data.title.split('|')[0].trim();
-                    }
-
-                    if (fullTitle && !isBlocked(fullTitle)) {
-                        title = fullTitle;
+                    if (!isBlocked) {
+                        title = rawTitle;
                         resolved = true;
-
-                        sCredits -= 25;
+                        sCredits -= 5;
                         if (sCredits < 0) sCredits = 0;
                         localStorage.setItem('scrapingbee_credits', sCredits.toString());
-
-                        if (sCredits <= 50 && sCredits > 0) {
-                            alert(`🚨 ATTENTION : Ton quota théorique de crédits ScrapingBee atteint ${sCredits} ! \nPense à recréer un nouveau compte très vite.`);
+                        if (sCredits <= 10 && sCredits > 0) {
+                            alert(`🚨 ATTENTION : Ton quota ScrapingBee atteint ${sCredits} crédits ! Pense à recréer un compte.`);
                         }
                     } else {
-                        throw new Error("ScrapingBee returned CF page or no usable data");
+                        throw new Error("Blocked by Cloudflare");
                     }
-                } catch (_) { /* fall through to next attempt */ }
+                } catch (_) { /* fall through */ }
 
-                // Attempt 2: Beatport public API (no auth — works if not rate-limited)
-                if (!resolved && bpId) {
-                    try {
-                        const bpApiUrl = bpType === 'release'
-                            ? `https://api.beatport.com/v4/catalog/releases/${bpId}/?format=json`
-                            : `https://api.beatport.com/v4/catalog/tracks/${bpId}/?format=json`;
-                        const bpRes = await fetch(bpApiUrl, { headers: { 'Accept': 'application/json' } });
-                        if (bpRes.ok) {
-                            const bpData = await bpRes.json();
-                            const trackName = bpData.name || bpData.title || '';
-                            const artists = bpData.artists || [];
-                            const artistName = artists.length > 0 ? artists.map((a: any) => a.name).join(', ') : '';
-                            if (trackName) {
-                                title = artistName ? `${artistName} - ${trackName}` : trackName;
-                                resolved = true;
-                            }
-                        }
-                    } catch (_) { /* silent */ }
-                }
-
-                // Attempt 3: Last resort — show clean slug title so user knows to fill in the artist
+                // Fallback: use clean slug as title so user can add artist manually
                 if (!resolved) {
-                    title = slugTitle || (bpId ? `Track Beatport #${bpId}` : 'Titre inconnu');
-                    // Show a visible warning — user needs to manually add the artist name
-                    setMessage('⚠️ Artiste non détecté automatiquement (track trop récent ou protégé). Modifie le titre manuellement pour ajouter l\'artiste.');
-                    setStatus('error');
-                    setTimeout(() => setStatus('idle'), 7000);
+                    title = slugTitle || 'Titre Beatport';
                 }
             }
 
