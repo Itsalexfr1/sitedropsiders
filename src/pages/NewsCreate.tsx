@@ -1801,6 +1801,9 @@ ${generateSocialsHtml()}
 
                 if (!isEditing) {
                     // Reset to TRUE initial state
+                    // First: disable dirty tracking so state resets don't re-trigger isDirty=true
+                    initialDataLoaded.current = false;
+                    setIsDirty(false);
                     setTitle('');
                     setLocationInput('');
                     setCountry('');
@@ -1820,7 +1823,6 @@ ${generateSocialsHtml()}
                     ]);
                     setIsFeatured(false);
                     setIsAuthorConfirmed(false);
-                    setIsDirty(false); // Reset dirty state after successful publication
                     setActiveTab('News');
                     setShowVideo(type !== 'Interview');
                     setDate('');
