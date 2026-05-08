@@ -209,53 +209,63 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             headerY -= 40;
         }
 
-        // 4. Calculate Available Space and Center Schedule
+        // 4. Calculate Content Height and determine Scale
+        const baseDateSize = 75;
+        const baseEventSize = 50;
+        const baseSpacing = 70;
+        const baseDayGap = 40;
+        
+        let totalBaseHeight = 0;
+        activeSchedule.forEach(day => {
+            if (viewMode === 'planning') {
+                totalBaseHeight += baseDateSize * 1.2; // Date height
+                totalBaseHeight += day.events.length * baseSpacing;
+            } else {
+                totalBaseHeight += day.events.length * baseSpacing;
+            }
+            totalBaseHeight += baseDayGap;
+        });
+
         const footerHeight = 150;
         const startYOffset = (customTitle?.trim() ? 100 : 20);
         const startY = headerY + startYOffset;
         const availableHeight = height - startY - footerHeight;
-        
-        // Base sizes (XL)
-        let dateFontSize = 75; 
-        let eventFontSize = 50;
-        let eventSpacing = 70;
-        
-        // Dynamic scaling based on number of days to fit perfectly
-        let dayHeight = availableHeight / numDays;
-        const maxDayHeight = 280;
-        if (dayHeight > maxDayHeight) dayHeight = maxDayHeight;
-        
-        // Safety: If dayHeight is too small for XL fonts, we MUST scale down
-        if (dayHeight < 230) {
-            const scale = Math.max(0.5, dayHeight / 240);
-            dateFontSize *= scale;
-            eventFontSize *= scale;
-            eventSpacing *= scale;
+
+        let scale = 1.0;
+        if (totalBaseHeight > availableHeight) {
+            scale = availableHeight / totalBaseHeight;
         }
+        
+        // Minimum scale to keep it legible, maximum to avoid huge text
+        scale = Math.max(0.4, Math.min(1.1, scale));
 
-        const totalScheduleHeight = dayHeight * numDays;
-        const finalStartY = startY + (availableHeight - totalScheduleHeight) / 2;
+        const dateFontSize = baseDateSize * scale;
+        const eventFontSize = baseEventSize * scale;
+        const eventSpacing = baseSpacing * scale;
+        const dayGap = baseDayGap * scale;
+        
+        const finalContentHeight = totalBaseHeight * scale;
+        let runningY = startY + (availableHeight - finalContentHeight) / 2;
 
-        activeSchedule.forEach((day: DaySchedule, index: number) => {
-            const y = finalStartY + index * dayHeight;
-            
-            // Date Header
+        activeSchedule.forEach((day: DaySchedule) => {
+            const iconDay = viewMode === 'planning' ? '☀️ ' : '';
+            const iconNight = viewMode === 'planning' ? '🌒 ' : '';
+
+            // 1. Date Header
             if (viewMode === 'planning' && day.date) {
                 ctx.textAlign = 'center';
                 ctx.font = `900 italic ${dateFontSize}px "Orbitron", sans-serif`;
                 ctx.fillStyle = '#ff1241';
-                ctx.shadowBlur = 15;
+                ctx.shadowBlur = 15 * scale;
                 ctx.shadowColor = 'rgba(255, 18, 65, 0.5)';
-                ctx.fillText(day.date.toUpperCase(), width / 2, y + (dayHeight * 0.05));
+                ctx.fillText(day.date.toUpperCase(), width / 2, runningY + dateFontSize);
                 ctx.shadowBlur = 0;
+                runningY += dateFontSize * 1.2;
             }
 
-            const eventBaseY = viewMode === 'planning' ? y + (dayHeight * 0.05) : y - (dateFontSize * 0.1);
-            const iconDay = viewMode === 'planning' ? '☀️ ' : '';
-            const iconNight = viewMode === 'planning' ? '🌒 ' : '';
-
+            // 2. Events
             if (viewMode === 'timetable') {
-                day.events.forEach((evt, evtIdx) => {
+                day.events.forEach((evt) => {
                     const hourText = (evt.artist || '').toUpperCase();
                     const artistText = (evt.location || '').toUpperCase();
                     const separator = ' - ';
@@ -269,11 +279,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     
                     const totalWidth = hourWidth + (hourText && artistText ? sepWidth : 0) + artistWidth;
                     let currentX = (width - totalWidth) / 2;
-                    const textY = y + (dayHeight / 2) + (evtIdx * eventSpacing) - ((day.events.length - 1) * eventSpacing / 2);
+                    const textY = runningY + eventSpacing / 2;
 
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                    ctx.shadowBlur = 10;
-                    ctx.shadowOffsetY = 2;
+                    ctx.shadowBlur = 10 * scale;
+                    ctx.shadowOffsetY = 2 * scale;
 
                     if (hourText) {
                         ctx.textAlign = 'left';
@@ -297,46 +307,45 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     }
                     ctx.shadowBlur = 0;
                     ctx.shadowOffsetY = 0;
+                    runningY += eventSpacing;
                 });
             } else {
-                const renderEvent = (artist: string, location: string, icon: string, yOffset: number) => {
-                    if (!artist) return yOffset;
-                    const artistText = (icon + artist).toUpperCase();
-                    const locText = location ? ` ${location.toUpperCase()}` : '';
+                day.events.forEach(evt => {
+                    if (!evt.artist) return;
+                    const icon = evt.type === 'day' ? iconDay : iconNight;
+                    const artistText = (icon + evt.artist).toUpperCase();
+                    const locText = evt.location ? ` ${evt.location.toUpperCase()}` : '';
                     
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                     const artistWidth = ctx.measureText(artistText).width;
                     ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
                     const locWidth = ctx.measureText(locText).width;
                     
-                    const totalW = artistWidth + locWidth;
+                    const totalW = artistWidth + (evt.location ? 20 : 0) + locWidth;
                     let startX = (width - totalW) / 2;
-                    const textY = eventBaseY + yOffset;
+                    const textY = runningY + eventSpacing / 2;
 
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                    ctx.shadowBlur = 12;
-                    ctx.shadowOffsetY = 3;
+                    ctx.shadowBlur = 12 * scale;
+                    ctx.shadowOffsetY = 3 * scale;
 
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.fillText(artistText, startX, textY);
                     
-                    if (location) {
+                    if (evt.location) {
                         ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                        ctx.fillText(location.toUpperCase(), startX + artistWidth + 20, textY);
+                        ctx.fillText(evt.location.toUpperCase(), startX + artistWidth + 20, textY);
                     }
                     ctx.shadowBlur = 0;
                     ctx.shadowOffsetY = 0;
-                    return yOffset + eventSpacing;
-                };
-
-                let currentYOffset = eventSpacing;
-                day.events.forEach(evt => {
-                    currentYOffset = renderEvent(evt.artist, evt.location, evt.type === 'day' ? iconDay : iconNight, currentYOffset);
+                    runningY += eventSpacing;
                 });
             }
+            
+            runningY += dayGap;
         });
 
         // 5. Footer
