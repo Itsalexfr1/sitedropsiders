@@ -1296,65 +1296,83 @@ export function NewsCreate() {
                 if (data.title) title = data.title;
             }
 
-            // 3. Beatport Title Fetch (using Microlink as proxy to avoid CORS/Parsing)
+            // 3. Beatport Title Fetch
             else if (url.includes('beatport.com') || url.match(/^\d+$/)) {
+                // Extract slug and ID from URL (handles /fr/ locale prefix)
+                const idMatch = url.match(/\/(?:track|release)\/[^/]+\/(\d+)/);
+                const typeMatch = url.match(/\/(track|release)\//);
+                const slugMatch = url.match(/\/(?:track|release)\/([^/]+)\/\d+/);
+                const bpId = idMatch ? idMatch[1] : null;
+                const bpType = typeMatch ? typeMatch[1] : 'track';
+                const slugRaw = slugMatch ? slugMatch[1] : null;
+                const slugTitle = slugRaw
+                    ? slugRaw.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                    : '';
+
+                let resolved = false;
+
+                // Attempt 1: ScrapingBee with JS rendering + premium proxy (bypasses Cloudflare)
                 try {
                     let sCredits = parseInt(localStorage.getItem('scrapingbee_credits') || '1000');
                     if (sCredits <= 0) {
                         alert("Le compteur ScrapingBee interne est à 0. Pense à le remettre à zéro dans tes paramètres de navigateur après avoir créé un compte !");
-                        throw new Error("No limit");
+                        throw new Error("No credits");
                     }
 
                     const sbKey = 'GNOH62OMJTZUVJCH4ITXB4CANAIV0250UHXI9WR4QH1M93XMR96WOBP2057PHLEH8C7RIFRSBPXN4RYV';
                     const rules = encodeURIComponent('{"title":"title"}');
-                    // Premium Proxy might be required for Beatport Cloudflare, meaning up to 25 credits per request, but we'll try without JS first to save credits. We'll deduct roughly 5 credits.
-                    const sbUrl = `https://app.scrapingbee.com/api/v1/?api_key=${sbKey}&url=${encodeURIComponent(url)}&extract_rules=${rules}&render_js=false`;
+                    // render_js=true + premium_proxy=true = ~25 credits but reliably bypasses Cloudflare
+                    const sbUrl = `https://app.scrapingbee.com/api/v1/?api_key=${sbKey}&url=${encodeURIComponent(url)}&extract_rules=${rules}&render_js=true&premium_proxy=true`;
 
                     const response = await fetch(sbUrl);
                     if (!response.ok) throw new Error("ScrapingBee failure");
-                    
                     const data = await response.json();
-                    
-                    if (data && data.title && !data.title.includes('Just a moment') && !data.title.includes('Cloudflare')) {
-                        const bTitle = data.title.split('|')[0].trim();
-                        title = bTitle;
 
-                        sCredits -= 5;
+                    if (data && data.title && !data.title.includes('Just a moment') && !data.title.includes('Cloudflare') && !data.title.includes('Access denied')) {
+                        // Beatport page title format: "Artist Name - Track Name (Mix) | Beatport"
+                        const rawTitle = data.title.split('|')[0].trim(); // strip "| Beatport"
+                        title = rawTitle;
+                        resolved = true;
+
+                        sCredits -= 25;
                         if (sCredits < 0) sCredits = 0;
                         localStorage.setItem('scrapingbee_credits', sCredits.toString());
 
-                        if (sCredits <= 10 && sCredits > 0) {
+                        if (sCredits <= 50 && sCredits > 0) {
                             alert(`🚨 ATTENTION : Ton quota théorique de crédits ScrapingBee atteint ${sCredits} ! \nPense à recréer un nouveau compte très vite.`);
                         }
                     } else {
-                        // Sometimes standard bypass fails, fall back to iTunes
-                        throw new Error("ScrapingBee blocked by CF");
+                        throw new Error("ScrapingBee returned CF page");
                     }
-                } catch (e) {
-                    // Fallback to extract title from the URL slug due to bot protection
-                    const match = url.match(/\/(?:track|release)\/([^/]+)/);
-                    if (match && match[1]) {
-                        // "losing-it" -> "Losing It"
-                        const slugTitle = match[1]
-                            .replace(/-/g, ' ')
-                            .replace(/\b\w/g, char => char.toUpperCase());
-                        
-                        // Attempt to fetch Artist - Title from iTunes Search API as a smart fallback
-                        try {
-                            const itunesRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(slugTitle)}&media=music&limit=1`);
-                            const itunesData = await itunesRes.json();
-                            if (itunesData && itunesData.results && itunesData.results.length > 0) {
-                                const t = itunesData.results[0];
-                                title = `${t.artistName} - ${t.trackName}`;
-                            } else {
-                                title = slugTitle;
+                } catch (_) { /* fall through to next attempt */ }
+
+                // Attempt 2: Beatport public API (no auth — works if not rate-limited)
+                if (!resolved && bpId) {
+                    try {
+                        const bpApiUrl = bpType === 'release'
+                            ? `https://api.beatport.com/v4/catalog/releases/${bpId}/?format=json`
+                            : `https://api.beatport.com/v4/catalog/tracks/${bpId}/?format=json`;
+                        const bpRes = await fetch(bpApiUrl, { headers: { 'Accept': 'application/json' } });
+                        if (bpRes.ok) {
+                            const bpData = await bpRes.json();
+                            const trackName = bpData.name || bpData.title || '';
+                            const artists = bpData.artists || [];
+                            const artistName = artists.length > 0 ? artists.map((a: any) => a.name).join(', ') : '';
+                            if (trackName) {
+                                title = artistName ? `${artistName} - ${trackName}` : trackName;
+                                resolved = true;
                             }
-                        } catch (err) {
-                            title = slugTitle;
                         }
-                    } else if (url.match(/^\d+$/)) {
-                        title = `Beatport ID: ${url}`;
-                    }
+                    } catch (_) { /* silent */ }
+                }
+
+                // Attempt 3: Last resort — show clean slug title so user knows to fill in the artist
+                if (!resolved) {
+                    title = slugTitle || (bpId ? `Track Beatport #${bpId}` : 'Titre inconnu');
+                    // Show a visible warning — user needs to manually add the artist name
+                    setMessage('⚠️ Artiste non détecté automatiquement (track trop récent ou protégé). Modifie le titre manuellement pour ajouter l\'artiste.');
+                    setStatus('error');
+                    setTimeout(() => setStatus('idle'), 7000);
                 }
             }
 
