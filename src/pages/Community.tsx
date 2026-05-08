@@ -2263,9 +2263,6 @@ export function Community() {
                     { label: 'Gérer les photos', icon: <Camera className="w-3.5 h-3.5" />, to: '/admin/manage?tab=Communauté', permission: 'community' },
                     { label: 'Modération', icon: <UsersIcon className="w-3.5 h-3.5" />, to: '/admin/manage?tab=Communauté', permission: 'community' },
                 ]}
-            <AdminEditBar 
-                permission="community"
-                editUrl="/admin/manage?tab=Communauté"
             />
 
             <ConfirmationModal

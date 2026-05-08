@@ -499,7 +499,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                     <div className="aspect-[9/19.2] w-full max-w-[380px] mx-auto bg-black rounded-[3.5rem] border-[8px] border-[#1a1a1a] shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden flex flex-col p-6 text-white scale-[0.55] origin-top transition-all duration-700 hover:scale-[0.58] group">
                                         {backgroundImage || backgroundVideo ? (
                                             <div className="absolute inset-0">
-                                                {backgroundImage ? <img src={backgroundImage} alt="Background" className="w-full h-full object-cover" /> : <video src={backgroundVideo} autoPlay muted loop className="w-full h-full object-cover" />}
+                                                {backgroundImage ? <img src={backgroundImage ?? undefined} alt="Background" className="w-full h-full object-cover" /> : <video src={backgroundVideo ?? undefined} autoPlay muted loop className="w-full h-full object-cover" />}
                                                 <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/60 to-black/90" />
                                             </div>
                                         ) : (

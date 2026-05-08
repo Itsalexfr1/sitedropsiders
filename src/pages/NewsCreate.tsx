@@ -2962,7 +2962,7 @@ ${generateSocialsHtml()}
                                                                          rows: [{ count: extracted.count, videos: extracted.urls.map(u => ({ url: u, title: '' })) }],
                                                                          title: '',
                                                                          widgetId: widget.id
-                                                                     } else if (widget.content.includes('youtube-player-widget')) {
+                                                                     }); } else if (widget.content.includes('youtube-player-widget')) {
                                                                     openPrompt(
                                                                         'Artiste de la vidéo',
                                                                         'Entrez le nom de l\'artiste ou le titre de la vidéo',

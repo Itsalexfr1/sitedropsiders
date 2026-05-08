@@ -325,6 +325,7 @@ export function SocialGiveawayModal({ isOpen, onClose }: SocialGiveawayModalProp
             message={localAlert.message}
             confirmLabel="OK"
             onConfirm={() => setLocalAlert({ isOpen: false, message: '' })}
+            onCancel={() => setLocalAlert({ isOpen: false, message: '' })}
             accentColor="neon-yellow"
         />
         </>

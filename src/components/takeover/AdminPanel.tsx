@@ -139,6 +139,7 @@ export function AdminPanel() {
     if (!showAdminPanel) return null;
 
     return (
+        <>
         <motion.div
             key="admin-panel"
             initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
@@ -917,6 +918,7 @@ export function AdminPanel() {
                 }
             }}
         />
+        </>
     );
 }
 

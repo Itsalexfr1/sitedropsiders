@@ -757,7 +757,7 @@ export function InvoiceGeneratorMobile() {
                 cancelLabel="Annuler"
                 accentColor="neon-red"
                 onCancel={() => setShowDeleteInvoiceId(null)}
-                onConfirm={() => showDeleteInvoiceId !== null && doDeleteInvoice(showDeleteInvoiceId)}
+                onConfirm={() => { if (showDeleteInvoiceId !== null) doDeleteInvoice(showDeleteInvoiceId); }}
             />
         </div>
     );
