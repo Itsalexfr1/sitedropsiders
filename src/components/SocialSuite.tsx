@@ -1990,7 +1990,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         document.body.removeChild(a);
                     } catch (err) {
                         console.error('Export fallback failed:', err);
-                        alert("Erreur d'exportation. Vérifiez que les images utilisées sont accessibles (pas de blocage CORS).");
+                        setErrorMessage("Erreur d'exportation. Vérifiez que les images utilisées sont accessibles (pas de blocage CORS).");
                     } finally {
                         setTimeout(() => setIsDownloading(false), 1000);
                     }
@@ -2026,7 +2026,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }, 'image/png');
         } catch (err) {
             console.error('Export failed:', err);
-            alert("Erreur d'exportation inattendue.");
+            setErrorMessage("Erreur d'exportation inattendue.");
             setTimeout(() => setIsDownloading(false), 1000);
         }
     };
@@ -2065,7 +2065,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             document.body.removeChild(a);
         } catch (e) {
             console.error(e);
-            alert("Erreur lors de l'exportation PNG.");
+            setErrorMessage("Erreur lors de l'exportation PNG.");
         } finally {
             setTimeout(() => {
                 setIsDownloading(false);

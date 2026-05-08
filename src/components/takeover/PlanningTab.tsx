@@ -13,6 +13,7 @@ import { resolveImageUrl } from '../../utils/image';
 import { ImageUploadModal } from '../ImageUploadModal';
 import { uploadFile } from '../../utils/uploadService';
 import { useUser } from '../../context/UserContext';
+import { ConfirmationModal } from '../ConfirmationModal';
 
 interface PlanningTabProps {
     editLineup: LineupItem[];
@@ -76,6 +77,8 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTargetId, setUploadTargetId] = useState<string | null>(null);
     const [isCleaning, setIsCleaning] = useState(false);
+    const [showCleanConfirm, setShowCleanConfirm] = useState(false);
+    const [pendingCleanItems, setPendingCleanItems] = useState<LineupItem[]>([]);
 
     const timezonePresets = [
         { id: 'coachella', label: 'COACHELLA', offset: 9, color: 'text-purple-400 border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/20', icon: <Zap className="w-3 h-3" /> },
@@ -236,23 +239,22 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
             return;
         }
 
-        if (!confirm(`Voulez-vous supprimer les images de ${finishedItemsWithCrops.length} artistes dont le set est terminé ?\nCette action est irréversible.`)) {
-            return;
-        }
+        setPendingCleanItems(finishedItemsWithCrops);
+        setShowCleanConfirm(true);
+    };
 
+    const doCleanup = async (items: LineupItem[]) => {
+        setShowCleanConfirm(false);
         setIsCleaning(true);
         try {
             let deletedCount = 0;
-            for (const item of finishedItemsWithCrops) {
+            for (const item of items) {
                 const response = await fetch('/api/r2/delete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ key: item.image })
                 });
-
-                if (response.ok) {
-                    deletedCount++;
-                }
+                if (response.ok) deletedCount++;
             }
             showNotification(`${deletedCount} images temporaires supprimées du R2 !`, 'success');
         } catch (e) {
@@ -667,6 +669,17 @@ export function PlanningTab({ editLineup, setEditLineup }: PlanningTabProps) {
                 accentColor="neon-cyan"
                 aspect={16/9}
                 forceCrop={true}
+            />
+
+            <ConfirmationModal
+                isOpen={showCleanConfirm}
+                title="Nettoyer le R2"
+                message={`Supprimer les images de ${pendingCleanItems.length} artistes terminés ? Action irréversible.`}
+                confirmLabel="Oui, nettoyer"
+                cancelLabel="Annuler"
+                accentColor="neon-red"
+                onCancel={() => setShowCleanConfirm(false)}
+                onConfirm={() => doCleanup(pendingCleanItems)}
             />
         </div>
     );

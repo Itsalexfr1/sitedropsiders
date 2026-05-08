@@ -3,6 +3,7 @@ import html2pdf from 'html2pdf.js';
 import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer, RefreshCw, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ConfirmationModal } from './ConfirmationModal';
 
 interface InvoiceLine { id: string; description: string; quantity: number; unitPrice: number; }
 interface SavedClient { id: string; name: string; address: string; city: string; email: string; }
@@ -113,6 +114,7 @@ export function InvoiceGeneratorMobile() {
     const [ncEmail, setNcEmail] = useState('');
     const [history, setHistory] = useState<any[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [showDeleteInvoiceId, setShowDeleteInvoiceId] = useState<number | null>(null);
 
     useEffect(() => {
         if (view === 'archive') fetchHistory();
@@ -143,7 +145,11 @@ export function InvoiceGeneratorMobile() {
     };
 
     const deleteInvoice = async (id: number) => {
-        if (!confirm('Voulez-vous vraiment supprimer cette facture ?')) return;
+        setShowDeleteInvoiceId(id);
+    };
+
+    const doDeleteInvoice = async (id: number) => {
+        setShowDeleteInvoiceId(null);
         try {
             const adminUser = localStorage.getItem('admin_user') || '';
             const adminPass = localStorage.getItem('admin_password') || '';
@@ -742,6 +748,17 @@ export function InvoiceGeneratorMobile() {
                     </div>
                 </div>
             </Sheet>
+
+            <ConfirmationModal
+                isOpen={showDeleteInvoiceId !== null}
+                title="Supprimer la facture"
+                message="Voulez-vous vraiment supprimer cette facture ? Action irréversible."
+                confirmLabel="Oui, supprimer"
+                cancelLabel="Annuler"
+                accentColor="neon-red"
+                onCancel={() => setShowDeleteInvoiceId(null)}
+                onConfirm={() => showDeleteInvoiceId !== null && doDeleteInvoice(showDeleteInvoiceId)}
+            />
         </div>
     );
 }

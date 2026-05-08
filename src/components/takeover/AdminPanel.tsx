@@ -12,6 +12,7 @@ import { resolveImageUrl } from '../../utils/image';
 import { PlanningTab } from './PlanningTab';
 import { ID, Query } from 'appwrite';
 import { uploadFile } from '../../utils/uploadService';
+import { ConfirmationModal } from '../ConfirmationModal';
 
 export function AdminPanel() {
     const takeover = useTakeover();
@@ -35,6 +36,7 @@ export function AdminPanel() {
     const [adminActiveTab, setAdminActiveTab] = useState<'config' | 'planning' | 'tracklist' | 'interactif' | 'bot_drops'>('config');
     const [isSaving, setIsSaving] = useState(false);
     const [isResettingVotes, setIsResettingVotes] = useState(false);
+    const [showResetVotesConfirm, setShowResetVotesConfirm] = useState(false);
 
     // Edit Buffers (Local to AdminPanel for performance)
     const [editTitle, setEditTitle] = useState(settings.title);
@@ -778,28 +780,7 @@ export function AdminPanel() {
                                 </p>
                                 <button
                                     disabled={isResettingVotes}
-                                    onClick={async () => {
-                                        if (!window.confirm('⚠️ Remettre TOUS les votes music à zéro ? Action irréversible.')) return;
-                                        setIsResettingVotes(true);
-                                        try {
-                                            const adminToken = import.meta.env.VITE_ADMIN_TOKEN;
-                                            const res = await fetch('/api/music/reset', {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({ adminToken })
-                                            });
-                                            const data = await res.json();
-                                            if (data.success) {
-                                                showNotification(`✅ ${data.deleted} votes supprimés !`, 'success');
-                                            } else {
-                                                showNotification(`❌ Erreur: ${data.error}`, 'error');
-                                            }
-                                        } catch (err: any) {
-                                            showNotification(`❌ ${err.message}`, 'error');
-                                        } finally {
-                                            setIsResettingVotes(false);
-                                        }
-                                    }}
+                                    onClick={() => setShowResetVotesConfirm(true)}
                                     className="flex items-center gap-3 px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-red-500 hover:text-white transition-all disabled:opacity-40"
                                 >
                                     {isResettingVotes ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
@@ -904,6 +885,38 @@ export function AdminPanel() {
                 </div>
             </div>
         </motion.div>
+
+        <ConfirmationModal
+            isOpen={showResetVotesConfirm}
+            title="Reset des Votes"
+            message="Remettre TOUS les votes music à zéro ? Action irréversible."
+            confirmLabel="Oui, tout remettre à zéro"
+            cancelLabel="Annuler"
+            accentColor="neon-red"
+            onCancel={() => setShowResetVotesConfirm(false)}
+            onConfirm={async () => {
+                setShowResetVotesConfirm(false);
+                setIsResettingVotes(true);
+                try {
+                    const adminToken = import.meta.env.VITE_ADMIN_TOKEN;
+                    const res = await fetch('/api/music/reset', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ adminToken })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showNotification?.(`✅ ${data.deleted} votes supprimés !`, 'success');
+                    } else {
+                        showNotification?.(`❌ Erreur: ${data.error}`, 'error');
+                    }
+                } catch (err: any) {
+                    showNotification?.(`❌ ${err.message}`, 'error');
+                } finally {
+                    setIsResettingVotes(false);
+                }
+            }}
+        />
     );
 }
 

@@ -32,8 +32,13 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
     const [stats, setStats] = useState<MediaStats>({ likes: 0, shares: 0, commentsCount: 0, anecdote: null });
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState("");
+    const [pseudo, setPseudo] = useState('Anonyme');
     const [showComments, setShowComments] = useState(false);
+    const [toast, setToast] = useState('');
+    const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     const hasModPowers = isAdmin || isModo;
+
+    const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
     const fetchStats = async () => {
         try {
@@ -86,7 +91,7 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                 await navigator.share({ title: 'Dropsiders', text: message, url: shareUrl });
             } else {
                 navigator.clipboard.writeText(shareUrl);
-                alert("Lien copié ! Ouvre " + platform + " pour partager.");
+                showToast(`Lien copié ! Ouvre ${platform} pour partager.`);
             }
             setStats(prev => ({ ...prev, shares: prev.shares + 1 }));
         } catch (e) { console.error(e); }
@@ -105,7 +110,7 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                 await navigator.share({ title: 'Dropsiders', url: shareUrl });
             } else {
                 navigator.clipboard.writeText(shareUrl);
-                alert("Lien copié !");
+                showToast('Lien copié !');
             }
             setStats(prev => ({ ...prev, shares: prev.shares + 1 }));
         } catch (e) { console.error(e); }
@@ -113,12 +118,11 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
 
     const postComment = async () => {
         if (!newComment.trim()) return;
-        const user = prompt("Votre pseudo", "Anonyme") || "Anonyme";
         try {
             const res = await fetch('/api/media/comment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type, id, user, text: newComment })
+                body: JSON.stringify({ type, id, user: pseudo || 'Anonyme', text: newComment })
             });
             const data = await res.json();
             if (data.success) {
@@ -129,8 +133,8 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
         } catch (e) { console.error(e); }
     };
 
-    const deleteComment = async (commentId: string) => {
-        if (!confirm("Supprimer ce commentaire ?")) return;
+    const doDeleteComment = async (commentId: string) => {
+        setDeleteConfirmId(null);
         try {
             const res = await fetch('/api/media/comment/delete', {
                 method: 'POST',
@@ -254,7 +258,7 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                                             <div className="flex items-center gap-3">
                                                 <span className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">{new Date(comment.timestamp).toLocaleDateString()}</span>
                                                 {hasModPowers && (
-                                                    <button onClick={() => deleteComment(comment.id)} className="text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover/comment:opacity-100">
+                                                    <button onClick={() => setDeleteConfirmId(comment.id)} className="text-red-500 hover:text-red-400 transition-colors opacity-0 group-hover/comment:opacity-100">
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
                                                 )}
@@ -291,8 +295,31 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                     )}
                 </div>
 
+                {/* Toast */}
+                {toast && (
+                    <div className="mx-8 mb-2 px-4 py-2 bg-neon-green/10 border border-neon-green/30 rounded-xl text-[10px] font-black text-neon-green uppercase tracking-widest text-center">{toast}</div>
+                )}
+
+                {/* Delete confirm inline */}
+                {deleteConfirmId && (
+                    <div className="mx-8 mb-2 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center justify-between gap-4">
+                        <span className="text-[10px] font-black text-red-400 uppercase tracking-widest">Supprimer ce commentaire ?</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => doDeleteComment(deleteConfirmId)} className="px-3 py-1.5 bg-red-500 text-white text-[9px] font-black uppercase rounded-lg">Oui</button>
+                            <button onClick={() => setDeleteConfirmId(null)} className="px-3 py-1.5 bg-white/10 text-gray-400 text-[9px] font-black uppercase rounded-lg">Annuler</button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Input Section */}
-                <div className="p-8 bg-black/40 backdrop-blur-xl border-t border-white/10">
+                <div className="p-8 bg-black/40 backdrop-blur-xl border-t border-white/10 space-y-3">
+                    <input
+                        type="text"
+                        placeholder="Votre pseudo"
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-neon-green/50 placeholder:text-gray-600 transition-all"
+                        value={pseudo}
+                        onChange={(e) => setPseudo(e.target.value)}
+                    />
                     <div className="flex gap-3">
                         <input
                             type="text"
