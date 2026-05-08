@@ -7,6 +7,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { AudioWaveformSelector } from '../admin/AudioWaveformSelector';
 import { UserAuthModal } from '../auth/UserAuthModal';
 import { ContestValidationModal } from './ContestValidationModal';
+import { ConfirmationModal } from '../ConfirmationModal';
 import { Instagram } from 'lucide-react';
 
 type QuizType = 'QCM' | 'BLIND_TEST' | 'IMAGE';
@@ -106,6 +107,7 @@ export function QuizSection() {
     const [gameType, setGameType] = useState<'NORMAL' | 'CONCOURS'>('NORMAL');
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [isContestValidationOpen, setIsContestValidationOpen] = useState(false);
+    const [showAlert, setShowAlert] = useState<{ isOpen: boolean, title: string, message: string }>({ isOpen: false, title: '', message: '' });
 
     useEffect(() => {
         fetchQuizzes();
@@ -173,12 +175,12 @@ export function QuizSection() {
         }
 
         if (!gamePseudo.trim() || !gameName.trim()) {
-            alert("Veuillez entrer votre nom et prénom pour participer !");
+            setShowAlert({ isOpen: true, title: "Infos Manquantes", message: "Veuillez entrer votre nom et prénom pour participer !" });
             return;
         }
 
         if (gameType === 'CONCOURS' && (!gameEmail.trim() || !gameEmail.includes('@'))) {
-            alert("Une adresse email valide est obligatoire pour participer au concours !");
+            setShowAlert({ isOpen: true, title: "Email Requis", message: "Une adresse email valide est obligatoire pour participer au concours !" });
             return;
         }
 
@@ -211,7 +213,7 @@ export function QuizSection() {
         }
 
         if (filtered.length === 0) {
-            alert("Aucune question trouvée pour ces critères !");
+            setShowAlert({ isOpen: true, title: "Désolé", message: "Aucune question trouvée pour ces critères !" });
             return;
         }
 
@@ -355,7 +357,7 @@ export function QuizSection() {
                 if (!response.ok) {
                     const error = await response.json();
                     if (response.status === 403) {
-                        alert(error.error || "Une seule participation autorisée !");
+                        setShowAlert({ isOpen: true, title: "Participation Limitée", message: error.error || "Une seule participation autorisée !" });
                     }
                 }
                 
@@ -1158,7 +1160,7 @@ export function QuizSection() {
                                                                 const url = await uploadFile(file, 'quiz');
                                                                 setFormData({ ...formData, imageUrl: url, revealEffect: Math.random() > 0.5 ? 'BLUR' : 'MOSAIC' });
                                                             } catch (err) {
-                                                                alert("Erreur lors de l'upload");
+                                                                setShowAlert({ isOpen: true, title: "Erreur Upload", message: "Une erreur est survenue lors de l'upload de l'image." });
                                                             } finally {
                                                                 setUploading(false);
                                                             }
@@ -1274,7 +1276,9 @@ export function QuizSection() {
                                                         try {
                                                             const url = await uploadFile(file);
                                                             setFormData({ ...formData, audioUrl: url });
-                                                        } catch (err) { alert('Erreur upload'); }
+                                                        } catch (err) { 
+                                                            setShowAlert({ isOpen: true, title: "Erreur Upload", message: "Une erreur est survenue lors de l'upload de l'audio." }); 
+                                                        }
                                                         finally { setUploading(false); }
                                                     }}
                                                 />
@@ -1337,6 +1341,17 @@ export function QuizSection() {
             <UserAuthModal 
                 isOpen={isAuthModalOpen} 
                 onClose={() => setIsAuthModalOpen(false)} 
+            />
+
+            <ConfirmationModal
+                isOpen={showAlert.isOpen}
+                title={showAlert.title}
+                message={showAlert.message}
+                confirmLabel="OK"
+                cancelLabel="Fermer"
+                onConfirm={() => setShowAlert({ isOpen: false, title: '', message: '' })}
+                onCancel={() => setShowAlert({ isOpen: false, title: '', message: '' })}
+                accentColor="neon-red"
             />
         </div>
     );

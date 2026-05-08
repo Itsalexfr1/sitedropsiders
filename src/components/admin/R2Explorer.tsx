@@ -6,6 +6,7 @@ import {
     LayoutGrid, List as ListIcon, HardDrive as StorageIcon
 } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
+import { ConfirmationModal } from '../ConfirmationModal';
 
 export function R2Explorer() {
     const [photos, setPhotos] = useState<any[]>([]);
@@ -16,6 +17,7 @@ export function R2Explorer() {
     const [prefix, setPrefix] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [sortBy, setSortBy] = useState<'name' | 'date'>('date');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ isOpen: boolean, key: string | null }>({ isOpen: false, key: null });
 
     const fetchPhotos = async (targetCursor?: string | null) => {
         setLoading(true);
@@ -71,7 +73,14 @@ export function R2Explorer() {
     };
 
     const handleDelete = async (key: string) => {
-        if (!confirm('Supprimer définitivement cette photo de R2 ?')) return;
+        setShowDeleteConfirm({ isOpen: true, key });
+    };
+
+    const confirmDelete = async () => {
+        const key = showDeleteConfirm.key;
+        if (!key) return;
+        
+        setShowDeleteConfirm({ isOpen: false, key: null });
         try {
             const res = await fetch('/api/r2/delete', {
                 method: 'POST',
@@ -347,6 +356,27 @@ export function R2Explorer() {
                     </div>
                 </div>
             </div>
+
+            <R2DeleteConfirmModal 
+                isOpen={showDeleteConfirm.isOpen}
+                onConfirm={confirmDelete}
+                onCancel={() => setShowDeleteConfirm({ isOpen: false, key: null })}
+            />
         </div>
+    );
+}
+
+// Separate component or local modal for R2Explorer
+function R2DeleteConfirmModal({ isOpen, onConfirm, onCancel }: { isOpen: boolean, onConfirm: () => void, onCancel: () => void }) {
+    return (
+        <ConfirmationModal
+            isOpen={isOpen}
+            title="Suppression Cloud R2"
+            message="Voulez-vous vraiment supprimer définitivement cette photo de votre stockage Cloudflare R2 ? Cette action est irréversible."
+            onConfirm={onConfirm}
+            onCancel={onCancel}
+            accentColor="neon-red"
+            confirmLabel="Supprimer"
+        />
     );
 }

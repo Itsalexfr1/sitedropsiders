@@ -9,6 +9,7 @@ import {
     Share2, MessageSquare, Wand2, Instagram, Users as UsersIcon, LayoutGrid
 } from 'lucide-react';
 import { StoryGridGenerator } from './StoryGridGenerator';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
 import { MemoryWall } from '../components/community/MemoryWall';
@@ -445,6 +446,7 @@ export function Community() {
     const [posterStyle, setPosterStyle] = useState<'ULTRA' | 'TOMORROWLAND' | 'EDC'>('ULTRA');
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [isGridOpen, setIsGridOpen] = useState(false);
+    const [showAlert, setShowAlert] = useState<{ isOpen: boolean, title: string, message: string }>({ isOpen: false, title: '', message: '' });
 
     const currentRank = useMemo(() => {
         return [...PROM_RANKS].reverse().find(r => promoterXP >= r.minXp) || PROM_RANKS[0];
@@ -1170,7 +1172,10 @@ export function Community() {
 
                                             <button 
                                                 onClick={() => {
-                                                    if (!uploadFestival) return alert('Veuillez sélectionner un festival');
+                                                    if (!uploadFestival) {
+                                                        setShowAlert({ isOpen: true, title: "Champ Requis", message: "Veuillez sélectionner un festival" });
+                                                        return;
+                                                    }
                                                     setUploadSuccess(true);
                                                     setTimeout(() => setUploadSuccess(false), 5000);
                                                 }}
@@ -2055,7 +2060,11 @@ export function Community() {
                                                                             }
                                                                         }
                                                                         resetGame();
-                                                                        alert(`Félicitations ! Vous avez gagné ${earnedXp} XP et ${earnedDrops} Drops${(playerEmail || isLoggedIn) ? ' – Progression synchronisée !' : ' – Sauvegardé localement.'}`);
+                                                                        setShowAlert({
+                                                                             isOpen: true,
+                                                                             title: "Félicitations !",
+                                                                             message: `Vous avez gagné ${earnedXp} XP et ${earnedDrops} Drops${(playerEmail || isLoggedIn) ? ' – Progression synchronisée !' : ' – Sauvegardé localement.'}`
+                                                                         });
                                                                     }}
                                                                     className="flex-1 py-6 bg-amber-400 text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-500 transition-all shadow-[0_10px_30px_rgba(251,191,36,0.2)]"
                                                                 >
@@ -2254,6 +2263,20 @@ export function Community() {
                     { label: 'Gérer les photos', icon: <Camera className="w-3.5 h-3.5" />, to: '/admin/manage?tab=Communauté', permission: 'community' },
                     { label: 'Modération', icon: <UsersIcon className="w-3.5 h-3.5" />, to: '/admin/manage?tab=Communauté', permission: 'community' },
                 ]}
+            <AdminEditBar 
+                permission="community"
+                editUrl="/admin/manage?tab=Communauté"
+            />
+
+            <ConfirmationModal
+                isOpen={showAlert.isOpen}
+                title={showAlert.title}
+                message={showAlert.message}
+                confirmLabel="OK"
+                cancelLabel="Fermer"
+                onConfirm={() => setShowAlert({ isOpen: false, title: '', message: '' })}
+                onCancel={() => setShowAlert({ isOpen: false, title: '', message: '' })}
+                accentColor="neon-cyan"
             />
         </>
     );

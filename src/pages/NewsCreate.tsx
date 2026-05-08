@@ -11,6 +11,7 @@ import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-rou
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { PromptModal } from '../components/PromptModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import { SocialSuite } from '../components/SocialSuite';
 // LARGE JSON DATA IMPORTS REMOVED TO FIX CLOUDFLARE ERROR 10013
@@ -249,6 +250,29 @@ export function NewsCreate() {
 
     const [title, setTitle] = useState(editingItem?.title || '');
     const [isDraft, setIsDraft] = useState(editingItem?.isDraft || false);
+    
+    // Prompt & Alert Modal states
+    const [promptConfig, setPromptConfig] = useState<{ 
+        isOpen: boolean; 
+        title: string; 
+        message: string; 
+        defaultValue: string; 
+        placeholder: string;
+        callback: (val: string) => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        defaultValue: '',
+        placeholder: '',
+        callback: () => {}
+    });
+
+    const openPrompt = (title: string, message: string, defaultValue: string, placeholder: string, callback: (val: string) => void) => {
+        setPromptConfig({ isOpen: true, title, message, defaultValue, placeholder, callback });
+    };
+
+    const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean; message: string } | null>(null);
     const [locationInput, setLocationInput] = useState(editingItem?.location || '');
     const [country, setCountry] = useState(editingItem?.country || '');
     const [isAutoLocating, setIsAutoLocating] = useState(false);
@@ -1332,7 +1356,10 @@ export function NewsCreate() {
                         if (sCredits < 0) sCredits = 0;
                         localStorage.setItem('scrapingbee_credits', sCredits.toString());
                         if (sCredits <= 10 && sCredits > 0) {
-                            alert(`🚨 ATTENTION : Ton quota ScrapingBee atteint ${sCredits} crédits ! Pense à recréer un compte.`);
+                            setAlertConfig({
+                                isOpen: true,
+                                message: `🚨 ATTENTION : Ton quota ScrapingBee atteint ${sCredits} crédits ! Pense à recréer un compte.`
+                            });
                         }
                     } else {
                         throw new Error("Blocked by Cloudflare");
@@ -2700,12 +2727,26 @@ ${generateSocialsHtml()}
                                                             if (isVisualEditor) {
                                                                 insertLinkToActiveWidget(widget.id);
                                                             } else {
-                                                                const url = prompt('URL du lien :');
-                                                                if (url) {
-                                                                    const text = prompt('Texte du lien (ou vide pour l\'URL) :');
-                                                                    const link = `<a href="${url}" target="_blank" class="text-neon-cyan hover:underline">${text || url}</a>`;
-                                                                    updateWidget(widget.id, widget.content + ' ' + link);
-                                                                }
+                                                                openPrompt(
+                                                                    'URL du lien',
+                                                                    'Entrez l\'adresse URL de destination (ex: https://...)',
+                                                                    '',
+                                                                    'https://...',
+                                                                    (url) => {
+                                                                        if (url) {
+                                                                            openPrompt(
+                                                                                'Texte du lien',
+                                                                                'Entrez le texte à afficher pour ce lien',
+                                                                                url,
+                                                                                'Mon lien...',
+                                                                                (text) => {
+                                                                                    const link = `<a href="${url}" target="_blank" class="text-neon-cyan hover:underline">${text || url}</a>`;
+                                                                                    updateWidget(widget.id, widget.content + ' ' + link);
+                                                                                }
+                                                                            );
+                                                                        }
+                                                                    }
+                                                                );
                                                             }
                                                         }}
                                                         className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase"
@@ -2921,20 +2962,34 @@ ${generateSocialsHtml()}
                                                                          rows: [{ count: extracted.count, videos: extracted.urls.map(u => ({ url: u, title: '' })) }],
                                                                          title: '',
                                                                          widgetId: widget.id
-                                                                     });
-                                                                } else if (widget.content.includes('youtube-player-widget')) {
-                                                                    const title = prompt('Artiste de la vidéo');
-                                                                    const val = prompt('Nouvelle URL YouTube ou ID');
-                                                                    if (!val) return;
-                                                                    let id = val;
-                                                                    if (val.includes('youtube.com/watch?v=')) {
-                                                                        id = val.split('v=')[1].split('&')[0];
-                                                                    } else if (val.includes('youtu.be/')) {
-                                                                        id = val.split('youtu.be/')[1];
-                                                                    }
-                                                                     const titleHtml = title?.trim() ? `<div class="text-gray-400 text-[10px] font-black uppercase mb-3 tracking-[0.2em]">${title.toUpperCase()}</div>` : '';
-                                                                     const videoWidget = `<div class="youtube-player-widget w-full my-12">\n  ${titleHtml}\n  <div class="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5">\n    <iframe src="https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&origin=${window.location.origin}" className="absolute inset-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" id="yt-player-${id}"></iframe>\n  </div>\n</div>`;
-                                                                    updateWidget(widget.id, videoWidget);
+                                                                     } else if (widget.content.includes('youtube-player-widget')) {
+                                                                    openPrompt(
+                                                                        'Artiste de la vidéo',
+                                                                        'Entrez le nom de l\'artiste ou le titre de la vidéo',
+                                                                        '',
+                                                                        'Nom de l\'artiste...',
+                                                                        (title) => {
+                                                                            openPrompt(
+                                                                                'URL de la vidéo',
+                                                                                'Entrez l\'URL YouTube ou l\'ID de la vidéo',
+                                                                                '',
+                                                                                'https://youtube.com/...',
+                                                                                (val) => {
+                                                                                    if (val) {
+                                                                                        let id = val;
+                                                                                        if (val.includes('youtube.com/watch?v=')) {
+                                                                                            id = val.split('v=')[1].split('&')[0];
+                                                                                        } else if (val.includes('youtu.be/')) {
+                                                                                            id = val.split('youtu.be/')[1];
+                                                                                        }
+                                                                                        const titleHtml = title?.trim() ? `<div class="text-gray-400 text-[10px] font-black uppercase mb-3 tracking-[0.2em]">${title.toUpperCase()}</div>` : '';
+                                                                                        const videoWidget = `<div class="youtube-player-widget w-full my-12">\n  ${titleHtml}\n  <div class="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5">\n    <iframe src="https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&origin=${window.location.origin}" className="absolute inset-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" id="yt-player-${id}"></iframe>\n  </div>\n</div>`;
+                                                                                        updateWidget(widget.id, videoWidget);
+                                                                                    }
+                                                                                }
+                                                                            );
+                                                                        }
+                                                                    );
                                                                 } else if (widget.content.includes('image-premium-wrapper')) {
                                                                     const { url, ratio, alignment, width } = extractSingleImageUrlAndRatio(widget.content);
                                                                     setMediaModal({
@@ -3762,12 +3817,26 @@ ${generateSocialsHtml()}
                                                     <button
                                                         type="button"
                                                         onClick={() => {
-                                                            const url = prompt('URL du lien :');
-                                                            if (url) {
-                                                                const text = prompt('Texte du lien (ou vide pour l\'URL) :');
-                                                                const link = `<a href="${url}" target="_blank" class="text-neon-cyan hover:underline">${text || url}</a>`;
-                                                                updateWidget(widget.id, widget.content + ' ' + link);
-                                                            }
+                                                            openPrompt(
+                                                                'URL du lien',
+                                                                'Entrez l\'adresse URL de destination (ex: https://...)',
+                                                                '',
+                                                                'https://...',
+                                                                (url) => {
+                                                                    if (url) {
+                                                                        openPrompt(
+                                                                            'Texte du lien',
+                                                                            'Entrez le texte à afficher pour ce lien',
+                                                                            url,
+                                                                            'Mon lien...',
+                                                                            (text) => {
+                                                                                const link = `<a href="${url}" target="_blank" class="text-neon-cyan hover:underline">${text || url}</a>`;
+                                                                                updateWidget(widget.id, widget.content + ' ' + link);
+                                                                            }
+                                                                        );
+                                                                    }
+                                                                }
+                                                            );
                                                         }}
                                                         className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase"
                                                         title="Ajouter un lien"
@@ -5171,6 +5240,30 @@ ${generateSocialsHtml()}
                 message="Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter la page ?"
                 onConfirm={() => blocker.proceed?.()}
                 onCancel={() => blocker.reset?.()}
+                accentColor="neon-red"
+            />
+
+            <PromptModal 
+                isOpen={promptConfig.isOpen}
+                title={promptConfig.title}
+                message={promptConfig.message}
+                defaultValue={promptConfig.defaultValue}
+                placeholder={promptConfig.placeholder}
+                onConfirm={(val) => {
+                    setPromptConfig(prev => ({ ...prev, isOpen: false }));
+                    promptConfig.callback(val);
+                }}
+                onCancel={() => setPromptConfig(prev => ({ ...prev, isOpen: false }))}
+                accentColor="neon-cyan"
+            />
+
+            <ConfirmationModal
+                isOpen={!!alertConfig}
+                title="Notification"
+                message={alertConfig?.message || ''}
+                onConfirm={() => setAlertConfig(null)}
+                onCancel={() => setAlertConfig(null)}
+                confirmLabel="OK"
                 accentColor="neon-red"
             />
         </div >

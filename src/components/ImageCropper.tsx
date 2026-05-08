@@ -79,15 +79,11 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
     const [manualH, setManualH] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [cropError, setCropError] = useState('');
+    const [showFallbackBtn, setShowFallbackBtn] = useState(false);
 
-    const onCropChange = (crop: { x: number; y: number }) => {
-        setCrop(crop);
-    };
-
-    const onZoomChange = (zoom: number) => {
-        setZoom(zoom);
-    };
-
+    const onCropChange = (crop: { x: number; y: number }) => { setCrop(crop); };
+    const onZoomChange = (zoom: number) => { setZoom(zoom); };
     const onCropCompleteCallback = useCallback(async (_croppedArea: Area, croppedAreaPixels: Area) => {
         setCroppedAreaPixels(croppedAreaPixels);
     }, []);
@@ -95,21 +91,19 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
     const handleConfirm = async () => {
         if (!croppedAreaPixels || isProcessing) return;
         setIsProcessing(true);
+        setCropError('');
+        setShowFallbackBtn(false);
         try {
             const resolvedSrc = resolveImageUrl(image);
             const croppedImage = await getCroppedImg(resolvedSrc, croppedAreaPixels);
             onCropComplete(croppedImage);
         } catch (e: any) {
             console.error("Crop error:", e);
-            
-            // If it's a security error, offer a fallback
             if (e.message?.includes("Sécurité") || e.message?.includes("CORS")) {
-                if (confirm(e.message + "\n\nVoulez-vous utiliser l'image originale à la place ?")) {
-                    onCropComplete(image); // Proceed with original
-                    return;
-                }
+                setCropError(e.message);
+                setShowFallbackBtn(true);
             } else {
-                alert(e.message || "Erreur lors du rognage.");
+                setCropError(e.message || "Erreur lors du rognage.");
             }
             setIsProcessing(false);
         }
@@ -201,6 +195,20 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect: initialA
                         />
                     </div>
                 </div>
+
+                {cropError && (
+                    <div className="px-4 py-3 bg-neon-red/10 border border-neon-red/30 rounded-xl text-[10px] font-black text-neon-red uppercase tracking-widest text-center">
+                        {cropError}
+                        {showFallbackBtn && (
+                            <button
+                                onClick={() => { onCropComplete(image); }}
+                                className="ml-4 px-3 py-1 bg-neon-red text-white rounded-lg text-[9px] font-black uppercase"
+                            >
+                                Utiliser l'original
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 <div className="flex justify-between items-center">
                     <button

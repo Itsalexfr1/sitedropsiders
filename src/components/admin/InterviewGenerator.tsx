@@ -24,6 +24,7 @@ import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { jsPDF } from 'jspdf';
+import { ConfirmationModal } from '../ConfirmationModal';
 
 interface InterviewQuestion {
     id: string;
@@ -44,6 +45,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const [watermarkOpacity, setWatermarkOpacity] = useState(3);
     const [headerLogoSize, setHeaderLogoSize] = useState(6);
     const [swapLanguages, setSwapLanguages] = useState(false);
+    const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean, message: string } | null>(null);
     const cardsRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -392,7 +394,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             }
             const content = await zip.generateAsync({ type: 'blob' });
             saveAs(content, 'Interview_Cards_Dropsiders.zip');
-        } catch (err) { alert('Erreur ZIP: ' + err); }
+        } catch (err) { 
+            setAlertConfig({ isOpen: true, message: 'Erreur ZIP: ' + err }); 
+        }
         finally { setIsGenerating(false); setExportType(null); }
     };
 
@@ -414,7 +418,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 pdf.addImage(canvas.toDataURL('image/png', 1.0), 'PNG', 0, 0, 148, 210, undefined, 'FAST');
             }
             pdf.save('Interview_Cards_Dropsiders.pdf');
-        } catch (err) { alert('Erreur PDF: ' + err); }
+        } catch (err) { 
+            setAlertConfig({ isOpen: true, message: 'Erreur PDF: ' + err }); 
+        }
         finally { setIsGenerating(false); setExportType(null); }
     };
 
@@ -433,7 +439,9 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             link.download = `${name}.png`;
             link.href = canvas.toDataURL('image/png', 1.0);
             link.click();
-        } catch (err) { alert('Erreur: ' + err); }
+        } catch (err) { 
+            setAlertConfig({ isOpen: true, message: 'Erreur: ' + err }); 
+        }
     };
 
 
@@ -961,6 +969,15 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 </div>
             </motion.div>
 
+            <ConfirmationModal
+                isOpen={!!alertConfig}
+                title="Erreur"
+                message={alertConfig?.message || ''}
+                onConfirm={() => setAlertConfig(null)}
+                onCancel={() => setAlertConfig(null)}
+                confirmLabel="OK"
+                accentColor="neon-red"
+            />
         </div>
     );
 }

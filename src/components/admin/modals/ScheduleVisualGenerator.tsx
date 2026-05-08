@@ -2,18 +2,25 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Sun, Moon, Plus, Trash2, Download, Smartphone, Image as ImageIcon, Sparkles, ChevronRight, Type, Upload, ChevronLeft } from 'lucide-react';
 
+interface ScheduledEvent {
+    id: string;
+    type: 'day' | 'night';
+    artist: string;
+    location: string;
+}
+
 interface DaySchedule {
     id: string;
     date: string;
-    dayArtist: string;
-    dayLocation: string;
-    nightArtist: string;
-    nightLocation: string;
+    events: ScheduledEvent[];
 }
 
 export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const [schedule, setSchedule] = useState<DaySchedule[]>([
-        { id: '1', date: '', dayArtist: '', dayLocation: '', nightArtist: '', nightLocation: '' }
+        { id: '1', date: '', events: [
+            { id: 'e1', type: 'day', artist: '', location: '' },
+            { id: 'e2', type: 'night', artist: '', location: '' }
+        ]}
     ]);
     const [showLogo, setShowLogo] = useState(true);
     const [showWebsite, setShowWebsite] = useState(true);
@@ -29,16 +36,44 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
     const bgInputRef = useRef<HTMLInputElement>(null);
 
     const addDay = () => {
-        if (schedule.length >= 25) return; // Limite augmentée à 25 pour les timetables denses
-        setSchedule([...schedule, { id: Math.random().toString(), date: '', dayArtist: '', dayLocation: '', nightArtist: '', nightLocation: '' }]);
+        if (schedule.length >= 25) return;
+        setSchedule([...schedule, { 
+            id: Math.random().toString(), 
+            date: '', 
+            events: [
+                { id: Math.random().toString(), type: 'day', artist: '', location: '' },
+                { id: Math.random().toString(), type: 'night', artist: '', location: '' }
+            ] 
+        }]);
+    };
+
+    const addEventToDay = (dayId: string, type: 'day' | 'night') => {
+        setSchedule(schedule.map(d => d.id === dayId ? {
+            ...d,
+            events: [...d.events, { id: Math.random().toString(), type, artist: '', location: '' }]
+        } : d));
+    };
+
+    const removeEventFromDay = (dayId: string, eventId: string) => {
+        setSchedule(schedule.map(d => d.id === dayId ? {
+            ...d,
+            events: d.events.filter(e => e.id !== eventId)
+        } : d));
+    };
+
+    const updateEvent = (dayId: string, eventId: string, field: keyof ScheduledEvent, value: string) => {
+        setSchedule(schedule.map(d => d.id === dayId ? {
+            ...d,
+            events: d.events.map(e => e.id === eventId ? { ...e, [field]: value } : e)
+        } : d));
     };
 
     const removeDay = (id: string) => {
         setSchedule(schedule.filter(d => d.id !== id));
     };
 
-    const updateDay = (id: string, field: keyof DaySchedule, value: string) => {
-        setSchedule(schedule.map(d => d.id === id ? { ...d, [field]: value } : d));
+    const updateDayDate = (id: string, date: string) => {
+        setSchedule(schedule.map(d => d.id === id ? { ...d, date } : d));
     };
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,7 +115,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const ctx = canvas.getContext('2d')!;
 
         // 0. Filter active days to avoid wasting space
-        const activeSchedule = schedule.filter(d => d.date || d.dayArtist || d.dayLocation || d.nightArtist || d.nightLocation);
+        const activeSchedule = schedule.filter(d => d.date || d.events.some(e => e.artist || e.location));
         const numDays = activeSchedule.length;
         if (numDays === 0) return;
 
@@ -118,10 +153,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             overlay.addColorStop(0.3, 'rgba(0, 0, 0, 0.6)');  // Lighter middle
             overlay.addColorStop(0.7, 'rgba(0, 0, 0, 0.6)');  // Lighter middle
             overlay.addColorStop(1, 'rgba(0, 0, 0, 0.9)');    // Darker bottom for website
-            overlay.addColorStop(0, 'rgba(0, 0, 0, 0.85)');
-            overlay.addColorStop(0.3, 'rgba(0, 0, 0, 0.6)');
-            overlay.addColorStop(0.7, 'rgba(0, 0, 0, 0.6)');
-            overlay.addColorStop(1, 'rgba(0, 0, 0, 0.9)');
             ctx.fillStyle = overlay;
             ctx.fillRect(0, 0, width, height);
 
@@ -188,7 +219,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         let dateFontSize = 75; 
         let eventFontSize = 50;
         let eventSpacing = 70;
-        let eventNightSpacing = 125;
         
         // Dynamic scaling based on number of days to fit perfectly
         let dayHeight = availableHeight / numDays;
@@ -196,13 +226,11 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         if (dayHeight > maxDayHeight) dayHeight = maxDayHeight;
         
         // Safety: If dayHeight is too small for XL fonts, we MUST scale down
-        // Minimum required height for XL is roughly 220px
         if (dayHeight < 230) {
             const scale = Math.max(0.5, dayHeight / 240);
             dateFontSize *= scale;
             eventFontSize *= scale;
             eventSpacing *= scale;
-            eventNightSpacing *= scale;
         }
 
         const totalScheduleHeight = dayHeight * numDays;
@@ -227,82 +255,55 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             const iconNight = viewMode === 'planning' ? '🌒 ' : '';
 
             if (viewMode === 'timetable') {
-                // Combined format: HEURE (Red) - ARTISTE (Orbitron) - STAGE (Montserrat)
-                // In timetable mode: dayArtist=Heure, dayLocation=Artiste, nightArtist=Stage
-                const hourText = (day.dayArtist || '').toUpperCase();
-                const artistText = (day.dayLocation || '').toUpperCase();
-                const stageText = (day.nightArtist || '').toUpperCase();
-                
-                const separator = ' - ';
-                ctx.textAlign = 'center';
-                
-                ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
-                const sepWidth = ctx.measureText(separator).width;
-                
-                ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
-                const hourWidth = hourText ? ctx.measureText(hourText).width : 0;
-                
-                ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
-                const artistWidth = artistText ? ctx.measureText(artistText).width : 0;
-                
-                ctx.font = `500 ${eventFontSize * 0.8}px "Montserrat", sans-serif`;
-                const stageWidth = stageText ? ctx.measureText(stageText).width : 0;
-
-                const totalWidth = hourWidth + (hourText && artistText ? sepWidth : 0) + artistWidth + (artistText && stageText ? sepWidth : 0) + stageWidth;
-                let currentX = (width - totalWidth) / 2;
-                const textY = y + (dayHeight / 2);
-
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                ctx.shadowBlur = 10;
-                ctx.shadowOffsetY = 2;
-
-                if (hourText) {
-                    ctx.textAlign = 'left';
-                    ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = '#ff1241';
-                    ctx.fillText(hourText, currentX, textY);
-                    currentX += hourWidth;
-                }
-                if (hourText && artistText) {
-                    ctx.textAlign = 'left';
-                    ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(separator, currentX, textY);
-                    currentX += sepWidth;
-                }
-                if (artistText) {
-                    ctx.textAlign = 'left';
-                    ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(artistText, currentX, textY);
-                    currentX += artistWidth;
-                }
-                if (artistText && stageText) {
-                    ctx.textAlign = 'left';
-                    ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(separator, currentX, textY);
-                    currentX += sepWidth;
-                }
-                if (stageText) {
-                    ctx.textAlign = 'left';
-                    ctx.font = `500 ${eventFontSize * 0.8}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                    ctx.fillText(stageText, currentX, textY);
-                }
-                ctx.shadowBlur = 0;
-                ctx.shadowOffsetY = 0;
-            } else {
-                // Planning format: Separate lines for Day and Night with Locations
-                const renderEvent = (artist: string, location: string, icon: string, yOffset: number) => {
-                    if (!artist) return;
+                day.events.forEach((evt, evtIdx) => {
+                    const hourText = (evt.artist || '').toUpperCase();
+                    const artistText = (evt.location || '').toUpperCase();
+                    const separator = ' - ';
                     
+                    ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
+                    const hourWidth = hourText ? ctx.measureText(hourText).width : 0;
+                    ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
+                    const sepWidth = ctx.measureText(separator).width;
+                    ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
+                    const artistWidth = artistText ? ctx.measureText(artistText).width : 0;
+                    
+                    const totalWidth = hourWidth + (hourText && artistText ? sepWidth : 0) + artistWidth;
+                    let currentX = (width - totalWidth) / 2;
+                    const textY = y + (dayHeight / 2) + (evtIdx * eventSpacing) - ((day.events.length - 1) * eventSpacing / 2);
+
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowOffsetY = 2;
+
+                    if (hourText) {
+                        ctx.textAlign = 'left';
+                        ctx.font = `900 italic ${eventFontSize}px "Montserrat", sans-serif`;
+                        ctx.fillStyle = '#ff1241';
+                        ctx.fillText(hourText, currentX, textY);
+                        currentX += hourWidth;
+                    }
+                    if (hourText && artistText) {
+                        ctx.textAlign = 'left';
+                        ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(separator, currentX, textY);
+                        currentX += sepWidth;
+                    }
+                    if (artistText) {
+                        ctx.textAlign = 'left';
+                        ctx.font = `900 ${eventFontSize}px "Orbitron", sans-serif`;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(artistText, currentX, textY);
+                    }
+                    ctx.shadowBlur = 0;
+                    ctx.shadowOffsetY = 0;
+                });
+            } else {
+                const renderEvent = (artist: string, location: string, icon: string, yOffset: number) => {
+                    if (!artist) return yOffset;
                     const artistText = (icon + artist).toUpperCase();
                     const locText = location ? ` ${location.toUpperCase()}` : '';
                     
-                    ctx.textAlign = 'center';
-                    
-                    // Calculate total width to center both
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                     const artistWidth = ctx.measureText(artistText).width;
                     ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
@@ -310,29 +311,31 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                     
                     const totalW = artistWidth + locWidth;
                     let startX = (width - totalW) / 2;
-                    
+                    const textY = eventBaseY + yOffset;
+
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
                     ctx.shadowBlur = 12;
                     ctx.shadowOffsetY = 3;
 
-                    // Draw Artist
                     ctx.textAlign = 'left';
                     ctx.font = `900 ${eventFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(artistText, startX, eventBaseY + yOffset);
+                    ctx.fillText(artistText, startX, textY);
                     
-                    // Draw Location
                     if (location) {
                         ctx.font = `500 italic ${eventFontSize * 0.7}px "Montserrat", sans-serif`;
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                        ctx.fillText(location.toUpperCase(), startX + artistWidth + 20, eventBaseY + yOffset);
+                        ctx.fillText(location.toUpperCase(), startX + artistWidth + 20, textY);
                     }
                     ctx.shadowBlur = 0;
                     ctx.shadowOffsetY = 0;
+                    return yOffset + eventSpacing;
                 };
 
-                renderEvent(day.dayArtist, day.dayLocation, iconDay, eventSpacing);
-                renderEvent(day.nightArtist, day.nightLocation, iconNight, day.dayArtist ? eventNightSpacing : eventSpacing);
+                let currentYOffset = eventSpacing;
+                day.events.forEach(evt => {
+                    currentYOffset = renderEvent(evt.artist, evt.location, evt.type === 'day' ? iconDay : iconNight, currentYOffset);
+                });
             }
         });
 
@@ -345,7 +348,6 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             ctx.fillText('DROPSIDERS.EU', width / 2, height - 100);
         }
 
-        // Export
         const link = document.createElement('a');
         link.href = canvas.toDataURL('image/png');
         link.download = `dropsiders-planning-${schedule[0]?.date || 'schedule'}.png`;
@@ -361,13 +363,9 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/90 backdrop-blur-xl" />
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative w-full max-w-5xl bg-gray-900 border border-white/10 rounded-[2.5rem] flex flex-col max-h-[95vh] overflow-hidden shadow-2xl">
                     
-                    {/* Header */}
                     <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
                         <div className="flex items-center gap-4">
-                            <button 
-                                onClick={onClose}
-                                className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest group"
-                            >
+                            <button onClick={onClose} className="p-3 bg-neon-cyan/20 hover:bg-neon-cyan text-white hover:text-black rounded-2xl border border-neon-cyan/30 transition-all flex items-center gap-2 font-black text-[9px] uppercase tracking-widest group">
                                 <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                                 RETOUR
                             </button>
@@ -386,99 +384,57 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
 
                     <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            {/* Editor */}
                             <div className="space-y-6">
                                 <div className="flex flex-col gap-4 mb-6">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-sm font-black text-white uppercase italic tracking-widest">Options du Visuel</h3>
                                         <div className="flex items-center gap-2">
-                                            <button 
-                                                onClick={() => setShowLogo(!showLogo)}
-                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${showLogo ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
-                                            >
+                                            <button onClick={() => setShowLogo(!showLogo)} className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${showLogo ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}>
                                                 <ImageIcon className={`w-3 h-3 ${showLogo ? 'text-neon-cyan' : ''}`} /> Logo: {showLogo ? 'OUI' : 'NON'}
                                             </button>
-                                            <button 
-                                                onClick={() => setShowWebsite(!showWebsite)}
-                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${showWebsite ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
-                                            >
+                                            <button onClick={() => setShowWebsite(!showWebsite)} className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${showWebsite ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}>
                                                 <Smartphone className={`w-3 h-3 ${showWebsite ? 'text-neon-cyan' : ''}`} /> Site: {showWebsite ? 'OUI' : 'NON'}
                                             </button>
-                                            <button 
-                                                onClick={() => setViewMode(viewMode === 'planning' ? 'timetable' : 'planning')}
-                                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${viewMode === 'planning' ? 'bg-white/10 border-white/20 text-white' : 'bg-neon-cyan border-neon-cyan text-black'}`}
-                                            >
-                                                {viewMode === 'planning' ? <Calendar className="w-3 h-3" /> : <Calendar className="w-3 h-3 text-black" />}
-                                                Mode: {viewMode === 'planning' ? 'DATE' : 'HEURE'}
+                                            <button onClick={() => setViewMode(viewMode === 'planning' ? 'timetable' : 'planning')} className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[9px] font-black uppercase transition-all ${viewMode === 'planning' ? 'bg-white/10 border-white/20 text-white' : 'bg-neon-cyan border-neon-cyan text-black'}`}>
+                                                <Calendar className={`w-3 h-3 ${viewMode === 'timetable' ? 'text-black' : ''}`} /> Mode: {viewMode === 'planning' ? 'DATE' : 'HEURE'}
                                             </button>
                                             <button onClick={addDay} disabled={schedule.length >= 25} className="flex items-center gap-2 px-3 py-1.5 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-lg hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100 shadow-[0_0_15px_rgba(0,255,255,0.3)]">
                                                 <Plus className="w-3 h-3" /> Ajouter ({schedule.length}/25)
                                             </button>
                                         </div>
-                                </div>
-
-                                <div className="space-y-2 mb-6">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                        <Type className="w-3 h-3 text-neon-cyan" /> Titre du Planning
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        value={customTitle} 
-                                        onChange={(e) => setCustomTitle(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all font-bold italic"
-                                        placeholder="PLANNING LIVETAKEOVER"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    {/* Festival Logo Upload */}
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
-                                            <span className="flex items-center gap-2"><ImageIcon className="w-3 h-3 text-neon-cyan" /> Logo du Festival</span>
-                                            <span className="text-neon-cyan">{Math.round(logoScale * 100)}%</span>
-                                        </label>
-                                        <div className="flex items-center gap-3">
-                                            <button 
-                                                onClick={() => fileInputRef.current?.click()}
-                                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase"
-                                            >
-                                                <Upload className="w-4 h-4 text-neon-cyan" /> {festivalLogo ? 'Changer' : 'Upload'}
-                                            </button>
-                                            <input 
-                                                type="range" min="0.5" max="2.5" step="0.1" 
-                                                value={logoScale} onChange={(e) => setLogoScale(parseFloat(e.target.value))}
-                                                className="w-24 accent-neon-cyan"
-                                            />
-                                            {festivalLogo && (
-                                                <button 
-                                                    onClick={() => setFestivalLogo(null)}
-                                                    className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            )}
-                                            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                                        </div>
                                     </div>
+
+                                    <div className="space-y-2 mb-6">
+                                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                            <Type className="w-3 h-3 text-neon-cyan" /> Titre du Planning
+                                        </label>
+                                        <input type="text" value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all font-bold italic" placeholder="PLANNING LIVETAKEOVER" />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                                                <span className="flex items-center gap-2"><ImageIcon className="w-3 h-3 text-neon-cyan" /> Logo du Festival</span>
+                                                <span className="text-neon-cyan">{Math.round(logoScale * 100)}%</span>
+                                            </label>
+                                            <div className="flex items-center gap-3">
+                                                <button onClick={() => fileInputRef.current?.click()} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase">
+                                                    <Upload className="w-4 h-4 text-neon-cyan" /> {festivalLogo ? 'Changer' : 'Upload'}
+                                                </button>
+                                                <input type="range" min="0.5" max="2.5" step="0.1" value={logoScale} onChange={(e) => setLogoScale(parseFloat(e.target.value))} className="w-24 accent-neon-cyan" />
+                                                {festivalLogo && <button onClick={() => setFestivalLogo(null)} className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all"><Trash2 className="w-4 h-4" /></button>}
+                                                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                                            </div>
+                                        </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                                 <ImageIcon className="w-3 h-3 text-neon-cyan" /> Fond (Image/Vidéo)
                                             </label>
                                             <div className="flex items-center gap-2">
-                                                <button 
-                                                    onClick={() => bgInputRef.current?.click()}
-                                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase ${backgroundImage || backgroundVideo ? 'border-neon-cyan/50' : ''}`}
-                                                >
+                                                <button onClick={() => bgInputRef.current?.click()} className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white hover:bg-white/10 transition-all uppercase ${backgroundImage || backgroundVideo ? 'border-neon-cyan/50' : ''}`}>
                                                     <Upload className="w-4 h-4 text-neon-cyan" /> {backgroundImage || backgroundVideo ? 'Changer Fond' : 'Upload Fond'}
                                                 </button>
-                                                {(backgroundImage || backgroundVideo) && (
-                                                    <button 
-                                                        onClick={() => { setBackgroundImage(null); setBackgroundVideo(null); }}
-                                                        className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                )}
+                                                {(backgroundImage || backgroundVideo) && <button onClick={() => { setBackgroundImage(null); setBackgroundVideo(null); }} className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-xl text-neon-red hover:bg-neon-red/30 transition-all"><Trash2 className="w-4 h-4" /></button>}
                                                 <input ref={bgInputRef} type="file" accept="image/*,video/*" onChange={handleBackgroundUpload} className="hidden" />
                                             </div>
                                         </div>
@@ -496,63 +452,43 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 {viewMode === 'planning' && (
                                                     <div className="space-y-1">
                                                         <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Jour {idx + 1} - Date (ex: 13 Mai)</label>
-                                                        <input 
-                                                            type="text" value={day.date} onChange={(e) => updateDay(day.id, 'date', e.target.value)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all italic font-bold"
-                                                        />
+                                                        <input type="text" value={day.date} onChange={(e) => updateDayDate(day.id, e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-neon-cyan outline-none transition-all italic font-bold" />
                                                     </div>
                                                 )}
-                                                <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                                                    <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Jour ☀️ - Artiste' : 'Heure'}</label>
-                                                        <input 
-                                                            type="text" value={day.dayArtist} onChange={(e) => updateDay(day.id, 'dayArtist', e.target.value)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Jour ☀️ - Lieu' : 'Artiste'}</label>
-                                                        <input 
-                                                            type="text" value={day.dayLocation} onChange={(e) => updateDay(day.id, 'dayLocation', e.target.value)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
-                                                        />
-                                                    </div>
-                                                    <div className={`space-y-1 ${viewMode === 'timetable' ? 'col-span-2' : ''}`}>
-                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">{viewMode === 'planning' ? 'Nuit 🌒 - Artiste' : 'Stage / Scène'}</label>
-                                                        <input 
-                                                            type="text" value={day.nightArtist} onChange={(e) => updateDay(day.id, 'nightArtist', e.target.value)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
-                                                        />
-                                                    </div>
-                                                    {viewMode === 'planning' && (
-                                                        <div className="space-y-1">
-                                                            <label className="text-[8px] font-black text-gray-500 uppercase ml-2 tracking-[0.2em]">Nuit 🌒 - Lieu</label>
-                                                            <input 
-                                                                type="text" value={day.nightLocation} onChange={(e) => updateDay(day.id, 'nightLocation', e.target.value)}
-                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
-                                                            />
+                                                <div className="space-y-4">
+                                                    {day.events.map((evt) => (
+                                                        <div key={evt.id} className="flex flex-col gap-3 p-4 bg-white/5 border border-white/5 rounded-2xl relative group/evt">
+                                                            <button onClick={() => removeEventFromDay(day.id, evt.id)} className="absolute -top-2 -right-2 w-6 h-6 bg-red-500/20 text-red-500 rounded-lg opacity-0 group-hover/evt:opacity-100 transition-all hover:bg-red-500 hover:text-white"><X className="w-3 h-3" /></button>
+                                                            <div className="flex items-center gap-3 mb-1">
+                                                                <div className={`px-2 py-1 rounded text-[7px] font-black uppercase tracking-widest ${evt.type === 'day' ? 'bg-amber-400/10 text-amber-400' : 'bg-indigo-400/10 text-indigo-400'}`}>
+                                                                    {evt.type === 'day' ? <Sun className="w-2 h-2 inline mr-1" /> : <Moon className="w-2 h-2 inline mr-1" />}
+                                                                    {evt.type === 'day' ? 'JOUR' : 'NUIT'}
+                                                                </div>
+                                                                <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest">Événement</span>
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[8px] font-black text-gray-400 uppercase ml-1 tracking-widest">{viewMode === 'planning' ? 'Artiste' : 'Heure'}</label>
+                                                                    <input type="text" value={evt.artist} onChange={(e) => updateEvent(day.id, evt.id, 'artist', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-cyan outline-none" />
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[8px] font-black text-gray-400 uppercase ml-1 tracking-widest">{viewMode === 'planning' ? 'Lieu' : 'Artiste / Stage'}</label>
+                                                                    <input type="text" value={evt.location} onChange={(e) => updateEvent(day.id, evt.id, 'location', e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-cyan outline-none" />
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    )}
+                                                    ))}
+                                                    <div className="flex gap-3 pt-2">
+                                                        <button onClick={() => addEventToDay(day.id, 'day')} className="flex-1 py-3 bg-amber-400/5 border border-amber-400/20 rounded-xl text-amber-400 text-[8px] font-black uppercase tracking-widest hover:bg-amber-400/10 transition-all flex items-center justify-center gap-2"><Plus className="w-3 h-3" /> Event Jour</button>
+                                                        <button onClick={() => addEventToDay(day.id, 'night')} className="flex-1 py-3 bg-indigo-400/5 border border-indigo-400/20 rounded-xl text-indigo-400 text-[8px] font-black uppercase tracking-widest hover:bg-indigo-400/10 transition-all flex items-center justify-center gap-2"><Plus className="w-3 h-3" /> Event Nuit</button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </motion.div>
                                     ))}
                                 </div>
-
-                                {/* Bottom Add Button */}
-                                <div className="mt-8 mb-4 flex justify-center">
-                                    <button 
-                                        onClick={addDay} 
-                                        disabled={schedule.length >= 25} 
-                                        className="flex items-center gap-3 px-8 py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-sm font-black uppercase rounded-2xl hover:bg-neon-cyan hover:text-black hover:scale-105 transition-all disabled:opacity-30 shadow-[0_0_20px_rgba(0,255,255,0.1)] group"
-                                    >
-                                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                                        Ajouter une ligne ({schedule.length}/25)
-                                    </button>
-                                </div>
                             </div>
 
-                            {/* Preview */}
                             <div className="relative">
                                 <div className="sticky top-0 space-y-6">
                                     <div className="flex items-center gap-2 mb-2">
@@ -560,96 +496,58 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                         <div className="px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-[8px] font-black text-neon-cyan uppercase tracking-widest">Story 9:16</div>
                                     </div>
 
-                                    {/* iPhone 17 Pro Max Style Frame - Dezoomed for full visibility */}
                                     <div className="aspect-[9/19.2] w-full max-w-[380px] mx-auto bg-black rounded-[3.5rem] border-[8px] border-[#1a1a1a] shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden flex flex-col p-6 text-white scale-[0.55] origin-top transition-all duration-700 hover:scale-[0.58] group">
-                                        {/* Titanium Frame Highlight */}
-                                        <div className="absolute inset-0 border-[2px] border-white/5 rounded-[3.3rem] pointer-events-none" />
-                                        
-                                        {/* Fake Story Background */}
                                         {backgroundImage || backgroundVideo ? (
                                             <div className="absolute inset-0">
-                                                {backgroundImage ? (
-                                                    <img src={backgroundImage || undefined} alt="Background" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <video src={backgroundVideo || undefined} autoPlay muted loop className="w-full h-full object-cover" />
-                                                )}
+                                                {backgroundImage ? <img src={backgroundImage} alt="Background" className="w-full h-full object-cover" /> : <video src={backgroundVideo} autoPlay muted loop className="w-full h-full object-cover" />}
                                                 <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/60 to-black/90" />
                                             </div>
                                         ) : (
                                             <div className="absolute inset-0 bg-gradient-to-b from-[#0a0b12] via-[#1a0510] to-[#050a0f]" />
                                         )}
-                                        
                                         <div className="relative z-10 flex flex-col h-full">
-                                            {/* Dynamic Island 2026 */}
                                             <div className="w-20 h-6 bg-black rounded-full mx-auto mb-6 flex items-center justify-center border border-white/5 shadow-inner">
-                                                <div className="w-2 h-2 bg-[#1a1a1a] rounded-full mr-2 border border-white/5" />
+                                                <div className="w-2 h-2 bg-[#1a1a1a] rounded-full mr-2" />
                                                 <div className="w-8 h-1 bg-[#1a1a1a] rounded-full" />
                                             </div>
-                                            
                                             {showLogo && (
                                                 <div className="flex flex-col items-center mb-6">
-                                                    {festivalLogo ? (
-                                                        <img src={festivalLogo} alt="Logo" className="h-12 object-contain" style={{ transform: `scale(${logoScale})` }} />
-                                                    ) : (
-                                                        <div className="w-24 h-6 bg-white/10 rounded-lg mb-2" style={{ transform: `scale(${logoScale})` }} />
-                                                    )}
+                                                    {festivalLogo ? <img src={festivalLogo} alt="Logo" className="h-12 object-contain" style={{ transform: `scale(${logoScale})` }} /> : <div className="w-24 h-6 bg-white/10 rounded-lg mb-2" style={{ transform: `scale(${logoScale})` }} />}
                                                 </div>
                                             )}
-
-                                            {customTitle && customTitle.trim() && (
-                                                <div className="text-center mb-4 -mt-2">
-                                                    <div className="text-[14px] font-black text-white italic uppercase tracking-widest">{customTitle}</div>
-                                                </div>
-                                            )}
-
+                                            {customTitle && customTitle.trim() && <div className="text-center mb-4 -mt-2"><div className="text-[14px] font-black text-white italic uppercase tracking-widest">{customTitle}</div></div>}
                                             <div className={`${viewMode === 'timetable' ? 'space-y-1' : 'space-y-4'} text-center ${!showLogo ? 'mt-6' : ''}`}>
                                                 {schedule.map(day => (
                                                     <div key={day.id} className="space-y-1">
                                                         {viewMode === 'planning' && <div className="text-[15px] font-black text-neon-red italic uppercase tracking-tighter">{day.date || 'DATE'}</div>}
-                                                        {viewMode === 'planning' ? (
-                                                            <div className="space-y-2">
-                                                                {day.dayArtist && (
-                                                                    <div className="flex items-center justify-center gap-2">
-                                                                        <div className="text-[12px] text-white font-bold uppercase tracking-wide">☀️ {day.dayArtist}</div>
-                                                                        {day.dayLocation && <div className="text-[9px] text-white/40 italic uppercase ml-2">{day.dayLocation}</div>}
-                                                                    </div>
-                                                                )}
-                                                                {day.nightArtist && (
-                                                                    <div className="flex items-center justify-center gap-2">
-                                                                        <div className="text-[12px] text-white font-bold uppercase tracking-wide">🌒 {day.nightArtist}</div>
-                                                                        {day.nightLocation && <div className="text-[9px] text-white/40 italic uppercase ml-2">{day.nightLocation}</div>}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex items-center justify-center gap-1 text-[11px] font-bold uppercase tracking-wide">
-                                                                {day.dayArtist && <span className="text-neon-red italic">{day.dayArtist}</span>}
-                                                                {day.dayArtist && day.dayLocation && <span className="text-white/20">-</span>}
-                                                                {day.dayLocation && <span className="font-display text-white">{day.dayLocation}</span>}
-                                                                {day.dayLocation && day.nightArtist && <span className="text-white/20">-</span>}
-                                                                {day.nightArtist && <span className="text-[9px] text-white/40 font-normal">{day.nightArtist}</span>}
-                                                            </div>
-                                                        )}
+                                                        <div className={viewMode === 'planning' ? "space-y-2" : "space-y-1"}>
+                                                            {day.events.map(evt => (
+                                                                <div key={evt.id} className="flex items-center justify-center gap-2">
+                                                                    {viewMode === 'planning' ? (
+                                                                        <>
+                                                                            <div className="text-[12px] text-white font-bold uppercase tracking-wide">{evt.type === 'day' ? '☀️' : '🌒'} {evt.artist || '...'}</div>
+                                                                            {evt.location && <div className="text-[9px] text-white/40 italic uppercase ml-2">{evt.location}</div>}
+                                                                        </>
+                                                                    ) : (
+                                                                        <div className="flex items-center justify-center gap-1 text-[11px] font-bold uppercase tracking-wide">
+                                                                            {evt.artist && <span className="text-neon-red italic">{evt.artist}</span>}
+                                                                            {evt.artist && evt.location && <span className="text-white/20">-</span>}
+                                                                            {evt.location && <span className="font-display text-white">{evt.location}</span>}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
-
                                             <div className="mt-auto pt-8 flex flex-col items-center">
-                                                {showWebsite && (
-                                                    <>
-                                                        <div className="text-[10px] font-black text-white uppercase tracking-[0.5em]">DROPSIDERS.EU</div>
-                                                        <div className="w-16 h-0.5 bg-neon-cyan/40 mt-2" />
-                                                    </>
-                                                )}
+                                                {showWebsite && <><div className="text-[10px] font-black text-white uppercase tracking-[0.5em]">DROPSIDERS.EU</div><div className="w-16 h-0.5 bg-neon-cyan/40 mt-2" /></>}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <button 
-                                        onClick={generateImage}
-                                        disabled={isGenerating}
-                                        className="w-full h-16 bg-white text-black font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-cyan transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.1)] active:scale-95 disabled:opacity-50"
-                                    >
+                                    <button onClick={generateImage} disabled={isGenerating} className="w-full h-16 bg-white text-black font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-cyan transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.1)] active:scale-95 disabled:opacity-50">
                                         {isGenerating ? <Sparkles className="w-6 h-6 animate-spin" /> : <Download className="w-6 h-6" />}
                                         Générer le Visuel
                                     </button>

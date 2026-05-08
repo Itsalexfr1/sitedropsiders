@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Download, X, Eye } from 'lucide-react';
@@ -26,6 +26,7 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
 }) => {
     const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const [showIosHint, setShowIosHint] = useState(false);
 
     const handleSaveOrShare = async () => {
         if (!readyBlob) return;
@@ -65,7 +66,7 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
         document.body.removeChild(a);
 
         if (isIOS) {
-            alert("Maintenez l'élément qui s'affiche pour l'enregistrer manuellement dans vos photos.");
+            setShowIosHint(true);
         }
     };
 
@@ -136,6 +137,12 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                             >
                                 <Download className="w-3.5 h-3.5" /> Lien Miroir (Secours)
                             </button>
+
+                            {showIosHint && (
+                                <div className="w-full px-4 py-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[10px] font-black text-amber-400 uppercase tracking-widest text-center">
+                                    📱 Maintenez l'image pour l'enregistrer dans vos photos
+                                </div>
+                            )}
 
                             <button
                                 onClick={onClose}

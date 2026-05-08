@@ -5,6 +5,7 @@ import {
     X, Trash2, Music, 
     Search, Plus, Layout
 } from 'lucide-react';
+import { ConfirmationModal } from '../ConfirmationModal';
 
 
 interface Track {
@@ -49,6 +50,7 @@ export function TracklistModal({
     const [tab, setTab] = useState<'pending' | 'active'>('pending');
     const [editingTracklist, setEditingTracklist] = useState<TracklistSubmission | null>(null);
     const [search, setSearch] = useState('');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const filteredList = (tab === 'pending' ? pendingTracklists : activeTracklists).filter(t => 
         t.title.toLowerCase().includes(search.toLowerCase()) || 
@@ -341,13 +343,7 @@ export function TracklistModal({
                                 {/* Actions */}
                                 <div className="pt-10 border-t border-white/5 flex justify-between items-center">
                                     <button 
-                                        onClick={() => {
-                                            if (confirm('Supprimer cette tracklist ?')) {
-                                                const action = editingTracklist.status === 'validated' ? 'delete_validated' : 'delete';
-                                                onModerate(editingTracklist.id, action);
-                                                setEditingTracklist(null);
-                                            }
-                                        }}
+                                        onClick={() => setShowDeleteConfirm(true)}
                                         className="px-8 py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-xl shadow-red-500/10"
                                     >
                                         Supprimer
@@ -398,6 +394,23 @@ export function TracklistModal({
                     </div>
                 </div>
             </motion.div>
+
+            <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                title="Supprimer la Tracklist"
+                message="Voulez-vous vraiment supprimer cette tracklist ? Cette action est irréversible."
+                onConfirm={() => {
+                    if (editingTracklist) {
+                        const action = editingTracklist.status === 'validated' ? 'delete_validated' : 'delete';
+                        onModerate(editingTracklist.id, action);
+                        setEditingTracklist(null);
+                        setShowDeleteConfirm(false);
+                    }
+                }}
+                onCancel={() => setShowDeleteConfirm(false)}
+                accentColor="neon-red"
+                confirmLabel="Supprimer"
+            />
         </div>
     );
 }

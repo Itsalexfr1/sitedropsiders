@@ -334,7 +334,15 @@ export function InvoiceGenerator() {
     const handlePrint = () => {
         const html = buildInvoiceHTML(getInvoiceData());
         const w = window.open('', '_blank', 'width=900,height=700');
-        if (!w) { alert('Autoriser les pop-ups pour générer la facture.'); return; }
+        if (!w) {
+            setConfirmModal({
+                show: true,
+                title: 'Pop-ups Bloqués',
+                text: 'Veuillez autoriser les pop-ups pour générer et imprimer la facture.',
+                onConfirm: () => setConfirmModal(null)
+            });
+            return;
+        }
         w.document.write(html); w.document.close();
         w.onload = () => { w.focus(); w.print(); };
     };

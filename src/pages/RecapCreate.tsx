@@ -5,6 +5,7 @@ import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-rou
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { PromptModal } from '../components/ui/PromptModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import recapsData from '../data/recaps.json';
 import agendaData from '../data/agenda.json';
@@ -141,6 +142,7 @@ export function RecapCreate() {
     const [year, setYear] = useState('');
     const [isFeatured, setIsFeatured] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showYoutubePrompt, setShowYoutubePrompt] = useState<{ isOpen: boolean, widgetId: string | null }>({ isOpen: false, widgetId: null });
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [author, setAuthor] = useState(() => {
         return localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
@@ -2096,16 +2098,7 @@ export function RecapCreate() {
                                                                     widgetId: widget.id
                                                                 });
                                                             } else if (widget.content.includes('youtube-player-widget')) {
-                                                                const val = prompt('Nouvelle URL YouTube ou ID');
-                                                                if (!val) return;
-                                                                let id = val;
-                                                                if (val.includes('youtube.com/watch?v=')) {
-                                                                    id = val.split('v=')[1].split('&')[0];
-                                                                } else if (val.includes('youtu.be/')) {
-                                                                    id = val.split('youtu.be/')[1];
-                                                                }
-                                                                const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&origin=\${window.location.origin}" className="absolute inset-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" id="yt-player-${id}"></iframe>\n</div>`;
-                                                                updateWidget(widget.id, videoWidget);
+                                                                setShowYoutubePrompt({ isOpen: true, widgetId: widget.id });
                                                             } else if (widget.content.includes('image-premium-wrapper')) {
                                                                 const { url, ratio } = extractSingleImageUrlAndRatio(widget.content);
                                                                 setMediaModal({
@@ -3027,6 +3020,25 @@ export function RecapCreate() {
                 message="Êtes-vous sûr de vouloir supprimer définitivement ce récapitulatif ? Cette action est irréversible."
                 onConfirm={handleDelete}
                 onCancel={() => setShowDeleteConfirm(false)}
+            />
+
+            <PromptModal
+                isOpen={showYoutubePrompt.isOpen}
+                onClose={() => setShowYoutubePrompt({ isOpen: false, widgetId: null })}
+                title="Éditer la Vidéo YouTube"
+                message="Entrez la nouvelle URL de la vidéo YouTube ou son ID."
+                placeholder="Ex: https://www.youtube.com/watch?v=..."
+                onConfirm={(val) => {
+                    if (!showYoutubePrompt.widgetId) return;
+                    let id = val;
+                    if (val.includes('youtube.com/watch?v=')) {
+                        id = val.split('v=')[1].split('&')[0];
+                    } else if (val.includes('youtu.be/')) {
+                        id = val.split('youtu.be/')[1];
+                    }
+                    const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&origin=\${window.location.origin}" className="absolute inset-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen referrerPolicy="strict-origin-when-cross-origin" id="yt-player-${id}"></iframe>\n</div>`;
+                    updateWidget(showYoutubePrompt.widgetId, videoWidget);
+                }}
             />
         </div>
     );

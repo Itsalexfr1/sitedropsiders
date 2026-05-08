@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../../utils/auth';
 import { Play, RotateCcw, Languages, MessageSquare, ChevronRight, Sparkles, X, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ConfirmationModal } from '../ConfirmationModal';
 
 interface HistoryEntry {
     artist: string;
@@ -25,6 +26,8 @@ export function InterviewRandomizer() {
         const saved = localStorage.getItem('interview_history');
         return saved ? JSON.parse(saved) : [];
     });
+    const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean, message: string } | null>(null);
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
 
     useEffect(() => {
         const fetchQuestions = async () => {
@@ -48,7 +51,7 @@ export function InterviewRandomizer() {
     const handleShuffle = () => {
         const questions = lang === 'FR' ? questionsData.fr : questionsData.en;
         if (!questions || questions.length === 0) {
-            alert('Aucune question disponible pour cette langue.');
+            setAlertConfig({ isOpen: true, message: 'Aucune question disponible pour cette langue.' });
             return;
         }
 
@@ -259,7 +262,7 @@ export function InterviewRandomizer() {
                                 )}
                             </div>
 
-                            <button onClick={() => { if(confirm('Vider tout l\'historique ?')) { setHistory([]); localStorage.removeItem('interview_history'); } }} className="w-full py-3 bg-red-500/10 text-red-500 font-black text-[9px] uppercase tracking-widest rounded-xl border border-red-500/20 hover:bg-red-500 hover:text-white transition-all">Vider l'historique</button>
+                            <button onClick={() => setShowClearConfirm(true)} className="w-full py-3 bg-red-500/10 text-red-500 font-black text-[9px] uppercase tracking-widest rounded-xl border border-red-500/20 hover:bg-red-500 hover:text-white transition-all">Vider l'historique</button>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -318,6 +321,30 @@ export function InterviewRandomizer() {
                    <span className="text-[8px] md:text-[9px] font-black text-gray-700 uppercase">Live</span>
                 </div>
             </div>
+
+            <ConfirmationModal
+                isOpen={!!alertConfig}
+                title="Attention"
+                message={alertConfig?.message || ''}
+                onConfirm={() => setAlertConfig(null)}
+                onCancel={() => setAlertConfig(null)}
+                confirmLabel="OK"
+                accentColor="neon-cyan"
+            />
+
+            <ConfirmationModal
+                isOpen={showClearConfirm}
+                title="Vider l'historique"
+                message="Voulez-vous vraiment vider tout l'historique des questions ? Cette action est irréversible."
+                onConfirm={() => {
+                    setHistory([]);
+                    localStorage.removeItem('interview_history');
+                    setShowClearConfirm(false);
+                }}
+                onCancel={() => setShowClearConfirm(false)}
+                accentColor="neon-red"
+                confirmLabel="Vider"
+            />
         </div>
     );
 }

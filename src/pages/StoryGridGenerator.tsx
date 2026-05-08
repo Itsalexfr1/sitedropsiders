@@ -50,18 +50,21 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         clubs: rawWikiData.clubs || rawWikiData.wikiClubs || [],
         festivals: rawWikiData.festivals || rawWikiData.wikiFestivals || [],
     } : undefined;
+
     const [items, setItems] = useState<StoryItem[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [readyBlob, setReadyBlob] = useState<Blob | null>(null);
     const [readyUrl, setReadyUrl] = useState<string>('');
     const [readyFilename, setReadyFilename] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         return () => {
             if (readyUrl) URL.revokeObjectURL(readyUrl);
         };
     }, [readyUrl]);
+
     const previewRef = useRef<HTMLDivElement>(null);
     const [activeTheme, setActiveTheme] = useState<'manual' | 'djs' | 'clubs' | 'festivals'>('manual');
     const [randomLimit, setRandomLimit] = useState(30);
@@ -102,8 +105,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         if (!e.target.files?.length) return;
         const files = Array.from(e.target.files);
 
-        // Read all files in parallel — each file gets its own FileReader instance
-        // captured correctly inside the map closure (no shared-variable bug)
         const newItems: StoryItem[] = await Promise.all(
             files.map((file) =>
                 new Promise<StoryItem>((resolve) => {
@@ -123,7 +124,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         );
 
         setItems((prev) => [...prev, ...newItems]);
-        // Reset the input so the same files can be re-selected if needed
         e.target.value = '';
     };
 
@@ -150,7 +150,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
     const generateFromWiki = useCallback(() => {
         if (!wikiData) return;
         
-        // Deep copy source to avoid any reference issues
         let source: any[] = [];
         if (activeTheme === 'djs') source = JSON.parse(JSON.stringify(wikiData.djs || []));
         else if (activeTheme === 'clubs') source = JSON.parse(JSON.stringify(wikiData.clubs || []));
@@ -158,20 +157,16 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
 
         if (source.length === 0) return;
 
-        // Fisher-Yates Shuffle (robust and unbiased)
         const shuffled = [...source];
         for (let i = shuffled.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
 
-        // Filter out names that are already locked in the grid to avoid duplicates
         const currentNames = new Set(items.filter(it => lockedIds.has(it.id)).map(it => it.label.toLowerCase().trim()));
         const filteredSource = shuffled.filter(item => !currentNames.has((item.name || '').toLowerCase().trim()));
 
         const selected = filteredSource.slice(0, randomLimit);
-
-        // Map to StoryItem with guaranteed unique IDs and cache-busting
         const generationTimestamp = Date.now();
         const wikiItems: StoryItem[] = selected.map((item, idx) => {
             const rawImg = resolveImageUrl(item.image || item.photo || null, item.name);
@@ -193,13 +188,9 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
             const lockedItems = prev.filter(it => lockedIds.has(it.id));
             const availableSlots = Math.max(0, randomLimit - lockedItems.length);
             const filteredNew = wikiItems.slice(0, availableSlots);
-            
-            // Log to debug if needed (user can see in console if they look)
-            console.log("Generating from Wiki:", filteredNew.length, "items added");
-            
             return [...lockedItems, ...filteredNew].slice(0, randomLimit);
         });
-    }, [activeTheme, wikiData, randomLimit, lockedIds]);
+    }, [activeTheme, wikiData, randomLimit, lockedIds, items]);
 
     const randomizeSelection = () => {
         generateFromWiki();
@@ -210,7 +201,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
     };
 
     const updateItem = (id: string, updates: Partial<StoryItem>) => {
-        setItems(items.map(item => {
+        setItems(prev => prev.map(item => {
             if (item.id === id) {
                 const newItem = { ...item, ...updates };
                 if (updates.image !== undefined) {
@@ -244,17 +235,12 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
 
     const downloadImage = async () => {
         if (!previewRef.current || items.length === 0) return;
-        
-        // Force preview tab on mobile to ensure element is visible for capture
         setMobileTab('preview');
         setIsGenerating(true);
-
-        // Small delay to ensure tab switch and all images are painted
         await new Promise(resolve => setTimeout(resolve, 800));
 
         try {
             const fileName = `dropsiders_grid_${Date.now()}.png`;
-
             const blob = await toBlob(previewRef.current, {
                 pixelRatio: window.innerWidth < 768 ? 1.5 : 2,
                 backgroundColor: '#000000',
@@ -268,10 +254,9 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                 setReadyFilename(fileName);
                 setShowSuccess(true);
             }
-
         } catch (err: any) {
             console.error('Failed to generate image:', err);
-            alert(`Erreur technique : ${err.message || 'Problème de rendu'}`);
+            setError(`Erreur technique : ${err.message || 'Problème de rendu'}`);
         } finally {
             setIsGenerating(false);
         }
@@ -337,10 +322,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                 {(['manual', 'djs', 'clubs', 'festivals'] as const).map(t => (
                                     <button 
                                         key={t}
-                                        onClick={() => {
-                                            setActiveTheme(t);
-                                            if (t === 'manual') setItems([]);
-                                        }}
+                                        onClick={() => setActiveTheme(t)}
                                         className={`py-3 rounded-xl border font-black text-[10px] uppercase tracking-widest transition-all ${activeTheme === t ? 'bg-neon-cyan/10 border-neon-cyan/50 text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                                     >
                                         {t === 'manual' ? 'Manuel' : t}
@@ -368,9 +350,8 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                     </button>
                                 </div>
                             )}
-
                         </div>
-
+                        
                         {/* Items List */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
@@ -392,138 +373,34 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
 
                             <div className="space-y-3">
                                 {items.map((item, index) => (
-                                    <div key={item.id} className="group bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col gap-4 hover:border-neon-cyan/30 transition-all">
-                                        <div className="flex items-center gap-4">
-                                            <div 
-                                                onClick={() => {
-                                                    setActiveEditId(item.id);
-                                                    setSearchQuery('');
-                                                }}
-                                                className="w-14 h-14 rounded-full border-2 border-white/10 bg-black/40 flex-shrink-0 cursor-pointer overflow-hidden relative group/img"
-                                            >
-                                                {item.image ? (
-                                                    <img src={item.image} className="w-full h-full object-cover" alt="" />
-                                                ) : (
-                                                    <ImageIcon className="w-5 h-5 text-gray-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover/img:text-white transition-colors" />
-                                                )}
-                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
-                                                    <Settings className="w-4 h-4 text-white" />
-                                                </div>
-                                            </div>
-                                            <div className="flex-1 space-y-1">
-                                                <span className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em]">Item #{index + 1}</span>
-                                                <input 
-                                                    type="text"
-                                                    value={item.label}
-                                                    onChange={(e) => updateItem(item.id, { label: e.target.value })}
-                                                    placeholder="NOM OBLIGATOIRE"
-                                                    className={`w-full bg-transparent border-none p-0 font-bold text-sm outline-none transition-colors ${!item.label.trim() ? 'text-neon-red placeholder:text-neon-red/50' : 'text-white focus:text-neon-cyan'}`}
-                                                />
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <button 
-                                                    onClick={() => toggleLock(item.id)}
-                                                    className={`p-2 transition-all ${lockedIds.has(item.id) ? 'text-neon-cyan' : 'text-gray-600 hover:text-white'}`}
-                                                    title={lockedIds.has(item.id) ? "Déverrouiller" : "Verrouiller (garder lors du mélange)"}
-                                                >
-                                                    {lockedIds.has(item.id) ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                                                </button>
-                                                <button 
-                                                    onClick={() => removeItem(item.id)}
-                                                    className="p-2 text-gray-600 hover:text-neon-red transition-all"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {activeEditId === item.id && (
-                                            <motion.div 
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                className="pt-4 border-t border-white/5 space-y-4"
-                                            >
-                                                <div className="space-y-2">
-                                                    <div className="relative">
-                                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500" />
-                                                        <input 
-                                                            type="text"
-                                                            value={searchQuery}
-                                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                                            placeholder="Rechercher dans le Wiki..."
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-[10px] font-bold text-white outline-none focus:border-neon-cyan"
-                                                        />
-                                                    </div>
-                                                    {searchQuery.length > 1 && wikiData && (
-                                                        <div className="bg-black/60 rounded-xl max-h-40 overflow-y-auto custom-scrollbar border border-white/5">
-                                                            {[...wikiData.djs, ...wikiData.clubs, ...wikiData.festivals]
-                                                                .filter(w => w.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                                                                .slice(0, 5)
-                                                                .map(res => (
-                                                                    <button 
-                                                                        key={res.id}
-                                                                        onClick={() => {
-                                                                            const rawImg = res.image || res.photo;
-                                                                            updateItem(item.id, { 
-                                                                                image: rawImg, 
-                                                                                label: res.name 
-                                                                            });
-                                                                            setSearchQuery('');
-                                                                            setActiveEditId(null);
-                                                                        }}
-                                                                        className="w-full p-2 hover:bg-white/5 flex items-center gap-3 transition-colors text-left"
-                                                                    >
-                                                                        <img src={res.image || res.photo} className="w-6 h-6 rounded-full object-cover" alt="" />
-                                                                        <span className="text-[10px] font-bold text-white">{res.name}</span>
-                                                                    </button>
-                                                                ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <div className="flex gap-2">
-                                                    <button 
-                                                        onClick={() => fileInputRef.current?.click()}
-                                                        className="flex-1 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white flex items-center justify-center gap-2"
-                                                    >
-                                                        <Upload className="w-3 h-3" /> Changer Photo
-                                                    </button>
-                                                    {addToWiki && item.image && item.label && (
-                                                        <button 
-                                                            onClick={async () => {
-                                                                const success = await handleWikiAdd(item.label, item.image!, activeTheme === 'manual' ? 'DJ' : activeTheme.slice(0, -1));
-                                                                if (success) setAddToWiki(false);
-                                                            }}
-                                                            disabled={isSavingWiki}
-                                                            className="px-4 py-2 bg-neon-cyan/20 border border-neon-cyan/50 rounded-xl text-[9px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-2"
-                                                        >
-                                                            {isSavingWiki ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
-                                                            Sync Wiki
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                
-                                                <div className="flex items-center gap-2 px-1">
-                                                    <input 
-                                                        type="checkbox" 
-                                                        id={`wiki-${item.id}`}
-                                                        checked={addToWiki}
-                                                        onChange={(e) => setAddToWiki(e.target.checked)}
-                                                        className="accent-neon-cyan"
-                                                    />
-                                                    <label htmlFor={`wiki-${item.id}`} className="text-[9px] font-bold text-gray-500 uppercase cursor-pointer">Ajouter au Wiki</label>
-                                                </div>
-
-                                                <button 
-                                                    onClick={() => setActiveEditId(null)}
-                                                    className="w-full py-1 text-[8px] font-black text-gray-600 uppercase hover:text-white"
-                                                >
-                                                    Fermer
-                                                </button>
-                                            </motion.div>
-                                        )}
-                                    </div>
+                                    <StoryItemControl 
+                                        key={item.id} 
+                                        item={item} 
+                                        index={index} 
+                                        activeEditId={activeEditId}
+                                        setActiveEditId={setActiveEditId}
+                                        searchQuery={searchQuery}
+                                        setSearchQuery={setSearchQuery}
+                                        wikiData={wikiData}
+                                        updateItem={updateItem}
+                                        removeItem={removeItem}
+                                        toggleLock={toggleLock}
+                                        lockedIds={lockedIds}
+                                        addToWiki={addToWiki}
+                                        setAddToWiki={setAddToWiki}
+                                        isSavingWiki={isSavingWiki}
+                                        handleWikiAdd={handleWikiAdd}
+                                        activeTheme={activeTheme}
+                                        fileInputRef={fileInputRef}
+                                    />
                                 ))}
+
+                                {items.length === 0 && (
+                                    <div className="py-12 border-2 border-dashed border-white/5 rounded-[2rem] flex flex-col items-center justify-center gap-4 text-gray-700">
+                                        <LayoutGrid className="w-8 h-8 opacity-20" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">Aucun élément</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -547,7 +424,6 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                     ref={previewRef}
                                     className="w-full h-full bg-[#050505] flex flex-col items-center justify-between p-4 pt-5 pb-3 relative overflow-hidden"
                                 >
-                                    {/* Success Modal (Social Studio Style) */}
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,0,51,0.08)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(0,255,243,0.05)_0%,transparent_50%)]" />
                                     <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -562,40 +438,18 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                                         </div>
                                     </div>
 
-                                    <div className="w-full flex-1 overflow-hidden relative z-10 flex items-center">
+                                    <div className="w-full flex-1 overflow-hidden relative z-10 flex flex-col justify-center gap-6">
                                         <div className="grid gap-x-1 gap-y-1 grid-cols-5">
                                             {items.map(item => (
-                                                <div key={item.id} className="flex flex-col items-center gap-1">
-                                                    <div className="w-full aspect-square rounded-full border-[1.5px] border-white bg-[#111] overflow-hidden shadow-lg relative">
-                                                        {item.displayImage || item.image ? (
-                                                            <img 
-                                                                src={item.displayImage || item.image || ''} 
-                                                                className="w-full h-full object-cover" 
-                                                                alt="" 
-                                                                crossOrigin="anonymous"
-                                                                key={item.id}
-                                                            />
-                                                        ) : (
-                                                            <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">
-                                                                <ImageIcon className="w-3 h-3 text-white/20" />
-                                                            </div>
-                                                        )}
-                                                        <div className="absolute inset-0 rounded-full border-[1px] border-black/40" />
-                                                    </div>
-                                                    <span className="text-[7px] text-white/90 font-bold text-center leading-[1.1] uppercase tracking-tighter line-clamp-2 px-0.5">
-                                                        {item.label}
-                                                    </span>
-                                                </div>
+                                                <StoryItemPreview key={item.id} item={item} />
                                             ))}
                                         </div>
                                     </div>
 
-                                    {/* Footer branding */}
                                     <div className="w-full mt-2 pt-2 border-t border-white/10 flex flex-col items-center gap-0.5 relative z-10">
                                         <span className="text-[6px] font-black text-white/50 uppercase tracking-widest">Faites le vôtre sur <span className="text-white">dropsiders.fr</span></span>
                                         <span className="text-[6px] font-black text-white/50 uppercase tracking-widest">Identifiez-nous <span className="text-neon-cyan">@dropsiders.eu</span> ✅</span>
                                     </div>
-
                                 </div>
                             </div>
 
@@ -617,6 +471,28 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                         </div>
                     </div>
                 </div>
+
+                <AnimatePresence>
+                    {error && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            className="absolute bottom-32 left-1/2 -translate-x-1/2 z-[400] px-8 py-4 bg-red-500/10 border border-red-500/30 rounded-2xl backdrop-blur-xl flex items-center gap-4 shadow-2xl"
+                        >
+                            <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center border border-red-500/30">
+                                <X className="w-5 h-5 text-red-500" />
+                            </div>
+                            <div className="flex-1">
+                                <p className="text-[10px] font-black text-red-500 uppercase tracking-widest leading-none mb-1">Erreur</p>
+                                <p className="text-white text-xs font-bold">{error}</p>
+                            </div>
+                            <button onClick={() => setError(null)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                                <X className="w-4 h-4 text-gray-500" />
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <div className="p-6 bg-black border-t border-white/5 flex justify-end gap-4">
                     <button 
@@ -648,6 +524,173 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
                     subtitle="Votre contenu est prêt"
                 />
             </div>
+        </div>
+    );
+}
+
+// Sub-components for cleaner code
+function StoryItemControl({ 
+    item, index, activeEditId, setActiveEditId, searchQuery, setSearchQuery, 
+    wikiData, updateItem, removeItem, toggleLock, lockedIds, addToWiki, setAddToWiki, 
+    isSavingWiki, handleWikiAdd, activeTheme, fileInputRef 
+}: any) {
+    return (
+        <div className="group bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col gap-4 hover:border-neon-cyan/30 transition-all">
+            <div className="flex items-center gap-4">
+                <div 
+                    onClick={() => {
+                        setActiveEditId(item.id);
+                        setSearchQuery('');
+                    }}
+                    className="w-14 h-14 rounded-full border-2 border-white/10 bg-black/40 flex-shrink-0 cursor-pointer overflow-hidden relative group/img"
+                >
+                    {item.image ? (
+                        <img src={item.image} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                        <ImageIcon className="w-5 h-5 text-gray-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover/img:text-white transition-colors" />
+                    )}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
+                        <Settings className="w-4 h-4 text-white" />
+                    </div>
+                </div>
+                <div className="flex-1 space-y-1">
+                    <span className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em]">Item #{index + 1}</span>
+                    <input 
+                        type="text"
+                        value={item.label}
+                        onChange={(e) => updateItem(item.id, { label: e.target.value })}
+                        placeholder="NOM OBLIGATOIRE"
+                        className={`w-full bg-transparent border-none p-0 font-bold text-sm outline-none transition-colors ${!item.label.trim() ? 'text-neon-red placeholder:text-neon-red/50' : 'text-white focus:text-neon-cyan'}`}
+                    />
+                </div>
+                <div className="flex items-center gap-1">
+                    <button 
+                        onClick={() => toggleLock(item.id)}
+                        className={`p-2 transition-all ${lockedIds.has(item.id) ? 'text-neon-cyan' : 'text-gray-600 hover:text-white'}`}
+                        title={lockedIds.has(item.id) ? "Déverrouiller" : "Verrouiller (garder lors du mélange)"}
+                    >
+                        {lockedIds.has(item.id) ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
+                    </button>
+                    <button 
+                        onClick={() => removeItem(item.id)}
+                        className="p-2 text-gray-600 hover:text-neon-red transition-all"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
+
+            {activeEditId === item.id && (
+                <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="pt-4 border-t border-white/5 space-y-4"
+                >
+                    <div className="space-y-2">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500" />
+                            <input 
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Rechercher dans le Wiki..."
+                                className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-[10px] font-bold text-white outline-none focus:border-neon-cyan"
+                            />
+                        </div>
+                        {searchQuery.length > 1 && wikiData && (
+                            <div className="bg-black/60 rounded-xl max-h-40 overflow-y-auto custom-scrollbar border border-white/5">
+                                {[...wikiData.djs, ...wikiData.clubs, ...wikiData.festivals]
+                                    .filter(w => w.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                                    .slice(0, 5)
+                                    .map(res => (
+                                        <button 
+                                            key={res.id}
+                                            onClick={() => {
+                                                const rawImg = res.image || res.photo;
+                                                updateItem(item.id, { 
+                                                    image: rawImg, 
+                                                    label: res.name 
+                                                });
+                                                setSearchQuery('');
+                                                setActiveEditId(null);
+                                            }}
+                                            className="w-full p-2 hover:bg-white/5 flex items-center gap-3 transition-colors text-left"
+                                        >
+                                            <img src={res.image || res.photo} className="w-6 h-6 rounded-full object-cover" alt="" />
+                                            <span className="text-[10px] font-bold text-white">{res.name}</span>
+                                        </button>
+                                    ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex-1 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white flex items-center justify-center gap-2"
+                        >
+                            <Upload className="w-3 h-3" /> Changer Photo
+                        </button>
+                        {addToWiki && item.image && item.label && (
+                            <button 
+                                onClick={async () => {
+                                    const success = await handleWikiAdd(item.label, item.image!, activeTheme === 'manual' ? 'DJ' : activeTheme.slice(0, -1));
+                                    if (success) setAddToWiki(false);
+                                }}
+                                disabled={isSavingWiki}
+                                className="px-4 py-2 bg-neon-cyan/20 border border-neon-cyan/50 rounded-xl text-[9px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-2"
+                            >
+                                {isSavingWiki ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                Sync Wiki
+                            </button>
+                        )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2 px-1">
+                        <input 
+                            type="checkbox" 
+                            id={`wiki-${item.id}`}
+                            checked={addToWiki}
+                            onChange={(e) => setAddToWiki(e.target.checked)}
+                            className="accent-neon-cyan"
+                        />
+                        <label htmlFor={`wiki-${item.id}`} className="text-[9px] font-bold text-gray-500 uppercase cursor-pointer">Ajouter au Wiki</label>
+                    </div>
+
+                    <button 
+                        onClick={() => setActiveEditId(null)}
+                        className="w-full py-1 text-[8px] font-black text-gray-600 uppercase hover:text-white"
+                    >
+                        Fermer
+                    </button>
+                </motion.div>
+            )}
+        </div>
+    );
+}
+
+function StoryItemPreview({ item }: { item: StoryItem }) {
+    return (
+        <div className="flex flex-col items-center gap-1">
+            <div className="w-full aspect-square rounded-full border-[1.5px] border-white bg-[#111] overflow-hidden shadow-lg relative">
+                {item.displayImage || item.image ? (
+                    <img 
+                        src={item.displayImage || item.image || ''} 
+                        className="w-full h-full object-cover" 
+                        alt="" 
+                        crossOrigin="anonymous"
+                        key={item.id}
+                    />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center">
+                        <ImageIcon className="w-3 h-3 text-white/20" />
+                    </div>
+                )}
+                <div className="absolute inset-0 rounded-full border-[1px] border-black/40" />
+            </div>
+            <span className="text-[7px] text-white/90 font-bold text-center leading-[1.1] uppercase tracking-tighter line-clamp-2 px-0.5">
+                {item.label}
+            </span>
         </div>
     );
 }

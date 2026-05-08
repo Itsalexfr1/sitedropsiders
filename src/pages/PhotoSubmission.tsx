@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Camera, Send, CheckCircle2, Upload, X, ArrowLeft, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import wikiFestivals from '../data/wiki_festivals.json';
+import { ConfirmationModal } from '../components/ConfirmationModal';
 
 export function PhotoSubmission() {
     const navigate = useNavigate();
@@ -11,6 +12,7 @@ export function PhotoSubmission() {
     const [preview, setPreview] = useState<string | null>(null);
     const [festivalName, setFestivalName] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
+    const [showAlert, setShowAlert] = useState<{ isOpen: boolean, message: string }>({ isOpen: false, message: '' });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,7 +60,7 @@ export function PhotoSubmission() {
             setTimeout(() => navigate('/communaute'), 3000);
         } catch (error: any) {
             console.error('Submission error:', error);
-            alert('Désolé, une erreur est survenue lors de l\'envoi. Réessayez plus tard.');
+            setShowAlert({ isOpen: true, message: 'Désolé, une erreur est survenue lors de l\'envoi. Réessayez plus tard.' });
         } finally {
             setIsSubmitting(false);
         }
@@ -258,6 +260,17 @@ export function PhotoSubmission() {
                     )}
                 </motion.div>
             </div>
+
+            <ConfirmationModal
+                isOpen={showAlert.isOpen}
+                title="Erreur d'envoi"
+                message={showAlert.message}
+                confirmLabel="OK"
+                cancelLabel="Fermer"
+                onConfirm={() => setShowAlert({ isOpen: false, message: '' })}
+                onCancel={() => setShowAlert({ isOpen: false, message: '' })}
+                accentColor="neon-red"
+            />
         </div>
     );
 }

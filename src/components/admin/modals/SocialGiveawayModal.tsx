@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Instagram, Facebook, RefreshCcw, CheckCircle2, User, Heart, Trophy, Gift, AlertCircle, ExternalLink, Smartphone, Image as ImageIcon, Download } from 'lucide-react';
 import { TakeoverContext } from '../../../context/TakeoverContext';
+import { ConfirmationModal } from '../../ConfirmationModal';
 import { useContext } from 'react';
 
 interface SocialGiveawayModalProps {
@@ -11,7 +12,8 @@ interface SocialGiveawayModalProps {
 
 export function SocialGiveawayModal({ isOpen, onClose }: SocialGiveawayModalProps) {
     const takeover = useContext(TakeoverContext);
-    const showNotification = takeover?.showNotification || ((msg: string) => alert(msg));
+    const [localAlert, setLocalAlert] = useState<{ isOpen: boolean, message: string }>({ isOpen: false, message: '' });
+    const showNotification = takeover?.showNotification || ((msg: string) => setLocalAlert({ isOpen: true, message: msg }));
     const [postUrl, setPostUrl] = useState('');
     const [isExtracting, setIsExtracting] = useState(false);
     const [step, setStep] = useState<'input' | 'extracting' | 'results'>('input');
@@ -123,7 +125,8 @@ export function SocialGiveawayModal({ isOpen, onClose }: SocialGiveawayModalProp
     if (!isOpen) return null;
 
     return (
-        <AnimatePresence>
+        <>
+            <AnimatePresence>
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                 <motion.div 
                     initial={{ opacity: 0 }} 
@@ -315,5 +318,15 @@ export function SocialGiveawayModal({ isOpen, onClose }: SocialGiveawayModalProp
                 </motion.div>
             </div>
         </AnimatePresence>
+
+        <ConfirmationModal
+            isOpen={localAlert.isOpen}
+            title="Notification"
+            message={localAlert.message}
+            confirmLabel="OK"
+            onConfirm={() => setLocalAlert({ isOpen: false, message: '' })}
+            accentColor="neon-yellow"
+        />
+        </>
     );
 }

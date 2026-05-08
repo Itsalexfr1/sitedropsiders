@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, MessageSquare, Plus, CheckCircle2, Send, User, Camera } from 'lucide-react';
 import wikiFestivals from '../../data/wiki_festivals.json';
+import { ConfirmationModal } from '../ConfirmationModal';
 
 interface Review {
     id: string;
@@ -36,6 +37,7 @@ export function AvisSection() {
     });
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [customFestivalImage, setCustomFestivalImage] = useState<File | null>(null);
+    const [showAlert, setShowAlert] = useState<{ isOpen: boolean, message: string }>({ isOpen: false, message: '' });
 
     useEffect(() => {
         fetchReviews();
@@ -60,7 +62,7 @@ export function AvisSection() {
         setSubmitStatus('loading');
         if (!wikiFestivals.some(f => f.name.toLowerCase() === formData.festival.toLowerCase())) {
             if (!customFestivalImage) {
-                alert("Ce festival n'est pas répertorié. Vous devez ajouter une photo du festival pour l'envoyer !");
+                setShowAlert({ isOpen: true, message: "Ce festival n'est pas répertorié. Vous devez ajouter une photo du festival pour l'envoyer !" });
                 setSubmitStatus('idle');
                 return;
             }
@@ -337,6 +339,17 @@ export function AvisSection() {
                     </form>
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={showAlert.isOpen}
+                title="Action Requise"
+                message={showAlert.message}
+                confirmLabel="D'accord"
+                cancelLabel="Fermer"
+                onConfirm={() => setShowAlert({ isOpen: false, message: '' })}
+                onCancel={() => setShowAlert({ isOpen: false, message: '' })}
+                accentColor="neon-yellow"
+            />
         </div>
     );
 }

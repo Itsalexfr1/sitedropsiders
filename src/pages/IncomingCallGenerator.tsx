@@ -39,6 +39,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
     const [videoDuration, setVideoDuration] = useState(10);
     const [mobileTab, setMobileTab] = useState<'config' | 'preview'>('config');
     const [showSuccess, setShowSuccess] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const [readyBlob, setReadyBlob] = useState<Blob | null>(null);
     const [readyUrl, setReadyUrl] = useState<string>('');
@@ -92,7 +93,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
             }
         } catch (err) {
             console.error("Export failed:", err);
-            alert("Erreur lors de l'exportation. Veuillez réessayer.");
+            setError("Erreur lors de l'exportation. Veuillez réessayer.");
         } finally {
             setIsExporting(false);
         }
@@ -200,7 +201,7 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
 
         } catch (err) {
             console.error("Video export failed:", err);
-            alert("Erreur lors de l'export vidéo. Essaye sur PC si le problème persiste.");
+            setError("Erreur lors de l'export vidéo. Essaye sur PC si le problème persiste.");
         } finally {
             setIsRecording(false);
             setRecordingProgress(0);
@@ -508,6 +509,28 @@ export const IncomingCallGenerator = ({ isOpen, onClose }: IncomingCallGenerator
                             </div>
                         </div>
                     </div>
+
+                    <AnimatePresence>
+                        {error && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 20 }}
+                                className="absolute bottom-12 left-1/2 -translate-x-1/2 z-[400] px-8 py-4 bg-red-500/10 border border-red-500/30 rounded-2xl backdrop-blur-xl flex items-center gap-4 shadow-2xl"
+                            >
+                                <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center border border-red-500/30">
+                                    <X className="w-5 h-5 text-red-500" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] font-black text-red-500 uppercase tracking-widest leading-none mb-1">Erreur</p>
+                                    <p className="text-white text-xs font-bold">{error}</p>
+                                </div>
+                                <button onClick={() => setError(null)} className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                                    <X className="w-4 h-4 text-gray-500" />
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
                 <ExportSuccessModal 
                     isOpen={showSuccess && !!readyBlob} 

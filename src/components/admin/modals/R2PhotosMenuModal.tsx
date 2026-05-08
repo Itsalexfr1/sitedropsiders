@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Image as ImageIcon, Loader2, Trash2, ExternalLink, HardDrive, RefreshCw, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { getAuthHeaders } from '../../../utils/auth';
+import { ConfirmationModal } from '../../ConfirmationModal';
 
 interface R2PhotosMenuModalProps {
     isOpen: boolean;
@@ -18,6 +19,7 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
     const [history, setHistory] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [showUnused, setShowUnused] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState<{ isOpen: boolean, key: string | null }>({ isOpen: false, key: null });
 
     const fetchPhotos = async (targetCursor?: string | null) => {
         setLoading(true);
@@ -70,7 +72,14 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
     };
 
     const handleDelete = async (key: string) => {
-        if (!confirm('Supprimer définitivement cette photo de R2 ?')) return;
+        setShowDeleteConfirm({ isOpen: true, key });
+    };
+
+    const confirmDelete = async () => {
+        const key = showDeleteConfirm.key;
+        if (!key) return;
+        
+        setShowDeleteConfirm({ isOpen: false, key: null });
         try {
             const res = await fetch('/api/r2/delete', {
                 method: 'POST',
@@ -288,6 +297,16 @@ export function R2PhotosMenuModal({ isOpen, onClose, onSelect, mode = 'view' }: 
                     </motion.div>
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={showDeleteConfirm.isOpen}
+                title="Suppression Cloud R2"
+                message="Voulez-vous vraiment supprimer définitivement cette photo de votre stockage Cloudflare R2 ? Cette action est irréversible."
+                onConfirm={confirmDelete}
+                onCancel={() => setShowDeleteConfirm({ isOpen: false, key: null })}
+                accentColor="neon-red"
+                confirmLabel="Supprimer"
+            />
         </AnimatePresence>
     );
 }

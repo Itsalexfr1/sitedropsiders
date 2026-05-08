@@ -22,6 +22,8 @@ export function NewsletterAdmin() {
     const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
     const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+    const showToast = (msg: string, type: 'success' | 'error' = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
     const handleBulkDelete = async () => {
         setBulkDeleteConfirm(false);
@@ -38,14 +40,14 @@ export function NewsletterAdmin() {
                 const updated = subscribers.filter(sub => !selectedEmails.includes(sub.email));
                 setSubscribers(updated);
                 setSelectedEmails([]);
-                alert(`${selectedEmails.length} abonnés supprimés`);
+                showToast(`${selectedEmails.length} abonnés supprimés`);
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                alert(errorData.error || 'Erreur lors de la suppression groupée');
+                showToast(errorData.error || 'Erreur lors de la suppression groupée', 'error');
             }
         } catch (e: any) {
             console.error('Error during bulk delete', e);
-            alert('Erreur réseau lors de la suppression groupée');
+            showToast('Erreur réseau lors de la suppression groupée', 'error');
         }
         setIsDeleting(false);
     };
@@ -101,11 +103,11 @@ export function NewsletterAdmin() {
                 setSubscribers(updated);
                 setFilteredSubscribers(updated);
             } else {
-                alert('Erreur lors de la désinscription');
+                showToast('Erreur lors de la désinscription', 'error');
             }
         } catch (error: any) {
             console.error('Error unsubscribing:', error);
-            alert('Erreur réseau');
+            showToast('Erreur réseau', 'error');
         }
     };
 
@@ -342,6 +344,14 @@ export function NewsletterAdmin() {
                     </div>
                 </div>
             </div>
+
+            {toast && (
+                <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-2xl border ${
+                    toast.type === 'success'
+                        ? 'bg-neon-green/10 border-neon-green/30 text-neon-green'
+                        : 'bg-neon-red/10 border-neon-red/30 text-neon-red'
+                }`}>{toast.msg}</div>
+            )}
 
             <ConfirmationModal
                 isOpen={deleteTarget !== null}
