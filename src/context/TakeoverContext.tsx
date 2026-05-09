@@ -19,6 +19,13 @@ export interface LineupItem {
     wikiType?: 'DJS' | 'CLUBS' | 'FESTIVALS';
 }
 
+export interface DailyStreamOverride {
+    day: string; // ISO date YYYY-MM-DD
+    startTime?: string; // HH:mm (Heure FR)
+    youtubeId?: string;
+    twitchChannel?: string;
+}
+
 export interface StreamItem {
     id: string;
     name: string;
@@ -29,6 +36,7 @@ export interface StreamItem {
     overrideArtist?: string;
     isExternalLink?: boolean;
     enabledInGrid?: boolean;
+    dailyOverrides?: DailyStreamOverride[];
 }
 
 export interface TakeoverSettings {

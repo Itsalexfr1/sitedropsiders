@@ -1028,6 +1028,60 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         const trimmed = url.trim();
         return (trimmed.length === 11) ? trimmed : trimmed;
     };
+
+    const resolveStreamInfo = (stream: any) => {
+        if (!stream) return null;
+        
+        // Obtenir la date et l'heure actuelle en France (Europe/Paris)
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat('fr-FR', {
+            timeZone: 'Europe/Paris',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        });
+        
+        const parts = formatter.formatToParts(now);
+        const dayFr = parts.find(p => p.type === 'day')?.value;
+        const monthFr = parts.find(p => p.type === 'month')?.value;
+        const yearFr = parts.find(p => p.type === 'year')?.value;
+        const hourFr = parts.find(p => p.type === 'hour')?.value;
+        const minuteFr = parts.find(p => p.type === 'minute')?.value;
+        
+        const todayStr = `${yearFr}-${monthFr}-${dayFr}`;
+        const timeStr = `${hourFr}:${minuteFr}`;
+
+        // Trouver les overrides valides pour aujourd'hui (qui ont déjà commencé)
+        const validOverrides = (stream.dailyOverrides || []).filter((o: any) => {
+            if (o.day !== todayStr) return false;
+            if (!o.startTime) return true; // Si pas d'heure spécifiée, actif dès le début du jour
+            return o.startTime <= timeStr;
+        });
+
+        // Trier par heure de début décroissante pour prendre l'override le plus récent
+        validOverrides.sort((a: any, b: any) => (b.startTime || '00:00').localeCompare(a.startTime || '00:00'));
+        
+        const override = validOverrides[0];
+        
+        if (override) {
+            return {
+                youtubeId: override.youtubeId || stream.youtubeId,
+                twitchChannel: override.twitchChannel || stream.twitchChannel,
+                streamSource: override.youtubeId ? 'youtube' : (override.twitchChannel ? 'twitch' : stream.streamSource),
+                isExternalLink: stream.isExternalLink
+            };
+        }
+        
+        return {
+            youtubeId: stream.youtubeId,
+            twitchChannel: stream.twitchChannel,
+            streamSource: stream.streamSource,
+            isExternalLink: stream.isExternalLink
+        };
+    };
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
         show: false, message: '', type: 'success'
     });
@@ -2837,12 +2891,13 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
 
             {/* 3. MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative">
-                {/* A. VIDEO PANEL (35% Mobile / 60% Desktop) */}
+{/* A. VIDEO PANEL (35% Mobile / 60% Desktop) */}
                 <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[35%] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
                     <div className="absolute inset-0 z-0">
                         {viewMode === 'single' ? (
                             (() => {
-                                const activeStream = settings.streams?.find((s: any) => s.id === settings.activeStreamId);
+                                const activeStreamRaw = settings.streams?.find((s: any) => s.id === settings.activeStreamId);
+                                const activeStream = resolveStreamInfo(activeStreamRaw);
                                 const activeYtId = activeStream?.youtubeId || settings.youtubeId;
                                 const isExternal = activeStream?.isExternalLink;
 
@@ -2863,7 +2918,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                             <svg className="w-8 h-8 text-white fill-current translate-x-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase whitespace-pre-wrap">{activeStream?.name || settings.title}</h3>
+                                                            <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase whitespace-pre-wrap">{activeStreamRaw?.name || settings.title}</h3>
                                                             <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">FLUX RÉSERVÉ À YOUTUBE</p>
                                                         </div>
                                                     </div>
@@ -2988,13 +3043,14 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                 return count === 1 ? 'grid-cols-1' : count === 2 ? 'grid-cols-2' : count <= 4 ? 'grid-cols-2' : count <= 6 ? 'grid-cols-3' : count <= 8 ? 'grid-cols-4' : 'grid-cols-5';
                             })()}`}>
                                 {(settings.streams || []).filter((s: any) => viewerGridSelection.includes(s.id)).map((s: any, idx: number) => {
+                                    const resolvedS = resolveStreamInfo(s);
                                     return (
                                         <div key={s?.id || `empty-${idx}`} className="relative group overflow-hidden bg-black/20 border border-white/5 rounded-xl flex items-center justify-center">
-                                            {s ? (
-                                                s.isExternalLink ? (
-                                                    <div className="relative group w-full h-full overflow-hidden bg-black/40 flex flex-col items-center justify-center p-4 cursor-pointer" onClick={() => window.open(`https://www.youtube.com/watch?v=${extractYoutubeId(s.youtubeId)}`, '_blank')}>
+                                            {resolvedS ? (
+                                                resolvedS.isExternalLink ? (
+                                                    <div className="relative group w-full h-full overflow-hidden bg-black/40 flex flex-col items-center justify-center p-4 cursor-pointer" onClick={() => window.open(`https://www.youtube.com/watch?v=${extractYoutubeId(resolvedS.youtubeId)}`, '_blank')}>
                                                         <img 
-                                                            src={`https://img.youtube.com/vi/${extractYoutubeId(s.youtubeId)}/0.jpg`} 
+                                                            src={`https://img.youtube.com/vi/${extractYoutubeId(resolvedS.youtubeId)}/0.jpg`} 
                                                             className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-40 transition-opacity grayscale" 
                                                             alt=""
                                                         />
@@ -3010,16 +3066,16 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                                                     </div>
                                                 ) : (
                                                     <>
-                                                    {s.streamSource === 'twitch' && s.twitchChannel ? (
+                                                    {resolvedS.streamSource === 'twitch' && resolvedS.twitchChannel ? (
                                                         <iframe
-                                                            src={`https://player.twitch.tv/?channel=${s.twitchChannel}&parent=${window.location.hostname}&autoplay=${idx === activeAudioIdx ? 'true' : 'false'}&muted=${idx === activeAudioIdx ? 'false' : 'true'}`}
+                                                            src={`https://player.twitch.tv/?channel=${resolvedS.twitchChannel}&parent=${window.location.hostname}&autoplay=${idx === activeAudioIdx ? 'true' : 'false'}&muted=${idx === activeAudioIdx ? 'false' : 'true'}`}
                                                             className="w-full h-full border-none"
                                                             allowFullScreen
                                                         />
                                                     ) : (
                                                         <iframe
                                                             className="w-full h-full border-none"
-                                                            src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
+                                                            src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(resolvedS.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
                                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                                             allowFullScreen
                                                             referrerPolicy="strict-origin-when-cross-origin"
