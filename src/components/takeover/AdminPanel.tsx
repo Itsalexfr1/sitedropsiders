@@ -358,56 +358,67 @@ export function AdminPanel() {
                                                         </button>
                                                     </div>
                                                     
-                                                    <div className="space-y-3">
+                                                     <div className="space-y-2">
                                                          {stream.dailyOverrides?.map((ov, oIdx) => (
-                                                             <div key={oIdx} className="grid grid-cols-1 md:grid-cols-9 gap-3 items-end bg-white/[0.02] p-3 rounded-xl border border-white/5 group/ov">
-                                                                 <div className="md:col-span-2 space-y-1">
-                                                                     <label className="text-[7px] font-black text-gray-500 uppercase ml-1">Date</label>
-                                                                     <input 
-                                                                         type="date" 
-                                                                         value={ov.day} 
-                                                                         onChange={e => {
-                                                                             const ns = [...editStreams];
-                                                                             const sIdx = ns.findIndex(s => s.id === stream.id);
-                                                                             ns[sIdx].dailyOverrides![oIdx].day = e.target.value;
-                                                                             setEditStreams(ns);
-                                                                         }}
-                                                                         className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-amber-500/50"
-                                                                     />
+                                                             <div key={oIdx} className="flex flex-col md:flex-row items-center gap-4 bg-white/5 border border-white/5 p-4 rounded-2xl group/ov hover:border-amber-500/30 transition-all">
+                                                                 {/* Date & Time Group */}
+                                                                 <div className="flex items-center gap-2 bg-black/40 p-2 rounded-xl border border-white/5 shrink-0">
+                                                                     <div className="flex flex-col">
+                                                                         <span className="text-[7px] font-black text-gray-500 uppercase ml-1">Date</span>
+                                                                         <input 
+                                                                             type="date" 
+                                                                             value={ov.day} 
+                                                                             onChange={e => {
+                                                                                 const ns = [...editStreams];
+                                                                                 const sIdx = ns.findIndex(s => s.id === stream.id);
+                                                                                 ns[sIdx].dailyOverrides![oIdx].day = e.target.value;
+                                                                                 setEditStreams(ns);
+                                                                             }}
+                                                                             className="bg-transparent text-[10px] text-white font-black outline-none px-1"
+                                                                             style={{ colorScheme: 'dark' }}
+                                                                         />
+                                                                     </div>
+                                                                     <div className="w-px h-6 bg-white/10 mx-1" />
+                                                                     <div className="flex flex-col">
+                                                                         <span className="text-[7px] font-black text-gray-500 uppercase ml-1">FR</span>
+                                                                         <input 
+                                                                             type="text" 
+                                                                             value={ov.startTime || ''} 
+                                                                             onChange={e => {
+                                                                                 const ns = [...editStreams];
+                                                                                 const sIdx = ns.findIndex(s => s.id === stream.id);
+                                                                                 ns[sIdx].dailyOverrides![oIdx].startTime = e.target.value;
+                                                                                 setEditStreams(ns);
+                                                                             }}
+                                                                             className="bg-transparent text-[10px] text-amber-500 font-black outline-none w-10 text-center"
+                                                                             placeholder="00:00"
+                                                                         />
+                                                                     </div>
                                                                  </div>
-                                                                 <div className="md:col-span-1 space-y-1">
-                                                                     <label className="text-[7px] font-black text-gray-500 uppercase ml-1">Heure (FR)</label>
-                                                                     <input 
-                                                                         type="text" 
-                                                                         value={ov.startTime || ''} 
-                                                                         onChange={e => {
-                                                                             const ns = [...editStreams];
-                                                                             const sIdx = ns.findIndex(s => s.id === stream.id);
-                                                                             ns[sIdx].dailyOverrides![oIdx].startTime = e.target.value;
-                                                                             setEditStreams(ns);
-                                                                         }}
-                                                                         className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-amber-500/50"
-                                                                         placeholder="HH:mm"
-                                                                     />
-                                                                 </div>
-                                                                 <div className="md:col-span-2 space-y-1">
-                                                                     <label className="text-[7px] font-black text-gray-500 uppercase ml-1">ID YouTube</label>
-                                                                     <input 
-                                                                         type="text" 
-                                                                         value={ov.youtubeId || ''} 
-                                                                         onChange={e => {
-                                                                             const ns = [...editStreams];
-                                                                             const sIdx = ns.findIndex(s => s.id === stream.id);
-                                                                             ns[sIdx].dailyOverrides![oIdx].youtubeId = extractYoutubeId(e.target.value);
-                                                                             setEditStreams(ns);
-                                                                         }}
-                                                                         className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red/50"
-                                                                         placeholder="ID ou Lien"
-                                                                     />
-                                                                 </div>
-                                                                 <div className="md:col-span-3 flex items-end gap-2">
-                                                                     <div className="flex-1 space-y-1">
-                                                                         <label className="text-[7px] font-black text-gray-500 uppercase ml-1">Twitch</label>
+
+                                                                 {/* Stream Sources Group */}
+                                                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+                                                                     <div className="relative">
+                                                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 bg-red-600 rounded flex items-center justify-center">
+                                                                             <span className="text-[6px] font-black text-white">YT</span>
+                                                                         </div>
+                                                                         <input 
+                                                                             type="text" 
+                                                                             value={ov.youtubeId || ''} 
+                                                                             onChange={e => {
+                                                                                 const ns = [...editStreams];
+                                                                                 const sIdx = ns.findIndex(s => s.id === stream.id);
+                                                                                 ns[sIdx].dailyOverrides![oIdx].youtubeId = extractYoutubeId(e.target.value);
+                                                                                 setEditStreams(ns);
+                                                                             }}
+                                                                             className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-[10px] text-white outline-none focus:border-red-500/50"
+                                                                             placeholder="ID ou Lien YouTube"
+                                                                         />
+                                                                     </div>
+                                                                     <div className="relative">
+                                                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 bg-purple-600 rounded flex items-center justify-center">
+                                                                             <span className="text-[6px] font-black text-white">TW</span>
+                                                                         </div>
                                                                          <input 
                                                                              type="text" 
                                                                              value={ov.twitchChannel || ''} 
@@ -417,32 +428,34 @@ export function AdminPanel() {
                                                                                  ns[sIdx].dailyOverrides![oIdx].twitchChannel = extractTwitchChannel(e.target.value);
                                                                                  setEditStreams(ns);
                                                                              }}
-                                                                             className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple/50"
-                                                                             placeholder="Nom de chaine"
+                                                                             className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-[10px] text-white outline-none focus:border-purple-500/50"
+                                                                             placeholder="Chaîne Twitch"
                                                                          />
                                                                      </div>
-                                                                     <button 
-                                                                         onClick={() => {
-                                                                             const ns = [...editStreams];
-                                                                             const sIdx = ns.findIndex(s => s.id === stream.id);
-                                                                             ns[sIdx].dailyOverrides = ns[sIdx].dailyOverrides!.filter((_, i) => i !== oIdx);
-                                                                             setEditStreams(ns);
-                                                                         }}
-                                                                         className="p-2 text-gray-600 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                                                     >
-                                                                         <Trash2 className="w-3.5 h-3.5" />
-                                                                     </button>
                                                                  </div>
+
+                                                                 <button 
+                                                                     onClick={() => {
+                                                                         const ns = [...editStreams];
+                                                                         const sIdx = ns.findIndex(s => s.id === stream.id);
+                                                                         ns[sIdx].dailyOverrides = ns[sIdx].dailyOverrides!.filter((_, i) => i !== oIdx);
+                                                                         setEditStreams(ns);
+                                                                     }}
+                                                                     className="p-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all shrink-0"
+                                                                 >
+                                                                     <Trash2 className="w-4 h-4" />
+                                                                 </button>
                                                              </div>
                                                          ))}
-                                                        
-                                                        {(!stream.dailyOverrides || stream.dailyOverrides.length === 0) && (
-                                                            <div className="py-8 text-center bg-white/[0.02] border border-dashed border-white/5 rounded-xl">
-                                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest italic">Aucun override pour le moment</p>
-                                                                <p className="text-[7px] text-gray-700 mt-1">Les liens par défaut seront utilisés pour tous les jours</p>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                         
+                                                         {(!stream.dailyOverrides || stream.dailyOverrides.length === 0) && (
+                                                             <div className="py-10 text-center bg-white/[0.02] border border-dashed border-white/5 rounded-2xl group-hover:border-amber-500/20 transition-all">
+                                                                 <Calendar className="w-6 h-6 text-gray-700 mx-auto mb-2 opacity-20" />
+                                                                 <p className="text-[9px] text-gray-600 font-bold uppercase tracking-[0.2em]">Aucun horaire programmé</p>
+                                                                 <p className="text-[7px] text-gray-700 mt-1 uppercase">Cliquez sur "Ajouter un jour" pour commencer</p>
+                                                             </div>
+                                                         )}
+                                                     </div>
                                                 </div>
                                             )}
                                         </div>
