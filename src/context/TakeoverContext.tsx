@@ -36,6 +36,8 @@ export interface StreamItem {
     overrideArtist?: string;
     isExternalLink?: boolean;
     enabledInGrid?: boolean;
+    day?: string; // ISO date YYYY-MM-DD
+    startTime?: string; // HH:mm (Heure FR)
     dailyOverrides?: DailyStreamOverride[];
 }
 
