@@ -1055,9 +1055,21 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         const timeStr = `${hourFr}:${minuteFr}`;
 
         // Trouver les overrides valides pour aujourd'hui (qui ont déjà commencé)
-        const validOverrides = (stream.dailyOverrides || []).filter((o: any) => {
+        const allOverrides = [...(stream.dailyOverrides || [])];
+        
+        // Ajouter les infos directes du stream comme un override potentiel si elles existent
+        if (stream.day && stream.startTime) {
+            allOverrides.push({
+                day: stream.day,
+                startTime: stream.startTime,
+                youtubeId: stream.youtubeId,
+                twitchChannel: stream.twitchChannel
+            });
+        }
+
+        const validOverrides = allOverrides.filter((o: any) => {
             if (o.day !== todayStr) return false;
-            if (!o.startTime) return true; // Si pas d'heure spécifiée, actif dès le début du jour
+            if (!o.startTime) return true;
             return o.startTime <= timeStr;
         });
 
@@ -1070,7 +1082,9 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
             return {
                 youtubeId: override.youtubeId || stream.youtubeId,
                 twitchChannel: override.twitchChannel || stream.twitchChannel,
-                streamSource: override.youtubeId ? 'youtube' : (override.twitchChannel ? 'twitch' : stream.streamSource),
+                streamSource: (override.youtubeId && !override.twitchChannel) ? 'youtube' : 
+                              (override.twitchChannel && !override.youtubeId) ? 'twitch' : 
+                              (override.youtubeId ? 'youtube' : (override.twitchChannel ? 'twitch' : stream.streamSource)),
                 isExternalLink: stream.isExternalLink
             };
         }

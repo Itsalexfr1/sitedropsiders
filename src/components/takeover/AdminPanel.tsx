@@ -234,7 +234,7 @@ export function AdminPanel() {
                                     {editStreams.map((stream, idx) => (
                                         <div key={stream.id} className={`group bg-black/40 border p-6 rounded-2xl transition-all ${editActiveStreamId === stream.id ? 'border-neon-blue shadow-[0_0_20px_rgba(0,255,255,0.1)]' : 'border-white/5 hover:border-white/20'}`}>
                                             <div className="flex flex-col md:flex-row gap-6 items-start">
-                                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
                                                     <div className="space-y-1">
                                                         <label className="text-[8px] font-black text-gray-500 uppercase ml-1">Nom de la scène</label>
                                                         <input 
@@ -292,9 +292,37 @@ export function AdminPanel() {
                                                             placeholder={stream.streamSource === 'twitch' ? "Lien ou Nom Twitch" : "Lien ou ID YouTube"}
                                                         />
                                                     </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-1">Jour (Direct)</label>
+                                                        <input 
+                                                            type="date" 
+                                                            value={stream.day || ''} 
+                                                            onChange={e => {
+                                                                const ns = [...editStreams];
+                                                                ns[idx].day = e.target.value;
+                                                                setEditStreams(ns);
+                                                            }}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-amber-500/50"
+                                                            style={{ colorScheme: 'dark' }}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[8px] font-black text-gray-500 uppercase ml-1">Heure (FR Direct)</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={stream.startTime || ''} 
+                                                            onChange={e => {
+                                                                const ns = [...editStreams];
+                                                                ns[idx].startTime = e.target.value;
+                                                                setEditStreams(ns);
+                                                            }}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-amber-500/50"
+                                                            placeholder="HH:mm"
+                                                        />
+                                                    </div>
                                                 </div>
 
-                                                <div className="flex items-center gap-4 pt-4 md:pt-0">
+                                                <div className="flex flex-wrap items-center gap-4 pt-4 md:pt-0">
                                                     <button 
                                                         onClick={() => {
                                                             const ns = [...editStreams];
@@ -316,7 +344,7 @@ export function AdminPanel() {
                                                     <button 
                                                         onClick={() => setExpandedOverrides(expandedOverrides === stream.id ? null : stream.id)}
                                                         className={`p-3 rounded-xl border transition-all ${expandedOverrides === stream.id ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                                        title="Gérer les flux par jour"
+                                                        title="Gérer la programmation détaillée"
                                                     >
                                                         <Calendar className="w-4 h-4" />
                                                     </button>
