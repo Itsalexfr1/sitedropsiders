@@ -16,21 +16,49 @@ interface DaySchedule {
 }
 
 export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-    const [schedule, setSchedule] = useState<DaySchedule[]>([
-        { id: '1', date: '', events: [
-            { id: 'e1', type: 'day', artist: '', location: '' },
-            { id: 'e2', type: 'night', artist: '', location: '' }
-        ]}
-    ]);
-    const [showLogo, setShowLogo] = useState(true);
-    const [showWebsite, setShowWebsite] = useState(true);
-    const [customTitle, setCustomTitle] = useState('PLANNING LIVETAKEOVER');
+    const [schedule, setSchedule] = useState<DaySchedule[]>(() => {
+        const saved = localStorage.getItem('dropsiders_schedule_data');
+        return saved ? JSON.parse(saved) : [
+            { id: '1', date: '', events: [
+                { id: 'e1', type: 'day', artist: '', location: '' },
+                { id: 'e2', type: 'night', artist: '', location: '' }
+            ]}
+        ];
+    });
+    const [showLogo, setShowLogo] = useState(() => localStorage.getItem('dropsiders_schedule_showLogo') !== 'false');
+    const [showWebsite, setShowWebsite] = useState(() => localStorage.getItem('dropsiders_schedule_showWebsite') !== 'false');
+    const [customTitle, setCustomTitle] = useState(() => localStorage.getItem('dropsiders_schedule_title') || 'PLANNING LIVETAKEOVER');
     const [festivalLogo, setFestivalLogo] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
     const [backgroundVideo, setBackgroundVideo] = useState<string | null>(null);
-    const [logoScale, setLogoScale] = useState(1.0);
-    const [viewMode, setViewMode] = useState<'planning' | 'timetable'>('planning');
+    const [logoScale, setLogoScale] = useState(() => parseFloat(localStorage.getItem('dropsiders_schedule_logoScale') || '1.0'));
+    const [viewMode, setViewMode] = useState<'planning' | 'timetable'>(() => (localStorage.getItem('dropsiders_schedule_mode') as any) || 'planning');
+
+    // Persistence
+    React.useEffect(() => {
+        localStorage.setItem('dropsiders_schedule_data', JSON.stringify(schedule));
+    }, [schedule]);
+
+    React.useEffect(() => {
+        localStorage.setItem('dropsiders_schedule_showLogo', String(showLogo));
+    }, [showLogo]);
+
+    React.useEffect(() => {
+        localStorage.setItem('dropsiders_schedule_showWebsite', String(showWebsite));
+    }, [showWebsite]);
+
+    React.useEffect(() => {
+        localStorage.setItem('dropsiders_schedule_title', customTitle);
+    }, [customTitle]);
+
+    React.useEffect(() => {
+        localStorage.setItem('dropsiders_schedule_logoScale', String(logoScale));
+    }, [logoScale]);
+
+    React.useEffect(() => {
+        localStorage.setItem('dropsiders_schedule_mode', viewMode);
+    }, [viewMode]);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const bgInputRef = useRef<HTMLInputElement>(null);
