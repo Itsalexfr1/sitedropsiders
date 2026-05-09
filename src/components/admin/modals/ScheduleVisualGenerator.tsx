@@ -230,7 +230,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         let totalBaseHeight = 0;
         activeSchedule.forEach(day => {
             if (viewMode === 'planning') {
-                if (day.date) totalBaseHeight += baseDateSize * 1.2;
+                if (day.date) totalBaseHeight += baseDateSize * 1.6;
                 const visibleEvents = day.events.filter(e => e.artist);
                 totalBaseHeight += visibleEvents.length * baseSpacing;
             } else {
@@ -275,7 +275,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                 ctx.shadowColor = 'rgba(255, 18, 65, 0.5)';
                 ctx.fillText(day.date.toUpperCase(), width / 2, runningY + dateFontSize);
                 ctx.shadowBlur = 0;
-                runningY += dateFontSize * 1.2;
+                runningY += dateFontSize * 1.6;
             }
 
             // 2. Events
