@@ -114,10 +114,22 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         canvas.height = height;
         const ctx = canvas.getContext('2d')!;
 
-        // 0. Filter active days to avoid wasting space
+        // 1. Filter active days to avoid wasting space
         const activeSchedule = schedule.filter(d => d.date || d.events.some(e => e.artist || e.location));
         const numDays = activeSchedule.length;
-        if (numDays === 0) return;
+        if (numDays === 0) {
+            setIsGenerating(false);
+            return;
+        }
+
+        // 2. Wait for fonts to ensure correct metrics and rendering
+        if (document.fonts) {
+            try {
+                await document.fonts.ready;
+            } catch (e) {
+                console.warn("Font loading failed, proceeding with fallbacks", e);
+            }
+        }
 
         // 1. Background
         if (backgroundImage || backgroundVideo) {
@@ -213,15 +225,17 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const baseDateSize = 75;
         const baseEventSize = 50;
         const baseSpacing = 70;
-        const baseDayGap = 40;
+        const baseDayGap = 60; // Increased gap for better day separation
         
         let totalBaseHeight = 0;
         activeSchedule.forEach(day => {
             if (viewMode === 'planning') {
-                totalBaseHeight += baseDateSize * 1.2; // Date height
-                totalBaseHeight += day.events.length * baseSpacing;
+                if (day.date) totalBaseHeight += baseDateSize * 1.2;
+                const visibleEvents = day.events.filter(e => e.artist);
+                totalBaseHeight += visibleEvents.length * baseSpacing;
             } else {
-                totalBaseHeight += day.events.length * baseSpacing;
+                const visibleEvents = day.events.filter(e => e.artist || e.location);
+                totalBaseHeight += visibleEvents.length * baseSpacing;
             }
             totalBaseHeight += baseDayGap;
         });
@@ -237,7 +251,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         }
         
         // Minimum scale to keep it legible, maximum to avoid huge text
-        scale = Math.max(0.4, Math.min(1.1, scale));
+        scale = Math.max(0.35, Math.min(1.1, scale));
 
         const dateFontSize = baseDateSize * scale;
         const eventFontSize = baseEventSize * scale;
@@ -245,7 +259,8 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
         const dayGap = baseDayGap * scale;
         
         const finalContentHeight = totalBaseHeight * scale;
-        let runningY = startY + (availableHeight - finalContentHeight) / 2;
+        // Start from startY, and center if there is extra space. If not enough space, start exactly at startY.
+        let runningY = startY + Math.max(0, (availableHeight - finalContentHeight) / 2);
 
         activeSchedule.forEach((day: DaySchedule) => {
             const iconDay = viewMode === 'planning' ? '☀️ ' : '';
