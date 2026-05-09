@@ -26,8 +26,8 @@
     "autoMessageInterval": 60,
     "pinnedMessage": "",
     "showInAgenda": true,
-    "startDate": "",
-    "endDate": "",
+    "startDate": "2026-05-16T03:30",
+    "endDate": "2026-05-16T16:00",
     "status": "edit",
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
     "streams": [
@@ -74,7 +74,7 @@
         "day": "2026-05-16"
       }
     ],
-    "activeStreamId": "dotncx2ei",
+    "activeStreamId": "pf0jcztpl",
     "tickerMode": "news",
     "instagramLink": "",
     "tiktokLink": "",
