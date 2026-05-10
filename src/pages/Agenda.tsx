@@ -4,7 +4,7 @@ import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash
 import { useState, useMemo, useEffect } from 'react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, isSuperAdmin, hasPermission as checkPerm } from '../utils/auth';
 import { AgendaModal } from '../components/AgendaModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { CollaborativeCalendar } from '../components/community/CollaborativeCalendar';
@@ -26,15 +26,12 @@ export function Agenda() {
     const [permissions, setPermissions] = useState<string[]>([]);
     const storedUser = localStorage.getItem('admin_user');
 
+    const isAlex = isSuperAdmin(storedUser);
     const hasPermission = (p: string) => {
-        if (permissions.includes('all')) return true;
-        if (storedUser === 'alex') return true;
-
         if (p === 'create' || p === 'edit' || p === 'delete') {
-            return permissions.includes('agenda');
+            return checkPerm(permissions, 'agenda', isAlex);
         }
-
-        return permissions.includes(p);
+        return checkPerm(permissions, p, isAlex);
     };
 
     const canCreate = hasPermission('create');

@@ -467,7 +467,7 @@ export default {
             const hasAll = userPermissions.includes('all');
 
             // 1. News
-            if (path.startsWith('/api/news') && !hasAll && !userPermissions.includes('news') && !userPermissions.includes('news_focus')) {
+            if (path.startsWith('/api/news') && !hasAll && !userPermissions.includes('news') && !userPermissions.includes('news_focus') && !userPermissions.includes('news_editorial')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : news' }), { status: 403, headers });
             }
 
@@ -498,11 +498,11 @@ export default {
 
             // 6. Broadcast (Newsletter & Messages)
             const isBroadcastRoute = path.startsWith('/api/newsletter') || path === '/api/subscribers' || path.startsWith('/api/contacts');
-            if (isBroadcastRoute && !hasAll && !userPermissions.includes('broadcast') && !userPermissions.includes('push_newsletter') && !userPermissions.includes('messages_contact')) {
+            if (isBroadcastRoute && !hasAll && !userPermissions.includes('broadcast') && !userPermissions.includes('push_newsletter') && !userPermissions.includes('messages_contact') && !userPermissions.includes('messages')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : broadcast' }), { status: 403, headers });
             }
 
-            // 6b. Invoices (Master Only)
+            // 6b. Invoices (Master Only - Alex)
             if (path.startsWith('/api/invoices') && !hasAll) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : facturation' }), { status: 403, headers });
             }
@@ -539,9 +539,9 @@ export default {
                 return new Response(JSON.stringify({ error: 'Permission refusée : admin' }), { status: 403, headers });
             }
 
-            // 9. Factures: allow alex OR any authenticated user with 'all' or 'news' permission
+            // 9. Factures: restricted to super admin (Alex) only
             if (path === '/api/facture/send') {
-                const isAuthorized = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr' || hasAll || userPermissions.includes('news');
+                const isAuthorized = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr' || requestUsername === 'alexflex30@gmail.com' || (hasAll && (requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr'));
                 if (!isAuthorized) {
                     return new Response(JSON.stringify({ error: "Accès réservé au personnel autorisé" }), { status: 403, headers });
                 }

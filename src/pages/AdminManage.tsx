@@ -6,7 +6,7 @@ import { SocialSuite } from '../components/SocialSuite';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { resolveImageUrl } from '../utils/image';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, isSuperAdmin, hasPermission as checkPerm } from '../utils/auth';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { AgendaModal } from '../components/AgendaModal';
 import { fetchWithFallback } from '../utils/fetcher';
@@ -169,45 +169,20 @@ export function AdminManage() {
     const storedUser = localStorage.getItem('admin_user');
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
 
-    const hasPermission = (p: string) => {
-        if (storedPermissions.includes('all')) return true;
-        if (storedUser === 'alex') return true;
-
-        const oldToNew: Record<string, string> = {
-            'social': 'social_studio',
-            'news': 'news_focus',
-            'musique': 'musique_releases',
-            'interviews': 'interviews_video',
-            'recaps': 'recaps_festivals',
-            'agenda': 'agenda_events',
-            'wiki': 'wiki_dropsiders',
-            'community': 'community_mod',
-            'broadcast': 'push_newsletter',
-            'messages': 'messages_contact',
-            'stats': 'stats_analytics',
-            'accueil': 'home_layout'
-        };
-
-        const tabToPerm: Record<string, string> = {
-            'News': 'news',
-            'Focus': 'news',
-            'Musique': 'musique',
-            'Recaps': 'recaps',
-            'Interviews': 'interviews',
-            'Agenda': 'agenda',
-            'Communauté': 'community'
-        };
-
-        const mapped = tabToPerm[p] || p;
-        const checkPerm = oldToNew[mapped] || mapped;
-
-        return storedPermissions.includes(checkPerm) || storedPermissions.includes(mapped) || storedPermissions.includes(p);
-    };
+    const isAlex = isSuperAdmin(storedUser);
+    const hasPermission = (p: string) => checkPerm(storedPermissions, p, isAlex);
 
     const isAdmin = hasPermission('all');
     const canCreate = hasPermission(activeTab);
     const canEdit = hasPermission(activeTab);
     const canDelete = hasPermission(activeTab);
+
+    // Initial access check: if not Alex and has zero permissions, redirect
+    useEffect(() => {
+        if (!isAlex && storedPermissions.length === 0) {
+            navigate('/admin');
+        }
+    }, [isAlex, storedPermissions, navigate]);
 
     // Pagination & Sorting
     const [currentPage, setCurrentPage] = useState(1);

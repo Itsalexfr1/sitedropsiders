@@ -6,9 +6,11 @@ import {
     File, Download, ExternalLink, X, Info, Copy, Check
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, isSuperAdmin, hasPermission } from '../utils/auth';
 import { uploadFile } from '../utils/uploadService';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
 
 interface PDF {
     id: string;
@@ -20,6 +22,20 @@ interface PDF {
 }
 
 export function AdminPdfs() {
+    const navigate = useNavigate();
+    
+    // Permission check
+    const storedPermissions = useMemo(() => JSON.parse(localStorage.getItem('admin_permissions') || '[]'), []);
+    const adminUser = localStorage.getItem('admin_user');
+    const isAlex = isSuperAdmin(adminUser);
+    const canAccess = hasPermission(storedPermissions, 'interviews', isAlex);
+
+    useEffect(() => {
+        if (!canAccess) {
+            navigate('/admin');
+        }
+    }, [canAccess, navigate]);
+
     const [pdfs, setPdfs] = useState<PDF[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, LayoutDashboard, Youtube, Calendar, Newspaper, MessageSquare, Music, Share2, GripVertical, Instagram, Trash2, ImageIcon, RefreshCcw } from 'lucide-react';
 import { Link, useBlocker, Navigate } from 'react-router-dom';
-import { getAuthHeaders, apiFetch, isSuperAdmin } from '../utils/auth';
+import { getAuthHeaders, apiFetch, isSuperAdmin, hasPermission } from '../utils/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import settingsData from '../data/settings.json';
 
@@ -251,7 +251,7 @@ export function AdminHome() {
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
     const adminUser = localStorage.getItem('admin_user');
     const isAlex = isSuperAdmin(adminUser);
-    const hasAccess = isAlex || storedPermissions.includes('all');
+    const hasAccess = hasPermission(storedPermissions, 'home_layout', isAlex);
 
     if (!hasAccess) {
         return <Navigate to="/admin" replace />;

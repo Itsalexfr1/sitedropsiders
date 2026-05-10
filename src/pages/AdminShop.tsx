@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Plus, X, Trash2, Image as ImageIcon, Check, Edit2, ChevronUp, ChevronDown, ExternalLink, Lock, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useBlocker } from 'react-router-dom';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, isSuperAdmin, hasPermission as checkPerm } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import initialSettings from '../data/settings.json';
@@ -26,15 +26,12 @@ export function AdminShop() {
     const [permissions] = useState<string[]>(() => JSON.parse(localStorage.getItem('admin_permissions') || '[]'));
     const storedUser = localStorage.getItem('admin_user');
 
+    const isAlex = isSuperAdmin(storedUser);
     const hasPermission = (p: string) => {
-        if (permissions.includes('all')) return true;
-        if (storedUser === 'alex') return true;
-
         if (p === 'create' || p === 'edit' || p === 'delete') {
-            return permissions.includes('shop');
+            return checkPerm(permissions, 'shop', isAlex);
         }
-
-        return permissions.includes(p);
+        return checkPerm(permissions, p, isAlex);
     };
 
     const canCreate = hasPermission('create');

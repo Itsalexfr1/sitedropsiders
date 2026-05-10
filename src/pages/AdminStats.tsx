@@ -7,11 +7,12 @@ import {
     Eye, Clock, Target, ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { twMerge } from 'tailwind-merge';
 
 import { Badge } from '../components/ui/Badge';
+import { isSuperAdmin, hasPermission } from '../utils/auth';
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
@@ -209,6 +210,20 @@ function ServerPulse() {
 // --- MAIN PAGE ---
 
 export function AdminStats() {
+    const navigate = useNavigate();
+    
+    // Permission check
+    const storedPermissions = useMemo(() => JSON.parse(localStorage.getItem('admin_permissions') || '[]'), []);
+    const adminUser = localStorage.getItem('admin_user');
+    const isAlex = isSuperAdmin(adminUser);
+    const canAccess = hasPermission(storedPermissions, 'stats_analytics', isAlex);
+
+    useEffect(() => {
+        if (!canAccess) {
+            navigate('/admin');
+        }
+    }, [canAccess, navigate]);
+
     const [period, setPeriod] = useState<7 | 30 | 90>(7);
     const [serverStats, setServerStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);

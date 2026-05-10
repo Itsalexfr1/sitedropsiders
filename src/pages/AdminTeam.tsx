@@ -3,10 +3,12 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Plus, Save, ArrowLeft, Loader2, Instagram, Trash2 } from 'lucide-react';
 import { Link, useBlocker } from 'react-router-dom';
-import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { getAuthHeaders, apiFetch, isSuperAdmin, hasPermission } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { Upload } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
 
 interface TeamMember {
     id: number;
@@ -20,6 +22,20 @@ interface TeamMember {
 }
 
 export function AdminTeam() {
+    const navigate = useNavigate();
+    
+    // Permission check
+    const storedPermissions = useMemo(() => JSON.parse(localStorage.getItem('admin_permissions') || '[]'), []);
+    const adminUser = localStorage.getItem('admin_user');
+    const isAlex = isSuperAdmin(adminUser);
+    const canAccess = hasPermission(storedPermissions, 'accueil', isAlex);
+
+    useEffect(() => {
+        if (!canAccess) {
+            navigate('/admin');
+        }
+    }, [canAccess, navigate]);
+
     const [members, setMembers] = useState<TeamMember[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);

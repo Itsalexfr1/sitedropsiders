@@ -3,16 +3,14 @@ import { SocialSuite } from '../components/SocialSuite';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Instagram, Zap, Smartphone, Image as ImageIcon } from 'lucide-react';
-import { isSuperAdmin } from '../utils/auth';
+import { isSuperAdmin, hasPermission } from '../utils/auth';
 
 export function SocialStudioPage() {
     const navigate = useNavigate();
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
     const adminUser = localStorage.getItem('admin_user');
-    const isAuthorized = storedPermissions.includes('all') || 
-                         storedPermissions.includes('social') || 
-                         storedPermissions.includes('social_studio') ||
-                         isSuperAdmin(adminUser);
+    const isAlex = isSuperAdmin(adminUser);
+    const isAuthorized = hasPermission(storedPermissions, 'social', isAlex);
 
     const [isAuthenticated, setIsAuthenticated] = useState(isAuthorized);
     const [password, setPassword] = useState('');

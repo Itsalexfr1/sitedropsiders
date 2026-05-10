@@ -79,7 +79,7 @@ import {
 
 
 import { motion, AnimatePresence } from "framer-motion";
-import { getAuthHeaders, apiFetch, isSuperAdmin } from "../utils/auth";
+import { getAuthHeaders, apiFetch, isSuperAdmin, hasPermission as checkPerm } from "../utils/auth";
 import { uploadFile } from "../utils/uploadService";
 import { translateText } from "../utils/translate";
 import { SocialSuite } from "../components/SocialSuite";
@@ -2513,36 +2513,7 @@ export function AdminDashboard() {
   const adminUser = (localStorage.getItem("admin_user") || "").toLowerCase();
   const isAlex = isSuperAdmin(adminUser);
 
-  const hasPermission = (p: string) => {
-    if (p === "alex_only") return isAlex;
-    if (p === "superadmin") return isAlex || storedPermissions.includes("all");
-    if (storedPermissions.includes("all") || isAlex) return true;
-
-    const oldToNew: Record<string, string> = {
-      social_studio: "social",
-      news_focus: "news",
-      musique_releases: "musique",
-      interviews_video: "interviews",
-      recaps_festivals: "recaps",
-      agenda_events: "agenda",
-      wiki_dropsiders: "wiki",
-      community_mod: "community",
-      push_newsletter: "broadcast",
-      messages_contact: "messages",
-      stats_analytics: "stats",
-      home_layout: "accueil",
-      notifications: "broadcast",
-      team: "all",
-      publications: "news",
-      galeries: "community",
-    };
-
-    const checkPerm = oldToNew[p] || p;
-
-    return (
-      storedPermissions.includes(checkPerm) || storedPermissions.includes(p)
-    );
-  };
+  const hasPermission = (p: string) => checkPerm(storedPermissions, p, isAlex);
 
   const getIcon = (iconName: string, baseColor: string = "white") => {
     const isHex = baseColor.startsWith("#");
@@ -3058,7 +3029,7 @@ export function AdminDashboard() {
               </button>
 
               {/* Contest Mode Global Status */}
-              {(isAdminAcc || storedPermissions.includes("messages")) && (
+              {(isAdminAcc || hasPermission("messages")) && (
                 <button
                   onClick={toggleContestMode}
                   title={
@@ -3200,7 +3171,7 @@ export function AdminDashboard() {
               )}
 
               {/* Live Status Controls */}
-              {(isAdminAcc || storedPermissions.includes("takeover_modo")) && (
+              {(isAdminAcc || hasPermission("takeover_modo")) && (
                 <div className="flex bg-black/40 border border-white/10 rounded-xl md:rounded-full p-1 w-full md:w-auto md:ml-2 mt-2 md:mt-0 justify-between md:justify-start">
                   <button
                     onClick={() => updateLiveStatus("off")}

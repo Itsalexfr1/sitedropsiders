@@ -61,3 +61,54 @@ export const isSuperAdmin = (user: string | null) => {
     const admins = ['alex', 'alexflex30@gmail.com', 'alex@dropsiders.fr'];
     return admins.includes(normalized);
 };
+
+export const hasPermission = (storedPermissions: string[], p: string, isAlex: boolean = false) => {
+    if (p === "alex_only") return isAlex;
+    if (p === "superadmin") return isAlex || storedPermissions.includes("all");
+    if (isAlex || storedPermissions.includes('all')) return true;
+    if (p === 'all') return true;
+    
+    const mapping: Record<string, string> = {
+      // New to Old / Aliases
+      social_studio: "social",
+      news_focus: "news",
+      musique_releases: "musique",
+      interviews_video: "interviews",
+      recaps_festivals: "recaps",
+      agenda_events: "agenda",
+      wiki_dropsiders: "wiki",
+      community_mod: "community",
+      push_newsletter: "broadcast",
+      messages_contact: "messages",
+      stats_analytics: "stats",
+      home_layout: "accueil",
+      notifications: "broadcast",
+      team: "all",
+      publications: "news",
+      galeries: "community",
+      // Tab names to Permission IDs
+      News: "news",
+      Focus: "news",
+      Musique: "musique",
+      Recaps: "recaps",
+      Interviews: "interviews",
+      Agenda: "agenda",
+      Communauté: "community",
+      // Old to New
+      social: "social_studio",
+      news: "news_focus",
+      musique: "musique_releases",
+      interviews: "interviews_video",
+      recaps: "recaps_festivals",
+      agenda: "agenda_events",
+      wiki: "wiki_dropsiders",
+      community: "community_mod",
+      broadcast: "push_newsletter",
+      messages: "messages_contact",
+      stats: "stats_analytics",
+      accueil: "home_layout"
+    };
+
+    const alt = mapping[p];
+    return storedPermissions.includes(p) || (alt ? storedPermissions.includes(alt) : false);
+};

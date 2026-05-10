@@ -45,9 +45,10 @@ export function AdminInterviewQuestions() {
         setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
     };
 
-    const currentUser = localStorage.getItem('admin_user');
-    const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
-    const isAuthorized = storedPermissions.includes('all') || storedPermissions.includes('news');
+    const adminUser = localStorage.getItem('admin_user');
+    const storedPermissions = useMemo(() => JSON.parse(localStorage.getItem('admin_permissions') || '[]'), []);
+    const isAlex = isSuperAdmin(adminUser);
+    const isAuthorized = hasPermission(storedPermissions, 'interviews', isAlex);
 
     useEffect(() => {
         if (!isAuthorized) {

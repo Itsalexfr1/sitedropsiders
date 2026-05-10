@@ -158,7 +158,8 @@ export function VideoStudioGenerator() {
     const navigate = useNavigate();
     const adminUser = localStorage.getItem('admin_user');
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
-    const isAuthorized = storedPermissions.includes('all') || storedPermissions.includes('social') || isSuperAdmin(adminUser);
+    const isAlex = isSuperAdmin(adminUser);
+    const isAuthorized = hasPermission(storedPermissions, 'social', isAlex);
 
     const [clips, setClips] = useState<Clip[]>([]);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);

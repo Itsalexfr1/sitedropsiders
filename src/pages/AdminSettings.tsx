@@ -4,7 +4,7 @@ import { XIcon } from '../components/ui/XIcon';
 
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { getAuthHeaders, apiFetch, isSuperAdmin, hasPermission } from '../utils/auth';
 import { StarField } from '../components/ui/StarField';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 
@@ -62,7 +62,8 @@ export function AdminSettings() {
 
     const currentUser = localStorage.getItem('admin_user');
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
-    const isAdmin = storedPermissions.includes('all');
+    const isAlex = isSuperAdmin(currentUser);
+    const isAdmin = hasPermission(storedPermissions, 'all', isAlex);
 
     useEffect(() => {
         if (!isAdmin) {

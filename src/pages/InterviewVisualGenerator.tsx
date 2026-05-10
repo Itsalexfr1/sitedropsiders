@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Upload, Download, Image, Youtube, Instagram, Trash2, RefreshCw, Eye, Scissors, Check, X, AlertCircle } from 'lucide-react';
 import Cropper from 'react-easy-crop';
-import { isSuperAdmin } from '../utils/auth';
+import { isSuperAdmin, hasPermission } from '../utils/auth';
 import { ExportSuccessModal } from '../components/ExportSuccessModal';
 import { ConfirmModal, type ConfirmModalData } from '../components/ui/ConfirmModal';
 
@@ -31,7 +31,8 @@ export function InterviewVisualGenerator({ isOpen, onClose }: InterviewVisualGen
     const navigate = useNavigate();
     const adminUser = localStorage.getItem('admin_user');
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
-    const isAuthorized = storedPermissions.includes('all') || storedPermissions.includes('social') || isSuperAdmin(adminUser);
+    const isAlex = isSuperAdmin(adminUser);
+    const isAuthorized = hasPermission(storedPermissions, 'social', isAlex);
 
     const isModal = isOpen !== undefined;
 
