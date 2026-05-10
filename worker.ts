@@ -547,9 +547,12 @@ export default {
                 }
             }
 
-            // Editors Management: only Alex or Super Admins
-            if (path.startsWith('/api/editors') && requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr' && requestUsername !== 'alexflex30@gmail.com' && requestUsername !== 'alex@dropsiders.fr') {
-                return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur" }), { status: 403, headers });
+            // Editors Management: only Alex or Super Admins can mutate, GET allowed for all authenticated staff
+            if (path.startsWith('/api/editors') && request.method !== 'GET') {
+                const isSuper = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr' || requestUsername === 'alexflex30@gmail.com' || requestUsername === 'alex@dropsiders.fr';
+                if (!isSuper) {
+                    return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur" }), { status: 403, headers });
+                }
             }
         }
 
