@@ -869,25 +869,6 @@
     "isLiveDropsiders": false
   },
   {
-    "id": 266,
-    "title": "RÜFÜS DU SOL",
-    "date": "2026-05-09",
-    "startDate": "2026-05-09",
-    "endDate": "2026-05-09",
-    "location": "PARIS",
-    "country": "FRANCE",
-    "type": "Concert",
-    "image": "https://www.dropsiders.fr/uploads/migrated/dropsiders/or3byxvrxlidxxptggi2.webp",
-    "url": "https://www.adidasarena.com/programmation/rufus-du-sol--1143",
-    "genre": "Melodic Techno",
-    "month": "MAI",
-    "isWeekly": false,
-    "isSoldOut": false,
-    "isLiveDropsiders": false,
-    "venue": "ADIDAS ARENA ",
-    "additionalDates": []
-  },
-  {
     "id": 268,
     "title": "Electric Forest ",
     "date": "2026-06-25",
@@ -1552,25 +1533,6 @@
       "2026-09-22",
       "2026-10-01"
     ]
-  },
-  {
-    "id": 314,
-    "title": "ANTS Day & Night",
-    "date": "2026-05-09",
-    "startDate": "2026-05-09",
-    "endDate": "2026-05-09",
-    "venue": "Ushuaia & UNVRS",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/f91f7d3efd9ca7fa-7a3ccb8c_0008_4eb5_b8f7_a612db.webp",
-    "url": "https://www.clubtickets.com/clubbing/unvrs-ibiza/ants-unvrs/2026-05-02?aff=CT009#section-tickets",
-    "genre": "House",
-    "month": "MAI",
-    "isWeekly": true,
-    "dayOfWeek": 6,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
   },
   {
     "id": 315,
