@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
     Plus, Trash2, Save, ArrowLeft, Languages, MessageSquare, 
     GripVertical, Edit2, Check, X, Search, Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { getAuthHeaders, apiFetch, isSuperAdmin, hasPermission } from '../utils/auth';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { translateText } from '../utils/translate';
 

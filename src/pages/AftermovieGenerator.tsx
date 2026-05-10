@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     ChevronLeft, ChevronRight, Upload, Music, Trash2, 
     RefreshCw, Film, Play, List, Sparkles, Zap, Plus, X, Download, AlertTriangle
 } from 'lucide-react';
-import { isSuperAdmin } from '../utils/auth';
+import { isSuperAdmin, hasPermission } from '../utils/auth';
 import { ExportSuccessModal } from '../components/ExportSuccessModal';
 
 interface Clip {
@@ -157,7 +157,7 @@ function WaveformVisualizer({ blobUrl, start, end, duration, onChange }: {
 export function VideoStudioGenerator() {
     const navigate = useNavigate();
     const adminUser = localStorage.getItem('admin_user');
-    const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+    const storedPermissions = useMemo(() => JSON.parse(localStorage.getItem('admin_permissions') || '[]'), []);
     const isAlex = isSuperAdmin(adminUser);
     const isAuthorized = hasPermission(storedPermissions, 'social', isAlex);
 
