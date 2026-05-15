@@ -6,88 +6,29 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "",
-    "title": "EDC LAS VEGAS ",
+    "title": "LIVESTREAM",
     "moderators": "",
-    "lineup": "[]",
+    "lineup": "",
+    "customCommands": "",
     "tickerType": "news",
-    "tickerText": "🎡 BIENVENUE SUR LE LIVE COACHELLA 2026 - SUIVEZ LES 8 SCÈNES EN DIRECT ! 🎡",
+    "tickerText": "",
     "tickerLink": "",
     "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff",
     "showTopBanner": true,
-    "showTickerBanner": true,
+    "showTickerBanner": false,
     "showInNavbar": true,
     "forceHomepage": true,
-    "customCommands": "",
     "isSecret": false,
-    "password": "2024",
+    "password": "",
     "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
     "pinnedMessage": "",
     "showInAgenda": true,
-    "startDate": "2026-05-16T03:30",
-    "endDate": "2026-05-16T16:00",
-    "status": "edit",
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
-    "streams": [
-      {
-        "id": "dotncx2ei",
-        "name": "KINETICFIELD",
-        "youtubeId": "cpQTxav3DWs",
-        "day": "2026-05-16",
-        "startTime": "03:40"
-      },
-      {
-        "id": "dzc8pzlgm",
-        "name": "CIRCUIT GROUNDS",
-        "youtubeId": "8Aw5LObzFFc",
-        "day": "2026-05-16",
-        "startTime": "03:40"
-      },
-      {
-        "id": "pf0jcztpl",
-        "name": "COSMIC MEADOW",
-        "youtubeId": "U98qZlykXAA",
-        "startTime": "03:40",
-        "day": "2026-05-16"
-      },
-      {
-        "id": "t0taj2pal",
-        "name": "QUANTUM VALLEY",
-        "youtubeId": "XXj7oaVOl84",
-        "startTime": "03:40",
-        "day": "2026-05-16"
-      },
-      {
-        "id": "sd8q471d7",
-        "name": "BASSPOD",
-        "youtubeId": "u0PRhi8lG0M",
-        "startTime": "03:40",
-        "day": "2026-05-16"
-      },
-      {
-        "id": "p1xjiux9c",
-        "name": "BIONIC JUNGLE",
-        "youtubeId": "M-Pi__boy4U",
-        "startTime": "03:40",
-        "day": "2026-05-16"
-      }
-    ],
-    "activeStreamId": "pf0jcztpl",
-    "tickerMode": "news",
-    "instagramLink": "",
-    "tiktokLink": "",
-    "youtubeLink": "",
-    "twitterLink": "",
-    "sponsorText": "",
-    "sponsorLink": "",
-    "showSponsorBanner": true,
-    "festivalLogo": "",
-    "twitchChannel": "",
-    "streamSource": "youtube",
-    "twitchBotAutoMessage": "",
-    "twitchBotAutoMessageInterval": 30
+    "startDate": "",
+    "endDate": "",
+    "status": "live"
   },
   "socials": {
     "instagram": "dropsiders.eu",
