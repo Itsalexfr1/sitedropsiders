@@ -63,6 +63,7 @@ export function MobileNavbar() {
 
     const menuItems = [
         // Live moved to center if active
+        ...(isLiveActive ? [{ icon: Users, label: navLabels.communaute || 'Communaute', path: '/communaute', color: 'text-neon-pink' }] : []),
         { icon: Newspaper, label: navLabels.news || 'News', path: '/news', color: 'text-neon-red' },
         { icon: Plane, label: navLabels.voyage || t('nav.voyage'), path: '/voyage', color: 'text-neon-green' },
         { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
