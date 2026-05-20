@@ -4,7 +4,7 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": false,
+    "enabled": true,
     "youtubeId": "",
     "title": "EDC LAS VEGAS ",
     "moderators": "",
@@ -28,55 +28,7 @@
     "showInAgenda": true,
     "startDate": "2026-05-15T00:00",
     "endDate": "2026-05-16T16:00",
-    "status": "live",
-    "isOnline": true,
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
-    "streams": [
-      {
-        "id": "9n5fno2gp",
-        "name": "KINETIC FIELD",
-        "youtubeId": "cpQTxav3DWs"
-      },
-      {
-        "id": "auux7pb8q",
-        "name": "CIRCUIT GRUNDS",
-        "youtubeId": "8Aw5LObzFFc"
-      },
-      {
-        "id": "y8y2ivcew",
-        "name": "COSMIC MEADOW",
-        "youtubeId": "U98qZlykXAA"
-      },
-      {
-        "id": "v66cvw2ld",
-        "name": "QUANTUM VALLEY",
-        "youtubeId": "XXj7oaVOl84"
-      },
-      {
-        "id": "0d34rclb5",
-        "name": "BASSPOD",
-        "youtubeId": "u0PRhi8lG0M"
-      },
-      {
-        "id": "nj7vhz13j",
-        "name": "BIONIC JUNGLE",
-        "youtubeId": "M-Pi__boy4U"
-      }
-    ],
-    "activeStreamId": "9n5fno2gp",
-    "tickerMode": "news",
-    "instagramLink": "",
-    "tiktokLink": "",
-    "youtubeLink": "",
-    "twitterLink": "",
-    "sponsorText": "",
-    "sponsorLink": "",
-    "showSponsorBanner": true,
-    "festivalLogo": "",
-    "twitchChannel": "",
-    "streamSource": "youtube",
-    "twitchBotAutoMessage": "",
-    "twitchBotAutoMessageInterval": 30
+    "status": "live"
   },
   "socials": {
     "instagram": "dropsiders.eu",
