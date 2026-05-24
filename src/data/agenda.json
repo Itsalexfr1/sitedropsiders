@@ -466,26 +466,6 @@
     "country": "France"
   },
   {
-    "id": 239,
-    "title": "Electra Festival",
-    "date": "2026-05-22",
-    "startDate": "2026-05-22",
-    "endDate": "2026-05-23",
-    "location": "Bourg-en-Bresse",
-    "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/uploads/15f6af01ffa6f97f-650395221_122200836200459056_2.jpg",
-    "url": "https://www.electra-festival.com/",
-    "genre": "Big Room",
-    "month": "MAI",
-    "isWeekly": false,
-    "country": "FRANCE",
-    "photo_verified": true,
-    "venue": "",
-    "isSoldOut": false,
-    "isLiveDropsiders": false,
-    "additionalDates": []
-  },
-  {
     "id": 240,
     "title": "Tiësto - Sunrise Set",
     "date": "2026-08-03",
@@ -1498,25 +1478,6 @@
       "2026-09-22",
       "2026-10-01"
     ]
-  },
-  {
-    "id": 316,
-    "title": "ANTS Day & Night",
-    "date": "2026-05-23",
-    "startDate": "2026-05-23",
-    "endDate": "2026-05-23",
-    "venue": "Ushuaia & UNVRS",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/f91f7d3efd9ca7fa-7a3ccb8c_0008_4eb5_b8f7_a612db.webp",
-    "url": "https://www.clubtickets.com/clubbing/unvrs-ibiza/ants-unvrs/2026-05-02?aff=CT009#section-tickets",
-    "genre": "House",
-    "month": "MAI",
-    "isWeekly": true,
-    "dayOfWeek": 6,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
   },
   {
     "id": 317,
