@@ -2,6 +2,18 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { twMerge } from 'tailwind-merge';
 
+export interface DropsidersCard {
+    id: string;
+    type: 'festival' | 'club';
+    name: string;
+    city: string;
+    country: string;
+    image: string;
+    djmag_rank: number;
+    rarity: 'common' | 'rare' | 'epic' | 'legendary';
+    collectedAt: string;
+}
+
 interface UserProfile {
     id: string;
     username: string;
@@ -17,6 +29,7 @@ interface UserProfile {
     createdAt: string;
     newsletter?: boolean;
     mixStatus?: 'none' | 'pending' | 'approved';
+    collectedCards?: DropsidersCard[];
 }
 
 
@@ -35,6 +48,8 @@ interface UserContextType {
     isAuthModalOpen: boolean;
     setIsAuthModalOpen: (open: boolean) => void;
     showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
+    addCard: (card: DropsidersCard) => void;
+    collectedCards: DropsidersCard[];
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -162,6 +177,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
 
     const login = async (username: string, email: string) => {
+        const guestCardsStr = localStorage.getItem('dropsiders_guest_cards');
+        let guestCards = [];
+        if (guestCardsStr) {
+            try {
+                guestCards = JSON.parse(guestCardsStr);
+            } catch (e) {}
+        }
+
         const newUser: UserProfile = {
             id: crypto.randomUUID(),
             username,
@@ -172,10 +195,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             agendaFavorites: [],
             xp: Number(localStorage.getItem('user_xp')) || 0,
             drops: Number(localStorage.getItem('user_drops')) || 0,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            collectedCards: guestCards
         };
         setUser(newUser);
         saveToRegisteredUsers(newUser);
+        localStorage.removeItem('dropsiders_guest_cards');
 
         // Sync with central registry
         try {
@@ -193,6 +218,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         // Find existing user if available
         const existing: UserProfile[] = JSON.parse(localStorage.getItem('dropsiders_registered_users') || '[]');
         const found = existing.find(u => u.email === data.email || u.id === data.id);
+
+        const guestCardsStr = localStorage.getItem('dropsiders_guest_cards');
+        let guestCards = [];
+        if (guestCardsStr) {
+            try {
+                guestCards = JSON.parse(guestCardsStr);
+            } catch (e) {}
+        }
+
+        const existingCards = found?.collectedCards || data.collectedCards || [];
+        const mergedCards = [...existingCards];
+        guestCards.forEach((gc: any) => {
+            const alreadyHave = mergedCards.some(mc => mc.id === gc.id && mc.collectedAt.slice(0, 10) === gc.collectedAt.slice(0, 10));
+            if (!alreadyHave) {
+                mergedCards.push(gc);
+            }
+        });
         
         const newUser: UserProfile = {
             id: data.id || found?.id || crypto.randomUUID(),
@@ -206,10 +248,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             agendaFavorites: data.agendaFavorites || found?.agendaFavorites || [],
             xp: (data.xp !== undefined ? data.xp : found?.xp) || Number(localStorage.getItem('user_xp')) || 0,
             drops: (data.drops !== undefined ? data.drops : found?.drops) || Number(localStorage.getItem('user_drops')) || 0,
-            createdAt: data.createdAt || found?.createdAt || new Date().toISOString()
+            createdAt: data.createdAt || found?.createdAt || new Date().toISOString(),
+            collectedCards: mergedCards
         };
         setUser(newUser);
         saveToRegisteredUsers(newUser);
+        localStorage.removeItem('dropsiders_guest_cards');
 
         // Sync with central registry
         try {
@@ -334,6 +378,27 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         saveToRegisteredUsers(updatedUser);
     };
 
+    const addCard = (card: DropsidersCard) => {
+        if (user) {
+            const existing = user.collectedCards || [];
+            // Don't add duplicates (same id + same collectedAt date day)
+            const alreadyToday = existing.some(
+                c => c.id === card.id && c.collectedAt.slice(0, 10) === card.collectedAt.slice(0, 10)
+            );
+            if (alreadyToday) return;
+            const updatedUser = { ...user, collectedCards: [...existing, card] };
+            setUser(updatedUser);
+            saveToRegisteredUsers(updatedUser);
+        } else {
+            // Guest: store in localStorage
+            try {
+                const stored: DropsidersCard[] = JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]');
+                stored.push(card);
+                localStorage.setItem('dropsiders_guest_cards', JSON.stringify(stored));
+            } catch (e) { console.error('Failed to save guest card', e); }
+        }
+    };
+
     const earnPoints = (xpAmount: number, dropsAmount: number) => {
         if (user) {
             const updatedUser = {
@@ -367,7 +432,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             deleteAccount,
             isAuthModalOpen,
             setIsAuthModalOpen,
-            showNotification
+            showNotification,
+            addCard,
+            collectedCards: user?.collectedCards || (typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]') : [])
         }}>
             {children}
 

@@ -116,9 +116,22 @@ function LoadingPage() {
 }
 
 import { ExtensionPromotion } from './components/ui/ExtensionPromotion';
+import { CardRewardModal } from './components/cards/CardRewardModal';
+import { useVisitTimer } from './hooks/useVisitTimer';
+import { useUser } from './context/UserContext';
 
 function Root() {
   const location = useLocation();
+  const { addCard, collectedCards, showNotification } = useUser();
+  const collectedCardIds = collectedCards.map((c) => c.id);
+  const { pendingCard, claimCard, dismissCard } = useVisitTimer(collectedCardIds);
+
+  const handleClaim = () => {
+    claimCard((card) => {
+      addCard(card);
+      showNotification(`🃏 Carte ${card.name} ajoutée à ta collection !`, 'success');
+    });
+  };
 
   return (
     <>
@@ -142,6 +155,11 @@ function Root() {
       </Layout>
       <CookieConsent />
       {/* <ExtensionPromotion /> */}
+      <CardRewardModal
+        card={pendingCard}
+        onClaim={handleClaim}
+        onDismiss={dismissCard}
+      />
     </>
   );
 }

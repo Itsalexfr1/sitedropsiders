@@ -7,19 +7,21 @@ import { twMerge } from 'tailwind-merge';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { MixUploadModal } from '../components/profile/MixUploadModal';
 import wikiFestivals from '../data/wiki_festivals.json';
+import wikiClubs from '../data/wiki_clubs.json';
+import { DropsidersCardComponent } from '../components/cards/DropsidersCard';
 import { UserAuthModal } from '../components/auth/UserAuthModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 
 
 export function Profile() {
-    const { user, updateUser, logout, isLoggedIn, showNotification, deleteAccount } = useUser();
+    const { user, updateUser, logout, isLoggedIn, showNotification, deleteAccount, collectedCards } = useUser();
     const navigate = useNavigate();
     
     const [username, setUsername] = useState(user?.username || '');
     const [instagram, setInstagram] = useState(user?.instagram || '');
     const [isEditingName, setIsEditingName] = useState(false);
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
-    const [activeTab, setActiveTab ] = useState<'overview' | 'mixes' | 'reviews' | 'settings' | 'favorites'>('overview');
+    const [activeTab, setActiveTab ] = useState<'overview' | 'mixes' | 'reviews' | 'settings' | 'favorites' | 'collection'>('overview');
     const [uploadType, setUploadType] = useState<'Track' | 'Remix' | 'Edit' | 'Mix'>('Mix');
     const [reviewRating, setReviewRating] = useState(0);
     const [reviewText, setReviewText] = useState('');
@@ -31,6 +33,30 @@ export function Profile() {
     const [userMixes, setUserMixes] = useState<any[]>([]);
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    const [cardSearch, setCardSearch] = useState('');
+    const [cardRarityFilter, setCardRarityFilter] = useState<'all' | 'legendary' | 'epic' | 'rare' | 'common'>('all');
+    const [cardTypeFilter, setCardTypeFilter] = useState<'all' | 'festival' | 'club'>('all');
+
+    // Group collected cards by ID to show quantities
+    const groupedCards = (collectedCards || []).reduce((acc, card) => {
+        if (!acc[card.id]) {
+            acc[card.id] = { card, count: 0 };
+        }
+        acc[card.id].count += 1;
+        return acc;
+    }, {} as Record<string, { card: typeof collectedCards[0]; count: number }>);
+
+    const uniqueCardsList = Object.values(groupedCards);
+
+    const filteredCards = uniqueCardsList.filter(({ card }) => {
+        const matchesSearch = card.name.toLowerCase().includes(cardSearch.toLowerCase()) ||
+            card.city.toLowerCase().includes(cardSearch.toLowerCase()) ||
+            card.country.toLowerCase().includes(cardSearch.toLowerCase());
+        const matchesRarity = cardRarityFilter === 'all' || card.rarity === cardRarityFilter;
+        const matchesType = cardTypeFilter === 'all' || card.type === cardTypeFilter;
+        return matchesSearch && matchesRarity && matchesType;
+    });
 
     useEffect(() => {
         if (user?.email) {
@@ -311,6 +337,7 @@ export function Profile() {
                             <div className="relative p-1.5 bg-white/[0.03] border border-white/10 rounded-[2rem] backdrop-blur-2xl flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth w-full lg:w-fit">
                                 {[
                                     { id: 'overview', label: 'Vue d\'ensemble', icon: User, color: 'text-neon-cyan' },
+                                    { id: 'collection', label: 'Ma Collection', icon: Trophy, color: 'text-amber-500' },
                                     { id: 'mixes', label: 'Mix Studio', icon: Headphones, color: 'text-neon-purple' },
                                     { id: 'reviews', label: 'Avis & Notes', icon: MessageSquare, color: 'text-yellow-500' },
                                     { id: 'favorites', label: 'Favoris', icon: Music, color: 'text-neon-red' },
@@ -408,6 +435,97 @@ export function Profile() {
                                                  )}
                                              </div>
                                          </div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'collection' && (
+                                    <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 space-y-8">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
+                                                    <Trophy className="w-5 h-5 text-amber-500" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Ma Collection</h3>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">
+                                                        {new Set((collectedCards || []).map(c => c.id)).size} / {wikiFestivals.length + wikiClubs.length} CARTES UNIQUES
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Progress bar */}
+                                            <div className="w-full sm:w-48 bg-white/5 border border-white/10 rounded-full h-3 overflow-hidden p-[2px]">
+                                                <div 
+                                                    className="bg-gradient-to-r from-amber-500 to-yellow-300 h-full rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)] transition-all duration-1000"
+                                                    style={{ width: `${Math.min(100, (((new Set((collectedCards || []).map(c => c.id)).size) || 0) / (wikiFestivals.length + wikiClubs.length || 1)) * 100)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Filters bar */}
+                                        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-black/25 p-4 border border-white/5 rounded-2xl">
+                                            {/* Search input */}
+                                            <input 
+                                                type="text"
+                                                placeholder="Rechercher un festival, club, ville..."
+                                                value={cardSearch}
+                                                onChange={(e) => setCardSearch(e.target.value)}
+                                                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors w-full sm:w-64"
+                                            />
+
+                                            <div className="flex gap-2 items-center">
+                                                {/* Rarity filter */}
+                                                <select
+                                                    value={cardRarityFilter}
+                                                    onChange={(e) => setCardRarityFilter(e.target.value as any)}
+                                                    className="bg-[#050505] border border-white/10 text-[9px] font-black text-white uppercase tracking-widest rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 cursor-pointer"
+                                                >
+                                                    <option value="all">Toutes Raretés</option>
+                                                    <option value="legendary">Légendaire</option>
+                                                    <option value="epic">Épique</option>
+                                                    <option value="rare">Rare</option>
+                                                    <option value="common">Commun</option>
+                                                </select>
+
+                                                {/* Type filter */}
+                                                <select
+                                                    value={cardTypeFilter}
+                                                    onChange={(e) => setCardTypeFilter(e.target.value as any)}
+                                                    className="bg-[#050505] border border-white/10 text-[9px] font-black text-white uppercase tracking-widest rounded-xl px-3 py-2 focus:outline-none focus:border-amber-500 cursor-pointer"
+                                                >
+                                                    <option value="all">Tous Types</option>
+                                                    <option value="festival">Festival</option>
+                                                    <option value="club">Club</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Cards grid */}
+                                        {filteredCards.length > 0 ? (
+                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 justify-items-center">
+                                                {filteredCards.map(({ card, count }) => (
+                                                    <div key={card.id} className="relative group">
+                                                        {count > 1 && (
+                                                            <div className="absolute top-2 left-2 z-40 bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                                                                x{count}
+                                                            </div>
+                                                        )}
+                                                        <DropsidersCardComponent
+                                                            card={card}
+                                                            scale={0.9}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-16 opacity-65 bg-white/5 rounded-3xl border border-white/5 border-dashed">
+                                                <Trophy className="w-10 h-10 mx-auto mb-4 text-gray-600 animate-pulse" />
+                                                <p className="text-xs text-gray-400 uppercase font-black tracking-[0.2em] mb-2">Aucune carte ne correspond.</p>
+                                                <p className="text-[10px] text-gray-500 max-w-xs mx-auto leading-relaxed">
+                                                    Chaque jour, passe plus de 5 minutes sur le site pour remporter une carte unique de festival ou club !
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
