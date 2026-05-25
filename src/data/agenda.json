@@ -15,20 +15,6 @@
     "month": "JUILLET"
   },
   {
-    "id": 8,
-    "title": "Cercle Festival",
-    "date": "2026-05-22",
-    "startDate": "2026-05-22",
-    "endDate": "2026-05-24",
-    "location": "Paris",
-    "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/migrated/dropsiders/images/d4al1opxcepc17quvjqy.png",
-    "description": "Une expérience unique au Musée de l'Air et de l'Espace.",
-    "url": "https://festival.cercle.io",
-    "genre": "Melodic Techno",
-    "country": "France"
-  },
-  {
     "id": 11,
     "title": "Les Deferlantes",
     "date": "2026-07-11",
@@ -1330,24 +1316,6 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
-  },
-  {
-    "id": 300,
-    "title": "No Art ",
-    "date": "2026-05-24",
-    "startDate": "2026-05-24",
-    "endDate": "2026-05-24",
-    "venue": "UNVRS",
-    "location": "IBIZA",
-    "country": "Espagne",
-    "type": "Showcase",
-    "image": "https://www.dropsiders.fr/uploads/404581b2cdba66396c58a4b361c97a5020fec0d2f916a2bdb01418666bfc3331.webp",
-    "url": "https://www.unvrs.com/events/2026/no-art-ibiza?utm_source=ActiveCampaign&utm_medium=email&utm_campaign=UNVRS+-+NO+ART&utm_content=2+Nights+With+No+Art",
-    "genre": "House",
-    "month": "MAI",
-    "isWeekly": false,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
   },
   {
     "id": 301,
