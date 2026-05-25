@@ -114,6 +114,7 @@ import { InterviewVisualGenerator } from "./InterviewVisualGenerator";
 import { StoryGridGenerator } from "./StoryGridGenerator";
 import { QRCodeGenerator } from "./QRCodeGenerator";
 import { IncomingCallGenerator } from "./IncomingCallGenerator";
+import { AdminCardsModal } from "../components/admin/modals/AdminCardsModal";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -224,6 +225,7 @@ export function AdminDashboard() {
   const [isQRCodeModalOpen, setIsQRCodeModalOpen] = useState(false);
   const [isIncomingCallModalOpen, setIsIncomingCallModalOpen] = useState(false);
   const [isVideoAITranslatorModalOpen, setIsVideoAITranslatorModalOpen] = useState(false);
+  const [isAdminCardsModalOpen, setIsAdminCardsModalOpen] = useState(false);
   const [teamModalTab, setTeamModalTab] = useState<"MEMBERS" | "TEAM" | "EDITORS" | "REQUESTS">("MEMBERS");
 
   const [isLoadingSocial, setIsLoadingSocial] = useState(false);
@@ -3626,6 +3628,13 @@ export function AdminDashboard() {
                         >
                           <Zap className="w-3 h-3" />
                           INTERACTIF LIVE
+                        </button>
+                        <button
+                          onClick={() => setIsAdminCardsModalOpen(true)}
+                          className="px-4 py-2 bg-neon-purple/10 border border-neon-purple/20 rounded-xl text-[9px] font-black uppercase text-neon-purple hover:bg-neon-purple hover:text-white transition-all flex items-center gap-2"
+                        >
+                          <Trophy className="w-3 h-3" />
+                          CARTES DROPSIDERS
                         </button>
                         <div className="px-3 py-1 bg-neon-blue/10 border border-neon-blue/20 rounded-full">
                           <span className="text-[10px] font-black text-neon-blue uppercase">
@@ -11956,6 +11965,10 @@ export function AdminDashboard() {
           <LiveInteractivityModal
             isOpen={isLiveInteractivityModalOpen}
             onClose={() => setIsLiveInteractivityModalOpen(false)}
+          />
+          <AdminCardsModal
+            isOpen={isAdminCardsModalOpen}
+            onClose={() => setIsAdminCardsModalOpen(false)}
           />
           <ScheduleVisualGenerator
             isOpen={isScheduleModalOpen}
