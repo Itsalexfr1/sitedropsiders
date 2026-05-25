@@ -7234,6 +7234,27 @@ export function AdminDashboard() {
                         </p>
                       </div>
                     </button>
+
+                    {/* Cartes Dropsiders */}
+                    <button
+                      onClick={() => {
+                        setIsAdminCardsModalOpen(true);
+                        setIsCommunauteModalOpen(false);
+                      }}
+                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group relative lg:col-span-1"
+                    >
+                      <div className="w-14 h-14 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                        <Trophy className="w-7 h-7 text-neon-purple" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-lg font-bold text-white uppercase italic">
+                          Cartes Dropsiders
+                        </h3>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">
+                          Voir et trier les cartes
+                        </p>
+                      </div>
+                    </button>
                   </div>
                 </motion.div>
               </div>
