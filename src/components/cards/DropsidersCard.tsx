@@ -16,41 +16,53 @@ interface DropsidersCardProps {
 const RARITY_CONFIG = {
     legendary: {
         label: 'LÉGENDAIRE',
-        stars: '★★★★',
-        borderColor: 'from-amber-300 via-yellow-400 to-amber-300',
-        glowColor: 'rgba(251,191,36,0.6)',
-        badgeColor: 'bg-amber-400/20 text-amber-300 border-amber-400/40',
-        holoBg: 'from-amber-400/20 via-yellow-300/10 to-orange-400/20',
+        stars: 4,
+        textClass: 'text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]',
+        borderColor: 'from-amber-400 via-yellow-200 to-amber-600',
+        glowColor: 'rgba(245, 158, 11, 0.7)',
+        badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+        holoBg: 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(253,224,71,0.1) 50%, rgba(217,119,6,0.2) 100%)',
+        bgGradient: 'from-amber-950/40 to-black',
+        stampBg: 'bg-gradient-to-br from-amber-300 to-amber-600 text-amber-950 font-black',
     },
     epic: {
         label: 'ÉPIQUE',
-        stars: '★★★',
-        borderColor: 'from-purple-400 via-fuchsia-400 to-purple-400',
-        glowColor: 'rgba(192,38,211,0.5)',
-        badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-        holoBg: 'from-purple-400/20 via-fuchsia-300/10 to-violet-400/20',
+        stars: 3,
+        textClass: 'text-purple-400 shadow-[0_0_10px_rgba(168,85,247,0.5)]',
+        borderColor: 'from-purple-400 via-fuchsia-300 to-pink-500',
+        glowColor: 'rgba(168, 85, 247, 0.6)',
+        badgeColor: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+        holoBg: 'linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(244,63,94,0.1) 50%, rgba(107,33,168,0.2) 100%)',
+        bgGradient: 'from-purple-950/40 to-black',
+        stampBg: 'bg-gradient-to-br from-purple-300 to-fuchsia-600 text-white font-black',
     },
     rare: {
         label: 'RARE',
-        stars: '★★',
-        borderColor: 'from-cyan-400 via-blue-400 to-cyan-400',
-        glowColor: 'rgba(6,182,212,0.4)',
-        badgeColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
-        holoBg: 'from-cyan-400/20 via-blue-300/10 to-sky-400/20',
+        stars: 2,
+        textClass: 'text-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]',
+        borderColor: 'from-cyan-400 via-emerald-300 to-blue-500',
+        glowColor: 'rgba(6, 182, 212, 0.5)',
+        badgeColor: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
+        holoBg: 'linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(52,211,153,0.05) 50%, rgba(37,99,235,0.15) 100%)',
+        bgGradient: 'from-cyan-950/40 to-black',
+        stampBg: 'bg-gradient-to-br from-cyan-300 to-blue-600 text-cyan-950 font-black',
     },
     common: {
         label: 'COMMUN',
-        stars: '★',
-        borderColor: 'from-gray-400 via-slate-300 to-gray-400',
-        glowColor: 'rgba(148,163,184,0.3)',
-        badgeColor: 'bg-slate-500/20 text-slate-300 border-slate-500/40',
-        holoBg: 'from-slate-400/10 via-gray-300/5 to-slate-400/10',
+        stars: 1,
+        textClass: 'text-slate-400',
+        borderColor: 'from-slate-400 via-slate-200 to-slate-600',
+        glowColor: 'rgba(148, 163, 184, 0.3)',
+        badgeColor: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
+        holoBg: 'linear-gradient(135deg, rgba(148,163,184,0.1) 0%, rgba(241,245,249,0.02) 50%, rgba(71,85,105,0.1) 100%)',
+        bgGradient: 'from-slate-900/40 to-black',
+        stampBg: 'bg-gradient-to-br from-slate-300 to-slate-500 text-slate-950 font-black',
     },
 };
 
 const TYPE_CONFIG = {
-    festival: { label: 'FESTIVAL', color: 'bg-neon-red/20 text-neon-red border-neon-red/30' },
-    club: { label: 'CLUB', color: 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/30' },
+    festival: { label: 'FESTIVAL', color: 'bg-neon-red/10 text-neon-red border-neon-red/30 shadow-[0_0_8px_rgba(255,0,51,0.2)]' },
+    club: { label: 'CLUB', color: 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/30 shadow-[0_0_8px_rgba(0,240,255,0.2)]' },
 };
 
 export function DropsidersCardComponent({ card, flippable = false, scale = 1, showDate = false, onClick }: DropsidersCardProps) {
@@ -58,15 +70,21 @@ export function DropsidersCardComponent({ card, flippable = false, scale = 1, sh
     const [hovered, setHovered] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
 
-    const rarity = RARITY_CONFIG[card.rarity];
-    const type = TYPE_CONFIG[card.type];
+    const rarity = RARITY_CONFIG[card.rarity] || RARITY_CONFIG.common;
+    const type = TYPE_CONFIG[card.type] || TYPE_CONFIG.club;
 
-    // Tilt effect on mouse move
+    // Motion values for realistic 3D tilt
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
-    const springConfig = { stiffness: 200, damping: 20 };
-    const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), springConfig);
-    const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), springConfig);
+    
+    // Smooth springs
+    const springConfig = { stiffness: 180, damping: 15 };
+    const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [12, -12]), springConfig);
+    const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), springConfig);
+
+    // Holographic sheen position linked to mouse
+    const shineX = useSpring(useTransform(mouseX, [-0.5, 0.5], ['0%', '100%']), springConfig);
+    const shineY = useSpring(useTransform(mouseY, [-0.5, 0.5], ['0%', '100%']), springConfig);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!cardRef.current) return;
@@ -86,8 +104,8 @@ export function DropsidersCardComponent({ card, flippable = false, scale = 1, sh
         onClick?.();
     };
 
-    const W = Math.round(200 * scale);
-    const H = Math.round(290 * scale);
+    const W = Math.round(240 * scale);
+    const H = Math.round(350 * scale);
 
     return (
         <motion.div
@@ -95,7 +113,7 @@ export function DropsidersCardComponent({ card, flippable = false, scale = 1, sh
             style={{
                 width: W,
                 height: H,
-                perspective: 1000,
+                perspective: 1200,
                 cursor: flippable ? 'pointer' : onClick ? 'pointer' : 'default',
                 rotateX,
                 rotateY,
@@ -105,94 +123,131 @@ export function DropsidersCardComponent({ card, flippable = false, scale = 1, sh
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={handleMouseLeave}
             onClick={handleClick}
-            whileTap={{ scale: 0.97 }}
+            whileTap={{ scale: 0.96 }}
+            className="select-none relative"
         >
             {/* Card flip container */}
             <motion.div
                 style={{ width: '100%', height: '100%', transformStyle: 'preserve-3d', position: 'relative' }}
                 animate={{ rotateY: flipped ? 180 : 0 }}
-                transition={{ duration: 0.6, ease: 'easeInOut' }}
+                transition={{ duration: 0.65, ease: [0.23, 1, 0.32, 1] }}
             >
                 {/* === FRONT FACE === */}
                 <div
                     style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
-                    className="absolute inset-0"
+                    className="absolute inset-0 z-10 w-full h-full"
                 >
-                    {/* Outer glow */}
+                    {/* Outer Glow / Aura */}
                     <div
-                        className="absolute -inset-[3px] rounded-[18px] blur-sm animate-pulse"
-                        style={{ background: `linear-gradient(135deg, ${rarity.glowColor}, transparent, ${rarity.glowColor})`, opacity: hovered ? 1 : 0.5, transition: 'opacity 0.3s' }}
+                        className="absolute -inset-[4px] rounded-[24px] blur-md transition-opacity duration-300"
+                        style={{
+                            background: `radial-gradient(circle at center, ${rarity.glowColor} 0%, transparent 70%)`,
+                            opacity: hovered ? 1 : 0.4,
+                        }}
                     />
 
-                    {/* Card body */}
+                    {/* Main Card Frame */}
                     <div
-                        className={`relative w-full h-full rounded-[16px] overflow-hidden bg-[#0a0a0f] border-2`}
-                        style={{ borderColor: 'transparent', background: `linear-gradient(#0a0a0f, #0a0a0f) padding-box, linear-gradient(135deg, var(--tw-gradient-stops)) border-box` }}
+                        className={`relative w-full h-full rounded-[22px] overflow-hidden bg-black border-[3px] flex flex-col p-2.5 shadow-[0_15px_35px_rgba(0,0,0,0.8)]`}
+                        style={{
+                            borderColor: 'transparent',
+                            background: `linear-gradient(#08080a, #030305) padding-box, linear-gradient(135deg, var(--tw-gradient-stops)) border-box`,
+                            borderImage: `linear-gradient(135deg, var(--tw-gradient-stops)) 1`,
+                        }}
                     >
-                        {/* Gradient border effect */}
-                        <div className={`absolute inset-0 rounded-[16px] bg-gradient-to-br ${rarity.borderColor} opacity-40 pointer-events-none`} style={{ padding: 2 }}>
-                            <div className="w-full h-full rounded-[14px] bg-[#0a0a0f]" />
+                        {/* Metallic Gradient Border */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${rarity.borderColor} opacity-90 pointer-events-none p-[2px] rounded-[19px]`}>
+                            <div className="w-full h-full rounded-[17px] bg-[#050508]" />
                         </div>
 
-                        {/* Holographic shimmer overlay */}
-                        <div
-                            className={`absolute inset-0 rounded-[16px] bg-gradient-to-br ${rarity.holoBg} pointer-events-none z-10 transition-opacity duration-300`}
-                            style={{ opacity: hovered ? 0.6 : 0.2 }}
-                        />
-                        {hovered && (
-                            <div
-                                className="absolute inset-0 rounded-[16px] pointer-events-none z-20"
-                                style={{
-                                    background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%)',
-                                    backgroundSize: '200% 200%',
-                                    animation: 'shimmer 1.5s infinite linear',
-                                }}
-                            />
-                        )}
+                        {/* Tech Noise / Grid Overlay Background */}
+                        <div className="absolute inset-0 bg-[radial-gradient(#151525_1px,transparent_1px)] [background-size:16px_16px] opacity-10 pointer-events-none" />
 
-                        {/* Inner content */}
-                        <div className="relative z-30 flex flex-col h-full p-[6px]">
-                            {/* Top header */}
-                            <div className="flex items-center justify-between px-1 mb-1">
-                                <span className={`text-[7px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 rounded-full border ${rarity.badgeColor}`}>
-                                    {rarity.label} {rarity.stars}
+                        {/* Dynamic Holographic Foil Overlay */}
+                        <motion.div
+                            className="absolute inset-0 pointer-events-none z-20 mix-blend-color-dodge transition-opacity duration-300"
+                            style={{
+                                opacity: hovered ? 0.85 : 0.35,
+                                background: rarity.holoBg,
+                                backgroundPosition: `${shineX.get()} ${shineY.get()}`,
+                            }}
+                        />
+
+                        {/* Dynamic Reflection Reflection Line */}
+                        <div
+                            className="absolute inset-0 z-30 pointer-events-none transition-all duration-700 ease-out"
+                            style={{
+                                background: 'linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)',
+                                backgroundSize: '200% 200%',
+                                transform: hovered ? 'translateX(100%)' : 'translateX(-100%)',
+                            }}
+                        />
+
+                        {/* Inner Layout Content */}
+                        <div className="relative z-40 flex flex-col h-full justify-between">
+                            {/* 1. Header Bar */}
+                            <div className="flex items-center justify-between mb-2">
+                                <span className={`text-[8px] font-black uppercase tracking-[0.25em] px-2 py-0.5 rounded-md border backdrop-blur-md ${rarity.badgeColor}`}>
+                                    {rarity.label}
                                 </span>
-                                <span className={`text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full border ${type.color}`}>
+                                
+                                {/* Star Rating Icons */}
+                                <div className="flex gap-0.5">
+                                    {Array.from({ length: rarity.stars }).map((_, i) => (
+                                        <svg key={i} className={`w-2.5 h-2.5 fill-current ${rarity.textClass}`} viewBox="0 0 24 24">
+                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                        </svg>
+                                    ))}
+                                </div>
+
+                                <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border backdrop-blur-md ${type.color}`}>
                                     {type.label}
                                 </span>
                             </div>
 
-                            {/* Image */}
-                            <div className="flex-1 relative rounded-[10px] overflow-hidden mx-0.5" style={{ minHeight: 0 }}>
+                            {/* 2. DJ / Club Image Panel */}
+                            <div className="flex-1 relative rounded-[14px] overflow-hidden border border-white/5 shadow-inner" style={{ minHeight: 0 }}>
                                 <img
                                     src={card.image}
                                     alt={card.name}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-700"
                                     loading="lazy"
                                 />
-                                {/* Image gradient overlay */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-60" />
-                                {/* DJ Mag rank badge */}
-                                <div className="absolute top-1.5 right-1.5 bg-black/70 backdrop-blur-sm border border-white/10 rounded-lg px-1.5 py-0.5">
-                                    <span className="text-[7px] font-black text-white/80 uppercase tracking-wider">#{card.djmag_rank}</span>
+                                
+                                {/* Futuristic Overlay Gradients */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#050508] via-transparent to-transparent opacity-80" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent" />
+
+                                {/* DJ Mag Rank Stamp Badge */}
+                                <div className="absolute top-2 right-2 flex flex-col items-center justify-center">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-lg border border-white/20 backdrop-blur-sm ${rarity.stampBg}`}>
+                                        <span className="text-[10px] tracking-tighter">#{card.djmag_rank}</span>
+                                    </div>
+                                    <span className="text-[5px] font-black uppercase tracking-widest text-white/50 mt-0.5">RANK</span>
                                 </div>
                             </div>
 
-                            {/* Bottom info */}
-                            <div className="mt-1.5 px-1 pb-0.5">
-                                <h3 className="text-white font-black uppercase italic leading-tight truncate" style={{ fontSize: Math.max(8, 11 * scale) }}>
+                            {/* 3. Footer / Details Section */}
+                            <div className="mt-2.5 px-1 pb-1 flex flex-col justify-end">
+                                {/* Title / Name */}
+                                <h3 className="text-white font-black uppercase italic leading-none tracking-tight font-display mb-0.5" style={{ fontSize: Math.max(12, 16 * scale) }}>
                                     {card.name}
                                 </h3>
-                                <p className="text-gray-400 font-bold uppercase tracking-wider truncate" style={{ fontSize: Math.max(6, 8 * scale) }}>
+                                
+                                {/* Location */}
+                                <p className="text-gray-400 font-bold uppercase tracking-widest flex items-center gap-1.5" style={{ fontSize: Math.max(7, 9 * scale) }}>
+                                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-neon-cyan" />
                                     {card.city} · {card.country}
                                 </p>
+
                                 {showDate && card.collectedAt && (
-                                    <p className="text-gray-600 font-bold uppercase tracking-wider mt-0.5" style={{ fontSize: 6 * scale }}>
-                                        {new Date(card.collectedAt).toLocaleDateString('fr-FR')}
+                                    <p className="text-gray-600 font-bold uppercase tracking-wider mt-1 text-[8px]" style={{ fontSize: 7 * scale }}>
+                                        Débloquée le {new Date(card.collectedAt).toLocaleDateString('fr-FR')}
                                     </p>
                                 )}
-                                {/* Decorative line */}
-                                <div className={`mt-1 h-[2px] rounded-full bg-gradient-to-r ${rarity.borderColor} opacity-50`} />
+                                
+                                {/* Holographic accent stripe */}
+                                <div className={`mt-2 h-[3px] rounded-full bg-gradient-to-r ${rarity.borderColor} opacity-80 shadow-[0_0_8px_var(--tw-gradient-stops)]`} />
                             </div>
                         </div>
                     </div>
@@ -202,15 +257,22 @@ export function DropsidersCardComponent({ card, flippable = false, scale = 1, sh
                 {flippable && (
                     <div
                         style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-                        className="absolute inset-0"
+                        className="absolute inset-0 w-full h-full"
                     >
-                        <div className="w-full h-full rounded-[16px] bg-[#0a0a0f] border border-white/10 flex items-center justify-center overflow-hidden relative">
+                        <div className="w-full h-full rounded-[22px] bg-[#040407] border-[3px] border-white/10 flex flex-col items-center justify-center overflow-hidden relative p-6">
+                            <div className="absolute inset-0 bg-[radial-gradient(#151525_1px,transparent_1px)] [background-size:12px_12px] opacity-20" />
                             <div className="absolute inset-0 bg-gradient-to-br from-neon-red/10 via-transparent to-neon-cyan/10" />
-                            <div className="relative z-10 flex flex-col items-center gap-2">
-                                <div className="w-12 h-12 rounded-full border-2 border-neon-red/40 flex items-center justify-center bg-neon-red/10">
-                                    <span className="text-neon-red font-black text-xl">D</span>
+                            
+                            <div className="absolute inset-4 rounded-[16px] border border-white/5 bg-black/40 flex flex-col items-center justify-center">
+                                {/* Futuristic Logo Graphic */}
+                                <div className="relative mb-3">
+                                    <div className="absolute -inset-1.5 bg-neon-red/20 blur-md rounded-full animate-pulse" />
+                                    <div className="relative w-16 h-16 rounded-full border-2 border-neon-red/40 flex items-center justify-center bg-neon-red/10 shadow-[0_0_15px_rgba(255,0,51,0.2)]">
+                                        <span className="text-neon-red font-black text-2xl tracking-tighter italic">D</span>
+                                    </div>
                                 </div>
-                                <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/30">Dropsiders</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/50">Dropsiders</span>
+                                <span className="text-[6px] font-bold uppercase tracking-[0.2em] text-white/20 mt-1">TRADING CARD SYSTEM</span>
                             </div>
                         </div>
                     </div>
