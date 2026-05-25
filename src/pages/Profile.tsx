@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, Share2, MessageSquare, Star, Send, Instagram } from 'lucide-react';
-import { useUser } from '../context/UserContext';
+import { useUser, type DropsidersCard } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -37,6 +37,7 @@ export function Profile() {
     const [cardSearch, setCardSearch] = useState('');
     const [cardRarityFilter, setCardRarityFilter] = useState<'all' | 'legendary' | 'epic' | 'rare' | 'common'>('all');
     const [cardTypeFilter, setCardTypeFilter] = useState<'all' | 'festival' | 'club'>('all');
+    const [selectedCardForPreview, setSelectedCardForPreview] = useState<DropsidersCard | null>(null);
 
     // Group collected cards by ID to show quantities
     const groupedCards = (collectedCards || []).reduce((acc, card) => {
@@ -513,6 +514,7 @@ export function Profile() {
                                                         <DropsidersCardComponent
                                                             card={card}
                                                             scale={0.9}
+                                                            onClick={() => setSelectedCardForPreview(card)}
                                                         />
                                                     </div>
                                                 ))}
@@ -946,6 +948,51 @@ export function Profile() {
                 isOpen={isAuthModalOpen} 
                 onClose={() => setIsAuthModalOpen(false)} 
             />
+
+            {/* FULLSCREEN CARD PREVIEW MODAL */}
+            <AnimatePresence>
+                {selectedCardForPreview && (
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedCardForPreview(null)}
+                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                        />
+
+                        {/* Modal Container */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="relative z-10 flex flex-col items-center gap-6"
+                        >
+                            {/* Card with scale 1.4 for fullscreen visibility */}
+                            <DropsidersCardComponent
+                                card={selectedCardForPreview}
+                                flippable={true}
+                                scale={1.4}
+                            />
+
+                            {/* Info & controls under the card */}
+                            <div className="text-center space-y-2">
+                                <p className="text-[10px] font-black tracking-[0.3em] text-white/40 uppercase">
+                                    Clique sur la carte pour la retourner
+                                </p>
+                                <button
+                                    onClick={() => setSelectedCardForPreview(null)}
+                                    className="px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all"
+                                >
+                                    Fermer la vue
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </>
     );
 }
