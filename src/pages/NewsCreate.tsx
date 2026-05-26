@@ -2711,7 +2711,7 @@ ${generateSocialsHtml()}
                                                     </span>
                                                     <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
                                                         {widget.content.startsWith('<h2') ? 'Titre' :
-                                                            widget.content.includes('duo-photos-premium') ? 'Duo Photos' :
+                                                            (widget.content.includes('duo-photos-premium') || widget.content.includes('grid-photos-premium')) ? 'Duo/Grid Photos' :
                                                                 widget.content.includes('image-premium-wrapper') ? 'Image' :
                                                                     widget.content.includes('gallery-premium-grid') ? 'Galerie' : 
                                                                         widget.content.includes('spotify-compact-widget') ? 'Spotify' : 'Texte'}
@@ -2967,7 +2967,7 @@ ${generateSocialsHtml()}
                                                         <button
                                                             type="button"
                                                             onClick={() => {
-                                                                if (widget.content.includes('duo-photos-premium')) {
+                                                                if (widget.content.includes('duo-photos-premium') || widget.content.includes('grid-photos-premium')) {
                                                                     const extracted = extractDuoUrls(widget.content);
                                                                     setDuoModal({
                                                                         show: true,
@@ -3089,7 +3089,7 @@ ${generateSocialsHtml()}
                                                 !widget.content.includes('youtube-player-widget') &&
                                                     !widget.content.includes('image-premium-wrapper') &&
                                                     !widget.content.includes('gallery-premium-grid') &&
-                                                    !widget.content.includes('duo-photos-premium') ? (
+                                                    !widget.content.includes('duo-photos-premium') && !widget.content.includes('grid-photos-premium') ? (
                                                     <div className={`admin-editor-container bg-white/[0.02] border transition-all duration-500 ${isMobileEditorActive ? 'min-h-[80vh] border-0 rounded-none bg-black/40' : 'border-white/5 rounded-3xl overflow-hidden shadow-2xl'}`}>
                                                         <VisualEditor
                                                             content={widget.content}
@@ -3807,7 +3807,7 @@ ${generateSocialsHtml()}
                                                     </span>
                                                     <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
                                                         {widget.content.startsWith('<h2') ? 'Titre' :
-                                                            widget.content.includes('duo-photos-premium') ? 'Duo Photos' :
+                                                            (widget.content.includes('duo-photos-premium') || widget.content.includes('grid-photos-premium')) ? 'Duo/Grid Photos' :
                                                                 widget.content.includes('image-premium-wrapper') ? 'Image' :
                                                                     widget.content.includes('gallery-premium-grid') ? 'Galerie' : 
                                                                         widget.content.includes('spotify-compact-widget') ? 'Spotify' : 'Texte'}
@@ -3887,7 +3887,7 @@ ${generateSocialsHtml()}
                                                 !widget.content.includes('youtube-player-widget') &&
                                                     !widget.content.includes('image-premium-wrapper') &&
                                                     !widget.content.includes('gallery-premium-grid') &&
-                                                    !widget.content.includes('duo-photos-premium') ? (
+                                                    !widget.content.includes('duo-photos-premium') && !widget.content.includes('grid-photos-premium') ? (
                                                     <div className={`admin-editor-container bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl overflow-hidden shadow-2xl`}>
                                                         <VisualEditor
                                                             content={widget.content}
@@ -4862,8 +4862,8 @@ ${generateSocialsHtml()}
                                             const mediaItems = activeUrls.map((url, idx) => {
                                                 const isV = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
                                                 return isV
-                                                    ? `<video src="${url}" autoplay loop muted playsinline class="w-full aspect-[${duoModal.aspectRatio}] object-cover"></video>`
-                                                    : `<img src="${url}" alt="Grid item ${idx + 1}" class="w-full aspect-[${duoModal.aspectRatio}] object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
+                                                    ? `<video src="${url}" autoplay loop muted playsinline class="w-full object-cover" style="aspect-ratio: ${duoModal.aspectRatio} !important;"></video>`
+                                                    : `<img src="${url}" alt="Grid item ${idx + 1}" class="w-full object-cover transform group-hover:scale-105 transition-transform duration-700" style="aspect-ratio: ${duoModal.aspectRatio} !important;" />`;
                                             });
 
                                             // Determine layout classes based on item count
@@ -4877,7 +4877,8 @@ ${generateSocialsHtml()}
                                                 itemClasses = "image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group";
                                             }
 
-                                            const gridWidget = `<div class="${layoutClasses}">\n  ${mediaItems.map(m => `<div class="${itemClasses}">\n    ${m}\n  </div>`).join('\n  ')}\n</div>`;
+                                            const itemStyle = `style="aspect-ratio: ${duoModal.aspectRatio} !important;"`;
+                                            const gridWidget = `<div class="${layoutClasses}">\n  ${mediaItems.map(m => `<div class="${itemClasses}" ${itemStyle}>\n    ${m}\n  </div>`).join('\n  ')}\n</div>`;
 
                                             if (duoModal.widgetId) {
                                                 updateWidget(duoModal.widgetId, gridWidget);
