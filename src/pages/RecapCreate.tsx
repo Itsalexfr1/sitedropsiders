@@ -60,7 +60,7 @@ const EDITOR_COLORS = [
     '#FFFFFF', // blanc
 ];
 
-const getEditorColor = (username: string) => {
+const getEditorColor = (username: string, index?: number) => {
     const normalized = username.toLowerCase();
     // Manual overrides for core team to provide unique colors
     if (normalized === 'alex') return '#FF1241';
@@ -71,6 +71,10 @@ const getEditorColor = (username: string) => {
     if (normalized === 'kevin') return '#FFF01F';
     if (normalized === 'guiyoome') return '#FF5E00';
 
+    // Pour les nouveaux éditeurs : couleur unique basée sur leur index dans la liste
+    if (index !== undefined) return EDITOR_COLORS[index % EDITOR_COLORS.length];
+
+    // Fallback hash si pas d'index fourni
     let hash = 0;
     for (let i = 0; i < normalized.length; i++) {
         hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
@@ -79,8 +83,8 @@ const getEditorColor = (username: string) => {
 };
 
 // Special style for Alex (Gradient)
-const getAuthorTextStyle = (username: string) => {
-    const color = getEditorColor(username);
+const getAuthorTextStyle = (username: string, index?: number) => {
+    const color = getEditorColor(username, index);
     if (username.toLowerCase() === 'alex') {
         return {
             background: 'linear-gradient(to right, #FF1241, #FF0099, #BF00FF)',
@@ -1397,8 +1401,8 @@ export function RecapCreate() {
                             </label>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                {editors.map((editor: any) => {
-                                    const editorColor = getEditorColor(editor.username.toLowerCase());
+                                {editors.map((editor: any, index: number) => {
+                                    const editorColor = getEditorColor(editor.username.toLowerCase(), index);
                                     const isSelected = author === editor.username;
                                     return (
                                         <button
@@ -1428,7 +1432,7 @@ export function RecapCreate() {
                                             </div>
                                             <span
                                                 className="text-[10px] font-black uppercase tracking-widest transition-colors"
-                                                style={getAuthorTextStyle(editor.username)}
+                                                style={getAuthorTextStyle(editor.username, index)}
                                             >
                                                 {editor.username}
                                             </span>
