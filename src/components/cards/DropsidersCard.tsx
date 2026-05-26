@@ -265,102 +265,291 @@ interface Attack {
     text: string;
 }
 
+// Per-venue first attack names (clubs & festivals)
+const VENUE_ATTACK_NAMES: Record<string, string> = {
+    // ── CLUBS ──
+    'Fabric': 'Bodysonic Floor',
+    'Berghain': 'Industrial Surge',
+    'DC-10': 'Circoloco Storm',
+    'Amnesia': 'CO2 Cannon',
+    'Hï': 'Theatre Drop',
+    'Avant Gardner': 'Kings Hall Rush',
+    'Drumsheds': 'Shed Tremor',
+    'XOYO': 'Shoreditch Residency',
+    'Watergate': 'Spree Current',
+    'Womb': 'Shibuya Surge',
+    'Club der Visionaere': 'Flutgraben Float',
+    'Shelter': 'Underground Pulse',
+    'Sub Club': 'Glasgow Acid',
+    'Egg': 'Kings Cross Marathon',
+    'Input': 'Meyer Sound Blast',
+    'Exchange': 'Art Deco Rush',
+    'Social Club': 'Bastille Groove',
+    'Studio 338': 'Greenwich Garden',
+    'Suicide Circus': 'Berlin Afterrave',
+    'Oval Space': 'Bethnal Arch',
+    'La Machine du Moulin Rouge': 'Pigalle Nuit',
+    'Kunsthaus Tacheles': 'Squat Rave',
+    'Green Valley': 'Jungle Drop',
+    'Echostage': 'East Coast Wave',
+    'Ushuaïa': 'Poolside Banger',
+    'Bootshaus': 'Rhine Power',
+    'Savaya': 'Uluwatu Cliff',
+    'Laroc Club': 'Sunset Open Air',
+    'Illuzion': 'Pharaonic Laser',
+    'Noa Beach Club': 'Adriatic Wave',
+    'Papaya Club': 'Zrce Bomb',
+    'PLAY HOUSE': 'Chengdu Megastage',
+    'FABRIK': 'Madrid Marathon',
+    'Opium': 'Barcelone Beach',
+    'Eden': 'Void Incubus',
+    'Elsewhere': 'Brooklyn Underground',
+    'Tenax Club': 'Florentine Pulse',
+    'Il Muretto': 'Adriatic Roof',
+    'Yalta Club': 'Sofia Revival',
+    'D-Edge': 'LED Labyrinth',
+    'Warung Beach Club': 'Sunrise Session',
+    'Output': 'No-Photo Zone',
+    'Paradise Club': 'Mykonos Pool Party',
+    'Culture Club': 'Ghent Groove',
+    'Fuse': 'Brussels Techno',
+    'La Terrazza': 'Poble Roof',
+    'Village Underground': 'Wagon Drop',
+    'Kater Blau': 'Bar25 Legacy',
+    'Sisyphos': 'Biscuit Factory',
+    'Robert Johnson': 'Main River Minimal',
+    'Zouk': 'Vegas Spectacle',
+    'Marquee': 'Vegas Mainroom',
+    'Badaboum': 'Bastille Hustle',
+    // ── FESTIVALS ──
+    'Tomorrowland': 'Book of Wisdom',
+    'Ultra Music Festival': 'Bayfront Mainstage',
+    'EDC Las Vegas': 'Headliner Rush',
+    'Movement Detroit': 'Hart Plaza Techno',
+    'Sónar': 'Digital Pulse',
+    'Defqon.1': 'Endshow Fireworks',
+    'Time Warp': 'Industrial Hall',
+    'Creamfields': 'Steel Yard Storm',
+    'Mysteryland': 'Dutch Fields',
+    'Exit Festival': 'Petrovaradin Siege',
+    'Untold Festival': 'Cluj Arena',
+    'Medusa Festival': 'Sunbeach Marathon',
+    'Dimensions Festival': 'Venetian Fortress',
+    'Electric Zoo': 'Randall Island',
+    'Neopop Festival': 'Castle Techno',
+    'Loveland Festival': 'Sloterpark Sunset',
+    'SW4 Festival': 'Clapham Surge',
+    'Transmission Festival': 'O2 Trance Dome',
+    'Electric Castle': 'Ruins of Bonțida',
+    'Qlimax': 'GelreDome Indoor',
+    'Epizode Festival': 'Tropical Rave',
+    'Elrow Festival': 'Confetti Chaos',
+    'Wide Awake Festival': 'Brockwell Punk',
+    'Tomorrowland Brasil': 'Itu Jungle Magic',
+    'Ultra Europe': 'Dalmatian Coast',
+    'Glastonbury Festival': 'Pyramid Stage',
+    'Kappa FuturFestival': 'Parco Dora Drop',
+    'World Club Dome': 'Frankfurt Stadium',
+    'Coachella Valley Music & Arts Festival': 'Desert Mainstage',
+    'Sunburn Festival': 'Goa Shoreline',
+    'AMF (Amsterdam Music Festival)': 'Top 100 Coronation',
+    'Parookaville': 'Ephemeral City',
+    'Parklife': 'Manchester Eclectic',
+    'Sziget Festival': 'Liberty Island',
+    'Balaton Sound': 'Lakeside Beat',
+    'Monegros Desert Festival': 'Desert Rave',
+    'Neversea Festival': 'Black Sea Shore',
+    'Boomtown': 'Fictional City',
+    'Lollapalooza': 'Grant Park Takeover',
+    'Electric Love': 'Alpine EDM',
+    'EDC Orlando': 'Florida Daisy',
+    'Sonus Festival': 'Pag Island Week',
+    '808 Festival': 'Bangkok Pulse',
+    'Veld Music Festival': 'Downsview Surge',
+    'Bonnaroo Music & Arts Festival': 'Tennessee Positivity',
+    'Lovefest': 'Serbian Gem',
+    'Terminal V': 'Highland Rave',
+    'Arc Music Festival': 'Chicago House Roots',
+    'Panorama Festival': 'Calabrian Sunset',
+    'Les Plages Electroniques': 'Cannes Dancefloor',
+    'Burning Man': 'Playa Ceremony',
+};
+
+// Per-club music genre labels (sourced from Wikipedia)
+const CLUB_MUSIC_STYLES: Record<string, string> = {
+    'Fabric': 'Techno · House · Drum & Bass',
+    'Berghain': 'Techno · Industrial',
+    'DC-10': 'House · Techno · Underground',
+    'Amnesia': 'House · Trance · EDM',
+    'Hï': 'House · Techno · EDM',
+    'Avant Gardner': 'House · Techno · EDM',
+    'Drumsheds': 'Techno · House · D&B',
+    'XOYO': 'House · Techno · Disco',
+    'Watergate': 'Deep House · Minimal · Tech-House',
+    'Womb': 'Techno · House · Drum & Bass',
+    'Club der Visionaere': 'Minimal · Microhouse · Techno',
+    'Shelter': 'Techno · House',
+    'Sub Club': 'House · Techno · Acid',
+    'Egg': 'House · Techno · Disco',
+    'Input': 'Techno · Minimal · Electronica',
+    'Exchange': 'House · Techno · EDM',
+    'Social Club': 'Hip-Hop · Funk · Électro',
+    'Studio 338': 'House · Techno · Drum & Bass',
+    'Suicide Circus': 'Techno · Industrial',
+    'Oval Space': 'Techno · House · Expérimental',
+    'La Machine du Moulin Rouge': 'Électronique · Hip-Hop · Rock',
+    'Kunsthaus Tacheles': 'Techno · Underground · Expérimental',
+    'Green Valley': 'EDM · Progressive House · Trance',
+    'Echostage': 'EDM · House · Techno',
+    'Ushuaïa': 'House · EDM · Tech-House',
+    'Bootshaus': 'EDM · Hardstyle · Techno',
+    'Savaya': 'House · Afro · Organic',
+    'Laroc Club': 'EDM · Progressive House',
+    'Illuzion': 'EDM · House · Hip-Hop',
+    'Noa Beach Club': 'House · Techno · Progressive',
+    'Papaya Club': 'House · Techno · EDM',
+    'PLAY HOUSE': 'EDM · Hip-Hop · Électro',
+    'FABRIK': 'Techno · EDM',
+    'Opium': 'House · R&B · Pop Électronique',
+    'Eden': 'House · Techno · Trance',
+    'Elsewhere': 'Techno · House · Indie Dance',
+    'Tenax Club': 'House · Techno · Électronique',
+    'Il Muretto': 'House · Italo Dance · Électronique',
+    'Yalta Club': 'House · Techno · Électronique',
+    'D-Edge': 'Techno · House · Électronique',
+    'Warung Beach Club': 'Progressive · House · Techno',
+    'Output': 'Techno · House · Expérimental',
+    'Paradise Club': 'House · EDM · Commercial',
+    'Culture Club': 'House · Électronique',
+    'Fuse': 'Techno · EBM · Industrial',
+    'La Terrazza': 'House · Techno · Open Air',
+    'Village Underground': 'Indie · Électronique · Alternative',
+    'Kater Blau': 'House · Techno · Minimal',
+    'Sisyphos': 'Techno · House · Psychédélique',
+    'Robert Johnson': 'Minimal · Deep House · Techno',
+    'Zouk': 'EDM · House · Techno',
+    'Marquee': 'EDM · House · Hip-Hop',
+    'Badaboum': 'House · Disco · Funk',
+};
+
+const getVenueAttackName = (card: DropsidersCard): string => {
+    if (card.type === 'dj') return 'Signature Set';
+    return VENUE_ATTACK_NAMES[card.name] || (card.type === 'festival' ? 'Main Stage Rush' : 'Midnight Ritual');
+};
+
 const getCardAttacks = (card: DropsidersCard, theme: CardTheme): Attack[] => {
     const attacks: Attack[] = [];
     const energy = theme.energyType;
+    const venueAttack = getVenueAttackName(card);
 
-    // First attack: basic music driver
+    // First attack
     if (card.type === 'festival') {
         attacks.push({
             cost: ['star', 'star'],
-            name: 'Main Stage Bass',
+            name: venueAttack,
             damage: '40',
-            text: "Projette des ondes de basses progressives survoltées, soulevant tout le public."
+            text: ''
         });
     } else if (card.type === 'dj') {
-        attacks.push({
-            cost: ['star'],
-            name: 'Drop Mix',
-            damage: '30',
-            text: 'Lance un drop explosif qui électrise instantanément la foule et chamboule le dancefloor.'
-        });
+        // For DJs: no first attack shown, only top tracks
+        // (we skip the attack and just return empty if no epic/legendary)
     } else {
         attacks.push({
             cost: ['star'],
-            name: 'Midnight Groove',
+            name: venueAttack,
             damage: '20',
-            text: 'Joue une boucle rythmique hypnotique qui force le public à danser en continu.'
+            text: ''
         });
     }
 
-    // Second attack: themed exactly around the musical style
+    // Second attack: themed around the musical style (epic/legendary only)
     if (card.rarity === 'epic' || card.rarity === 'legendary') {
         const damageVal = card.rarity === 'legendary' ? '120' : '90';
         
-        switch (energy) {
-            case 'techno':
-                attacks.push({
-                    cost: ['techno', 'techno', 'star'],
-                    name: 'Dark Warehouse',
-                    damage: damageVal,
-                    text: 'Sombre sous les infra-basses souterraines d\'un hangar obscur. Ignore toutes les résistances.'
-                });
-                break;
-            case 'house':
-                attacks.push({
-                    cost: ['house', 'house', 'star'],
-                    name: 'Sunset Piano',
-                    damage: damageVal,
-                    text: 'Joue un riff de piano de plage euphorique et ensoleillé. Soigne 30 PV de vos festivals.'
-                });
-                break;
-            case 'edm':
-                attacks.push({
-                    cost: ['edm', 'edm', 'star'],
-                    name: 'Laser Symphony',
-                    damage: damageVal,
-                    text: 'Déclenche un show visuel incandescent de 500 000 watts. Défaussez une énergie pour paralyser.'
-                });
-                break;
-            case 'hardstyle':
-                attacks.push({
-                    cost: ['hardstyle', 'hardstyle', 'star'],
-                    name: 'Melodic Climax',
-                    damage: damageVal,
-                    text: 'Délivre des kicks distordus à 150 BPM. Inflige double dégâts si l\'adversaire a moins de 50 PV.'
-                });
-                break;
-            case 'trance':
-                attacks.push({
-                    cost: ['trance', 'trance', 'star'],
-                    name: 'Psy-Vibration',
-                    damage: damageVal,
-                    text: 'Induit une transe psychédélique planante. L\'adversaire s\'inflige 30 dégâts à lui-même.'
-                });
-                break;
-            case 'bass':
-                attacks.push({
-                    cost: ['bass', 'bass', 'star'],
-                    name: 'Subwoofer Blast',
-                    damage: damageVal,
-                    text: 'Libère une onde infrabasse dévastatrice à pleine puissance, brisant le soundsystem adverse.'
-                });
-                break;
-            case 'retro':
-                attacks.push({
-                    cost: ['retro', 'retro', 'star'],
-                    name: 'Disco Inferno',
-                    damage: damageVal,
-                    text: 'Déclenche un hymne disco légendaire des années 70, embrasant immédiatement le dancefloor.'
-                });
-                break;
-            default:
-                attacks.push({
-                    cost: ['star', 'star', 'star'],
-                    name: 'Generic Banger',
-                    damage: damageVal,
-                    text: 'Joue une boucle rythmique efficace sans thématique spécifique.'
-                });
+        if (card.type === 'dj') {
+            // DJs get a single themed attack
+            switch (energy) {
+                case 'techno':
+                    attacks.push({ cost: ['techno', 'techno', 'star'], name: 'Dark Warehouse', damage: damageVal, text: '' });
+                    break;
+                case 'house':
+                    attacks.push({ cost: ['house', 'house', 'star'], name: 'Sunset Piano', damage: damageVal, text: '' });
+                    break;
+                case 'edm':
+                    attacks.push({ cost: ['edm', 'edm', 'star'], name: 'Laser Symphony', damage: damageVal, text: '' });
+                    break;
+                case 'hardstyle':
+                    attacks.push({ cost: ['hardstyle', 'hardstyle', 'star'], name: 'Melodic Climax', damage: damageVal, text: '' });
+                    break;
+                case 'trance':
+                    attacks.push({ cost: ['trance', 'trance', 'star'], name: 'Psy-Vibration', damage: damageVal, text: '' });
+                    break;
+                case 'bass':
+                    attacks.push({ cost: ['bass', 'bass', 'star'], name: 'Subwoofer Blast', damage: damageVal, text: '' });
+                    break;
+                case 'retro':
+                    attacks.push({ cost: ['retro', 'retro', 'star'], name: 'Disco Inferno', damage: damageVal, text: '' });
+                    break;
+                default:
+                    attacks.push({ cost: ['star', 'star', 'star'], name: 'Signature Banger', damage: damageVal, text: '' });
+            }
+        } else {
+            // Clubs & Festivals: second attack also named after the venue
+            const secondVenueAttacks: Record<string, string> = {
+                // CLUBS
+                'Fabric': 'Room One Bodysonic', 'Berghain': 'Panorama Bar', 'DC-10': 'Circoloco Monday',
+                'Amnesia': 'Terrace Explosion', 'Hï': 'Club Room Takeover', 'Avant Gardner': 'Great Hall Surge',
+                'Drumsheds': 'Factory Takeover', 'XOYO': 'Long-Term Residency', 'Watergate': 'Riverside Float',
+                'Womb': 'Mirror Ball Drop', 'Club der Visionaere': 'Canal Side Session', 'Shelter': 'A\'DAM Tower Core',
+                'Sub Club': 'Funktion-One Acid', 'Egg': 'Weekend Marathon', 'Input': 'Meyer Immersion',
+                'Exchange': 'Deco Hall Rush', 'Social Club': 'Paris Underground', 'Studio 338': 'Summer Garden',
+                'Suicide Circus': 'Outdoor Afterrave', 'Oval Space': 'Skylight Rave', 'La Machine du Moulin Rouge': 'Nuit Pigalle',
+                'Kunsthaus Tacheles': 'Art Squat Rave', 'Green Valley': 'Jungle Sunrise', 'Echostage': 'Capital Surge',
+                'Ushuaïa': 'Open Air Pool Drop', 'Bootshaus': 'Rhine Massive', 'Savaya': 'Cliff Sunset',
+                'Laroc Club': 'Sunset Stage', 'Illuzion': 'LED Dome Surge', 'Noa Beach Club': 'Water Stage',
+                'Papaya Club': 'Island Night', 'PLAY HOUSE': 'Mobile Stage Blast', 'FABRIK': 'Madrid Massive',
+                'Opium': 'Beach Glamour', 'Eden': 'San Antonio Night', 'Elsewhere': 'Hall Invasion',
+                'Tenax Club': '80s Pioneer', 'Il Muretto': 'Retractable Roof', 'Yalta Club': 'Sofia Legend',
+                'D-Edge': 'LED Abyss', 'Warung Beach Club': 'Wooden Temple', 'Output': 'No Flash Policy',
+                'Paradise Club': 'Mykonos VIP Night', 'Culture Club': 'Ghent Design Night', 'Fuse': 'Brussels EBM',
+                'La Terrazza': 'Summer Open Air', 'Village Underground': 'Metro Wagon', 'Kater Blau': 'Spree Rave',
+                'Sisyphos': 'Dog Biscuit Factory', 'Robert Johnson': 'Purism Drop', 'Zouk': 'Singapore Legacy',
+                'Marquee': 'Pool Club Day', 'Badaboum': 'Cocktail Club',
+                // FESTIVALS
+                'Tomorrowland': 'Mainstage Crescendo', 'Ultra Music Festival': 'Resistance Stage',
+                'EDC Las Vegas': 'Kinetic Field', 'Movement Detroit': 'Techno Birthplace',
+                'Sónar': 'Sonar+D Innovation', 'Defqon.1': 'Blue Stage Kick',
+                'Time Warp': 'Mannheim Hall', 'Creamfields': 'Arc Stage',
+                'Mysteryland': '1993 Legacy', 'Exit Festival': 'Danube Fortress',
+                'Untold Festival': 'European Award', 'Medusa Festival': '10h Marathon Set',
+                'Dimensions Festival': 'Fortress Night', 'Electric Zoo': 'Urban Island',
+                'Neopop Festival': 'Dark Castle', 'Loveland Festival': 'Amsterdam Outdoor',
+                'SW4 Festival': 'Bank Holiday Drop', 'Transmission Festival': 'Spacelab Visual',
+                'Electric Castle': 'Castle Ruins', 'Qlimax': 'Indoor Fireworks',
+                'Epizode Festival': 'Beach Week', 'Elrow Festival': 'Confetti Flood',
+                'Wide Awake Festival': 'Brixton Experimental', 'Tomorrowland Brasil': 'Itu Mainpage',
+                'Ultra Europe': 'Hvar Island Satellite', 'Glastonbury Festival': 'Other Stage',
+                'Kappa FuturFestival': 'Parco Dora Industrial', 'World Club Dome': 'Stadium Takeover',
+                'Coachella Valley Music & Arts Festival': 'Sahara Tent', 'Sunburn Festival': 'Goa Beach Stage',
+                'AMF (Amsterdam Music Festival)': 'ArenA Finale', 'Parookaville': 'City Passport Drop',
+                'Parklife': 'Sounds of the Near Future', 'Sziget Festival': 'Danube Stage',
+                'Balaton Sound': 'Lake Sunset', 'Monegros Desert Festival': '24h Desert',
+                'Neversea Festival': 'Black Sea Night', 'Boomtown': 'Imaginary Town',
+                'Lollapalooza': 'Chicago Takeover', 'Electric Love': 'Alpine Stage',
+                'EDC Orlando': 'Florida Neon', 'Sonus Festival': 'Boat Party Drop',
+                '808 Festival': 'Bangkok Mainroom', 'Veld Music Festival': 'Toronto Bass',
+                'Bonnaroo Music & Arts Festival': 'Centeroo Stage', 'Lovefest': 'Serbian Reveal',
+                'Terminal V': 'Royal Highland Drop', 'Arc Music Festival': 'Union Park Roots',
+                'Panorama Festival': 'Calabrian Shore', 'Les Plages Electroniques': 'Riviera Night',
+                'Burning Man': 'Black Rock Effigy',
+            };
+            const secondName = secondVenueAttacks[card.name] || (card.type === 'festival' ? 'Headline Surge' : 'Legendary Night');
+            attacks.push({
+                cost: [energy, energy, 'star'],
+                name: secondName,
+                damage: damageVal,
+                text: ''
+            });
         }
     }
     
@@ -508,7 +697,10 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                         </span>
                                         <h3 
                                             className={`font-serif font-black uppercase italic tracking-tight leading-none ${theme.textColor}`}
-                                            style={{ fontSize: Math.max(9, 13 * scale) }}
+                                            style={{
+                                                fontSize: Math.max(9, 13 * scale),
+                                                textShadow: theme.energyType === 'house' ? '0 1px 4px rgba(0,0,0,0.55), 0 0px 2px rgba(0,0,0,0.4)' : 'none'
+                                            }}
                                         >
                                             {card.name}
                                         </h3>
@@ -549,7 +741,7 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                 </div>
 
                                 {/* 4. ATTACKS / DESCRIPTION SECTION */}
-                                <div className="flex-grow flex flex-col justify-center mt-2.5 space-y-2.5">
+                                <div className="flex-grow flex flex-col justify-center mt-2.5 space-y-2">
                                     {attacks.map((att, idx) => (
                                         <div key={idx} className="flex flex-col">
                                             <div className="flex items-center justify-between">
@@ -565,9 +757,6 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                                     {att.damage}
                                                 </span>
                                             </div>
-                                            <p className="text-slate-700 font-medium leading-tight mt-0.5 pl-1.5" style={{ fontSize: Math.max(6, 8 * scale) }}>
-                                                {att.text}
-                                            </p>
                                         </div>
                                     ))}
                                 </div>
@@ -587,12 +776,14 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                         </div>
                                     ) : (
                                         <div className="w-full px-1 flex flex-col items-center gap-0.5">
-                                            <p className="font-serif italic text-slate-500 text-center leading-normal" style={{ fontSize: Math.max(5, 7.5 * scale) }}>
-                                                "Ce temple légendaire de la culture électronique rassemble des milliers d'adeptes sous les vibrations du soundsystem Dropsiders."
-                                            </p>
                                             {card.attendees_label && (
-                                                <p className={`font-sans font-black text-center leading-tight mt-0.5 ${theme.textColor}`} style={{ fontSize: Math.max(4.5, 6.5 * scale) }}>
+                                                <p className={`font-sans font-black text-center leading-tight ${theme.textColor}`} style={{ fontSize: Math.max(4.5, 6.5 * scale) }}>
                                                     🎟 {card.attendees_label}
+                                                </p>
+                                            )}
+                                            {card.type === 'club' && CLUB_MUSIC_STYLES[card.name] && (
+                                                <p className={`font-serif italic text-center leading-tight mt-0.5 opacity-80 ${theme.textColor}`} style={{ fontSize: Math.max(4, 5.5 * scale) }}>
+                                                    🎵 {CLUB_MUSIC_STYLES[card.name]}
                                                 </p>
                                             )}
                                         </div>
