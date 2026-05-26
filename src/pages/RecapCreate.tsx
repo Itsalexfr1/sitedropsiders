@@ -66,6 +66,7 @@ const getEditorColor = (username: string) => {
     if (normalized === 'alex') return '#FF1241';
     if (normalized === 'tanguy') return '#00FFFF';
     if (normalized === 'julien') return '#BF00FF';
+    if (normalized === 'guillaume') return '#FF5E00';
     if (normalized === 'tiffany') return '#39FF14';
     if (normalized === 'kevin') return '#FFF01F';
     if (normalized === 'guiyoome') return '#FF5E00';
