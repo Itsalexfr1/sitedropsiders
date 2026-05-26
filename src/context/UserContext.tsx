@@ -49,6 +49,7 @@ interface UserContextType {
     setIsAuthModalOpen: (open: boolean) => void;
     showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
     addCard: (card: DropsidersCard) => void;
+    removeCard: (cardId: string) => void;
     collectedCards: DropsidersCard[];
 }
 
@@ -399,6 +400,30 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const removeCard = (cardId: string) => {
+        if (user) {
+            const existing = user.collectedCards || [];
+            const index = existing.findIndex(c => c.id === cardId);
+            if (index !== -1) {
+                const updatedCards = [...existing];
+                updatedCards.splice(index, 1);
+                const updatedUser = { ...user, collectedCards: updatedCards };
+                setUser(updatedUser);
+                saveToRegisteredUsers(updatedUser);
+            }
+        } else {
+            // Guest: store in localStorage
+            try {
+                const stored: DropsidersCard[] = JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]');
+                const index = stored.findIndex(c => c.id === cardId);
+                if (index !== -1) {
+                    stored.splice(index, 1);
+                    localStorage.setItem('dropsiders_guest_cards', JSON.stringify(stored));
+                }
+            } catch (e) { console.error('Failed to remove guest card', e); }
+        }
+    };
+
     const earnPoints = (xpAmount: number, dropsAmount: number) => {
         if (user) {
             const updatedUser = {
@@ -434,6 +459,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             setIsAuthModalOpen,
             showNotification,
             addCard,
+            removeCard,
             collectedCards: user?.collectedCards || (typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]') : [])
         }}>
             {children}

@@ -6,7 +6,7 @@ import {
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
     Flame, Search, Filter, Globe, Tv,
-    Share2, MessageSquare, Wand2, Instagram, Users as UsersIcon, LayoutGrid
+    Share2, MessageSquare, Wand2, Instagram, Users as UsersIcon, LayoutGrid, ArrowLeftRight
 } from 'lucide-react';
 import { StoryGridGenerator } from './StoryGridGenerator';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -23,6 +23,7 @@ import { useUser } from '../context/UserContext';
 import { useEffect } from 'react';
 
 import { InstagramContest } from '../components/community/InstagramContest';
+import { TradeMarketplace } from '../components/community/TradeMarketplace';
 import confetti from 'canvas-confetti';
 import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
@@ -267,7 +268,7 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'TV' | 'GRID';
+    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'TV' | 'GRID' | 'TRADE';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
     const location = useLocation();
 
@@ -275,7 +276,7 @@ export function Community() {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get('tab');
-        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'TV', 'GRID'].includes(tab)) {
+        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'TV', 'GRID', 'TRADE'].includes(tab)) {
             setActiveTab(tab as TabType);
         }
     }, [location.search]);
@@ -955,6 +956,7 @@ export function Community() {
                                 { id: 'TRACK_ID',      icon: Music,        label: 'TrackID',           multiline: false },
                                 { id: 'PLAYLISTS',     icon: Share2,       label: 'Mixs',              multiline: false },
                                 { id: 'LAB',           icon: Wand2,        label: 'Communauté',       multiline: false },
+                                { id: 'TRADE',         icon: ArrowLeftRight, label: 'Échanges',        multiline: false, iconClass: 'text-neon-cyan' },
                                 { id: 'TV',            icon: Tv,           label: 'TV Translator',     multiline: false, iconClass: 'text-neon-cyan' },
                                 { id: 'GRID',          icon: LayoutGrid,   label: 'Story Grid',        multiline: false, iconClass: 'text-neon-purple' },
                             ] as any[]).filter(tab => !tab.hidden).map((tab) => (
@@ -2182,6 +2184,17 @@ export function Community() {
                                 exit={{ opacity: 0, x: -50 }}
                             >
                                 <VideoTranslator />
+                            </motion.div>
+                        )}
+
+                        {activeTab === 'TRADE' && (
+                            <motion.div
+                                key="trade"
+                                initial={{ opacity: 0, x: 50 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -50 }}
+                            >
+                                <TradeMarketplace />
                             </motion.div>
                         )}
                     </AnimatePresence>
