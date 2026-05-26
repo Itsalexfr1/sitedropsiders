@@ -5042,5 +5042,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": true,
     "additionalDates": []
+  },
+  {
+    "id": 1008,
+    "title": "EDC Las Vegas Dawn",
+    "date": "2027-05-21",
+    "startDate": "2027-05-21",
+    "endDate": "2027-05-23",
+    "venue": "Las Vegas Motor Speedway",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Festival",
+    "image": "/uploads/8552875dccde85a9-edclv_2027_de_ps_two_weekends_.png",
+    "url": "https://lasvegas.electricdaisycarnival.com",
+    "genre": "Multi Styles",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": true,
+    "additionalDates": []
   }
 ]
