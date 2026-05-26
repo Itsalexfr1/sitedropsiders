@@ -1238,13 +1238,31 @@ export function AdminDashboard() {
   useEffect(() => {
     if (isSocialModalOpen) {
       setIsLoadingSocial(true);
-      apiFetch("/api/news", { headers: getAuthHeaders() })
-        .then((r) => r.json())
-        .then((data) => {
-          const sorted = Array.isArray(data) ? data.slice(0, 20) : [];
-          setSocialRecentArticles(sorted);
+      Promise.all([
+        apiFetch("/api/news", { headers: getAuthHeaders() }).then((r) => r.json()).catch(() => []),
+        apiFetch("/api/recaps", { headers: getAuthHeaders() }).then((r) => r.json()).catch(() => []),
+        apiFetch("/api/galerie", { headers: getAuthHeaders() }).then((r) => r.json()).catch(() => []),
+      ])
+        .then(([newsData, recapsData, galerieData]) => {
+          const news = Array.isArray(newsData) ? newsData : [];
+          const recaps = Array.isArray(recapsData)
+            ? recapsData.map((r: any) => ({ ...r, category: r.category || "recap" }))
+            : [];
+          const galerie = Array.isArray(galerieData)
+            ? galerieData.map((g: any) => ({
+                ...g,
+                image: g.cover || g.image,
+                category: g.category || "galerie",
+              }))
+            : [];
+          const merged = [...news, ...recaps, ...galerie].sort((a, b) => {
+            const da = new Date(b.date || b.pubDate || 0).getTime();
+            const db = new Date(a.date || a.pubDate || 0).getTime();
+            return da - db;
+          });
+          setSocialRecentArticles(merged.slice(0, 20));
         })
-        .catch((err) => console.error("Error fetching news for social:", err))
+        .catch((err) => console.error("Error fetching articles for social:", err))
         .finally(() => setIsLoadingSocial(false));
     }
   }, [isSocialModalOpen]);
@@ -6869,7 +6887,7 @@ export function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
                     <button
                       onClick={() => {
                         setIsNewsModalOpen(true);
@@ -6949,6 +6967,24 @@ export function AdminDashboard() {
                         </p>
                       </div>
                     </button>
+
+                    <Link
+                      to="/galerie/create"
+                      onClick={() => setIsContenuModalOpen(false)}
+                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                    >
+                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                        <Camera className="w-6 h-6 text-neon-red" />
+                      </div>
+                      <div className="text-center">
+                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                          Albums
+                        </h3>
+                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
+                          Récaps Photos
+                        </p>
+                      </div>
+                    </Link>
 
                     <Link
                       to="/news/create?tab=Focus"
