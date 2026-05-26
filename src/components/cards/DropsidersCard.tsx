@@ -689,16 +689,19 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                             {/* Card Content Layout */}
                             <div className="relative z-40 flex flex-col h-full justify-between">
                                 
-                                {/* 1. HEADER PANEL */}
                                 <div className="flex items-end justify-between border-b border-[#a8905a]/50 pb-0.5">
                                     <div className="flex items-baseline gap-1">
-                                        <span className={`text-[5px] font-black uppercase tracking-tighter slanted opacity-85 ${theme.textColor}`}>
+                                        <span 
+                                            className="text-[5px] font-black uppercase tracking-tighter slanted opacity-85"
+                                            style={{ color: theme.textColor === 'text-black' ? '#000000' : '#ffffff' }}
+                                        >
                                             {theme.styleLabel}
                                         </span>
                                         <h3 
-                                            className={`font-serif font-black uppercase italic tracking-tight leading-none ${theme.textColor}`}
+                                            className="font-serif font-black uppercase italic tracking-tight leading-none"
                                             style={{
                                                 fontSize: Math.max(9, 13 * scale),
+                                                color: theme.textColor === 'text-black' ? '#000000' : '#ffffff',
                                                 textShadow: (theme.energyType === 'house' || theme.energyType === 'edm' || theme.energyType === 'hardstyle')
                                                     ? '0 1px 3px rgba(0,0,0,0.35)'
                                                     : 'none'
@@ -706,13 +709,19 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                         >
                                             {card.name}
                                         </h3>
-                                        <span className={`font-sans font-bold tracking-tighter opacity-70 ${theme.textColor}`} style={{ fontSize: Math.max(6, 8 * scale) }}>
+                                        <span 
+                                            className="font-sans font-bold tracking-tighter opacity-70" 
+                                            style={{ 
+                                                fontSize: Math.max(6, 8 * scale),
+                                                color: theme.textColor === 'text-black' ? '#000000' : '#ffffff'
+                                            }}
+                                        >
                                             LV.{level}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <span className="font-serif font-black text-red-600 leading-none tracking-tighter" style={{ fontSize: Math.max(8, 12 * scale) }}>
-                                            HP <span className={`font-sans font-extrabold ${theme.textColor}`} style={{ fontSize: Math.max(9, 13 * scale) }}>{hp}</span>
+                                            HP <span className="font-sans font-extrabold" style={{ fontSize: Math.max(9, 13 * scale), color: theme.textColor === 'text-black' ? '#000000' : '#ffffff' }}>{hp}</span>
                                         </span>
                                         <EnergyBadge type={theme.energyType} />
                                     </div>
