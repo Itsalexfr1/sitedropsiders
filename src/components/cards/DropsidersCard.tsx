@@ -273,6 +273,13 @@ const getCardAttacks = (card: DropsidersCard, theme: CardTheme): Attack[] => {
             damage: '40',
             text: "Projette des ondes de basses progressives survoltées, soulevant tout le public."
         });
+    } else if (card.type === 'dj') {
+        attacks.push({
+            cost: ['star'],
+            name: 'Drop Mix',
+            damage: '30',
+            text: 'Lance un drop explosif qui électrise instantanément la foule et chamboule le dancefloor.'
+        });
     } else {
         attacks.push({
             cost: ['star'],
@@ -526,7 +533,7 @@ export function DropsidersCardComponent({ card, flippable = false, scale = 1, sh
                                     }}
                                 >
                                     <p className={`font-serif italic font-bold tracking-tight uppercase ${theme.subBarText}`} style={{ fontSize: Math.max(5, 7 * scale) }}>
-                                        N° {card.djmag_rank.toString().padStart(3, '0')} · {card.type === 'festival' ? 'Festival' : 'Club'} · {card.city}, {card.country}
+                                        N° {card.djmag_rank.toString().padStart(3, '0')} · {card.type === 'festival' ? 'Festival' : card.type === 'dj' ? 'DJ' : 'Club'} · {card.city}, {card.country}
                                     </p>
                                 </div>
 

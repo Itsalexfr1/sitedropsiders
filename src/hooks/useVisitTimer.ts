@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import type { DropsidersCard } from '../context/UserContext';
 import wikiFestivals from '../data/wiki_festivals.json';
 import wikiClubs from '../data/wiki_clubs.json';
+import wikiDjs from '../data/wiki_djs.json';
 
 const VISIT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 const LAST_CARD_DATE_KEY = 'dropsiders_last_card_date';
@@ -16,7 +17,7 @@ function getRarity(rank: number): DropsidersCard['rarity'] {
 
 function buildCardPool(): DropsidersCard[] {
     const festivalCards: DropsidersCard[] = (wikiFestivals as any[]).map((f) => ({
-        id: f.id,
+        id: `festival_${f.id}`,
         type: 'festival' as const,
         name: f.name,
         city: f.city,
@@ -28,7 +29,7 @@ function buildCardPool(): DropsidersCard[] {
     }));
 
     const clubCards: DropsidersCard[] = (wikiClubs as any[]).map((c) => ({
-        id: c.id,
+        id: `club_${c.id}`,
         type: 'club' as const,
         name: c.name,
         city: c.city,
@@ -39,7 +40,25 @@ function buildCardPool(): DropsidersCard[] {
         collectedAt: new Date().toISOString(),
     }));
 
-    return [...festivalCards, ...clubCards];
+    // DJs: use numeric ID as rank (lower ID = more legendary), city = country
+    const djCards: DropsidersCard[] = (wikiDjs as any[])
+        .filter((d) => d.image && d.image.startsWith('http'))
+        .map((d, index) => {
+            const rank = Math.min(99, index + 1);
+            return {
+                id: `dj_${d.id}`,
+                type: 'dj' as const,
+                name: d.name,
+                city: d.country || 'Intl',
+                country: d.country || 'Intl',
+                image: d.image,
+                djmag_rank: rank,
+                rarity: getRarity(rank),
+                collectedAt: new Date().toISOString(),
+            };
+        });
+
+    return [...festivalCards, ...clubCards, ...djCards];
 }
 
 function pickRandomCard(existing: string[]): DropsidersCard | null {

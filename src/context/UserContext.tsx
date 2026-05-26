@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge';
 
 export interface DropsidersCard {
     id: string;
-    type: 'festival' | 'club';
+    type: 'festival' | 'club' | 'dj';
     name: string;
     city: string;
     country: string;
