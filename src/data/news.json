@@ -17,7 +17,7 @@
     "category": "News",
     "isFeatured": false,
     "isFocus": false,
-    "isDraft": false,
+    "isDraft": true,
     "year": "2026",
     "link": "https://dropsiders.fr/news/272_electra-festival-2026",
     "author": "Tanguy"
