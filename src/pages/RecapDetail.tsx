@@ -14,6 +14,8 @@ export function RecapDetail() {
     const playHoverSound = useHoverSound();
     const [recapsData, setRecapsData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [liveContent, setLiveContent] = useState<string | null>(null);
+    const [isLoadingContent, setIsLoadingContent] = useState(true);
 
     const recapId = extractIdFromSlug(id || '');
     const recap = (recapsData as any[]).find((item: any) => 
@@ -54,6 +56,35 @@ export function RecapDetail() {
             trackPageView(recap.id.toString(), 'recap');
         }
     }, [recapId, recap]);
+
+    // Fetch live content from API so edits are always reflected without redeploy
+    useEffect(() => {
+        if (!recapId) {
+            setIsLoadingContent(false);
+            return;
+        }
+        setIsLoadingContent(true);
+        const fetchContent = async () => {
+            try {
+                const res = await fetch(`/api/recaps/content?id=${recapId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const content = data.content || (data.recap && data.recap.content) || '';
+                    if (content) {
+                        setLiveContent(content);
+                        setIsLoadingContent(false);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('[RecapDetail] API content fetch failed, falling back to static bundle.', e);
+            }
+            // Fallback: use bundled content
+            setLiveContent(null);
+            setIsLoadingContent(false);
+        };
+        fetchContent();
+    }, [recapId]);
 
     if (isLoading) {
         return (
@@ -100,9 +131,8 @@ export function RecapDetail() {
     const previousRecap = currentIndex < allRecaps.length - 1 ? allRecaps[currentIndex + 1] : null; // Older
     const nextRecap = currentIndex > 0 ? allRecaps[currentIndex - 1] : null; // Newer
 
-    // Get Content
-    const fullContent = getRecapContent(recap.id);
-    const rawContent = fullContent || (recap as any).content || '';
+    // Get Content — Priority: live API > bundled JSON > empty
+    const bundledContent = getRecapContent(recap.id);
 
     return (
         <>
@@ -115,11 +145,12 @@ export function RecapDetail() {
             />
             <ArticlePremiumTemplate
                 article={recap}
-                content={rawContent}
+                content={liveContent || (bundledContent ?? '')}
                 type="recap"
                 relatedArticles={relatedRecaps}
                 previousArticle={previousRecap}
                 nextArticle={nextRecap}
+                isLoading={isLoadingContent}
             />
         </>
     );
