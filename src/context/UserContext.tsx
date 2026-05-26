@@ -12,6 +12,9 @@ export interface DropsidersCard {
     djmag_rank: number;
     rarity: 'common' | 'rare' | 'epic' | 'legendary';
     collectedAt: string;
+    top_tracks?: string[];
+    attendees?: number;
+    attendees_label?: string;
 }
 
 interface UserProfile {

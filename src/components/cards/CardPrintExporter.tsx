@@ -82,11 +82,12 @@ export const CardPrintExporter = forwardRef<CardPrintExporterHandle, CardPrintEx
                     />
                 </div>
 
-                {/* BACK with bleed wrapper — we show the card flipped */}
+                {/* BACK with bleed wrapper — we show the card flipped (face-down = back side) */}
                 <div ref={backRef} style={{ ...bleedStyle, marginTop: 20 }}>
                     <DropsidersCardComponent
                         card={card}
-                        flippable={true}
+                        flippable={false}
+                        startFaceDown={true}
                         scale={PRINT_SCALE}
                         showDate={false}
                     />

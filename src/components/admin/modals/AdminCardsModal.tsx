@@ -5,6 +5,7 @@ import type { DropsidersCard } from "../../../context/UserContext";
 import { DropsidersCardComponent } from "../../cards/DropsidersCard";
 import wikiFestivals from "../../../data/wiki_festivals.json";
 import wikiClubs from "../../../data/wiki_clubs.json";
+import wikiDjs from "../../../data/wiki_djs.json";
 
 interface AdminCardsModalProps {
   isOpen: boolean;
@@ -23,9 +24,23 @@ export function AdminCardsModal({ isOpen, onClose }: AdminCardsModalProps) {
   const [groupBy, setGroupBy] = useState<"type" | "rarity" | "country">("type");
   const [selectedRarityFilter, setSelectedRarityFilter] = useState<string>("ALL");
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>("ALL");
+  const [selectedCard, setSelectedCard] = useState<DropsidersCard | null>(null);
 
   // Build the complete card pool
   const allCards = useMemo((): DropsidersCard[] => {
+    const djCards: DropsidersCard[] = (wikiDjs as any[]).map((d) => ({
+      id: d.id,
+      type: "dj" as const,
+      name: d.name,
+      city: d.city || "Global",
+      country: d.country,
+      image: d.image,
+      djmag_rank: d.djmag_rank || 99,
+      rarity: getRarity(d.djmag_rank || 99),
+      collectedAt: new Date().toISOString(),
+      top_tracks: d.top_tracks || [],
+    }));
+
     const festivalCards: DropsidersCard[] = (wikiFestivals as any[]).map((f) => ({
       id: f.id,
       type: "festival" as const,
@@ -36,6 +51,8 @@ export function AdminCardsModal({ isOpen, onClose }: AdminCardsModalProps) {
       djmag_rank: f.djmag_rank || 99,
       rarity: getRarity(f.djmag_rank || 99),
       collectedAt: new Date().toISOString(),
+      attendees: f.attendees,
+      attendees_label: f.attendees_label,
     }));
 
     const clubCards: DropsidersCard[] = (wikiClubs as any[]).map((c) => ({
@@ -48,9 +65,11 @@ export function AdminCardsModal({ isOpen, onClose }: AdminCardsModalProps) {
       djmag_rank: c.djmag_rank || 99,
       rarity: getRarity(c.djmag_rank || 99),
       collectedAt: new Date().toISOString(),
+      attendees: c.attendees,
+      attendees_label: c.attendees_label,
     }));
 
-    return [...festivalCards, ...clubCards];
+    return [...djCards, ...festivalCards, ...clubCards];
   }, []);
 
   // Filtered cards
@@ -78,7 +97,7 @@ export function AdminCardsModal({ isOpen, onClose }: AdminCardsModalProps) {
     filteredCards.forEach((card) => {
       let key = "";
       if (groupBy === "type") {
-        key = card.type === "festival" ? "Festivals" : "Clubs";
+        key = card.type === "dj" ? "DJs" : card.type === "festival" ? "Festivals" : "Clubs";
       } else if (groupBy === "rarity") {
         const labels: { [key: string]: string } = {
           legendary: "Légendaire (Top 10)",
@@ -185,6 +204,7 @@ export function AdminCardsModal({ isOpen, onClose }: AdminCardsModalProps) {
                 className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-xs uppercase tracking-wider focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple/30 transition-all"
               >
                 <option value="ALL" className="bg-[#07070a]">TOUS LES TYPES</option>
+                <option value="DJ" className="bg-[#07070a]">DJS</option>
                 <option value="FESTIVAL" className="bg-[#07070a]">FESTIVALS</option>
                 <option value="CLUB" className="bg-[#07070a]">CLUBS</option>
               </select>
@@ -221,7 +241,7 @@ export function AdminCardsModal({ isOpen, onClose }: AdminCardsModalProps) {
                 }`}
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
-                Catégorie (Festival/Club)
+                Catégorie (DJ/Festival/Club)
               </button>
               <button
                 onClick={() => setGroupBy("rarity")}
@@ -275,12 +295,14 @@ export function AdminCardsModal({ isOpen, onClose }: AdminCardsModalProps) {
                   {/* Cards Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 justify-items-center">
                     {group.cards.map((card) => (
-                      <div key={card.id} className="relative group">
-                        <DropsidersCardComponent
-                          card={card}
-                          flippable={true}
-                          scale={0.9}
-                        />
+                      <div key={card.id} className="relative group cursor-pointer hover:scale-105 transition-transform duration-300">
+                        <div onClick={() => setSelectedCard(card)}>
+                          <DropsidersCardComponent
+                            card={card}
+                            flippable={false}
+                            scale={0.9}
+                          />
+                        </div>
                         {/* Additional admin actions or info under the card */}
                         <div className="mt-2 text-center">
                           <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">
@@ -295,6 +317,44 @@ export function AdminCardsModal({ isOpen, onClose }: AdminCardsModalProps) {
             )}
           </div>
         </motion.div>
+
+        {/* Fullscreen Selected Card Overlay */}
+        <AnimatePresence>
+          {selectedCard && (
+            <motion.div
+              initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+              animate={{ opacity: 1, backdropFilter: "blur(16px)" }}
+              exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+              className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/90 p-4"
+              onClick={() => setSelectedCard(null)}
+            >
+              <button
+                onClick={() => setSelectedCard(null)}
+                className="absolute top-6 right-6 p-3 rounded-full border border-white/20 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 transition-all z-50 hover:rotate-90 duration-300"
+              >
+                <X className="w-8 h-8" />
+              </button>
+              
+              <motion.div 
+                initial={{ scale: 0.8, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 20 }}
+                transition={{ type: "spring", damping: 20, stiffness: 200 }}
+                className="relative flex flex-col items-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <DropsidersCardComponent
+                  card={selectedCard}
+                  flippable={true}
+                  scale={1.8}
+                />
+                <p className="text-white/50 text-sm mt-8 uppercase tracking-widest font-bold animate-pulse">
+                  Cliquez sur la carte pour la retourner
+                </p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </AnimatePresence>
   );

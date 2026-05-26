@@ -1,11 +1,15 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import type { DropsidersCard } from '../../context/UserContext';
 
 interface DropsidersCardProps {
     card: DropsidersCard;
-    /** If true, the card starts face-down and can be flipped on click */
+    /** If true, the card can be flipped on click */
     flippable?: boolean;
+    /** If true, the card starts face-down (used for reveal animations) */
+    startFaceDown?: boolean;
+    /** Controlled flipped state — when provided, overrides internal state reactively */
+    flipped?: boolean;
     /** Scale multiplier (default 1) */
     scale?: number;
     /** Show date collected */
@@ -364,10 +368,17 @@ const getCardAttacks = (card: DropsidersCard, theme: CardTheme): Attack[] => {
 };
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
-export function DropsidersCardComponent({ card, flippable = false, scale = 1, showDate = false, onClick }: DropsidersCardProps) {
-    const [flipped, setFlipped] = useState(flippable);
+export function DropsidersCardComponent({ card, flippable = false, startFaceDown = false, flipped: controlledFlipped, scale = 1, showDate = false, onClick }: DropsidersCardProps) {
+    const [flipped, setFlipped] = useState(controlledFlipped !== undefined ? controlledFlipped : startFaceDown);
     const [hovered, setHovered] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
+
+    // Sync with controlled flipped prop when parent changes it
+    useEffect(() => {
+        if (controlledFlipped !== undefined) {
+            setFlipped(controlledFlipped);
+        }
+    }, [controlledFlipped]);
 
     // Dynamic Level, HP, and Musical Genre Theme
     const level = 101 - card.djmag_rank;
@@ -514,7 +525,7 @@ export function DropsidersCardComponent({ card, flippable = false, scale = 1, sh
                                 </div>
 
                                 {/* 2. DJ IMAGE BOX */}
-                                <div className="relative w-full mt-1.5 rounded-[5px] overflow-hidden border-[3px] border-double border-[#bfab76] bg-black shadow-[2px_2px_5px_rgba(0,0,0,0.15)] flex-grow" style={{ minHeight: 0, maxHeight: '42%' }}>
+                                <div className="relative w-full mt-1.5 rounded-[5px] overflow-hidden border-[3px] border-double border-[#bfab76] bg-black shadow-[2px_2px_5px_rgba(0,0,0,0.15)] flex-grow" style={{ minHeight: 0, maxHeight: '65%' }}>
                                     <img
                                         src={card.image}
                                         alt={card.name}
@@ -561,11 +572,31 @@ export function DropsidersCardComponent({ card, flippable = false, scale = 1, sh
                                     ))}
                                 </div>
 
-                                {/* 5. FLAVOR TEXT */}
-                                <div className="mt-auto border-t border-[#c2b085]/60 pt-1 px-1 flex flex-col items-center">
-                                    <p className="font-serif italic text-slate-500 text-center leading-normal" style={{ fontSize: Math.max(5, 7.5 * scale) }}>
-                                        "Ce temple légendaire de la culture électronique rassemble des milliers d'adeptes sous les vibrations du soundsystem Dropsiders."
-                                    </p>
+                                {/* 5. FLAVOR TEXT / TOP 3 TRACKS */}
+                                <div className="mt-auto border-t border-[#c2b085]/60 pt-1 px-1 flex flex-col items-center w-full">
+                                    {card.type === 'dj' ? (
+                                        <div className="w-full px-1">
+                                            <p className={`font-serif italic font-bold text-center leading-normal ${theme.textColor}`} style={{ fontSize: Math.max(5, 7 * scale) }}>
+                                                Top 3 des titres les plus écoutés :
+                                            </p>
+                                            <div className="font-sans font-medium text-slate-600 text-center leading-tight mt-0.5" style={{ fontSize: Math.max(4.5, 6 * scale) }}>
+                                                <p>1. {card.top_tracks?.[0] || 'Titre Inconnu 1'}</p>
+                                                <p>2. {card.top_tracks?.[1] || 'Titre Inconnu 2'}</p>
+                                                <p>3. {card.top_tracks?.[2] || 'Titre Inconnu 3'}</p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full px-1 flex flex-col items-center gap-0.5">
+                                            <p className="font-serif italic text-slate-500 text-center leading-normal" style={{ fontSize: Math.max(5, 7.5 * scale) }}>
+                                                "Ce temple légendaire de la culture électronique rassemble des milliers d'adeptes sous les vibrations du soundsystem Dropsiders."
+                                            </p>
+                                            {card.attendees_label && (
+                                                <p className={`font-sans font-black text-center leading-tight mt-0.5 ${theme.textColor}`} style={{ fontSize: Math.max(4.5, 6.5 * scale) }}>
+                                                    🎟 {card.attendees_label}
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* 6. CARD FOOTER INFO */}
@@ -610,152 +641,66 @@ export function DropsidersCardComponent({ card, flippable = false, scale = 1, sh
                 </div>
 
                 {/* ─────────────────────────────────────────────────────────────
-                    BACK FACE (VERSO)
+                    BACK FACE (VERSO) - STYLISH DROPSIDERS DESIGN
                     ───────────────────────────────────────────────────────────── */}
                 <div
                     style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                     className="absolute inset-0 w-full h-full p-[1px]"
                 >
-                    {/* Deep Blue Pokémon card back frame */}
+                    {/* Dark Premium Frame */}
                     <div 
-                        className="w-full h-full rounded-[24px] overflow-hidden border-[11px] border-[#1d3d75] bg-[#1d3d75] flex flex-col p-[6px] shadow-[0_15px_35px_rgba(0,0,0,0.8)] relative"
+                        className="w-full h-full rounded-[24px] overflow-hidden border-[11px] border-[#07070a] bg-[#07070a] flex flex-col p-[4px] shadow-[0_15px_40px_rgba(0,0,0,0.9)] relative"
                         style={{
-                            outline: '2.5px solid #d29c21',
+                            outline: '1px solid rgba(255,255,255,0.1)',
                             outlineOffset: '-11px',
+                            boxShadow: 'inset 0 0 20px rgba(34,211,238,0.15)'
                         }}
                     >
                         {/* Main canvas interior */}
-                        <div className="w-full h-full rounded-[10px] bg-gradient-to-br from-[#0c224b] to-[#040a1c] overflow-hidden relative flex items-center justify-center p-4">
+                        <div className="w-full h-full rounded-[12px] bg-[#030305] overflow-hidden relative flex flex-col items-center justify-center border border-white/10 shadow-[inset_0_0_30px_rgba(0,0,0,1)]">
                             
-                            {/* SVG Background Swirls & Logo Path */}
-                            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 240 350" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <defs>
-                                    {/* Gradients for Logo */}
-                                    <linearGradient id="yellowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" stopColor="#fef08a" />
-                                        <stop offset="50%" stopColor="#fbbf24" />
-                                        <stop offset="100%" stopColor="#b45309" />
-                                    </linearGradient>
+                            {/* Background Ambient Glow */}
+                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(168,85,247,0.15)_0%,rgba(34,211,238,0.1)_50%,transparent_100%)] opacity-80" />
+                            
+                            {/* Futuristic Hex Grid Pattern */}
+                            <div 
+                                className="absolute inset-0 opacity-[0.03]"
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0l20 10v20L20 40 0 30V10z' fill-rule='evenodd' stroke='%23ffffff' stroke-width='1' fill='none'/%3E%3C/svg%3E")`,
+                                    backgroundSize: '30px 30px',
+                                }}
+                            />
 
-                                    {/* Swirling energy effect */}
-                                    <radialGradient id="vortexGrad" cx="50%" cy="50%" r="50%">
-                                        <stop offset="0%" stopColor="rgba(34, 211, 238, 0.3)" />
-                                        <stop offset="40%" stopColor="rgba(147, 51, 234, 0.15)" />
-                                        <stop offset="100%" stopColor="rgba(0,0,0,0)" />
-                                    </radialGradient>
+                            {/* Diagonal Neon Accents */}
+                            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-50">
+                                <div className="absolute top-1/4 left-[-20%] w-[140%] h-[1px] rotate-[-35deg] bg-gradient-to-r from-transparent via-neon-cyan to-transparent shadow-[0_0_10px_rgba(34,211,238,1)]" />
+                                <div className="absolute top-3/4 left-[-20%] w-[140%] h-[1px] rotate-[-35deg] bg-gradient-to-r from-transparent via-neon-purple to-transparent shadow-[0_0_10px_rgba(168,85,247,1)]" />
+                            </div>
 
-                                    {/* Dropsiders Ball Gradients */}
-                                    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" stopColor="#22d3ee" />
-                                        <stop offset="100%" stopColor="#0891b2" />
-                                    </linearGradient>
-                                    <linearGradient id="redGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" stopColor="#f43f5e" />
-                                        <stop offset="100%" stopColor="#be123c" />
-                                    </linearGradient>
+                            {/* Central Dropsiders Emblem */}
+                            <div className="relative z-10 flex flex-col items-center mt-[-10px]">
+                                {/* Glowing backdrop for logo */}
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-neon-cyan/20 blur-2xl rounded-full" />
+                                
+                                <img src="/Logo.png" alt="Dropsiders" className="w-16 h-auto drop-shadow-[0_0_15px_rgba(34,211,238,0.6)] relative z-20" />
 
-                                    {/* Curved Paths for Text */}
-                                    <path id="text-path-top" d="M 28,105 Q 120,53 212,105" fill="none" />
-                                </defs>
+                                {/* Title */}
+                                <div className="mt-8 text-center flex flex-col items-center">
+                                    <h2 className="text-xl font-black uppercase tracking-[0.25em] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] leading-none">
+                                        DROPSIDERS
+                                    </h2>
+                                    <div className="w-12 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan to-transparent mt-2 mb-1" />
+                                    <p className="text-[6px] font-bold uppercase tracking-[0.4em] text-white/50">
+                                        Exclusive Collection
+                                    </p>
+                                </div>
+                            </div>
 
-                                {/* Swirling vortex background */}
-                                <circle cx="120" cy="175" r="140" fill="url(#vortexGrad)" />
-
-                                {/* Swirling glowing orbits */}
-                                <path d="M 20,130 Q 120,20 220,130 T 20,220" stroke="rgba(34,211,238,0.18)" strokeWidth="3" strokeDasharray="6 3" />
-                                <path d="M 220,220 Q 120,330 20,220 T 220,130" stroke="rgba(244,63,94,0.15)" strokeWidth="2.5" strokeDasharray="8 4" />
-                                <path d="M 40,175 Q 120,105 200,175 T 40,175" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
-
-                                {/* ────────────────────────────────────────────────────────
-                                    TOP CURVED TEXT LOGO: DROPSIDERS
-                                    ──────────────────────────────────────────────────────── */}
-                                <g>
-                                    {/* Back Shadow stroke */}
-                                    <text fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="'Arial Black', 'Impact', sans-serif">
-                                        <textPath href="#text-path-top" startOffset="50%" textAnchor="middle" fill="#0c2b5e" stroke="#0c2b5e" strokeWidth="6" strokeLinejoin="round">
-                                            DROPSIDERS
-                                        </textPath>
-                                    </text>
-                                    {/* Outer Blue Outline */}
-                                    <text fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="'Arial Black', 'Impact', sans-serif">
-                                        <textPath href="#text-path-top" startOffset="50%" textAnchor="middle" fill="#1b4aa6" stroke="#1b4aa6" strokeWidth="4.5" strokeLinejoin="round">
-                                            DROPSIDERS
-                                        </textPath>
-                                    </text>
-                                    {/* Inner Gold Fill */}
-                                    <text fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="'Arial Black', 'Impact', sans-serif">
-                                        <textPath href="#text-path-top" startOffset="50%" textAnchor="middle" fill="url(#yellowGrad)" paintOrder="stroke fill">
-                                            DROPSIDERS
-                                        </textPath>
-                                    </text>
-                                </g>
-
-                                {/* ────────────────────────────────────────────────────────
-                                    BOTTOM INVERTED CURVED TEXT LOGO: DROPSIDERS
-                                    (Rotated 180 degrees around center to match retro design!)
-                                    ──────────────────────────────────────────────────────── */}
-                                <g transform="rotate(180 120 175)">
-                                    {/* Back Shadow stroke */}
-                                    <text fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="'Arial Black', 'Impact', sans-serif">
-                                        <textPath href="#text-path-top" startOffset="50%" textAnchor="middle" fill="#0c2b5e" stroke="#0c2b5e" strokeWidth="6" strokeLinejoin="round">
-                                            DROPSIDERS
-                                        </textPath>
-                                    </text>
-                                    {/* Outer Blue Outline */}
-                                    <text fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="'Arial Black', 'Impact', sans-serif">
-                                        <textPath href="#text-path-top" startOffset="50%" textAnchor="middle" fill="#1b4aa6" stroke="#1b4aa6" strokeWidth="4.5" strokeLinejoin="round">
-                                            DROPSIDERS
-                                        </textPath>
-                                    </text>
-                                    {/* Inner Gold Fill */}
-                                    <text fontSize="22" fontWeight="900" fontStyle="italic" fontFamily="'Arial Black', 'Impact', sans-serif">
-                                        <textPath href="#text-path-top" startOffset="50%" textAnchor="middle" fill="url(#yellowGrad)" paintOrder="stroke fill">
-                                            DROPSIDERS
-                                        </textPath>
-                                    </text>
-                                </g>
-
-                                {/* ────────────────────────────────────────────────────────
-                                    CENTRAL DROPSIDERS BALL / VINYL ORB
-                                    ──────────────────────────────────────────────────────── */}
-                                <g>
-                                    {/* Glowing Outer aura */}
-                                    <circle cx="120" cy="175" r="38" fill="rgba(255,255,255,0.06)" />
-                                    <circle cx="120" cy="175" r="33" stroke="rgba(34,211,238,0.25)" strokeWidth="1" />
-
-                                    {/* Outer Black Frame Ring */}
-                                    <circle cx="120" cy="175" r="30" fill="#06060c" stroke="#10101b" strokeWidth="2.5" />
-
-                                    {/* Clip Paths for Top/Bottom half colors */}
-                                    <g>
-                                        <clipPath id="ball-top">
-                                            <rect x="85" y="140" width="70" height="34" />
-                                        </clipPath>
-                                        <circle cx="120" cy="175" r="28" fill="url(#cyanGrad)" clipPath="url(#ball-top)" />
-                                    </g>
-
-                                    <g>
-                                        <clipPath id="ball-bottom">
-                                            <rect x="85" y="176" width="70" height="34" />
-                                        </clipPath>
-                                        <circle cx="120" cy="175" r="28" fill="url(#redGrad)" clipPath="url(#ball-bottom)" />
-                                    </g>
-
-                                    {/* Horizontal Black division band */}
-                                    <rect x="91" y="172" width="58" height="6" fill="#08080d" />
-
-                                    {/* Central Button Ring */}
-                                    <circle cx="120" cy="175" r="9" fill="#07070c" stroke="#12121e" strokeWidth="1" />
-                                    
-                                    {/* Inner white button with cyan neon glow */}
-                                    <circle cx="120" cy="175" r="6" fill="#ffffff" className="shadow-[0_0_8px_rgba(34,211,238,0.9)]" />
-                                    <circle cx="120" cy="175" r="2" fill="#22d3ee" />
-                                </g>
-                            </svg>
-
-                            {/* Inner gold frame borders around the background screen */}
-                            <div className="absolute inset-2 rounded-[6px] border-[1.5px] border-[#d29c21]/20 pointer-events-none" />
-                            <div className="absolute inset-3 rounded-[4px] border border-[#22d3ee]/5 pointer-events-none" />
+                            {/* Tech Borders */}
+                            <div className="absolute top-4 left-4 w-6 h-6 border-t-[1.5px] border-l-[1.5px] border-neon-cyan/40" />
+                            <div className="absolute top-4 right-4 w-6 h-6 border-t-[1.5px] border-r-[1.5px] border-neon-purple/40" />
+                            <div className="absolute bottom-4 left-4 w-6 h-6 border-b-[1.5px] border-l-[1.5px] border-neon-red/40" />
+                            <div className="absolute bottom-4 right-4 w-6 h-6 border-b-[1.5px] border-r-[1.5px] border-neon-cyan/40" />
                         </div>
                     </div>
                 </div>

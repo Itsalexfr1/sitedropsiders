@@ -171,7 +171,8 @@ export function CardRewardModal({ card, onClaim, onDismiss }: CardRewardModalPro
 
                             <DropsidersCardComponent
                                 card={card}
-                                flippable={true}
+                                flippable={false}
+                                flipped={!revealed}
                                 scale={1.4}
                             />
 

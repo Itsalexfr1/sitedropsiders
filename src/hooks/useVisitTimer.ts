@@ -26,6 +26,8 @@ function buildCardPool(): DropsidersCard[] {
         djmag_rank: f.djmag_rank || 99,
         rarity: getRarity(f.djmag_rank || 99),
         collectedAt: new Date().toISOString(),
+        attendees: f.attendees,
+        attendees_label: f.attendees_label,
     }));
 
     const clubCards: DropsidersCard[] = (wikiClubs as any[]).map((c) => ({
@@ -38,6 +40,8 @@ function buildCardPool(): DropsidersCard[] {
         djmag_rank: c.djmag_rank || 99,
         rarity: getRarity(c.djmag_rank || 99),
         collectedAt: new Date().toISOString(),
+        attendees: c.attendees,
+        attendees_label: c.attendees_label,
     }));
 
     // DJs: use numeric ID as rank (lower ID = more legendary), city = country
@@ -55,6 +59,7 @@ function buildCardPool(): DropsidersCard[] {
                 djmag_rank: rank,
                 rarity: getRarity(rank),
                 collectedAt: new Date().toISOString(),
+                top_tracks: d.top_tracks || ["Titre Inconnu 1", "Titre Inconnu 2", "Titre Inconnu 3"]
             };
         });
 

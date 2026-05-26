@@ -10,7 +10,9 @@
     "website": "https://www.fabriclondon.com",
     "instagram": "https://www.instagram.com/fabriclondon",
     "votes": 0,
-    "description_en": "Institution légendaire de la nuit londonienne située à Farringdon. Célèbre pour ses trois salles distinctes et son 'dancefloor bodysonic' vibrant, le club a façonné la culture électronique mondiale. Un passage obligé pour tout amateur de techno et de house en quête d'une expérience sonore immersive et sans concessions."
+    "description_en": "Institution légendaire de la nuit londonienne située à Farringdon. Célèbre pour ses trois salles distinctes et son 'dancefloor bodysonic' vibrant, le club a façonné la culture électronique mondiale. Un passage obligé pour tout amateur de techno et de house en quête d'une expérience sonore immersive et sans concessions.",
+    "attendees": 2500,
+    "attendees_label": "Capacité : 2 500 personnes"
   },
   {
     "id": "c2",
@@ -23,7 +25,9 @@
     "website": "https://www.berghain.berlin",
     "instagram": "https://www.instagram.com/berghain_kantine",
     "votes": 0,
-    "description_en": "Considéré comme le temple mondial de la techno, le Berghain occupe une ancienne centrale thermique à l'architecture industrielle imposante. Réputé pour son système sonore massif et ses soirées sans fin, le club est aussi célèbre pour sa politique d'entrée sélective et mystérieuse. Il représente l'essence même de la culture underground berlinoise, interdisant les photos pour préserver l'intimité et la liberté totale de ses danseurs."
+    "description_en": "Considéré comme le temple mondial de la techno, le Berghain occupe une ancienne centrale thermique à l'architecture industrielle imposante. Réputé pour son système sonore massif et ses soirées sans fin, le club est aussi célèbre pour sa politique d'entrée sélective et mystérieuse. Il représente l'essence même de la culture underground berlinoise, interdisant les photos pour préserver l'intimité et la liberté totale de ses danseurs.",
+    "attendees": 1500,
+    "attendees_label": "Capacité : ~1 500 personnes"
   },
   {
     "id": "c3",
@@ -36,7 +40,9 @@
     "website": "https://dc-10.net",
     "instagram": "https://www.instagram.com/dc10ibizaofficial",
     "votes": 0,
-    "description_en": "Niché en bordure des pistes de l'aéroport, le DC-10 est le bastion de l'underground à Ibiza. Ses soirées Circoloco du lundi sont devenues un phénomène planétaire, attirant les passionnés du monde entier dans une ambiance sans fioritures où seule la musique compte. Un lieu mythique où l'énergie brute et la liberté règnent en maîtres."
+    "description_en": "Niché en bordure des pistes de l'aéroport, le DC-10 est le bastion de l'underground à Ibiza. Ses soirées Circoloco du lundi sont devenues un phénomène planétaire, attirant les passionnés du monde entier dans une ambiance sans fioritures où seule la musique compte. Un lieu mythique où l'énergie brute et la liberté règnent en maîtres.",
+    "attendees": 2000,
+    "attendees_label": "Capacité : ~2 000 personnes"
   },
   {
     "id": "c6",
@@ -49,7 +55,9 @@
     "website": "https://www.amnesia.es",
     "instagram": "https://www.instagram.com/amnesiaibiza",
     "votes": 0,
-    "description_en": "Symbole de la démesure festive d'Ibiza, l'Amnesia est célèbre pour sa terrasse baignée par la lumière du soleil au petit matin. Entre ses canons à CO2 dévastateurs et ses résidences historiques, le club offre une atmosphère électrique unique. Un passage incontournable pour vivre l'essence même de la nuit sur l'île blanche."
+    "description_en": "Symbole de la démesure festive d'Ibiza, l'Amnesia est célèbre pour sa terrasse baignée par la lumière du soleil au petit matin. Entre ses canons à CO2 dévastateurs et ses résidences historiques, le club offre une atmosphère électrique unique. Un passage incontournable pour vivre l'essence même de la nuit sur l'île blanche.",
+    "attendees": 5000,
+    "attendees_label": "Capacité : 5 000 personnes"
   },
   {
     "id": "c9",
@@ -62,7 +70,9 @@
     "website": "https://hiibiza.com",
     "instagram": "https://instagram.com/hi.ibiza",
     "votes": 0,
-    "description_en": "Le super-club le plus technologiquement avancé d'Ibiza, successeur du légendaire Space. Avec ses salles Theatre et Club aux scénographies époustouflantes, il redéfinit les standards du clubbing moderne. Chaque détail, du système sonore aux visuels immersifs, est pensé pour offrir une expérience sensorielle hors du commun."
+    "description_en": "Le super-club le plus technologiquement avancé d'Ibiza, successeur du légendaire Space. Avec ses salles Theatre et Club aux scénographies époustouflantes, il redéfinit les standards du clubbing moderne. Chaque détail, du système sonore aux visuels immersifs, est pensé pour offrir une expérience sensorielle hors du commun.",
+    "attendees": 5000,
+    "attendees_label": "Capacité : 5 000 personnes"
   },
   {
     "id": "c11",
@@ -75,7 +85,9 @@
     "website": "https://avantgardner.com",
     "instagram": "https://instagram.com/avant_gardner",
     "votes": 0,
-    "description_en": "Avant Gardner est le plus grand complexe de clubs de New York, comprenant plusieurs salles dont The Great Hall et le Kings Hall. Hub incontournable de la scène New-Yorkaise."
+    "description_en": "Avant Gardner est le plus grand complexe de clubs de New York, comprenant plusieurs salles dont The Great Hall et le Kings Hall. Hub incontournable de la scène New-Yorkaise.",
+    "attendees": 5000,
+    "attendees_label": "Capacité : 5 000 personnes"
   },
   {
     "id": "c12",
@@ -88,7 +100,9 @@
     "website": "https://drumsheds.com",
     "instagram": "https://instagram.com/drumsheds",
     "votes": 0,
-    "description_en": "WHP est le festival hivernal mythique de Manchester, se déroulant dans d'anciens entrepôt et abris anti-bombes. Programmation haut de gamme de septembre à décembre."
+    "description_en": "WHP est le festival hivernal mythique de Manchester, se déroulant dans d'anciens entrepôt et abris anti-bombes. Programmation haut de gamme de septembre à décembre.",
+    "attendees": 7000,
+    "attendees_label": "Capacité : 7 000 personnes"
   },
   {
     "id": "c14",
@@ -101,7 +115,9 @@
     "website": "https://xoyo.co.uk",
     "instagram": "https://instagram.com/xoyolondon",
     "votes": 0,
-    "description_en": "XOYO est l'un des clubs les plus prisés de Londres, situé à Shoreditch. Il accueille des résidences de longue durée permettant aux DJs de développer leur univers en profondeur."
+    "description_en": "XOYO est l'un des clubs les plus prisés de Londres, situé à Shoreditch. Il accueille des résidences de longue durée permettant aux DJs de développer leur univers en profondeur.",
+    "attendees": 800,
+    "attendees_label": "Capacité : 800 personnes"
   },
   {
     "id": "c15",
@@ -114,7 +130,9 @@
     "website": "https://water-gate.de",
     "instagram": "https://instagram.com/watergate_berlin",
     "votes": 0,
-    "description_en": "Zouk Singapore est le club le plus réputé d'Asie du Sud-Est, avec plus de 30 ans d'histoire. Il a révélé de nombreux talents locaux et accueille les plus grands headliners mondiaux."
+    "description_en": "Zouk Singapore est le club le plus réputé d'Asie du Sud-Est, avec plus de 30 ans d'histoire. Il a révélé de nombreux talents locaux et accueille les plus grands headliners mondiaux.",
+    "attendees": 600,
+    "attendees_label": "Capacité : 600 personnes"
   },
   {
     "id": "c17",
@@ -127,7 +145,9 @@
     "website": "https://womb.co.jp",
     "instagram": "https://instagram.com/wombtokyo",
     "votes": 0,
-    "description_en": "Stereo Montréal est l'un des clubs les plus appréciés d'Amérique du Nord, connu pour ses after qui commencent au petit matin et son système sonore Funktion-One hors du commun."
+    "description_en": "Stereo Montréal est l'un des clubs les plus appréciés d'Amérique du Nord, connu pour ses after qui commencent au petit matin et son système sonore Funktion-One hors du commun.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : 1 000 personnes"
   },
   {
     "id": "c19",
@@ -140,7 +160,9 @@
     "website": "https://clubdervisionaere.com",
     "instagram": "https://instagram.com/clubdervisionaere",
     "votes": 0,
-    "description_en": "Radion est le club phare de la scène underground d'Amsterdam, installé dans une ancienne cantine de ZAM. Connu pour sa curation exemplaire et son engagement dans la culture club."
+    "description_en": "Radion est le club phare de la scène underground d'Amsterdam, installé dans une ancienne cantine de ZAM. Connu pour sa curation exemplaire et son engagement dans la culture club.",
+    "attendees": 800,
+    "attendees_label": "Capacité : ~800 personnes"
   },
   {
     "id": "c21",
@@ -153,7 +175,9 @@
     "website": "https://shelteramsterdam.nl",
     "instagram": "https://instagram.com/shelter_amsterdam",
     "votes": 0,
-    "description_en": "Caché dans les profondeurs de la tour A'DAM, le Shelter est le cœur battant de la scène techno et house d'Amsterdam. Ce club souterrain privilégie l'essentiel : un système sonore Funktion-One d'exception et une immersion totale sans distraction. Un sanctuaire de liberté dont la programmation exigeante attire les clubbers les plus avertis."
+    "description_en": "Caché dans les profondeurs de la tour A'DAM, le Shelter est le cœur battant de la scène techno et house d'Amsterdam. Ce club souterrain privilégie l'essentiel : un système sonore Funktion-One d'exception et une immersion totale sans distraction. Un sanctuaire de liberté dont la programmation exigeante attire les clubbers les plus avertis.",
+    "attendees": 700,
+    "attendees_label": "Capacité : 700 personnes"
   },
   {
     "id": "c23",
@@ -166,7 +190,9 @@
     "website": "https://subclub.co.uk",
     "instagram": "https://instagram.com/subclubglasgow",
     "votes": 0,
-    "description_en": "Figure de proue de la culture club écossaise depuis 1987, le Sub Club est réputé mondialement pour son acoustique exceptionnelle et son engagement envers l'inclusion. Dans son sous-sol intimiste, le club défend une vision authentique de la musique électronique, servant de rampe de lancement pour d'innombrables talents."
+    "description_en": "Figure de proue de la culture club écossaise depuis 1987, le Sub Club est réputé mondialement pour son acoustique exceptionnelle et son engagement envers l'inclusion. Dans son sous-sol intimiste, le club défend une vision authentique de la musique électronique, servant de rampe de lancement pour d'innombrables talents.",
+    "attendees": 400,
+    "attendees_label": "Capacité : 400 personnes"
   },
   {
     "id": "c25",
@@ -179,7 +205,9 @@
     "website": "https://egglondon.co.uk",
     "instagram": "https://instagram.com/egglondon",
     "votes": 0,
-    "description_en": "Razzmatazz est une ancienne usine devenue le plus grand club de Barcelone avec 5 salles simultanées. Chaque salle a sa propre identité musicale allant de l'indie à la techno."
+    "description_en": "Razzmatazz est une ancienne usine devenue le plus grand club de Barcelone avec 5 salles simultanées. Chaque salle a sa propre identité musicale allant de l'indie à la techno.",
+    "attendees": 1200,
+    "attendees_label": "Capacité : 1 200 personnes"
   },
   {
     "id": "c27",
@@ -192,7 +220,9 @@
     "website": "https://inputbcn.com",
     "instagram": "https://instagram.com/input.barcelona",
     "votes": 0,
-    "description_en": "Le chef-d'œuvre sonore de Barcelone situé dans le cadre unique du Poble Espanyol. Conçu initialement comme un laboratoire d'acoustique, il abrite l'un des systèmes Meyer Sound les mieux configurés d'Europe. Un lieu minimaliste où le son pur et l'immersion technologique sont au centre de l'expérience."
+    "description_en": "Le chef-d'œuvre sonore de Barcelone situé dans le cadre unique du Poble Espanyol. Conçu initialement comme un laboratoire d'acoustique, il abrite l'un des systèmes Meyer Sound les mieux configurés d'Europe. Un lieu minimaliste où le son pur et l'immersion technologique sont au centre de l'expérience.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : 1 000 personnes"
   },
   {
     "id": "c30",
@@ -205,7 +235,9 @@
     "website": "https://exchangela.com",
     "instagram": "https://instagram.com/exchangela",
     "votes": 0,
-    "description_en": "Tobacco Dock est un entrepôt victorien classé monument historique transformé en espace événementiel à Wapping. Il accueille les plus grands festivals urbains comme Junction 2."
+    "description_en": "Tobacco Dock est un entrepôt victorien classé monument historique transformé en espace événementiel à Wapping. Il accueille les plus grands festivals urbains comme Junction 2.",
+    "attendees": 1500,
+    "attendees_label": "Capacité : 1 500 personnes"
   },
   {
     "id": "c32",
@@ -218,7 +250,9 @@
     "website": "https://socialclubparis.com",
     "instagram": "https://instagram.com/socialclubparis",
     "votes": 0,
-    "description_en": "Le Hive est le club techno de référence de Zurich, avec un art urbain surprenant en façade et des soirées dont la qualité est reconnue dans toute l'Europe."
+    "description_en": "Le Hive est le club techno de référence de Zurich, avec un art urbain surprenant en façade et des soirées dont la qualité est reconnue dans toute l'Europe.",
+    "attendees": 600,
+    "attendees_label": "Capacité : 600 personnes"
   },
   {
     "id": "c36",
@@ -231,7 +265,9 @@
     "website": "https://studio338.co.uk",
     "instagram": "https://instagram.com/studio338london",
     "votes": 0,
-    "description_en": "Le Batofar est une péniche-club amarrée sur la Seine dans le 13e arrondissement. Haut lieu de l'électro alternative parisienne depuis 1999, il propose aussi des concerts et expositions."
+    "description_en": "Le Batofar est une péniche-club amarrée sur la Seine dans le 13e arrondissement. Haut lieu de l'électro alternative parisienne depuis 1999, il propose aussi des concerts et expositions.",
+    "attendees": 3000,
+    "attendees_label": "Capacité : 3 000 personnes"
   },
   {
     "id": "c38",
@@ -244,7 +280,9 @@
     "website": "https://sui.li",
     "instagram": "https://instagram.com/suicidecircusberlin",
     "votes": 0,
-    "description_en": "Marquee NYC est un club emblématique de Chelsea, New York, réputé pour ses résidences de DJs mondiaux comme Tiësto et Calvin Harris. Un incontournable de la nuit new-yorkaise."
+    "description_en": "Marquee NYC est un club emblématique de Chelsea, New York, réputé pour ses résidences de DJs mondiaux comme Tiësto et Calvin Harris. Un incontournable de la nuit new-yorkaise.",
+    "attendees": 1500,
+    "attendees_label": "Capacité : 1 500 personnes"
   },
   {
     "id": "c40",
@@ -257,7 +295,9 @@
     "website": "https://ovalspace.co.uk",
     "instagram": "https://instagram.com/ovalspace",
     "votes": 0,
-    "description_en": "YES est un bar-club indépendant de Manchester sur quatre niveaux, avec une programmation éclectique et un toit-terrasse. Bar-club de référence de la scène alternative mancunienne."
+    "description_en": "YES est un bar-club indépendant de Manchester sur quatre niveaux, avec une programmation éclectique et un toit-terrasse. Bar-club de référence de la scène alternative mancunienne.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : 1 000 personnes"
   },
   {
     "id": "c42",
@@ -270,7 +310,9 @@
     "website": "https://lamachinedumoulinrouge.com",
     "instagram": "https://instagram.com/lamachineparis",
     "votes": 0,
-    "description_en": "Le Room One de Fabric est célèbre pour son dancefloor bodysonic unique au monde — le son passe littéralement à travers le sol. Une experience physique incomparable."
+    "description_en": "Le Room One de Fabric est célèbre pour son dancefloor bodysonic unique au monde — le son passe littéralement à travers le sol. Une experience physique incomparable.",
+    "attendees": 600,
+    "attendees_label": "Capacité : 600 personnes"
   },
   {
     "id": "c45",
@@ -283,7 +325,9 @@
     "website": "https://tacheles.de",
     "instagram": "https://instagram.com/tacheles_official",
     "votes": 0,
-    "description_en": "Ancienne galerie marchande squat devenue haut-lieu culturel berlinois, Tacheles accueille des raves underground légendaires mêlant art, musique techno et contre-culture."
+    "description_en": "Ancienne galerie marchande squat devenue haut-lieu culturel berlinois, Tacheles accueille des raves underground légendaires mêlant art, musique techno et contre-culture.",
+    "attendees": 2000,
+    "attendees_label": "Capacité : ~2 000 personnes"
   },
   {
     "id": "c46",
@@ -296,7 +340,9 @@
     "website": "https://www.greenvalley.com",
     "instagram": "https://instagram.com/greenvalley",
     "votes": 0,
-    "description_en": "Élu plusieurs fois meilleur club au monde, Green Valley est un temple de l'EDM situé dans une jungle luxuriante au Brésil."
+    "description_en": "Élu plusieurs fois meilleur club au monde, Green Valley est un temple de l'EDM situé dans une jungle luxuriante au Brésil.",
+    "attendees": 8000,
+    "attendees_label": "Capacité : 8 000 personnes"
   },
   {
     "id": "c47",
@@ -309,7 +355,9 @@
     "website": "https://www.echostage.com",
     "instagram": "https://instagram.com/echostage",
     "votes": 0,
-    "description_en": "Echostage est le plus grand club de la côte Est américaine, réputé pour son système sonore massif et ses productions visuelles spectaculaires."
+    "description_en": "Echostage est le plus grand club de la côte Est américaine, réputé pour son système sonore massif et ses productions visuelles spectaculaires.",
+    "attendees": 3000,
+    "attendees_label": "Capacité : 3 000 personnes"
   },
   {
     "id": "c48",
@@ -322,7 +370,9 @@
     "website": "https://www.theushuaiaexperience.com",
     "instagram": "https://www.instagram.com/ushuaiaibiza",
     "votes": 0,
-    "description_en": "Le club en plein air le plus célèbre au monde, offrant une expérience de fête luxueuse autour de sa piscine iconique. Véritable festival quotidien, l'Ushuaïa accueille les plus grandes stars mondiales sur une scène monumentale. C'est le lieu ultime pour danser sous le soleil et les avions d'Ibiza dans un cadre prestigieux."
+    "description_en": "Le club en plein air le plus célèbre au monde, offrant une expérience de fête luxueuse autour de sa piscine iconique. Véritable festival quotidien, l'Ushuaïa accueille les plus grandes stars mondiales sur une scène monumentale. C'est le lieu ultime pour danser sous le soleil et les avions d'Ibiza dans un cadre prestigieux.",
+    "attendees": 10000,
+    "attendees_label": "Capacité : 10 000 personnes"
   },
   {
     "id": "c49",
@@ -335,7 +385,9 @@
     "website": "https://www.bootshaus.com",
     "instagram": "https://instagram.com/bootshaus",
     "votes": 0,
-    "description_en": "Élu meilleur club d'Allemagne à maintes reprises, le Bootshaus occupe une ancienne base navale sur les bords du Rhin. Avec ses trois salles et ses productions visuelles massives, il est le bastion de l'EDM, du Hardstyle et de la techno puissante. Son ambiance électrique et son public survolté en font une étape obligatoire en Europe."
+    "description_en": "Élu meilleur club d'Allemagne à maintes reprises, le Bootshaus occupe une ancienne base navale sur les bords du Rhin. Avec ses trois salles et ses productions visuelles massives, il est le bastion de l'EDM, du Hardstyle et de la techno puissante. Son ambiance électrique et son public survolté en font une étape obligatoire en Europe.",
+    "attendees": 3000,
+    "attendees_label": "Capacité : 3 000 personnes"
   },
   {
     "id": "c50",
@@ -348,7 +400,9 @@
     "website": "https://www.savaya.com",
     "instagram": "https://instagram.com/savaya",
     "votes": 0,
-    "description_en": "Savaya est un club de plage spectaculaire perché sur les falaises d'Uluwatu, offrant une vue imprenable sur l'océan Indien."
+    "description_en": "Savaya est un club de plage spectaculaire perché sur les falaises d'Uluwatu, offrant une vue imprenable sur l'océan Indien.",
+    "attendees": 2000,
+    "attendees_label": "Capacité : 2 000 personnes"
   },
   {
     "id": "c51",
@@ -361,7 +415,9 @@
     "website": "https://www.larocclub.com",
     "instagram": "https://instagram.com/larocclub",
     "votes": 0,
-    "description_en": "Laroc est le premier 'sunset club' du Brésil, un lieu immense à ciel ouvert qui accueille les plus grandes stars mondiales."
+    "description_en": "Laroc est le premier 'sunset club' du Brésil, un lieu immense à ciel ouvert qui accueille les plus grandes stars mondiales.",
+    "attendees": 10000,
+    "attendees_label": "Capacité : 10 000 personnes"
   },
   {
     "id": "c52",
@@ -374,7 +430,9 @@
     "website": "https://www.illuzion.com",
     "instagram": "https://instagram.com/illuzion",
     "votes": 0,
-    "description_en": "Illuzion est le leader de la nuit en Thaïlande, un club aux dimensions pharaoniques avec un système visuel de pointe."
+    "description_en": "Illuzion est le leader de la nuit en Thaïlande, un club aux dimensions pharaoniques avec un système visuel de pointe.",
+    "attendees": 3000,
+    "attendees_label": "Capacité : 3 000 personnes"
   },
   {
     "id": "c53",
@@ -387,7 +445,9 @@
     "website": "https://www.noabeachclub.com",
     "instagram": "https://instagram.com/noabeachclub",
     "votes": 0,
-    "description_en": "Noa est le joyau de l'île de Pag, un club construit sur l'eau avec des terrasses, des piscines et une ambiance estivale survoltée."
+    "description_en": "Noa est le joyau de l'île de Pag, un club construit sur l'eau avec des terrasses, des piscines et une ambiance estivale survoltée.",
+    "attendees": 2500,
+    "attendees_label": "Capacité : 2 500 personnes"
   },
   {
     "id": "c54",
@@ -400,7 +460,9 @@
     "website": "https://www.papayaclub.com",
     "instagram": "https://instagram.com/papayaclub",
     "votes": 0,
-    "description_en": "Papaya est l'un des plus anciens et des plus respectés clubs de Croatie, symbole de la renaissance de la scène festive de Novalja."
+    "description_en": "Papaya est l'un des plus anciens et des plus respectés clubs de Croatie, symbole de la renaissance de la scène festive de Novalja.",
+    "attendees": 2000,
+    "attendees_label": "Capacité : 2 000 personnes"
   },
   {
     "id": "c55",
@@ -413,7 +475,9 @@
     "website": "https://www.playhouse.com",
     "instagram": "https://instagram.com/playhouse",
     "votes": 0,
-    "description_en": "PLAY HOUSE est un méga-club chinois qui repousse les limites de la technologie avec des scènes mobiles et des lasers futuristes."
+    "description_en": "PLAY HOUSE est un méga-club chinois qui repousse les limites de la technologie avec des scènes mobiles et des lasers futuristes.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c56",
@@ -426,7 +490,9 @@
     "website": "https://www.fabrik.com",
     "instagram": "https://instagram.com/fabrik",
     "votes": 0,
-    "description_en": "FABRIK est le temple de la techno à Madrid, une salle immense capable d'accueillir des milliers de clubbers pour des soirées marathon."
+    "description_en": "FABRIK est le temple de la techno à Madrid, une salle immense capable d'accueillir des milliers de clubbers pour des soirées marathon.",
+    "attendees": 5000,
+    "attendees_label": "Capacité : 5 000 personnes"
   },
   {
     "id": "c57",
@@ -439,7 +505,9 @@
     "website": "https://www.opiumbarcelone.com",
     "instagram": "https://instagram.com/opiumbarcelone",
     "votes": 0,
-    "description_en": "Situé sur la plage, l'Opium est le club le plus chic de Barcelone, mêlant restaurant haut de gamme et dancefloor glamour."
+    "description_en": "Situé sur la plage, l'Opium est le club le plus chic de Barcelone, mêlant restaurant haut de gamme et dancefloor glamour.",
+    "attendees": 2000,
+    "attendees_label": "Capacité : 2 000 personnes"
   },
   {
     "id": "c58",
@@ -452,7 +520,9 @@
     "website": "https://www.edenibiza.com",
     "instagram": "https://instagram.com/edenibiza",
     "votes": 0,
-    "description_en": "Eden est le bastion de San Antonio, un club rénové avec un système Void Incubus stupéfiant et une programmation house et techno solide."
+    "description_en": "Eden est le bastion de San Antonio, un club rénové avec un système Void Incubus stupéfiant et une programmation house et techno solide.",
+    "attendees": 4000,
+    "attendees_label": "Capacité : 4 000 personnes"
   },
   {
     "id": "c59",
@@ -465,7 +535,9 @@
     "website": "https://www.elsewhere.com",
     "instagram": "https://instagram.com/elsewhere",
     "votes": 0,
-    "description_en": "Elsewhere est un espace multi-salles à Brooklyn dédié à la culture club underground, aux concerts et à l'art visuel."
+    "description_en": "Elsewhere est un espace multi-salles à Brooklyn dédié à la culture club underground, aux concerts et à l'art visuel.",
+    "attendees": 1500,
+    "attendees_label": "Capacité : 1 500 personnes"
   },
   {
     "id": "c60",
@@ -478,7 +550,9 @@
     "website": "https://www.tenaxclub.com",
     "instagram": "https://instagram.com/tenaxclub",
     "votes": 0,
-    "description_en": "Tenax est une légende italienne, pionnier de la scène house et techno à Florence depuis les années 80."
+    "description_en": "Tenax est une légende italienne, pionnier de la scène house et techno à Florence depuis les années 80.",
+    "attendees": 1200,
+    "attendees_label": "Capacité : 1 200 personnes"
   },
   {
     "id": "c61",
@@ -491,7 +565,9 @@
     "website": "https://www.ilmuretto.com",
     "instagram": "https://instagram.com/ilmuretto",
     "votes": 0,
-    "description_en": "Il Muretto est l'un des plus anciens clubs d'Italie, une institution de l'été vénitien célèbre pour son toit ouvrant."
+    "description_en": "Il Muretto est l'un des plus anciens clubs d'Italie, une institution de l'été vénitien célèbre pour son toit ouvrant.",
+    "attendees": 3000,
+    "attendees_label": "Capacité : 3 000 personnes"
   },
   {
     "id": "c62",
@@ -504,7 +580,9 @@
     "website": "https://www.yaltaclub.com",
     "instagram": "https://instagram.com/yaltaclub",
     "votes": 0,
-    "description_en": "Yalta est le berceau de la culture club en Bulgarie, ayant accueilli les premiers DJs internationaux après la chute du régime."
+    "description_en": "Yalta est le berceau de la culture club en Bulgarie, ayant accueilli les premiers DJs internationaux après la chute du régime.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c63",
@@ -517,7 +595,9 @@
     "website": "https://www.d-edge.com",
     "instagram": "https://instagram.com/d-edge",
     "votes": 0,
-    "description_en": "D-Edge est célèbre pour son design futuriste avec des milliers de LED et son acoustique impeccable, hub de l'underground brésilien."
+    "description_en": "D-Edge est célèbre pour son design futuriste avec des milliers de LED et son acoustique impeccable, hub de l'underground brésilien.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : 1 000 personnes"
   },
   {
     "id": "c64",
@@ -530,7 +610,9 @@
     "website": "https://www.warungbeachclub.com",
     "instagram": "https://instagram.com/warungbeachclub",
     "votes": 0,
-    "description_en": "Le 'temple' du Brésil, Warung est un club en bois exotique face à la mer, célèbre pour ses levers de soleil magiques."
+    "description_en": "Le 'temple' du Brésil, Warung est un club en bois exotique face à la mer, célèbre pour ses levers de soleil magiques.",
+    "attendees": 3000,
+    "attendees_label": "Capacité : 3 000 personnes"
   },
   {
     "id": "c65",
@@ -543,7 +625,9 @@
     "website": "https://www.output.com",
     "instagram": "https://instagram.com/output",
     "votes": 0,
-    "description_en": "Bien qu'ayant officiellement fermé, Output reste dans les mémoires comme le club qui a interdit les photos pour privilégier l'expérience musicale pure."
+    "description_en": "Bien qu'ayant officiellement fermé, Output reste dans les mémoires comme le club qui a interdit les photos pour privilégier l'expérience musicale pure.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c67",
@@ -556,7 +640,9 @@
     "website": "https://www.paradiseclub.com",
     "instagram": "https://instagram.com/paradiseclub",
     "votes": 0,
-    "description_en": "Paradise Club est le cœur battant de Mykonos, un lieu festif mondialement connu pour ses pool parties et ses guests de renom."
+    "description_en": "Paradise Club est le cœur battant de Mykonos, un lieu festif mondialement connu pour ses pool parties et ses guests de renom.",
+    "attendees": 2000,
+    "attendees_label": "Capacité : 2 000 personnes"
   },
   {
     "id": "c68",
@@ -569,7 +655,9 @@
     "website": "https://www.cultureclub.com",
     "instagram": "https://instagram.com/cultureclub",
     "votes": 0,
-    "description_en": "Culture Club est une référence belge pour la house et l'électronique de qualité, avec une esthétique design et une programmation soignée."
+    "description_en": "Culture Club est une référence belge pour la house et l'électronique de qualité, avec une esthétique design et une programmation soignée.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c69",
@@ -583,7 +671,9 @@
     "instagram": "https://instagram.com/fuse",
     "votes": 0,
     "description_en": "Fuse est le plus ancien club techno de Belgique, une institution bruxelloise respectée dans le monde entier pour son authenticité.",
-    "status": "verified"
+    "status": "verified",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c70",
@@ -596,7 +686,9 @@
     "website": "https://www.laterrazza.com",
     "instagram": "https://instagram.com/laterrazza",
     "votes": 0,
-    "description_en": "Situé dans le Poble Espanyol, La Terrazza est un club en plein air magnifique qui célèbre l'été barcelonais depuis des décennies."
+    "description_en": "Situé dans le Poble Espanyol, La Terrazza est un club en plein air magnifique qui célèbre l'été barcelonais depuis des décennies.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c71",
@@ -610,7 +702,9 @@
     "instagram": "https://instagram.com/villageunderground",
     "votes": 0,
     "description_en": "Lieu hybride installé dans d'anciens wagons de métro et entrepôts, c'est l'un des cœurs de la scène créative et club de Shoreditch.",
-    "status": "verified"
+    "status": "verified",
+    "attendees": 700,
+    "attendees_label": "Capacité : 700 personnes"
   },
   {
     "id": "c72",
@@ -624,7 +718,9 @@
     "instagram": "https://instagram.com/katerblau",
     "votes": 0,
     "description_en": "Héritier de l'esprit du Bar25, Kater Blau est un lieu onirique au bord de la Spree avec une ambiance festival et des sets infinis.",
-    "status": "verified"
+    "status": "verified",
+    "attendees": 1500,
+    "attendees_label": "Capacité : 1 500 personnes"
   },
   {
     "id": "c73",
@@ -637,7 +733,9 @@
     "website": "https://www.sisyphos.com",
     "instagram": "https://instagram.com/sisyphos",
     "votes": 0,
-    "description_en": "Ancienne usine de biscuits pour chiens, Sisyphos est un terrain de jeu géant où l'on se perd pendant des jours au son d'une techno solaire."
+    "description_en": "Ancienne usine de biscuits pour chiens, Sisyphos est un terrain de jeu géant où l'on se perd pendant des jours au son d'une techno solaire.",
+    "attendees": 3000,
+    "attendees_label": "Capacité : 3 000 personnes"
   },
   {
     "id": "c75",
@@ -650,7 +748,9 @@
     "website": "https://www.robertjohnson.com",
     "instagram": "https://instagram.com/robertjohnson",
     "votes": 0,
-    "description_en": "Situé près de Francfort, le Robert Johnson est adoré par les puristes pour son minimalisme, son système sonore d'exception et sa vue sur le Main."
+    "description_en": "Situé près de Francfort, le Robert Johnson est adoré par les puristes pour son minimalisme, son système sonore d'exception et sa vue sur le Main.",
+    "attendees": 400,
+    "attendees_label": "Capacité : 400 personnes"
   },
   {
     "id": "c77",
@@ -663,7 +763,9 @@
     "website": "https://www.zouklasvegas.com",
     "instagram": "https://instagram.com/zouklasvegas",
     "votes": 0,
-    "description_en": "Le nouveau titan de Las Vegas, apportant l'expérience Zouk de Singapour dans la cité du jeu avec une technologie de pointe."
+    "description_en": "Le nouveau titan de Las Vegas, apportant l'expérience Zouk de Singapour dans la cité du jeu avec une technologie de pointe.",
+    "attendees": 5000,
+    "attendees_label": "Capacité : 5 000 personnes"
   },
   {
     "id": "c78",
@@ -676,7 +778,9 @@
     "website": "https://www.marqueelv.com",
     "instagram": "https://instagram.com/marqueelv",
     "votes": 0,
-    "description_en": "Le Marquee de Las Vegas est un complexe monumental avec beach club de jour et méga-club de nuit, symbole de la démesure locale."
+    "description_en": "Le Marquee de Las Vegas est un complexe monumental avec beach club de jour et méga-club de nuit, symbole de la démesure locale.",
+    "attendees": 4000,
+    "attendees_label": "Capacité : 4 000 personnes"
   },
   {
     "id": "c81",
@@ -689,7 +793,9 @@
     "website": "https://www.badaboum.com",
     "instagram": "https://instagram.com/badaboum",
     "votes": 0,
-    "description_en": "Badaboum est un lieu hybride entre salle de concert, club et bar à cocktails, hub de la scène house et disco à Bastille."
+    "description_en": "Badaboum est un lieu hybride entre salle de concert, club et bar à cocktails, hub de la scène house et disco à Bastille.",
+    "attendees": 500,
+    "attendees_label": "Capacité : 500 personnes"
   },
   {
     "id": "c82",
@@ -702,7 +808,9 @@
     "website": "https://www.djoon.com",
     "instagram": "https://instagram.com/djoon",
     "votes": 0,
-    "description_en": "Le temple de la soul et de la deep house à Paris, réputé pour son dancefloor en bois et ses soirées aux rythmes afro-house."
+    "description_en": "Le temple de la soul et de la deep house à Paris, réputé pour son dancefloor en bois et ses soirées aux rythmes afro-house.",
+    "attendees": 300,
+    "attendees_label": "Capacité : 300 personnes"
   },
   {
     "id": "c83",
@@ -715,7 +823,9 @@
     "website": "https://www.zigzag.com",
     "instagram": "https://instagram.com/zigzag",
     "votes": 0,
-    "description_en": "Situé près des Champs-Élysées, Zig Zag était un club spacieux accueillant les grands noms de la tech-house internationale."
+    "description_en": "Situé près des Champs-Élysées, Zig Zag était un club spacieux accueillant les grands noms de la tech-house internationale.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c84",
@@ -728,7 +838,9 @@
     "website": "https://www.yoyo.com",
     "instagram": "https://instagram.com/yoyo",
     "votes": 0,
-    "description_en": "Installé sous le Palais de Tokyo, le Yoyo offre un cadre brut et contemporain pour des soirées électroniques et des événements mode."
+    "description_en": "Installé sous le Palais de Tokyo, le Yoyo offre un cadre brut et contemporain pour des soirées électroniques et des événements mode.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c85",
@@ -741,7 +853,9 @@
     "website": "https://www.nitsa.com",
     "instagram": "https://instagram.com/nitsa",
     "votes": 0,
-    "description_en": "Le cœur battant de l'électronique alternative à Barcelone, niché dans la mythique salle Apolo. Ce club mythique est réputé pour sa programmation audacieuse et son atmosphère survoltée qui en font une étape obligatoire pour tout amateur de techno et de house en Catalogne."
+    "description_en": "Le cœur battant de l'électronique alternative à Barcelone, niché dans la mythique salle Apolo. Ce club mythique est réputé pour sa programmation audacieuse et son atmosphère survoltée qui en font une étape obligatoire pour tout amateur de techno et de house en Catalogne.",
+    "attendees": 1500,
+    "attendees_label": "Capacité : 1 500 personnes"
   },
   {
     "id": "c88",
@@ -754,7 +868,9 @@
     "website": "https://www.e1london.com",
     "instagram": "https://instagram.com/e1london",
     "votes": 0,
-    "description_en": "E1 est un entrepôt à Wapping doté d'un système sonore Funktion-One sur mesure, rendez-vous des amateurs de techno intense."
+    "description_en": "E1 est un entrepôt à Wapping doté d'un système sonore Funktion-One sur mesure, rendez-vous des amateurs de techno intense.",
+    "attendees": 1500,
+    "attendees_label": "Capacité : 1 500 personnes"
   },
   {
     "id": "c89",
@@ -767,7 +883,9 @@
     "website": "https://www.phonox.com",
     "instagram": "https://instagram.com/phonox",
     "votes": 0,
-    "description_en": "Phonox à Brixton privilégie l'intimité, avec un seul dancefloor et pour mission de ramener le DJing à ses racines les plus pures."
+    "description_en": "Phonox à Brixton privilégie l'intimité, avec un seul dancefloor et pour mission de ramener le DJing à ses racines les plus pures.",
+    "attendees": 600,
+    "attendees_label": "Capacité : 600 personnes"
   },
   {
     "id": "c89b",
@@ -780,7 +898,9 @@
     "website": "https://www.spacericcione.com",
     "instagram": "https://instagram.com/spacericcione",
     "votes": 0,
-    "description_en": "La renaissance italienne de la marque légendaire Space, un club futuriste sur la côte adriatique."
+    "description_en": "La renaissance italienne de la marque légendaire Space, un club futuriste sur la côte adriatique.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c92",
@@ -793,7 +913,9 @@
     "website": "https://www.livmiami.com",
     "instagram": "https://instagram.com/livmiami",
     "votes": 0,
-    "description_en": "Le summum du luxe et du glamour à South Beach, un lieu où les performances live et le clubbing haut de gamme se rencontrent."
+    "description_en": "Le summum du luxe et du glamour à South Beach, un lieu où les performances live et le clubbing haut de gamme se rencontrent.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c93",
@@ -806,7 +928,9 @@
     "website": "https://www.e11even.com",
     "instagram": "https://instagram.com/e11even",
     "votes": 0,
-    "description_en": "Un club 24/7 unique en son genre, mêlant spectacle de cabaret, méga-club et hospitalité de luxe."
+    "description_en": "Un club 24/7 unique en son genre, mêlant spectacle de cabaret, méga-club et hospitalité de luxe.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c95",
@@ -819,7 +943,9 @@
     "website": "https://www.deschool.com",
     "instagram": "https://instagram.com/deschool",
     "votes": 0,
-    "description_en": "Héritier du Trouw, ce club installé dans une ancienne école est devenu une référence mondiale pour sa liberté et son audace musicale."
+    "description_en": "Héritier du Trouw, ce club installé dans une ancienne école est devenu une référence mondiale pour sa liberté et son audace musicale.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c96",
@@ -832,7 +958,9 @@
     "website": "https://www.paradiso.com",
     "instagram": "https://instagram.com/paradiso",
     "votes": 0,
-    "description_en": "Ancienne église transformée en salle de concert et club, un lieu chargé d'histoire et doté d'une acoustique magique."
+    "description_en": "Ancienne église transformée en salle de concert et club, un lieu chargé d'histoire et doté d'une acoustique magique.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c97",
@@ -845,7 +973,9 @@
     "website": "https://www.melkweg.com",
     "instagram": "https://instagram.com/melkweg",
     "votes": 0,
-    "description_en": "Un centre culturel multidisciplinaire qui accueille des soirées clubbing légendaires comme 'Techno Tuesday'."
+    "description_en": "Un centre culturel multidisciplinaire qui accueille des soirées clubbing légendaires comme 'Techno Tuesday'.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c98",
@@ -859,7 +989,9 @@
     "instagram": "https://instagram.com/luxfragil",
     "votes": 0,
     "description_en": "Le club le plus iconique du Portugal, avec une vue imprenable sur le Tage et une programmation toujours à la pointe.",
-    "status": "verified"
+    "status": "verified",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c99",
@@ -872,7 +1004,9 @@
     "website": "https://www.contacttokyo.com",
     "instagram": "https://instagram.com/contacttokyo",
     "votes": 0,
-    "description_en": "Un club souterrain sophistiqué avec une politique stricte sur les photos pour préserver l'immersion musicale."
+    "description_en": "Un club souterrain sophistiqué avec une politique stricte sur les photos pour préserver l'immersion musicale.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "c100",
@@ -885,7 +1019,9 @@
     "website": "https://www.zouksingapore.com",
     "instagram": "https://instagram.com/zouksingapore",
     "votes": 0,
-    "description_en": "Une légende asiatique qui a défini le clubbing dans la région depuis plus de 30 ans, désormais installé à Clarke Quay."
+    "description_en": "Une légende asiatique qui a défini le clubbing dans la région depuis plus de 30 ans, désormais installé à Clarke Quay.",
+    "attendees": 5000,
+    "attendees_label": "Capacité : 5 000 personnes"
   },
   {
     "id": "c101",
@@ -898,7 +1034,9 @@
     "website": "https://www.surrealpark.com",
     "instagram": "https://instagram.com/surrealpark",
     "votes": 0,
-    "description_en": "Un parc thématique dédié à la musique électronique, mêlant art, nature et techno dans un cadre onirique."
+    "description_en": "Un parc thématique dédié à la musique électronique, mêlant art, nature et techno dans un cadre onirique.",
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "301",
@@ -917,7 +1055,9 @@
     "description_en": "Icône mondiale reconnaissable à ses célèbres cerises, le Pacha incarne le glamour et l'élégance d'Ibiza depuis 1973. Entre son architecture de finca traditionnelle et ses productions luxueuses, le club reste la référence absolue de la house music sélecte. Une expérience chic et intemporelle au cœur de l'histoire du clubbing.",
     "website": "https://pacha.com",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "303",
@@ -933,7 +1073,9 @@
     "beatport": "https://www.beatport.com/search?q=Club%20Chinois",
     "bio_en": "A major figure on the global scene, Club Chinois is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "304",
@@ -949,7 +1091,9 @@
     "beatport": "https://www.beatport.com/search?q=Akasha%20Ibiza",
     "bio_en": "A major figure on the global scene, Akasha Ibiza is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "305",
@@ -965,7 +1109,9 @@
     "beatport": "https://www.beatport.com/search?q=Es%20Paradis",
     "bio_en": "A major figure on the global scene, Es Paradis is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "306",
@@ -982,7 +1128,9 @@
     "bio_en": "A major figure on the global scene, Panorama Bar is a key player in today's electronic culture.",
     "website": "https://www.berghain.berlin/en/club/panorama-bar/",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "307",
@@ -999,7 +1147,9 @@
     "bio_en": "A major figure on the global scene, Tresor is a key player in today's electronic culture.",
     "website": "https://tresorberlin.com",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "309",
@@ -1015,7 +1165,9 @@
     "beatport": "https://www.beatport.com/search?q=Renate",
     "bio_en": "A major figure on the global scene, Renate is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "310",
@@ -1031,7 +1183,9 @@
     "beatport": "https://www.beatport.com/search?q=KitKatClub",
     "bio_en": "A major figure on the global scene, KitKatClub is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "311",
@@ -1047,7 +1201,9 @@
     "beatport": "https://www.beatport.com/search?q=RSO.Berlin",
     "bio_en": "A major figure on the global scene, RSO.Berlin is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "315",
@@ -1065,7 +1221,9 @@
     "bio_en": "A major figure on the global scene, Blitz Munich is a key player in today's electronic culture.",
     "website": "https://www.blitz.club",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "316",
@@ -1082,7 +1240,9 @@
     "beatport": "https://www.beatport.com/search?q=White%20Noise%20Stuttgart",
     "bio_en": "A major figure on the global scene, White Noise Stuttgart is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "317",
@@ -1099,7 +1259,9 @@
     "beatport": "https://www.beatport.com/search?q=Gew%C3%B6lbe%20Cologne",
     "bio_en": "A major figure on the global scene, Gewölbe Cologne is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "318",
@@ -1116,7 +1278,9 @@
     "beatport": "https://www.beatport.com/search?q=PAL%20Hamburg",
     "bio_en": "A major figure on the global scene, PAL Hamburg is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "320",
@@ -1132,7 +1296,9 @@
     "beatport": "https://www.beatport.com/search?q=Ministry%20of%20Sound",
     "bio_en": "A major figure on the global scene, Ministry of Sound is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "321",
@@ -1148,7 +1314,9 @@
     "beatport": "https://www.beatport.com/search?q=KOKO",
     "bio_en": "A major figure on the global scene, KOKO is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "323",
@@ -1166,7 +1334,9 @@
     "bio_en": "A major figure on the global scene, Motion Bristol is a key player in today's electronic culture.",
     "website": "https://motion-bristol.com",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "324",
@@ -1183,7 +1353,9 @@
     "beatport": "https://www.beatport.com/search?q=Hope%20Works%20Sheffield",
     "bio_en": "A major figure on the global scene, Hope Works Sheffield is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "325",
@@ -1200,7 +1372,9 @@
     "beatport": "https://www.beatport.com/search?q=Invisible%20Wind%20Factory%20Liverpool",
     "bio_en": "A major figure on the global scene, Invisible Wind Factory Liverpool is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "326",
@@ -1219,7 +1393,9 @@
     "description_en": "Situé sous le cinéma Grand Rex, ce temple de la techno parisienne est une institution depuis plus de trente ans. Réputé pour son système sonore multi-diffusion unique, il est le repaire des passionnés en quête d'exigence musicale. Un lieu chargé d'histoire qui continue de faire vibrer le cœur de Paris avec sa programmation underground pointue.",
     "website": "https://www.rexclub.com",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "327",
@@ -1236,7 +1412,9 @@
     "bio_en": "A major figure on the global scene, Phantom Paris is a key player in today's electronic culture.",
     "website": "https://phantom.paris",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "328",
@@ -1253,7 +1431,9 @@
     "bio_en": "A major figure on the global scene, Virage Paris is a key player in today's electronic culture.",
     "website": "https://virage.paris",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "329",
@@ -1269,7 +1449,9 @@
     "beatport": "https://www.beatport.com/search?q=Glazart",
     "bio_en": "A major figure on the global scene, Glazart is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "330",
@@ -1285,7 +1467,9 @@
     "beatport": "https://www.beatport.com/search?q=Petit%20Bain",
     "bio_en": "A major figure on the global scene, Petit Bain is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "331",
@@ -1303,7 +1487,9 @@
     "bio_en": "A major figure on the global scene, Nexus Pantin is a key player in today's electronic culture.",
     "website": "https://nexus.paris",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "332",
@@ -1320,7 +1506,9 @@
     "bio_en": "A major figure on the global scene, Kilomètre25 is a key player in today's electronic culture.",
     "website": "https://www.kilometre25.fr",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "333",
@@ -1338,7 +1526,9 @@
     "bio_en": "A major figure on the global scene, Le Sucre Lyon is a key player in today's electronic culture.",
     "website": "https://www.le-sucre.eu",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "334",
@@ -1356,7 +1546,9 @@
     "bio_en": "A major figure on the global scene, Baby Club Marseille is a key player in today's electronic culture.",
     "website": "https://www.baby-club.tv",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "335",
@@ -1373,7 +1565,9 @@
     "beatport": "https://www.beatport.com/search?q=101%20Clermont",
     "bio_en": "A major figure on the global scene, 101 Clermont is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "336",
@@ -1391,7 +1585,9 @@
     "bio_en": "A major figure on the global scene, Dieze Montpellier is a key player in today's electronic culture.",
     "website": "https://diezevents.com",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "337",
@@ -1409,7 +1605,9 @@
     "bio_en": "A major figure on the global scene, Warehouse Nantes is a key player in today's electronic culture.",
     "website": "https://www.warehouse-nantes.fr",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "339",
@@ -1426,7 +1624,9 @@
     "beatport": "https://www.beatport.com/search?q=Radion%20Amsterdam",
     "bio_en": "A major figure on the global scene, Radion Amsterdam is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "340",
@@ -1442,7 +1642,9 @@
     "beatport": "https://www.beatport.com/search?q=Thuishaven",
     "bio_en": "A major figure on the global scene, Thuishaven is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "341",
@@ -1460,7 +1662,9 @@
     "bio_en": "A major figure on the global scene, Lofi Amsterdam is a key player in today's electronic culture.",
     "website": "https://www.lofi.amsterdam",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "342",
@@ -1476,7 +1680,9 @@
     "beatport": "https://www.beatport.com/search?q=Garage%20Noord",
     "bio_en": "A major figure on the global scene, Garage Noord is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "343",
@@ -1493,7 +1699,9 @@
     "beatport": "https://www.beatport.com/search?q=Bassiani%20Tbilisi",
     "bio_en": "A major figure on the global scene, Bassiani Tbilisi is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "344",
@@ -1510,7 +1718,9 @@
     "beatport": "https://www.beatport.com/search?q=Khidi%20Tbilisi",
     "bio_en": "A major figure on the global scene, Khidi Tbilisi is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "345",
@@ -1527,7 +1737,9 @@
     "beatport": "https://www.beatport.com/search?q=Ankali%20Prague",
     "bio_en": "A major figure on the global scene, Ankali Prague is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "346",
@@ -1544,7 +1756,9 @@
     "beatport": "https://www.beatport.com/search?q=Smolna%20Warsaw",
     "bio_en": "A major figure on the global scene, Smolna Warsaw is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "347",
@@ -1560,7 +1774,9 @@
     "beatport": "https://www.beatport.com/search?q=Drugstore%20Belgrade",
     "bio_en": "A major figure on the global scene, Drugstore Belgrade is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "348",
@@ -1576,7 +1792,9 @@
     "beatport": "https://www.beatport.com/search?q=Fabrik%20Madrid",
     "bio_en": "A major figure on the global scene, Fabrik Madrid is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "349",
@@ -1593,7 +1811,9 @@
     "beatport": "https://www.beatport.com/search?q=Razzmatazz%20Barcelona",
     "bio_en": "A major figure on the global scene, Razzmatazz Barcelona is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "350",
@@ -1610,7 +1830,9 @@
     "beatport": "https://www.beatport.com/search?q=Input%20Barcelona",
     "bio_en": "A major figure on the global scene, Input Barcelona is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : 1 000 personnes"
   },
   {
     "id": "351",
@@ -1626,7 +1848,9 @@
     "beatport": "https://www.beatport.com/search?q=Sala%20Apolo",
     "bio_en": "A major figure on the global scene, Sala Apolo is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "352",
@@ -1642,7 +1866,9 @@
     "beatport": "https://www.beatport.com/search?q=Mondo%20Disko",
     "bio_en": "A major figure on the global scene, Mondo Disko is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "353",
@@ -1658,7 +1884,9 @@
     "beatport": "https://www.beatport.com/search?q=La%20Terrrazza",
     "bio_en": "A major figure on the global scene, La Terrrazza is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "354",
@@ -1674,7 +1902,9 @@
     "beatport": "https://www.beatport.com/search?q=Industrial%20Copera%20Granada",
     "bio_en": "A major figure on the global scene, Industrial Copera Granada is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "355",
@@ -1691,7 +1921,9 @@
     "beatport": "https://www.beatport.com/search?q=Spazio%20Novecento%20Rome",
     "bio_en": "A major figure on the global scene, Spazio Novecento Rome is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "356",
@@ -1707,7 +1939,9 @@
     "beatport": "https://www.beatport.com/search?q=Cocoric%C3%B2%20Riccione",
     "bio_en": "A major figure on the global scene, Cocoricò Riccione is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "357",
@@ -1723,7 +1957,9 @@
     "beatport": "https://www.beatport.com/search?q=Bolgia%20Bergamo",
     "bio_en": "A major figure on the global scene, Bolgia Bergamo is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "358",
@@ -1739,7 +1975,9 @@
     "beatport": "https://www.beatport.com/search?q=Duel%20Club%20Naples",
     "bio_en": "A major figure on the global scene, Duel Club Naples is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "359",
@@ -1756,7 +1994,9 @@
     "beatport": "https://www.beatport.com/search?q=Goa%20Club%20Rome",
     "bio_en": "A major figure on the global scene, Goa Club Rome is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "360",
@@ -1773,7 +2013,9 @@
     "beatport": "https://www.beatport.com/search?q=Cavo%20Paradiso%20Mykonos",
     "bio_en": "A major figure on the global scene, Cavo Paradiso Mykonos is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "361",
@@ -1791,7 +2033,9 @@
     "bio_en": "A major figure on the global scene, Void Mykonos is a key player in today's electronic culture.",
     "status": "verified",
     "photo_verified": true,
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "362",
@@ -1808,7 +2052,9 @@
     "beatport": "https://www.beatport.com/search?q=Moni%20Mykonos",
     "bio_en": "A major figure on the global scene, Moni Mykonos is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "363",
@@ -1826,7 +2072,9 @@
     "bio_en": "A major figure on the global scene, Club Space Miami is a key player in today's electronic culture.",
     "website": "https://www.clubspace.com",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "370",
@@ -1842,7 +2090,9 @@
     "beatport": "https://www.beatport.com/search?q=Knockdown%20Center",
     "bio_en": "A major figure on the global scene, Knockdown Center is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "373",
@@ -1858,7 +2108,9 @@
     "beatport": "https://www.beatport.com/search?q=House%20of%20Yes",
     "bio_en": "A major figure on the global scene, House of Yes is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "374",
@@ -1875,7 +2127,9 @@
     "beatport": "https://www.beatport.com/search?q=Sound%20Nightclub%20LA",
     "bio_en": "A major figure on the global scene, Sound Nightclub LA is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "375",
@@ -1892,7 +2146,9 @@
     "beatport": "https://www.beatport.com/search?q=Academy%20LA",
     "bio_en": "A major figure on the global scene, Academy LA is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "376",
@@ -1909,7 +2165,9 @@
     "beatport": "https://www.beatport.com/search?q=The%20Midway%20SF",
     "bio_en": "A major figure on the global scene, The Midway SF is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "377",
@@ -1926,7 +2184,9 @@
     "beatport": "https://www.beatport.com/search?q=Public%20Works%20SF",
     "bio_en": "A major figure on the global scene, Public Works SF is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "378",
@@ -1943,7 +2203,9 @@
     "beatport": "https://www.beatport.com/search?q=Halcyon%20SF",
     "bio_en": "A major figure on the global scene, Halcyon SF is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "379",
@@ -1960,7 +2222,9 @@
     "beatport": "https://www.beatport.com/search?q=Stereo%20Montreal",
     "bio_en": "A major figure on the global scene, Stereo Montreal is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "380",
@@ -1976,7 +2240,9 @@
     "beatport": "https://www.beatport.com/search?q=CODA%20Toronto",
     "bio_en": "A major figure on the global scene, CODA Toronto is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "381",
@@ -1993,7 +2259,9 @@
     "beatport": "https://www.beatport.com/search?q=Green%20Valley%20Cambori%C3%BA",
     "bio_en": "A major figure on the global scene, Green Valley Camboriú is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 8000,
+    "attendees_label": "Capacité : 8 000 personnes"
   },
   {
     "id": "382",
@@ -2010,7 +2278,9 @@
     "beatport": "https://www.beatport.com/search?q=Warung%20Beach%20Club%20Itaja%C3%AD",
     "bio_en": "A major figure on the global scene, Warung Beach Club Itajaí is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 3000,
+    "attendees_label": "Capacité : 3 000 personnes"
   },
   {
     "id": "383",
@@ -2027,7 +2297,9 @@
     "beatport": "https://www.beatport.com/search?q=D-Edge%20S%C3%A3o%20Paulo",
     "bio_en": "A major figure on the global scene, D-Edge São Paulo is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : 1 000 personnes"
   },
   {
     "id": "384",
@@ -2044,7 +2316,9 @@
     "beatport": "https://www.beatport.com/search?q=Laroc%20Club%20Valinhos",
     "bio_en": "A major figure on the global scene, Laroc Club Valinhos is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 10000,
+    "attendees_label": "Capacité : 10 000 personnes"
   },
   {
     "id": "385",
@@ -2060,7 +2334,9 @@
     "beatport": "https://www.beatport.com/search?q=Ame%20Club",
     "bio_en": "A major figure on the global scene, Ame Club is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "386",
@@ -2076,7 +2352,9 @@
     "beatport": "https://www.beatport.com/search?q=Caos%20Campinas",
     "bio_en": "A major figure on the global scene, Caos Campinas is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "387",
@@ -2093,7 +2371,9 @@
     "beatport": "https://www.beatport.com/search?q=Terraza%20Florian%C3%B3polis",
     "bio_en": "A major figure on the global scene, Terraza Florianópolis is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "388",
@@ -2110,7 +2390,9 @@
     "beatport": "https://www.beatport.com/search?q=Funk%20Mexico%20City",
     "bio_en": "A major figure on the global scene, Funk Mexico City is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "389",
@@ -2126,7 +2408,9 @@
     "beatport": "https://www.beatport.com/search?q=LooLoo%20Mexico",
     "bio_en": "A major figure on the global scene, LooLoo Mexico is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "390",
@@ -2143,7 +2427,9 @@
     "beatport": "https://www.beatport.com/search?q=The%20Bow%20Buenos%20Aires",
     "bio_en": "A major figure on the global scene, The Bow Buenos Aires is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "391",
@@ -2160,7 +2446,9 @@
     "beatport": "https://www.beatport.com/search?q=Crobar%20Buenos%20Aires",
     "bio_en": "A major figure on the global scene, Crobar Buenos Aires is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "393",
@@ -2177,7 +2465,9 @@
     "beatport": "https://www.beatport.com/search?q=Video%20Club%20Bogota",
     "bio_en": "A major figure on the global scene, Video Club Bogota is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "397",
@@ -2194,7 +2484,9 @@
     "beatport": "https://www.beatport.com/search?q=Marquee%20Singapore",
     "bio_en": "A major figure on the global scene, Marquee Singapore is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 4000,
+    "attendees_label": "Capacité : 4 000 personnes"
   },
   {
     "id": "398",
@@ -2211,7 +2503,9 @@
     "beatport": "https://www.beatport.com/search?q=Potato%20Head%20Bali",
     "bio_en": "A major figure on the global scene, Potato Head Bali is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "399",
@@ -2228,7 +2522,9 @@
     "beatport": "https://www.beatport.com/search?q=Savaya%20Bali",
     "bio_en": "A major figure on the global scene, Savaya Bali is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 2000,
+    "attendees_label": "Capacité : 2 000 personnes"
   },
   {
     "id": "400",
@@ -2244,7 +2540,9 @@
     "beatport": "https://www.beatport.com/search?q=Finns%20Beach%20Club",
     "bio_en": "A major figure on the global scene, Finns Beach Club is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "401",
@@ -2261,7 +2559,9 @@
     "beatport": "https://www.beatport.com/search?q=La%20Favela%20Bali",
     "bio_en": "A major figure on the global scene, La Favela Bali is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "402",
@@ -2277,7 +2577,9 @@
     "beatport": "https://www.beatport.com/search?q=Ky%C5%8D%20KL",
     "bio_en": "A major figure on the global scene, Kyō KL is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "403",
@@ -2294,7 +2596,9 @@
     "beatport": "https://www.beatport.com/search?q=Octagon%20Seoul",
     "bio_en": "A major figure on the global scene, Octagon Seoul is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "404",
@@ -2311,7 +2615,9 @@
     "beatport": "https://www.beatport.com/search?q=Cakeshop%20Seoul",
     "bio_en": "A major figure on the global scene, Cakeshop Seoul is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "405",
@@ -2328,7 +2634,9 @@
     "beatport": "https://www.beatport.com/search?q=Faust%20Seoul",
     "bio_en": "A major figure on the global scene, Faust Seoul is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "406",
@@ -2345,7 +2653,9 @@
     "beatport": "https://www.beatport.com/search?q=1900%20Le%20Theatre%20Hanoi",
     "bio_en": "A major figure on the global scene, 1900 Le Theatre Hanoi is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "408",
@@ -2362,7 +2672,9 @@
     "beatport": "https://www.beatport.com/search?q=Beam%20Bangkok",
     "bio_en": "A major figure on the global scene, Beam Bangkok is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "409",
@@ -2379,7 +2691,9 @@
     "beatport": "https://www.beatport.com/search?q=Sing%20Sing%20Theater%20Bangkok",
     "bio_en": "A major figure on the global scene, Sing Sing Theater Bangkok is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "410",
@@ -2396,7 +2710,9 @@
     "beatport": "https://www.beatport.com/search?q=Revolver%20Upstairs%20Melbourne",
     "bio_en": "A major figure on the global scene, Revolver Upstairs Melbourne is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 1000,
+    "attendees_label": "Capacité : ~1 000 personnes"
   },
   {
     "id": "411",
@@ -2413,6 +2729,8 @@
     "beatport": "https://www.beatport.com/search?q=Sub%20Club%20Melbourne",
     "bio_en": "A major figure on the global scene, Sub Club Melbourne is a key player in today's electronic culture.",
     "status": "verified",
-    "votes": 0
+    "votes": 0,
+    "attendees": 400,
+    "attendees_label": "Capacité : 400 personnes"
   }
 ]
