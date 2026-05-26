@@ -207,14 +207,14 @@ const THEME_PRESETS: Record<string, CardTheme> = {
     },
     retro: {
         styleLabel: 'RETRO / DISCO',
-        borderFrom: '#e2e8f0',
-        borderTo: '#94a3b8',
-        outlineColor: '#334155',
-        bgGradient: 'from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0]',
-        textColor: 'text-[#334155]',
-        subBarBg: 'from-[#f1f5f9] via-[#e2e8f0] to-[#f1f5f9]',
-        subBarBorder: '#cbd5e1',
-        subBarText: 'text-[#334155]',
+        borderFrom: '#475569',
+        borderTo: '#1e293b',
+        outlineColor: '#0f172a',
+        bgGradient: 'from-[#0f172a] via-[#1e293b] to-[#0f172a]',
+        textColor: 'text-slate-100',
+        subBarBg: 'from-[#1e293b] via-[#0f172a] to-[#1e293b]',
+        subBarBorder: '#334155',
+        subBarText: 'text-slate-300',
         energyType: 'retro',
         weaknessType: 'techno'
     }
