@@ -15,7 +15,6 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
     const [galerieData, setGalerieData] = useState<any[]>([]);
 
     const latestRecaps = useMemo(() => {
-        // Filter to only include recaps, not gallery items
         const combined = [
             ...(recapsData as any[]).map(item => {
                 let title = item.title || "";
@@ -23,13 +22,20 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                     title = `Récap : ${title}`;
                 }
                 return { ...item, contentType: 'recap', title: title.toUpperCase() };
+            }),
+            ...(galerieData as any[]).map(item => {
+                let title = item.title || "";
+                if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                    title = `Récap Photo : ${title}`;
+                }
+                // Map cover to image if image is empty
+                return { ...item, contentType: 'gallery', image: item.cover || item.image, title: title.toUpperCase() };
             })
         ];
 
         return combined
             .filter(item => {
                 if (!item) return false;
-                // Removed the restrictive 'today' filter to ensure all recaps are visible
                 return true;
             })
             .sort((a, b) => {
@@ -127,80 +133,95 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                 </div>
             ) : (
                 <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    {latestRecaps.map((item: any, index: number) => (
-                        <Link 
-                            to={item.contentType === 'gallery' ? getGalleryLink(item) : getRecapLink(item)} 
-                            key={`${item.contentType}-${item.id}`} 
-                            className="block group"
-                        >
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                whileHover={{ scale: 1.05 }}
-                                onMouseEnter={playHoverSound}
-                                transition={{ delay: index * 0.1 }}
-                                className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-white/50 transition-all duration-300 shadow-xl flex items-stretch glow-card-${item.contentType === 'gallery' ? 'blue' : accentColor}`}
-                                onMouseOver={(e) => e.currentTarget.style.borderColor = color}
-                                onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                    {latestRecaps.map((item: any, index: number) => {
+                        const isGallery = item.contentType === 'gallery';
+                        const itemColor = isGallery ? '#ffffff' : '#bf00ff';
+                        const itemColorTranslucent = isGallery ? 'rgba(255,255,255,0.2)' : 'rgba(191,0,255,0.2)';
+                        
+                        return (
+                            <Link 
+                                to={isGallery ? getGalleryLink(item) : getRecapLink(item)} 
+                                key={`${item.contentType}-${item.id}`} 
+                                className="block group"
                             >
-                                <div
-                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[-1]"
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    whileHover={{ scale: 1.05 }}
+                                    onMouseEnter={playHoverSound}
+                                    transition={{ delay: index * 0.1 }}
+                                    className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border transition-all duration-300 shadow-xl flex items-stretch`}
                                     style={{
-                                        background: `radial-gradient(circle at center, ${color}33 0%, transparent 70%)`,
-                                        filter: 'blur(20px)'
+                                        borderColor: itemColorTranslucent
                                     }}
-                                />
-                                <img
-                                    src={resolveImageUrl(item.image || item.cover)}
-                                    alt={item.title || ""}
-                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                    onMouseOver={(e) => {
+                                        e.currentTarget.style.borderColor = itemColor;
+                                        e.currentTarget.style.boxShadow = `0 0 20px ${isGallery ? 'rgba(255,255,255,0.3)' : 'rgba(191,0,255,0.3)'}`;
                                     }}
-                                />
-                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center z-10">
+                                    onMouseOut={(e) => {
+                                        e.currentTarget.style.borderColor = itemColorTranslucent;
+                                        e.currentTarget.style.boxShadow = 'none';
+                                    }}
+                                >
                                     <div
-                                        className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-110 transition-all duration-300"
-                                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${color}33`}
-                                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                                    >
-                                        {item.contentType === 'gallery' ? (
-                                            <Camera className="w-4 h-4 text-white fill-white/20" />
-                                        ) : (
-                                            <Play className="w-4 h-4 text-white fill-white shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="absolute top-2 left-2 z-20">
-                                    <span
-                                        className="px-1.5 py-0.5 bg-dark-bg/80 backdrop-blur-md border text-[7px] font-black rounded uppercase tracking-tighter"
+                                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[-1]"
                                         style={{
-                                            borderColor: item.contentType === 'gallery' ? 'var(--color-neon-blue)' : color,
-                                            color: item.contentType === 'gallery' ? 'var(--color-neon-blue)' : color,
-                                            boxShadow: `0 0 10px ${item.contentType === 'gallery' ? 'var(--color-neon-blue)4D' : color + '4D'}`
+                                            background: `radial-gradient(circle at center, ${itemColor}33 0%, transparent 70%)`,
+                                            filter: 'blur(20px)'
                                         }}
-                                    >
-                                        {item.contentType === 'gallery' ? 'Photo' : t('home.recap_badge')}
-                                    </span>
-                                </div>
-                                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-20">
-                                    <h4
-                                        className="text-[13px] font-display font-bold text-white leading-tight transition-colors line-clamp-2 uppercase italic tracking-tighter"
-                                        onMouseEnter={(e) => e.currentTarget.style.color = color}
-                                        onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
-                                    >
-                                        {translatedTitles[item.id] || item.title}
-                                    </h4>
-                                    <p className="text-[8px] text-gray-500 mt-1 font-bold uppercase tracking-widest">
-                                        {item.date && !isNaN(new Date(item.date).getTime()) 
-                                            ? new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-                                            : item.date // Fallback for just year
-                                        }
-                                    </p>
-                                </div>
-                            </motion.div>
-                        </Link>
-                    ))}
+                                    />
+                                    <img
+                                        src={resolveImageUrl(item.image || item.cover)}
+                                        alt={item.title || ""}
+                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                        }}
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center z-10">
+                                        <div
+                                            className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-110 transition-all duration-300"
+                                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${itemColor}33`}
+                                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                                        >
+                                            {isGallery ? (
+                                                <Camera className="w-4 h-4 text-white fill-white/20" />
+                                            ) : (
+                                                <Play className="w-4 h-4 text-white fill-white shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="absolute top-2 left-2 z-20">
+                                        <span
+                                            className="px-1.5 py-0.5 bg-dark-bg/80 backdrop-blur-md border text-[7px] font-black rounded uppercase tracking-tighter"
+                                            style={{
+                                                borderColor: itemColor,
+                                                color: itemColor,
+                                                boxShadow: `0 0 10px ${isGallery ? 'rgba(255,255,255,0.3)' : 'rgba(191,0,255,0.3)'}`
+                                            }}
+                                        >
+                                            {isGallery ? 'Photo' : t('home.recap_badge')}
+                                        </span>
+                                    </div>
+                                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-20">
+                                        <h4
+                                            className="text-[13px] font-display font-bold text-white leading-tight transition-colors line-clamp-2 uppercase italic tracking-tighter"
+                                            onMouseEnter={(e) => e.currentTarget.style.color = itemColor}
+                                            onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
+                                        >
+                                            {translatedTitles[item.id] || item.title}
+                                        </h4>
+                                        <p className="text-[8px] text-gray-500 mt-1 font-bold uppercase tracking-widest">
+                                            {item.date && !isNaN(new Date(item.date).getTime()) 
+                                                ? new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+                                                : item.date // Fallback for just year
+                                            }
+                                        </p>
+                                    </div>
+                                </motion.div>
+                            </Link>
+                        );
+                    })}
                 </div>
             )}
         </div>
