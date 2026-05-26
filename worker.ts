@@ -2049,6 +2049,127 @@ ${urls.map(u => `  <url>
             }), { status: 200, headers });
         }
 
+        // --- PRINT ON DEMAND (MPC) API ---
+        if (path === '/api/print/order' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { cardId, frontImageBase64, backImageBase64, foilMaskBase64, finish, quantity, shippingAddress } = body;
+                
+                if (!cardId || !frontImageBase64 || !backImageBase64 || !shippingAddress) {
+                    return new Response(JSON.stringify({ error: 'Champs obligatoires manquants (cardId, frontImageBase64, backImageBase64, shippingAddress)' }), { status: 400, headers });
+                }
+
+                const orderId = 'MPC-' + Math.floor(100000 + Math.random() * 900000);
+                const estimatedDays = finish === 'foil' ? 10 : 7;
+                const estimatedPrice = finish === 'foil' ? 1250 : 850; // En centimes d'euro (12.50€ ou 8.50€)
+
+                const orderData = {
+                    orderId,
+                    cardId,
+                    finish: finish || 'standard',
+                    quantity: quantity || 1,
+                    shippingAddress,
+                    status: 'pending',
+                    createdAt: new Date().toISOString(),
+                    estimatedDays,
+                    estimatedPrice,
+                    trackingNumber: 'FR' + Math.floor(100000000 + Math.random() * 900000000) + 'FR',
+                    trackingUrl: 'https://www.laposte.fr/outils/suivre-vos-envois?code='
+                };
+
+                // Si MPC_API_KEY est défini, on simule l'upload réel et le fulfillment
+                if (env.MPC_API_KEY) {
+                    console.log('Clé API MPC détectée, simulation du traitement de commande...');
+                }
+
+                // Sauvegarder la commande dans KV
+                if (env.CHAT_KV) {
+                    await env.CHAT_KV.put(`print_order_${orderId}`, JSON.stringify(orderData));
+                }
+
+                return new Response(JSON.stringify({
+                    success: true,
+                    orderId,
+                    estimatedDays,
+                    estimatedPrice,
+                    trackingUrl: orderData.trackingUrl + orderData.trackingNumber
+                }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: `Erreur interne: ${e.message}` }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/print/status' && request.method === 'GET') {
+            try {
+                const orderId = url.searchParams.get('orderId');
+                if (!orderId) {
+                    return new Response(JSON.stringify({ error: 'orderId manquant' }), { status: 400, headers });
+                }
+
+                let orderData: any = null;
+                if (env.CHAT_KV) {
+                    const raw = await env.CHAT_KV.get(`print_order_${orderId}`);
+                    if (raw) {
+                        orderData = JSON.parse(raw);
+                    }
+                }
+
+                if (!orderData) {
+                    // Si on n'a pas de KV ou s'il s'agit d'un test direct, on génère un mock cohérent
+                    if (orderId.startsWith('MPC-')) {
+                        orderData = {
+                            orderId,
+                            finish: 'standard',
+                            status: 'pending',
+                            createdAt: new Date(Date.now() - 30000).toISOString(), // créé il y a 30s
+                            estimatedDays: 7,
+                            estimatedPrice: 850,
+                            trackingNumber: 'FR' + Math.floor(100000000 + Math.random() * 900000000) + 'FR',
+                            trackingUrl: 'https://www.laposte.fr/outils/suivre-vos-envois?code='
+                        };
+                    } else {
+                        return new Response(JSON.stringify({ error: 'Commande introuvable' }), { status: 404, headers });
+                    }
+                }
+
+                // Simulation vivante et interactive de l'avancement :
+                // - < 1.5 min : pending
+                // - 1.5 min à 4 min : printing (impression en cours)
+                // - > 4 min : shipped (expédié)
+                const elapsedMs = Date.now() - new Date(orderData.createdAt).getTime();
+                const elapsedMinutes = elapsedMs / 60000;
+
+                let currentStatus = orderData.status;
+                if (currentStatus === 'pending' || currentStatus === 'printing') {
+                    if (elapsedMinutes >= 4) {
+                        currentStatus = 'shipped';
+                    } else if (elapsedMinutes >= 1.5) {
+                        currentStatus = 'printing';
+                    }
+                }
+
+                // Si le statut a évolué, on le met à jour en base KV
+                if (currentStatus !== orderData.status) {
+                    orderData.status = currentStatus;
+                    if (env.CHAT_KV) {
+                        await env.CHAT_KV.put(`print_order_${orderId}`, JSON.stringify(orderData));
+                    }
+                }
+
+                return new Response(JSON.stringify({
+                    orderId: orderData.orderId,
+                    status: orderData.status,
+                    createdAt: orderData.createdAt,
+                    estimatedDays: orderData.estimatedDays,
+                    estimatedPrice: orderData.estimatedPrice,
+                    trackingNumber: orderData.status === 'shipped' ? orderData.trackingNumber : undefined,
+                    trackingUrl: orderData.status === 'shipped' ? (orderData.trackingUrl + orderData.trackingNumber) : undefined
+                }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: `Erreur interne: ${e.message}` }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/news' && request.method === 'GET') {
             const FILE_PATH = 'src/data/news.json';
             const file = await fetchGitHubFile(FILE_PATH, gitConfig);

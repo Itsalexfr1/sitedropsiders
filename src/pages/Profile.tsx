@@ -11,6 +11,7 @@ import wikiClubs from '../data/wiki_clubs.json';
 import { DropsidersCardComponent } from '../components/cards/DropsidersCard';
 import { UserAuthModal } from '../components/auth/UserAuthModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { CardPrintOrderModal } from '../components/cards/CardPrintOrderModal';
 
 
 export function Profile() {
@@ -38,6 +39,7 @@ export function Profile() {
     const [cardRarityFilter, setCardRarityFilter] = useState<'all' | 'legendary' | 'epic' | 'rare' | 'common'>('all');
     const [cardTypeFilter, setCardTypeFilter] = useState<'all' | 'festival' | 'club'>('all');
     const [selectedCardForPreview, setSelectedCardForPreview] = useState<DropsidersCard | null>(null);
+    const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
     // Group collected cards by ID to show quantities
     const groupedCards = (collectedCards || []).reduce((acc, card) => {
@@ -982,17 +984,31 @@ export function Profile() {
                                 <p className="text-[10px] font-black tracking-[0.3em] text-white/40 uppercase">
                                     Clique sur la carte pour la retourner
                                 </p>
-                                <button
-                                    onClick={() => setSelectedCardForPreview(null)}
-                                    className="px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all"
-                                >
-                                    Fermer la vue
-                                </button>
+                                <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mt-2">
+                                    <button
+                                        onClick={() => setIsPrintModalOpen(true)}
+                                        className="px-6 py-2.5 bg-gradient-to-r from-neon-red via-purple-600 to-neon-cyan hover:shadow-[0_0_20px_rgba(255,0,51,0.4)] text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                                    >
+                                        🖨️ Commander l'impression
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedCardForPreview(null)}
+                                        className="px-6 py-2.5 bg-white/10 hover:bg-white/25 border border-white/10 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
+                                    >
+                                        Fermer la vue
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </div>
                 )}
             </AnimatePresence>
+
+            <CardPrintOrderModal
+                isOpen={isPrintModalOpen}
+                onClose={() => setIsPrintModalOpen(false)}
+                card={selectedCardForPreview}
+            />
         </>
     );
 }
