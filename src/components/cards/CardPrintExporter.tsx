@@ -101,22 +101,44 @@ CardPrintExporter.displayName = 'CardPrintExporter';
 
 // ─── DOM → Blob helper ────────────────────────────────────────────────────────
 async function domToBlob(node: HTMLElement, _card: DropsidersCard): Promise<Blob> {
-    const dataUrl = await toPng(node, {
+    const options = {
         cacheBust: true,
-        pixelRatio: 1, // We handle scaling in the PRINT_SCALE — no further pixel ratio needed
+        pixelRatio: 1,
         skipFonts: false,
+        includeQueryParams: true,
+        fetchRequestInit: {
+            mode: 'cors' as RequestMode,
+            cache: 'force-cache' as RequestCache,
+        },
         style: {
-            // Ensure no transforms applied externally interfere
             transform: 'none',
             transformOrigin: 'top left',
         },
-        filter: (element) => {
-            // Skip framer-motion overlay hints that only exist in DOM for animation
+        filter: (element: Element) => {
             if (element instanceof HTMLElement && element.dataset.fmHint) return false;
             return true;
         },
-    });
-    return dataUrlToBlob(dataUrl);
+    };
+
+    // First attempt: full quality
+    try {
+        const dataUrl = await toPng(node, options);
+        return dataUrlToBlob(dataUrl);
+    } catch (_firstErr) {
+        // Second attempt: skip fonts to avoid font CORS issues
+        try {
+            const dataUrl = await toPng(node, { ...options, skipFonts: true });
+            return dataUrlToBlob(dataUrl);
+        } catch (_secondErr) {
+            // Third attempt: minimal options as last resort
+            const dataUrl = await toPng(node, {
+                cacheBust: true,
+                pixelRatio: 1,
+                skipFonts: true,
+            });
+            return dataUrlToBlob(dataUrl);
+        }
+    }
 }
 
 // ─── Foil Mask Generator ──────────────────────────────────────────────────────
