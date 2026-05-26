@@ -1488,10 +1488,9 @@ export function NewsCreate() {
                     return id;
                 }).filter(id => id);
 
-                const colsClass = videoIds.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3';
-                content = `<div class="youtube-gallery-grid grid ${colsClass} gap-6 my-12" data-videos-count="${videoIds.length}">
-${videoIds.map(id => `  <div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5">
-    <iframe src="https://www.youtube.com/embed/${id}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
+                content = `<div class="youtube-gallery-grid" data-videos-count="${videoIds.length}">
+${videoIds.map(id => `  <div class="youtube-player-widget">
+    <iframe src="https://www.youtube.com/embed/${id}" loading="lazy" allowfullscreen></iframe>
   </div>`).join('\n')}
 </div>`;
             } else {

@@ -444,10 +444,49 @@ body {
     object-fit: cover !important;
   }
 
-  .article-body-premium .aspect-square img,
-  .article-body-premium .grid {
+  .article-body-premium .aspect-square img {
     justify-content: center !important;
     justify-items: center !important;
+  }
+
+  /* YouTube Gallery Grid - Grille multi-vidéos dans les articles */
+  .youtube-gallery-grid {
+    display: grid !important;
+    gap: 1.5rem !important;
+    margin: 3rem 0 !important;
+    width: 100% !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  @media (min-width: 768px) {
+    .youtube-gallery-grid[data-videos-count="2"] {
+      grid-template-columns: 1fr 1fr !important;
+    }
+    .youtube-gallery-grid[data-videos-count="3"],
+    .youtube-gallery-grid[data-videos-count="4"],
+    .youtube-gallery-grid[data-videos-count="5"],
+    .youtube-gallery-grid[data-videos-count="6"] {
+      grid-template-columns: 1fr 1fr 1fr !important;
+    }
+  }
+
+  .youtube-gallery-grid .youtube-player-widget {
+    width: 100% !important;
+    position: relative !important;
+    aspect-ratio: 16 / 9 !important;
+    border-radius: 1.5rem !important;
+    overflow: hidden !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    margin: 0 !important;
+  }
+
+  .youtube-gallery-grid .youtube-player-widget iframe {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: none !important;
   }
 
   /* Global Article Images - Single blocks (News/Recaps content) */
