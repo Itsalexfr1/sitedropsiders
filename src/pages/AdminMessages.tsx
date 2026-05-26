@@ -33,6 +33,29 @@ interface ContactMessage {
     attachments?: { name: string; url?: string; size: number }[];
 }
 
+const linkify = (text: string) => {
+    if (!text) return '';
+    const escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    
+    const urlRegex = /((?:https?:\/\/|www\.)[^\s]+)/g;
+    return escaped.replace(urlRegex, (url) => {
+        let cleanUrl = url;
+        let trailing = '';
+        const match = url.match(/[.,;:!?)]+$/);
+        if (match) {
+            cleanUrl = url.substring(0, url.length - match[0].length);
+            trailing = match[0];
+        }
+        const href = cleanUrl.startsWith('http') ? cleanUrl : `https://${cleanUrl}`;
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-neon-cyan hover:underline break-all" style="text-decoration: underline;">${cleanUrl}</a>`;
+    }).replace(/\n/g, '<br>');
+};
+
 export function AdminMessages() {
     const navigate = useNavigate();
     
@@ -929,7 +952,12 @@ Alex (Dropsiders)`;
 
                             {/* Message Body */}
                             <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6">
-                                <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-sm">{(selected || selectedArchived)?.message || selectedSent?.body}</p>
+                                <div 
+                                    className="text-gray-300 leading-relaxed text-sm"
+                                    dangerouslySetInnerHTML={{ 
+                                        __html: linkify((selected || selectedArchived)?.message || selectedSent?.body || '') 
+                                    }}
+                                />
                             </div>
 
                             {/* Attachments */}
@@ -1346,7 +1374,7 @@ Alex (Dropsiders)`;
                                                     <div 
                                                         className="text-white/80 text-[11px] leading-relaxed min-h-[100px]"
                                                         dangerouslySetInnerHTML={{ 
-                                                            __html: (replyBody || "[Votre message apparaîtra ici]").replace(/\n/g, '<br>') 
+                                                            __html: linkify(replyBody || "[Votre message apparaîtra ici]") 
                                                         }}
                                                     />
                                                     <div className="mt-8 bg-black border border-white/10 border-t-4 border-t-neon-red rounded-xl overflow-hidden p-4">

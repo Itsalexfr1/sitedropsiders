@@ -4848,6 +4848,26 @@ ${urls.map(u => `  <url>
                     return new Response(JSON.stringify({ error: 'Missing required fields (to, subject, message)' }), { status: 400, headers });
                 }
 
+                const linkify = (text: string) => {
+                    if (!text) return '';
+                    const escaped = text
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+                    const urlRegex = /((?:https?:\/\/|www\.)[^\s]+)/g;
+                    return escaped.replace(urlRegex, (url) => {
+                        let cleanUrl = url;
+                        let trailing = '';
+                        const match = url.match(/[.,;:!?)]+$/);
+                        if (match) {
+                            cleanUrl = url.substring(0, url.length - match[0].length);
+                            trailing = match[0];
+                        }
+                        const href = cleanUrl.startsWith('http') ? cleanUrl : `https://${cleanUrl}`;
+                        return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color: #00ffd5; text-decoration: underline; word-break: break-all;">${cleanUrl}</a>${trailing}`;
+                    }).replace(/\n/g, '<br>');
+                };
+
                 // SECURITY/COMPLIANCE: Only use verified sender or a fallback matching the domain
                 const senderEmail = (from && from.includes('@dropsiders')) ? from.trim() : 'contact@dropsiders.fr';
 
@@ -4877,7 +4897,7 @@ ${urls.map(u => `  <url>
                             <div style="width:100%; max-width:600px; margin:0 auto; background:#111111; border:1px solid #333333; border-radius:24px; overflow:hidden; text-align:left; box-shadow: 0 0 30px rgba(255,0,51,0.1);">
                                 <div style="padding:40px 15px;">
                                     <div style="color:#ffffff; font-size:16px; line-height:1.6; margin-bottom:40px; padding:0 10px;">
-                                        ${message.replace(/\n/g, '<br>')}
+                                        ${linkify(message)}
                                     </div>
                                     
                                     <!-- SIGNATURE BLOCK : ULTRA STYLE DROPSIDERS -->
