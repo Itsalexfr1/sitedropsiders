@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Share2, MessageSquare, X, Maximize2, Trash2, Instagram, Music } from 'lucide-react';
+import { Heart, Share2, MessageSquare, X, Maximize2, Trash2, Instagram, Music, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 import { resolveImageUrl } from '../../utils/image';
 
@@ -26,9 +26,12 @@ interface MediaInteractionsProps {
     isModo?: boolean;
     videoUrl?: string;
     imageUrl?: string;
+    images?: string[];
+    onChangePhoto?: (id: string) => void;
 }
 
-export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl, imageUrl }: MediaInteractionsProps) {
+export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl, imageUrl, images, onChangePhoto }: MediaInteractionsProps) {
+    const [currentId, setCurrentId] = useState(id);
     const [stats, setStats] = useState<MediaStats>({ likes: 0, shares: 0, commentsCount: 0, anecdote: null });
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState("");
@@ -42,7 +45,7 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
 
     const fetchStats = async () => {
         try {
-            const res = await fetch(`/api/media/stats?type=${type}&id=${encodeURIComponent(id)}`);
+            const res = await fetch(`/api/media/stats?type=${type}&id=${encodeURIComponent(currentId)}`);
             const data = await res.json();
             if (data) setStats(data);
         } catch (e) { console.error(e); }
@@ -50,26 +53,30 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
 
     const fetchComments = async () => {
         try {
-            const res = await fetch(`/api/media/comments?type=${type}&id=${encodeURIComponent(id)}`);
+            const res = await fetch(`/api/media/comments?type=${type}&id=${encodeURIComponent(currentId)}`);
             const data = await res.json();
             if (data) setComments(data);
         } catch (e) { console.error(e); }
     };
 
     useEffect(() => {
+        setCurrentId(id);
+    }, [id]);
+
+    useEffect(() => {
         fetchStats();
-    }, [id, type]);
+    }, [currentId, type]);
 
     useEffect(() => {
         if (showComments) fetchComments();
-    }, [showComments, id, type]);
+    }, [showComments, currentId, type]);
 
     const handleLike = async () => {
         try {
             const res = await fetch('/api/media/like', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type, id })
+                body: JSON.stringify({ type, id: currentId })
             });
             const data = await res.json();
             if (data.success) setStats(prev => ({ ...prev, likes: data.likes }));
@@ -81,10 +88,10 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
             await fetch('/api/media/share', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type, id, platform })
+                body: JSON.stringify({ type, id: currentId, platform })
             });
 
-            const shareUrl = imageUrl || id;
+            const shareUrl = imageUrl || currentId;
             const message = type === 'photo' ? "Check cette photo sur Dropsiders !" : "Check ce clip sur Dropsiders !";
 
             if (navigator.share) {
@@ -102,10 +109,10 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
             await fetch('/api/media/share', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type, id })
+                body: JSON.stringify({ type, id: currentId })
             });
 
-            const shareUrl = imageUrl || id;
+            const shareUrl = imageUrl || currentId;
             if (navigator.share) {
                 await navigator.share({ title: 'Dropsiders', url: shareUrl });
             } else {
@@ -122,7 +129,7 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
             const res = await fetch('/api/media/comment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type, id, user: pseudo || 'Anonyme', text: newComment })
+                body: JSON.stringify({ type, id: currentId, user: pseudo || 'Anonyme', text: newComment })
             });
             const data = await res.json();
             if (data.success) {
@@ -139,7 +146,7 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
             const res = await fetch('/api/media/comment/delete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                body: JSON.stringify({ type, id, commentId })
+                body: JSON.stringify({ type, id: currentId, commentId })
             });
             const data = await res.json();
             if (data.success) {
@@ -148,6 +155,41 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
             }
         } catch (e) { console.error(e); }
     };
+
+    // Navigation logic
+    const hasMultipleImages = images && images.length > 1;
+    const currentIndex = hasMultipleImages ? images.indexOf(currentId) : -1;
+
+    const handlePrev = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!hasMultipleImages || currentIndex === -1) return;
+        const newIndex = (currentIndex - 1 + images.length) % images.length;
+        const newId = images[newIndex];
+        setCurrentId(newId);
+        if (onChangePhoto) onChangePhoto(newId);
+    };
+
+    const handleNext = (e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!hasMultipleImages || currentIndex === -1) return;
+        const newIndex = (currentIndex + 1) % images.length;
+        const newId = images[newIndex];
+        setCurrentId(newId);
+        if (onChangePhoto) onChangePhoto(newId);
+    };
+
+    // Keyboard navigation
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowLeft') {
+                handlePrev();
+            } else if (e.key === 'ArrowRight') {
+                handleNext();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [currentIndex, images]);
 
     return (
         <motion.div
@@ -166,6 +208,31 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
 
             {/* Media Section */}
             <div className="flex-1 relative flex items-center justify-center p-4 md:p-12 overflow-hidden h-[50vh] md:h-full">
+                {hasMultipleImages && (
+                    <>
+                        <button
+                            onClick={handlePrev}
+                            className="absolute left-6 z-40 p-4 bg-black/60 hover:bg-[#bf00ff] text-white rounded-full border border-white/10 hover:border-[#bf00ff] transition-all shadow-2xl group cursor-pointer backdrop-blur-md active:scale-95 flex items-center justify-center hover:shadow-[0_0_20px_rgba(191,0,255,0.4)]"
+                            style={{
+                                boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                            }}
+                            title="Précédente"
+                        >
+                            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
+                        </button>
+                        <button
+                            onClick={handleNext}
+                            className="absolute right-6 z-40 p-4 bg-black/60 hover:bg-[#bf00ff] text-white rounded-full border border-white/10 hover:border-[#bf00ff] transition-all shadow-2xl group cursor-pointer backdrop-blur-md active:scale-95 flex items-center justify-center hover:shadow-[0_0_20px_rgba(191,0,255,0.4)]"
+                            style={{
+                                boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                            }}
+                            title="Suivante"
+                        >
+                            <ChevronRight className="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
+                        </button>
+                    </>
+                )}
+
                 {videoUrl ? (
                     <video
                         src={resolveImageUrl(videoUrl)}
@@ -178,7 +245,7 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                     <motion.img
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        src={resolveImageUrl(imageUrl || id)}
+                        src={resolveImageUrl(imageUrl || currentId)}
                         alt="Media content"
                         className="max-w-full max-h-full object-contain shadow-2xl rounded-2xl border border-white/10"
                         onClick={(e) => e.stopPropagation()}

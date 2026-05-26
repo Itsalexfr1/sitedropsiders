@@ -232,6 +232,8 @@ export function AlbumDetail() {
                     <MediaInteractions
                         type="photo"
                         id={selectedPhoto}
+                        images={album.images}
+                        onChangePhoto={setSelectedPhoto}
                         onClose={() => setSelectedPhoto(null)}
                         isAdmin={isAdmin}
                     />

@@ -136,7 +136,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                     {latestRecaps.map((item: any, index: number) => {
                         const isGallery = item.contentType === 'gallery';
                         const itemColor = isGallery ? '#ffffff' : '#bf00ff';
-                        const itemColorTranslucent = isGallery ? 'rgba(255,255,255,0.2)' : 'rgba(191,0,255,0.2)';
+                        const itemColorTranslucent = isGallery ? 'rgba(255,255,255,0.3)' : 'rgba(191, 0, 255, 0.3)';
                         
                         return (
                             <Link 
@@ -150,7 +150,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                                     whileHover={{ scale: 1.05 }}
                                     onMouseEnter={playHoverSound}
                                     transition={{ delay: index * 0.1 }}
-                                    className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border transition-all duration-300 shadow-xl flex items-stretch`}
+                                    className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all duration-300 shadow-xl flex items-stretch`}
                                     style={{
                                         borderColor: itemColorTranslucent
                                     }}

@@ -71,7 +71,20 @@ export function MobileHome() {
         const today = new Date().toISOString().split('T')[0];
         
         const combined = [
-            ...recapsData.map(r => ({ ...r, contentType: 'recap' }))
+            ...recapsData.map(r => {
+                let title = r.title || "";
+                if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                    title = `Récap : ${title}`;
+                }
+                return { ...r, contentType: 'recap', title: title.toUpperCase() };
+            }),
+            ...galerieData.map(g => {
+                let title = g.title || "";
+                if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                    title = `Récap Photo : ${title}`;
+                }
+                return { ...g, contentType: 'gallery', image: g.cover || g.image, title: title.toUpperCase() };
+            })
         ];
 
         return combined
@@ -307,57 +320,81 @@ export function MobileHome() {
                     <Link to="/recaps" className="text-[10px] font-black uppercase tracking-widest text-neon-purple px-2 py-1 rounded-lg hover:bg-neon-purple/10 transition-colors">{t('home.explore')}</Link>
                 </div>
                 <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
-                    {recapsHighlight.map((recap: any) => (
-                        <Link
-                            key={`${recap.contentType}-${recap.id}`}
-                            to={recap.contentType === 'gallery' ? getGalleryLink(recap) : getRecapLink(recap)}
-                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center border border-white/10 active:scale-95 transition-transform"
-                        >
-                            <img 
-                                src={resolveImageUrl(recap.image)} 
-                                className="absolute inset-0 w-full h-full object-cover" 
-                                loading="lazy" 
-                                decoding="async" 
-                                alt="" 
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop';
+                    {recapsHighlight.map((recap: any) => {
+                        const isGallery = recap.contentType === 'gallery';
+                        const itemColor = isGallery ? '#ffffff' : '#bf00ff';
+                        const itemColorTranslucent = isGallery ? 'rgba(255, 255, 255, 0.3)' : 'rgba(191, 0, 255, 0.3)';
+                        
+                        return (
+                            <Link
+                                key={`${recap.contentType}-${recap.id}`}
+                                to={isGallery ? getGalleryLink(recap) : getRecapLink(recap)}
+                                className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center border-2 active:scale-95 transition-all duration-300"
+                                style={{
+                                    borderColor: itemColorTranslucent,
+                                    boxShadow: `0 10px 30px ${isGallery ? 'rgba(255, 255, 255, 0.05)' : 'rgba(191, 0, 255, 0.05)'}`
                                 }}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
-                            
-                            {/* Content Type Badge */}
-                            <div className="absolute top-6 left-6 flex items-center gap-2 z-10">
-                                <div className="px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg flex items-center gap-2">
-                                    {recap.contentType === 'gallery' ? (
-                                        <Camera className="w-3 h-3 text-neon-purple" />
-                                    ) : (
-                                        <Play className="w-3 h-3 text-neon-purple fill-neon-purple" />
-                                    )}
-                                    <span className="text-[9px] font-black text-neon-purple uppercase tracking-[0.2em]">
-                                        {recap.contentType === 'gallery' ? 'Photo' : 'Recap'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
-                                <h3 
-                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-[var(--theme-color)] transition-colors"
-                                    style={{ '--theme-color': `var(--color-neon-purple)` } as any}
-                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[recap.id] || recap.title) : recap.title) }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.borderColor = itemColor;
+                                    e.currentTarget.style.boxShadow = `0 0 25px ${isGallery ? 'rgba(255, 255, 255, 0.2)' : 'rgba(191, 0, 255, 0.2)'}`;
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = itemColorTranslucent;
+                                    e.currentTarget.style.boxShadow = `0 10px 30px ${isGallery ? 'rgba(255, 255, 255, 0.05)' : 'rgba(191, 0, 255, 0.05)'}`;
+                                }}
+                            >
+                                <img 
+                                    src={resolveImageUrl(recap.image)} 
+                                    className="absolute inset-0 w-full h-full object-cover" 
+                                    loading="lazy" 
+                                    decoding="async" 
+                                    alt="" 
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop';
+                                    }}
                                 />
-                                <div className="flex items-center gap-3 text-white/60">
-                                    <div className="w-2 h-2 bg-white/40 rounded-full" />
-                                    <span className="text-xs font-bold uppercase tracking-widest">
-                                        {recap.date && !isNaN(new Date(recap.date).getTime()) 
-                                            ? new Date(recap.date).getFullYear()
-                                            : recap.date
-                                        }
-                                        {recap.location ? ` • ${recap.location}` : ''}
-                                    </span>
+                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
+                                
+                                {/* Content Type Badge */}
+                                <div className="absolute top-6 left-6 flex items-center gap-2 z-10">
+                                    <div 
+                                        className="px-4 py-2 bg-dark-bg/80 backdrop-blur-md border rounded-xl shadow-lg flex items-center gap-2"
+                                        style={{ borderColor: itemColor }}
+                                    >
+                                        {isGallery ? (
+                                            <Camera className="w-3 h-3" style={{ color: itemColor }} />
+                                        ) : (
+                                            <Play className="w-3 h-3 fill-[#bf00ff]" style={{ color: itemColor }} />
+                                        )}
+                                        <span 
+                                            className="text-[9px] font-black uppercase tracking-[0.2em]"
+                                            style={{ color: itemColor }}
+                                        >
+                                            {isGallery ? 'Photo' : 'Recap'}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        </Link>
-                    ))}
+
+                                <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
+                                    <h3 
+                                        className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-[var(--theme-color)] transition-colors"
+                                        style={{ '--theme-color': itemColor } as any}
+                                        dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[recap.id] || recap.title) : recap.title) }}
+                                    />
+                                    <div className="flex items-center gap-3 text-white/60">
+                                        <div className="w-2 h-2 bg-white/40 rounded-full" />
+                                        <span className="text-xs font-bold uppercase tracking-widest">
+                                            {recap.date && !isNaN(new Date(recap.date).getTime()) 
+                                                ? new Date(recap.date).getFullYear()
+                                                : recap.date
+                                            }
+                                            {recap.location ? ` • ${recap.location}` : ''}
+                                        </span>
+                                    </div>
+                                </div>
+                            </Link>
+                        );
+                    })}
                     <div className="min-w-[20px] shrink-0" />
                 </div>
             </section>
