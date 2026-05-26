@@ -5061,5 +5061,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": true,
     "additionalDates": []
+  },
+  {
+    "id": 1009,
+    "title": "EDC Las Vegas Dusk Till Dawn Experience",
+    "date": "2027-05-13",
+    "startDate": "2027-05-13",
+    "endDate": "2027-05-24",
+    "venue": "",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Festival",
+    "image": "/uploads/8552875dccde85a9-edclv_2027_de_ps_two_weekends_.png",
+    "url": "https://lasvegas.electricdaisycarnival.com",
+    "genre": "Multi Styles",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
