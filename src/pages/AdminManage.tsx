@@ -90,7 +90,7 @@ async function fetchJson(file: string): Promise<any[]> {
     return [];
 }
 
-type ContentType = 'News' | 'Musique' | 'Recaps' | 'Interviews' | 'Agenda' | 'Communauté' | 'Focus' | 'Membres';
+type ContentType = 'News' | 'Musique' | 'Recaps' | 'Interviews' | 'Agenda' | 'Communauté' | 'Focus' | 'Membres' | 'Brouillons';
 
 export function AdminManage() {
     const [searchParams] = useSearchParams();
@@ -173,9 +173,10 @@ export function AdminManage() {
     const hasPermission = (p: string) => checkPerm(storedPermissions, p, isAlex);
 
     const isAdmin = hasPermission('all');
-    const canCreate = hasPermission(activeTab);
-    const canEdit = hasPermission(activeTab);
-    const canDelete = hasPermission(activeTab);
+    const permissionToCheck = activeTab === 'Brouillons' ? 'News' : activeTab;
+    const canCreate = hasPermission(permissionToCheck);
+    const canEdit = hasPermission(permissionToCheck);
+    const canDelete = hasPermission(permissionToCheck);
 
     // Initial access check: if not Alex and has zero permissions, redirect
     useEffect(() => {
@@ -205,7 +206,7 @@ export function AdminManage() {
         setMessage(`Suppression de ${selectedIds.length} éléments...`);
 
         try {
-            const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
+            const endpoint = (activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'Focus' || activeTab === 'News' || activeTab === 'Brouillons') ? '/api/news/delete' :
                 activeTab === 'Communauté' ? '/api/galerie/delete' :
                     `/api/${activeTab.toLowerCase()}/delete`;
             
@@ -238,15 +239,17 @@ export function AdminManage() {
         setLoading(true);
         try {
             let data: any[] = [];
-            if (activeTab === 'News' || activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'Focus') {
+            if (activeTab === 'News' || activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'Focus' || activeTab === 'Brouillons') {
                 const allNews = await fetchJson('news.json');
                 data = activeTab === 'News'
-                    ? allNews.filter((item: any) => item.category === 'News' && !item.isFocus)
+                    ? allNews.filter((item: any) => item.category === 'News' && !item.isFocus && !item.isDraft)
                     : activeTab === 'Interviews'
-                        ? allNews.filter((item: any) => item.category?.startsWith('Interview'))
+                        ? allNews.filter((item: any) => item.category?.startsWith('Interview') && !item.isDraft)
                         : activeTab === 'Musique'
-                            ? allNews.filter((item: any) => item.category === 'Musique')
-                            : allNews.filter((item: any) => item.isFocus);
+                            ? allNews.filter((item: any) => item.category === 'Musique' && !item.isDraft)
+                            : activeTab === 'Focus'
+                                ? allNews.filter((item: any) => item.isFocus && !item.isDraft)
+                                : allNews.filter((item: any) => item.isDraft);
             } else if (activeTab === 'Recaps') {
                 data = await fetchJson('recaps.json');
             } else if (activeTab === 'Agenda') {
@@ -269,7 +272,7 @@ export function AdminManage() {
     const handleDelete = async (id: number | string) => {
         setDeleteStatus('loading');
         try {
-            const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
+            const endpoint = (activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'Focus' || activeTab === 'News' || activeTab === 'Brouillons') ? '/api/news/delete' :
                 activeTab === 'Communauté' ? '/api/galerie/delete' :
                     `/api/${activeTab.toLowerCase()}/delete`;
             const response = await fetch(endpoint, {
@@ -300,6 +303,7 @@ export function AdminManage() {
     const handleEdit = (item: any) => {
         const isInterview = item.category === 'Interview' || item.category === 'Interviews' || item.category === 'Interview Video' || activeTab === 'Interviews';
         const isMusique = item.category === 'Musique' || activeTab === 'Musique';
+        const isFocus = item.isFocus || activeTab === 'Focus';
 
         let editPath = '';
         if (activeTab === 'Recaps') {
@@ -314,7 +318,7 @@ export function AdminManage() {
             return;
         } else if (activeTab === 'Communauté') {
             editPath = `/galerie/create?id=${item.id}`;
-        } else if (activeTab === 'Focus') {
+        } else if (isFocus) {
             editPath = `/news/create?tab=Focus&id=${item.id}`;
         } else {
             editPath = `/news/create?id=${item.id}`;
@@ -448,7 +452,7 @@ export function AdminManage() {
     const handleSaveOrder = async () => {
         setIsSavingOrder(true);
         try {
-            const resource = (activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'News' || activeTab === 'Focus') ? 'news' : activeTab.toLowerCase();
+            const resource = (activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Brouillons') ? 'news' : activeTab.toLowerCase();
             const filename = resource === 'news' ? 'news.json' :
                 resource === 'recaps' ? 'recaps.json' :
                     resource === 'agenda' ? 'agenda.json' :
@@ -462,10 +466,12 @@ export function AdminManage() {
             if (resource === 'news') {
                 let localIdx = 0;
                 updatedList = fullList.map(item => {
-                    const matchesTab = activeTab === 'News' ? (item.category === 'News' && !item.isFocus)
-                        : activeTab === 'Interviews' ? item.category?.startsWith('Interview')
-                            : activeTab === 'Musique' ? item.category === 'Musique'
-                                : item.isFocus;
+                    const matchesTab = activeTab === 'News' ? (item.category === 'News' && !item.isFocus && !item.isDraft)
+                        : activeTab === 'Interviews' ? (item.category?.startsWith('Interview') && !item.isDraft)
+                            : activeTab === 'Musique' ? (item.category === 'Musique' && !item.isDraft)
+                                : activeTab === 'Focus' ? (item.isFocus && !item.isDraft)
+                                    : activeTab === 'Brouillons' ? item.isDraft
+                                        : false;
                     if (matchesTab) {
                         return items[localIdx++] || item;
                     }
@@ -587,6 +593,7 @@ export function AdminManage() {
         { type: 'Recaps', icon: <Video className="w-4 h-4" />, color: 'text-neon-red' },
         { type: 'Interviews', icon: <Mic className="w-4 h-4" />, color: 'text-neon-purple' },
         { type: 'Focus', icon: <Star className="w-4 h-4" />, color: 'text-neon-yellow' },
+        { type: 'Brouillons', icon: <FileText className="w-4 h-4" />, color: 'text-gray-400' },
         { type: 'Agenda', icon: <Calendar className="w-4 h-4" />, color: 'text-neon-yellow' },
         { type: 'Communauté', icon: <ImageIcon className="w-4 h-4" />, color: 'text-neon-red' },
         { type: 'Membres', icon: <Users className="w-4 h-4" />, color: 'text-neon-green' },
@@ -667,7 +674,7 @@ export function AdminManage() {
                             ) : (
                                 <Link
                                     to={
-                                        activeTab === 'News' ? '/news/create' :
+                                        (activeTab === 'News' || activeTab === 'Brouillons') ? '/news/create' :
                                             activeTab === 'Musique' ? '/news/create?type=Musique' :
                                                 activeTab === 'Recaps' ? '/recaps/create' :
                                                     activeTab === 'Interviews' ? '/news/create?type=Interview' :
