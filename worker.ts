@@ -420,8 +420,10 @@ export default {
         let authenticated = false;
         let userPermissions = [];
 
-        if (isAuthRoute) {
-            const requestSessionId = request.headers.get('X-Session-ID');
+        const requestSessionId = request.headers.get('X-Session-ID');
+        const hasAuthHeaders = !!(requestSessionId || requestPassword || requestUsername);
+
+        if (isAuthRoute || hasAuthHeaders) {
             const isMasterPass = requestPassword && requestPassword === adminPassword;
 
             if (isMasterPass) {
@@ -457,101 +459,103 @@ export default {
                 }
             }
 
-            if (!authenticated) {
-                return new Response(JSON.stringify({
-                    error: 'Accès non autorisé'
-                }), { status: 401, headers });
-            }
-
-            // --- PERMISSIONS MAPPING & CHECKS ---
-            const hasAll = userPermissions.includes('all');
-
-            // 1. News
-            if (path.startsWith('/api/news') && !hasAll && !userPermissions.includes('news') && !userPermissions.includes('news_focus') && !userPermissions.includes('news_editorial')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : news' }), { status: 403, headers });
-            }
-
-            // 2. Agenda
-            if (path.startsWith('/api/agenda') && !hasAll && !userPermissions.includes('agenda') && !userPermissions.includes('agenda_events')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : agenda' }), { status: 403, headers });
-            }
-
-            // 3. Recaps
-            if (path.startsWith('/api/recaps') && !hasAll && !userPermissions.includes('recaps') && !userPermissions.includes('recaps_festivals')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : recaps' }), { status: 403, headers });
-            }
-
-            // 4. Communauté & Galerie
-            const isCommunityRoute = path.startsWith('/api/galerie') || 
-                                   path.startsWith('/api/photos') || 
-                                   path.startsWith('/api/instagram-contest') || 
-                                   path.includes('/quiz/contest');
-                                   
-            if (isCommunityRoute && !hasAll && !userPermissions.includes('community') && !userPermissions.includes('community_mod')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : community' }), { status: 403, headers });
-            }
-
-            // 5. Shop
-            if (path.includes('/api/shop') && !hasAll && !userPermissions.includes('shop')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : shop' }), { status: 403, headers });
-            }
-
-            // 6. Broadcast (Newsletter & Messages)
-            const isBroadcastRoute = path.startsWith('/api/newsletter') || path === '/api/subscribers' || path.startsWith('/api/contacts');
-            if (isBroadcastRoute && !hasAll && !userPermissions.includes('broadcast') && !userPermissions.includes('push_newsletter') && !userPermissions.includes('messages_contact') && !userPermissions.includes('messages')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : broadcast' }), { status: 403, headers });
-            }
-
-            // 6b. Invoices (Master Only - Alex)
-            if (path.startsWith('/api/invoices') && !hasAll) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : facturation' }), { status: 403, headers });
-            }
-
-            // 7. Spotify
-            if (path === '/api/spotify/update' && !hasAll && !userPermissions.includes('musique') && !userPermissions.includes('musique_releases')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : musique' }), { status: 403, headers });
-            }
-
-            // 8. Accueil (Layout & Team)
-            const isHomeRoute = path === '/api/home-layout/update' || path === '/api/team/update';
-            if (isHomeRoute && !hasAll && !userPermissions.includes('accueil') && !userPermissions.includes('home_layout')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : accueil' }), { status: 403, headers });
-            }
-
-            // 9. Interviews
-            if (path === '/api/interview-questions/update' && !hasAll && !userPermissions.includes('interviews') && !userPermissions.includes('interviews_video')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : interviews' }), { status: 403, headers });
-            }
-
-            // 10. Wiki (DJs, Clubs, Festivals)
-            const isWikiUpdate = path.startsWith('/api/wiki') && path.endsWith('/update');
-            if (isWikiUpdate && !hasAll && !userPermissions.includes('wiki') && !userPermissions.includes('wiki_dropsiders')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : wiki' }), { status: 403, headers });
-            }
-
-            // 11. Live Takeover
-            if (path === '/api/takeover-settings' && request.method === 'POST' && !hasAll && !userPermissions.includes('live')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : live' }), { status: 403, headers });
-            }
-
-            // 13. Dashboard Actions (restricted to Super Admins)
-            if (path === '/api/dashboard-actions/update' && !hasAll) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : admin' }), { status: 403, headers });
-            }
-
-            // 9. Factures: restricted to super admin (Alex) only
-            if (path === '/api/facture/send') {
-                const isAuthorized = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr' || requestUsername === 'alexflex30@gmail.com' || (hasAll && (requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr'));
-                if (!isAuthorized) {
-                    return new Response(JSON.stringify({ error: "Accès réservé au personnel autorisé" }), { status: 403, headers });
+            if (isAuthRoute) {
+                if (!authenticated) {
+                    return new Response(JSON.stringify({
+                        error: 'Accès non autorisé'
+                    }), { status: 401, headers });
                 }
-            }
 
-            // Editors Management: only Alex or Super Admins can mutate, GET allowed for all authenticated staff
-            if (path.startsWith('/api/editors') && request.method !== 'GET') {
-                const isSuper = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr' || requestUsername === 'alexflex30@gmail.com' || requestUsername === 'alex@dropsiders.fr';
-                if (!isSuper) {
-                    return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur" }), { status: 403, headers });
+                // --- PERMISSIONS MAPPING & CHECKS ---
+                const hasAll = userPermissions.includes('all');
+
+                // 1. News
+                if (path.startsWith('/api/news') && !hasAll && !userPermissions.includes('news') && !userPermissions.includes('news_focus') && !userPermissions.includes('news_editorial')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : news' }), { status: 403, headers });
+                }
+
+                // 2. Agenda
+                if (path.startsWith('/api/agenda') && !hasAll && !userPermissions.includes('agenda') && !userPermissions.includes('agenda_events')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : agenda' }), { status: 403, headers });
+                }
+
+                // 3. Recaps
+                if (path.startsWith('/api/recaps') && !hasAll && !userPermissions.includes('recaps') && !userPermissions.includes('recaps_festivals')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : recaps' }), { status: 403, headers });
+                }
+
+                // 4. Communauté & Galerie
+                const isCommunityRoute = path.startsWith('/api/galerie') || 
+                                       path.startsWith('/api/photos') || 
+                                       path.startsWith('/api/instagram-contest') || 
+                                       path.includes('/quiz/contest');
+                                       
+                if (isCommunityRoute && !hasAll && !userPermissions.includes('community') && !userPermissions.includes('community_mod')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : community' }), { status: 403, headers });
+                }
+
+                // 5. Shop
+                if (path.includes('/api/shop') && !hasAll && !userPermissions.includes('shop')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : shop' }), { status: 403, headers });
+                }
+
+                // 6. Broadcast (Newsletter & Messages)
+                const isBroadcastRoute = path.startsWith('/api/newsletter') || path === '/api/subscribers' || path.startsWith('/api/contacts');
+                if (isBroadcastRoute && !hasAll && !userPermissions.includes('broadcast') && !userPermissions.includes('push_newsletter') && !userPermissions.includes('messages_contact') && !userPermissions.includes('messages')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : broadcast' }), { status: 403, headers });
+                }
+
+                // 6b. Invoices (Master Only - Alex)
+                if (path.startsWith('/api/invoices') && !hasAll) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : facturation' }), { status: 403, headers });
+                }
+
+                // 7. Spotify
+                if (path === '/api/spotify/update' && !hasAll && !userPermissions.includes('musique') && !userPermissions.includes('musique_releases')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : musique' }), { status: 403, headers });
+                }
+
+                // 8. Accueil (Layout & Team)
+                const isHomeRoute = path === '/api/home-layout/update' || path === '/api/team/update';
+                if (isHomeRoute && !hasAll && !userPermissions.includes('accueil') && !userPermissions.includes('home_layout')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : accueil' }), { status: 403, headers });
+                }
+
+                // 9. Interviews
+                if (path === '/api/interview-questions/update' && !hasAll && !userPermissions.includes('interviews') && !userPermissions.includes('interviews_video')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : interviews' }), { status: 403, headers });
+                }
+
+                // 10. Wiki (DJs, Clubs, Festivals)
+                const isWikiUpdate = path.startsWith('/api/wiki') && path.endsWith('/update');
+                if (isWikiUpdate && !hasAll && !userPermissions.includes('wiki') && !userPermissions.includes('wiki_dropsiders')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : wiki' }), { status: 403, headers });
+                }
+
+                // 11. Live Takeover
+                if (path === '/api/takeover-settings' && request.method === 'POST' && !hasAll && !userPermissions.includes('live')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : live' }), { status: 403, headers });
+                }
+
+                // 13. Dashboard Actions (restricted to Super Admins)
+                if (path === '/api/dashboard-actions/update' && !hasAll) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : admin' }), { status: 403, headers });
+                }
+
+                // 9. Factures: restricted to super admin (Alex) only
+                if (path === '/api/facture/send') {
+                    const isAuthorized = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr' || requestUsername === 'alexflex30@gmail.com' || (hasAll && (requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr'));
+                    if (!isAuthorized) {
+                        return new Response(JSON.stringify({ error: "Accès réservé au personnel autorisé" }), { status: 403, headers });
+                    }
+                }
+
+                // Editors Management: only Alex or Super Admins can mutate, GET allowed for all authenticated staff
+                if (path.startsWith('/api/editors') && request.method !== 'GET') {
+                    const isSuper = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr' || requestUsername === 'alexflex30@gmail.com' || requestUsername === 'alex@dropsiders.fr';
+                    if (!isSuper) {
+                        return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur" }), { status: 403, headers });
+                    }
                 }
             }
         }
