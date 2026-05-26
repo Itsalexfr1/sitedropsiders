@@ -1398,13 +1398,13 @@ export function RecapCreate() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                                 {editors.map((editor: any) => {
                                     const editorColor = getEditorColor(editor.username.toLowerCase());
-                                    const isSelected = author === editor.name;
+                                    const isSelected = author === editor.username;
                                     return (
                                         <button
                                             key={editor.username}
                                             type="button"
                                             onClick={() => {
-                                                setAuthor(editor.name);
+                                                setAuthor(editor.username);
                                                 setIsAuthorConfirmed(false);
                                             }}
                                             className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${isSelected
@@ -1429,7 +1429,7 @@ export function RecapCreate() {
                                                 className="text-[10px] font-black uppercase tracking-widest transition-colors"
                                                 style={getAuthorTextStyle(editor.username)}
                                             >
-                                                {editor.name}
+                                                {editor.username}
                                             </span>
                                             {isSelected && (
                                                 <div className="absolute top-2 right-2">
