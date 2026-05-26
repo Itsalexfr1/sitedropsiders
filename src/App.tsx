@@ -117,12 +117,13 @@ function LoadingPage() {
 
 import { ExtensionPromotion } from './components/ui/ExtensionPromotion';
 import { CardRewardModal } from './components/cards/CardRewardModal';
+import { BoosterRewardModal } from './components/cards/BoosterRewardModal';
 import { useVisitTimer } from './hooks/useVisitTimer';
 import { useUser } from './context/UserContext';
 
 function Root() {
   const location = useLocation();
-  const { addCard, collectedCards, showNotification } = useUser();
+  const { addCard, collectedCards, showNotification, pendingBooster, claimBooster, dismissBooster } = useUser();
   const collectedCardIds = collectedCards.map((c) => c.id);
   const { pendingCard, claimCard, dismissCard } = useVisitTimer(collectedCardIds);
 
@@ -159,6 +160,11 @@ function Root() {
         card={pendingCard}
         onClaim={handleClaim}
         onDismiss={dismissCard}
+      />
+      <BoosterRewardModal
+        booster={pendingBooster}
+        onClaim={claimBooster}
+        onDismiss={dismissBooster}
       />
     </>
   );

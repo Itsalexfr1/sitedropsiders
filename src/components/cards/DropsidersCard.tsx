@@ -146,10 +146,10 @@ const THEME_PRESETS: Record<string, CardTheme> = {
         borderTo: '#c2410c',
         outlineColor: '#7c2d12',
         bgGradient: 'from-[#fef3c7] via-[#fde68a] to-[#fcd34d]',
-        textColor: 'text-[#7c2d12]',
+        textColor: 'text-[#1a0a00]',
         subBarBg: 'from-[#fde68a] via-[#fcd34d] to-[#fde68a]',
         subBarBorder: '#f97316',
-        subBarText: 'text-[#7c2d12]',
+        subBarText: 'text-[#1a0a00]',
         energyType: 'house',
         weaknessType: 'techno'
     },
@@ -159,10 +159,10 @@ const THEME_PRESETS: Record<string, CardTheme> = {
         borderTo: '#be185d',
         outlineColor: '#700d3c',
         bgGradient: 'from-[#fce7f3] via-[#fbcfe8] to-[#f9a8d4]',
-        textColor: 'text-[#831843]',
+        textColor: 'text-[#1a0008]',
         subBarBg: 'from-[#fbcfe8] via-[#f9a8d4] to-[#fbcfe8]',
         subBarBorder: '#ec4899',
-        subBarText: 'text-[#831843]',
+        subBarText: 'text-[#1a0008]',
         energyType: 'edm',
         weaknessType: 'house'
     },
@@ -699,7 +699,9 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                             className={`font-serif font-black uppercase italic tracking-tight leading-none ${theme.textColor}`}
                                             style={{
                                                 fontSize: Math.max(9, 13 * scale),
-                                                textShadow: theme.energyType === 'house' ? '0 1px 4px rgba(0,0,0,0.55), 0 0px 2px rgba(0,0,0,0.4)' : 'none'
+                                                textShadow: (theme.energyType === 'house' || theme.energyType === 'edm' || theme.energyType === 'hardstyle')
+                                                    ? '0 1px 3px rgba(0,0,0,0.35)'
+                                                    : 'none'
                                             }}
                                         >
                                             {card.name}

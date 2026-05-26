@@ -65,7 +65,7 @@ export function WikiVenues({
     viewMode?: 'grid' | 'list';
 }) {
     const { t, language } = useLanguage();
-    const { isLoggedIn, user } = useUser();
+    const { isLoggedIn, user, triggerBooster } = useUser();
     const [mode] = useState<Mode>(initialMode);
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState<Venue | null>(null);
@@ -160,6 +160,7 @@ export function WikiVenues({
             n.delete(id);
         } else {
             n.add(id);
+            triggerBooster(); // Trigger Pokemon booster pack on vote!
         }
         setVotes(n);
         saveVotes(voteKey, n);

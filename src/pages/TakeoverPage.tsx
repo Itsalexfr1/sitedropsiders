@@ -223,7 +223,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
     const [showViewersList, setShowViewersList] = useState(false);
     const [flashMessage, setFlashMessage] = useState<{ text: string, type: 'info' | 'warn' | 'success' } | null>(null);
     const [isMatrixActive, setIsMatrixActive] = useState(false);
-    const { user: globalUser, earnPoints, isLoggedIn: isGlobalLoggedIn } = useUser();
+    const { user: globalUser, earnPoints, isLoggedIn: isGlobalLoggedIn, triggerBooster } = useUser();
     const userXP = useMemo(() => globalUser?.xp || Number(localStorage.getItem('user_xp')) || 0, [globalUser?.xp]);
     const userLevel = useMemo(() => Math.floor(Math.sqrt(userXP / 100)) + 1, [userXP]);
     const [userDrops, setUserDropsLocal] = useState(() => Number(localStorage.getItem('user_drops')) || 0);
@@ -669,6 +669,7 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
                 setHasVotedToday((prev: any) => new Set([...prev, targetId]));
                 showNotification(`VOTE ENREGISTRÉ POUR ${label} ! ❤️`, 'success');
                 triggerConfetti();
+                triggerBooster(); // Trigger Pokemon booster pack on vote!
             }
         } catch (e) {
             console.error("Vote failed", e);

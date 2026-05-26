@@ -202,9 +202,29 @@ export function CardRewardModal({ card, onClaim, onDismiss }: CardRewardModalPro
                                     className="w-full flex flex-col items-center gap-3"
                                 >
                                     {/* Card name */}
-                                    <div className="text-center">
+                                    <div className="text-center space-y-1">
                                         <p className="text-white font-black uppercase italic text-lg tracking-tight">{card.name}</p>
                                         <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">{card.city} · {card.country}</p>
+                                    </div>
+
+                                    {/* Return reminder banner */}
+                                    <div className="w-full rounded-2xl border border-neon-cyan/20 bg-neon-cyan/5 px-4 py-3 flex flex-col items-center gap-1.5 text-center">
+                                        <p className="text-neon-cyan text-[9px] font-black uppercase tracking-[0.25em] animate-pulse">
+                                            🎴 Reviens régulièrement !
+                                        </p>
+                                        <p className="text-gray-400 text-[8px] font-bold leading-relaxed">
+                                            De nouvelles cartes apparaissent toutes les <span className="text-white">5 minutes</span> sur le site.
+                                        </p>
+                                        <div className="flex flex-col gap-0.5 mt-0.5 w-full">
+                                            <p className="text-gray-500 text-[7.5px] font-bold uppercase tracking-wider">Gagne un booster de 9 cartes en :</p>
+                                            <div className="flex flex-wrap justify-center gap-1.5 mt-1">
+                                                {['⭐ Voter pour un DJ', '🏟 Voter pour un Festival', '🏠 Voter pour un Club', '👤 Créer un compte'].map(action => (
+                                                    <span key={action} className="text-[7px] font-black uppercase tracking-wide bg-white/5 border border-white/10 rounded-full px-2 py-0.5 text-white/70">
+                                                        {action}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     {/* Buttons */}

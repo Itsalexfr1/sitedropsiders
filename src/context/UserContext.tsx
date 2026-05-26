@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { twMerge } from 'tailwind-merge';
+import wikiFestivals from '../data/wiki_festivals.json';
+import wikiClubs from '../data/wiki_clubs.json';
+import wikiDjs from '../data/wiki_djs.json';
 
 export interface DropsidersCard {
     id: string;
@@ -52,16 +55,98 @@ interface UserContextType {
     setIsAuthModalOpen: (open: boolean) => void;
     showNotification: (message: string, type?: 'success' | 'error' | 'info') => void;
     addCard: (card: DropsidersCard) => void;
+    addCards: (cards: DropsidersCard[]) => void;
     removeCard: (cardId: string) => void;
     collectedCards: DropsidersCard[];
+    pendingBooster: DropsidersCard[] | null;
+    triggerBooster: () => void;
+    claimBooster: () => void;
+    dismissBooster: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
+
+function getRarity(rank: number): DropsidersCard['rarity'] {
+    if (rank <= 10) return 'legendary';
+    if (rank <= 30) return 'epic';
+    if (rank <= 60) return 'rare';
+    return 'common';
+}
+
+function buildCardPool(): DropsidersCard[] {
+    const festivalCards: DropsidersCard[] = (wikiFestivals as any[]).map((f) => ({
+        id: `festival_${f.id}`,
+        type: 'festival' as const,
+        name: f.name,
+        city: f.city,
+        country: f.country,
+        image: f.image,
+        djmag_rank: f.djmag_rank || 99,
+        rarity: getRarity(f.djmag_rank || 99),
+        collectedAt: new Date().toISOString(),
+        attendees: f.attendees,
+        attendees_label: f.attendees_label,
+    }));
+
+    const clubCards: DropsidersCard[] = (wikiClubs as any[]).map((c) => ({
+        id: `club_${c.id}`,
+        type: 'club' as const,
+        name: c.name,
+        city: c.city,
+        country: c.country,
+        image: c.image,
+        djmag_rank: c.djmag_rank || 99,
+        rarity: getRarity(c.djmag_rank || 99),
+        collectedAt: new Date().toISOString(),
+        attendees: c.attendees,
+        attendees_label: c.attendees_label,
+    }));
+
+    const djCards: DropsidersCard[] = (wikiDjs as any[])
+        .filter((d) => d.image && d.image.startsWith('http'))
+        .map((d, index) => {
+            const rank = Math.min(99, index + 1);
+            return {
+                id: `dj_${d.id}`,
+                type: 'dj' as const,
+                name: d.name,
+                city: d.country || 'Intl',
+                country: d.country || 'Intl',
+                image: d.image,
+                djmag_rank: rank,
+                rarity: getRarity(rank),
+                collectedAt: new Date().toISOString(),
+                top_tracks: d.top_tracks || ["Titre Inconnu 1", "Titre Inconnu 2", "Titre Inconnu 3"]
+            };
+        });
+
+    return [...festivalCards, ...clubCards, ...djCards];
+}
+
+function pick9RandomCards(): DropsidersCard[] {
+    const pool = buildCardPool();
+    if (pool.length === 0) return [];
+    
+    const picked: DropsidersCard[] = [];
+    const poolCopy = [...pool];
+    
+    for (let i = 0; i < 9; i++) {
+        if (poolCopy.length === 0) break;
+        const randIdx = Math.floor(Math.random() * poolCopy.length);
+        const card = poolCopy.splice(randIdx, 1)[0];
+        picked.push({
+            ...card,
+            collectedAt: new Date().toISOString()
+        });
+    }
+    return picked;
+}
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
+    const [pendingBooster, setPendingBooster] = useState<DropsidersCard[] | null>(null);
 
     const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
         setNotification({ message, type });
@@ -222,6 +307,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         // Find existing user if available
         const existing: UserProfile[] = JSON.parse(localStorage.getItem('dropsiders_registered_users') || '[]');
         const found = existing.find(u => u.email === data.email || u.id === data.id);
+        const isNewUser = !found;
 
         const guestCardsStr = localStorage.getItem('dropsiders_guest_cards');
         let guestCards = [];
@@ -293,6 +379,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         // Clean local "guest" points after sync
         localStorage.removeItem('user_xp');
         localStorage.removeItem('user_drops');
+
+        if (isNewUser) {
+            triggerBooster();
+        }
     };
 
     const logout = () => {
@@ -383,24 +473,59 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
 
     const addCard = (card: DropsidersCard) => {
+        const timestamped = {
+            ...card,
+            collectedAt: card.collectedAt || new Date().toISOString()
+        };
         if (user) {
             const existing = user.collectedCards || [];
-            // Don't add duplicates (same id + same collectedAt date day)
-            const alreadyToday = existing.some(
-                c => c.id === card.id && c.collectedAt.slice(0, 10) === card.collectedAt.slice(0, 10)
-            );
-            if (alreadyToday) return;
-            const updatedUser = { ...user, collectedCards: [...existing, card] };
+            const updatedUser = { ...user, collectedCards: [...existing, timestamped] };
             setUser(updatedUser);
             saveToRegisteredUsers(updatedUser);
         } else {
             // Guest: store in localStorage
             try {
                 const stored: DropsidersCard[] = JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]');
-                stored.push(card);
+                stored.push(timestamped);
                 localStorage.setItem('dropsiders_guest_cards', JSON.stringify(stored));
             } catch (e) { console.error('Failed to save guest card', e); }
         }
+    };
+
+    const addCards = (newCards: DropsidersCard[]) => {
+        const timestamped = newCards.map(c => ({
+            ...c,
+            collectedAt: c.collectedAt || new Date().toISOString()
+        }));
+        if (user) {
+            const existing = user.collectedCards || [];
+            const updatedUser = { ...user, collectedCards: [...existing, ...timestamped] };
+            setUser(updatedUser);
+            saveToRegisteredUsers(updatedUser);
+        } else {
+            try {
+                const stored: DropsidersCard[] = JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]');
+                stored.push(...timestamped);
+                localStorage.setItem('dropsiders_guest_cards', JSON.stringify(stored));
+            } catch (e) { console.error('Failed to save guest cards', e); }
+        }
+    };
+
+    const triggerBooster = () => {
+        const cards = pick9RandomCards();
+        if (cards.length > 0) {
+            setPendingBooster(cards);
+        }
+    };
+
+    const claimBooster = () => {
+        if (!pendingBooster) return;
+        addCards(pendingBooster);
+        setPendingBooster(null);
+    };
+
+    const dismissBooster = () => {
+        setPendingBooster(null);
     };
 
     const removeCard = (cardId: string) => {
@@ -462,8 +587,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             setIsAuthModalOpen,
             showNotification,
             addCard,
+            addCards,
             removeCard,
-            collectedCards: user?.collectedCards || (typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]') : [])
+            collectedCards: user?.collectedCards || (typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]') : []),
+            pendingBooster,
+            triggerBooster,
+            claimBooster,
+            dismissBooster
         }}>
             {children}
 

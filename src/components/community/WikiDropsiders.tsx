@@ -47,7 +47,7 @@ export function WikiDropsiders({
     viewMode?: 'grid' | 'list';
 }) {
     const { t, language } = useLanguage();
-    const { isLoggedIn, user } = useUser();
+    const { isLoggedIn, user, triggerBooster } = useUser();
     const [search, setSearch] = useState('');
     const [djData, setDjData] = useState<DjEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -173,6 +173,7 @@ export function WikiDropsiders({
             n.delete(id);
         } else {
             n.add(id);
+            triggerBooster(); // Trigger Pokemon-style booster pack on client!
         }
         setVotes(n);
         saveVotes(n);
