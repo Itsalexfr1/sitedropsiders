@@ -1,5 +1,29 @@
 [
   {
+    "id": 99,
+    "title": "EDC Las Vegas 2026",
+    "date": "2026-05-26T11:09",
+    "summary": "edc las vegas : une édition plus que réussi Cette édition 2026 n'était pas un festival comme les autres : elle marquait le 30e anniversaire. Entre changements radicaux et annonces fracassantes, voici ...",
+    "content": "",
+    "image": "/uploads/uploads/c3f60ddb00e5d759-2026_05_17_07_02_img_1484.jpg",
+    "youtubeId": "",
+    "festival": "EDC Las Vegas",
+    "location": "LAS VEGAS",
+    "country": "États-Unis d'Amérique",
+    "category": "Recaps",
+    "isFeatured": false,
+    "showVideo": true,
+    "year": "2026",
+    "link": "https://dropsiders.fr/recaps/99_edc-las-vegas-2026",
+    "images": [
+      "/uploads/uploads/9340ed86a886b0b3-2026_05_16_10_46_img_1248.jpg",
+      "/uploads/uploads/22d096ddebcd65cf-2026_05_18_04_55_img_1741.jpg",
+      "/uploads/uploads/5555768111df6517-2026_05_15_03_24_img_0956.jpg",
+      "/uploads/uploads/8552875dccde85a9-edclv_2027_de_ps_two_weekends_.png"
+    ],
+    "author": "Alex"
+  },
+  {
     "id": 98,
     "title": "Tomorrowland winter 2026",
     "date": "2026-04-08T20:21",
