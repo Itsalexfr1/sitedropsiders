@@ -1474,17 +1474,39 @@ export function NewsCreate() {
   </div>
 </div>`;
         } else if (type === 'video' && url) {
-            let id = url;
-            if (url.includes('youtube.com/watch?v=')) {
-                id = url.split('v=')[1].split('&')[0];
-            } else if (url.includes('youtu.be/')) {
-                id = url.split('youtu.be/')[1].split('?')[0];
-            } else if (url.includes('embed/')) {
-                id = url.split('embed/')[1].split('?')[0];
-            }
-            content = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
+            const videoUrls = url.split(/[\n,;]+/).map(u => u.trim()).filter(u => u);
+            if (videoUrls.length > 1) {
+                const videoIds = videoUrls.map(val => {
+                    let id = val;
+                    if (val.includes('youtube.com/watch?v=')) {
+                        id = val.split('v=')[1].split('&')[0];
+                    } else if (val.includes('youtu.be/')) {
+                        id = val.split('youtu.be/')[1].split('?')[0];
+                    } else if (val.includes('embed/')) {
+                        id = val.split('embed/')[1].split('?')[0];
+                    }
+                    return id;
+                }).filter(id => id);
+
+                const colsClass = videoIds.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3';
+                content = `<div class="youtube-gallery-grid grid ${colsClass} gap-6 my-12" data-videos-count="${videoIds.length}">
+${videoIds.map(id => `  <div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5">
+    <iframe src="https://www.youtube.com/embed/${id}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
+  </div>`).join('\n')}
+</div>`;
+            } else {
+                let id = url;
+                if (url.includes('youtube.com/watch?v=')) {
+                    id = url.split('v=')[1].split('&')[0];
+                } else if (url.includes('youtu.be/')) {
+                    id = url.split('youtu.be/')[1].split('?')[0];
+                } else if (url.includes('embed/')) {
+                    id = url.split('embed/')[1].split('?')[0];
+                }
+                content = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
     <iframe src="https://www.youtube.com/embed/${id}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
 </div>`;
+            }
         } else if (type === 'gallery' && urls) {
             const urlList = urls.split('\n').map(u => u.trim()).filter(u => u);
             const cols = mediaModal.cols || 4;
@@ -4451,27 +4473,45 @@ ${generateSocialsHtml()}
                                     </div>
                                 ) : (
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">URL {mediaModal.type === 'video' ? 'YouTube / ID' : 'de l\'image'}</label>
-                                        <div className="relative group/input">
-                                            <input
-                                                type="text"
-                                                value={mediaModal.url}
-                                                onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 pr-10 text-white outline-none focus:border-neon-red transition-all text-xs"
-                                                placeholder={mediaModal.type === 'video' ? "Ex: https://youtube.com/watch?v=..." : "https://site.com/image.jpg"}
-                                                autoFocus
-                                            />
-                                            {mediaModal.url && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setMediaModal({ ...mediaModal, url: '' })}
-                                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500 transition-colors"
-                                                    title="Effacer"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            )}
-                                        </div>
+                                        {mediaModal.type === 'video' ? (
+                                            <div>
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">
+                                                    URLs YouTube ou IDs (1, 2 ou 3 vidéos - 1 par ligne ou séparées par des virgules)
+                                                </label>
+                                                <textarea
+                                                    value={mediaModal.url}
+                                                    onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
+                                                    rows={3}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-red transition-all text-xs"
+                                                    placeholder="Ex:&#10;https://youtube.com/watch?v=id1&#10;https://youtube.com/watch?v=id2"
+                                                    autoFocus
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">URL de l'image</label>
+                                                <div className="relative group/input">
+                                                    <input
+                                                        type="text"
+                                                        value={mediaModal.url}
+                                                        onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 pr-10 text-white outline-none focus:border-neon-red transition-all text-xs"
+                                                        placeholder="https://site.com/image.jpg"
+                                                        autoFocus
+                                                    />
+                                                    {mediaModal.url && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setMediaModal({ ...mediaModal, url: '' })}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500 transition-colors"
+                                                            title="Effacer"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
