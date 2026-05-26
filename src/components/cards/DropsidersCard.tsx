@@ -770,7 +770,7 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                             <p className={`font-serif italic font-bold text-center leading-normal ${theme.textColor}`} style={{ fontSize: Math.max(5, 7 * scale) }}>
                                                 Top 3 des titres les plus écoutés :
                                             </p>
-                                            <div className="font-sans font-medium text-slate-600 text-center leading-tight mt-0.5" style={{ fontSize: Math.max(4.5, 6 * scale) }}>
+                                            <div className={`font-sans font-medium text-center leading-tight mt-0.5 opacity-80 ${theme.subBarText}`} style={{ fontSize: Math.max(4.5, 6 * scale) }}>
                                                 <p>1. {card.top_tracks?.[0] || 'Titre Inconnu 1'}</p>
                                                 <p>2. {card.top_tracks?.[1] || 'Titre Inconnu 2'}</p>
                                                 <p>3. {card.top_tracks?.[2] || 'Titre Inconnu 3'}</p>
@@ -815,14 +815,14 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                 </div>
 
                                 {/* Copyright info block */}
-                                <div className="flex justify-between items-center mt-1 text-slate-400 font-sans font-semibold select-none" style={{ fontSize: Math.max(4, 5.5 * scale) }}>
+                                <div className={`flex justify-between items-center mt-1 font-sans font-semibold select-none opacity-60 ${theme.textColor}`} style={{ fontSize: Math.max(4, 5.5 * scale) }}>
                                     <span>Illus. AI Dropsiders</span>
                                     <span>©2026 Dropsiders Card System</span>
                                     <span>{card.djmag_rank}/100 ★</span>
                                 </div>
 
                                 {showDate && card.collectedAt && (
-                                    <p className="text-slate-500 font-bold uppercase tracking-wider mt-0.5 text-center" style={{ fontSize: 5.5 * scale }}>
+                                    <p className={`font-bold uppercase tracking-wider mt-0.5 text-center opacity-70 ${theme.textColor}`} style={{ fontSize: 5.5 * scale }}>
                                         Obtenue le {new Date(card.collectedAt).toLocaleDateString('fr-FR')}
                                     </p>
                                 )}
