@@ -1125,21 +1125,6 @@
     "attendees_label": "~50 000 festivaliers"
   },
   {
-    "id": "f97",
-    "name": "Sunburn Goa",
-    "city": "Goa",
-    "country": "IN",
-    "djmag_rank": 97,
-    "description": "L'événement électronique le plus emblématique d'Asie, une fusion de musique, d'art et de culture sur les plages de Goa.",
-    "image": "https://www.dropsiders.fr/uploads/uploads/fe35df584f4f6f34-cropped_1773831730497.jpg",
-    "website": "https://www.sunburngoa.com",
-    "instagram": "https://instagram.com/sunburngoa",
-    "votes": 0,
-    "description_en": "L'événement électronique le plus emblématique d'Asie, une fusion de musique, d'art et de culture sur les plages de Goa.",
-    "attendees": 50000,
-    "attendees_label": "~50 000 festivaliers"
-  },
-  {
     "id": "f98",
     "name": "World DJ Festival",
     "city": "Séoul",
