@@ -960,21 +960,6 @@
     "attendees_label": "~50 000 festivaliers"
   },
   {
-    "id": "f85",
-    "name": "Oasis Festival",
-    "city": "Marrakech",
-    "country": "MA",
-    "djmag_rank": 85,
-    "description": "Oasis allie musique électronique de classe mondiale et culture marocaine dans le cadre luxueux des jardins de Marrakech.",
-    "image": "https://www.dropsiders.fr/uploads/uploads/a078193f8df22888-HNEH_240908_OASIS2024_Sunday_0.avif",
-    "website": "https://www.oasisfestival.com",
-    "instagram": "https://instagram.com/oasisfestival",
-    "votes": 0,
-    "description_en": "Oasis allie musique électronique de classe mondiale et culture marocaine dans le cadre luxueux des jardins de Marrakech.",
-    "attendees": 50000,
-    "attendees_label": "~50 000 festivaliers"
-  },
-  {
     "id": "f86",
     "name": "Sónar Lisboa",
     "city": "Lisbonne",
