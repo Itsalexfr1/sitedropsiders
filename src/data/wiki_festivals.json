@@ -540,21 +540,6 @@
     "attendees_label": "30 000 festivaliers"
   },
   {
-    "id": "f52",
-    "name": "Neversea Festival",
-    "city": "Constanța",
-    "country": "RO",
-    "djmag_rank": 52,
-    "description": "Neversea est le plus grand festival de plage de Roumanie, une épopée musicale au bord de la mer Noire qui dure jusqu'au lever du soleil.",
-    "image": "https://www.dropsiders.fr/uploads/uploads/6d5c541218c1f9e7-neversea_festival_romania_57.avif",
-    "website": "https://www.neverseafestival.com",
-    "instagram": "https://instagram.com/neverseafestival",
-    "votes": 0,
-    "description_en": "Neversea est le plus grand festival de plage de Roumanie, une épopée musicale au bord de la mer Noire qui dure jusqu'au lever du soleil.",
-    "attendees": 200000,
-    "attendees_label": "200 000 festivaliers"
-  },
-  {
     "id": "f53",
     "name": "Boomtown",
     "city": "Winchester",
