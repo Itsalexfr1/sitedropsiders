@@ -1254,24 +1254,6 @@
     "attendees_label": "~50 000 festivaliers"
   },
   {
-    "id": "304",
-    "name": "Untold",
-    "bio": "Incontournable de la scène mondiale, Untold est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://www.dropsiders.fr/uploads/uploads/ebfd11d9f6f2fcde-cropped_1773907177738.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/Untold",
-    "instagram": "https://instagram.com/untold",
-    "facebook": "https://facebook.com/untold",
-    "soundcloud": "https://soundcloud.com/untold",
-    "beatport": "https://www.beatport.com/search?q=Untold",
-    "bio_en": "A major figure on the global scene, Untold is a key player in today's electronic culture.",
-    "status": "verified",
-    "votes": 0,
-    "attendees": 50000,
-    "attendees_label": "~50 000 festivaliers"
-  },
-  {
     "id": "305",
     "name": "Dekmantel",
     "bio": "Incontournable de la scène mondiale, Dekmantel est une figure majeure de la culture électronique actuelle.",
