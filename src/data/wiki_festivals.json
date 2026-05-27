@@ -15,21 +15,6 @@
     "attendees_label": "400 000 festivaliers (2 weekends)"
   },
   {
-    "id": "f2",
-    "name": "Ultra Music Festival",
-    "city": "Miami",
-    "country": "US",
-    "djmag_rank": 2,
-    "description": "L'Ultra Music Festival est le bastion de l'électro au cœur de Miami, se déroulant chaque mois de mars pendant la Winter Music Conference. Situé à Bayfront Park avec une vue imprenable sur la baie de Biscayne, il est célèbre pour sa mythique Mainstage et sa structure Resistance dédiée à l'underground. Le festival marque traditionnellement le début de la saison estivale mondiale, où les artistes dévoilent leurs nouveaux titres. Une célébration urbaine et électrique devenue une marque planétaire incontournable.",
-    "image": "https://www.dropsiders.fr/uploads/uploads/2d4f947a490388bd-cropped_1773829551824.jpg",
-    "website": "https://ultramusicfestival.com",
-    "instagram": "https://www.instagram.com/ultra",
-    "votes": 0,
-    "description_en": "L'Ultra Music Festival est le bastion de l'électro au cœur de Miami, se déroulant chaque mois de mars pendant la Winter Music Conference. Situé à Bayfront Park avec une vue imprenable sur la baie de Biscayne, il est célèbre pour sa mythique Mainstage et sa structure Resistance dédiée à l'underground. Le festival marque traditionnellement le début de la saison estivale mondiale, où les artistes dévoilent leurs nouveaux titres. Une célébration urbaine et électrique devenue une marque planétaire incontournable.",
-    "attendees": 165000,
-    "attendees_label": "165 000 festivaliers"
-  },
-  {
     "id": "f3",
     "name": "EDC Las Vegas",
     "city": "Las Vegas",
