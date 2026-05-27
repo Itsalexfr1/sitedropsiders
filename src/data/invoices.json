@@ -1,16 +1,5 @@
 [
   {
-    "number": "INV-2026-071",
-    "client": "CBG France",
-    "total": 2400,
-    "date": "2026-05-27",
-    "id": 1779875383462,
-    "sentDate": "2026-05-27T09:49:43.462Z",
-    "paid": false,
-    "emailTo": "alexflex30@gmail.com",
-    "pdfUrl": "/uploads/factures/1779875383309_Facture_INV-2026-071.pdf"
-  },
-  {
     "number": "INV-2026-070",
     "client": "CBG France",
     "total": 2400,
