@@ -1,16 +1,5 @@
 [
   {
-    "number": "INV-2026-071",
-    "client": "CBG France",
-    "total": 2300,
-    "date": "2026-05-27",
-    "id": 1779889684370,
-    "sentDate": "2026-05-27T13:48:04.370Z",
-    "paid": false,
-    "emailTo": "contact@cbg-france.fr",
-    "pdfUrl": ""
-  },
-  {
     "number": "INV-2026-070",
     "client": "CBG France",
     "total": 2300,
