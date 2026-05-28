@@ -5058,5 +5058,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1011,
+    "title": "Sonar Festival",
+    "date": "2026-06-18",
+    "startDate": "2026-06-18",
+    "endDate": "2026-06-20",
+    "venue": "",
+    "location": "BARCELONE",
+    "country": "ESPAGNE",
+    "type": "Festival",
+    "image": "/uploads/uploads/86a5500a2299872e-images.png",
+    "url": "https://sonar.es/en",
+    "genre": "Multi Styles",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
