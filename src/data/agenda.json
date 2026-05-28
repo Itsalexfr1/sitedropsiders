@@ -5138,5 +5138,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1016,
+    "title": "THE PRODIGY WARRIORS DANCE TOUR 2026",
+    "date": "2026-08-30",
+    "startDate": "2026-08-30",
+    "endDate": "2026-08-30",
+    "venue": "WYTHENSHAWE PARK",
+    "location": "MANCHESTER",
+    "country": "ROYAUME-UNI",
+    "type": "Concert",
+    "image": "/uploads/71cb52c7290638f2-artwork_440x440.jpg",
+    "url": "https://lnk.to/TPWD26",
+    "genre": "Multi Styles",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
