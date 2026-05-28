@@ -5062,5 +5062,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1012,
+    "title": "FIB BENICÀSSIM FESTIVAL",
+    "date": "2026-07-16",
+    "startDate": "2026-07-16",
+    "endDate": "2026-07-18",
+    "venue": "",
+    "location": "BENICASIM ",
+    "country": "ESPAGNE",
+    "type": "Festival",
+    "image": "/uploads/uploads/c2c3053fc7159745-fib_1200_1024x579.jpg",
+    "url": "https://fiberfib.com/en/",
+    "genre": "Hybride",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
