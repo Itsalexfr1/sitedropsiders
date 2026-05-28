@@ -5039,5 +5039,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1010,
+    "title": "Rock Werchter",
+    "date": "2026-07-02",
+    "startDate": "2026-07-02",
+    "endDate": "2026-07-05",
+    "venue": "Festivalpark de Werchter",
+    "location": "WERCHTER",
+    "country": "BELGIQUE",
+    "type": "Festival",
+    "image": "/uploads/uploads/b396484bd491b544-rock_werchter_2026_festivalpar.webp",
+    "url": "https://www.rockwerchter.be/fr/",
+    "genre": "Hybride",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
