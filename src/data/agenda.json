@@ -5081,5 +5081,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1013,
+    "title": "The Prodigy - WARRIORS DANCE TOUR 2026",
+    "date": "2026-08-20",
+    "startDate": "2026-08-20",
+    "endDate": "2026-08-20",
+    "venue": "",
+    "location": "DUBLIN",
+    "country": "IRLANDE",
+    "type": "Concert",
+    "image": "/uploads/uploads/71cb52c7290638f2-artwork_440x440.jpg",
+    "url": "https://lnk.to/TPWD26",
+    "genre": "Multi Styles",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
