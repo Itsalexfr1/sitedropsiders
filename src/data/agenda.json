@@ -3843,25 +3843,6 @@
     "isLiveDropsiders": false
   },
   {
-    "id": 455,
-    "title": "Calvin Harris",
-    "date": "2026-05-29",
-    "startDate": "2026-05-29",
-    "endDate": "2026-05-29",
-    "venue": "Ushuaïa",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/08d444d29fce7f7e-fiesta_calvin_harris_ushuaia_i.webp",
-    "url": "https://www.theushuaiaexperience.com/en/club/calendar",
-    "genre": "Tech House",
-    "month": "MAI",
-    "isWeekly": true,
-    "dayOfWeek": 5,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
-  },
-  {
     "id": 456,
     "title": "Calvin Harris",
     "date": "2026-06-05",
