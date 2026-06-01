@@ -1,5 +1,31 @@
 [
   {
+    "id": 101,
+    "title": "Astra Festival 2026",
+    "date": "2026-06-01T11:00",
+    "summary": "RÉCAP : ASTRA FESTIVAL 2026 L’ Astra Music Festival 2026 a confirmé sa montée en puissance avec une édition particulièrement réussie du côté de Rochexpo, à La Roche-sur-Foron (74). Dans une configurat...",
+    "content": "",
+    "image": "/uploads/uploads/dca5548278cfe306-crop_1780302157707.jpg",
+    "youtubeId": "",
+    "festival": "Astra Festival",
+    "location": "LA ROCHE SUR FORON",
+    "country": "France",
+    "category": "Recaps",
+    "isFeatured": false,
+    "showVideo": true,
+    "year": "2026",
+    "link": "https://dropsiders.fr/recaps/101_astra-festival-2026",
+    "images": [
+      "/uploads/uploads/5c14ec502c86dcd2-2026_05_30_22_45_47.jpeg",
+      "/uploads/uploads/e4d465f7c3ae81ca-2026_05_30_20_10_35.jpeg",
+      "/uploads/8cc5af1c13ba0241-2026_05_30_21_43_36.jpeg",
+      "/uploads/419bebfdbfb3eb27-2026_05_30_21_56_32.jpeg",
+      "/uploads/uploads/e75d332ccbc83bc0-2026_05_31_00_06_56.jpeg",
+      "/uploads/uploads/ca52476b6a216690-2026_05_31_00_45_36.jpeg"
+    ],
+    "author": "Guillaume"
+  },
+  {
     "id": 100,
     "title": "ELECTRA FESTIVAL 2026",
     "date": "2026-05-26T19:39",
