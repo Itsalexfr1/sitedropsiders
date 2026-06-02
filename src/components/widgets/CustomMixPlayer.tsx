@@ -1425,7 +1425,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => !isRecordingClip && setShowShareModal(false)}
+                            onClick={() => !isRecordingClip && !isGeneratingStory && setShowShareModal(false)}
                             className="fixed inset-0 bg-black/85 backdrop-blur-xl"
                         />
 
@@ -1435,135 +1435,206 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 60 }}
                             transition={{ type: 'spring', stiffness: 280, damping: 30 }}
-                            className="relative z-10 bg-[#0a0a0f] border border-white/10 rounded-t-[40px] sm:rounded-[40px] w-full sm:max-w-xl max-h-[92vh] overflow-y-auto custom-scrollbar shadow-[0_-20px_80px_rgba(0,0,0,0.8)] sm:shadow-[0_40px_120px_rgba(0,0,0,0.9)]"
+                            className="relative z-10 bg-[#0d0d14] border border-white/10 rounded-t-[36px] sm:rounded-[36px] w-full sm:max-w-lg max-h-[92vh] overflow-y-auto custom-scrollbar shadow-[0_-20px_80px_rgba(0,0,0,0.8)] sm:shadow-[0_40px_120px_rgba(0,0,0,0.9)]"
                         >
-                            {/* ── Handle bar (mobile) ── */}
-                            <div className="flex justify-center pt-4 pb-2 sm:hidden">
-                                <div className="w-10 h-1 bg-white/20 rounded-full" />
+                            {/* Handle bar (mobile) */}
+                            <div className="flex justify-center pt-3 pb-0 sm:hidden">
+                                <div className="w-9 h-1 bg-white/20 rounded-full" />
                             </div>
 
-                            <div className="p-6 sm:p-8 space-y-6">
+                            <div className="p-5 sm:p-7 space-y-5">
 
                                 {/* ── Header ── */}
-                                <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neon-purple">PARTAGER LE MIX</span>
-                                        <h3 className="text-white text-2xl font-display font-black uppercase italic tracking-tighter leading-tight mt-1">
-                                            {track.title}
-                                        </h3>
-                                        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">Par {track.artist}</p>
-                                    </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/50">Partager</span>
                                     <button
-                                        onClick={() => !isRecordingClip && setShowShareModal(false)}
-                                        className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white/50 hover:text-white transition-all cursor-pointer flex-shrink-0 mt-1"
+                                        onClick={() => !isRecordingClip && !isGeneratingStory && setShowShareModal(false)}
+                                        className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/40 hover:text-white transition-all cursor-pointer"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
 
-                                {/* ── Waveform preview + clip start ── */}
-                                <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-5 space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40">Extrait sélectionné</span>
-                                        <button
-                                            onClick={generateRandomSnippet}
-                                            className="text-[8px] font-black uppercase tracking-widest text-neon-cyan hover:text-white px-3 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl transition-all cursor-pointer"
-                                        >
-                                            🎲 Autre piste
-                                        </button>
-                                    </div>
-
-                                    {/* Fake waveform with position marker */}
-                                    <div className="relative w-full h-14 flex items-center gap-px overflow-hidden">
-                                        {Array.from({ length: 60 }).map((_, i) => {
-                                            const h = 20 + Math.abs(Math.sin(i * 0.4 + selectedSnippet.seconds * 0.1)) * 32;
-                                            const isInClip = i >= 30 && i < 30 + (clipDuration === 15 ? 10 : clipDuration === 30 ? 20 : 40);
-                                            return (
-                                                <div
-                                                    key={i}
-                                                    className={`flex-1 rounded-sm transition-colors ${
-                                                        isInClip
-                                                            ? 'bg-neon-purple opacity-90'
-                                                            : 'bg-white/15'
-                                                    }`}
-                                                    style={{ height: `${h}px` }}
-                                                />
-                                            );
-                                        })}
-                                        {/* Current position cursor */}
-                                        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/60 rounded-full" />
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-black text-white truncate">{selectedSnippet.trackName}</p>
-                                            <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mt-0.5">{selectedSnippet.artist} · Démarre à {selectedSnippet.timeStr}</p>
-                                        </div>
-                                        <div className="w-10 h-10 rounded-2xl bg-neon-purple/20 border border-neon-purple/30 flex items-center justify-center flex-shrink-0">
-                                            <Layers className="w-4 h-4 text-neon-purple" />
+                                {/* ── Preview Card (SoundCloud style) ── */}
+                                <div className="flex items-center gap-4 bg-white/[0.04] border border-white/[0.06] rounded-2xl p-4">
+                                    <div className="w-14 h-14 rounded-xl flex-shrink-0 overflow-hidden relative"
+                                        style={{
+                                            background: storyTheme === 'sunset'
+                                                ? 'linear-gradient(135deg, #ff0055, #7a00ff)'
+                                                : storyTheme === 'acid'
+                                                ? 'linear-gradient(135deg, #39ff14, #00e5ff)'
+                                                : 'linear-gradient(135deg, #150030, #a855f7)'
+                                        }}
+                                    >
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <Disc className="w-6 h-6 text-white/50" />
                                         </div>
                                     </div>
-                                </div>
-
-                                {/* ── Durée du clip ── */}
-                                <div className="space-y-2">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40">Durée du clip</span>
-                                    <div className="flex gap-3">
-                                        {([15, 30, 60] as const).map((d) => (
-                                            <button
-                                                key={d}
-                                                onClick={() => setClipDuration(d)}
-                                                className={`flex-1 py-3 rounded-2xl border text-sm font-black transition-all cursor-pointer ${
-                                                    clipDuration === d
-                                                        ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.15)]'
-                                                        : 'bg-white/5 text-white/60 border-white/10 hover:border-white/20 hover:text-white'
-                                                }`}
-                                            >
-                                                {d}s
-                                            </button>
-                                        ))}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-white font-black text-sm truncate">{track.title}</p>
+                                        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-0.5">{track.artist}</p>
+                                        <div className="flex items-center gap-1.5 mt-2">
+                                            <div className="flex gap-px items-end h-4">
+                                                {Array.from({ length: 20 }).map((_, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className="w-1 rounded-sm"
+                                                        style={{
+                                                            height: `${8 + Math.abs(Math.sin(i * 0.6 + selectedSnippet.seconds * 0.05)) * 8}px`,
+                                                            background: storyTheme === 'acid' ? '#00e5ff' : storyTheme === 'void' ? '#a855f7' : '#ff0055',
+                                                            opacity: i < 10 ? 1 : 0.3
+                                                        }}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-[9px] text-white/30 font-black tabular-nums">{selectedSnippet.timeStr}</span>
+                                        </div>
                                     </div>
+                                    <button
+                                        onClick={generateRandomSnippet}
+                                        title="Changer l'extrait"
+                                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/30 hover:text-white transition-all cursor-pointer flex-shrink-0"
+                                    >
+                                        <Sparkles className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
 
                                 {/* ── Thème visuel ── */}
                                 <div className="space-y-2">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40">Thème visuel</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/30">Thème de la Story</span>
                                     <div className="flex gap-2">
                                         {([
-                                            { key: 'sunset', label: 'Sunset', colors: ['#ff0055', '#7a00ff'] },
-                                            { key: 'acid',   label: 'Acid',   colors: ['#39ff14', '#00e5ff'] },
-                                            { key: 'void',   label: 'Void',   colors: ['#150030', '#a855f7'] },
-                                        ] as const).map(({ key, label, colors }) => (
+                                            { key: 'sunset', label: 'Sunset', from: '#ff0055', to: '#7a00ff' },
+                                            { key: 'acid',   label: 'Acid',   from: '#39ff14', to: '#00e5ff' },
+                                            { key: 'void',   label: 'Void',   from: '#2d0060', to: '#a855f7' },
+                                        ] as const).map(({ key, label, from, to }) => (
                                             <button
                                                 key={key}
                                                 onClick={() => setStoryTheme(key)}
-                                                className={`flex-1 py-2.5 rounded-2xl border text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer flex flex-col items-center gap-2 ${
+                                                className={`flex-1 py-3 rounded-2xl border text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer relative overflow-hidden ${
                                                     storyTheme === key
-                                                        ? 'border-white/30 bg-white/10'
-                                                        : 'border-white/5 bg-white/[0.02] hover:border-white/15'
+                                                        ? 'border-white/40 shadow-[0_0_12px_rgba(255,255,255,0.08)]'
+                                                        : 'border-white/5 hover:border-white/15'
                                                 }`}
+                                                style={{
+                                                    background: storyTheme === key
+                                                        ? `linear-gradient(135deg, ${from}33, ${to}33)`
+                                                        : 'rgba(255,255,255,0.02)'
+                                                }}
                                             >
-                                                <div className="flex gap-1">
-                                                    <div className="w-3 h-3 rounded-full" style={{ background: colors[0] }} />
-                                                    <div className="w-3 h-3 rounded-full" style={{ background: colors[1] }} />
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    <div className="w-6 h-3 rounded-full" style={{ background: `linear-gradient(90deg, ${from}, ${to})` }} />
+                                                    <span className="text-white/60">{label}</span>
                                                 </div>
-                                                <span className="text-white/70">{label}</span>
+                                                {storyTheme === key && (
+                                                    <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-white" />
+                                                )}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* ── CTA principal : Générer + Partager (avec audio) ── */}
-                                <div className="space-y-3 pt-2">
+                                {/* ── BOUTON PRINCIPAL : Story Image PNG (marche sur iOS) ── */}
+                                <div className="space-y-3">
+                                    <button
+                                        onClick={generateAndShareStoryImage}
+                                        disabled={isGeneratingStory || isRecordingClip}
+                                        className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-[0.12em] transition-all hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50 disabled:pointer-events-none shadow-[0_0_30px_rgba(100,0,200,0.2)] border border-white/10"
+                                        style={{ background: 'linear-gradient(135deg, #1a0030 0%, #3d0080 50%, #6600cc 100%)' }}
+                                    >
+                                        {isGeneratingStory ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                <span>Génération en cours...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Instagram className="w-5 h-5" />
+                                                <span>Partager en Story</span>
+                                            </>
+                                        )}
+                                    </button>
 
-                                    {/* Progress bar pendant enregistrement */}
+                                    {canNativeShare && !isGeneratingStory && (
+                                        <p className="text-[9px] text-center text-white/25 font-bold uppercase tracking-wider">
+                                            Ouvre Instagram, TikTok, WhatsApp…
+                                        </p>
+                                    )}
+
+                                    {/* Séparateur */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1 h-px bg-white/[0.06]" />
+                                        <span className="text-[9px] text-white/20 font-black uppercase tracking-widest">ou</span>
+                                        <div className="flex-1 h-px bg-white/[0.06]" />
+                                    </div>
+
+                                    {/* Grille actions secondaires */}
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {/* Copier le lien */}
+                                        <button
+                                            onClick={copyShareLink}
+                                            className={`py-4 rounded-2xl border text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex flex-col items-center justify-center gap-2 cursor-pointer ${
+                                                copiedLink
+                                                    ? 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/40'
+                                                    : 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06] hover:border-white/15 text-white/50 hover:text-white'
+                                            }`}
+                                        >
+                                            <ExternalLink className="w-4 h-4" />
+                                            {copiedLink ? 'Copié !' : 'Lien'}
+                                        </button>
+
+                                        {/* Twitter/X */}
+                                        <button
+                                            onClick={shareOnTwitter}
+                                            className="py-4 bg-white/[0.03] hover:bg-[#1a1a2e] border border-white/[0.06] hover:border-[#1DA1F2]/30 text-white/50 hover:text-[#1DA1F2] rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex flex-col items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            <Twitter className="w-4 h-4" />
+                                            Twitter
+                                        </button>
+
+                                        {/* Clip vidéo (desktop only) */}
+                                        <button
+                                            onClick={generateAudioVideoClip}
+                                            disabled={isRecordingClip || isGeneratingVideo || isGeneratingStory}
+                                            className="py-4 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] hover:border-white/15 text-white/50 hover:text-white rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex flex-col items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:pointer-events-none"
+                                        >
+                                            {isRecordingClip ? (
+                                                <div className="w-4 h-4 border-2 border-white/40 border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <Video className="w-4 h-4" />
+                                            )}
+                                            {isRecordingClip ? `${clipProgress}%` : 'Clip'}
+                                        </button>
+                                    </div>
+
+                                    {/* Durée clip */}
+                                    <div className="flex items-center justify-between px-1">
+                                        <span className="text-[8px] text-white/20 font-black uppercase tracking-widest">Durée clip vidéo</span>
+                                        <div className="flex gap-1.5">
+                                            {([15, 30, 60] as const).map((d) => (
+                                                <button
+                                                    key={d}
+                                                    onClick={() => setClipDuration(d)}
+                                                    className={`px-2.5 py-1 rounded-lg border text-[8px] font-black transition-all cursor-pointer ${
+                                                        clipDuration === d
+                                                            ? 'bg-white/15 border-white/30 text-white'
+                                                            : 'bg-transparent border-white/[0.06] text-white/25 hover:text-white/50'
+                                                    }`}
+                                                >
+                                                    {d}s
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Progress bar clip */}
                                     {isRecordingClip && (
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
-                                                <span className="text-neon-purple animate-pulse">⏺ Enregistrement en cours...</span>
-                                                <span className="text-white/50">{clipProgress}%</span>
+                                        <div className="space-y-1.5">
+                                            <div className="flex justify-between text-[8px] font-black uppercase tracking-widest">
+                                                <span className="text-neon-purple animate-pulse">⏺ Enregistrement...</span>
+                                                <span className="text-white/40">{clipProgress}%</span>
                                             </div>
-                                            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                                                 <motion.div
                                                     className="h-full bg-gradient-to-r from-neon-purple to-neon-cyan rounded-full"
                                                     animate={{ width: `${clipProgress}%` }}
@@ -1573,76 +1644,9 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                         </div>
                                     )}
 
-                                    {/* Bouton principal : clip avec audio */}
-                                    <button
-                                        onClick={generateAudioVideoClip}
-                                        disabled={isRecordingClip || isGeneratingVideo}
-                                        className="w-full py-5 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:brightness-110 text-white font-black text-sm rounded-3xl uppercase tracking-[0.15em] transition-all hover:scale-[1.02] active:scale-98 shadow-[0_0_40px_rgba(253,29,29,0.3)] flex items-center justify-center gap-3 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
-                                    >
-                                        {isRecordingClip ? (
-                                            <>
-                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                <span>Génération {clipDuration}s... ({clipProgress}%)</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Instagram className="w-5 h-5" />
-                                                <span>
-                                                    {canNativeShare
-                                                        ? `Partager ${clipDuration}s sur Instagram / WhatsApp`
-                                                        : `Télécharger clip ${clipDuration}s pour Instagram`
-                                                    }
-                                                </span>
-                                            </>
-                                        )}
-                                    </button>
-
-                                    {canNativeShare && (
-                                        <p className="text-[9px] text-center text-neon-cyan/60 font-black uppercase tracking-widest">
-                                            ✓ Partage natif détecté — ouvre directement Instagram, WhatsApp, TikTok...
-                                        </p>
-                                    )}
-
-                                    {/* Secondaires */}
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <button
-                                            onClick={copyShareLink}
-                                            className={`py-3.5 border rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 cursor-pointer ${
-                                                copiedLink
-                                                    ? 'bg-neon-cyan text-black border-neon-cyan'
-                                                    : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'
-                                            }`}
-                                        >
-                                            <ExternalLink className="w-3.5 h-3.5" />
-                                            {copiedLink ? 'Copié ! 🔗' : 'Lien'}
-                                        </button>
-
-                                        <button
-                                            onClick={generateAndShareStoryImage}
-                                            disabled={isGeneratingStory || isRecordingClip}
-                                            className="py-3.5 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 border border-fuchsia-500/30 text-fuchsia-400 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
-                                        >
-                                            {isGeneratingStory ? (
-                                                <div className="w-3.5 h-3.5 border-2 border-fuchsia-400 border-t-transparent rounded-full animate-spin" />
-                                            ) : (
-                                                <Sparkles className="w-3.5 h-3.5" />
-                                            )}
-                                            Story
-                                        </button>
-
-                                        <button
-                                            onClick={shareOnTwitter}
-                                            className="py-3.5 bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 border border-[#1DA1F2]/30 text-[#1DA1F2] rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
-                                        >
-                                            <Twitter className="w-3.5 h-3.5" />
-                                            Twitter
-                                        </button>
-                                    </div>
-
                                     {!isHTML5 && (
-                                        <p className="text-[8px] text-amber-400/60 font-bold uppercase tracking-wider text-center px-4">
-                                            ⚠️ Audio non capturé pour les liens SoundCloud/YouTube (restriction cross-origin).
-                                            La vidéo sera générée sans son.
+                                        <p className="text-[8px] text-amber-400/40 font-bold uppercase tracking-wider text-center">
+                                            Clip vidéo sans son pour les liens externes
                                         </p>
                                     )}
                                 </div>

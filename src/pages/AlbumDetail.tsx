@@ -1,6 +1,6 @@
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Calendar, Share2, Download, Maximize2, Check, Edit2, Facebook, Instagram, X as XIconLucide } from 'lucide-react';
+import { ArrowLeft, Calendar, Share2, Download, Maximize2, Check, Edit2, Facebook, Instagram, X as XIconLucide, Sparkles } from 'lucide-react';
 import { XIcon } from '../components/ui/XIcon';
 
 import { useState, useEffect } from 'react';
@@ -60,6 +60,55 @@ export function AlbumDetail() {
             }
         } catch (err: any) {
             console.error('Error sharing:', err);
+        }
+    };
+
+    const handleStoryShare = async () => {
+        if (!album || !album.cover) return;
+        const mediaUrl = album.cover;
+        const sharePageUrl = window.location.href;
+        try {
+            // Try to fetch image as blob for direct file sharing (story mode)
+            const response = await fetch(resolveImageUrl(mediaUrl));
+            const blob = await response.blob();
+            const ext = blob.type.includes('png') ? 'png' : blob.type.includes('gif') ? 'gif' : 'jpg';
+            const file = new File([blob], `dropsiders-story.${ext}`, { type: blob.type });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: album.title,
+                    text: `🔥 Voir sur dropsiders.fr`,
+                    url: sharePageUrl
+                });
+            } else if (navigator.share) {
+                // Fallback: share link
+                await navigator.share({
+                    title: album.title,
+                    text: '🔥 Voir sur dropsiders.fr',
+                    url: sharePageUrl
+                });
+            } else {
+                // Desktop: download the image
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `dropsiders-story.${ext}`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+            }
+        } catch (e) {
+            // Fallback
+            try {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: album.title,
+                        text: '🔥 Voir sur dropsiders.fr',
+                        url: sharePageUrl
+                    });
+                } else {
+                    navigator.clipboard.writeText(sharePageUrl);
+                }
+            } catch { /* dismissed */ }
         }
     };
 
@@ -150,6 +199,15 @@ export function AlbumDetail() {
                                     >
                                         <Instagram className="w-4 h-4 text-white hover:text-pink-500 transition-colors" />
                                     </a>
+
+                                    {/* Story */}
+                                    <button
+                                        onClick={handleStoryShare}
+                                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-fuchsia-500/20 border border-white/5 hover:border-fuchsia-500/30 transition-all group"
+                                        title="Partager en Story"
+                                    >
+                                        <Sparkles className="w-4 h-4 text-white hover:text-fuchsia-400 transition-colors" />
+                                    </button>
 
                                     {/* X */}
                                     <a

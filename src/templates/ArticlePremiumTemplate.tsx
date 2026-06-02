@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Edit2, Instagram, Facebook, Globe, Youtube, Link2 } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Edit2, Instagram, Facebook, Globe, Youtube, Link2, Sparkles } from 'lucide-react';
 import { XIcon as XIconShared } from '../components/ui/XIcon';
 
 import { useHoverSound } from '../hooks/useHoverSound';
@@ -225,6 +225,55 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             window.open(`https://www.instagram.com/`, '_blank');
         } catch (err: any) {
             window.open(shareLinks.instagram, '_blank');
+        }
+    };
+
+    const handleStoryShare = async () => {
+        if (!article || !article.image) return;
+        const mediaUrl = article.image;
+        const sharePageUrl = window.location.href;
+        try {
+            // Try to fetch image as blob for direct file sharing (story mode)
+            const response = await fetch(resolveImageUrl(mediaUrl));
+            const blob = await response.blob();
+            const ext = blob.type.includes('png') ? 'png' : blob.type.includes('gif') ? 'gif' : 'jpg';
+            const file = new File([blob], `dropsiders-story.${ext}`, { type: blob.type });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: translatedTitle || article.title,
+                    text: `🔥 Voir sur dropsiders.fr`,
+                    url: sharePageUrl
+                });
+            } else if (navigator.share) {
+                // Fallback: share link
+                await navigator.share({
+                    title: translatedTitle || article.title,
+                    text: '🔥 Voir sur dropsiders.fr',
+                    url: sharePageUrl
+                });
+            } else {
+                // Desktop: download the image
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `dropsiders-story.${ext}`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+            }
+        } catch (e) {
+            // Fallback
+            try {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: translatedTitle || article.title,
+                        text: '🔥 Voir sur dropsiders.fr',
+                        url: sharePageUrl
+                    });
+                } else {
+                    navigator.clipboard.writeText(sharePageUrl);
+                }
+            } catch { /* dismissed */ }
         }
     };
 
@@ -696,7 +745,16 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
                                     title="Partager en Story ou Publication Instagram"
                                 >
-                                    <Instagram className="w-4 h-4 text-white group-hover:text-pink-500 transition-colors" />
+                                    <Instagram className="w-4 h-4 text-white hover:text-pink-500 transition-colors" />
+                                </button>
+
+                                {/* Story */}
+                                <button
+                                    onClick={handleStoryShare}
+                                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-fuchsia-500/20 border border-white/5 hover:border-fuchsia-500/30 transition-all group"
+                                    title="Partager en Story"
+                                >
+                                    <Sparkles className="w-4 h-4 text-white hover:text-fuchsia-400 transition-colors" />
                                 </button>
 
                                 {/* X */}
