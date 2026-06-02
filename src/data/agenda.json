@@ -5088,5 +5088,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1018,
+    "title": "Watergate Open Air with Vintage Culture, Manda Moor, Daisy Weweh, Doozie",
+    "date": "2026-07-11",
+    "startDate": "2026-07-11",
+    "endDate": "2026-07-11",
+    "venue": "SAGE",
+    "location": "BERLIN",
+    "country": "ALLEMAGNE",
+    "type": "Festival",
+    "image": "/uploads/uploads/a3ed8b37d1b0acb5-03bf2fb416b5d575b205725b688003.webp",
+    "url": "https://fr.ra.co/events/2391971",
+    "genre": "Techno",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
