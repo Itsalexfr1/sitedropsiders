@@ -160,7 +160,12 @@ export function WikiVenues({
             n.delete(id);
         } else {
             n.add(id);
-            triggerBooster(); // Trigger Pokemon booster pack on vote!
+            const today = new Date().toISOString().split('T')[0];
+            const lastBooster = localStorage.getItem('booster_wiki_venues');
+            if (lastBooster !== today) {
+                triggerBooster(); // Trigger Pokemon booster pack on vote!
+                localStorage.setItem('booster_wiki_venues', today);
+            }
         }
         setVotes(n);
         saveVotes(voteKey, n);

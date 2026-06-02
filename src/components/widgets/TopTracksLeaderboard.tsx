@@ -29,7 +29,7 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
     const [previewVideo, setPreviewVideo] = useState<string | null>(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-    const { user } = useUser();
+    const { user, triggerBooster, showNotification } = useUser();
     const color = resolvedColor || 'var(--color-neon-cyan)';
     const searchTimeout = useRef<any>(null);
 
@@ -96,6 +96,15 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                     });
                     setTracks(filteredData.slice(0, 5));
                 }
+                const today = new Date().toISOString().split('T')[0];
+                const lastBooster = localStorage.getItem('booster_top_tracks');
+                if (lastBooster !== today) {
+                    triggerBooster();
+                    showNotification('A voté ! Vous remportez un booster de 9 cartes !', 'success');
+                    localStorage.setItem('booster_top_tracks', today);
+                } else {
+                    showNotification('A voté ! (Booster quotidien déjà récupéré pour cette catégorie)', 'success');
+                }
             }
         } catch (err) {
             console.error('Failed to add track', err);
@@ -128,6 +137,15 @@ export function TopTracksLeaderboard({ resolvedColor }: { resolvedColor?: string
                 setTracks(prev => prev.map(t => 
                     t.title === title ? { ...t, votes: (t.votes || 0) + 1 } : t
                 ).sort((a, b) => (b.votes || 0) - (a.votes || 0)));
+                const today = new Date().toISOString().split('T')[0];
+                const lastBooster = localStorage.getItem('booster_top_tracks');
+                if (lastBooster !== today) {
+                    triggerBooster();
+                    showNotification('A voté ! Vous remportez un booster de 9 cartes !', 'success');
+                    localStorage.setItem('booster_top_tracks', today);
+                } else {
+                    showNotification('A voté ! (Booster quotidien déjà récupéré pour cette catégorie)', 'success');
+                }
             }
         } catch (err) {
             console.error('Failed to vote:', err);

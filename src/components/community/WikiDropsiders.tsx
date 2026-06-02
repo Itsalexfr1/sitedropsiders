@@ -173,7 +173,12 @@ export function WikiDropsiders({
             n.delete(id);
         } else {
             n.add(id);
-            triggerBooster(); // Trigger Pokemon-style booster pack on client!
+            const today = new Date().toISOString().split('T')[0];
+            const lastBooster = localStorage.getItem('booster_wiki_djs');
+            if (lastBooster !== today) {
+                triggerBooster(); // Trigger Pokemon-style booster pack on client!
+                localStorage.setItem('booster_wiki_djs', today);
+            }
         }
         setVotes(n);
         saveVotes(n);
