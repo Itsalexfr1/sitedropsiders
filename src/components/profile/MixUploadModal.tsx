@@ -17,6 +17,138 @@ interface MixUploadModalProps {
     onSuccess: (mixData: any) => void;
 }
 
+const categoryStyles = {
+    Track: {
+        colorName: 'neon-red',
+        text: 'text-neon-red',
+        bg: 'bg-neon-red',
+        bgLight: 'bg-neon-red/10',
+        bgBg: 'bg-neon-red/5',
+        border: 'border-neon-red',
+        borderLight: 'border-neon-red/20',
+        borderDashed: 'border-neon-red/30',
+        hoverBorder: 'hover:border-neon-red/50',
+        hoverBg: 'hover:bg-neon-red/10',
+        hoverBgCard: 'hover:bg-neon-red/5',
+        cardBorder: 'hover:border-neon-red/30',
+        textMuted: 'text-neon-red/50',
+        groupHoverText: 'group-hover:text-neon-red',
+        selectedText: 'text-white',
+        shadow: 'shadow-[0_0_15px_rgba(255,0,0,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(255,0,0,0.5)]',
+        // Modal specific additions
+        viaColor: 'via-neon-red',
+        modalShadow: 'shadow-[0_0_100px_rgba(255,0,0,0.15)]',
+        progressShadow: 'shadow-[0_0_15px_rgba(255,0,0,0.8)]',
+        focusBorder: 'focus:border-neon-red',
+        border50: 'border-neon-red/50',
+        toggleBg: 'bg-neon-red shadow-[0_0_10px_rgba(255,0,0,0.5)]',
+        toggleShadow: 'shadow-[0_0_20px_rgba(255,0,0,0.1)]',
+        toggleBorder: 'border-neon-red/40',
+        toggleBgLight: 'bg-neon-red/30',
+        importBtn: 'bg-neon-red/10 border-neon-red/30 text-neon-red hover:bg-neon-red/20',
+        publishShadow: 'shadow-neon-red/30',
+    },
+    Remix: {
+        colorName: 'neon-purple',
+        text: 'text-neon-purple',
+        bg: 'bg-neon-purple',
+        bgLight: 'bg-neon-purple/10',
+        bgBg: 'bg-neon-purple/5',
+        border: 'border-neon-purple',
+        borderLight: 'border-neon-purple/20',
+        borderDashed: 'border-neon-purple/30',
+        hoverBorder: 'hover:border-neon-purple/50',
+        hoverBg: 'hover:bg-neon-purple/10',
+        hoverBgCard: 'hover:bg-neon-purple/5',
+        cardBorder: 'hover:border-neon-purple/30',
+        textMuted: 'text-neon-purple/50',
+        groupHoverText: 'group-hover:text-neon-purple',
+        selectedText: 'text-white',
+        shadow: 'shadow-[0_0_15px_rgba(188,19,254,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(188,19,254,0.5)]',
+        // Modal specific additions
+        viaColor: 'via-neon-purple',
+        modalShadow: 'shadow-[0_0_100px_rgba(188,19,254,0.15)]',
+        progressShadow: 'shadow-[0_0_15px_rgba(188,19,254,0.8)]',
+        focusBorder: 'focus:border-neon-purple',
+        border50: 'border-neon-purple/50',
+        toggleBg: 'bg-neon-purple shadow-[0_0_10px_rgba(188,19,254,0.5)]',
+        toggleShadow: 'shadow-[0_0_20px_rgba(188,19,254,0.1)]',
+        toggleBorder: 'border-neon-purple/40',
+        toggleBgLight: 'bg-neon-purple/30',
+        importBtn: 'bg-neon-purple/10 border-neon-purple/30 text-neon-purple hover:bg-neon-purple/20',
+        publishShadow: 'shadow-neon-purple/30',
+    },
+    Edit: {
+        colorName: 'neon-cyan',
+        text: 'text-neon-cyan',
+        bg: 'bg-neon-cyan',
+        bgLight: 'bg-neon-cyan/10',
+        bgBg: 'bg-neon-cyan/5',
+        border: 'border-neon-cyan',
+        borderLight: 'border-neon-cyan/20',
+        borderDashed: 'border-neon-cyan/30',
+        hoverBorder: 'hover:border-neon-cyan/50',
+        hoverBg: 'hover:bg-neon-cyan/10',
+        hoverBgCard: 'hover:bg-neon-cyan/5',
+        cardBorder: 'hover:border-neon-cyan/30',
+        textMuted: 'text-neon-cyan/50',
+        groupHoverText: 'group-hover:text-neon-cyan',
+        selectedText: 'text-black',
+        shadow: 'shadow-[0_0_15px_rgba(0,240,255,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(0,240,255,0.5)]',
+        // Modal specific additions
+        viaColor: 'via-neon-cyan',
+        modalShadow: 'shadow-[0_0_100px_rgba(0,240,255,0.15)]',
+        progressShadow: 'shadow-[0_0_15px_rgba(0,240,255,0.8)]',
+        focusBorder: 'focus:border-neon-cyan',
+        border50: 'border-neon-cyan/50',
+        toggleBg: 'bg-neon-cyan shadow-[0_0_10px_rgba(0,240,255,0.5)]',
+        toggleShadow: 'shadow-[0_0_20px_rgba(0,240,255,0.1)]',
+        toggleBorder: 'border-neon-cyan/40',
+        toggleBgLight: 'bg-neon-cyan/30',
+        importBtn: 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/20',
+        publishShadow: 'shadow-neon-cyan/30',
+    },
+    Mix: {
+        colorName: 'neon-green',
+        text: 'text-neon-green',
+        bg: 'bg-neon-green',
+        bgLight: 'bg-neon-green/10',
+        bgBg: 'bg-neon-green/5',
+        border: 'border-neon-green',
+        borderLight: 'border-neon-green/20',
+        borderDashed: 'border-neon-green/30',
+        hoverBorder: 'hover:border-neon-green/50',
+        hoverBg: 'hover:bg-neon-green/10',
+        hoverBgCard: 'hover:bg-neon-green/5',
+        cardBorder: 'hover:border-neon-green/30',
+        textMuted: 'text-neon-green/50',
+        groupHoverText: 'group-hover:text-neon-green',
+        selectedText: 'text-black',
+        shadow: 'shadow-[0_0_15px_rgba(57,255,20,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(57,255,20,0.5)]',
+        // Modal specific additions
+        viaColor: 'via-neon-green',
+        modalShadow: 'shadow-[0_0_100px_rgba(57,255,20,0.15)]',
+        progressShadow: 'shadow-[0_0_15px_rgba(57,255,20,0.8)]',
+        focusBorder: 'focus:border-neon-green',
+        border50: 'border-neon-green/50',
+        toggleBg: 'bg-neon-green shadow-[0_0_10px_rgba(57,255,20,0.5)]',
+        toggleShadow: 'shadow-[0_0_20px_rgba(57,255,20,0.1)]',
+        toggleBorder: 'border-neon-green/40',
+        toggleBgLight: 'bg-neon-green/30',
+        importBtn: 'bg-neon-green/10 border-neon-green/30 text-neon-green hover:bg-neon-green/20',
+        publishShadow: 'shadow-neon-green/30',
+    }
+};
+
+const getCategoryStyle = (type: string) => {
+    const normalized = (type ? type.charAt(0).toUpperCase() + type.slice(1).toLowerCase() : '') as keyof typeof categoryStyles;
+    return categoryStyles[normalized] || categoryStyles.Remix;
+};
+
 export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUploadModalProps) {
     const [step, setStep] = useState<'uploading' | 'metadata' | 'success'>('uploading');
     const [metaTab, setMetaTab] = useState<'info' | 'tracklist'>('info');
@@ -30,6 +162,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
     const [tracklist, setTracklist] = useState<Track[]>([]);
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const style = getCategoryStyle(type);
 
     // Auto-fill title from filename
     useEffect(() => {
@@ -313,10 +446,10 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[40px] overflow-hidden shadow-[0_0_100px_rgba(191,0,255,0.15)] max-h-[90vh] flex flex-col"
+                    className={`relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[40px] overflow-hidden ${style.modalShadow} max-h-[90vh] flex flex-col`}
                 >
                     {/* Header Bloom */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon-purple to-transparent opacity-50" />
+                    <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent ${style.viaColor} to-transparent opacity-50`} />
                     
                     {/* Close Button */}
                     <button 
@@ -330,10 +463,10 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                         {step === 'uploading' && (
                             <div className="text-center space-y-8 py-10">
                                 <div className="relative inline-block">
-                                    <div className="w-24 h-24 bg-neon-purple/20 rounded-[32px] flex items-center justify-center relative z-10 animate-pulse">
-                                        <Upload className="w-10 h-10 text-neon-purple animate-bounce" />
+                                    <div className={`w-24 h-24 ${style.bgLight} rounded-[32px] flex items-center justify-center relative z-10 animate-pulse`}>
+                                        <Upload className={`w-10 h-10 ${style.text} animate-bounce`} />
                                     </div>
-                                    <div className="absolute inset-0 bg-neon-purple/20 blur-2xl rounded-full" />
+                                    <div className={`absolute inset-0 ${style.bgLight} blur-2xl rounded-full`} />
                                 </div>
                                 
                                 <div className="space-y-2">
@@ -344,13 +477,13 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                 <div className="max-w-md mx-auto space-y-4">
                                     <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 relative">
                                         <motion.div 
-                                            className="h-full bg-neon-purple shadow-[0_0_15px_rgba(191,0,255,0.8)]"
+                                            className={`h-full ${style.bg} ${style.progressShadow}`}
                                             initial={{ width: 0 }}
                                             animate={{ width: `${progress}%` }}
                                         />
                                     </div>
                                     <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                                        <span className="text-neon-purple">{Math.round(progress)}%</span>
+                                        <span className={style.text}>{Math.round(progress)}%</span>
                                         <span className="text-gray-600">Sync R2 Cloud...</span>
                                     </div>
                                 </div>
@@ -361,8 +494,8 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                             <div className="space-y-8">
                                 <div className="flex items-center justify-between border-b border-white/5 pb-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center shrink-0">
-                                            <FileAudio className="w-6 h-6 text-neon-purple" />
+                                        <div className={`w-12 h-12 ${style.bgLight} rounded-2xl flex items-center justify-center shrink-0`}>
+                                            <FileAudio className={`w-6 h-6 ${style.text}`} />
                                         </div>
                                         <div>
                                             <h2 className="text-xl font-display font-black text-white italic uppercase tracking-widest leading-none">Studio Finalisation</h2>
@@ -398,7 +531,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                 value={title}
                                                 onChange={(e) => setTitle(e.target.value.toUpperCase())}
                                                 placeholder="TITRE DU MIX / TRACK..."
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold uppercase tracking-widest focus:outline-none focus:border-neon-purple transition-all italic text-sm"
+                                                className={`w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold uppercase tracking-widest focus:outline-none ${style.focusBorder} transition-all italic text-sm`}
                                             />
                                         </div>
 
@@ -410,7 +543,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                     value={genre}
                                                     onChange={(e) => setGenre(e.target.value.toUpperCase())}
                                                     placeholder="TECHNO, HOUSE..."
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold uppercase tracking-widest focus:outline-none focus:border-neon-purple transition-all italic text-xs"
+                                                    className={`w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold uppercase tracking-widest focus:outline-none ${style.focusBorder} transition-all italic text-xs`}
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -425,7 +558,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                     />
                                                     <button 
                                                         onClick={() => fileInputRef.current?.click()}
-                                                        className="w-full bg-neon-purple/10 border border-neon-purple/30 rounded-2xl px-6 py-4 text-neon-purple font-black uppercase tracking-widest text-[10px] hover:bg-neon-purple/20 transition-all flex items-center justify-center gap-2"
+                                                        className={`w-full ${style.importBtn} rounded-2xl px-6 py-4 font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2`}
                                                     >
                                                         <DownloadCloud className="w-4 h-4" /> Importer Fichier
                                                     </button>
@@ -440,7 +573,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                 onChange={(e) => setDescription(e.target.value)}
                                                 rows={4}
                                                 placeholder="Partage l'histoire de ce mix..."
-                                                className="w-full bg-white/5 border border-white/10 rounded-3xl px-6 py-4 text-white font-medium text-sm focus:outline-none focus:border-neon-purple transition-all resize-none"
+                                                className={`w-full bg-white/5 border border-white/10 rounded-3xl px-6 py-4 text-white font-medium text-sm focus:outline-none ${style.focusBorder} transition-all resize-none`}
                                             />
                                         </div>
 
@@ -450,19 +583,19 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                             onClick={() => setAllowDownload(v => !v)}
                                             className={`w-full flex items-center justify-between gap-4 p-5 rounded-2xl border transition-all group ${
                                                 allowDownload
-                                                    ? 'bg-neon-purple/10 border-neon-purple/40 shadow-[0_0_20px_rgba(191,0,255,0.1)]'
+                                                    ? `${style.bgLight} ${style.toggleBorder} ${style.toggleShadow}`
                                                     : 'bg-white/5 border-white/10 hover:border-white/20'
                                             }`}
                                         >
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                                                    allowDownload ? 'bg-neon-purple/30 text-neon-purple' : 'bg-white/5 text-gray-600'
+                                                    allowDownload ? `${style.toggleBgLight} ${style.text}` : 'bg-white/5 text-gray-600'
                                                 }`}>
                                                     <DownloadCloud className="w-5 h-5" />
                                                 </div>
                                                 <div className="text-left">
                                                     <p className={`text-[11px] font-black uppercase tracking-widest transition-colors ${
-                                                        allowDownload ? 'text-neon-purple' : 'text-gray-400 group-hover:text-white'
+                                                        allowDownload ? style.text : 'text-gray-400 group-hover:text-white'
                                                     }`}>Autoriser le téléchargement</p>
                                                     <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">
                                                         {allowDownload ? 'Les visiteurs peuvent télécharger ce fichier' : 'Écoute uniquement — pas de téléchargement'}
@@ -470,7 +603,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                 </div>
                                             </div>
                                             <div className={`w-12 h-6 rounded-full relative transition-all duration-300 shrink-0 ${
-                                                allowDownload ? 'bg-neon-purple shadow-[0_0_10px_rgba(191,0,255,0.5)]' : 'bg-white/10'
+                                                allowDownload ? style.toggleBg : 'bg-white/10'
                                             }`}>
                                                 <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 ${
                                                     allowDownload ? 'left-7' : 'left-1'
@@ -493,7 +626,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                 </button>
                                                 <button 
                                                     onClick={addTrack}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-neon-purple/20 text-neon-purple rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neon-purple/30 transition-all border border-neon-purple/30"
+                                                    className={`flex items-center gap-2 px-4 py-2 ${style.bgLight} ${style.text} rounded-xl text-[9px] font-black uppercase tracking-widest hover:${style.hoverBg} transition-all border ${style.borderLight}`}
                                                 >
                                                     <Plus className="w-3 h-3" /> Ajouter manual
                                                 </button>
@@ -505,19 +638,19 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                 <div className="p-6 bg-white/5 border border-white/10 rounded-[32px] space-y-4">
                                                     <div className="flex items-center justify-between">
                                                         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Colle ta tracklist ici (Format: 00:00 - Artiste - Titre)</label>
-                                                        <div className="px-2 py-1 bg-neon-purple/20 text-neon-purple text-[7px] font-black rounded uppercase">Détection Auto Active</div>
+                                                        <div className={`px-2 py-1 ${style.bgLight} ${style.text} text-[7px] font-black rounded uppercase`}>Détection Auto Active</div>
                                                     </div>
                                                     <textarea 
                                                         value={bulkText}
                                                         onChange={(e) => setBulkText(e.target.value)}
                                                         rows={8}
                                                         placeholder="00:00 — Intro – You & Me Innerbloom&#10;05:00 — ARKAD3 – Finder House"
-                                                        className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-gray-700 focus:outline-none focus:border-neon-purple transition-all resize-none font-mono"
+                                                        className={`w-full bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-gray-700 focus:outline-none ${style.focusBorder} transition-all resize-none font-mono`}
                                                     />
                                                     <button 
                                                         onClick={handleBulkImport}
                                                         disabled={!bulkText.trim()}
-                                                        className="w-full py-4 bg-neon-purple text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-neon-purple/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
+                                                        className={`w-full py-4 ${style.bg} ${style.selectedText} rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg ${style.publishShadow} hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:grayscale`}
                                                     >
                                                         Lancer l'importation de {bulkText.split('\n').filter(l => l.trim()).length} lignes
                                                     </button>
@@ -527,9 +660,9 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                                 {tracklist.length > 0 ? (
                                                     tracklist.map((track, idx) => (
-                                                        <div key={track.id} className="group p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all relative overflow-hidden">
+                                                        <div key={track.id} className={`group p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-all relative overflow-hidden`}>
                                                             <div className="flex items-center gap-4 flex-1">
-                                                                <div className="w-8 h-8 bg-black/40 rounded-lg flex items-center justify-center text-[10px] font-black text-gray-600 border border-white/5 group-hover:text-neon-purple group-hover:border-neon-purple/30 transition-colors shrink-0">
+                                                                <div className={`w-8 h-8 bg-black/40 rounded-lg flex items-center justify-center text-[10px] font-black text-gray-600 border border-white/5 group-hover:${style.text} group-hover:border-${style.colorName}/30 transition-colors shrink-0`}>
                                                                     {idx + 1}
                                                                 </div>
                                                                 {editingTrackId === track.id ? (
@@ -540,7 +673,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                                                 type="text" 
                                                                                 value={editArtist}
                                                                                 onChange={(e) => setEditArtist(e.target.value.toUpperCase())}
-                                                                                className="w-full bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-2 text-[11px] text-white font-bold uppercase tracking-widest outline-none"
+                                                                                className={`w-full bg-black/40 border ${style.border50} rounded-lg px-3 py-2 text-[11px] text-white font-bold uppercase tracking-widest outline-none`}
                                                                             />
                                                                         </div>
                                                                         <div className="flex-[2] space-y-1">
@@ -549,7 +682,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                                                 type="text" 
                                                                                 value={editTitle}
                                                                                 onChange={(e) => setEditTitle(e.target.value.toUpperCase())}
-                                                                                className="w-full bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-2 text-[11px] text-white font-bold uppercase tracking-widest outline-none"
+                                                                                className={`w-full bg-black/40 border ${style.border50} rounded-lg px-3 py-2 text-[11px] text-white font-bold uppercase tracking-widest outline-none`}
                                                                             />
                                                                         </div>
                                                                         <div className="flex-1 space-y-1">
@@ -559,7 +692,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                                                 value={editTimestamp}
                                                                                 placeholder="00:00"
                                                                                 onChange={(e) => setEditTimestamp(e.target.value)}
-                                                                                className="w-full bg-black/40 border border-neon-purple/50 rounded-lg px-3 py-2 text-[11px] text-neon-purple font-black uppercase tracking-widest outline-none text-center"
+                                                                                className={`w-full bg-black/40 border ${style.border50} rounded-lg px-3 py-2 text-[11px] ${style.text} font-black uppercase tracking-widest outline-none text-center`}
                                                                             />
                                                                         </div>
                                                                         <button onClick={() => saveTrack(track.id)} className="mt-6 p-2 bg-neon-green/20 text-neon-green rounded-lg hover:bg-neon-green/30 transition-colors h-10 w-10 flex items-center justify-center shrink-0 border border-neon-green/20">
@@ -573,9 +706,9 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                                             <p className="text-[10px] text-gray-500 font-bold uppercase">{track.title}</p>
                                                                         </div>
                                                                         <div className="flex items-center gap-3 pr-4">
-                                                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/5 rounded-lg group-hover:border-neon-purple/30 transition-all group-hover:bg-neon-purple/5">
-                                                                                <Timer className="w-3 h-3 text-gray-600 group-hover:text-neon-purple" />
-                                                                                <span className="text-[10px] font-black text-gray-500 group-hover:text-neon-purple">{track.timestamp || '--:--'}</span>
+                                                                            <div className={`flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/5 rounded-lg group-hover:border-${style.colorName}/30 transition-all group-hover:${style.bgBg}`}>
+                                                                                <Timer className={`w-3 h-3 text-gray-600 group-hover:${style.text}`} />
+                                                                                <span className={`text-[10px] font-black text-gray-500 group-hover:${style.text}`}>{track.timestamp || '--:--'}</span>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -632,7 +765,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                     </button>
                                     <button 
                                         onClick={handleFinalize}
-                                        className="flex-[2] py-4 bg-neon-purple text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-neon-purple/30 hover:scale-[1.02] active:scale-95 transition-all"
+                                        className={`flex-[2] py-4 ${style.bg} ${style.selectedText} rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg ${style.publishShadow} hover:scale-[1.02] active:scale-95 transition-all`}
                                     >
                                         Publier sur Dropsiders
                                     </button>

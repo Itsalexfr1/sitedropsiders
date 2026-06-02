@@ -4,6 +4,90 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Shield, Trophy, Headphones, PlayCircle, Download, MessageSquare, Star, ArrowLeft } from 'lucide-react';
 import { DropsidersCardComponent } from '../components/cards/DropsidersCard';
 
+const categoryStyles = {
+    Track: {
+        colorName: 'neon-red',
+        text: 'text-neon-red',
+        bg: 'bg-neon-red',
+        bgLight: 'bg-neon-red/10',
+        bgBg: 'bg-neon-red/5',
+        border: 'border-neon-red',
+        borderLight: 'border-neon-red/20',
+        borderDashed: 'border-neon-red/30',
+        hoverBorder: 'hover:border-neon-red/50',
+        hoverBg: 'hover:bg-neon-red/10',
+        hoverBgCard: 'hover:bg-neon-red/5',
+        cardBorder: 'hover:border-neon-red/30',
+        textMuted: 'text-neon-red/50',
+        groupHoverText: 'group-hover:text-neon-red',
+        selectedText: 'text-white',
+        shadow: 'shadow-[0_0_15px_rgba(255,0,0,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(255,0,0,0.5)]',
+    },
+    Remix: {
+        colorName: 'neon-purple',
+        text: 'text-neon-purple',
+        bg: 'bg-neon-purple',
+        bgLight: 'bg-neon-purple/10',
+        bgBg: 'bg-neon-purple/5',
+        border: 'border-neon-purple',
+        borderLight: 'border-neon-purple/20',
+        borderDashed: 'border-neon-purple/30',
+        hoverBorder: 'hover:border-neon-purple/50',
+        hoverBg: 'hover:bg-neon-purple/10',
+        hoverBgCard: 'hover:bg-neon-purple/5',
+        cardBorder: 'hover:border-neon-purple/30',
+        textMuted: 'text-neon-purple/50',
+        groupHoverText: 'group-hover:text-neon-purple',
+        selectedText: 'text-white',
+        shadow: 'shadow-[0_0_15px_rgba(188,19,254,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(188,19,254,0.5)]',
+    },
+    Edit: {
+        colorName: 'neon-cyan',
+        text: 'text-neon-cyan',
+        bg: 'bg-neon-cyan',
+        bgLight: 'bg-neon-cyan/10',
+        bgBg: 'bg-neon-cyan/5',
+        border: 'border-neon-cyan',
+        borderLight: 'border-neon-cyan/20',
+        borderDashed: 'border-neon-cyan/30',
+        hoverBorder: 'hover:border-neon-cyan/50',
+        hoverBg: 'hover:bg-neon-cyan/10',
+        hoverBgCard: 'hover:bg-neon-cyan/5',
+        cardBorder: 'hover:border-neon-cyan/30',
+        textMuted: 'text-neon-cyan/50',
+        groupHoverText: 'group-hover:text-neon-cyan',
+        selectedText: 'text-black',
+        shadow: 'shadow-[0_0_15px_rgba(0,240,255,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(0,240,255,0.5)]',
+    },
+    Mix: {
+        colorName: 'neon-green',
+        text: 'text-neon-green',
+        bg: 'bg-neon-green',
+        bgLight: 'bg-neon-green/10',
+        bgBg: 'bg-neon-green/5',
+        border: 'border-neon-green',
+        borderLight: 'border-neon-green/20',
+        borderDashed: 'border-neon-green/30',
+        hoverBorder: 'hover:border-neon-green/50',
+        hoverBg: 'hover:bg-neon-green/10',
+        hoverBgCard: 'hover:bg-neon-green/5',
+        cardBorder: 'hover:border-neon-green/30',
+        textMuted: 'text-neon-green/50',
+        groupHoverText: 'group-hover:text-neon-green',
+        selectedText: 'text-black',
+        shadow: 'shadow-[0_0_15px_rgba(57,255,20,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(57,255,20,0.5)]',
+    }
+};
+
+const getCategoryStyle = (type: string) => {
+    const normalized = (type ? type.charAt(0).toUpperCase() + type.slice(1).toLowerCase() : '') as keyof typeof categoryStyles;
+    return categoryStyles[normalized] || categoryStyles.Remix;
+};
+
 export function PublicProfile() {
     const { username } = useParams<{ username: string }>();
     const navigate = useNavigate();
@@ -217,23 +301,26 @@ export function PublicProfile() {
                             <div className="bg-white/5 border border-white/10 rounded-[32px] p-6 sm:p-8">
                                 {profile.mixes && profile.mixes.length > 0 ? (
                                     <div className="space-y-3">
-                                        {profile.mixes.map((mix: any) => (
-                                            <div key={mix.id} className="group p-4 bg-white/5 border border-white/5 hover:border-neon-purple/30 rounded-2xl flex items-center justify-between transition-all hover:bg-neon-purple/5">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-neon-purple rounded-xl flex items-center justify-center shadow-lg shadow-neon-purple/20">
-                                                        <PlayCircle className="w-6 h-6 text-white" />
+                                        {profile.mixes.map((mix: any) => {
+                                            const style = getCategoryStyle(mix.type);
+                                            return (
+                                                <div key={mix.id} className={`group p-4 bg-white/5 border border-white/5 ${style.cardBorder} rounded-2xl flex items-center justify-between transition-all ${style.hoverBgCard}`}>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`w-12 h-12 ${style.bg} rounded-xl flex items-center justify-center shadow-lg ${style.shadow}`}>
+                                                            <PlayCircle className="w-6 h-6 text-white" />
+                                                        </div>
+                                                        <div>
+                                                            <span className={`text-[9px] font-black ${style.text} uppercase tracking-widest`}>{mix.type}</span>
+                                                            <h4 className="text-sm font-bold text-white uppercase italic tracking-tighter">{mix.title}</h4>
+                                                            <p className="text-[10px] text-gray-500">{mix.duration} · {mix.uploadDate}</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <span className="text-[9px] font-black text-neon-purple uppercase tracking-widest">{mix.type}</span>
-                                                        <h4 className="text-sm font-bold text-white uppercase italic tracking-tighter">{mix.title}</h4>
-                                                        <p className="text-[10px] text-gray-500">{mix.duration} · {mix.uploadDate}</p>
-                                                    </div>
+                                                    <button className={`w-10 h-10 border border-white/10 bg-black/40 hover:${style.bgLight} hover:${style.text} hover:${style.border} rounded-xl flex items-center justify-center text-gray-400 hover:${style.text} transition-all hidden md:flex`}>
+                                                        <Download className="w-4 h-4" />
+                                                    </button>
                                                 </div>
-                                                <button className="w-10 h-10 border border-white/10 bg-black/40 hover:bg-neon-cyan/20 rounded-xl flex items-center justify-center text-gray-400 hover:text-neon-cyan transition-all hidden md:flex">
-                                                    <Download className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <div className="text-center py-16">

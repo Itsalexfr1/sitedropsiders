@@ -16,6 +16,90 @@ import { CardTradeModal } from '../components/cards/CardTradeModal';
 import { TradeInboxPanel } from '../components/cards/TradeInboxPanel';
 
 
+const categoryStyles = {
+    Track: {
+        colorName: 'neon-red',
+        text: 'text-neon-red',
+        bg: 'bg-neon-red',
+        bgLight: 'bg-neon-red/10',
+        bgBg: 'bg-neon-red/5',
+        border: 'border-neon-red',
+        borderLight: 'border-neon-red/20',
+        borderDashed: 'border-neon-red/30',
+        hoverBorder: 'hover:border-neon-red/50',
+        hoverBg: 'hover:bg-neon-red/10',
+        hoverBgCard: 'hover:bg-neon-red/5',
+        cardBorder: 'hover:border-neon-red/30',
+        textMuted: 'text-neon-red/50',
+        groupHoverText: 'group-hover:text-neon-red',
+        selectedText: 'text-white',
+        shadow: 'shadow-[0_0_15px_rgba(255,0,0,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(255,0,0,0.5)]',
+    },
+    Remix: {
+        colorName: 'neon-purple',
+        text: 'text-neon-purple',
+        bg: 'bg-neon-purple',
+        bgLight: 'bg-neon-purple/10',
+        bgBg: 'bg-neon-purple/5',
+        border: 'border-neon-purple',
+        borderLight: 'border-neon-purple/20',
+        borderDashed: 'border-neon-purple/30',
+        hoverBorder: 'hover:border-neon-purple/50',
+        hoverBg: 'hover:bg-neon-purple/10',
+        hoverBgCard: 'hover:bg-neon-purple/5',
+        cardBorder: 'hover:border-neon-purple/30',
+        textMuted: 'text-neon-purple/50',
+        groupHoverText: 'group-hover:text-neon-purple',
+        selectedText: 'text-white',
+        shadow: 'shadow-[0_0_15px_rgba(188,19,254,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(188,19,254,0.5)]',
+    },
+    Edit: {
+        colorName: 'neon-cyan',
+        text: 'text-neon-cyan',
+        bg: 'bg-neon-cyan',
+        bgLight: 'bg-neon-cyan/10',
+        bgBg: 'bg-neon-cyan/5',
+        border: 'border-neon-cyan',
+        borderLight: 'border-neon-cyan/20',
+        borderDashed: 'border-neon-cyan/30',
+        hoverBorder: 'hover:border-neon-cyan/50',
+        hoverBg: 'hover:bg-neon-cyan/10',
+        hoverBgCard: 'hover:bg-neon-cyan/5',
+        cardBorder: 'hover:border-neon-cyan/30',
+        textMuted: 'text-neon-cyan/50',
+        groupHoverText: 'group-hover:text-neon-cyan',
+        selectedText: 'text-black',
+        shadow: 'shadow-[0_0_15px_rgba(0,240,255,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(0,240,255,0.5)]',
+    },
+    Mix: {
+        colorName: 'neon-green',
+        text: 'text-neon-green',
+        bg: 'bg-neon-green',
+        bgLight: 'bg-neon-green/10',
+        bgBg: 'bg-neon-green/5',
+        border: 'border-neon-green',
+        borderLight: 'border-neon-green/20',
+        borderDashed: 'border-neon-green/30',
+        hoverBorder: 'hover:border-neon-green/50',
+        hoverBg: 'hover:bg-neon-green/10',
+        hoverBgCard: 'hover:bg-neon-green/5',
+        cardBorder: 'hover:border-neon-green/30',
+        textMuted: 'text-neon-green/50',
+        groupHoverText: 'group-hover:text-neon-green',
+        selectedText: 'text-black',
+        shadow: 'shadow-[0_0_15px_rgba(57,255,20,0.4)]',
+        playIconGlow: 'shadow-[0_0_10px_rgba(57,255,20,0.5)]',
+    }
+};
+
+const getCategoryStyle = (type: string) => {
+    const normalized = (type ? type.charAt(0).toUpperCase() + type.slice(1).toLowerCase() : '') as keyof typeof categoryStyles;
+    return categoryStyles[normalized] || categoryStyles.Remix;
+};
+
 export function Profile() {
     const { user, updateUser, logout, isLoggedIn, showNotification, deleteAccount, collectedCards, claimHandle } = useUser();
     const navigate = useNavigate();
@@ -622,40 +706,48 @@ export function Profile() {
                                         {user?.mixStatus === 'approved' || localStorage.getItem('admin_auth_v2') === 'true' ? (
                                             <>
                                                 <div className="flex gap-2 justify-center mb-6">
-                                                    {['Track', 'Remix', 'Edit', 'Mix'].map(type => (
-                                                        <button 
-                                                            key={type}
-                                                            onClick={() => setUploadType(type as any)}
-                                                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${uploadType === type ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.4)]' : 'bg-white/5 text-gray-500 hover:text-white border border-white/10'}`}
-                                                        >
-                                                            {type}
-                                                        </button>
-                                                    ))}
+                                                    {['Track', 'Remix', 'Edit', 'Mix'].map(type => {
+                                                        const style = getCategoryStyle(type);
+                                                        return (
+                                                            <button 
+                                                                key={type}
+                                                                onClick={() => setUploadType(type as any)}
+                                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${uploadType === type ? `${style.bg} ${style.selectedText} ${style.shadow}` : 'bg-white/5 text-gray-500 hover:text-white border border-white/10'}`}
+                                                            >
+                                                                {type}
+                                                            </button>
+                                                        );
+                                                    })}
                                                 </div>
                                                 
-                                                <div className="p-8 border-2 border-dashed border-neon-purple/30 bg-neon-purple/5 rounded-[32px] text-center hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all cursor-pointer group flex flex-col items-center gap-4 relative overflow-hidden">
-                                                    <input 
-                                                        type="file" 
-                                                        accept="audio/mpeg" 
-                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-                                                        onChange={(e) => {
-                                                            const file = e.target.files?.[0];
-                                                            if (file) {
-                                                                if (file.size > 150 * 1024 * 1024) {
-                                                                    showNotification("Le fichier est trop volumineux. La limite est de 150 Mo.", 'error');
-                                                                    return;
-                                                                }
-                                                                setSelectedAudioFile(file);
-                                                                setIsUploadModalOpen(true);
-                                                            }
-                                                        }}
-                                                    />
-                                                    <UploadCloud className="w-12 h-12 text-neon-purple/50 group-hover:text-neon-purple transition-colors group-hover:-translate-y-1 transform duration-300" />
-                                                    <div>
-                                                        <p className="text-xs font-black text-white uppercase tracking-widest mb-1 group-hover:text-neon-purple transition-colors">Uploader un nouveau {uploadType}</p>
-                                                        <p className="text-[10px] text-gray-400 font-bold uppercase italic">Format MP3 uniquement - Max 150 Mo</p>
-                                                    </div>
-                                                </div>
+                                                {(() => {
+                                                    const style = getCategoryStyle(uploadType);
+                                                    return (
+                                                        <div className={`p-8 border-2 border-dashed ${style.borderDashed} ${style.bgBg} rounded-[32px] text-center ${style.hoverBg} ${style.hoverBorder} transition-all cursor-pointer group flex flex-col items-center gap-4 relative overflow-hidden`}>
+                                                            <input 
+                                                                type="file" 
+                                                                accept="audio/mpeg" 
+                                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (file) {
+                                                                        if (file.size > 150 * 1024 * 1024) {
+                                                                            showNotification("Le fichier est trop volumineux. La limite est de 150 Mo.", 'error');
+                                                                            return;
+                                                                        }
+                                                                        setSelectedAudioFile(file);
+                                                                        setIsUploadModalOpen(true);
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <UploadCloud className={`w-12 h-12 ${style.textMuted} ${style.groupHoverText} transition-colors group-hover:-translate-y-1 transform duration-300`} />
+                                                            <div>
+                                                                <p className={`text-xs font-black text-white uppercase tracking-widest mb-1 ${style.groupHoverText} transition-colors`}>Uploader un nouveau {uploadType}</p>
+                                                                <p className="text-[10px] text-gray-400 font-bold uppercase italic">Format MP3 uniquement - Max 150 Mo</p>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </>
                                         ) : (
                                             <div className="p-10 border-2 border-dashed border-white/10 rounded-[32px] text-center space-y-6">
@@ -666,7 +758,7 @@ export function Profile() {
                                                     <h4 className="text-sm font-black text-white uppercase tracking-widest italic">Accès Restreint</h4>
                                                     <p className="text-[10px] text-gray-500 font-bold uppercase italic max-w-xs mx-auto leading-relaxed">
                                                         L'ajout de mixes au Studio est réservé aux membres autorisés par l'équipe Dropsiders.
-                                                    </p>
+                                                     </p>
                                                 </div>
                                                 
                                                 {user?.mixStatus === 'pending' ? (
@@ -689,41 +781,44 @@ export function Profile() {
                                             
                                             {userMixes.length > 0 ? (
                                                 <div className="space-y-3">
-                                                    {userMixes.map((mix) => (
-                                                        <div key={mix.id} className="group p-4 bg-white/5 border border-white/5 hover:border-neon-purple/30 rounded-2xl flex items-center justify-between transition-all hover:bg-neon-purple/5">
-                                                            <div className="flex items-center gap-4">
-                                                                <button className="w-10 h-10 bg-neon-purple/20 text-neon-purple rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                                    <PlayCircle className="w-5 h-5 shadow-[0_0_10px_rgba(191,0,255,0.5)]" />
-                                                                </button>
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-neon-purple uppercase tracking-widest">{mix.type}</p>
-                                                                    <h5 className="text-xs font-bold text-white uppercase italic">{mix.title}</h5>
-                                                                    <p className="text-[8px] text-gray-500 font-bold uppercase">{mix.genre ? `${mix.genre} · ` : ''}{mix.duration}</p>
+                                                    {userMixes.map((mix) => {
+                                                        const style = getCategoryStyle(mix.type);
+                                                        return (
+                                                            <div key={mix.id} className={`group p-4 bg-white/5 border border-white/5 ${style.cardBorder} rounded-2xl flex items-center justify-between transition-all ${style.hoverBgCard}`}>
+                                                                <div className="flex items-center gap-4">
+                                                                    <button className={`w-10 h-10 ${style.bgLight} ${style.text} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                                                                        <PlayCircle className={`w-5 h-5 ${style.playIconGlow}`} />
+                                                                    </button>
+                                                                    <div>
+                                                                        <p className={`text-[10px] font-black ${style.text} uppercase tracking-widest`}>{mix.type}</p>
+                                                                        <h5 className="text-xs font-bold text-white uppercase italic">{mix.title}</h5>
+                                                                        <p className="text-[8px] text-gray-500 font-bold uppercase">{mix.genre ? `${mix.genre} · ` : ''}{mix.duration}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    {mix.allowDownload && mix.audioUrl && (
+                                                                        <a
+                                                                            href={mix.audioUrl}
+                                                                            download={`${mix.title}.mp3`}
+                                                                            className={`w-10 h-10 border ${style.borderLight} ${style.bgBg} hover:${style.bgLight} hover:${style.border} ${style.text} transition-all flex items-center justify-center opacity-0 group-hover:opacity-100`}
+                                                                            title="Télécharger"
+                                                                            onClick={e => e.stopPropagation()}
+                                                                        >
+                                                                            <DownloadCloud className="w-4 h-4" />
+                                                                        </a>
+                                                                    )}
+                                                                    <button 
+                                                                        onClick={() => setDeleteTargetId(mix.id)}
+                                                                        className="w-10 h-10 border border-red-500/10 bg-red-500/5 hover:bg-red-500/20 hover:border-red-500/30 rounded-xl flex items-center justify-center text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                                                                        title="Supprimer définitivement"
+                                                                    >
+                                                                        <X className="w-4 h-4" />
+                                                                    </button>
+                                                                    <div className="text-[8px] text-gray-600 font-bold uppercase hidden sm:block">{mix.uploadDate}</div>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex items-center gap-2">
-                                                                {mix.allowDownload && mix.audioUrl && (
-                                                                    <a
-                                                                        href={mix.audioUrl}
-                                                                        download={`${mix.title}.mp3`}
-                                                                        className="w-10 h-10 border border-neon-purple/20 bg-neon-purple/5 hover:bg-neon-purple/20 hover:border-neon-purple/40 rounded-xl flex items-center justify-center text-neon-purple transition-all opacity-0 group-hover:opacity-100"
-                                                                        title="Télécharger"
-                                                                        onClick={e => e.stopPropagation()}
-                                                                    >
-                                                                        <DownloadCloud className="w-4 h-4" />
-                                                                    </a>
-                                                                )}
-                                                                <button 
-                                                                    onClick={() => setDeleteTargetId(mix.id)}
-                                                                    className="w-10 h-10 border border-red-500/10 bg-red-500/5 hover:bg-red-500/20 hover:border-red-500/30 rounded-xl flex items-center justify-center text-red-500 transition-all opacity-0 group-hover:opacity-100"
-                                                                    title="Supprimer définitivement"
-                                                                >
-                                                                    <X className="w-4 h-4" />
-                                                                </button>
-                                                                <div className="text-[8px] text-gray-600 font-bold uppercase hidden sm:block">{mix.uploadDate}</div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             ) : (
                                                 <div className="text-center py-10 opacity-50 bg-white/5 rounded-3xl border border-white/5 border-dashed">
