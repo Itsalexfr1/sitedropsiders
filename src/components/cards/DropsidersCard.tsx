@@ -801,8 +801,6 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                         </div>
                                     )}
                                 </div>
-                                    )}
-                                </div>
 
                                 {/* 6. CARD FOOTER INFO */}
                                 <div className={`border-t border-[#9e8853]/40 mt-1.5 pt-1 flex justify-between items-center font-sans font-black select-none ${theme.textColor}`} style={{ fontSize: Math.max(5, 6.5 * scale) }}>
