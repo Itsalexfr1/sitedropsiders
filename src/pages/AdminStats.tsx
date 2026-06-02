@@ -280,6 +280,7 @@ export function AdminStats() {
 
         // 1. Filter Timeline based on period
         const filteredTimeline = (serverStats.timeline || []).slice(-period);
+        const periodVisits = filteredTimeline.reduce((sum: number, item: any) => sum + (item.value || 0), 0);
 
         // 2. Calculate Top Performance from real data
         const allContent = [
@@ -326,6 +327,7 @@ export function AdminStats() {
         return {
             ...serverStats,
             timeline: filteredTimeline,
+            periodVisits,
             topArticles,
             styles,
             tech,
@@ -405,9 +407,9 @@ export function AdminStats() {
                         </div>
                         <div className="grid grid-cols-3 gap-4">
                             {[
-                                { label: 'Visites Total', val: stats.totalVisits.toLocaleString(), color: 'text-white' },
-                                { label: 'Online Now', val: stats.onlineUsers, color: 'text-green-500' },
-                                { label: 'Période', val: period + ' Jours', color: 'text-neon-blue' }
+                                { label: 'Visites Période', val: stats.periodVisits.toLocaleString(), color: 'text-neon-blue' },
+                                { label: 'En Ligne', val: stats.onlineUsers, color: 'text-green-500' },
+                                { label: 'Total Global', val: stats.totalVisits.toLocaleString(), color: 'text-white' }
                             ].map((h, i) => (
                                 <div key={i} className="px-6 py-4 bg-white/5 border border-white/10 rounded-3xl text-center">
                                     <div className={`text-xl font-display font-black italic ${h.color}`}>{h.val}</div>
