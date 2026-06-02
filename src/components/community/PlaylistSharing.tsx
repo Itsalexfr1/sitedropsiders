@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Heart, Music2, ExternalLink, User, Clock, Send, CheckCircle, Play, Loader2, Disc3 } from 'lucide-react';
-import { CustomMixPlayer } from '../widgets/CustomMixPlayer';
+import { useNavigate } from 'react-router-dom';
 
 type PlaylistEntry = {
     id: string;
@@ -49,6 +49,7 @@ function toEmbedUrl(url: string, type: string): string {
 }
 
 export function PlaylistSharing() {
+    const navigate = useNavigate();
     const [entries, setEntries] = useState<PlaylistEntry[]>(getEntries);
     const [liked, setLiked] = useState<Set<string>>(getLiked);
     const [showForm, setShowForm] = useState(false);
@@ -58,7 +59,6 @@ export function PlaylistSharing() {
     const [activeTab, setActiveTab] = useState<'links' | 'uploads'>('links');
     const [communityMixes, setCommunityMixes] = useState<any[]>([]);
     const [loadingCommunity, setLoadingCommunity] = useState(false);
-    const [activeMix, setActiveMix] = useState<any | null>(null);
     const [likedMixes, setLikedMixes] = useState<Set<string>>(() => {
         try {
             return new Set(JSON.parse(localStorage.getItem('dropsiders_mix_likes') || '[]'));
@@ -431,15 +431,11 @@ export function PlaylistSharing() {
                                     {/* Action Player Button */}
                                     <div className="pt-2">
                                         <button
-                                            onClick={() => setActiveMix(activeMix?.id === mix.id ? null : mix)}
-                                            className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2.5 transition-all ${
-                                                activeMix?.id === mix.id
-                                                    ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,51,0.5)] border-transparent'
-                                                    : 'bg-white/5 border border-white/10 hover:border-white/20 text-white/60 hover:text-white'
-                                            }`}
+                                            onClick={() => navigate(`/profil?tab=mixes&play=${mix.id}`)}
+                                            className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2.5 transition-all bg-white/5 border border-white/10 hover:border-neon-purple/40 hover:bg-neon-purple/10 text-white/60 hover:text-white"
                                         >
                                             <Play className="w-4 h-4 fill-current ml-0.5" />
-                                            {activeMix?.id === mix.id ? 'LECTEUR OUVERT (CLIQUE POUR FERMER)' : 'ÉCOUTER LE MIX'}
+                                            ÉCOUTER LE MIX
                                         </button>
                                     </div>
                                 </motion.div>
@@ -449,32 +445,7 @@ export function PlaylistSharing() {
                 </div>
             )}
 
-            {/* Floating Premium DJ Mix Player */}
-            <AnimatePresence>
-                {activeMix && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 50, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 30, scale: 0.95 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="fixed bottom-6 right-6 w-[calc(100vw-3rem)] max-w-[420px] z-[999] shadow-[0_25px_60px_rgba(0,0,0,0.85)] border border-white/10 rounded-[2.5rem] overflow-hidden"
-                    >
-                        <CustomMixPlayer
-                            track={{
-                                id: activeMix.id,
-                                title: activeMix.title,
-                                artist: activeMix.username || 'Dropsider',
-                                label: activeMix.genre || activeMix.type,
-                                url: activeMix.audioUrl || activeMix.url || '',
-                                // Only pass embedUrl for real SC/YT embeds, NOT for direct audio files
-                                embedUrl: activeMix.embedUrl && !activeMix.audioUrl ? activeMix.embedUrl : undefined,
-                                tracks: activeMix.tracklist || [],
-                            }}
-                            onClose={() => setActiveMix(null)}
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
         </div>
     );
 }

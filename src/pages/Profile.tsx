@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, DownloadCloud, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight, BarChart2 } from 'lucide-react';
 import { CustomMixPlayer } from '../components/widgets/CustomMixPlayer';
 import { useUser, type DropsidersCard } from '../context/UserContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { MixUploadModal } from '../components/profile/MixUploadModal';
@@ -134,6 +134,7 @@ export function Profile() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [mixStudioTab, setMixStudioTab] = useState<'mixes' | 'stats'>('mixes');
     const [activeMixPlayer, setActiveMixPlayer] = useState<any | null>(null);
+    const [pendingPlayId, setPendingPlayId] = useState<string | null>(null);
 
     const [cardSearch, setCardSearch] = useState('');
     const [cardRarityFilter, setCardRarityFilter] = useState<'all' | 'legendary' | 'epic' | 'rare' | 'common'>('all');
@@ -172,6 +173,45 @@ export function Profile() {
                 .catch(err => console.error("Failed to load mixes", err));
         }
     }, [isLoggedIn, navigate, user?.email]);
+
+    const location = useLocation();
+
+    // On mount: read URL params ?tab=mixes&play=<mixId> (set by community redirects)
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tabParam = params.get('tab');
+        const playParam = params.get('play');
+        if (tabParam === 'mixes') {
+            setActiveTab('mixes');
+        }
+        if (playParam) {
+            setPendingPlayId(playParam);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.search]);
+
+    // Once userMixes loads, resolve pendingPlayId and autoplay
+    useEffect(() => {
+        if (!pendingPlayId) return;
+        // Search in user's own mixes first
+        const ownMix = userMixes.find((m: any) => m.id === pendingPlayId);
+        if (ownMix) {
+            setActiveMixPlayer(ownMix);
+            setPendingPlayId(null);
+            return;
+        }
+        // If not found AND userMixes already loaded, search community mixes
+        if (userMixes.length > 0 || !user?.email) {
+            fetch('/api/community/mixes')
+                .then(r => r.json())
+                .then((mixes: any[]) => {
+                    const communityMix = mixes.find((m: any) => m.id === pendingPlayId);
+                    if (communityMix) setActiveMixPlayer(communityMix);
+                })
+                .catch(() => {})
+                .finally(() => setPendingPlayId(null));
+        }
+    }, [pendingPlayId, userMixes, user?.email]);
 
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -809,37 +849,36 @@ export function Profile() {
                                         <div className="space-y-4 pt-4 border-t border-white/5">
                                             <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Mes Mixes Publics</h4>
                                             
+                                            {/* Active Player - always visible when a mix is selected, even from community */}
+                                            <AnimatePresence>
+                                                {activeMixPlayer && (
+                                                    <motion.div
+                                                        key={activeMixPlayer.id}
+                                                        initial={{ opacity: 0, y: -20, scale: 0.97 }}
+                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                        exit={{ opacity: 0, y: -10, scale: 0.97 }}
+                                                        transition={{ duration: 0.35, ease: 'easeOut' }}
+                                                        className="mb-4"
+                                                    >
+                                                        <CustomMixPlayer
+                                                            track={{
+                                                                id: activeMixPlayer.id,
+                                                                title: activeMixPlayer.title,
+                                                                artist: activeMixPlayer.username || user?.username || 'Dropsider',
+                                                                label: activeMixPlayer.genre || activeMixPlayer.type,
+                                                                url: activeMixPlayer.audioUrl || activeMixPlayer.url || '',
+                                                                embedUrl: activeMixPlayer.embedUrl && !activeMixPlayer.audioUrl ? activeMixPlayer.embedUrl : undefined,
+                                                                tracks: activeMixPlayer.tracklist || [],
+                                                            }}
+                                                            onClose={() => setActiveMixPlayer(null)}
+                                                        />
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+
+                                            {/* Mix Cards List */}
                                             {userMixes.length > 0 ? (
                                                 <div className="space-y-4">
-                                                    {/* Active Player */}
-                                                    <AnimatePresence>
-                                                        {activeMixPlayer && (
-                                                            <motion.div
-                                                                key={activeMixPlayer.id}
-                                                                initial={{ opacity: 0, y: -20, scale: 0.97 }}
-                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                                exit={{ opacity: 0, y: -10, scale: 0.97 }}
-                                                                transition={{ duration: 0.35, ease: 'easeOut' }}
-                                                                className="mb-2"
-                                                            >
-                                                                <CustomMixPlayer
-                                                                    track={{
-                                                                        id: activeMixPlayer.id,
-                                                                        title: activeMixPlayer.title,
-                                                                        artist: user?.username || 'Dropsider',
-                                                                        label: activeMixPlayer.genre || activeMixPlayer.type,
-                                                                        url: activeMixPlayer.audioUrl || activeMixPlayer.url || '',
-                                                                        // Only pass embedUrl for real SC/YT, NOT for direct R2 audio
-                                                                        embedUrl: activeMixPlayer.embedUrl && !activeMixPlayer.audioUrl ? activeMixPlayer.embedUrl : undefined,
-                                                                        tracks: activeMixPlayer.tracklist || [],
-                                                                    }}
-                                                                    onClose={() => setActiveMixPlayer(null)}
-                                                                />
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
-
-                                                    {/* Mix Cards List */}
                                                     {userMixes.map((mix) => {
                                                         const style = getCategoryStyle(mix.type);
                                                         const isActive = activeMixPlayer?.id === mix.id;

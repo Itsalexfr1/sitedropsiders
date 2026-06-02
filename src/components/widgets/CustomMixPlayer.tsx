@@ -123,6 +123,9 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
     const audioRef = useRef<HTMLAudioElement>(null); // points to native <audio> element in JSX
     const visualizerIntervalRef = useRef<any>(null);
     const [visualizerBars, setVisualizerBars] = useState<number[]>(new Array(16).fill(5));
+    // Seek drag fix: freeze onTimeUpdate while the user is dragging the seek bar
+    const isSeekingRef = useRef(false);
+    const seekingValueRef = useRef(0);
 
     // Detect source type based on embedUrl AND url
     const isSoundCloud = !!track.embedUrl?.includes('soundcloud.com');
@@ -718,7 +721,7 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
                     onEnded={() => setIsPlaying(false)}
-                    onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                    onTimeUpdate={(e) => { if (!isSeekingRef.current) setCurrentTime(e.currentTarget.currentTime); }}
                     onDurationChange={(e) => {
                         const dur = e.currentTarget.duration;
                         setDuration(isFinite(dur) ? dur : 0);
@@ -946,7 +949,21 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
                                     min={0}
                                     max={duration || 100}
                                     value={currentTime}
-                                    onChange={(e) => handleSeekToSeconds(parseFloat(e.target.value))}
+                                    onMouseDown={() => { isSeekingRef.current = true; }}
+                                    onTouchStart={() => { isSeekingRef.current = true; }}
+                                    onChange={(e) => {
+                                        const val = parseFloat(e.target.value);
+                                        seekingValueRef.current = val;
+                                        setCurrentTime(val); // Update UI immediately while dragging
+                                    }}
+                                    onMouseUp={(e) => {
+                                        isSeekingRef.current = false;
+                                        handleSeekToSeconds(parseFloat((e.target as HTMLInputElement).value));
+                                    }}
+                                    onTouchEnd={() => {
+                                        isSeekingRef.current = false;
+                                        handleSeekToSeconds(seekingValueRef.current);
+                                    }}
                                     className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer focus:outline-none accent-neon-purple [&::-webkit-slider-runnable-track]:bg-white/10 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:bg-neon-purple [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(168,85,247,0.8)]"
                                 />
                                 <div 

@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Heart, Loader2, Disc3 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { useNavigate } from 'react-router-dom';
 import spotifyData from '../../data/spotify.json';
-import { CustomMixPlayer } from './CustomMixPlayer';
 
 /**
  * Converts any Spotify URL to a valid embed URL.
@@ -48,16 +48,16 @@ export function SpotifyWidget({
 }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t } = useLanguage();
+    const navigate = useNavigate();
     const [playlists, setPlaylists] = useState<any[]>([]);
     const [playingWidget, setPlayingWidget] = useState<number | null>(null);
     const hoveredRef = useRef<number | null>(null);
     const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // New state for community tab integration
-    const [activeTab, setActiveTab] = useState<'spotify' | 'community'>('spotify');
+    const [activeTab, setActiveTab] = useState<'playlists' | 'community'>('playlists');
     const [communityMixes, setCommunityMixes] = useState<any[]>([]);
     const [loadingCommunity, setLoadingCommunity] = useState(false);
-    const [activeMix, setActiveMix] = useState<any | null>(null);
     const [likedMixes, setLikedMixes] = useState<Set<string>>(() => {
         try {
             return new Set(JSON.parse(localStorage.getItem('dropsiders_mix_likes') || '[]'));
@@ -178,18 +178,18 @@ export function SpotifyWidget({
                         <span
                             className="w-2 h-2 rounded-full animate-pulse"
                             style={{
-                                backgroundColor: activeTab === 'spotify' ? (activePlaylists[0]?.color || color) : 'var(--color-neon-purple)',
-                                boxShadow: `0 0 15px ${activeTab === 'spotify' ? (activePlaylists[0]?.color || color) : 'var(--color-neon-purple)'}`
+                                backgroundColor: activeTab === 'playlists' ? (activePlaylists[0]?.color || color) : 'var(--color-neon-purple)',
+                                boxShadow: `0 0 15px ${activeTab === 'playlists' ? (activePlaylists[0]?.color || color) : 'var(--color-neon-purple)'}`
                             }}
                         />
-                        {activeTab === 'spotify' ? t('home.playlists_title') : 'Mixes de la Communauté'}
+                        {activeTab === 'playlists' ? t('home.playlists_title') : 'Mixes de la Communauté'}
                     </h3>
                     
                     <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 w-fit shrink-0 z-20">
                         <button
-                            onClick={() => setActiveTab('spotify')}
+                            onClick={() => setActiveTab('playlists')}
                             className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                activeTab === 'spotify' 
+                                activeTab === 'playlists' 
                                     ? 'bg-white text-black shadow-lg font-black' 
                                     : 'text-gray-400 hover:text-white font-medium'
                             }`}
@@ -210,7 +210,7 @@ export function SpotifyWidget({
                 </div>
             )}
 
-            {activeTab === 'spotify' ? (
+            {activeTab === 'playlists' ? (
                 activePlaylists.length === 0 ? null : (
                     <div className={`flex gap-8 md:gap-16 overflow-x-auto py-8 px-6 sm:px-12 snap-x no-scrollbar relative z-10 ${activePlaylists.length <= 3 ? 'md:justify-center' : ''}`}>
                         {activePlaylists.map((playlist) => {
@@ -295,7 +295,7 @@ export function SpotifyWidget({
                                 <motion.div
                                     key={mix.id}
                                     whileHover={{ scale: 1.03 }}
-                                    onClick={() => setActiveMix(mix)}
+                                    onClick={() => navigate(`/profil?tab=mixes&play=${mix.id}`)}
                                     className="flex-none w-[280px] p-6 bg-white/[0.03] border border-white/10 rounded-[2.5rem] relative group cursor-pointer hover:border-neon-purple/40 hover:bg-white/[0.05] transition-all duration-300 snap-center"
                                 >
                                     <div className="flex flex-col h-full justify-between gap-6">
@@ -341,31 +341,7 @@ export function SpotifyWidget({
                         </div>
                     )}
 
-                    <AnimatePresence>
-                        {activeMix && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -10, scale: 0.98 }}
-                                transition={{ duration: 0.3, ease: 'easeOut' }}
-                                className="relative z-20"
-                            >
-                                <CustomMixPlayer
-                                    track={{
-                                        id: activeMix.id,
-                                        title: activeMix.title,
-                                        artist: activeMix.username || 'Dropsider',
-                                        label: activeMix.genre || activeMix.type,
-                                        url: activeMix.audioUrl || activeMix.url || '',
-                                        // Only pass embedUrl for real SC/YT, NOT for direct R2 audio
-                                        embedUrl: activeMix.embedUrl && !activeMix.audioUrl ? activeMix.embedUrl : undefined,
-                                        tracks: activeMix.tracklist || [],
-                                    }}
-                                    onClose={() => setActiveMix(null)}
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+
                 </div>
             )}
         </div>
