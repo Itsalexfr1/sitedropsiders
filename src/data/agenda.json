@@ -5107,5 +5107,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1019,
+    "title": "REINKARNATION w. Ephy Pinkman, ELOISA, DJ Mischkonsum, Technokool, MIMI404, Amo",
+    "date": "2026-07-10",
+    "startDate": "2026-07-10",
+    "endDate": "2026-07-10",
+    "venue": "://about blank ",
+    "location": "BERLIN",
+    "country": "ALLEMAGNE",
+    "type": "Events",
+    "image": "/uploads/uploads/b5f2b56d3ef74009-cbe9ab8296d81e4dc511de524270ce.webp",
+    "url": "https://fr.ra.co/events/2382649",
+    "genre": "Techno",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
