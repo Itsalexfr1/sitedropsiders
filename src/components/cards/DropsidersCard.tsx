@@ -692,35 +692,33 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                 <div className="flex items-end justify-between border-b border-[#a8905a]/50 pb-0.5">
                                     <div className="flex items-baseline gap-1">
                                         <span 
-                                            className="text-[5px] font-black uppercase tracking-tighter slanted opacity-90"
-                                            style={{ color: '#2c2c2c', textShadow: '0 1px 0px rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}
+                                            className={`text-[5px] font-black uppercase tracking-tighter slanted opacity-90 ${theme.textColor}`}
+                                            style={{ textShadow: theme.textColor === 'text-white' ? '0 1px 0px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.6)' : '0 1px 0px rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}
                                         >
                                             {theme.styleLabel}
                                         </span>
                                         <h3 
-                                            className="font-serif font-black uppercase italic tracking-tight leading-none"
+                                            className={`font-serif font-black uppercase italic tracking-tight leading-none ${theme.textColor}`}
                                             style={{
                                                 fontSize: Math.max(9, 13 * scale),
-                                                color: '#1a1a1a',
-                                                textShadow: '0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.7)'
+                                                textShadow: theme.textColor === 'text-white' ? '0 1px 0 rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.7)' : '0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.7)'
                                             }}
                                         >
                                             {card.name}
                                         </h3>
                                         <span 
-                                            className="font-sans font-bold tracking-tighter opacity-90" 
+                                            className={`font-sans font-bold tracking-tighter opacity-90 ${theme.textColor}`}
                                             style={{ 
                                                 fontSize: Math.max(6, 8 * scale),
-                                                color: '#2c2c2c',
-                                                textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)'
+                                                textShadow: theme.textColor === 'text-white' ? '0 1px 0 rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.6)' : '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)'
                                             }}
                                         >
                                             LV.{level}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <span className="font-serif font-black text-red-600 leading-none tracking-tighter" style={{ fontSize: Math.max(8, 12 * scale), textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                                            HP <span className="font-sans font-extrabold" style={{ fontSize: Math.max(9, 13 * scale), color: '#1a1a1a', textShadow: '0 1px 0 rgba(255,255,255,0.9), 0 2px 5px rgba(0,0,0,0.7)' }}>{hp}</span>
+                                        <span className="font-serif font-black text-red-500 leading-none tracking-tighter" style={{ fontSize: Math.max(8, 12 * scale), textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                                            HP <span className={`font-sans font-extrabold ${theme.textColor}`} style={{ fontSize: Math.max(9, 13 * scale), textShadow: theme.textColor === 'text-white' ? '0 1px 0 rgba(0,0,0,0.9), 0 2px 5px rgba(0,0,0,0.7)' : '0 1px 0 rgba(255,255,255,0.9), 0 2px 5px rgba(0,0,0,0.7)' }}>{hp}</span>
                                         </span>
                                         <EnergyBadge type={theme.energyType} />
                                     </div>
