@@ -6,6 +6,7 @@ import {
     Share2, Disc, ExternalLink, X, Clock, Sparkles, 
     Download, Video, Layers, Instagram, Twitter, Minimize2 
 } from 'lucide-react';
+import { ExportSuccessModal } from '../ExportSuccessModal';
 
 interface TrackItem {
     title: string;
@@ -917,6 +918,10 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
     };
 
     const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportBlob, setExportBlob] = useState<Blob | null>(null);
+    const [exportUrl, setExportUrl] = useState('');
+    const [exportFilename, setExportFilename] = useState('');
 
     const generateAndShareStoryImage = async () => {
         if (isGeneratingStory) return;
@@ -1011,28 +1016,13 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                 const ext = isMP4 ? 'mp4' : 'webm';
                 const safeTitle = track.title.replace(/[^a-z0-9]/gi, '_').substring(0, 20);
                 const fileName = `Dropsiders_Story_${safeTitle}.${ext}`;
-                const file = new File([blob], fileName, { type: blob.type });
+                const url = URL.createObjectURL(blob);
 
-                showToast("Story prête ! Le lien est copié. Importez-la dans Instagram ! 🔗✨");
+                setExportBlob(blob);
+                setExportUrl(url);
+                setExportFilename(fileName);
+                setShowExportModal(true);
 
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({
-                            files: [file],
-                            title: `${track.title} — Dropsiders`,
-                            text: `"${track.title}" par ${track.artist}\n🎧 Écoute sur dropsiders.fr`,
-                            url: shareUrl,
-                        });
-                    } catch (err: any) {
-                        if (err.name !== 'AbortError') {
-                            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-                            a.download = fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                        }
-                    }
-                } else {
-                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-                    a.download = fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                }
                 setIsGeneratingStory(false);
                 setClipProgress(0);
             };
@@ -1845,6 +1835,22 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                     </div>
                 )}
             </AnimatePresence>
+
+            <ExportSuccessModal 
+                isOpen={showExportModal && !!exportBlob} 
+                onClose={() => {
+                    if (exportUrl) URL.revokeObjectURL(exportUrl);
+                    setExportBlob(null);
+                    setExportUrl('');
+                    setShowExportModal(false);
+                }}
+                readyBlob={exportBlob}
+                readyUrl={exportUrl}
+                filename={exportFilename}
+                type="video"
+                title="STORY PRÊTE !"
+                subtitle="Partagez-la sur vos réseaux"
+            />
         </div>
     );
 }

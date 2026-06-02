@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePlayer } from '../../context/PlayerContext';
 import { CustomMixPlayer } from './CustomMixPlayer';
 import { Play, Pause, Maximize2, X, Music, Minimize2, SkipForward, SkipBack, Sparkles } from 'lucide-react';
+import { ExportSuccessModal } from '../ExportSuccessModal';
 
 export function GlobalPlayerContainer() {
     const { 
@@ -18,6 +19,12 @@ export function GlobalPlayerContainer() {
     const [isGeneratingStory, setIsGeneratingStory] = useState(false);
     const [storyProgress, setStoryProgress] = useState(0);
     const [toastMessage, setToastMessage] = useState('');
+    
+    // ExportSuccessModal state
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [exportBlob, setExportBlob] = useState<Blob | null>(null);
+    const [exportUrl, setExportUrl] = useState('');
+    const [exportFilename, setExportFilename] = useState('');
 
     const showToast = (msg: string) => {
         setToastMessage(msg);
@@ -26,11 +33,13 @@ export function GlobalPlayerContainer() {
 
     const generateMiniStory = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!activeTrack || isGeneratingStory) return;
-        setIsGeneratingStory(true);
-        setStoryProgress(0);
+        if (!activeTrack) return;
 
         const shareUrl = `https://dropsiders.fr/profil?tab=mixes&play=${activeTrack.id}`;
+
+        if (isGeneratingStory) return;
+        setIsGeneratingStory(true);
+        setStoryProgress(0);
 
         // ── Step 1: Copy link to clipboard immediately ──
         try {
@@ -118,28 +127,13 @@ export function GlobalPlayerContainer() {
                 const ext = isMP4 ? 'mp4' : 'webm';
                 const safeTitle = activeTrack.title.replace(/[^a-z0-9]/gi, '_').substring(0, 20);
                 const fileName = `Dropsiders_Story_${safeTitle}.${ext}`;
-                const file = new File([blob], fileName, { type: blob.type });
+                const url = URL.createObjectURL(blob);
 
-                showToast("Story prête ! Le lien est copié. Importez-la dans Instagram ! 🔗✨");
+                setExportBlob(blob);
+                setExportUrl(url);
+                setExportFilename(fileName);
+                setShowExportModal(true);
 
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({
-                            files: [file],
-                            title: `${activeTrack.title} — Dropsiders`,
-                            text: `"${activeTrack.title}" par ${activeTrack.artist}\n🎧 Écoute sur dropsiders.fr`,
-                            url: shareUrl,
-                        });
-                    } catch (err: any) {
-                        if (err.name !== 'AbortError') {
-                            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-                            a.download = fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                        }
-                    }
-                } else {
-                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-                    a.download = fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                }
                 setIsGeneratingStory(false);
                 setStoryProgress(0);
             };
@@ -583,6 +577,22 @@ export function GlobalPlayerContainer() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <ExportSuccessModal 
+                isOpen={showExportModal && !!exportBlob} 
+                onClose={() => {
+                    if (exportUrl) URL.revokeObjectURL(exportUrl);
+                    setExportBlob(null);
+                    setExportUrl('');
+                    setShowExportModal(false);
+                }}
+                readyBlob={exportBlob}
+                readyUrl={exportUrl}
+                filename={exportFilename}
+                type="video"
+                title="STORY PRÊTE !"
+                subtitle="Partagez-la sur vos réseaux"
+            />
         </>
     );
 }
