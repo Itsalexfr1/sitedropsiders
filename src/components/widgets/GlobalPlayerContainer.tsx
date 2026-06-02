@@ -14,12 +14,12 @@ export function GlobalPlayerContainer() {
         duration,
         seekTo
     } = usePlayer();
-    const [isMinimized, setIsMinimized] = useState(false);
+    const [isMinimized, setIsMinimized] = useState(true);
 
-    // Auto-maximize on new track/mix change
+    // Auto-minimize (open mini-player) on new track/mix change
     useEffect(() => {
         if (activeTrack) {
-            setIsMinimized(false);
+            setIsMinimized(true);
         }
     }, [activeTrack?.id]);
 
