@@ -85,6 +85,7 @@ import { translateText } from "../utils/translate";
 import { SocialSuite } from "../components/SocialSuite";
 import { ModerationModal } from "../components/admin/ModerationModal";
 import { AdminMembersList } from "../components/admin/AdminMembersList";
+import { AdminChat } from "../components/admin/AdminChat";
 
 import { PubliGenerator } from "../components/admin/PubliGenerator";
 import { TracklistModal } from "../components/admin/TracklistModal";
@@ -13585,6 +13586,7 @@ export function AdminDashboard() {
               </div>
             )}
           </AnimatePresence>
+          <AdminChat />
         </div>
       </div>
     </div>

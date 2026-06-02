@@ -258,7 +258,7 @@ export function Footer() {
                 {/* Powered By Section */}
                 <div className="mt-12 pt-8 border-t border-white/5 flex justify-center">
                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] flex items-center gap-2">
-                        Powered by <span className="text-neon-red">WebSiders</span>
+                        Powered by <span className="text-neon-red">Dropsiders</span>
                     </p>
                 </div>
             </div>

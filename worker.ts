@@ -4521,6 +4521,47 @@ ${urls.map(u => `  <url>
                 }
             } catch (e: any) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
+
+        // --- API: ADMIN CHAT ---
+        if (path === '/api/admin/chat' && request.method === 'GET') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            try {
+                const chatData = await env.CHAT_KV.get('admin_chat') || '[]';
+                return new Response(chatData, { status: 200, headers });
+            } catch (e: any) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
+        if (path === '/api/admin/chat' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            try {
+                const body = await request.json();
+                if (!body.text) return new Response(JSON.stringify({ error: 'Message empty' }), { status: 400, headers });
+                
+                const pseudo = request.headers.get('x-admin-user') || 'Admin';
+                const msg = {
+                    id: Date.now().toString(),
+                    pseudo,
+                    text: body.text,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const existingRaw = await env.CHAT_KV.get('admin_chat') || '[]';
+                const existing = JSON.parse(existingRaw);
+                existing.push(msg);
+                
+                // Keep last 50 messages
+                if (existing.length > 50) existing.shift();
+                
+                await env.CHAT_KV.put('admin_chat', JSON.stringify(existing));
+                return new Response(JSON.stringify({ success: true, message: msg }), { status: 200, headers });
+            } catch (e: any) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
+        if (path === '/api/admin/chat/clear' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            try {
+                await env.CHAT_KV.delete('admin_chat');
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
         
         // --- API: CLEAN ENCODING ---
         if (path === '/api/admin/clean-encoding' && request.method === 'POST') {
@@ -5038,16 +5079,20 @@ ${urls.map(u => `  <url>
                     ...(attachments.length > 0 ? { attachment: attachments } : {})
                 };
 
-                const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
-                    method: 'POST',
-                    headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                let brevoOk = true;
+                if (!skipEmail) {
+                    const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+                        method: 'POST',
+                        headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
 
-                if (!brevoRes.ok) {
-                    const errText = await brevoRes.text();
-                    console.error('Brevo API Error (Facture):', errText);
-                    return new Response(JSON.stringify({ error: "Erreur lors de l'envoi: " + errText }), { status: 500, headers });
+                    if (!brevoRes.ok) {
+                        const errText = await brevoRes.text();
+                        console.error('Brevo API Error (Facture):', errText);
+                        brevoOk = false;
+                        return new Response(JSON.stringify({ error: "Erreur lors de l'envoi: " + errText }), { status: 500, headers });
+                    }
                 }
 
                 // Upload PDF to R2

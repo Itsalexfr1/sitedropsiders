@@ -1932,6 +1932,10 @@ const TakeoverContent = ({ initialSettings }: { initialSettings?: any }) => {
         const pseudo = localStorage.getItem('chat_pseudo') || (isMod ? "ALEX_FR1" : "VISITEUR");
         let messageText = messageToSend.trim();
 
+        if (messageText.toLowerCase().startsWith('!voter')) {
+            triggerBooster();
+        }
+
         // 🚨 Auto-Mod Intelligence
         if (!isMod) {
             const badWords = ['pd', 'fdp', 'salope', 'connard', 'pute', 'enculé', 'merde', 'tg', 'ta gueule', 'hitler', 'nazi'];

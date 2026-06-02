@@ -168,6 +168,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
+    const selectionRef = useRef({ start: 0, end: 0 });
     const dragControls = useDragControls();
     const [isTakeoverLoading, setIsTakeoverLoading] = useState(false);
     const [takeoverData, setTakeoverData] = useState<{ lineup: any[], streams: any[] } | null>(null);
@@ -193,8 +194,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const handleTextStyler = (type: 'C' | 'B', value: string) => {
         if (!textAreaRef.current) return;
-        const start = selection.start;
-        const end = selection.end;
+        const start = selectionRef.current.start;
+        const end = selectionRef.current.end;
 
         if (start === end) {
             if (type === 'C') setTextColor(value);
@@ -2385,7 +2386,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <textarea
                 ref={textAreaRef}
                 value={customText}
-                onSelect={(e) => { const t = e.target as HTMLTextAreaElement; setSelection({ start: t.selectionStart, end: t.selectionEnd }); }}
+                onSelect={(e) => { 
+                    const t = e.target as HTMLTextAreaElement; 
+                    setSelection({ start: t.selectionStart, end: t.selectionEnd }); 
+                    selectionRef.current = { start: t.selectionStart, end: t.selectionEnd };
+                }}
                 onChange={e => setCustomText(e.target.value.slice(0, 1100))}
                 placeholder="VOTRE TEXTE..."
                 spellCheck="true"

@@ -692,8 +692,8 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                 <div className="flex items-end justify-between border-b border-[#a8905a]/50 pb-0.5">
                                     <div className="flex items-baseline gap-1">
                                         <span 
-                                            className="text-[5px] font-black uppercase tracking-tighter slanted opacity-85"
-                                            style={{ color: theme.textColor === 'text-black' ? '#000000' : '#ffffff' }}
+                                            className="text-[5px] font-black uppercase tracking-tighter slanted opacity-90"
+                                            style={{ color: '#2c2c2c', textShadow: '0 1px 0px rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}
                                         >
                                             {theme.styleLabel}
                                         </span>
@@ -701,27 +701,26 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                             className="font-serif font-black uppercase italic tracking-tight leading-none"
                                             style={{
                                                 fontSize: Math.max(9, 13 * scale),
-                                                color: theme.textColor === 'text-black' ? '#000000' : '#ffffff',
-                                                textShadow: (theme.energyType === 'house' || theme.energyType === 'edm' || theme.energyType === 'hardstyle')
-                                                    ? '0 1px 3px rgba(0,0,0,0.35)'
-                                                    : 'none'
+                                                color: '#1a1a1a',
+                                                textShadow: '0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.7)'
                                             }}
                                         >
                                             {card.name}
                                         </h3>
                                         <span 
-                                            className="font-sans font-bold tracking-tighter opacity-70" 
+                                            className="font-sans font-bold tracking-tighter opacity-90" 
                                             style={{ 
                                                 fontSize: Math.max(6, 8 * scale),
-                                                color: theme.textColor === 'text-black' ? '#000000' : '#ffffff'
+                                                color: '#2c2c2c',
+                                                textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)'
                                             }}
                                         >
                                             LV.{level}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <span className="font-serif font-black text-red-600 leading-none tracking-tighter" style={{ fontSize: Math.max(8, 12 * scale) }}>
-                                            HP <span className="font-sans font-extrabold" style={{ fontSize: Math.max(9, 13 * scale), color: theme.textColor === 'text-black' ? '#000000' : '#ffffff' }}>{hp}</span>
+                                        <span className="font-serif font-black text-red-600 leading-none tracking-tighter" style={{ fontSize: Math.max(8, 12 * scale), textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                                            HP <span className="font-sans font-extrabold" style={{ fontSize: Math.max(9, 13 * scale), color: '#1a1a1a', textShadow: '0 1px 0 rgba(255,255,255,0.9), 0 2px 5px rgba(0,0,0,0.7)' }}>{hp}</span>
                                         </span>
                                         <EnergyBadge type={theme.energyType} />
                                     </div>
@@ -746,7 +745,7 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                         background: `linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent)`,
                                     }}
                                 >
-                                    <p className={`font-serif italic font-bold tracking-tight uppercase ${theme.subBarText}`} style={{ fontSize: Math.max(5, 7 * scale) }}>
+                                    <p className={`font-serif italic font-bold tracking-tight uppercase`} style={{ fontSize: Math.max(5, 7 * scale), color: '#2c2c2c', textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}>
                                         N° {card.djmag_rank.toString().padStart(3, '0')} · {card.type === 'festival' ? 'Festival' : card.type === 'dj' ? 'DJ' : 'Club'} · {card.city}, {card.country}
                                     </p>
                                 </div>
@@ -760,11 +759,11 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                                     <div className="flex gap-0.5 select-none">
                                                         {att.cost.map((c, i) => <EnergyBadge key={i} type={c === 'star' ? 'star' : theme.energyType} />)}
                                                     </div>
-                                                    <h4 className={`font-sans font-black tracking-tight ml-1 leading-none uppercase ${theme.textColor}`} style={{ fontSize: Math.max(7, 10 * scale) }}>
+                                                    <h4 className={`font-sans font-black tracking-tight ml-1 leading-none uppercase`} style={{ fontSize: Math.max(7, 10 * scale), color: '#1a1a1a', textShadow: '0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.7)' }}>
                                                         {att.name}
                                                     </h4>
                                                 </div>
-                                                <span className={`font-sans font-black leading-none ${theme.textColor}`} style={{ fontSize: Math.max(8, 11 * scale) }}>
+                                                <span className={`font-sans font-black leading-none`} style={{ fontSize: Math.max(8, 11 * scale), color: '#1a1a1a', textShadow: '0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.7)' }}>
                                                     {att.damage}
                                                 </span>
                                             </div>
@@ -776,28 +775,32 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                 <div className="mt-auto border-t border-[#c2b085]/60 pt-1 px-1 flex flex-col items-center w-full">
                                     {card.type === 'dj' ? (
                                         <div className="w-full px-1">
-                                            <p className={`font-serif italic font-bold text-center leading-normal ${theme.textColor}`} style={{ fontSize: Math.max(5, 7 * scale) }}>
-                                                Top 3 des titres les plus écoutés :
-                                            </p>
-                                            <div className={`font-sans font-medium text-center leading-tight mt-0.5 opacity-80 ${theme.subBarText}`} style={{ fontSize: Math.max(4.5, 6 * scale) }}>
-                                                <p>1. {card.top_tracks?.[0] || 'Titre Inconnu 1'}</p>
-                                                <p>2. {card.top_tracks?.[1] || 'Titre Inconnu 2'}</p>
-                                                <p>3. {card.top_tracks?.[2] || 'Titre Inconnu 3'}</p>
-                                            </div>
+                                            {(card.top_tracks && card.top_tracks.length > 0) && (
+                                                <>
+                                                    <p className={`font-serif italic font-bold text-center leading-normal`} style={{ fontSize: Math.max(5, 7 * scale), color: '#2c2c2c', textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}>
+                                                        Top 3 des titres les plus écoutés :
+                                                    </p>
+                                                    <div className={`font-sans font-medium text-center leading-tight mt-0.5 opacity-90`} style={{ fontSize: Math.max(4.5, 6 * scale), color: '#2c2c2c', textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}>
+                                                        {card.top_tracks.slice(0,3).map((t, i) => <p key={i}>{i + 1}. {t}</p>)}
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="w-full px-1 flex flex-col items-center gap-0.5">
                                             {card.attendees_label && (
-                                                <p className={`font-sans font-black text-center leading-tight ${theme.textColor}`} style={{ fontSize: Math.max(4.5, 6.5 * scale) }}>
+                                                <p className={`font-sans font-black text-center leading-tight`} style={{ fontSize: Math.max(4.5, 6.5 * scale), color: '#2c2c2c', textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}>
                                                     🎟 {card.attendees_label}
                                                 </p>
                                             )}
                                             {card.type === 'club' && CLUB_MUSIC_STYLES[card.name] && (
-                                                <p className={`font-serif italic text-center leading-tight mt-0.5 opacity-80 ${theme.textColor}`} style={{ fontSize: Math.max(4, 5.5 * scale) }}>
+                                                <p className={`font-serif italic text-center leading-tight mt-0.5 opacity-90`} style={{ fontSize: Math.max(4, 5.5 * scale), color: '#2c2c2c', textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}>
                                                     🎵 {CLUB_MUSIC_STYLES[card.name]}
                                                 </p>
                                             )}
                                         </div>
+                                    )}
+                                </div>
                                     )}
                                 </div>
 
@@ -825,7 +828,6 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
 
                                 {/* Copyright info block */}
                                 <div className={`flex justify-between items-center mt-1 font-sans font-semibold select-none opacity-60 ${theme.textColor}`} style={{ fontSize: Math.max(4, 5.5 * scale) }}>
-                                    <span>Illus. AI Dropsiders</span>
                                     <span>©2026 Dropsiders Card System</span>
                                     <span>{card.djmag_rank}/100 ★</span>
                                 </div>

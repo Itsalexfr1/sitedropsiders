@@ -7,6 +7,7 @@ import wikiDjs from '../data/wiki_djs.json';
 const VISIT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 const LAST_CARD_DATE_KEY = 'dropsiders_last_card_date';
 const SESSION_START_KEY = 'dropsiders_session_start';
+const VISITS_COUNT_KEY = 'dropsiders_visits_count';
 
 function getRarity(rank: number): DropsidersCard['rarity'] {
     if (rank <= 10) return 'legendary';
@@ -66,11 +67,25 @@ function buildCardPool(): DropsidersCard[] {
     return [...festivalCards, ...clubCards, ...djCards];
 }
 
-function pickRandomCard(existing: string[]): DropsidersCard | null {
+function pickRandomCard(existing: string[], visitCount: number): DropsidersCard | null {
     const pool = buildCardPool();
     // Prefer cards not yet collected, fall back to any card
-    const uncollected = pool.filter((c) => !existing.includes(c.id));
-    const source = uncollected.length > 0 ? uncollected : pool;
+    let uncollected = pool.filter((c) => !existing.includes(c.id));
+    
+    // Rarity logic based on visit count
+    uncollected = uncollected.filter(c => {
+        if (c.rarity === 'legendary') return visitCount >= 10 && Math.random() < 0.05; // 5% chance after 10 visits
+        if (c.rarity === 'epic') return visitCount >= 5 && Math.random() < 0.15; // 15% chance after 5 visits
+        if (c.rarity === 'rare') return visitCount >= 2 && Math.random() < 0.30; // 30% chance after 2 visits
+        return true; // common always available
+    });
+
+    if (uncollected.length === 0) {
+        // Fallback to common cards if bad luck
+        uncollected = pool.filter(c => c.rarity === 'common');
+    }
+
+    const source = uncollected.length > 0 ? uncollected : pool.filter(c => c.rarity === 'common');
     if (source.length === 0) return null;
     const picked = source[Math.floor(Math.random() * source.length)];
     return { ...picked, collectedAt: new Date().toISOString() };
@@ -108,6 +123,9 @@ export function useVisitTimer(collectedCardIds: string[]): UseVisitTimerResult {
 
         if (!storedStart) {
             localStorage.setItem(SESSION_START_KEY, String(now));
+            // Increment visits on new session
+            const currentVisits = Number(localStorage.getItem(VISITS_COUNT_KEY) || 0);
+            localStorage.setItem(VISITS_COUNT_KEY, String(currentVisits + 1));
         }
 
         const elapsed = now - sessionStart;
@@ -115,7 +133,8 @@ export function useVisitTimer(collectedCardIds: string[]): UseVisitTimerResult {
 
         const timerId = setTimeout(() => {
             if (!hasEarnedCardToday()) {
-                const card = pickRandomCard(collectedCardIds);
+                const visits = Number(localStorage.getItem(VISITS_COUNT_KEY) || 1);
+                const card = pickRandomCard(collectedCardIds, visits);
                 if (card) {
                     setPendingCard(card);
                 }
