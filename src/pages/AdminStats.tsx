@@ -239,7 +239,14 @@ export function AdminStats() {
             setError(null);
             const res = await fetch('/api/analytics/stats');
             if (!res.ok) {
-                throw new Error(`Erreur lors du chargement des statistiques (${res.status})`);
+                let msg = `Erreur lors du chargement des statistiques (${res.status})`;
+                try {
+                    const errData = await res.json();
+                    if (errData && errData.details) {
+                        msg = errData.details;
+                    }
+                } catch (e) {}
+                throw new Error(msg);
             }
             const data = await res.json();
             setServerStats(data);

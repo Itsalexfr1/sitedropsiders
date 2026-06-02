@@ -3790,8 +3790,8 @@ ${urls.map(u => `  <url>
                     timeline,
                     topArticles: topArticles.slice(0, 50) // More articles
                 }), { status: 200, headers });
-            } catch (err) {
-                return new Response(JSON.stringify({ error: 'Stats failed' }), { status: 500, headers });
+            } catch (err: any) {
+                return new Response(JSON.stringify({ error: 'Stats failed', details: err?.message || String(err) }), { status: 500, headers });
             }
         }
 
