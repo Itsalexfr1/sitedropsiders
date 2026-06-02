@@ -228,13 +228,16 @@ export function GlobalPlayerContainer() {
                 <motion.div
                     key={activeTrack.id}
                     initial={{ opacity: 0, y: 60 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    animate={{ 
+                        opacity: isMinimized ? 0 : 1, 
+                        y: isMinimized ? 60 : 0 
+                    }}
                     exit={{ opacity: 0, y: 40 }}
                     transition={{ duration: 0.3, ease: 'easeOut' }}
                     className={`relative shadow-[0_-20px_60px_rgba(0,0,0,0.8)] rounded-[40px] transition-all duration-300 ${
                         isMinimized
-                            ? 'opacity-0 pointer-events-none absolute bottom-0 left-0 right-0 -z-10'
-                            : 'opacity-100'
+                            ? 'pointer-events-none absolute bottom-0 left-0 right-0 -z-10 h-0 overflow-hidden'
+                            : 'relative h-auto'
                     }`}
                 >
                     <CustomMixPlayer
