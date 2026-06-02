@@ -3692,7 +3692,7 @@ ${urls.map(u => `  <url>
                 const sourcesMap = sourcesRaw ? JSON.parse(sourcesRaw) : {};
                 const devices = devicesRaw ? JSON.parse(devicesRaw) : { mobile: 0, desktop: 0 };
                 const clicks = clicksRaw ? JSON.parse(clicksRaw) : {};
-                const osMap = osRaw ? JSON.parse(osMap) : {};
+                const osMap = osRaw ? JSON.parse(osRaw) : {};
                 const browsersMap = browsersRaw ? JSON.parse(browsersRaw) : {};
                 const categoriesMap = categoriesRaw ? JSON.parse(categoriesRaw) : {};
 
