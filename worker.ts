@@ -6971,6 +6971,24 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path === '/api/wiki/all' && request.method === 'GET') {
+            try {
+                const [djsFile, clubsFile, festsFile] = await Promise.all([
+                    fetchGitHubFile(WIKI_DJS_PATH, gitConfig).catch(() => null),
+                    fetchGitHubFile(WIKI_CLUBS_PATH, gitConfig).catch(() => null),
+                    fetchGitHubFile(WIKI_FESTIVALS_PATH, gitConfig).catch(() => null)
+                ]);
+                return new Response(JSON.stringify({
+                    djs: djsFile ? djsFile.content : [],
+                    clubs: clubsFile ? clubsFile.content : [],
+                    festivals: festsFile ? festsFile.content : []
+                }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+
         // --- NEW: R2 LIST ALL PHOTOS ---
         if (path === '/api/r2/list' && request.method === 'GET') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });

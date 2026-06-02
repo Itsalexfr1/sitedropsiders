@@ -120,15 +120,63 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const scWidgetRef = useRef<any>(null);
     const ytPlayerRef = useRef<any>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const visualizerIntervalRef = useRef<any>(null);
     const [visualizerBars, setVisualizerBars] = useState<number[]>(new Array(16).fill(5));
 
     // Load SoundCloud & YouTube scripts
-    const isSoundCloud = track.embedUrl?.includes('soundcloud.com');
-    const isYouTube = track.embedUrl?.includes('youtube.com') || track.embedUrl?.includes('youtu.be');
+    const isSoundCloud = !!track.embedUrl?.includes('soundcloud.com');
+    const isYouTube = !!(track.embedUrl?.includes('youtube.com') || track.embedUrl?.includes('youtu.be'));
+    const isHTML5 = !isSoundCloud && !isYouTube;
     
     const scStatus = useScript(isSoundCloud ? 'https://w.soundcloud.com/player/api.js' : '');
     const ytStatus = useScript(isYouTube ? 'https://www.youtube.com/iframe_api' : '');
+
+    // Initialize HTML5 Audio Controller
+    useEffect(() => {
+        if (isHTML5 && track.url) {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.src = "";
+            }
+            const audio = new Audio(track.url);
+            audioRef.current = audio;
+            audio.volume = volume / 100;
+            audio.muted = isMuted;
+
+            const handlePlay = () => setIsPlaying(true);
+            const handlePause = () => setIsPlaying(false);
+            const handleEnded = () => setIsPlaying(false);
+            const handleTimeUpdate = () => {
+                setCurrentTime(audio.currentTime);
+            };
+            const handleDurationChange = () => {
+                setDuration(audio.duration || 0);
+            };
+
+            audio.addEventListener('play', handlePlay);
+            audio.addEventListener('pause', handlePause);
+            audio.addEventListener('ended', handleEnded);
+            audio.addEventListener('timeupdate', handleTimeUpdate);
+            audio.addEventListener('durationchange', handleDurationChange);
+
+            if (isPlaying) {
+                audio.play().catch(() => setIsPlaying(false));
+            }
+
+            return () => {
+                audio.removeEventListener('play', handlePlay);
+                audio.removeEventListener('pause', handlePause);
+                audio.removeEventListener('ended', handleEnded);
+                audio.removeEventListener('timeupdate', handleTimeUpdate);
+                audio.removeEventListener('durationchange', handleDurationChange);
+                audio.pause();
+                audio.src = "";
+                audioRef.current = null;
+            };
+        }
+    }, [isHTML5, track.url]);
+
 
     const showToast = (msg: string) => {
         setToastMessage(msg);
@@ -299,6 +347,12 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
             } else {
                 ytPlayerRef.current.playVideo();
             }
+        } else if (isHTML5 && audioRef.current) {
+            if (isPlaying) {
+                audioRef.current.pause();
+            } else {
+                audioRef.current.play().catch(() => setIsPlaying(false));
+            }
         } else {
             // Fallback simulated toggle if APIs are blocked or loading
             setIsPlaying(!isPlaying);
@@ -311,6 +365,8 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
             scWidgetRef.current.seekTo(seconds * 1000);
         } else if (isYouTube && ytPlayerRef.current) {
             ytPlayerRef.current.seekTo(seconds, true);
+        } else if (isHTML5 && audioRef.current) {
+            audioRef.current.currentTime = seconds;
         }
     };
 
@@ -321,6 +377,9 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
             scWidgetRef.current.setVolume(newVal);
         } else if (isYouTube && ytPlayerRef.current) {
             ytPlayerRef.current.setVolume(newVal);
+        } else if (isHTML5 && audioRef.current) {
+            audioRef.current.volume = newVal / 100;
+            audioRef.current.muted = newVal === 0;
         }
     };
 
@@ -336,8 +395,11 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
                 ytPlayerRef.current.unMute();
                 ytPlayerRef.current.setVolume(volume);
             }
+        } else if (isHTML5 && audioRef.current) {
+            audioRef.current.muted = nextMuted;
         }
     };
+
 
     const playPreviousTrack = () => {
         if (!track.tracks || track.tracks.length === 0 || currentTrackIndex <= 0) return;
@@ -650,74 +712,79 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
         }
     };
 
+    const hasTracklist = !!(track.tracks && track.tracks.length > 0);
+
     return (
         <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[40px] overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.5)]">
-            <div className="grid grid-cols-1 lg:grid-cols-12">
+            <div className={hasTracklist ? "grid grid-cols-1 lg:grid-cols-12" : "w-full"}>
                 
                 {/* TRACKLIST COLUMN (LEFT - 5 cols) */}
-                <div className="lg:col-span-5 p-6 md:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/5 h-[400px] lg:h-[620px]">
-                    <div className="space-y-6 overflow-hidden flex flex-col flex-1">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <span className="text-neon-cyan font-black uppercase text-[9px] tracking-[0.3em]">MIX TRACKLIST</span>
-                                <h4 className="text-white text-2xl font-black italic uppercase tracking-tighter leading-none mt-1">Complete Set</h4>
-                            </div>
-                            <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full flex items-center gap-1.5 text-[8px] font-black text-white/50 uppercase tracking-widest">
-                                <Clock className="w-3 h-3 text-neon-cyan" />
-                                {track.tracks ? `${track.tracks.length} PISTES` : "1 PISTE"}
-                            </div>
-                        </div>
-
-                        {/* List container */}
-                        <div className="flex-1 overflow-y-auto pr-2 space-y-0.5 custom-scrollbar">
-                            {track.tracks && track.tracks.length > 0 ? (
-                                track.tracks.map((t, idx) => {
-                                    const isCurrent = idx === currentTrackIndex;
-                                    return (
-                                        <div 
-                                            key={idx} 
-                                            onClick={() => {
-                                                const secs = parseTimeToSeconds(t.time);
-                                                handleSeekToSeconds(secs);
-                                                showToast(`Saut à : ${t.title} (${t.time})`);
-                                            }}
-                                            className={`flex items-center gap-4 py-3 px-4 rounded-2xl cursor-pointer border transition-all group ${
-                                                isCurrent 
-                                                ? 'bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan shadow-[0_0_15px_rgba(0,229,255,0.05)]' 
-                                                : 'bg-transparent border-transparent hover:bg-white/[0.02] text-white/60 hover:text-white hover:border-white/5'
-                                            }`}
-                                        >
-                                            <span className={`text-[10px] font-black w-6 text-center ${isCurrent ? 'text-neon-cyan' : 'text-white/20'}`}>
-                                                {(idx + 1).toString().padStart(2, '0')}
-                                            </span>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-black uppercase tracking-tight truncate">
-                                                    {t.title}
-                                                </p>
-                                                <p className="text-[9px] font-bold uppercase tracking-widest opacity-60 mt-0.5">{t.artist}</p>
-                                            </div>
-                                            {t.time && (
-                                                <span className={`text-[9px] font-black tabular-nums border px-2 py-0.5 rounded-lg ${
-                                                    isCurrent ? 'bg-neon-cyan/10 border-neon-cyan/20' : 'bg-white/5 border-white/5 group-hover:border-white/10'
-                                                }`}>
-                                                    {t.time}
-                                                </span>
-                                            )}
-                                        </div>
-                                    );
-                                })
-                            ) : (
-                                <div className="h-full flex flex-col items-center justify-center text-center py-20 text-white/25">
-                                    <Disc className="w-10 h-10 animate-spin-slow opacity-20 mb-2" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest">Index non répertorié</p>
+                {hasTracklist && (
+                    <div className="lg:col-span-5 p-6 md:p-8 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/5 h-[400px] lg:h-[620px]">
+                        <div className="space-y-6 overflow-hidden flex flex-col flex-1">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <span className="text-neon-cyan font-black uppercase text-[9px] tracking-[0.3em]">MIX TRACKLIST</span>
+                                    <h4 className="text-white text-2xl font-black italic uppercase tracking-tighter leading-none mt-1">Complete Set</h4>
                                 </div>
-                            )}
+                                <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full flex items-center gap-1.5 text-[8px] font-black text-white/50 uppercase tracking-widest">
+                                    <Clock className="w-3 h-3 text-neon-cyan" />
+                                    {track.tracks ? `${track.tracks.length} PISTES` : "1 PISTE"}
+                                </div>
+                            </div>
+
+                            {/* List container */}
+                            <div className="flex-1 overflow-y-auto pr-2 space-y-0.5 custom-scrollbar">
+                                {track.tracks && track.tracks.length > 0 ? (
+                                    track.tracks.map((t, idx) => {
+                                        const isCurrent = idx === currentTrackIndex;
+                                        return (
+                                            <div 
+                                                key={idx} 
+                                                onClick={() => {
+                                                    const secs = parseTimeToSeconds(t.time);
+                                                    handleSeekToSeconds(secs);
+                                                    showToast(`Saut à : ${t.title} (${t.time})`);
+                                                }}
+                                                className={`flex items-center gap-4 py-3 px-4 rounded-2xl cursor-pointer border transition-all group ${
+                                                    isCurrent 
+                                                    ? 'bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan shadow-[0_0_15px_rgba(0,229,255,0.05)]' 
+                                                    : 'bg-transparent border-transparent hover:bg-white/[0.02] text-white/60 hover:text-white hover:border-white/5'
+                                                }`}
+                                            >
+                                                <span className={`text-[10px] font-black w-6 text-center ${isCurrent ? 'text-neon-cyan' : 'text-white/20'}`}>
+                                                    {(idx + 1).toString().padStart(2, '0')}
+                                                </span>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs font-black uppercase tracking-tight truncate">
+                                                        {t.title}
+                                                    </p>
+                                                    <p className="text-[9px] font-bold uppercase tracking-widest opacity-60 mt-0.5">{t.artist}</p>
+                                                </div>
+                                                {t.time && (
+                                                    <span className={`text-[9px] font-black tabular-nums border px-2 py-0.5 rounded-lg ${
+                                                        isCurrent ? 'bg-neon-cyan/10 border-neon-cyan/20' : 'bg-white/5 border-white/5 group-hover:border-white/10'
+                                                    }`}>
+                                                        {t.time}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-center py-20 text-white/25">
+                                        <Disc className="w-10 h-10 animate-spin-slow opacity-20 mb-2" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">Index non répertorié</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
-                {/* DIGITAL DJ DECK / PLAYING INTERFACE (RIGHT - 7 cols) */}
-                <div className="lg:col-span-7 p-6 md:p-8 flex flex-col justify-between items-center bg-gradient-to-br from-white/[0.01] to-white/[0.03] relative min-h-[500px] lg:h-[620px]">
+                {/* DIGITAL DJ DECK / PLAYING INTERFACE (RIGHT - 7 cols or full width) */}
+                <div className={hasTracklist ? "lg:col-span-7 p-6 md:p-8 flex flex-col justify-between items-center bg-gradient-to-br from-white/[0.01] to-white/[0.03] relative min-h-[500px] lg:h-[620px]" : "p-6 md:p-8 flex flex-col justify-between items-center bg-gradient-to-br from-white/[0.01] to-white/[0.03] relative min-h-[480px] w-full"}>
+
                     
                     {/* Tiny Iframe (visually adapted as a screen console) */}
                     <div className="absolute top-4 right-4 z-40 opacity-20 hover:opacity-100 transition-opacity duration-300">
@@ -825,16 +892,19 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
                         </div>
                         
                         <div className="w-full flex justify-center">
-                            {currentTrackIndex !== -1 && track.tracks ? (
+                            {currentTrackIndex !== -1 && track.tracks && track.tracks.length > 0 ? (
                                 <div className="text-[10px] font-black uppercase tracking-[0.25em] text-neon-cyan flex items-center gap-2 animate-pulse">
                                     <Sparkles className="w-3 h-3 text-neon-cyan" />
                                     <span>EN LECTURE : {track.tracks[currentTrackIndex].title} — {track.tracks[currentTrackIndex].artist}</span>
                                 </div>
                             ) : (
-                                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">DECK EN ATTENTE • PLAY TO LOAD</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">
+                                    {isPlaying ? 'DECK ACTIF • LECTURE EN COURS' : 'DECK EN ATTENTE • PLAY TO LOAD'}
+                                </span>
                             )}
                         </div>
                     </div>
+
 
                     {/* FREQUENCY SPECTRUM WAVEFORM VISUALIZER */}
                     <div className="w-full h-10 flex items-end justify-center gap-1.5 my-3">
@@ -882,13 +952,15 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
                     <div className="w-full flex items-center justify-between mt-4">
                         {/* Audio track skipping */}
                         <div className="flex items-center gap-3">
-                            <button 
-                                onClick={playPreviousTrack}
-                                disabled={!track.tracks || currentTrackIndex <= 0}
-                                className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
-                            >
-                                <SkipBack className="w-4 h-4" />
-                            </button>
+                            {hasTracklist && (
+                                <button 
+                                    onClick={playPreviousTrack}
+                                    disabled={currentTrackIndex <= 0}
+                                    className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
+                                >
+                                    <SkipBack className="w-4 h-4" />
+                                </button>
+                            )}
                             
                             {/* Giant Primary Play Button */}
                             <button 
@@ -902,14 +974,17 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
                                 {isPlaying ? <Pause className="w-5 h-5 fill-black" /> : <Play className="w-5 h-5 fill-black" />}
                             </button>
 
-                            <button 
-                                onClick={playNextTrack}
-                                disabled={!track.tracks || currentTrackIndex >= track.tracks.length - 1}
-                                className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
-                            >
-                                <SkipForward className="w-4 h-4" />
-                            </button>
+                            {hasTracklist && (
+                                <button 
+                                    onClick={playNextTrack}
+                                    disabled={currentTrackIndex >= (track.tracks ? track.tracks.length - 1 : 0)}
+                                    className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white hover:scale-105 active:scale-95 transition-all cursor-pointer disabled:opacity-20 disabled:pointer-events-none"
+                                >
+                                    <SkipForward className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
+
 
                         {/* Mute slider / Volume control dial */}
                         <div className="flex items-center gap-3">
