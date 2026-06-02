@@ -675,6 +675,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const updatedUser = { ...user, ...updates };
         setUser(updatedUser);
         saveToRegisteredUsers(updatedUser);
+        syncUserWithBackend(updatedUser);
     };
 
     const addCard = (card: DropsidersCard) => {

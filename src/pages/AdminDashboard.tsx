@@ -879,6 +879,78 @@ export function AdminDashboard() {
   // GESTION TEAM STATES
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [editors, setEditors] = useState<any[]>([]);
+  const [editingTeamMember, setEditingTeamMember] = useState<any>(null);
+  const [isTeamMemberModalOpen, setIsTeamMemberModalOpen] = useState(false);
+  const [isTeamMemberUploadOpen, setIsTeamMemberUploadOpen] = useState(false);
+  const [teamCommunitySearch, setTeamCommunitySearch] = useState("");
+  const [teamCommunityResults, setTeamCommunityResults] = useState<any[]>([]);
+  const [isSearchingTeamCommunity, setIsSearchingTeamCommunity] = useState(false);
+
+  const searchTeamCommunity = async (q: string) => {
+    if (q.length < 2) {
+      setTeamCommunityResults([]);
+      return;
+    }
+    setIsSearchingTeamCommunity(true);
+    try {
+      const res = await apiFetch(`/api/users/search?q=${encodeURIComponent(q)}`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTeamCommunityResults(data);
+      }
+    } catch (err) {
+      console.error("Community search failed", err);
+    } finally {
+      setIsSearchingTeamCommunity(false);
+    }
+  };
+
+  const importFromTeamCommunity = (user: any) => {
+    setEditingTeamMember({
+      id: Date.now(),
+      name: user.username || user.name || user.pseudo || "",
+      role: "Éditeur",
+      image: user.avatar || "/images/team/default.jpg",
+      socials: {
+        instagram: "",
+        tiktok: "",
+      },
+    });
+    setTeamCommunitySearch("");
+    setTeamCommunityResults([]);
+  };
+
+  const handleSaveTeamMember = async () => {
+    if (!editingTeamMember) return;
+    let updatedMembers = [...teamMembers];
+    const exists = teamMembers.find((m) => m.id === editingTeamMember.id);
+    if (exists) {
+      updatedMembers = teamMembers.map((m) =>
+        m.id === editingTeamMember.id ? editingTeamMember : m
+      );
+    } else {
+      updatedMembers = [...teamMembers, editingTeamMember];
+    }
+    try {
+      const response = await apiFetch("/api/team/update", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ members: updatedMembers }),
+      });
+      if (response.ok) {
+        setTeamMembers(updatedMembers);
+        showNotification("Mise à jour de l'équipe réussie !", "success");
+        setIsTeamMemberModalOpen(false);
+        setEditingTeamMember(null);
+      } else {
+        showNotification("Erreur lors de la sauvegarde", "error");
+      }
+    } catch (err) {
+      showNotification("Erreur réseau lors de la sauvegarde", "error");
+    }
+  };
   const [dashboardTab, setDashboardTab] = useState<
     | "ALL"
     | "NEWS"
@@ -11506,6 +11578,256 @@ export function AdminDashboard() {
             }}
           />
 
+          <ImageUploadModal
+            isOpen={isTeamMemberUploadOpen}
+            onClose={() => setIsTeamMemberUploadOpen(false)}
+            accentColor="neon-purple"
+            forceFilename={
+              editingTeamMember?.name
+                ? editingTeamMember.name
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, "-") + ".jpg"
+                : undefined
+            }
+            onUploadSuccess={(urls) => {
+              const url = Array.isArray(urls) ? urls[0] : urls;
+              if (editingTeamMember) {
+                setEditingTeamMember({ ...editingTeamMember, image: url });
+              }
+              setIsTeamMemberUploadOpen(false);
+            }}
+          />
+
+          {/* Modal de Gestion Membre (Team) */}
+          <AnimatePresence>
+            {isTeamMemberModalOpen && editingTeamMember && (
+              <div className="fixed inset-0 z-[200] flex items-center justify-center px-6">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => {
+                    setIsTeamMemberModalOpen(false);
+                    setEditingTeamMember(null);
+                  }}
+                  className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl z-10"
+                >
+                  <div className="p-8 md:p-12">
+                    <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter mb-8">
+                      {teamMembers.find((m) => m.id === editingTeamMember.id)
+                        ? "Modifier"
+                        : "Ajouter"}{" "}
+                      <span className="text-neon-purple">Membre</span>
+                    </h2>
+
+                    <div className="space-y-6">
+                      {!teamMembers.find((m) => m.id === editingTeamMember.id) && (
+                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl">
+                          <label className="block text-[10px] font-black text-neon-purple uppercase tracking-widest mb-2">
+                            Importer un utilisateur inscrit (Google/Discord)
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={teamCommunitySearch}
+                              onChange={(e) => {
+                                setTeamCommunitySearch(e.target.value);
+                                searchTeamCommunity(e.target.value);
+                              }}
+                              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-xs focus:outline-none focus:border-neon-purple transition-colors font-outfit"
+                              placeholder="Rechercher par pseudo ou email..."
+                            />
+                            {isSearchingTeamCommunity && (
+                              <div className="absolute right-4 top-3">
+                                <Loader2 className="w-5 h-5 text-neon-purple animate-spin" />
+                              </div>
+                            )}
+                            {teamCommunityResults.length > 0 && (
+                              <div className="absolute top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden z-50 shadow-2xl max-h-48 overflow-y-auto">
+                                {teamCommunityResults.map((user: any, idx) => (
+                                  <div
+                                    key={idx}
+                                    onClick={() => importFromTeamCommunity(user)}
+                                    className="flex items-center gap-3 p-3 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0"
+                                  >
+                                    <img
+                                      src={user.avatar}
+                                      alt=""
+                                      className="w-8 h-8 rounded-lg object-cover"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-white text-xs font-bold truncate">
+                                        {user.username || user.pseudo}
+                                      </p>
+                                      <p className="text-gray-500 text-[10px] truncate">
+                                        {user.email}
+                                      </p>
+                                    </div>
+                                    <div className="px-2 py-1 bg-white/5 rounded text-[8px] text-gray-400 font-bold uppercase">
+                                      {user.provider}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-[10px] font-black text-neon-purple uppercase tracking-widest mb-2 font-outfit">
+                              Nom Complet
+                            </label>
+                            <input
+                              type="text"
+                              value={editingTeamMember.name}
+                              onChange={(e) =>
+                                setEditingTeamMember({
+                                  ...editingTeamMember,
+                                  name: e.target.value,
+                                })
+                              }
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:outline-none focus:border-neon-purple transition-colors font-outfit"
+                              placeholder="Ex: Alex Dropsiders"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-neon-purple uppercase tracking-widest mb-2 font-outfit">
+                              Rôle / Poste
+                            </label>
+                            <input
+                              type="text"
+                              value={editingTeamMember.role}
+                              onChange={(e) =>
+                                setEditingTeamMember({
+                                  ...editingTeamMember,
+                                  role: e.target.value,
+                                })
+                              }
+                              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-neon-purple transition-colors font-outfit"
+                              placeholder="Ex: Photographe / Rédacteur"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-center gap-4">
+                          <div className="w-32 h-32 rounded-2xl overflow-hidden border border-white/10 bg-black">
+                            <img
+                              src={editingTeamMember.image}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="w-full space-y-2">
+                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1 text-center font-outfit">
+                              Image du membre
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={editingTeamMember.image}
+                                onChange={(e) =>
+                                  setEditingTeamMember({
+                                    ...editingTeamMember,
+                                    image: e.target.value,
+                                  })
+                                }
+                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-[10px] focus:outline-none focus:border-neon-purple transition-colors font-mono"
+                                placeholder="URL de l'image"
+                              />
+                              <button
+                                onClick={() => setIsTeamMemberUploadOpen(true)}
+                                className="p-2 bg-neon-purple/10 border border-neon-purple/30 rounded-xl text-neon-purple hover:bg-neon-purple hover:text-white transition-all"
+                                title="Uploader une image"
+                              >
+                                <Upload className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 font-outfit">
+                            <Instagram className="w-3 h-3 text-neon-purple" /> Instagram
+                          </label>
+                          <input
+                            type="text"
+                            value={editingTeamMember.socials?.instagram || ""}
+                            onChange={(e) =>
+                              setEditingTeamMember({
+                                ...editingTeamMember,
+                                socials: {
+                                  ...editingTeamMember.socials,
+                                  instagram: e.target.value,
+                                },
+                              })
+                            }
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs focus:outline-none focus:border-neon-purple transition-colors font-outfit"
+                            placeholder="@username"
+                          />
+                        </div>
+                        <div>
+                          <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 font-outfit">
+                            <img
+                              src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png"
+                              alt="TikTok"
+                              className="w-3 h-3 object-contain invert"
+                            />{" "}
+                            TikTok
+                          </label>
+                          <input
+                            type="text"
+                            value={editingTeamMember.socials?.tiktok || ""}
+                            onChange={(e) =>
+                              setEditingTeamMember({
+                                ...editingTeamMember,
+                                socials: {
+                                  ...editingTeamMember.socials,
+                                  tiktok: e.target.value,
+                                },
+                              })
+                            }
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-xs focus:outline-none focus:border-neon-purple transition-colors font-outfit"
+                            placeholder="@username"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 pt-4">
+                        <button
+                          onClick={() => {
+                            setIsTeamMemberModalOpen(false);
+                            setEditingTeamMember(null);
+                          }}
+                          className="flex-1 py-4 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all text-sm font-outfit"
+                        >
+                          Annuler
+                        </button>
+                        <button
+                          onClick={handleSaveTeamMember}
+                          className="flex-[2] py-4 bg-neon-purple text-white rounded-2xl font-black uppercase tracking-widest hover:bg-neon-purple/80 transition-all text-sm shadow-xl shadow-neon-purple/20 font-outfit"
+                        >
+                          Valider
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
           {/* Maintenance Modal */}
           <AnimatePresence>
             {isMaintenanceModalOpen && (
@@ -12267,10 +12589,17 @@ export function AdminDashboard() {
                             </div>
                             <button
                               onClick={() => {
-                                setGlobalAlert({
-                                  message: "L'ajout direct sera bientôt disponible.",
-                                  type: "info",
+                                setEditingTeamMember({
+                                  id: Date.now(),
+                                  name: "",
+                                  role: "",
+                                  image: "/images/team/default.jpg",
+                                  socials: {
+                                    instagram: "",
+                                    tiktok: "",
+                                  },
                                 });
+                                setIsTeamMemberModalOpen(true);
                               }}
                               className="px-6 py-3 bg-neon-purple text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-purple/20"
                             >
@@ -12300,7 +12629,18 @@ export function AdminDashboard() {
                                   </div>
                                 </div>
                                 <div className="flex justify-between gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                  <button className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-widest">Modifier</button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingTeamMember({
+                                        ...member,
+                                        socials: member.socials || { instagram: "", tiktok: "" },
+                                      });
+                                      setIsTeamMemberModalOpen(true);
+                                    }}
+                                    className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-widest"
+                                  >
+                                    Modifier
+                                  </button>
                                   <button
                                     onClick={() => {
                                       setConfirmModal({
@@ -13125,7 +13465,14 @@ export function AdminDashboard() {
                                       fs -= 4;
                                       ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
                                     }
-                                    ctx.fillStyle = "#fff";
+                                    ctx.fillStyle =
+                                      rank === 1
+                                        ? C_GOLD
+                                        : rank === 2
+                                          ? C_SILVER
+                                          : rank === 3
+                                            ? C_BRONZE
+                                            : "#fff";
                                     ctx.shadowColor = "rgba(0,0,0,0.8)";
                                     ctx.shadowBlur = 15;
                                     ctx.fillText(

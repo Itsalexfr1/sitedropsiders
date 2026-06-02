@@ -306,7 +306,11 @@ export function WikiVenues({
                                                 <img src={resolveImageUrl(v.image)} alt={v.name} className="w-full h-full object-cover" />
                                             </div>
                                             <div className="flex-1 min-w-0 text-left">
-                                                <div className="text-[11px] font-black text-white uppercase tracking-widest truncate">{v.name}</div>
+                                                <div className={`text-[11px] font-black uppercase tracking-widest truncate ${
+                                                    sortMode === 'votes' && idx === 0 ? "text-[#ffd700]" :
+                                                    sortMode === 'votes' && idx === 1 ? "text-[#c0c0c0]" :
+                                                    sortMode === 'votes' && idx === 2 ? "text-[#cd7f32]" : "text-white"
+                                                }`}>{sortMode === 'votes' ? `#${idx + 1} ` : ''}{v.name}</div>
                                                 <div className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">{v.city}, {v.country} {FLAG[v.country]}</div>
                                             </div>
                                             {showResults && (

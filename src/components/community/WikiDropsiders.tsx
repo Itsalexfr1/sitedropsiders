@@ -346,7 +346,11 @@ export function WikiDropsiders({
                                                          <img src={resolveImageUrl(dj.image)} alt={dj.name} className="w-full h-full object-cover" loading="lazy" />
                                                      </div>
                                                      <div className="flex-1 min-w-0">
-                                                         <div className="text-[11px] font-black text-white uppercase tracking-widest truncate">{dj.name}</div>
+                                                         <div className={`text-[11px] font-black uppercase tracking-widest truncate ${
+                                                             sortMode === 'votes' && idx === 0 ? "text-[#ffd700]" :
+                                                             sortMode === 'votes' && idx === 1 ? "text-[#c0c0c0]" :
+                                                             sortMode === 'votes' && idx === 2 ? "text-[#cd7f32]" : "text-white"
+                                                         }`}>{sortMode === 'votes' ? `#${idx + 1} ` : ''}{dj.name}</div>
                                                          <div className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">{dj.country}</div>
                                                      </div>
                                                      {showResults && (
@@ -385,7 +389,11 @@ export function WikiDropsiders({
                                                     <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
                                                     {/* Name on gradient */}
                                                     <div className="absolute bottom-0 left-0 right-0 p-2.5">
-                                                        <div className="text-[9px] font-black text-white uppercase tracking-widest leading-tight line-clamp-1">{dj.name}</div>
+                                                        <div className={`text-[9px] font-black uppercase tracking-widest leading-tight line-clamp-1 ${
+                                                             sortMode === 'votes' && idx === 0 ? "text-[#ffd700]" :
+                                                             sortMode === 'votes' && idx === 1 ? "text-[#c0c0c0]" :
+                                                             sortMode === 'votes' && idx === 2 ? "text-[#cd7f32]" : "text-white"
+                                                         }`}>{sortMode === 'votes' ? `#${idx + 1} ` : ''}{dj.name}</div>
                                                         {showResults && (
                                                             <div className="mt-1 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10 w-fit">
                                                                 <Heart className="w-2.5 h-2.5 text-red-500 fill-red-500" />
