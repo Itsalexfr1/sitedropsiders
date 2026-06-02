@@ -39,13 +39,15 @@ export function SpotifyWidget({
     resolvedColor,
     showTitle = true,
     height = 480,
-    itemWidth = '280px'
+    itemWidth = '280px',
+    hideTabs = false
 }: {
     accentColor?: string,
     resolvedColor?: string,
     showTitle?: boolean,
     height?: number,
-    itemWidth?: string
+    itemWidth?: string,
+    hideTabs?: boolean
 }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t } = useLanguage();
@@ -187,28 +189,30 @@ export function SpotifyWidget({
                         {activeTab === 'playlists' ? t('home.playlists_title') : 'Mixes de la Communauté'}
                     </h3>
                     
-                    <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 w-fit shrink-0 z-20">
-                        <button
-                            onClick={() => setActiveTab('playlists')}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                activeTab === 'playlists' 
-                                    ? 'bg-white text-black shadow-lg font-black' 
-                                    : 'text-gray-400 hover:text-white font-medium'
-                            }`}
-                        >
-                            Nos Playlists
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('community')}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                activeTab === 'community' 
-                                    ? 'bg-white text-black shadow-lg font-black' 
-                                    : 'text-gray-400 hover:text-white font-medium'
-                            }`}
-                        >
-                            Mixs Communauté
-                        </button>
-                    </div>
+                    {!hideTabs && (
+                        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 w-fit shrink-0 z-20">
+                            <button
+                                onClick={() => setActiveTab('playlists')}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    activeTab === 'playlists' 
+                                        ? 'bg-white text-black shadow-lg font-black' 
+                                        : 'text-gray-400 hover:text-white font-medium'
+                                }`}
+                            >
+                                Nos Playlists
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('community')}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    activeTab === 'community' 
+                                        ? 'bg-white text-black shadow-lg font-black' 
+                                        : 'text-gray-400 hover:text-white font-medium'
+                                }`}
+                            >
+                                Mixs Communauté
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 

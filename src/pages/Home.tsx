@@ -15,6 +15,7 @@ import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { LayoutDashboard, FileText, Calendar } from 'lucide-react';
 import { WikiWidget } from '../components/widgets/WikiWidget';
 import { TopTracksLeaderboard } from '../components/widgets/TopTracksLeaderboard';
+import { CommunityMixesLeaderboard } from '../components/widgets/CommunityMixesLeaderboard';
 
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
@@ -141,7 +142,14 @@ export function Home() {
                             <div className="h-[1px] w-full bg-red-900/40" />
                         </div>
                         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                            <SpotifyWidget accentColor={accentColor} resolvedColor={color} />
+                            <div className="flex flex-col lg:flex-row gap-8 items-stretch">
+                                <div className="w-full lg:w-[50%]">
+                                    <SpotifyWidget accentColor={accentColor} resolvedColor={color} hideTabs={true} />
+                                </div>
+                                <div className="w-full lg:w-[50%]">
+                                    <CommunityMixesLeaderboard />
+                                </div>
+                            </div>
                         </div>
                     </section>
                 );
