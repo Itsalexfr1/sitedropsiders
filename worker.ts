@@ -2357,31 +2357,30 @@ ${urls.map(u => `  <url>
             const rawKey = path.replace('/uploads/', '');
             const key = decodeURIComponent(rawKey);
             
-            let object = await env.R2.get(key);
+            // Extract range if present
+            const rangeHeader = request.headers.get('range');
+            const getOptions = rangeHeader ? { range: request.headers, onlyIf: request.headers } : {};
+
+            let object = await env.R2.get(key, getOptions);
             
             // Fallback: Si pas trouvé sous la clé directe (ex: uploads/file.jpg)
-            // essayer sans le préfixe 'uploads/' (au cas où il a été migré à la racine)
             if (!object && key.startsWith('uploads/')) {
-                object = await env.R2.get(key.replace('uploads/', ''));
+                object = await env.R2.get(key.replace('uploads/', ''), getOptions);
             }
             
             // Fallback inverse: essayer avec le préfixe 'uploads/'
-            // (Utile pour les anciens uploads qui n'auraient pas le double /uploads/ dans leur URL)
             if (!object && !key.startsWith('uploads/') && !key.startsWith('migrated/')) {
-                object = await env.R2.get('uploads/' + key);
+                object = await env.R2.get('uploads/' + key, getOptions);
             }
 
             if (!object) {
                 // Fallback aux assets originaux (ex: fichiers encore sur GitHub dans public/uploads)
                 const assetsBinding = env.APP_ASSETS || env.ASSETS;
                 if (assetsBinding) {
-                    // Si on a un double /uploads/ (ex: /uploads/uploads/file.jpg)
-                    // on normalise pour le binding Pages qui attend /uploads/file.jpg
                     let normalizedPath = path;
                     if (path.startsWith('/uploads/uploads/')) {
                         normalizedPath = path.replace('/uploads/uploads/', '/uploads/');
                     }
-                    
                     const fallbackUrl = new URL(normalizedPath, request.url);
                     const fallbackResponse = await assetsBinding.fetch(new Request(fallbackUrl.toString(), request));
                     if (fallbackResponse.ok) return fallbackResponse;
@@ -2393,8 +2392,21 @@ ${urls.map(u => `  <url>
             object.writeHttpMetadata(assetHeaders);
             assetHeaders.set('Access-Control-Allow-Origin', '*');
             assetHeaders.set('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+            assetHeaders.set('Accept-Ranges', 'bytes');
+            assetHeaders.set('etag', object.httpEtag);
 
-            return new Response(object.body, { headers: assetHeaders });
+            let status = 200;
+            if (object.range) {
+                status = 206;
+                assetHeaders.set('Content-Range', `bytes ${object.range.offset}-${object.range.offset + object.range.length - 1}/${object.size}`);
+            }
+
+            // Check if object is null (e.g. 304 Not Modified based on onlyIf)
+            if (!object.body) {
+                return new Response(null, { status: 304, headers: assetHeaders });
+            }
+
+            return new Response(object.body, { status, headers: assetHeaders });
         }
 
         const extractMetadata = (content) => {
