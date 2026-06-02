@@ -19,7 +19,7 @@ export type TranslationKey =
     | 'article_detail.link_copied' | 'article_detail.share' | 'article_detail.focus' | 'article_detail.previous' | 'article_detail.next' | 'article_detail.must_watch' | 'article_detail.share_btn' | 'article_detail.copied_btn'
     | 'admin.featured' | 'admin.add' | 'admin.delete' | 'admin.cancel' | 'admin.modify'
     | 'nav.explore_styles' | 'recap.newsletter_title' | 'agenda.no_desc' | 'agenda.book_tickets'
-    | 'contact.title' | 'contact.title_span' | 'contact.subtitle' | 'contact.name' | 'contact.email' | 'contact.subject' | 'contact.subject_placeholder' | 'contact.message' | 'contact.message_placeholder' | 'contact.send' | 'contact.sending' | 'contact.success' | 'contact.error_fields' | 'contact.error_send' | 'contact.subject_question' | 'contact.subject_suggestion' | 'contact.subject_partnership' | 'contact.subject_recruitment'
+    | 'contact.title' | 'contact.title_span' | 'contact.subtitle' | 'contact.name' | 'contact.email' | 'contact.subject' | 'contact.subject_placeholder' | 'contact.message' | 'contact.message_placeholder' | 'contact.send' | 'contact.sending' | 'contact.success' | 'contact.error_fields' | 'contact.error_send' | 'contact.subject_question' | 'contact.subject_suggestion' | 'contact.subject_partnership' | 'contact.subject_recruitment' | 'contact.subject_problem'
     | 'contact.name_placeholder' | 'contact.email_placeholder'
     | 'interviews.title_prefix' | 'recaps.title_prefix' | 'communaute.title_prefix' | 'news.title_prefix'
     | 'cookies.title' | 'cookies.desc' | 'cookies.accept' | 'cookies.refuse' | 'cookies.manage'
@@ -304,6 +304,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'contact.subject_suggestion': { fr: 'Suggestion', en: 'Suggestion' },
     'contact.subject_partnership': { fr: 'Partenariat', en: 'Partnership' },
     'contact.subject_recruitment': { fr: 'Recrutement', en: 'Recruitment' },
+    'contact.subject_problem': { fr: 'Problème', en: 'Problem' },
     'contact.name_placeholder': { fr: 'Ex: John Doe', en: 'e.g. John Doe' },
     'contact.email_placeholder': { fr: 'Ex: john@example.com', en: 'e.g. john@example.com' },
     'cookies.title': { fr: 'Cookies & Confidentialit\u00e9', en: 'Cookies & Privacy' },

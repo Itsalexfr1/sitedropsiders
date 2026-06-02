@@ -130,6 +130,7 @@ export function Contact() {
                                 >
                                     <option value="" disabled className="bg-dark-bg text-gray-500">{t('contact.subject_placeholder')}</option>
                                     <option value="Question" className="bg-dark-bg text-white">{t('contact.subject_question')}</option>
+                                    <option value="Probleme" className="bg-dark-bg text-white">{t('contact.subject_problem')}</option>
                                     <option value="Suggestion" className="bg-dark-bg text-white">{t('contact.subject_suggestion')}</option>
                                     <option value="Partenariat" className="bg-dark-bg text-white">{t('contact.subject_partnership')}</option>
                                     <option value="Recrutement" className="bg-dark-bg text-white">{t('contact.subject_recruitment')}</option>

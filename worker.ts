@@ -414,7 +414,8 @@ export default {
             path === '/api/push/broadcast' ||
             path === '/api/extension/push' ||
             path === '/api/admin/users' ||
-            path === '/api/admin/users/approve-mix'
+            path === '/api/admin/users/approve-mix' ||
+            path === '/api/mix/stats'
         );
 
         let authenticated = false;
@@ -1417,6 +1418,67 @@ ${urls.map(u => `  <url>
             return new Response(userDataRaw, { headers });
         }
 
+        // --- API: GET PUBLIC PROFILE BY USERNAME OR HANDLE ---
+        if (path === '/api/user/profile' && request.method === 'GET') {
+            const query = url.searchParams.get('username')?.toLowerCase().trim();
+            if (!query) {
+                return new Response(JSON.stringify({ error: 'Username/Handle requis' }), { status: 400, headers });
+            }
+
+            let email = await env.CHAT_KV.get(`user_handle_${query.replace(/^@/, '')}`);
+            let userData = null;
+
+            if (email) {
+                const userDataRaw = await env.CHAT_KV.get(`community_user_${email.toLowerCase().trim()}`);
+                if (userDataRaw) userData = JSON.parse(userDataRaw);
+            }
+
+            if (!userData) {
+                const list = await env.CHAT_KV.list({ prefix: 'community_user_' });
+                for (const key of list.keys) {
+                    const dataRaw = await env.CHAT_KV.get(key.name);
+                    if (dataRaw) {
+                        const parsed = JSON.parse(dataRaw);
+                        if (
+                            parsed.username?.toLowerCase() === query ||
+                            parsed.id === query ||
+                            parsed.handle?.toLowerCase() === query
+                        ) {
+                            userData = parsed;
+                            email = parsed.email;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!userData) {
+                return new Response(JSON.stringify({ error: 'Membre non trouvé' }), { status: 404, headers });
+            }
+
+            let mixes = [];
+            if (email) {
+                const mixesRaw = await env.CHAT_KV.get(`user_mixes:${email.toLowerCase().trim()}`);
+                if (mixesRaw) mixes = JSON.parse(mixesRaw);
+            }
+
+            const publicProfile = {
+                id: userData.id,
+                username: userData.username,
+                avatar: userData.avatar,
+                handle: userData.handle,
+                instagram: userData.instagram,
+                drops: userData.drops || 0,
+                xp: userData.xp || 0,
+                createdAt: userData.createdAt,
+                collectedCards: userData.collectedCards || [],
+                mixes,
+                reviews: userData.reviews || []
+            };
+
+            return new Response(JSON.stringify(publicProfile), { headers });
+        }
+
         // --- API: CREATE TRADE OFFER ---
         if (path === '/api/trades/create' && request.method === 'POST') {
             const body = await request.json();
@@ -1958,6 +2020,137 @@ ${urls.map(u => `  <url>
                 const updated = existing.filter(m => m.id !== id);
                 await env.CHAT_KV.put(kvKey, JSON.stringify(updated));
                 return new Response(JSON.stringify({ success: true }), { headers });
+            }
+        }
+
+        // --- API: MIX STATS TRACKING (Public — no auth required) ---
+        if (path === '/api/mix/stats/track' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { mixId, event, ownerEmail } = body;
+                if (!mixId || !event || !ownerEmail) {
+                    return new Response(JSON.stringify({ error: 'mixId, event et ownerEmail requis' }), { status: 400, headers });
+                }
+                if (!['play', 'download', 'share'].includes(event)) {
+                    return new Response(JSON.stringify({ error: 'event invalide' }), { status: 400, headers });
+                }
+
+                // Cloudflare geo headers (automatically provided at the edge)
+                const cfCountry = request.headers.get('cf-ipcountry') || 'XX';
+                const cfCity = request.headers.get('cf-ipcity') || 'Unknown';
+                const cfRegion = request.headers.get('cf-region') || '';
+                const userAgent = request.headers.get('user-agent') || '';
+
+                const statsKey = `mix_stats:${ownerEmail.toLowerCase().trim()}:${mixId}`;
+                const existingRaw = await env.CHAT_KV.get(statsKey) || '[]';
+                const existing: any[] = JSON.parse(existingRaw);
+
+                const newEvent = {
+                    mixId,
+                    event,
+                    timestamp: new Date().toISOString(),
+                    country: cfCountry,
+                    city: cfCity,
+                    region: cfRegion,
+                    ua: userAgent.substring(0, 120)
+                };
+
+                // Keep most recent 5000 events (FIFO)
+                existing.unshift(newEvent);
+                if (existing.length > 5000) existing.length = 5000;
+
+                await env.CHAT_KV.put(statsKey, JSON.stringify(existing));
+                return new Response(JSON.stringify({ success: true }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: GET MIX STATS (Private — owner only) ---
+        if (path === '/api/mix/stats' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const ownerEmail = url.searchParams.get('email');
+            if (!ownerEmail) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+
+            try {
+                // Get all mixes for this user
+                const mixesKey = `user_mixes:${ownerEmail.toLowerCase().trim()}`;
+                const mixesRaw = await env.CHAT_KV.get(mixesKey) || '[]';
+                const mixes: any[] = JSON.parse(mixesRaw);
+
+                // For each mix, fetch its stats
+                const statsPerMix: Record<string, any> = {};
+                for (const mix of mixes) {
+                    const statsKey = `mix_stats:${ownerEmail.toLowerCase().trim()}:${mix.id}`;
+                    const statsRaw = await env.CHAT_KV.get(statsKey) || '[]';
+                    const events: any[] = JSON.parse(statsRaw);
+
+                    // Helper to aggregate stats for a specific event type
+                    const getEventStats = (filteredEvents: any[]) => {
+                        const countryCount: Record<string, number> = {};
+                        const cityCount: Record<string, number> = {};
+                        for (const ev of filteredEvents) {
+                            const c = ev.country || 'XX';
+                            const ci = ev.city || 'Unknown';
+                            countryCount[c] = (countryCount[c] || 0) + 1;
+                            if (ci && ci !== 'Unknown') cityCount[ci] = (cityCount[ci] || 0) + 1;
+                        }
+
+                        const now = Date.now();
+                        const daily: Record<string, number> = {};
+                        for (let i = 0; i < 30; i++) {
+                            const d = new Date(now - i * 86400000).toISOString().split('T')[0];
+                            daily[d] = 0;
+                        }
+                        for (const ev of filteredEvents) {
+                            const d = ev.timestamp ? ev.timestamp.split('T')[0] : '';
+                            if (d && daily[d] !== undefined) daily[d]++;
+                        }
+
+                        const topCountries = Object.entries(countryCount)
+                            .sort((a, b) => b[1] - a[1]).slice(0, 10)
+                            .map(([country, count]) => ({ country, count }));
+                        const topCities = Object.entries(cityCount)
+                            .sort((a, b) => b[1] - a[1]).slice(0, 10)
+                            .map(([city, count]) => ({ city, count }));
+
+                        return {
+                            topCountries,
+                            topCities,
+                            daily: Object.entries(daily)
+                                .sort((a, b) => a[0].localeCompare(b[0]))
+                                .map(([date, count]) => ({ date, count }))
+                        };
+                    };
+
+                    // Aggregate
+                    const plays = events.filter(e => e.event === 'play');
+                    const downloads = events.filter(e => e.event === 'download');
+                    const shares = events.filter(e => e.event === 'share');
+
+                    const playsStats = getEventStats(plays);
+                    const downloadsStats = getEventStats(downloads);
+                    const sharesStats = getEventStats(shares);
+
+                    statsPerMix[mix.id] = {
+                        mixId: mix.id,
+                        title: mix.title,
+                        type: mix.type,
+                        plays: plays.length,
+                        downloads: downloads.length,
+                        shares: shares.length,
+                        topCountries: playsStats.topCountries,
+                        topCities: playsStats.topCities,
+                        daily: playsStats.daily,
+                        playsStats,
+                        downloadsStats,
+                        sharesStats
+                    };
+                }
+
+                return new Response(JSON.stringify({ success: true, stats: statsPerMix, mixCount: mixes.length }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
         }
 

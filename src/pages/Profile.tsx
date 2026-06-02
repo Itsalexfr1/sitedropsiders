@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, DownloadCloud, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight } from 'lucide-react';
+import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, DownloadCloud, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight, BarChart2 } from 'lucide-react';
 import { useUser, type DropsidersCard } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { MixUploadModal } from '../components/profile/MixUploadModal';
+import { MixStatsPanel } from '../components/profile/MixStatsPanel';
 import wikiFestivals from '../data/wiki_festivals.json';
 import wikiClubs from '../data/wiki_clubs.json';
 import { DropsidersCardComponent } from '../components/cards/DropsidersCard';
@@ -130,6 +131,7 @@ export function Profile() {
     const [userMixes, setUserMixes] = useState<any[]>([]);
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [mixStudioTab, setMixStudioTab] = useState<'mixes' | 'stats'>('mixes');
 
     const [cardSearch, setCardSearch] = useState('');
     const [cardRarityFilter, setCardRarityFilter] = useState<'all' | 'legendary' | 'epic' | 'rare' | 'common'>('all');
@@ -696,13 +698,39 @@ export function Profile() {
 
                                 {activeTab === 'mixes' && (
                                     <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 space-y-8">
-                                        <div className="flex items-center gap-4 border-b border-white/5 pb-4">
-                                            <div className="w-10 h-10 bg-neon-purple/20 rounded-xl flex items-center justify-center">
-                                                <Headphones className="w-5 h-5 text-neon-purple" />
+                                        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-neon-purple/20 rounded-xl flex items-center justify-center">
+                                                    <Headphones className="w-5 h-5 text-neon-purple" />
+                                                </div>
+                                                <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Mix Studio</h3>
                                             </div>
-                                            <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Mix Studio</h3>
+                                            {(user?.mixStatus === 'approved' || localStorage.getItem('admin_auth_v2') === 'true') && (
+                                                <div className="flex gap-1 p-1 bg-black/40 border border-white/10 rounded-xl">
+                                                    <button
+                                                        onClick={() => setMixStudioTab('mixes')}
+                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                                            mixStudioTab === 'mixes' ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(188,19,254,0.4)]' : 'text-gray-400 hover:text-white'
+                                                        }`}
+                                                    >
+                                                        <Headphones className="w-3 h-3" /> Mixes
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setMixStudioTab('stats')}
+                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                                            mixStudioTab === 'stats' ? 'bg-neon-cyan text-black shadow-[0_0_10px_rgba(0,240,255,0.4)]' : 'text-gray-400 hover:text-white'
+                                                        }`}
+                                                    >
+                                                        <BarChart2 className="w-3 h-3" /> Stats
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                         
+                                        {mixStudioTab === 'stats' && (user?.mixStatus === 'approved' || localStorage.getItem('admin_auth_v2') === 'true') ? (
+                                            <MixStatsPanel userEmail={user?.email || ''} />
+                                        ) : (
+                                        <>
                                         {user?.mixStatus === 'approved' || localStorage.getItem('admin_auth_v2') === 'true' ? (
                                             <>
                                                 <div className="flex gap-2 justify-center mb-6">
@@ -827,6 +855,8 @@ export function Profile() {
                                                 </div>
                                             )}
                                         </div>
+                                        </>
+                                        )}
                                     </div>
                                 )}
 

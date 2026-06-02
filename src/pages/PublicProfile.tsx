@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Shield, Trophy, Headphones, PlayCircle, Download, MessageSquare, Star, ArrowLeft } from 'lucide-react';
+import { User, Shield, Trophy, Headphones, PlayCircle, PauseCircle, Download, Share2, MessageSquare, Star, ArrowLeft } from 'lucide-react';
 import { DropsidersCardComponent } from '../components/cards/DropsidersCard';
 
 const categoryStyles = {
@@ -95,6 +95,20 @@ export function PublicProfile() {
     const [isLoading, setIsLoading] = useState(true);
     const [profile, setProfile] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'cards' | 'mixes' | 'reviews'>('cards');
+    const [playingMixId, setPlayingMixId] = useState<string | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const playTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const trackedPlaysRef = useRef<Set<string>>(new Set());
+
+    // Helper: silently track an event
+    const trackMixEvent = (mix: any, event: 'play' | 'download' | 'share') => {
+        if (!profile?.email) return;
+        fetch('/api/mix/stats/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mixId: mix.id, event, ownerEmail: profile.email })
+        }).catch(() => {/* silent */});
+    };
 
     useEffect(() => {
         setIsLoading(true);
@@ -303,21 +317,99 @@ export function PublicProfile() {
                                     <div className="space-y-3">
                                         {profile.mixes.map((mix: any) => {
                                             const style = getCategoryStyle(mix.type);
+                                            const isPlaying = playingMixId === mix.id;
+
+                                            const handlePlay = () => {
+                                                // Stop current
+                                                if (audioRef.current) {
+                                                    audioRef.current.pause();
+                                                    audioRef.current = null;
+                                                }
+                                                if (playTimerRef.current) clearTimeout(playTimerRef.current);
+
+                                                if (isPlaying) {
+                                                    setPlayingMixId(null);
+                                                    return;
+                                                }
+
+                                                setPlayingMixId(mix.id);
+
+                                                if (mix.audioUrl) {
+                                                    const audio = new Audio(mix.audioUrl);
+                                                    audio.play().catch(() => {});
+                                                    audioRef.current = audio;
+                                                    audio.onended = () => setPlayingMixId(null);
+                                                }
+
+                                                // Track play only once per session, after 10s
+                                                if (!trackedPlaysRef.current.has(mix.id)) {
+                                                    playTimerRef.current = setTimeout(() => {
+                                                        trackedPlaysRef.current.add(mix.id);
+                                                        trackMixEvent(mix, 'play');
+                                                    }, 10000);
+                                                }
+                                            };
+
+                                            const handleDownload = () => {
+                                                if (mix.audioUrl && mix.allowDownload) {
+                                                    trackMixEvent(mix, 'download');
+                                                    const a = document.createElement('a');
+                                                    a.href = mix.audioUrl;
+                                                    a.download = mix.title + '.mp3';
+                                                    a.click();
+                                                }
+                                            };
+
+                                            const handleShare = () => {
+                                                trackMixEvent(mix, 'share');
+                                                const url = window.location.href;
+                                                if (navigator.share) {
+                                                    navigator.share({ title: mix.title, url });
+                                                } else {
+                                                    navigator.clipboard.writeText(url).catch(() => {});
+                                                }
+                                            };
+
                                             return (
-                                                <div key={mix.id} className={`group p-4 bg-white/5 border border-white/5 ${style.cardBorder} rounded-2xl flex items-center justify-between transition-all ${style.hoverBgCard}`}>
-                                                    <div className="flex items-center gap-4">
-                                                        <div className={`w-12 h-12 ${style.bg} rounded-xl flex items-center justify-center shadow-lg ${style.shadow}`}>
-                                                            <PlayCircle className="w-6 h-6 text-white" />
+                                                <div key={mix.id} className={`group p-4 bg-white/5 border border-white/5 ${style.cardBorder} rounded-2xl transition-all ${style.hoverBgCard}`}>
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-4">
+                                                            <button
+                                                                onClick={handlePlay}
+                                                                className={`w-12 h-12 ${style.bg} rounded-xl flex items-center justify-center shadow-lg ${style.shadow} transition-transform hover:scale-110 active:scale-95`}
+                                                            >
+                                                                {isPlaying ? <PauseCircle className="w-6 h-6 text-white" /> : <PlayCircle className="w-6 h-6 text-white" />}
+                                                            </button>
+                                                            <div>
+                                                                <span className={`text-[9px] font-black ${style.text} uppercase tracking-widest`}>{mix.type}</span>
+                                                                <h4 className="text-sm font-bold text-white uppercase italic tracking-tighter">{mix.title}</h4>
+                                                                <p className="text-[10px] text-gray-500">{mix.duration} · {mix.uploadDate}</p>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <span className={`text-[9px] font-black ${style.text} uppercase tracking-widest`}>{mix.type}</span>
-                                                            <h4 className="text-sm font-bold text-white uppercase italic tracking-tighter">{mix.title}</h4>
-                                                            <p className="text-[10px] text-gray-500">{mix.duration} · {mix.uploadDate}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                onClick={handleShare}
+                                                                className={`w-9 h-9 border border-white/10 bg-black/40 hover:${style.bgLight} rounded-xl flex items-center justify-center text-gray-400 hover:${style.text} transition-all`}
+                                                                title="Partager"
+                                                            >
+                                                                <Share2 className="w-4 h-4" />
+                                                            </button>
+                                                            {mix.allowDownload && (
+                                                                <button
+                                                                    onClick={handleDownload}
+                                                                    className={`w-9 h-9 border border-white/10 bg-black/40 hover:${style.bgLight} rounded-xl flex items-center justify-center text-gray-400 hover:${style.text} transition-all hidden md:flex`}
+                                                                    title="Télécharger"
+                                                                >
+                                                                    <Download className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                    <button className={`w-10 h-10 border border-white/10 bg-black/40 hover:${style.bgLight} hover:${style.text} hover:${style.border} rounded-xl flex items-center justify-center text-gray-400 hover:${style.text} transition-all hidden md:flex`}>
-                                                        <Download className="w-4 h-4" />
-                                                    </button>
+                                                    {isPlaying && mix.audioUrl && (
+                                                        <div className={`mt-3 h-1 rounded-full ${style.bgLight} overflow-hidden`}>
+                                                            <div className={`h-full ${style.bg} animate-pulse w-1/3 rounded-full`} />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })}
