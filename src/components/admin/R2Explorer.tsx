@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { 
     Image as ImageIcon, Loader2, Trash2, ExternalLink, 
     RefreshCw, ChevronLeft, ChevronRight, Search, X,
-    LayoutGrid, List as ListIcon, HardDrive as StorageIcon
+    LayoutGrid, List as ListIcon, HardDrive as StorageIcon,
+    Music as MusicIcon, Video as VideoIcon
 } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 import { ConfirmationModal } from '../ConfirmationModal';
@@ -97,7 +98,8 @@ export function R2Explorer() {
 
     const folderOptions = [
         { label: 'Uploads Site', value: 'uploads/' },
-        { label: 'Musiques (MP3)', value: 'mp3/' },
+        { label: 'Musiques MP3 🎵', value: 'SONS/' },
+        { label: 'Vidéos 🎬', value: 'VIDEOS/' },
         { label: 'Contenu Migré', value: 'migrated/' },
         { label: 'Inutilisées 🗑️', value: 'unused' },
         { label: 'Tous les fichiers', value: '' },
@@ -215,53 +217,74 @@ export function R2Explorer() {
                     </div>
                 ) : viewMode === 'grid' ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-                        {filteredPhotos.map((photo, idx) => (
-                            <motion.div 
-                                key={photo.key}
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                transition={{ delay: Math.min(idx * 0.02, 0.5) }}
-                                className="group relative aspect-square bg-white/5 border border-white/5 rounded-3xl overflow-hidden hover:border-white/20 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] cursor-pointer"
-                            >
-                                <img 
-                                    src={photo.url} 
-                                    alt={photo.key} 
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                                    loading="lazy"
-                                    onError={(e) => {
-                                        (e.currentTarget as any).src = 'https://images.unsplash.com/photo-1594322436404-5a0526db4d13?q=80&w=300&auto=format&fit=crop';
-                                        (e.currentTarget as any).className = "w-full h-full object-cover grayscale opacity-30 p-8";
-                                    }}
-                                />
-                                
-                                {/* Status Indicator */}
-                                <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-neon-green shadow-[0_0_10px_#22c55e] opacity-0 group-hover:opacity-100 transition-opacity" />
+                        {filteredPhotos.map((photo, idx) => {
+                            const filename = photo.key.split('/').pop() || '';
+                            const ext = filename.split('.').pop()?.toLowerCase() || '';
+                            const isAudio = ['mp3', 'wav', 'ogg', 'm4a', 'flac'].includes(ext);
+                            const isVideo = ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext);
+                            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext);
 
-                                {/* Overlay info */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-5">
-                                    <p className="text-[10px] font-black text-white truncate uppercase tracking-widest mb-1">{photo.key.split('/').pop()}</p>
-                                    <p className="text-[8px] text-gray-400 font-bold uppercase mb-4">{(photo.size / 1024).toFixed(1)} KB • {new Date(photo.uploaded).toLocaleDateString()}</p>
+                            return (
+                                <motion.div 
+                                    key={photo.key}
+                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    transition={{ delay: Math.min(idx * 0.02, 0.5) }}
+                                    className="group relative aspect-square bg-white/5 border border-white/5 rounded-3xl overflow-hidden hover:border-white/20 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] cursor-pointer"
+                                >
+                                    {isImage ? (
+                                        <img 
+                                            src={photo.url} 
+                                            alt={photo.key} 
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                                            loading="lazy"
+                                        />
+                                    ) : isAudio ? (
+                                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-950/40 to-black border border-white/5 p-4 text-center">
+                                            <MusicIcon className="w-12 h-12 text-neon-purple shadow-[0_0_20px_rgba(168,85,247,0.5)] mb-3" />
+                                            <span className="text-[10px] font-black text-neon-purple uppercase tracking-[0.2em]">{ext} AUDIO</span>
+                                        </div>
+                                    ) : isVideo ? (
+                                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-red-950/40 to-black border border-white/5 p-4 text-center">
+                                            <VideoIcon className="w-12 h-12 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.5)] mb-3" />
+                                            <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.2em]">{ext} VIDEO</span>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-full flex flex-col items-center justify-center bg-white/[0.02] border border-white/5 p-4 text-center">
+                                            <StorageIcon className="w-12 h-12 text-gray-500 mb-3" />
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">FILE</span>
+                                        </div>
+                                    )}
                                     
-                                    <div className="flex gap-2">
-                                        <a 
-                                            href={photo.url} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="flex-1 py-2 bg-white/10 hover:bg-white text-white hover:text-black rounded-xl transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <ExternalLink className="w-3.5 h-3.5" />
-                                            <span className="text-[8px] font-black uppercase">Voir</span>
-                                        </a>
-                                        <button 
-                                            onClick={() => handleDelete(photo.key)}
-                                            className="p-2 bg-neon-red/20 hover:bg-neon-red text-neon-red hover:text-white rounded-xl transition-all border border-neon-red/30"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                    {/* Status Indicator */}
+                                    <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-neon-green shadow-[0_0_10px_#22c55e] opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                                    {/* Overlay info */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-5">
+                                        <p className="text-[10px] font-black text-white truncate uppercase tracking-widest mb-1">{photo.key.split('/').pop()}</p>
+                                        <p className="text-[8px] text-gray-400 font-bold uppercase mb-4">{(photo.size / 1024).toFixed(1)} KB • {new Date(photo.uploaded).toLocaleDateString()}</p>
+                                        
+                                        <div className="flex gap-2">
+                                            <a 
+                                                href={photo.url} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="flex-1 py-2 bg-white/10 hover:bg-white text-white hover:text-black rounded-xl transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <ExternalLink className="w-3.5 h-3.5" />
+                                                <span className="text-[8px] font-black uppercase">Voir</span>
+                                            </a>
+                                            <button 
+                                                onClick={() => handleDelete(photo.key)}
+                                                className="p-2 bg-neon-red/20 hover:bg-neon-red text-neon-red hover:text-white rounded-xl transition-all border border-neon-red/30"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            </motion.div>
-                        ))}
+                                </motion.div>
+                            );
+                        })}
                     </div>
                 ) : (
                     /* LIST VIEW */
@@ -277,47 +300,63 @@ export function R2Explorer() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
-                                {filteredPhotos.map((photo) => (
-                                    <tr key={photo.key} className="hover:bg-white/[0.02] transition-colors group">
-                                        <td className="px-8 py-4">
-                                            <div className="w-12 h-12 rounded-xl overflow-hidden bg-black/40 border border-white/10">
-                                                <img 
-                                                    src={photo.url} 
-                                                    alt="" 
-                                                    className="w-full h-full object-cover group-hover:scale-125 transition-transform" 
-                                                    loading="lazy"
-                                                />
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-4">
-                                            <p className="text-sm font-bold text-white uppercase italic tracking-tight truncate max-w-sm">{photo.key}</p>
-                                        </td>
-                                        <td className="px-8 py-4 text-center">
-                                            <span className="text-[10px] font-mono text-gray-400">{(photo.size / 1024).toFixed(1)} KB</span>
-                                        </td>
-                                        <td className="px-8 py-4 text-center">
-                                            <span className="text-[10px] font-bold text-gray-500 uppercase">{new Date(photo.uploaded).toLocaleDateString()}</span>
-                                        </td>
-                                        <td className="px-8 py-4">
-                                            <div className="flex justify-end gap-2">
-                                                <a 
-                                                    href={photo.url} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer"
-                                                    className="p-2.5 bg-white/5 hover:bg-white hover:text-black rounded-xl text-gray-400 transition-all border border-white/10"
-                                                >
-                                                    <ExternalLink className="w-4 h-4" />
-                                                </a>
-                                                <button 
-                                                    onClick={() => handleDelete(photo.key)}
-                                                    className="p-2.5 bg-neon-red/10 hover:bg-neon-red text-neon-red hover:text-white rounded-xl transition-all border border-neon-red/20"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {filteredPhotos.map((photo) => {
+                                    const filename = photo.key.split('/').pop() || '';
+                                    const ext = filename.split('.').pop()?.toLowerCase() || '';
+                                    const isAudio = ['mp3', 'wav', 'ogg', 'm4a', 'flac'].includes(ext);
+                                    const isVideo = ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext);
+                                    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(ext);
+
+                                    return (
+                                        <tr key={photo.key} className="hover:bg-white/[0.02] transition-colors group">
+                                            <td className="px-8 py-4">
+                                                <div className="w-12 h-12 rounded-xl overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center">
+                                                    {isImage ? (
+                                                        <img 
+                                                            src={photo.url} 
+                                                            alt="" 
+                                                            className="w-full h-full object-cover group-hover:scale-125 transition-transform" 
+                                                            loading="lazy"
+                                                        />
+                                                    ) : isAudio ? (
+                                                        <MusicIcon className="w-5 h-5 text-neon-purple" />
+                                                    ) : isVideo ? (
+                                                        <VideoIcon className="w-5 h-5 text-neon-red" />
+                                                    ) : (
+                                                        <StorageIcon className="w-5 h-5 text-gray-500" />
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-4">
+                                                <p className="text-sm font-bold text-white uppercase italic tracking-tight truncate max-w-sm">{photo.key}</p>
+                                            </td>
+                                            <td className="px-8 py-4 text-center">
+                                                <span className="text-[10px] font-mono text-gray-400">{(photo.size / 1024).toFixed(1)} KB</span>
+                                            </td>
+                                            <td className="px-8 py-4 text-center">
+                                                <span className="text-[10px] font-bold text-gray-500 uppercase">{new Date(photo.uploaded).toLocaleDateString()}</span>
+                                            </td>
+                                            <td className="px-8 py-4">
+                                                <div className="flex justify-end gap-2">
+                                                    <a 
+                                                        href={photo.url} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="p-2.5 bg-white/5 hover:bg-white hover:text-black rounded-xl text-gray-400 transition-all border border-white/10"
+                                                    >
+                                                        <ExternalLink className="w-4 h-4" />
+                                                    </a>
+                                                    <button 
+                                                        onClick={() => handleDelete(photo.key)}
+                                                        className="p-2.5 bg-neon-red/10 hover:bg-neon-red text-neon-red hover:text-white rounded-xl transition-all border border-neon-red/20"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

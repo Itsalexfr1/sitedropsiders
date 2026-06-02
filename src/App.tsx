@@ -1,6 +1,6 @@
 import { useEffect, Suspense, useState } from 'react';
 import { AlertCircle, RefreshCw, X, Bell } from 'lucide-react';
-import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -123,9 +123,19 @@ import { useUser } from './context/UserContext';
 
 function Root() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { addCard, collectedCards, showNotification, pendingBooster, claimBooster, dismissBooster } = useUser();
   const collectedCardIds = collectedCards.map((c) => c.id);
   const { pendingCard, claimCard, dismissCard } = useVisitTimer(collectedCardIds);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const play = params.get('play');
+    if (play && location.pathname !== '/musique') {
+      const t = params.get('t');
+      navigate(`/musique?play=${play}${t ? `&t=${t}` : ''}`, { replace: true });
+    }
+  }, [location, navigate]);
 
   const handleClaim = () => {
     claimCard((card) => {

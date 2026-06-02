@@ -2002,6 +2002,9 @@ ${urls.map(u => `  <url>
                     httpMetadata: { contentType: type || 'application/octet-stream' }
                 });
 
+                // URL is the R2 key served via /uploads/ proxy route
+                // The key already includes the folder (e.g. SONS/hash-name.mp3)
+                // so the correct public URL is /uploads/<key>, not /<key>
                 return new Response(JSON.stringify({
                     success: true,
                     url: `/uploads/${key}`,
@@ -6996,7 +6999,8 @@ ${urls.map(u => `  <url>
                 if (!env.R2) return new Response(JSON.stringify({ objects: [], truncated: false }), { status: 200, headers });
                 
                 const cursor = url.searchParams.get('cursor') || undefined;
-                const prefix = url.searchParams.get('prefix') || 'uploads/';
+                // Default to empty prefix to list ALL R2 files (SONS/, VIDEOS/, uploads/, etc.)
+                const prefix = url.searchParams.get('prefix') ?? '';
                 const limit = parseInt(url.searchParams.get('limit') || '50');
                 const sort = url.searchParams.get('sort');
                 
@@ -7031,7 +7035,7 @@ ${urls.map(u => `  <url>
                             size: obj.size,
                             uploaded: obj.uploaded,
                             etag: obj.etag,
-                            url: `/${obj.key}`
+                            url: obj.key.startsWith('uploads/') ? `/uploads/${obj.key.replace('uploads/', '')}` : `/uploads/${obj.key}`
                         })),
                         truncated: !!nextOffset,
                         cursor: nextOffset,
@@ -7046,7 +7050,7 @@ ${urls.map(u => `  <url>
                     size: obj.size,
                     uploaded: obj.uploaded,
                     etag: obj.etag,
-                    url: `/${obj.key}`
+                    url: obj.key.startsWith('uploads/') ? `/uploads/${obj.key.replace('uploads/', '')}` : `/uploads/${obj.key}`
                 }));
                 
                 return new Response(JSON.stringify({

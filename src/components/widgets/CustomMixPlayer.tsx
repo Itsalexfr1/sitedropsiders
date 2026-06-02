@@ -103,7 +103,7 @@ function formatSeconds(seconds: number): string {
 }
 
 export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
-    const [isPlaying, setIsPlaying] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(true);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(80);
@@ -120,7 +120,7 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const scWidgetRef = useRef<any>(null);
     const ytPlayerRef = useRef<any>(null);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const audioRef = useRef<HTMLAudioElement>(null); // points to native <audio> element in JSX
     const visualizerIntervalRef = useRef<any>(null);
     const [visualizerBars, setVisualizerBars] = useState<number[]>(new Array(16).fill(5));
 
@@ -133,57 +133,28 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
     const scStatus = useScript(isSoundCloud ? 'https://w.soundcloud.com/player/api.js' : '');
     const ytStatus = useScript(isYouTube ? 'https://www.youtube.com/iframe_api' : '');
 
-    // Initialize HTML5 Audio Controller
+    // Reset and autoplay player state when track (mix) changes
     useEffect(() => {
-        if (!isHTML5 || !track.url) return;
-
-        // Clean up previous audio instance
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current.src = '';
+        setIsPlaying(true);
+        setCurrentTime(0);
+        setDuration(0);
+        setCurrentTrackIndex(-1);
+        
+        if (isHTML5 && audioRef.current) {
+            audioRef.current.load();
+            audioRef.current.play().catch(err => {
+                console.log("Auto-play blocked or failed on track change:", err);
+            });
         }
+    }, [track.id, isHTML5]);
 
-        const audio = new Audio();
-        audio.crossOrigin = 'anonymous';
-        audio.preload = 'metadata';
-        audio.volume = volume / 100;
-        audio.muted = isMuted;
-        audioRef.current = audio;
-
-        const handlePlay = () => setIsPlaying(true);
-        const handlePause = () => setIsPlaying(false);
-        const handleEnded = () => setIsPlaying(false);
-        const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
-        const handleDurationChange = () => setDuration(isFinite(audio.duration) ? audio.duration : 0);
-        const handleError = (e: Event) => {
-            console.error('[HTML5 Audio] Error loading:', track.url, e);
-            setIsPlaying(false);
-        };
-
-        audio.addEventListener('play', handlePlay);
-        audio.addEventListener('pause', handlePause);
-        audio.addEventListener('ended', handleEnded);
-        audio.addEventListener('timeupdate', handleTimeUpdate);
-        audio.addEventListener('durationchange', handleDurationChange);
-        audio.addEventListener('error', handleError);
-
-        // Set src AFTER attaching listeners
-        audio.src = track.url;
-        audio.load();
-
-        return () => {
-            audio.removeEventListener('play', handlePlay);
-            audio.removeEventListener('pause', handlePause);
-            audio.removeEventListener('ended', handleEnded);
-            audio.removeEventListener('timeupdate', handleTimeUpdate);
-            audio.removeEventListener('durationchange', handleDurationChange);
-            audio.removeEventListener('error', handleError);
-            audio.pause();
-            audio.src = '';
-            audioRef.current = null;
-        };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isHTML5, track.url]);
+    // HTML5 audio: sync volume/mute when they change
+    useEffect(() => {
+        if (isHTML5 && audioRef.current) {
+            audioRef.current.volume = volume / 100;
+            audioRef.current.muted = isMuted;
+        }
+    }, [isHTML5, volume, isMuted]);
 
 
     const showToast = (msg: string) => {
@@ -205,6 +176,7 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
                     widget.bind(SC.Widget.Events.READY, () => {
                         widget.getDuration((d: number) => setDuration(d / 1000));
                         widget.setVolume(isMuted ? 0 : volume);
+                        widget.play();
                     });
 
                     widget.bind(SC.Widget.Events.PLAY, () => setIsPlaying(true));
@@ -256,6 +228,7 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
                             onReady: (event: any) => {
                                 setDuration(event.target.getDuration() || 0);
                                 event.target.setVolume(isMuted ? 0 : volume);
+                                event.target.playVideo();
                             },
                             onStateChange: (event: any) => {
                                 const YT = (window as any).YT;
@@ -316,17 +289,19 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const tParam = params.get('t');
-        if (tParam) {
+        const playParam = params.get('play');
+        if (tParam && playParam === track.id) {
             const initialSeconds = parseInt(tParam, 10);
             if (!isNaN(initialSeconds) && initialSeconds > 0) {
                 // Seek player once initialized
-                setTimeout(() => {
+                const timer = setTimeout(() => {
                     handleSeekToSeconds(initialSeconds);
                     showToast(`Lecture démarrée à ${formatSeconds(initialSeconds)} ! 🚀`);
                 }, 1800);
+                return () => clearTimeout(timer);
             }
         }
-    }, []);
+    }, [track.id]);
 
     // Visualizer simulation interval
     useEffect(() => {
@@ -371,10 +346,19 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
         setCurrentTime(seconds);
         if (isSoundCloud && scWidgetRef.current) {
             scWidgetRef.current.seekTo(seconds * 1000);
+            scWidgetRef.current.play();
+            setIsPlaying(true);
         } else if (isYouTube && ytPlayerRef.current) {
             ytPlayerRef.current.seekTo(seconds, true);
+            ytPlayerRef.current.playVideo();
+            setIsPlaying(true);
         } else if (isHTML5 && audioRef.current) {
             audioRef.current.currentTime = seconds;
+            audioRef.current.play().then(() => {
+                setIsPlaying(true);
+            }).catch(e => {
+                console.error("Play failed during seek:", e);
+            });
         }
     };
 
@@ -724,6 +708,27 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
 
     return (
         <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[40px] overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.5)]">
+            {isHTML5 && (
+                <audio
+                    ref={audioRef}
+                    src={track.url}
+                    autoPlay
+                    crossOrigin="anonymous"
+                    preload="metadata"
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    onEnded={() => setIsPlaying(false)}
+                    onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                    onDurationChange={(e) => {
+                        const dur = e.currentTarget.duration;
+                        setDuration(isFinite(dur) ? dur : 0);
+                    }}
+                    onError={(e) => {
+                        console.error('[HTML5 Audio] Error loading:', track.url, e);
+                        setIsPlaying(false);
+                    }}
+                />
+            )}
             <div className={hasTracklist ? "grid grid-cols-1 lg:grid-cols-12" : "w-full"}>
                 
                 {/* TRACKLIST COLUMN (LEFT - 5 cols) */}
