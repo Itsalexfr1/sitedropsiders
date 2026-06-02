@@ -575,12 +575,14 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
     const theme = getCardTheme(card);
     const attacks = getCardAttacks(card, theme);
 
-    // Dynamic Holographic gradient
+    // Dynamic Holographic foil gradient
     const holoBg = card.rarity === 'legendary'
-        ? 'linear-gradient(135deg, rgba(245,158,11,0.25) 0%, rgba(253,224,71,0.15) 50%, rgba(217,119,6,0.25) 100%)'
+        ? 'linear-gradient(115deg, transparent 20%, rgba(255,215,0,0.7) 30%, rgba(255,0,128,0.6) 40%, rgba(0,255,255,0.7) 50%, rgba(255,215,0,0.7) 60%, transparent 80%)'
         : card.rarity === 'epic'
-        ? 'linear-gradient(135deg, rgba(168,85,247,0.2) 0%, rgba(244,63,94,0.1) 50%, rgba(107,33,168,0.2) 100%)'
-        : 'linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(52,211,153,0.05) 50%, rgba(37,99,235,0.15) 100%)';
+        ? 'linear-gradient(115deg, transparent 20%, rgba(168,85,247,0.6) 30%, rgba(244,63,94,0.5) 45%, rgba(107,33,168,0.6) 60%, transparent 80%)'
+        : card.rarity === 'rare'
+        ? 'linear-gradient(115deg, transparent 20%, rgba(6,182,212,0.5) 30%, rgba(52,211,153,0.4) 45%, rgba(37,99,235,0.5) 60%, transparent 80%)'
+        : 'none';
 
     // 3D Motion dynamics
     const mouseX = useMotionValue(0);
@@ -590,8 +592,8 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
     const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-12, 12]), springConfig);
     
     // Holographic sheen position
-    const shineX = useSpring(useTransform(mouseX, [-0.5, 0.5], ['0%', '100%']), springConfig);
-    const shineY = useSpring(useTransform(mouseY, [-0.5, 0.5], ['0%', '100%']), springConfig);
+    const shineX = useSpring(useTransform(mouseX, [-0.5, 0.5], [100, 0]), springConfig);
+    const shineY = useSpring(useTransform(mouseY, [-0.5, 0.5], [100, 0]), springConfig);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
         if (!cardRef.current) return;
@@ -669,9 +671,10 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                 <motion.div
                                     className="absolute inset-0 pointer-events-none z-20 mix-blend-color-dodge transition-opacity duration-300"
                                     style={{
-                                        opacity: hovered ? 0.8 : 0.3,
+                                        opacity: hovered ? 1 : 0.4,
                                         background: holoBg,
-                                        backgroundPosition: `${shineX.get()} ${shineY.get()}`,
+                                        backgroundSize: '250% 250%',
+                                        backgroundPosition: useTransform(() => `${shineX.get()}% ${shineY.get()}%`),
                                     }}
                                 />
                             )}
@@ -687,7 +690,10 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                             />
 
                             {/* Card Content Layout */}
-                            <div className="relative z-40 flex flex-col h-full justify-between">
+                            <motion.div 
+                                className="relative z-40 flex flex-col h-full justify-between"
+                                style={{ transform: hovered ? 'translateZ(40px)' : 'translateZ(0px)', transition: 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)' }}
+                            >
                                 
                                 <div className="flex items-end justify-between border-b border-[#a8905a]/50 pb-0.5">
                                     <div className="flex items-baseline gap-1">
@@ -890,17 +896,17 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                         DROPSIDERS
                                     </h2>
                                     <div className="w-12 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan to-transparent mt-2 mb-1" />
-                                    <p className="text-[6px] font-bold uppercase tracking-[0.4em] text-white/50">
+                                    <p className="text-[6px] font-bold uppercase tracking-[0.4em] text-white/60">
                                         Exclusive Collection
                                     </p>
                                 </div>
-                            </div>
+                            </motion.div>
 
                             {/* Tech Borders */}
-                            <div className="absolute top-4 left-4 w-6 h-6 border-t-[1.5px] border-l-[1.5px] border-neon-cyan/40" />
-                            <div className="absolute top-4 right-4 w-6 h-6 border-t-[1.5px] border-r-[1.5px] border-neon-purple/40" />
-                            <div className="absolute bottom-4 left-4 w-6 h-6 border-b-[1.5px] border-l-[1.5px] border-neon-red/40" />
-                            <div className="absolute bottom-4 right-4 w-6 h-6 border-b-[1.5px] border-r-[1.5px] border-neon-cyan/40" />
+                            <div className="absolute top-4 left-4 w-6 h-6 border-t-[1.5px] border-l-[1.5px] border-neon-cyan/60" />
+                            <div className="absolute top-4 right-4 w-6 h-6 border-t-[1.5px] border-r-[1.5px] border-neon-purple/60" />
+                            <div className="absolute bottom-4 left-4 w-6 h-6 border-b-[1.5px] border-l-[1.5px] border-neon-red/60" />
+                            <div className="absolute bottom-4 right-4 w-6 h-6 border-b-[1.5px] border-r-[1.5px] border-neon-cyan/60" />
                         </div>
                     </div>
                 </div>

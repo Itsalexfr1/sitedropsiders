@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { twMerge } from 'tailwind-merge';
 import wikiFestivals from '../data/wiki_festivals.json';
@@ -58,6 +58,8 @@ interface UserContextType {
     addCard: (card: DropsidersCard) => void;
     addCards: (cards: DropsidersCard[]) => void;
     removeCard: (cardId: string) => void;
+    burnCards: (cardIds: string[]) => void;
+    craftCard: (targetRarity: 'rare' | 'epic' | 'legendary') => DropsidersCard | null;
     collectedCards: DropsidersCard[];
     pendingBooster: DropsidersCard[] | null;
     triggerBooster: () => void;
@@ -128,6 +130,19 @@ function buildCardPool(): DropsidersCard[] {
         });
 
     return [...festivalCards, ...clubCards, ...djCards];
+
+function hydrateCards(stored: DropsidersCard[]): DropsidersCard[] {
+    const pool = buildCardPool();
+    const map = new Map<string, Partial<DropsidersCard>>();
+    for (const card of pool) { map.set(card.id, card); }
+    return stored.map(card => {
+        const baseId = card.id.includes("_crafted_") ? card.id.split("_crafted_")[0] : card.id;
+        const fresh = map.get(card.id) || map.get(baseId);
+        if (!fresh) return card;
+        return { ...fresh, id: card.id, collectedAt: card.collectedAt } as DropsidersCard;
+    });
+}
+
 }
 
 function pick9RandomCards(): DropsidersCard[] {
@@ -196,7 +211,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
 
     const claimHandle = async (handle: string): Promise<{ success: boolean; error?: string }> => {
-        if (!user || !user.email) return { success: false, error: 'Non connecté' };
+        if (!user || !user.email) return { success: false, error: 'Non connectÃ©' };
         try {
             const res = await fetch('/api/users/handle/claim', {
                 method: 'POST',
@@ -211,7 +226,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                     localStorage.setItem('dropsiders_user', JSON.stringify(updated));
                     return updated;
                 });
-                showNotification('Votre handle @' + data.handle + ' a été enregistré !', 'success');
+                showNotification('Votre handle @' + data.handle + ' a Ã©tÃ© enregistrÃ© !', 'success');
                 return { success: true };
             } else {
                 return { success: false, error: data.error || 'Erreur inconnue' };
@@ -223,7 +238,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
 
     const createTradeOffer = async (toHandle: string, offeredCardId: string, wantedCardId: string): Promise<{ success: boolean; error?: string }> => {
-        if (!user || !user.email) return { success: false, error: 'Non connecté' };
+        if (!user || !user.email) return { success: false, error: 'Non connectÃ©' };
         try {
             const res = await fetch('/api/trades/create', {
                 method: 'POST',
@@ -237,7 +252,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             });
             const data = await res.json();
             if (res.ok && data.success) {
-                showNotification('Offre d\'échange envoyée avec succès !', 'success');
+                showNotification('Offre d\'Ã©change envoyÃ©e avec succÃ¨s !', 'success');
                 loadTrades();
                 return { success: true };
             } else {
@@ -250,7 +265,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
 
     const respondToTrade = async (tradeId: string, response: 'accepted' | 'rejected'): Promise<{ success: boolean; error?: string }> => {
-        if (!user || !user.email) return { success: false, error: 'Non connecté' };
+        if (!user || !user.email) return { success: false, error: 'Non connectÃ©' };
         try {
             const res = await fetch('/api/trades/respond', {
                 method: 'POST',
@@ -265,8 +280,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             if (res.ok && data.success) {
                 showNotification(
                     response === 'accepted' 
-                        ? 'Échange accepté ! Vos cartes ont été mises à jour.' 
-                        : 'Échange refusé.',
+                        ? 'Ã‰change acceptÃ© ! Vos cartes ont Ã©tÃ© mises Ã  jour.' 
+                        : 'Ã‰change refusÃ©.',
                     'success'
                 );
                 const profileRes = await fetch(`/api/users/get-profile?email=${encodeURIComponent(user.email)}`);
@@ -337,7 +352,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                         provider: 'google'
                     });
                     setTimeout(() => {
-                        showNotification(`Succès! Vous êtes connecté via Google en tant que ${googleUser.name}.`, 'success');
+                        showNotification(`SuccÃ¨s! Vous Ãªtes connectÃ© via Google en tant que ${googleUser.name}.`, 'success');
                         setTimeout(() => window.location.reload(), 2000); // Laisse le temps de voir le message
                     }, 500);
                 }
@@ -575,7 +590,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             
             if (res.ok) {
                 logout();
-                showNotification('Compte supprimé avec succès.', 'success');
+                showNotification('Compte supprimÃ© avec succÃ¨s.', 'success');
                 return true;
             } else {
                 showNotification('Erreur lors de la suppression du compte.', 'error');
@@ -583,7 +598,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             }
         } catch (e) {
             console.error('Delete account failed', e);
-            showNotification('Erreur réseau lors de la suppression.', 'error');
+            showNotification('Erreur rÃ©seau lors de la suppression.', 'error');
             return false;
         }
     };
@@ -722,6 +737,32 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
+    const burnCards = (cardIds: string[]) => {
+        if (!user) return;
+        const existing = user.collectedCards || [];
+        const toRemove = new Set(cardIds);
+        const updatedCards = existing.filter(c => !toRemove.has(c.id));
+        if (updatedCards.length !== existing.length) {
+            const updatedUser = { ...user, collectedCards: updatedCards };
+            setUser(updatedUser);
+            saveToRegisteredUsers(updatedUser);
+            syncUserWithBackend(updatedUser);
+        }
+    };
+
+    const craftCard = (targetRarity: 'rare' | 'epic' | 'legendary'): DropsidersCard | null => {
+        const pool = buildCardPool().filter(c => c.rarity === targetRarity);
+        if (pool.length === 0) return null;
+        const crafted = pool[Math.floor(Math.random() * pool.length)];
+        const timestamped = {
+            ...crafted,
+            id: `${crafted.id}_crafted_${Date.now()}`,
+            collectedAt: new Date().toISOString()
+        };
+        addCard(timestamped);
+        return timestamped;
+    };
+
     const earnPoints = (xpAmount: number, dropsAmount: number) => {
         if (user) {
             const updatedUser = {
@@ -759,7 +800,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             addCard,
             addCards,
             removeCard,
-            collectedCards: user?.collectedCards || (typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]') : []),
+            burnCards,
+            craftCard,
+            collectedCards: hydrateCards(user?.collectedCards || (typeof localStorage !== 'undefined' ? JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]') : [])),
             pendingBooster,
             triggerBooster,
             claimBooster,
@@ -799,7 +842,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                                     "bg-neon-purple/10 border-neon-purple/30 text-neon-purple"
                                 )}>
                                     <div className="w-5 h-5 flex items-center justify-center">
-                                        {notification.type === 'success' ? '✓' : notification.type === 'error' ? '!' : 'i'}
+                                        {notification.type === 'success' ? 'âœ“' : notification.type === 'error' ? '!' : 'i'}
                                     </div>
                                 </div>
                                 <div className="flex-1 pt-1">
@@ -814,7 +857,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                                     onClick={() => setNotification(null)}
                                     className="p-2 text-white/20 hover:text-white transition-colors"
                                 >
-                                    ×
+                                    Ã—
                                 </button>
                             </div>
 
@@ -845,3 +888,4 @@ export function useUser() {
     }
     return context;
 }
+
