@@ -867,7 +867,7 @@ export function Profile() {
                                         <div className="space-y-4 pt-4 border-t border-white/5">
                                             <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Mes Mixes Publics</h4>
                                             
-                                            {/* Active Player has been moved to Global Container */}
+                                            <div id="mix-player-portal-target" className="w-full relative z-10 mb-6 empty:hidden"></div>
 
                                             {/* Mix Cards List */}
                                             {userMixes.length > 0 ? (

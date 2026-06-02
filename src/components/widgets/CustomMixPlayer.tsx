@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePlayer } from '../../context/PlayerContext';
 import { 
     Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, 
     Share2, Disc, ExternalLink, X, Clock, Sparkles, 
@@ -103,13 +104,14 @@ function formatSeconds(seconds: number): string {
 }
 
 export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
-    const [isPlaying, setIsPlaying] = useState(true);
+    const { isPlaying, setIsPlaying, registerTogglePlay } = usePlayer();
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(80);
     const [isMuted, setIsMuted] = useState(false);
     const [currentTrackIndex, setCurrentTrackIndex] = useState(-1);
     const [toastMessage, setToastMessage] = useState('');
+    const [selectedSnippet, setSelectedSnippet] = useState<any>(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
     const [videoProgress, setVideoProgress] = useState(0);
@@ -150,6 +152,11 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
             });
         }
     }, [track.id, isHTML5]);
+
+    // Register togglePlay with the global context so GlobalPlayerContainer's mini-player can control audio
+    useEffect(() => {
+        registerTogglePlay(togglePlay);
+    });
 
     // HTML5 audio: sync volume/mute when they change
     useEffect(() => {
