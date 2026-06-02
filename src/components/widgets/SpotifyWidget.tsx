@@ -4,6 +4,7 @@ import { Play, Heart, Loader2, Disc3 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import spotifyData from '../../data/spotify.json';
+import { usePlayer } from '../../context/PlayerContext';
 
 /**
  * Converts any Spotify URL to a valid embed URL.
@@ -49,6 +50,7 @@ export function SpotifyWidget({
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t } = useLanguage();
     const navigate = useNavigate();
+    const { playTrack } = usePlayer();
     const [playlists, setPlaylists] = useState<any[]>([]);
     const [playingWidget, setPlayingWidget] = useState<number | null>(null);
     const hoveredRef = useRef<number | null>(null);
@@ -295,7 +297,17 @@ export function SpotifyWidget({
                                 <motion.div
                                     key={mix.id}
                                     whileHover={{ scale: 1.03 }}
-                                    onClick={() => navigate(`/profil?tab=mixes&play=${mix.id}`)}
+                                    onClick={() => {
+                                        playTrack({
+                                            id: mix.id,
+                                            title: mix.title,
+                                            artist: mix.username || 'Dropsider',
+                                            label: mix.genre || mix.type,
+                                            url: mix.audioUrl || mix.url || '',
+                                            embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
+                                            tracks: mix.tracklist || [],
+                                        });
+                                    }}
                                     className="flex-none w-[280px] p-6 bg-white/[0.03] border border-white/10 rounded-[2.5rem] relative group cursor-pointer hover:border-neon-purple/40 hover:bg-white/[0.05] transition-all duration-300 snap-center"
                                 >
                                     <div className="flex flex-col h-full justify-between gap-6">

@@ -4,7 +4,7 @@ import { usePlayer } from '../../context/PlayerContext';
 import { 
     Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, 
     Share2, Disc, ExternalLink, X, Clock, Sparkles, 
-    Download, Video, Layers, Instagram, Twitter 
+    Download, Video, Layers, Instagram, Twitter, Minimize2 
 } from 'lucide-react';
 
 interface TrackItem {
@@ -27,6 +27,7 @@ interface MixTrack {
 interface CustomMixPlayerProps {
     track: MixTrack;
     onClose: () => void;
+    onMinimize?: () => void;
 }
 
 // Custom hook to load external scripts dynamically
@@ -103,10 +104,17 @@ function formatSeconds(seconds: number): string {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
-    const { isPlaying, setIsPlaying, registerTogglePlay } = usePlayer();
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
+export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerProps) {
+    const { 
+        isPlaying, 
+        setIsPlaying, 
+        registerTogglePlay, 
+        registerSeekTo,
+        currentTime, 
+        setCurrentTime, 
+        duration, 
+        setDuration 
+    } = usePlayer();
     const [volume, setVolume] = useState(80);
     const [isMuted, setIsMuted] = useState(false);
     const [currentTrackIndex, setCurrentTrackIndex] = useState(-1);
@@ -155,6 +163,7 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
     // Register togglePlay with the global context so GlobalPlayerContainer's mini-player can control audio
     useEffect(() => {
         registerTogglePlay(togglePlay);
+        registerSeekTo(handleSeekToSeconds);
     });
 
     // HTML5 audio: sync volume/mute when they change
@@ -748,9 +757,31 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
                                     <span className="text-neon-cyan font-black uppercase text-[9px] tracking-[0.3em]">MIX TRACKLIST</span>
                                     <h4 className="text-white text-2xl font-black italic uppercase tracking-tighter leading-none mt-1">Complete Set</h4>
                                 </div>
-                                <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full flex items-center gap-1.5 text-[8px] font-black text-white/50 uppercase tracking-widest">
-                                    <Clock className="w-3 h-3 text-neon-cyan" />
-                                    {track.tracks ? `${track.tracks.length} PISTES` : "1 PISTE"}
+                                <div className="flex items-center gap-2">
+                                    <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full flex items-center gap-1.5 text-[8px] font-black text-white/50 uppercase tracking-widest">
+                                        <Clock className="w-3 h-3 text-neon-cyan" />
+                                        {track.tracks ? `${track.tracks.length} PISTES` : "1 PISTE"}
+                                    </div>
+                                    <div className="flex lg:hidden items-center gap-2">
+                                        {onMinimize && (
+                                            <button 
+                                                onClick={onMinimize}
+                                                type="button"
+                                                className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/50 hover:text-white transition-all cursor-pointer"
+                                                title="Minimiser"
+                                            >
+                                                <Minimize2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        )}
+                                        <button 
+                                            onClick={onClose}
+                                            type="button"
+                                            className="p-2.5 bg-white/5 hover:bg-neon-red/10 border border-white/10 hover:border-neon-red/20 rounded-xl text-white/50 hover:text-neon-red transition-all cursor-pointer"
+                                            title="Fermer"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -842,12 +873,26 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
                             <h3 className="text-white text-3xl font-display font-black uppercase italic tracking-tighter leading-none">{track.title}</h3>
                             <p className="text-[10px] font-black text-neon-cyan uppercase tracking-[0.4em]">{track.artist}</p>
                         </div>
-                        <button 
-                            onClick={onClose}
-                            className="p-3 bg-white/5 hover:bg-neon-red/10 border border-white/10 hover:border-neon-red/20 rounded-2xl text-white/50 hover:text-neon-red transition-all cursor-pointer"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {onMinimize && (
+                                <button 
+                                    onClick={onMinimize}
+                                    type="button"
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white/50 hover:text-white transition-all cursor-pointer"
+                                    title="Minimiser"
+                                >
+                                    <Minimize2 className="w-4 h-4" />
+                                </button>
+                            )}
+                            <button 
+                                onClick={onClose}
+                                type="button"
+                                className="p-3 bg-white/5 hover:bg-neon-red/10 border border-white/10 hover:border-neon-red/20 rounded-2xl text-white/50 hover:text-neon-red transition-all cursor-pointer"
+                                title="Fermer"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Central Spinning Vinyl/CD Deck */}

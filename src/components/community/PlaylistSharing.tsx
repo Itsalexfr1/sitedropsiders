@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Heart, Music2, ExternalLink, User, Clock, Send, CheckCircle, Play, Loader2, Disc3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePlayer } from '../../context/PlayerContext';
 
 type PlaylistEntry = {
     id: string;
@@ -50,6 +51,7 @@ function toEmbedUrl(url: string, type: string): string {
 
 export function PlaylistSharing() {
     const navigate = useNavigate();
+    const { playTrack } = usePlayer();
     const [entries, setEntries] = useState<PlaylistEntry[]>(getEntries);
     const [liked, setLiked] = useState<Set<string>>(getLiked);
     const [showForm, setShowForm] = useState(false);
@@ -431,7 +433,17 @@ export function PlaylistSharing() {
                                     {/* Action Player Button */}
                                     <div className="pt-2">
                                         <button
-                                            onClick={() => navigate(`/profil?tab=mixes&play=${mix.id}`)}
+                                            onClick={() => {
+                                                playTrack({
+                                                    id: mix.id,
+                                                    title: mix.title,
+                                                    artist: mix.username || 'Dropsider',
+                                                    label: mix.genre || mix.type,
+                                                    url: mix.audioUrl || mix.url || '',
+                                                    embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
+                                                    tracks: mix.tracklist || [],
+                                                });
+                                            }}
                                             className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2.5 transition-all bg-white/5 border border-white/10 hover:border-neon-purple/40 hover:bg-neon-purple/10 text-white/60 hover:text-white"
                                         >
                                             <Play className="w-4 h-4 fill-current ml-0.5" />
