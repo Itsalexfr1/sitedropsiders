@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlayer } from '../../context/PlayerContext';
 import { CustomMixPlayer } from './CustomMixPlayer';
-import { Play, Pause, Maximize2, X, Music, Minimize2, SkipForward, SkipBack, Share2 } from 'lucide-react';
+import { Play, Pause, Maximize2, X, Music, Minimize2, SkipForward, SkipBack, Share2, Sparkles } from 'lucide-react';
 
 export function GlobalPlayerContainer() {
     const { 
@@ -15,6 +15,173 @@ export function GlobalPlayerContainer() {
         seekTo
     } = usePlayer();
     const [isMinimized, setIsMinimized] = useState(true);
+    const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+
+    const generateMiniStory = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!activeTrack || isGeneratingStory) return;
+        setIsGeneratingStory(true);
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1080;
+            canvas.height = 1920;
+            const ctx = canvas.getContext('2d')!;
+
+            // Background gradient
+            const grad = ctx.createLinearGradient(0, 0, 0, 1920);
+            grad.addColorStop(0, '#1a0035');
+            grad.addColorStop(0.5, '#0d0022');
+            grad.addColorStop(1, '#050505');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 1080, 1920);
+
+            // Grid overlay
+            ctx.strokeStyle = 'rgba(168,85,247,0.06)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < 1080; x += 54) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1920); ctx.stroke(); }
+            for (let y = 0; y < 1920; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1080, y); ctx.stroke(); }
+
+            // Glow orb
+            const glow = ctx.createRadialGradient(540, 860, 0, 540, 860, 520);
+            glow.addColorStop(0, 'rgba(168,85,247,0.35)');
+            glow.addColorStop(0.5, 'rgba(168,85,247,0.08)');
+            glow.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = glow;
+            ctx.fillRect(0, 0, 1080, 1920);
+
+            // Try to load cover image if available
+            if (activeTrack.cover) {
+                try {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    await new Promise<void>((res, rej) => {
+                        img.onload = () => res();
+                        img.onerror = () => rej();
+                        img.src = activeTrack.cover!;
+                    });
+                    // Draw cover as blurred background
+                    ctx.globalAlpha = 0.15;
+                    ctx.drawImage(img, -100, 400, 1280, 1080);
+                    ctx.globalAlpha = 1;
+                    // Draw cover card
+                    const size = 520;
+                    const cx = (1080 - size) / 2;
+                    const cy = 550;
+                    ctx.shadowColor = 'rgba(168,85,247,0.6)';
+                    ctx.shadowBlur = 60;
+                    (ctx as any).roundRect(cx, cy, size, size, 40);
+                    ctx.clip();
+                    ctx.drawImage(img, cx, cy, size, size);
+                    ctx.restore();
+                    ctx.shadowBlur = 0;
+                } catch (_) {}
+            }
+
+            // Vinyl disc
+            const cX = 540, cY = 860;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.8)';
+            ctx.shadowBlur = 80;
+            ctx.beginPath(); ctx.arc(cX, cY, 340, 0, Math.PI * 2); ctx.fillStyle = '#0a0010'; ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 2;
+            for (let r = 100; r < 320; r += 22) { ctx.beginPath(); ctx.arc(cX, cY, r, 0, Math.PI * 2); ctx.stroke(); }
+            // Neon edge
+            ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 7;
+            ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 28;
+            ctx.beginPath(); ctx.arc(cX, cY, 332, 0.2, 1.8); ctx.stroke();
+            ctx.beginPath(); ctx.arc(cX, cY, 332, 0.2 + Math.PI, 1.8 + Math.PI); ctx.stroke();
+            ctx.shadowBlur = 0;
+            // Center label
+            ctx.beginPath(); ctx.arc(cX, cY, 100, 0, Math.PI * 2);
+            const labelGrad = ctx.createRadialGradient(cX, cY, 0, cX, cY, 100);
+            labelGrad.addColorStop(0, '#7c3aed');
+            labelGrad.addColorStop(1, '#4c1d95');
+            ctx.fillStyle = labelGrad; ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 48px Arial'; ctx.textAlign = 'center';
+            ctx.fillText('DS', cX, cY + 17);
+            ctx.restore();
+
+            // Waveform bars
+            ctx.save();
+            const barColor = '#a855f7';
+            ctx.fillStyle = barColor; ctx.shadowColor = barColor; ctx.shadowBlur = 14;
+            const totalBars = 36, sx = 140, ex = 940, wy = 1310;
+            const gap = (ex - sx) / totalBars;
+            for (let i = 0; i < totalBars; i++) {
+                const h = 20 + Math.abs(Math.sin(i * 0.48)) * 160;
+                ctx.fillRect(sx + i * gap, wy - h / 2, 13, h);
+            }
+            ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // Track info card
+            const metaY = 1420;
+            ctx.save();
+            ctx.fillStyle = 'rgba(255,255,255,0.06)';
+            ctx.strokeStyle = 'rgba(168,85,247,0.3)'; ctx.lineWidth = 2;
+            ctx.beginPath(); (ctx as any).roundRect(60, metaY, 960, 340, 48); ctx.fill(); ctx.stroke();
+            // Icon
+            ctx.fillStyle = '#a855f7'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'center';
+            ctx.fillText('🎧 ÉCOUTE SUR DROPSIDERS.FR', 540, metaY + 52);
+            // Title
+            const title = activeTrack.title.length > 24 ? activeTrack.title.substring(0, 22) + '…' : activeTrack.title;
+            ctx.fillStyle = '#ffffff'; ctx.font = 'italic bold 58px Arial';
+            ctx.fillText(title, 540, metaY + 148);
+            // Artist
+            ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = 'bold 30px Arial';
+            ctx.fillText(`Par ${activeTrack.artist}`, 540, metaY + 210);
+            // URL
+            ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.font = 'bold 22px Arial';
+            ctx.fillText('dropsiders.fr', 540, metaY + 286);
+            ctx.restore();
+
+            // Header
+            ctx.save();
+            ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 40;
+            ctx.fillStyle = '#ffffff'; ctx.font = 'italic bold 88px Arial'; ctx.textAlign = 'center';
+            ctx.fillText('DROPSIDERS', 540, 220);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = 'bold 20px Arial';
+            ctx.fillText('LIVE RECORD MIX', 540, 272);
+            ctx.restore();
+
+            canvas.toBlob(async (blob) => {
+                if (!blob) { setIsGeneratingStory(false); return; }
+                const safeTitle = activeTrack.title.replace(/[^a-z0-9]/gi, '_').substring(0, 20);
+                const file = new File([blob], `Dropsiders_Story_${safeTitle}.png`, { type: 'image/png' });
+                const shareUrl = `https://dropsiders.fr/profil?tab=mixes&play=${activeTrack.id}`;
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: `${activeTrack.title} — Dropsiders`,
+                            text: `"${activeTrack.title}" par ${activeTrack.artist}\n🎧 Écoute sur dropsiders.fr`,
+                            url: shareUrl,
+                        });
+                    } catch (err: any) {
+                        if (err.name !== 'AbortError') {
+                            const a = document.createElement('a');
+                            a.href = URL.createObjectURL(blob);
+                            a.download = file.name;
+                            a.click();
+                        }
+                    }
+                } else if (navigator.share) {
+                    await navigator.share({ title: `${activeTrack.title} — Dropsiders`, text: `"${activeTrack.title}"\n🎧 Écoute sur dropsiders.fr`, url: shareUrl });
+                } else {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = file.name;
+                    a.click();
+                }
+                setIsGeneratingStory(false);
+            }, 'image/png');
+        } catch (err) {
+            console.error('Story gen error', err);
+            setIsGeneratingStory(false);
+        }
+    };
 
     // Auto-minimize (open mini-player) on new track/mix change
     useEffect(() => {
@@ -192,6 +359,19 @@ export function GlobalPlayerContainer() {
                                         title="Partager"
                                     >
                                         <Share2 className="w-3.5 h-3.5 text-white group-hover/share:text-neon-purple transition-colors" />
+                                    </button>
+
+                                    {/* Story button */}
+                                    <button
+                                        onClick={generateMiniStory}
+                                        disabled={isGeneratingStory}
+                                        className="w-9 h-9 flex items-center justify-center bg-fuchsia-500/10 hover:bg-fuchsia-500/20 border border-fuchsia-500/20 hover:border-fuchsia-500/40 rounded-xl transition-all group/story cursor-pointer disabled:opacity-50"
+                                        title="Partager en Story"
+                                    >
+                                        {isGeneratingStory
+                                            ? <div className="w-3.5 h-3.5 border-2 border-fuchsia-400 border-t-transparent rounded-full animate-spin" />
+                                            : <Sparkles className="w-3.5 h-3.5 text-fuchsia-400 group-hover/story:text-fuchsia-300 transition-colors" />
+                                        }
                                     </button>
 
                                     <button
