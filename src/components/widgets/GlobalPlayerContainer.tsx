@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlayer } from '../../context/PlayerContext';
 import { CustomMixPlayer } from './CustomMixPlayer';
-import { Play, Pause, Maximize2, X, Music, Minimize2, SkipForward, SkipBack, Share2, Sparkles } from 'lucide-react';
+import { Play, Pause, Maximize2, X, Music, Minimize2, SkipForward, SkipBack, Sparkles } from 'lucide-react';
 
 export function GlobalPlayerContainer() {
     const { 
@@ -338,40 +338,20 @@ export function GlobalPlayerContainer() {
                                     {/* Separator */}
                                     <div className="h-8 w-px bg-white/10" />
 
-                                    {/* Share button */}
-                                    <button
-                                        onClick={async (e) => {
-                                            e.stopPropagation();
-                                            const url = `https://dropsiders.fr/profil?tab=mixes&play=${activeTrack.id}`;
-                                            if (navigator.share) {
-                                                try {
-                                                    await navigator.share({
-                                                        title: `${activeTrack.title} — Dropsiders`,
-                                                        text: `"${activeTrack.title}" par ${activeTrack.artist}\n🎧 Écoute sur dropsiders.fr`,
-                                                        url,
-                                                    });
-                                                } catch (_) {}
-                                            } else {
-                                                navigator.clipboard.writeText(url);
-                                            }
-                                        }}
-                                        className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-neon-purple/20 border border-white/10 hover:border-neon-purple/30 rounded-xl transition-all group/share cursor-pointer"
-                                        title="Partager"
-                                    >
-                                        <Share2 className="w-3.5 h-3.5 text-white group-hover/share:text-neon-purple transition-colors" />
-                                    </button>
-
-                                    {/* Story button */}
+                                    {/* Story button — génère PNG + ouvre le share sheet iOS (Instagram Stories apparaît) */}
                                     <button
                                         onClick={generateMiniStory}
                                         disabled={isGeneratingStory}
-                                        className="w-9 h-9 flex items-center justify-center bg-fuchsia-500/10 hover:bg-fuchsia-500/20 border border-fuchsia-500/20 hover:border-fuchsia-500/40 rounded-xl transition-all group/story cursor-pointer disabled:opacity-50"
-                                        title="Partager en Story"
+                                        className="h-9 px-3 flex items-center gap-1.5 bg-gradient-to-r from-purple-900/60 to-fuchsia-900/60 hover:from-purple-800/80 hover:to-fuchsia-800/80 border border-fuchsia-500/30 hover:border-fuchsia-400/60 rounded-xl transition-all cursor-pointer disabled:opacity-50 group/story"
+                                        title="Partager en Story Instagram"
                                     >
                                         {isGeneratingStory
                                             ? <div className="w-3.5 h-3.5 border-2 border-fuchsia-400 border-t-transparent rounded-full animate-spin" />
-                                            : <Sparkles className="w-3.5 h-3.5 text-fuchsia-400 group-hover/story:text-fuchsia-300 transition-colors" />
+                                            : <Sparkles className="w-3.5 h-3.5 text-fuchsia-300 group-hover/story:text-white transition-colors" />
                                         }
+                                        <span className="text-[9px] font-black uppercase tracking-wider text-fuchsia-300 group-hover/story:text-white transition-colors">
+                                            {isGeneratingStory ? '...' : 'Story'}
+                                        </span>
                                     </button>
 
                                     <button
