@@ -1073,23 +1073,40 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                 glow.addColorStop(0, 'rgba(255,255,255,0.08)'); glow.addColorStop(1, 'transparent');
                 ctx.fillStyle = glow; ctx.fillRect(0, 0, 1080, 1920);
 
-                // ── TOP BANNER "ÉCOUTER SUR DROPSIDERS.FR" ──
-                // Pill background with roundRect fallback
-                ctx.fillStyle = storyTheme === 'acid' ? 'rgba(57,255,20,0.9)' : 'rgba(255,0,85,0.9)';
+                // ── TOP PLACEHOLDER FOR LINK STICKER ──
+                const edgeColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055';
+                ctx.save();
+                ctx.strokeStyle = edgeColor;
+                ctx.lineWidth = 4;
+                ctx.setLineDash([15, 10]); // dashed pattern
+                ctx.lineDashOffset = -frame * 0.8; // marching ants animation effect
+                ctx.shadowColor = edgeColor;
+                ctx.shadowBlur = 18;
+                
                 ctx.beginPath();
                 if ((ctx as any).roundRect) {
-                    (ctx as any).roundRect(60, 60, 960, 100, 50);
+                    (ctx as any).roundRect(140, 70, 800, 110, 55);
                 } else {
-                    ctx.rect(60, 60, 960, 100);
+                    ctx.rect(140, 70, 800, 110);
+                }
+                ctx.stroke();
+                ctx.restore();
+
+                // Faint fill inside
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+                ctx.beginPath();
+                if ((ctx as any).roundRect) {
+                    (ctx as any).roundRect(140, 70, 800, 110, 55);
+                } else {
+                    ctx.rect(140, 70, 800, 110);
                 }
                 ctx.fill();
 
-                // Arrow icon
-                ctx.fillStyle = '#ffffff'; ctx.font = 'bold 36px Arial'; ctx.textAlign = 'center';
-                ctx.fillText('▶  ÉCOUTER SUR DROPSIDERS.FR', 540, 120);
-                // Sub URL
-                ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = 'bold 20px Arial';
-                ctx.fillText(shareUrl.replace('https://', ''), 540, 194);
+                // Instruction text inside placeholder
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 26px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🔗   PLACE TON STICKER LIEN ICI   🔗', 540, 136);
 
                 // ── HEADER ──
                 ctx.shadowColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055'; ctx.shadowBlur = 40;
@@ -1110,7 +1127,6 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                 ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 3;
                 for (let r = 120; r < 340; r += 26) { ctx.beginPath(); ctx.arc(cX, cY, r, 0, Math.PI * 2); ctx.stroke(); }
                 // Neon edge arcs
-                const edgeColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055';
                 ctx.strokeStyle = edgeColor; ctx.lineWidth = 8;
                 ctx.shadowColor = edgeColor; ctx.shadowBlur = 30;
                 ctx.beginPath(); ctx.arc(cX, cY, 352, 0.3, 1.7); ctx.stroke();

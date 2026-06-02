@@ -174,23 +174,39 @@ export function GlobalPlayerContainer() {
                 glow.addColorStop(0, 'rgba(168,85,247,0.28)'); glow.addColorStop(0.6, 'rgba(168,85,247,0.05)'); glow.addColorStop(1, 'transparent');
                 ctx.fillStyle = glow; ctx.fillRect(0, 0, 1080, 1920);
 
-                // ── TOP BANNER "ÉCOUTER SUR DROPSIDERS.FR" ──
-                // Pill background with roundRect fallback
-                ctx.fillStyle = 'rgba(168,85,247,0.9)';
+                // ── TOP PLACEHOLDER FOR LINK STICKER ──
+                ctx.save();
+                ctx.strokeStyle = '#a855f7';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([15, 10]); // dashed pattern
+                ctx.lineDashOffset = -frame * 0.8; // marching ants animation effect
+                ctx.shadowColor = '#a855f7';
+                ctx.shadowBlur = 18;
+                
                 ctx.beginPath();
                 if ((ctx as any).roundRect) {
-                    (ctx as any).roundRect(60, 60, 960, 100, 50);
+                    (ctx as any).roundRect(140, 70, 800, 110, 55);
                 } else {
-                    ctx.rect(60, 60, 960, 100);
+                    ctx.rect(140, 70, 800, 110);
+                }
+                ctx.stroke();
+                ctx.restore();
+
+                // Faint fill inside
+                ctx.fillStyle = 'rgba(168, 85, 247, 0.04)';
+                ctx.beginPath();
+                if ((ctx as any).roundRect) {
+                    (ctx as any).roundRect(140, 70, 800, 110, 55);
+                } else {
+                    ctx.rect(140, 70, 800, 110);
                 }
                 ctx.fill();
 
-                // Arrow icon
-                ctx.fillStyle = '#ffffff'; ctx.font = 'bold 36px Arial'; ctx.textAlign = 'center';
-                ctx.fillText('▶  ÉCOUTER SUR DROPSIDERS.FR', 540, 120);
-                // Sub URL
-                ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = 'bold 20px Arial';
-                ctx.fillText(shareUrl.replace('https://', ''), 540, 194);
+                // Instruction text inside placeholder
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 26px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🔗   PLACE TON STICKER LIEN ICI   🔗', 540, 136);
 
                 // ── HEADER ──
                 ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 35;
