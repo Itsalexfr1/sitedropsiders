@@ -1850,6 +1850,8 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                 type="video"
                 title="STORY PRÊTE !"
                 subtitle="Partagez-la sur vos réseaux"
+                shareUrl={getShareUrl()}
+                shareText={`"${track.title}" par ${track.artist}\n🎧 Écoute sur dropsiders.fr`}
             />
         </div>
     );

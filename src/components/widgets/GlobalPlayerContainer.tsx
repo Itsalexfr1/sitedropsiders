@@ -321,6 +321,8 @@ export function GlobalPlayerContainer() {
     // Don't render anything if no track is active
     if (!activeTrack) return null;
 
+    const shareUrl = `https://dropsiders.fr/profil?tab=mixes&play=${activeTrack.id}`;
+
     // Parse timestamp to seconds
     const parseTimeToSeconds = (timeStr?: string): number => {
         if (!timeStr) return 0;
@@ -592,6 +594,8 @@ export function GlobalPlayerContainer() {
                 type="video"
                 title="STORY PRÊTE !"
                 subtitle="Partagez-la sur vos réseaux"
+                shareUrl={shareUrl}
+                shareText={`"${activeTrack.title}" par ${activeTrack.artist}\n🎧 Écoute sur dropsiders.fr`}
             />
         </>
     );

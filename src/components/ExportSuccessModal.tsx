@@ -12,6 +12,8 @@ interface ExportSuccessModalProps {
     type: 'image' | 'video';
     title?: string;
     subtitle?: string;
+    shareUrl?: string;
+    shareText?: string;
 }
 
 export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
@@ -22,12 +24,15 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
     filename,
     type,
     title = "GÉNÉRATION RÉUSSIE !",
-    subtitle = "Votre contenu est prêt"
+    subtitle = "Votre contenu est prêt",
+    shareUrl,
+    shareText
 }) => {
     const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isInAppBrowser = /Instagram|FBAN|FBAV|Snapchat|TikTok/i.test(navigator.userAgent);
     const [showIosHint, setShowIosHint] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const handleSaveOrShare = async () => {
         if (!readyBlob) return;
@@ -45,8 +50,9 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
             try {
                 await navigator.share({
                     files: [file],
-                    title: 'Dropsiders Export',
-                    text: 'Visuel généré via Dropsiders Studio'
+                    title: shareText ? 'Dropsiders' : 'Dropsiders Export',
+                    text: shareText || 'Visuel généré via Dropsiders Studio',
+                    url: shareUrl || undefined
                 });
                 return;
             } catch (err) {
@@ -185,6 +191,21 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                             >
                                 {isMobile ? "📥 Enregistrer / Partager" : "📥 Télécharger le visuel"}
                             </button>
+
+                            {shareUrl && (
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            await navigator.clipboard.writeText(shareUrl);
+                                            setCopied(true);
+                                            setTimeout(() => setCopied(false), 2000);
+                                        } catch (_) {}
+                                    }}
+                                    className="w-full py-3 bg-neon-purple/15 border border-neon-purple/30 text-neon-purple font-black rounded-2xl uppercase tracking-widest text-[9px] hover:bg-neon-purple/25 transition-all flex items-center justify-center gap-2"
+                                >
+                                    🔗 {copied ? "Lien Copié !" : "Copier le Lien du Mix"}
+                                </button>
+                            )}
 
                             {isIOS && type === 'video' && !isInAppBrowser && (
                                 <button
