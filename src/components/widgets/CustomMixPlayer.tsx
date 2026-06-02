@@ -111,7 +111,6 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
     const [isMuted, setIsMuted] = useState(false);
     const [currentTrackIndex, setCurrentTrackIndex] = useState(-1);
     const [toastMessage, setToastMessage] = useState('');
-    const [selectedSnippet, setSelectedSnippet] = useState<any>(null);
     const [showShareModal, setShowShareModal] = useState(false);
     const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
     const [videoProgress, setVideoProgress] = useState(0);
