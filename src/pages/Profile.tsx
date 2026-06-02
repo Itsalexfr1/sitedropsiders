@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, DownloadCloud, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight, BarChart2 } from 'lucide-react';
+import { CustomMixPlayer } from '../components/widgets/CustomMixPlayer';
 import { useUser, type DropsidersCard } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -132,6 +133,7 @@ export function Profile() {
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [mixStudioTab, setMixStudioTab] = useState<'mixes' | 'stats'>('mixes');
+    const [activeMixPlayer, setActiveMixPlayer] = useState<any | null>(null);
 
     const [cardSearch, setCardSearch] = useState('');
     const [cardRarityFilter, setCardRarityFilter] = useState<'all' | 'legendary' | 'epic' | 'rare' | 'common'>('all');
@@ -808,43 +810,105 @@ export function Profile() {
                                             <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Mes Mixes Publics</h4>
                                             
                                             {userMixes.length > 0 ? (
-                                                <div className="space-y-3">
+                                                <div className="space-y-4">
+                                                    {/* Active Player */}
+                                                    <AnimatePresence>
+                                                        {activeMixPlayer && (
+                                                            <motion.div
+                                                                key={activeMixPlayer.id}
+                                                                initial={{ opacity: 0, y: -20, scale: 0.97 }}
+                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                exit={{ opacity: 0, y: -10, scale: 0.97 }}
+                                                                transition={{ duration: 0.35, ease: 'easeOut' }}
+                                                                className="mb-2"
+                                                            >
+                                                                <CustomMixPlayer
+                                                                    track={{
+                                                                        id: activeMixPlayer.id,
+                                                                        title: activeMixPlayer.title,
+                                                                        artist: user?.username || 'Dropsider',
+                                                                        label: activeMixPlayer.genre || activeMixPlayer.type,
+                                                                        url: activeMixPlayer.audioUrl || '',
+                                                                        embedUrl: activeMixPlayer.embedUrl || (activeMixPlayer.audioUrl ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(activeMixPlayer.audioUrl)}&color=%23ff0033&auto_play=false&visual=false` : undefined),
+                                                                        tracks: activeMixPlayer.tracklist || [],
+                                                                    }}
+                                                                    onClose={() => setActiveMixPlayer(null)}
+                                                                />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+
+                                                    {/* Mix Cards List */}
                                                     {userMixes.map((mix) => {
                                                         const style = getCategoryStyle(mix.type);
+                                                        const isActive = activeMixPlayer?.id === mix.id;
                                                         return (
-                                                            <div key={mix.id} className={`group p-4 bg-white/5 border border-white/5 ${style.cardBorder} rounded-2xl flex items-center justify-between transition-all ${style.hoverBgCard}`}>
-                                                                <div className="flex items-center gap-4">
-                                                                    <button className={`w-10 h-10 ${style.bgLight} ${style.text} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                                                                        <PlayCircle className={`w-5 h-5 ${style.playIconGlow}`} />
+                                                            <motion.div
+                                                                key={mix.id}
+                                                                layout
+                                                                className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 cursor-pointer ${
+                                                                    isActive
+                                                                        ? `border-${style.colorName}/40 bg-gradient-to-r from-${style.colorName}/10 to-transparent shadow-[0_0_30px_rgba(0,0,0,0.3)]`
+                                                                        : 'border-white/5 bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.05]'
+                                                                }`}
+                                                                onClick={() => setActiveMixPlayer(isActive ? null : mix)}
+                                                            >
+                                                                {/* Glow accent bar */}
+                                                                <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${style.bg} transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`} />
+
+                                                                <div className="flex items-center gap-4 p-4 pl-5">
+                                                                    {/* Play button */}
+                                                                    <button
+                                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
+                                                                            isActive
+                                                                                ? `${style.bg} text-black shadow-[0_0_20px_rgba(0,0,0,0.3)]`
+                                                                                : `${style.bgLight} ${style.text} group-hover:scale-110`
+                                                                        }`}
+                                                                        onClick={(e) => { e.stopPropagation(); setActiveMixPlayer(isActive ? null : mix); }}
+                                                                    >
+                                                                        {isActive
+                                                                            ? <span className="flex gap-[3px] items-end h-4">
+                                                                                {[1,2,3].map(i => (
+                                                                                    <span key={i} className="w-[3px] bg-black rounded-full animate-pulse" style={{ height: `${8 + i * 4}px`, animationDelay: `${i * 0.15}s` }} />
+                                                                                ))}
+                                                                              </span>
+                                                                            : <PlayCircle className="w-5 h-5" />
+                                                                        }
                                                                     </button>
-                                                                    <div>
-                                                                        <p className={`text-[10px] font-black ${style.text} uppercase tracking-widest`}>{mix.type}</p>
-                                                                        <h5 className="text-xs font-bold text-white uppercase italic">{mix.title}</h5>
-                                                                        <p className="text-[8px] text-gray-500 font-bold uppercase">{mix.genre ? `${mix.genre} · ` : ''}{mix.duration}</p>
+
+                                                                    {/* Metadata */}
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center gap-2 mb-0.5">
+                                                                            <span className={`text-[9px] font-black ${style.text} uppercase tracking-[0.2em] px-2 py-0.5 ${style.bgLight} rounded-md`}>{mix.type}</span>
+                                                                            {mix.genre && <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{mix.genre}</span>}
+                                                                        </div>
+                                                                        <h5 className="text-sm font-black text-white uppercase italic tracking-tight truncate">{mix.title}</h5>
+                                                                        <p className="text-[9px] text-gray-500 font-bold uppercase mt-0.5">{mix.duration || '—'} · {mix.uploadDate}</p>
+                                                                    </div>
+
+                                                                    {/* Actions */}
+                                                                    <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                        {mix.allowDownload && mix.audioUrl && (
+                                                                            <a
+                                                                                href={mix.audioUrl}
+                                                                                download={`${mix.title}.mp3`}
+                                                                                className={`w-9 h-9 border ${style.borderLight} ${style.bgBg} rounded-xl flex items-center justify-center ${style.text} hover:${style.bgLight} transition-all`}
+                                                                                title="Télécharger"
+                                                                                onClick={e => e.stopPropagation()}
+                                                                            >
+                                                                                <DownloadCloud className="w-4 h-4" />
+                                                                            </a>
+                                                                        )}
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); setDeleteTargetId(mix.id); }}
+                                                                            className="w-9 h-9 border border-red-500/10 bg-red-500/5 hover:bg-red-500/20 hover:border-red-500/30 rounded-xl flex items-center justify-center text-red-500 transition-all"
+                                                                            title="Supprimer"
+                                                                        >
+                                                                            <X className="w-4 h-4" />
+                                                                        </button>
                                                                     </div>
                                                                 </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    {mix.allowDownload && mix.audioUrl && (
-                                                                        <a
-                                                                            href={mix.audioUrl}
-                                                                            download={`${mix.title}.mp3`}
-                                                                            className={`w-10 h-10 border ${style.borderLight} ${style.bgBg} hover:${style.bgLight} hover:${style.border} ${style.text} transition-all flex items-center justify-center opacity-0 group-hover:opacity-100`}
-                                                                            title="Télécharger"
-                                                                            onClick={e => e.stopPropagation()}
-                                                                        >
-                                                                            <DownloadCloud className="w-4 h-4" />
-                                                                        </a>
-                                                                    )}
-                                                                    <button 
-                                                                        onClick={() => setDeleteTargetId(mix.id)}
-                                                                        className="w-10 h-10 border border-red-500/10 bg-red-500/5 hover:bg-red-500/20 hover:border-red-500/30 rounded-xl flex items-center justify-center text-red-500 transition-all opacity-0 group-hover:opacity-100"
-                                                                        title="Supprimer définitivement"
-                                                                    >
-                                                                        <X className="w-4 h-4" />
-                                                                    </button>
-                                                                    <div className="text-[8px] text-gray-600 font-bold uppercase hidden sm:block">{mix.uploadDate}</div>
-                                                                </div>
-                                                            </div>
+                                                            </motion.div>
                                                         );
                                                     })}
                                                 </div>

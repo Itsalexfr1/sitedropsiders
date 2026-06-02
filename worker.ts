@@ -217,6 +217,7 @@ const EDITORS_PATH = 'src/data/editors.json';
 const PENDING_SUBMISSIONS_PATH = 'src/data/pending_submissions.json';
 const TRACKLISTS_PATH = 'src/data/tracklists.json';
 const TRACKLISTS_PENDING_PATH = 'src/data/tracklists_pending.json';
+const COMMUNITY_MUSIC_PATH = 'src/data/community_music.json';
 const CONTACTS_PATH = 'src/data/contacts.json';
 const WIKI_DJS_PATH = 'src/data/wiki_djs.json';
 const WIKI_CLUBS_PATH = 'src/data/wiki_clubs.json';
@@ -4420,6 +4421,186 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- API: COMMUNITY MIXES (AUDIO FILES FROM KV) ---
+        if (path === '/api/community/mixes' && request.method === 'GET') {
+            try {
+                // Fetch all users to map emails to usernames
+                const userList = await env.CHAT_KV.list({ prefix: 'community_user_' });
+                const usernameMap = new Map<string, string>();
+                
+                for (const key of userList.keys) {
+                    const email = key.name.substring('community_user_'.length);
+                    const rawUser = await env.CHAT_KV.get(key.name);
+                    if (rawUser) {
+                        try {
+                            const u = JSON.parse(rawUser);
+                            if (u.username) {
+                                usernameMap.set(email.toLowerCase().trim(), u.username);
+                            }
+                        } catch {}
+                    }
+                }
+                
+                // List all user mixes keys
+                const list = await env.CHAT_KV.list({ prefix: 'user_mixes:' });
+                const allMixes: any[] = [];
+                
+                for (const key of list.keys) {
+                    const email = key.name.substring('user_mixes:'.length).toLowerCase().trim();
+                    const rawData = await env.CHAT_KV.get(key.name);
+                    if (rawData) {
+                        try {
+                            const userMixes = JSON.parse(rawData);
+                            if (Array.isArray(userMixes)) {
+                                userMixes.forEach((mix: any) => {
+                                    allMixes.push({
+                                        ...mix,
+                                        userEmail: email,
+                                        username: usernameMap.get(email) || 'Dropsider'
+                                    });
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error parsing mixes for key', key.name, e);
+                        }
+                    }
+                }
+                
+                // Sort by upload date desc
+                allMixes.sort((a: any, b: any) => {
+                    const parseDate = (dStr: string) => {
+                        if (!dStr) return 0;
+                        const clean = dStr.replace(',', '').trim();
+                        const parts = clean.split(' ');
+                        if (parts.length < 2) return 0;
+                        const dateParts = parts[0].split('/');
+                        const timeParts = parts[1].split(':');
+                        if (dateParts.length < 3 || timeParts.length < 2) return 0;
+                        return new Date(
+                            parseInt(dateParts[2], 10),
+                            parseInt(dateParts[1], 10) - 1,
+                            parseInt(dateParts[0], 10),
+                            parseInt(timeParts[0], 10),
+                            parseInt(timeParts[1], 10)
+                        ).getTime();
+                    };
+                    return parseDate(b.uploadDate) - parseDate(a.uploadDate);
+                });
+                
+                return new Response(JSON.stringify(allMixes), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/community/mixes/like' && request.method === 'POST') {
+            try {
+                const { id } = await request.json();
+                if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
+                
+                const list = await env.CHAT_KV.list({ prefix: 'user_mixes:' });
+                let found = false;
+                let newLikes = 0;
+                
+                for (const key of list.keys) {
+                    const rawData = await env.CHAT_KV.get(key.name);
+                    if (rawData) {
+                        try {
+                            const userMixes = JSON.parse(rawData);
+                            if (Array.isArray(userMixes)) {
+                                const idx = userMixes.findIndex((m: any) => m.id === id);
+                                if (idx !== -1) {
+                                    userMixes[idx].likes = (userMixes[idx].likes || 0) + 1;
+                                    newLikes = userMixes[idx].likes;
+                                    await env.CHAT_KV.put(key.name, JSON.stringify(userMixes));
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        } catch {}
+                    }
+                }
+                
+                if (!found) {
+                    return new Response(JSON.stringify({ error: 'Mix not found' }), { status: 404, headers });
+                }
+                
+                return new Response(JSON.stringify({ success: true, likes: newLikes }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: COMMUNITY MUSIC ---
+        if (path === '/api/community-music' && request.method === 'GET') {
+            const typeFilter = url.searchParams.get('type'); // 'mix' | 'track' | 'remix' | null
+            const limitParam = parseInt(url.searchParams.get('limit') || '5', 10);
+            const file = await fetchGitHubFile(COMMUNITY_MUSIC_PATH, gitConfig);
+            let items = file ? file.content : [];
+            if (typeFilter) items = items.filter((i: any) => i.type === typeFilter);
+            // Sort by uploadedAt desc, return last N
+            items = items.sort((a: any, b: any) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+            items = items.slice(0, limitParam);
+            return new Response(JSON.stringify(items), { status: 200, headers });
+        }
+
+        if (path === '/api/community-music/submit' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { type, title, artist, embedUrl, coverUrl, description } = body;
+                if (!type || !title || !artist || !embedUrl) {
+                    return new Response(JSON.stringify({ error: 'Champs requis manquants' }), { status: 400, headers });
+                }
+                const file = await fetchGitHubFile(COMMUNITY_MUSIC_PATH, gitConfig) || { content: [], sha: null };
+                const newItem = {
+                    id: Date.now().toString(),
+                    type,
+                    title,
+                    artist,
+                    embedUrl,
+                    coverUrl: coverUrl || '',
+                    description: description || '',
+                    likes: 0,
+                    uploadedAt: new Date().toISOString()
+                };
+                const updated = [newItem, ...file.content];
+                const saved = await saveGitHubFile(COMMUNITY_MUSIC_PATH, updated.slice(0, 200), `Community music submit: ${title}`, file.sha, gitConfig);
+                return new Response(JSON.stringify({ success: saved.ok, item: newItem, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/community-music/like' && request.method === 'POST') {
+            try {
+                const { id } = await request.json();
+                if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
+                const file = await fetchGitHubFile(COMMUNITY_MUSIC_PATH, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+                const idx = file.content.findIndex((i: any) => i.id === id);
+                if (idx === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+                file.content[idx].likes = (file.content[idx].likes || 0) + 1;
+                const newLikes = file.content[idx].likes;
+                const saved = await saveGitHubFile(COMMUNITY_MUSIC_PATH, file.content, `Like community music: ${id}`, file.sha, gitConfig);
+                return new Response(JSON.stringify({ success: saved.ok, likes: newLikes }), { status: saved.ok ? 200 : 500, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/community-music/delete' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { id } = await request.json();
+                const file = await fetchGitHubFile(COMMUNITY_MUSIC_PATH, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+                const updated = file.content.filter((i: any) => i.id !== id);
+                const saved = await saveGitHubFile(COMMUNITY_MUSIC_PATH, updated, `Delete community music: ${id}`, file.sha, gitConfig);
+                return new Response(JSON.stringify({ success: saved.ok }), { status: saved.ok ? 200 : 500, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
 
         // --- API: SUBSCRIBE ---
         if (path === '/api/subscribe' && request.method === 'POST') {
