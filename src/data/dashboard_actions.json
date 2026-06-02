@@ -130,6 +130,18 @@
     "columns": 1
   },
   {
+    "title": "Fichiers Cloudflare",
+    "description": "Images, Vidéos, MP3",
+    "icon": "HardDrive",
+    "category": "STUDIO",
+    "link": "#CLOUDFLARE_R2",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-neon-red/5",
+    "permission": "studio_upload",
+    "baseColor": "#ff99fc",
+    "columns": 1
+  },
+  {
     "title": "Documents PDF",
     "description": "Hébergement & Partage",
     "icon": "Download",
