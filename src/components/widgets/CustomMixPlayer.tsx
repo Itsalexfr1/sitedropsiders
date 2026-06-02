@@ -916,83 +916,104 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
         }
     };
 
-    // ─── Generate a static PNG story card and share it (instant — unlocks Stories in native share sheet) ─
     const [isGeneratingStory, setIsGeneratingStory] = useState(false);
 
     const generateAndShareStoryImage = async () => {
+        if (isGeneratingStory) return;
         setIsGeneratingStory(true);
+        setClipProgress(0);
+
+        const shareUrl = getShareUrl();
+
+        // ── Step 1: Copy link to clipboard immediately ──
         try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(shareUrl);
+                showToast("Lien de partage copié dans le presse-papiers ! 🔗");
+            }
+        } catch (_) {}
+
+        // Notify user about generation start
+        showToast("Enregistrement de la Story (30s) en cours... Laissez jouer la musique 🎧");
+
+        try {
+            const CLIP_SEC = 30;
+            const FPS = 30;
+            const TOTAL_FRAMES = CLIP_SEC * FPS;
+
             const canvas = document.createElement('canvas');
             canvas.width = 1080;
             canvas.height = 1920;
             const ctx = canvas.getContext('2d')!;
 
-            // Background gradient
-            const grad = ctx.createLinearGradient(0, 0, 0, 1920);
-            if (storyTheme === 'sunset') {
-                grad.addColorStop(0, '#ff0055'); grad.addColorStop(0.5, '#7a00ff'); grad.addColorStop(1, '#050515');
-            } else if (storyTheme === 'acid') {
-                grad.addColorStop(0, '#39ff14'); grad.addColorStop(0.5, '#00e5ff'); grad.addColorStop(1, '#050515');
-            } else {
-                grad.addColorStop(0, '#150030'); grad.addColorStop(0.5, '#0c001c'); grad.addColorStop(1, '#020205');
+            // ── Capture audio from the <audio> element using a cached window context ──
+            const audioEl = audioRef.current;
+            let audioCtx: AudioContext | null = null;
+            let analyser: AnalyserNode | null = null;
+            const videoStream = canvas.captureStream(FPS);
+
+            if (audioEl) {
+                try {
+                    const Win = window as any;
+                    // Check if we need to initialize or recreate the AudioContext for this element
+                    if (!Win.__dropsidersAudioCtx || Win.__dropsidersAudioEl !== audioEl) {
+                        if (Win.__dropsidersAudioCtx) {
+                            try { Win.__dropsidersAudioCtx.close(); } catch (_) {}
+                        }
+
+                        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+                        audioCtx = new AudioContextClass();
+                        const src = audioCtx.createMediaElementSource(audioEl);
+                        const dest = audioCtx.createMediaStreamDestination();
+                        analyser = audioCtx.createAnalyser();
+                        analyser.fftSize = 64; // 32 frequency bins
+
+                        src.connect(audioCtx.destination); // Keep outputting sound to speakers
+                        src.connect(dest);
+                        src.connect(analyser);
+
+                        Win.__dropsidersAudioCtx = audioCtx;
+                        Win.__dropsidersAudioSource = src;
+                        Win.__dropsidersAudioDest = dest;
+                        Win.__dropsidersAudioAnalyser = analyser;
+                        Win.__dropsidersAudioEl = audioEl;
+                    } else {
+                        audioCtx = Win.__dropsidersAudioCtx;
+                        analyser = Win.__dropsidersAudioAnalyser;
+                    }
+
+                    if (audioCtx && audioCtx.state === 'suspended') {
+                        await audioCtx.resume();
+                    }
+
+                    const dest = Win.__dropsidersAudioDest;
+                    if (dest) {
+                        dest.stream.getAudioTracks().forEach((t: MediaStreamTrack) => videoStream.addTrack(t));
+                    }
+                } catch (err) {
+                    console.error('Audio capture setup failed:', err);
+                }
             }
-            ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1920);
 
-            // Grid
-            ctx.strokeStyle = 'rgba(255,255,255,0.025)'; ctx.lineWidth = 1;
-            for (let x = 0; x < 1080; x += 54) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1920); ctx.stroke(); }
-            for (let y = 0; y < 1920; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1080, y); ctx.stroke(); }
+            // ── Pick best mimeType: MP4 on iOS, WebM on desktop ──
+            let mimeType = 'video/mp4';
+            if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp9,opus';
+            if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
+            if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = '';
 
-            // Header — DROPSIDERS
-            ctx.shadowColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055'; ctx.shadowBlur = 40;
-            ctx.fillStyle = '#ffffff'; ctx.font = 'italic bold 96px Arial'; ctx.textAlign = 'center';
-            ctx.fillText('DROPSIDERS', 540, 240); ctx.shadowBlur = 0;
-            ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = 'bold 22px Arial';
-            ctx.fillText('LIVE RECORD MIX', 540, 295);
+            const chunks: Blob[] = [];
+            const recorder = new MediaRecorder(videoStream, mimeType ? { mimeType } : undefined);
+            recorder.ondataavailable = (ev) => { if (ev.data && ev.data.size > 0) chunks.push(ev.data); };
 
-            // Vinyl
-            const cX = 540, cY = 860;
-            ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 80;
-            ctx.beginPath(); ctx.arc(cX, cY, 360, 0, Math.PI * 2); ctx.fillStyle = '#050505'; ctx.fill(); ctx.shadowBlur = 0;
-            ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 3;
-            for (let r = 120; r < 340; r += 26) { ctx.beginPath(); ctx.arc(cX, cY, r, 0, Math.PI * 2); ctx.stroke(); }
-            // Neon edge
-            const edgeColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055';
-            ctx.strokeStyle = edgeColor; ctx.lineWidth = 8; ctx.shadowColor = edgeColor; ctx.shadowBlur = 30;
-            ctx.beginPath(); ctx.arc(cX, cY, 352, 0.3, 1.7); ctx.stroke();
-            ctx.beginPath(); ctx.arc(cX, cY, 352, 0.3 + Math.PI, 1.7 + Math.PI); ctx.stroke(); ctx.shadowBlur = 0;
-            // Center label
-            ctx.beginPath(); ctx.arc(cX, cY, 108, 0, Math.PI * 2); ctx.fillStyle = '#ff0033'; ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.font = 'bold 44px Arial'; ctx.textAlign = 'center'; ctx.fillText('DS', cX, cY + 16);
+            recorder.onstop = async () => {
+                const isMP4 = mimeType.startsWith('video/mp4');
+                const blob = new Blob(chunks, { type: isMP4 ? 'video/mp4' : 'video/webm' });
+                const ext = isMP4 ? 'mp4' : 'webm';
+                const safeTitle = track.title.replace(/[^a-z0-9]/gi, '_').substring(0, 20);
+                const fileName = `Dropsiders_Story_${safeTitle}.${ext}`;
+                const file = new File([blob], fileName, { type: blob.type });
 
-            // Waveform bars
-            const barColor = storyTheme === 'void' ? '#a855f7' : storyTheme === 'acid' ? '#00e5ff' : '#ffffff';
-            ctx.fillStyle = barColor; ctx.shadowColor = barColor; ctx.shadowBlur = 18;
-            const totalBars = 36, sx = 160, ex = 920, wy = 1340;
-            const gap = (ex - sx) / totalBars;
-            for (let i = 0; i < totalBars; i++) {
-                const h = 30 + Math.abs(Math.sin(i * 0.55)) * 180;
-                ctx.fillRect(sx + i * gap, wy - h / 2, 14, h);
-            }
-            ctx.shadowBlur = 0;
-
-            // Metadata card
-            const metaY = 1440;
-            ctx.fillStyle = 'rgba(255,255,255,0.07)'; ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 3;
-            ctx.beginPath(); (ctx as any).roundRect(80, metaY, 920, 300, 60); ctx.fill(); ctx.stroke();
-            ctx.fillStyle = edgeColor; ctx.font = 'bold 18px Arial'; ctx.textAlign = 'center';
-            ctx.fillText('🎵 ÉCOUTE CE MIX SUR DROPSIDERS', 540, metaY + 55);
-            ctx.fillStyle = '#fff'; ctx.font = 'italic bold 52px Arial';
-            ctx.fillText(track.title.substring(0, 22), 540, metaY + 138);
-            ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = 'bold 28px Arial';
-            ctx.fillText(`Par ${track.artist}`, 540, metaY + 200);
-            ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = 'bold 20px Arial';
-            ctx.fillText('dropsiders.fr', 540, metaY + 262);
-
-            // Convert to blob and share
-            canvas.toBlob(async (blob) => {
-                if (!blob) { setIsGeneratingStory(false); return; }
-                const file = new File([blob], `Dropsiders_Story_${track.title.replace(/[^a-z0-9]/gi, '_').substring(0, 20)}.png`, { type: 'image/png' });
+                showToast("Story prête ! Le lien est copié. Importez-la dans Instagram ! 🔗✨");
 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
@@ -1000,29 +1021,182 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                             files: [file],
                             title: `${track.title} — Dropsiders`,
                             text: `"${track.title}" par ${track.artist}\n🎧 Écoute sur dropsiders.fr`,
-                            url: getShareUrl(),
+                            url: shareUrl,
                         });
-                        showToast('Story partagée ! 🎉');
                     } catch (err: any) {
                         if (err.name !== 'AbortError') {
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a'); a.href = url; a.download = file.name;
-                            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                            showToast('Image téléchargée ! Importez-la dans votre Story. 📸');
+                            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                            a.download = fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a);
                         }
                     }
                 } else {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a'); a.href = url; a.download = file.name;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                    showToast('Story Card téléchargée ! 📸');
+                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                    a.download = fileName; document.body.appendChild(a); a.click(); document.body.removeChild(a);
                 }
                 setIsGeneratingStory(false);
-            }, 'image/png');
+                setClipProgress(0);
+            };
+
+            // ── Animation state ──
+            let frame = 0;
+            let rotation = 0;
+            const dataArray = analyser ? new Uint8Array(analyser.frequencyBinCount) : null;
+            let barHeights = new Array(32).fill(0).map(() => Math.random() * 50 + 20);
+
+            const drawFrame = () => {
+                if (frame >= TOTAL_FRAMES) { recorder.stop(); return; }
+                rotation += 0.04;
+
+                // Update frequency analyzer data
+                if (analyser && dataArray) {
+                    analyser.getByteFrequencyData(dataArray);
+                }
+
+                // ── Background ──
+                const grad = ctx.createLinearGradient(0, 0, 0, 1920);
+                if (storyTheme === 'sunset') {
+                    grad.addColorStop(0, '#ff0055'); grad.addColorStop(0.5, '#7a00ff'); grad.addColorStop(1, '#050515');
+                } else if (storyTheme === 'acid') {
+                    grad.addColorStop(0, '#39ff14'); grad.addColorStop(0.5, '#00e5ff'); grad.addColorStop(1, '#050515');
+                } else {
+                    grad.addColorStop(0, '#150030'); grad.addColorStop(0.5, '#0c001c'); grad.addColorStop(1, '#020205');
+                }
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1920);
+
+                // Grid
+                ctx.strokeStyle = 'rgba(255,255,255,0.025)'; ctx.lineWidth = 1;
+                for (let x = 0; x < 1080; x += 54) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1920); ctx.stroke(); }
+                for (let y = 0; y < 1920; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1080, y); ctx.stroke(); }
+
+                // Glow orb
+                const glow = ctx.createRadialGradient(540, 860, 0, 540, 860, 500);
+                glow.addColorStop(0, 'rgba(255,255,255,0.08)'); glow.addColorStop(1, 'transparent');
+                ctx.fillStyle = glow; ctx.fillRect(0, 0, 1080, 1920);
+
+                // ── TOP BANNER "ÉCOUTER SUR DROPSIDERS.FR" ──
+                // Pill background with roundRect fallback
+                ctx.fillStyle = storyTheme === 'acid' ? 'rgba(57,255,20,0.9)' : 'rgba(255,0,85,0.9)';
+                ctx.beginPath();
+                if ((ctx as any).roundRect) {
+                    (ctx as any).roundRect(60, 60, 960, 100, 50);
+                } else {
+                    ctx.rect(60, 60, 960, 100);
+                }
+                ctx.fill();
+
+                // Arrow icon
+                ctx.fillStyle = '#ffffff'; ctx.font = 'bold 36px Arial'; ctx.textAlign = 'center';
+                ctx.fillText('▶  ÉCOUTER SUR DROPSIDERS.FR', 540, 120);
+                // Sub URL
+                ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = 'bold 20px Arial';
+                ctx.fillText(shareUrl.replace('https://', ''), 540, 194);
+
+                // ── HEADER ──
+                ctx.shadowColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055'; ctx.shadowBlur = 40;
+                ctx.fillStyle = '#ffffff'; ctx.font = 'italic bold 96px Arial'; ctx.textAlign = 'center';
+                ctx.fillText('DROPSIDERS', 540, 310); ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = 'bold 22px Arial';
+                ctx.fillText('LIVE RECORD MIX', 540, 365);
+
+                // ── ROTATING VINYL ──
+                const cX = 540, cY = 860;
+                ctx.save();
+                ctx.translate(cX, cY); ctx.rotate(rotation); ctx.translate(-cX, -cY);
+                // Outer disc
+                ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 80;
+                ctx.beginPath(); ctx.arc(cX, cY, 360, 0, Math.PI * 2); ctx.fillStyle = '#050505'; ctx.fill();
+                ctx.shadowBlur = 0;
+                // Grooves
+                ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 3;
+                for (let r = 120; r < 340; r += 26) { ctx.beginPath(); ctx.arc(cX, cY, r, 0, Math.PI * 2); ctx.stroke(); }
+                // Neon edge arcs
+                const edgeColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055';
+                ctx.strokeStyle = edgeColor; ctx.lineWidth = 8;
+                ctx.shadowColor = edgeColor; ctx.shadowBlur = 30;
+                ctx.beginPath(); ctx.arc(cX, cY, 352, 0.3, 1.7); ctx.stroke();
+                ctx.beginPath(); ctx.arc(cX, cY, 352, 0.3 + Math.PI, 1.7 + Math.PI); ctx.stroke();
+                ctx.shadowBlur = 0;
+                ctx.restore();
+                // Center label (static)
+                ctx.beginPath(); ctx.arc(cX, cY, 108, 0, Math.PI * 2); ctx.fillStyle = '#ff0033'; ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 44px Arial'; ctx.textAlign = 'center';
+                ctx.fillText('DS', cX, cY + 16);
+
+                // ── ANIMATED WAVEFORM (REACTIVE) ──
+                const totalBars = 32, wsx = 120, wex = 960, wy = 1330;
+                const wgap = (wex - wsx) / totalBars;
+                const barColor = storyTheme === 'void' ? '#a855f7' : storyTheme === 'acid' ? '#00e5ff' : '#ffffff';
+                ctx.fillStyle = barColor; ctx.shadowColor = barColor; ctx.shadowBlur = 16;
+                for (let i = 0; i < totalBars; i++) {
+                    let barH = 20;
+                    if (dataArray) {
+                        const val = dataArray[i]; // 0-255
+                        barH = (val / 255) * 160 + 15;
+                    } else {
+                        // fallback pseudo random wave
+                        barHeights[i] += (Math.random() - 0.5) * 16;
+                        barHeights[i] = Math.max(15, Math.min(150, barHeights[i]));
+                        barH = barHeights[i];
+                    }
+                    ctx.fillRect(wsx + i * wgap, wy - barH / 2, 14, barH);
+                }
+                ctx.shadowBlur = 0;
+
+                // ── PROGRESS BAR ──
+                const prog = frame / TOTAL_FRAMES;
+                ctx.fillStyle = 'rgba(255,255,255,0.08)';
+                ctx.beginPath();
+                if ((ctx as any).roundRect) {
+                    (ctx as any).roundRect(120, 1380, 840, 6, 3);
+                } else {
+                    ctx.rect(120, 1380, 840, 6);
+                }
+                ctx.fill();
+
+                ctx.fillStyle = barColor; ctx.shadowColor = barColor; ctx.shadowBlur = 8;
+                ctx.beginPath();
+                if ((ctx as any).roundRect) {
+                    (ctx as any).roundRect(120, 1380, 840 * prog, 6, 3);
+                } else {
+                    ctx.rect(120, 1380, 840 * prog, 6);
+                }
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // ── METADATA CARD ──
+                const mY = 1430;
+                ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 2;
+                ctx.beginPath();
+                if ((ctx as any).roundRect) {
+                    (ctx as any).roundRect(60, mY, 960, 280, 44);
+                } else {
+                    ctx.rect(60, mY, 960, 280);
+                }
+                ctx.fill(); ctx.stroke();
+
+                ctx.fillStyle = edgeColor; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'center';
+                ctx.fillText('🎧 EN ÉCOUTE SUR DROPSIDERS', 540, mY + 48);
+                const dispTitle = track.title.length > 22 ? track.title.substring(0, 20) + '…' : track.title;
+                ctx.fillStyle = '#ffffff'; ctx.font = 'italic bold 56px Arial';
+                ctx.fillText(dispTitle, 540, mY + 142);
+                ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = 'bold 28px Arial';
+                ctx.fillText(`Par ${track.artist}`, 540, mY + 202);
+                ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.font = 'bold 20px Arial';
+                ctx.fillText('dropsiders.fr', 540, mY + 256);
+
+                frame++;
+                setClipProgress(Math.round((frame / TOTAL_FRAMES) * 100));
+                requestAnimationFrame(drawFrame);
+            };
+
+            recorder.start(200);
+            drawFrame();
+
         } catch (err) {
-            console.error('Story image error:', err);
-            showToast('Erreur lors de la génération de la Story.');
+            console.error('Story gen error', err);
             setIsGeneratingStory(false);
+            setClipProgress(0);
+            showToast("Erreur lors de la génération de la Story.");
         }
     };
 
@@ -1545,7 +1719,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                         {isGeneratingStory ? (
                                             <>
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                <span>Génération en cours...</span>
+                                                <span>Génération {clipProgress}%...</span>
                                             </>
                                         ) : (
                                             <>
