@@ -790,10 +790,10 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                         <div className="w-full px-1">
                                             {(card.top_tracks && card.top_tracks.length > 0) && (
                                                 <>
-                                                    <p className={`font-serif italic font-bold text-center leading-normal`} style={{ fontSize: Math.max(5, 7 * scale), color: subColor, textShadow: subShadow }}>
+                                                    <p className={`font-serif italic font-bold text-center leading-normal`} style={{ fontSize: Math.max(5, 7 * scale), color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,0.8)' }}>
                                                         Top 3 des titres les plus écoutés :
                                                     </p>
-                                                    <div className={`font-sans font-medium text-center leading-tight mt-0.5 opacity-90`} style={{ fontSize: Math.max(4.5, 6 * scale), color: subColor, textShadow: subShadow }}>
+                                                    <div className={`font-sans font-medium text-center leading-tight mt-0.5 opacity-90`} style={{ fontSize: Math.max(4.5, 6 * scale), color: '#ffffff', textShadow: '0 1px 2px rgba(0,0,0,0.9), 0 1px 4px rgba(0,0,0,0.8)' }}>
                                                         {card.top_tracks.slice(0,3).map((t, i) => <p key={i}>{i + 1}. {t}</p>)}
                                                     </div>
                                                 </>
