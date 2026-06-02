@@ -26,6 +26,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
     const [title, setTitle] = useState(file?.name.replace(/\.[^/.]+$/, "") || '');
     const [genre, setGenre] = useState('');
     const [description, setDescription] = useState('');
+    const [allowDownload, setAllowDownload] = useState(false);
     const [tracklist, setTracklist] = useState<Track[]>([]);
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -262,6 +263,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
             title,
             genre,
             description,
+            allowDownload,
             type,
             tracklist,
             audioUrl: (window as any).uploadedMediaUrl,
@@ -441,6 +443,40 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                 className="w-full bg-white/5 border border-white/10 rounded-3xl px-6 py-4 text-white font-medium text-sm focus:outline-none focus:border-neon-purple transition-all resize-none"
                                             />
                                         </div>
+
+                                        {/* Allow Download Toggle */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setAllowDownload(v => !v)}
+                                            className={`w-full flex items-center justify-between gap-4 p-5 rounded-2xl border transition-all group ${
+                                                allowDownload
+                                                    ? 'bg-neon-purple/10 border-neon-purple/40 shadow-[0_0_20px_rgba(191,0,255,0.1)]'
+                                                    : 'bg-white/5 border-white/10 hover:border-white/20'
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                                                    allowDownload ? 'bg-neon-purple/30 text-neon-purple' : 'bg-white/5 text-gray-600'
+                                                }`}>
+                                                    <DownloadCloud className="w-5 h-5" />
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className={`text-[11px] font-black uppercase tracking-widest transition-colors ${
+                                                        allowDownload ? 'text-neon-purple' : 'text-gray-400 group-hover:text-white'
+                                                    }`}>Autoriser le téléchargement</p>
+                                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">
+                                                        {allowDownload ? 'Les visiteurs peuvent télécharger ce fichier' : 'Écoute uniquement — pas de téléchargement'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className={`w-12 h-6 rounded-full relative transition-all duration-300 shrink-0 ${
+                                                allowDownload ? 'bg-neon-purple shadow-[0_0_10px_rgba(191,0,255,0.5)]' : 'bg-white/10'
+                                            }`}>
+                                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all duration-300 ${
+                                                    allowDownload ? 'left-7' : 'left-1'
+                                                }`} />
+                                            </div>
+                                        </button>
                                     </div>
                                 ) : (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight } from 'lucide-react';
+import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, DownloadCloud, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight } from 'lucide-react';
 import { useUser, type DropsidersCard } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -702,6 +702,17 @@ export function Profile() {
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-2">
+                                                                {mix.allowDownload && mix.audioUrl && (
+                                                                    <a
+                                                                        href={mix.audioUrl}
+                                                                        download={`${mix.title}.mp3`}
+                                                                        className="w-10 h-10 border border-neon-purple/20 bg-neon-purple/5 hover:bg-neon-purple/20 hover:border-neon-purple/40 rounded-xl flex items-center justify-center text-neon-purple transition-all opacity-0 group-hover:opacity-100"
+                                                                        title="Télécharger"
+                                                                        onClick={e => e.stopPropagation()}
+                                                                    >
+                                                                        <DownloadCloud className="w-4 h-4" />
+                                                                    </a>
+                                                                )}
                                                                 <button 
                                                                     onClick={() => setDeleteTargetId(mix.id)}
                                                                     className="w-10 h-10 border border-red-500/10 bg-red-500/5 hover:bg-red-500/20 hover:border-red-500/30 rounded-xl flex items-center justify-center text-red-500 transition-all opacity-0 group-hover:opacity-100"
