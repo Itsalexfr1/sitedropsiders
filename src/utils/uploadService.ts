@@ -19,17 +19,11 @@ export const uploadFile = async (
 
     // 1. Attempt Server-Side Upload (Preferred - R2, ImgBB, then GitHub)
     try {
-        const base64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-
         const serverUpload = await new Promise<string>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/api/upload', true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
+            const url = `/api/upload?filename=${encodeURIComponent(file.name)}&type=${encodeURIComponent(file.type)}&path=${encodeURIComponent(subFolder)}`;
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
 
             // Add auth headers
             const headers = getAuthHeaders(null);
@@ -66,12 +60,7 @@ export const uploadFile = async (
 
             xhr.onerror = () => reject(new Error("Network Error"));
 
-            xhr.send(JSON.stringify({
-                filename: file.name,
-                content: base64,
-                type: file.type,
-                path: subFolder
-            }));
+            xhr.send(file);
         });
 
         return serverUpload;

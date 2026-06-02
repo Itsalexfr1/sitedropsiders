@@ -180,54 +180,66 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
     useEffect(() => {
         if (isOpen && step === 'uploading' && file) {
             setProgress(0);
+            setError(null);
             
-            // Start real upload
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const base64 = reader.result as string;
-                
-                // Simulation of progress while fetch is running
-                const interval = setInterval(() => {
-                    setProgress(prev => {
-                        if (prev >= 95) return prev;
-                        return prev + (100 - prev) * 0.1;
-                    });
-                }, 500);
+            const xhr = new XMLHttpRequest();
+            const url = `/api/upload?filename=${encodeURIComponent(file.name)}&type=${encodeURIComponent(file.type)}&path=${file.type.startsWith('audio/') ? 'SONS' : (file.type.startsWith('video/') ? 'VIDEOS' : 'uploads')}`;
+            
+            xhr.open('POST', url, true);
+            
+            // XHR progress event for exact upload percentage
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    // Prevent 100% until response is actually processed by the server
+                    setProgress(percent < 100 ? percent : 99);
+                }
+            };
 
-                try {
-                    const res = await fetch('/api/upload', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
-                            'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
-                        },
-                        body: JSON.stringify({
-                            filename: file.name,
-                            content: base64,
-                            type: file.type,
-                            path: file.type.startsWith('audio/') ? 'SONS' : (file.type.startsWith('video/') ? 'VIDEOS' : 'uploads')
-                        })
-                    });
-                    
-                    clearInterval(interval);
-                    const data = await res.json();
-                    
-                    if (data.success) {
-                        setProgress(100);
-                        // Store the URL for later
-                        (window as any).uploadedMediaUrl = data.url;
-                        (window as any).uploadedMediaKey = data.key;
-                        setTimeout(() => setStep('metadata'), 500);
-                    } else {
-                        setError(data.error || "Erreur lors de l'upload");
-                        setStep('metadata'); // Still go to metadata to allow retry or show error
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            setProgress(100);
+                            (window as any).uploadedMediaUrl = data.url;
+                            (window as any).uploadedMediaKey = data.key;
+                            setTimeout(() => setStep('metadata'), 500);
+                        } else {
+                            setError(data.error || "Erreur lors de l'upload");
+                            setStep('metadata');
+                        }
+                    } catch (err: any) {
+                        setError("Erreur lors de l'analyse de la réponse serveur");
+                        setStep('metadata');
                     }
-                } catch (e: any) {
-                    clearInterval(interval);
-                    setError(e.message || "Erreur réseau");
+                } else {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        setError(data.error || `Erreur serveur: ${xhr.status}`);
+                    } catch {
+                        setError(`Erreur lors de l'upload (${xhr.status})`);
+                    }
                     setStep('metadata');
+                }
+            };
+
+            xhr.onerror = () => {
+                setError("Erreur réseau ou connexion perdue");
+                setStep('metadata');
+            };
+
+            // Setup auth headers
+            xhr.setRequestHeader('X-Admin-Password', localStorage.getItem('dropsiders_admin_password') || '');
+            xhr.setRequestHeader('X-Admin-Username', localStorage.getItem('dropsiders_admin_username') || '');
+            
+            // Send binary file directly
+            xhr.send(file);
+
+            // Cleanup function to abort upload if modal is closed or state changes
+            return () => {
+                if (xhr.readyState !== XMLHttpRequest.DONE) {
+                    xhr.abort();
                 }
             };
         }

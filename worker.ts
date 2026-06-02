@@ -380,8 +380,6 @@ export default {
             path === '/api/avis/moderate' ||
             path === '/api/facture/send' ||
             path.startsWith('/api/invoices') ||
-            path === '/api/upload' ||
-            path === '/api/user/mixes' ||
             path.startsWith('/api/pdfs') ||
             path.startsWith('/api/instagram-contest') ||
             path.startsWith('/api/quiz/contest') ||
@@ -1940,13 +1938,45 @@ ${urls.map(u => `  <url>
         // --- API: UPLOAD (R2) ---
         if (path === '/api/upload' && request.method === 'POST') {
             try {
-                const body = await request.json();
-                const { filename, content, type, path: subFolder } = body;
-                if (!content || !filename) return new Response(JSON.stringify({ error: 'Données manquantes' }), { status: 400, headers });
+                const reqContentType = request.headers.get('Content-Type') || '';
+                
+                let filename: string;
+                let type: string;
+                let subFolder: string | null = null;
+                let bytes: Uint8Array | ArrayBuffer;
 
-                // Content is base64
-                const base64Data = content.split(',')[1] || content;
-                const bytes = Buffer.from(base64Data, 'base64');
+                if (reqContentType.includes('application/json')) {
+                    const body = await request.json();
+                    const { filename: fName, content, type: fType, path: fPath } = body;
+                    if (!content || !fName) return new Response(JSON.stringify({ error: 'Données manquantes' }), { status: 400, headers });
+                    filename = fName;
+                    type = fType;
+                    subFolder = fPath || null;
+                    
+                    // Content is base64
+                    const base64Data = content.split(',')[1] || content;
+                    bytes = Buffer.from(base64Data, 'base64');
+                } else {
+                    // Direct binary upload
+                    filename = url.searchParams.get('filename') || request.headers.get('X-File-Name') || 'file.mp3';
+                    type = url.searchParams.get('type') || request.headers.get('X-File-Type') || reqContentType || 'application/octet-stream';
+                    subFolder = url.searchParams.get('path') || request.headers.get('X-File-Path') || request.headers.get('X-Sub-Folder') || null;
+                    
+                    bytes = new Uint8Array(await request.arrayBuffer());
+                    if (!bytes || bytes.byteLength === 0) {
+                        return new Response(JSON.stringify({ error: 'Fichier vide' }), { status: 400, headers });
+                    }
+                }
+
+                // Security: restrict folder access for non-admin users
+                const isAdmin = authenticated;
+                if (!isAdmin) {
+                    const allowedFolders = ['membre', 'SONS', 'VIDEOS', 'uploads'];
+                    const targetFolder = subFolder || (type && type.startsWith('audio/') ? 'SONS' : (type && type.startsWith('video/') ? 'VIDEOS' : 'uploads'));
+                    if (!allowedFolders.includes(targetFolder)) {
+                        return new Response(JSON.stringify({ error: 'Accès non autorisé : dossier de destination restreint aux administrateurs' }), { status: 401, headers });
+                    }
+                }
 
                 // Generate Unique Hash for deduplication
                 const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
@@ -1958,7 +1988,6 @@ ${urls.map(u => `  <url>
                 const cleanName = filename.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
 
                 // Final Key in R2
-                // Force specialized folders for Dropsiders v2 architecture
                 let targetFolder = subFolder;
                 if (!targetFolder) {
                     if (type && type.startsWith('audio/')) targetFolder = 'SONS';
@@ -1977,7 +2006,7 @@ ${urls.map(u => `  <url>
                     url: `/uploads/${key}`,
                     key: key
                 }), { headers });
-            } catch (e) {
+            } catch (e: any) {
                 console.error('Upload error:', e);
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
@@ -1995,7 +2024,6 @@ ${urls.map(u => `  <url>
             }
 
             if (request.method === 'POST') {
-                if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
                 const mixData = await request.json();
                 const existingRaw = await env.CHAT_KV.get(kvKey) || "[]";
                 const existing = JSON.parse(existingRaw);
@@ -2013,7 +2041,6 @@ ${urls.map(u => `  <url>
             }
 
             if (request.method === 'DELETE') {
-                if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
                 const { id } = await request.json();
                 const existingRaw = await env.CHAT_KV.get(kvKey) || "[]";
                 const existing = JSON.parse(existingRaw);
