@@ -14,6 +14,27 @@ export function PublicProfile() {
 
     useEffect(() => {
         setIsLoading(true);
+
+        const findInLocalStorage = () => {
+            try {
+                // Check in registered users list (correct key used throughout the app)
+                const allUsers = JSON.parse(localStorage.getItem('dropsiders_registered_users') || '[]');
+                const found = allUsers.find((u: any) =>
+                    u.username?.toLowerCase() === username?.toLowerCase()
+                );
+                if (found) return found;
+
+                // Also check the current logged-in user's own data
+                const currentUser = JSON.parse(localStorage.getItem('dropsiders_user') || 'null');
+                if (currentUser?.username?.toLowerCase() === username?.toLowerCase()) {
+                    return currentUser;
+                }
+                return null;
+            } catch {
+                return null;
+            }
+        };
+
         // Fetch from the real backend
         fetch(`/api/user/profile?username=${encodeURIComponent(username || '')}`)
             .then(res => res.ok ? res.json() : null)
@@ -21,30 +42,12 @@ export function PublicProfile() {
                 if (data) {
                     setProfile(data);
                 } else {
-                    // Fallback: try to find in registeredUsers localStorage (for dev / local)
-                    try {
-                        const allUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-                        const found = allUsers.find((u: any) =>
-                            u.username?.toLowerCase() === username?.toLowerCase()
-                        );
-                        setProfile(found || null);
-                    } catch {
-                        setProfile(null);
-                    }
+                    setProfile(findInLocalStorage());
                 }
                 setIsLoading(false);
             })
             .catch(() => {
-                // Fallback: localStorage
-                try {
-                    const allUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-                    const found = allUsers.find((u: any) =>
-                        u.username?.toLowerCase() === username?.toLowerCase()
-                    );
-                    setProfile(found || null);
-                } catch {
-                    setProfile(null);
-                }
+                setProfile(findInLocalStorage());
                 setIsLoading(false);
             });
     }, [username]);

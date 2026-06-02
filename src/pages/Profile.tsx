@@ -49,7 +49,7 @@ export function Profile() {
 
     const [cardSearch, setCardSearch] = useState('');
     const [cardRarityFilter, setCardRarityFilter] = useState<'all' | 'legendary' | 'epic' | 'rare' | 'common'>('all');
-    const [cardTypeFilter, setCardTypeFilter] = useState<'all' | 'festival' | 'club'>('all');
+    const [cardTypeFilter, setCardTypeFilter] = useState<'all' | 'festival' | 'club' | 'dj'>('all');
     const [selectedCardForPreview, setSelectedCardForPreview] = useState<DropsidersCard | null>(null);
     const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
@@ -535,6 +535,7 @@ export function Profile() {
                                                     <option value="all">Tous Types</option>
                                                     <option value="festival">Festival</option>
                                                     <option value="club">Club</option>
+                                                    <option value="dj">DJ</option>
                                                 </select>
                                             </div>
                                         </div>

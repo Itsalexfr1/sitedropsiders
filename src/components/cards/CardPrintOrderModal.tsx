@@ -425,73 +425,78 @@ export function CardPrintOrderModal({ isOpen, onClose, card }: CardPrintOrderMod
 
                                     <div className="space-y-4">
                                         {/* Name */}
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] font-black uppercase tracking-wider text-gray-400">Nom Complet du Destinataire</label>
-                                            <input
-                                                type="text"
-                                                value={shipping.name}
-                                                onChange={(e) => setShipping({ ...shipping, name: e.target.value })}
-                                                placeholder="Ex: ALEXIS MARTIN"
-                                                className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan transition-colors ${formErrors.name ? 'border-neon-red/50 focus:border-neon-red' : 'border-white/10'}`}
-                                            />
-                                            {formErrors.name && <p className="text-[9px] font-bold text-neon-red uppercase">{formErrors.name}</p>}
-                                        </div>
-
-                                        {/* Address Line 1 */}
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] font-black uppercase tracking-wider text-gray-400">Adresse de Livraison</label>
-                                            <input
-                                                type="text"
-                                                value={shipping.line1}
-                                                onChange={(e) => setShipping({ ...shipping, line1: e.target.value })}
-                                                placeholder="Ex: 12 Rue des Oliviers, Appt 4B"
-                                                className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan transition-colors ${formErrors.line1 ? 'border-neon-red/50 focus:border-neon-red' : 'border-white/10'}`}
-                                            />
-                                            {formErrors.line1 && <p className="text-[9px] font-bold text-neon-red uppercase">{formErrors.line1}</p>}
-                                        </div>
-
-                                        {/* City & Zip */}
-                                        <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-black uppercase tracking-wider text-gray-400">Code Postal</label>
+                                                <label className="text-[9px] font-black uppercase tracking-wider text-gray-400">Nom Complet du Destinataire</label>
                                                 <input
                                                     type="text"
-                                                    value={shipping.postalCode}
-                                                    onChange={(e) => setShipping({ ...shipping, postalCode: e.target.value })}
-                                                    placeholder="Ex: 75001"
-                                                    className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan transition-colors ${formErrors.postalCode ? 'border-neon-red/50 focus:border-neon-red' : 'border-white/10'}`}
+                                                    autoComplete="name"
+                                                    value={shipping.name}
+                                                    onChange={(e) => setShipping({ ...shipping, name: e.target.value })}
+                                                    placeholder="Ex: ALEXIS MARTIN"
+                                                    className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan transition-colors ${formErrors.name ? 'border-neon-red/50 focus:border-neon-red' : 'border-white/10'}`}
                                                 />
-                                                {formErrors.postalCode && <p className="text-[9px] font-bold text-neon-red uppercase">{formErrors.postalCode}</p>}
+                                                {formErrors.name && <p className="text-[9px] font-bold text-neon-red uppercase">{formErrors.name}</p>}
                                             </div>
 
+                                            {/* Address Line 1 */}
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-black uppercase tracking-wider text-gray-400">Ville</label>
+                                                <label className="text-[9px] font-black uppercase tracking-wider text-gray-400">Adresse de Livraison</label>
                                                 <input
                                                     type="text"
-                                                    value={shipping.city}
-                                                    onChange={(e) => setShipping({ ...shipping, city: e.target.value })}
-                                                    placeholder="Ex: PARIS"
-                                                    className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan transition-colors ${formErrors.city ? 'border-neon-red/50 focus:border-neon-red' : 'border-white/10'}`}
+                                                    autoComplete="address-line1"
+                                                    value={shipping.line1}
+                                                    onChange={(e) => setShipping({ ...shipping, line1: e.target.value })}
+                                                    placeholder="Ex: 12 Rue des Oliviers, Appt 4B"
+                                                    className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan transition-colors ${formErrors.line1 ? 'border-neon-red/50 focus:border-neon-red' : 'border-white/10'}`}
                                                 />
-                                                {formErrors.city && <p className="text-[9px] font-bold text-neon-red uppercase">{formErrors.city}</p>}
+                                                {formErrors.line1 && <p className="text-[9px] font-bold text-neon-red uppercase">{formErrors.line1}</p>}
+                                            </div>
+
+                                            {/* City & Zip */}
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black uppercase tracking-wider text-gray-400">Code Postal</label>
+                                                    <input
+                                                        type="text"
+                                                        autoComplete="postal-code"
+                                                        value={shipping.postalCode}
+                                                        onChange={(e) => setShipping({ ...shipping, postalCode: e.target.value })}
+                                                        placeholder="Ex: 75001"
+                                                        className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan transition-colors ${formErrors.postalCode ? 'border-neon-red/50 focus:border-neon-red' : 'border-white/10'}`}
+                                                    />
+                                                    {formErrors.postalCode && <p className="text-[9px] font-bold text-neon-red uppercase">{formErrors.postalCode}</p>}
+                                                </div>
+
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black uppercase tracking-wider text-gray-400">Ville</label>
+                                                    <input
+                                                        type="text"
+                                                        autoComplete="address-level2"
+                                                        value={shipping.city}
+                                                        onChange={(e) => setShipping({ ...shipping, city: e.target.value })}
+                                                        placeholder="Ex: PARIS"
+                                                        className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan transition-colors ${formErrors.city ? 'border-neon-red/50 focus:border-neon-red' : 'border-white/10'}`}
+                                                    />
+                                                    {formErrors.city && <p className="text-[9px] font-bold text-neon-red uppercase">{formErrors.city}</p>}
+                                                </div>
+                                            </div>
+
+                                            {/* Country */}
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-black uppercase tracking-wider text-gray-400">Pays</label>
+                                                <input
+                                                    type="text"
+                                                    autoComplete="country-name"
+                                                    value={shipping.country}
+                                                    onChange={(e) => setShipping({ ...shipping, country: e.target.value })}
+                                                    placeholder="France"
+                                                    className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan transition-colors ${formErrors.country ? 'border-neon-red/50 focus:border-neon-red' : 'border-white/10'}`}
+                                                />
+                                                {formErrors.country && <p className="text-[9px] font-bold text-neon-red uppercase">{formErrors.country}</p>}
                                             </div>
                                         </div>
-
-                                        {/* Country */}
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] font-black uppercase tracking-wider text-gray-400">Pays</label>
-                                            <input
-                                                type="text"
-                                                value={shipping.country}
-                                                onChange={(e) => setShipping({ ...shipping, country: e.target.value })}
-                                                placeholder="France"
-                                                className={`w-full bg-white/5 border rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan transition-colors ${formErrors.country ? 'border-neon-red/50 focus:border-neon-red' : 'border-white/10'}`}
-                                            />
-                                            {formErrors.country && <p className="text-[9px] font-bold text-neon-red uppercase">{formErrors.country}</p>}
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
+                                    </motion.div>
+                                )}
 
                             {step === 'submitting' && (
                                 <motion.div
