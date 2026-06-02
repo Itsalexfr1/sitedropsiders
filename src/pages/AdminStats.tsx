@@ -36,6 +36,7 @@ const GlassCard = ({ children, className, delay = 0 }: { children: React.ReactNo
 // --- ADVANCED SVG CHARTS WITH FORECASTING ---
 
 function AreaChart({ data, forecast = [] }: { data: { label: string; value: number }[], forecast?: { label: string; value: number }[] }) {
+    const [hoveredPoint, setHoveredPoint] = useState<{ x: number, y: number, label: string, value: number, isForecast: boolean } | null>(null);
     const allData = [...data, ...forecast];
     const max = Math.max(...allData.map(d => d.value), 1);
     const width = 1000;
@@ -44,13 +45,22 @@ function AreaChart({ data, forecast = [] }: { data: { label: string; value: numb
 
     const getPoints = (subset: any[], startIndex: number) => subset.map((d, i) => {
         const globalIndex = i + startIndex;
-        const x = (globalIndex / (allData.length - 1)) * (width - padding * 2) + padding;
+        const x = (allData.length > 1) 
+            ? (globalIndex / (allData.length - 1)) * (width - padding * 2) + padding
+            : width / 2;
         const y = height - ((d.value / max) * (height - padding * 2) + padding);
         return { x, y };
     });
 
     const points = getPoints(data, 0);
     const forecastPoints = forecast.length > 0 ? getPoints(forecast, data.length - 1) : [];
+
+    const allCoords = [
+        ...points.map((p, idx) => ({ ...p, label: data[idx].label, value: data[idx].value, isForecast: false })),
+        ...forecastPoints.map((p, idx) => ({ ...p, label: forecast[idx].label, value: forecast[idx].value, isForecast: true }))
+    ];
+
+    const barWidth = allData.length > 1 ? (width - padding * 2) / (allData.length - 1) : width;
 
     const getPath = (pts: any[]) => pts.reduce((acc, p, i, a) => {
         if (i === 0) return `M ${p.x} ${p.y}`;
@@ -108,7 +118,74 @@ function AreaChart({ data, forecast = [] }: { data: { label: string; value: numb
                     <line x1="0" y1="0" x2="20" y2="0" stroke="url(#forecastGradient)" strokeWidth="3" strokeDasharray="4,4" />
                     <text x="25" y="4" fill="#666" fontSize="10" fontWeight="900" className="uppercase italic tracking-widest">Prédiction IA</text>
                 </g>
+
+                {/* Vertical lines and circles on hover */}
+                {hoveredPoint && (
+                    <>
+                        <line
+                            x1={hoveredPoint.x}
+                            y1={padding}
+                            x2={hoveredPoint.x}
+                            y2={height - padding}
+                            stroke="#ff1241"
+                            strokeOpacity="0.3"
+                            strokeDasharray="4,4"
+                            strokeWidth="2"
+                        />
+                        <circle
+                            cx={hoveredPoint.x}
+                            cy={hoveredPoint.y}
+                            r="8"
+                            fill={hoveredPoint.isForecast ? "#0066ff" : "#ff1241"}
+                            stroke="white"
+                            strokeWidth="2"
+                        />
+                        <circle
+                            cx={hoveredPoint.x}
+                            cy={hoveredPoint.y}
+                            r="16"
+                            fill={hoveredPoint.isForecast ? "#0066ff" : "#ff1241"}
+                            fillOpacity="0.2"
+                        />
+                    </>
+                )}
+
+                {/* Invisible hover trigger columns */}
+                {allCoords.map((p, i) => (
+                    <rect
+                        key={i}
+                        x={p.x - barWidth / 2}
+                        y={padding}
+                        width={barWidth}
+                        height={height - padding * 2}
+                        fill="transparent"
+                        className="cursor-pointer"
+                        onMouseEnter={() => setHoveredPoint(p)}
+                        onMouseMove={() => setHoveredPoint(p)}
+                        onMouseLeave={() => setHoveredPoint(null)}
+                    />
+                ))}
             </svg>
+
+            {/* Tooltip floating card */}
+            {hoveredPoint && (
+                <div 
+                    className="absolute z-30 pointer-events-none bg-[#0a0a0a]/95 backdrop-blur-md border border-white/10 px-4 py-3 rounded-2xl flex flex-col gap-1 shadow-2xl transition-all duration-75"
+                    style={{
+                        left: `${(hoveredPoint.x / width) * 100}%`,
+                        top: `${(hoveredPoint.y / height) * 100 - 15}%`,
+                        transform: 'translate(-50%, -100%)'
+                    }}
+                >
+                    <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest whitespace-nowrap">{hoveredPoint.label}</span>
+                    <span className="text-xs font-display font-black text-white italic whitespace-nowrap">
+                        {hoveredPoint.value.toLocaleString()} <span className="text-[8px] font-bold text-gray-400 not-italic">visites</span>
+                    </span>
+                    {hoveredPoint.isForecast && (
+                        <span className="text-[7px] font-black text-neon-blue uppercase tracking-widest mt-0.5 whitespace-nowrap">Prédiction IA</span>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
