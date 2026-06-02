@@ -124,57 +124,65 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
     const visualizerIntervalRef = useRef<any>(null);
     const [visualizerBars, setVisualizerBars] = useState<number[]>(new Array(16).fill(5));
 
-    // Load SoundCloud & YouTube scripts
+    // Detect source type based on embedUrl AND url
     const isSoundCloud = !!track.embedUrl?.includes('soundcloud.com');
     const isYouTube = !!(track.embedUrl?.includes('youtube.com') || track.embedUrl?.includes('youtu.be'));
-    const isHTML5 = !isSoundCloud && !isYouTube;
+    // isHTML5 = true if we have a direct audio URL (no SC/YT embed)
+    const isHTML5 = !isSoundCloud && !isYouTube && !!track.url;
     
     const scStatus = useScript(isSoundCloud ? 'https://w.soundcloud.com/player/api.js' : '');
     const ytStatus = useScript(isYouTube ? 'https://www.youtube.com/iframe_api' : '');
 
     // Initialize HTML5 Audio Controller
     useEffect(() => {
-        if (isHTML5 && track.url) {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.src = "";
-            }
-            const audio = new Audio(track.url);
-            audioRef.current = audio;
-            audio.volume = volume / 100;
-            audio.muted = isMuted;
+        if (!isHTML5 || !track.url) return;
 
-            const handlePlay = () => setIsPlaying(true);
-            const handlePause = () => setIsPlaying(false);
-            const handleEnded = () => setIsPlaying(false);
-            const handleTimeUpdate = () => {
-                setCurrentTime(audio.currentTime);
-            };
-            const handleDurationChange = () => {
-                setDuration(audio.duration || 0);
-            };
-
-            audio.addEventListener('play', handlePlay);
-            audio.addEventListener('pause', handlePause);
-            audio.addEventListener('ended', handleEnded);
-            audio.addEventListener('timeupdate', handleTimeUpdate);
-            audio.addEventListener('durationchange', handleDurationChange);
-
-            if (isPlaying) {
-                audio.play().catch(() => setIsPlaying(false));
-            }
-
-            return () => {
-                audio.removeEventListener('play', handlePlay);
-                audio.removeEventListener('pause', handlePause);
-                audio.removeEventListener('ended', handleEnded);
-                audio.removeEventListener('timeupdate', handleTimeUpdate);
-                audio.removeEventListener('durationchange', handleDurationChange);
-                audio.pause();
-                audio.src = "";
-                audioRef.current = null;
-            };
+        // Clean up previous audio instance
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.src = '';
         }
+
+        const audio = new Audio();
+        audio.crossOrigin = 'anonymous';
+        audio.preload = 'metadata';
+        audio.volume = volume / 100;
+        audio.muted = isMuted;
+        audioRef.current = audio;
+
+        const handlePlay = () => setIsPlaying(true);
+        const handlePause = () => setIsPlaying(false);
+        const handleEnded = () => setIsPlaying(false);
+        const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+        const handleDurationChange = () => setDuration(isFinite(audio.duration) ? audio.duration : 0);
+        const handleError = (e: Event) => {
+            console.error('[HTML5 Audio] Error loading:', track.url, e);
+            setIsPlaying(false);
+        };
+
+        audio.addEventListener('play', handlePlay);
+        audio.addEventListener('pause', handlePause);
+        audio.addEventListener('ended', handleEnded);
+        audio.addEventListener('timeupdate', handleTimeUpdate);
+        audio.addEventListener('durationchange', handleDurationChange);
+        audio.addEventListener('error', handleError);
+
+        // Set src AFTER attaching listeners
+        audio.src = track.url;
+        audio.load();
+
+        return () => {
+            audio.removeEventListener('play', handlePlay);
+            audio.removeEventListener('pause', handlePause);
+            audio.removeEventListener('ended', handleEnded);
+            audio.removeEventListener('timeupdate', handleTimeUpdate);
+            audio.removeEventListener('durationchange', handleDurationChange);
+            audio.removeEventListener('error', handleError);
+            audio.pause();
+            audio.src = '';
+            audioRef.current = null;
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isHTML5, track.url]);
 
 

@@ -828,8 +828,9 @@ export function Profile() {
                                                                         title: activeMixPlayer.title,
                                                                         artist: user?.username || 'Dropsider',
                                                                         label: activeMixPlayer.genre || activeMixPlayer.type,
-                                                                        url: activeMixPlayer.audioUrl || '',
-                                                                        embedUrl: activeMixPlayer.embedUrl || (activeMixPlayer.audioUrl ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(activeMixPlayer.audioUrl)}&color=%23ff0033&auto_play=false&visual=false` : undefined),
+                                                                        url: activeMixPlayer.audioUrl || activeMixPlayer.url || '',
+                                                                        // Only pass embedUrl for real SC/YT, NOT for direct R2 audio
+                                                                        embedUrl: activeMixPlayer.embedUrl && !activeMixPlayer.audioUrl ? activeMixPlayer.embedUrl : undefined,
                                                                         tracks: activeMixPlayer.tracklist || [],
                                                                     }}
                                                                     onClose={() => setActiveMixPlayer(null)}

@@ -356,8 +356,9 @@ export function SpotifyWidget({
                                         title: activeMix.title,
                                         artist: activeMix.username || 'Dropsider',
                                         label: activeMix.genre || activeMix.type,
-                                        url: activeMix.audioUrl || '',
-                                        embedUrl: activeMix.embedUrl || (activeMix.audioUrl ? `https://w.soundcloud.com/player/?url=${encodeURIComponent(activeMix.audioUrl)}&color=%23ff0033&auto_play=false&visual=false` : undefined),
+                                        url: activeMix.audioUrl || activeMix.url || '',
+                                        // Only pass embedUrl for real SC/YT, NOT for direct R2 audio
+                                        embedUrl: activeMix.embedUrl && !activeMix.audioUrl ? activeMix.embedUrl : undefined,
                                         tracks: activeMix.tracklist || [],
                                     }}
                                     onClose={() => setActiveMix(null)}
