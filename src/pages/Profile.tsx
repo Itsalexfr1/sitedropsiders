@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, Share2, MessageSquare, Star, Send, Instagram } from 'lucide-react';
+import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight } from 'lucide-react';
 import { useUser, type DropsidersCard } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -12,17 +12,29 @@ import { DropsidersCardComponent } from '../components/cards/DropsidersCard';
 import { UserAuthModal } from '../components/auth/UserAuthModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { CardPrintOrderModal } from '../components/cards/CardPrintOrderModal';
+import { CardTradeModal } from '../components/cards/CardTradeModal';
+import { TradeInboxPanel } from '../components/cards/TradeInboxPanel';
 
 
 export function Profile() {
-    const { user, updateUser, logout, isLoggedIn, showNotification, deleteAccount, collectedCards } = useUser();
+    const { user, updateUser, logout, isLoggedIn, showNotification, deleteAccount, collectedCards, claimHandle } = useUser();
     const navigate = useNavigate();
     
     const [username, setUsername] = useState(user?.username || '');
     const [instagram, setInstagram] = useState(user?.instagram || '');
+    const [userHandle, setUserHandle] = useState(user?.handle || '');
     const [isEditingName, setIsEditingName] = useState(false);
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
-    const [activeTab, setActiveTab ] = useState<'overview' | 'mixes' | 'reviews' | 'settings' | 'favorites' | 'collection'>('overview');
+    const [activeTab, setActiveTab ] = useState<'overview' | 'mixes' | 'reviews' | 'settings' | 'favorites' | 'collection' | 'trades'>('overview');
+    const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
+    const [isTradeInboxOpen, setIsTradeInboxOpen] = useState(false);
+    const [initialTradeCard, setInitialTradeCard] = useState<DropsidersCard | null>(null);
+
+    useEffect(() => {
+        if (user?.handle) {
+            setUserHandle(user.handle);
+        }
+    }, [user?.handle]);
     const [uploadType, setUploadType] = useState<'Track' | 'Remix' | 'Edit' | 'Mix'>('Mix');
     const [reviewRating, setReviewRating] = useState(0);
     const [reviewText, setReviewText] = useState('');
@@ -77,7 +89,7 @@ export function Profile() {
 
     // No early return, we handle UI status below
 
-    const handleUpdateName = () => {
+    const handleUpdateName = async () => {
         const updates: any = {};
         if (username.trim() && username !== user?.username) updates.username = username.trim();
         if (instagram.trim() !== (user?.instagram || '')) updates.instagram = instagram.trim();
@@ -85,6 +97,14 @@ export function Profile() {
         if (Object.keys(updates).length > 0) {
             updateUser(updates);
             showNotification('Profil mis à jour !', 'success');
+        }
+
+        if (userHandle.trim() && userHandle.trim() !== user?.handle) {
+            const claimRes = await claimHandle(userHandle.trim());
+            if (!claimRes.success) {
+                showNotification(claimRes.error || 'Erreur lors de la réservation du handle', 'error');
+                return;
+            }
         }
         setIsEditingName(false);
     };
@@ -273,6 +293,18 @@ export function Profile() {
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <div className="relative w-full">
+                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">@</span>
+                                                    <input 
+                                                        type="text" 
+                                                        value={userHandle} 
+                                                        onChange={(e) => setUserHandle(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-8 pr-4 py-3 text-white font-bold outline-none focus:border-neon-cyan transition-all"
+                                                        placeholder="HANDLE"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="relative w-full">
                                                     <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                                     <input 
                                                         type="text" 
@@ -294,6 +326,9 @@ export function Profile() {
                                                 <h1 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">{user?.username}</h1>
                                                 <button onClick={() => setIsEditingName(true)} className="p-2 text-gray-500 hover:text-white transition-colors"><Edit2 className="w-4 h-4" /></button>
                                             </div>
+                                            {user?.handle && (
+                                                <p className="text-xs text-neon-cyan font-bold">@{user.handle}</p>
+                                            )}
                                             {user?.instagram && (
                                                 <a 
                                                     href={`https://instagram.com/${user.instagram.replace('@', '')}`}
@@ -341,6 +376,7 @@ export function Profile() {
                                 {[
                                     { id: 'overview', label: 'Vue d\'ensemble', icon: User, color: 'text-neon-cyan' },
                                     { id: 'collection', label: 'Ma Collection', icon: Trophy, color: 'text-amber-500' },
+                                    { id: 'trades', label: 'Échanges', icon: ArrowLeftRight, color: 'text-neon-cyan' },
                                     { id: 'mixes', label: 'Mix Studio', icon: Headphones, color: 'text-neon-purple' },
                                     { id: 'reviews', label: 'Avis & Notes', icon: MessageSquare, color: 'text-yellow-500' },
                                     { id: 'favorites', label: 'Favoris', icon: Music, color: 'text-neon-red' },
@@ -532,6 +568,46 @@ export function Profile() {
                                         )}
                                     </div>
                                 )}
+
+                                 {activeTab === 'trades' && (
+                                     <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 space-y-6">
+                                         <div className="flex items-center gap-4 border-b border-white/5 pb-4">
+                                             <div className="w-10 h-10 bg-neon-cyan/20 rounded-xl flex items-center justify-center">
+                                                 <ArrowLeftRight className="w-5 h-5 text-neon-cyan" />
+                                             </div>
+                                             <div>
+                                                 <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Mes Échanges</h3>
+                                                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">Proposer et gérer vos offres d'échange</p>
+                                             </div>
+                                         </div>
+
+                                         <div className="p-10 border-2 border-dashed border-white/10 rounded-[32px] text-center space-y-6">
+                                             <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+                                                 <ArrowLeftRight className="w-8 h-8 text-neon-cyan" />
+                                             </div>
+                                             <div className="space-y-2">
+                                                 <h4 className="text-sm font-black text-white uppercase tracking-widest italic">Échanger des Cartes</h4>
+                                                 <p className="text-[10px] text-gray-500 font-bold uppercase italic max-w-xs mx-auto leading-relaxed">
+                                                     Proposez des échanges à d'autres membres en recherchant leur handle unique (@handle) ou consultez vos offres en attente.
+                                                 </p>
+                                             </div>
+                                             <div className="flex flex-col sm:flex-row justify-center gap-3">
+                                                 <button
+                                                     onClick={() => setIsTradeModalOpen(true)}
+                                                     className="px-6 py-4 bg-gradient-to-r from-neon-cyan to-neon-purple hover:opacity-90 active:scale-95 text-black font-black uppercase text-[10px] tracking-wider rounded-xl transition-all"
+                                                 >
+                                                     Proposer un Échange
+                                                 </button>
+                                                 <button
+                                                     onClick={() => setIsTradeInboxOpen(true)}
+                                                     className="px-6 py-4 bg-white/5 hover:bg-white/10 active:scale-95 border border-white/10 text-white font-black uppercase text-[10px] tracking-wider rounded-xl transition-all"
+                                                 >
+                                                     Ouvrir l'Inbox d'Échanges
+                                                 </button>
+                                             </div>
+                                         </div>
+                                     </div>
+                                 )}
 
                                 {activeTab === 'mixes' && (
                                     <div className="bg-white/5 border border-white/10 rounded-[40px] p-8 space-y-8">
@@ -986,6 +1062,16 @@ export function Profile() {
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mt-2">
                                     <button
+                                        onClick={() => {
+                                            setInitialTradeCard(selectedCardForPreview);
+                                            setSelectedCardForPreview(null);
+                                            setIsTradeModalOpen(true);
+                                        }}
+                                        className="px-6 py-2.5 bg-neon-cyan/20 hover:bg-neon-cyan/30 border border-neon-cyan/20 text-neon-cyan rounded-full text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                                    >
+                                        <ArrowLeftRight className="w-3.5 h-3.5" /> Échanger cette carte
+                                    </button>
+                                    <button
                                         onClick={() => setIsPrintModalOpen(true)}
                                         className="px-6 py-2.5 bg-gradient-to-r from-neon-red via-purple-600 to-neon-cyan hover:shadow-[0_0_20px_rgba(255,0,51,0.4)] text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
                                     >
@@ -1008,6 +1094,20 @@ export function Profile() {
                 isOpen={isPrintModalOpen}
                 onClose={() => setIsPrintModalOpen(false)}
                 card={selectedCardForPreview}
+            />
+
+            <CardTradeModal
+                isOpen={isTradeModalOpen}
+                onClose={() => {
+                    setIsTradeModalOpen(false);
+                    setInitialTradeCard(null);
+                }}
+                initialOfferedCard={initialTradeCard || undefined}
+            />
+
+            <TradeInboxPanel
+                isOpen={isTradeInboxOpen}
+                onClose={() => setIsTradeInboxOpen(false)}
             />
         </>
     );

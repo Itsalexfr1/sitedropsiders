@@ -6,6 +6,8 @@ import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useUser } from '../../context/UserContext';
 import { UserAuthModal } from '../auth/UserAuthModal';
+import { TradeNotificationBadge } from '../cards/TradeNotificationBadge';
+import { TradeInboxPanel } from '../cards/TradeInboxPanel';
 
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -19,6 +21,7 @@ export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isTradeInboxOpen, setIsTradeInboxOpen] = useState(false);
     const { isDarkMode, toggleTheme } = useTheme();
     const location = useLocation();
     const navigate = useNavigate();
@@ -282,7 +285,10 @@ export function Navbar() {
                         </div>
 
                         {/* LE CADRE COMPTE - High Visibility */}
-                        <div className="flex items-center gap-1 bg-gradient-to-r from-neon-red/10 to-neon-purple/10 backdrop-blur-2xl border border-white/20 p-1.5 rounded-[1.5rem] shadow-[0_0_30px_rgba(0,0,0,0.3)] ring-1 ring-white/5 px-2">
+                        <div className="flex items-center gap-1.5 bg-gradient-to-r from-neon-red/10 to-neon-purple/10 backdrop-blur-2xl border border-white/20 p-1.5 rounded-[1.5rem] shadow-[0_0_30px_rgba(0,0,0,0.3)] ring-1 ring-white/5 px-2">
+                            {isLoggedIn && (
+                                <TradeNotificationBadge onClick={() => setIsTradeInboxOpen(true)} />
+                            )}
                             {/* Account Button */}
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
@@ -523,6 +529,10 @@ export function Navbar() {
                     </motion.div>
                 )}
             </AnimatePresence>
+            <TradeInboxPanel
+                isOpen={isTradeInboxOpen}
+                onClose={() => setIsTradeInboxOpen(false)}
+            />
         </nav >
     );
 }

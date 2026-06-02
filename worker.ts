@@ -1212,12 +1212,63 @@ ${urls.map(u => `  <url>
             const existingUser = await env.CHAT_KV.get(key);
             const isNewUser = !existingUser;
 
+            let parsedExisting: any = {};
+            if (existingUser) {
+                try {
+                    parsedExisting = JSON.parse(existingUser);
+                } catch (e) {}
+            }
+
+            // Auto-generate handle if not present
+            let userHandle = parsedExisting.handle || body.handle;
+            if (!userHandle) {
+                const baseHandle = (body.username || username || 'user')
+                    .toLowerCase()
+                    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+                    .replace(/[^a-z0-9_]/g, '') // keep only alphanumeric and _
+                    .substring(0, 10);
+                
+                let attempts = 0;
+                let isUnique = false;
+                let tempHandle = '';
+                while (!isUnique && attempts < 10) {
+                    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+                    tempHandle = `${baseHandle || 'user'}_${randomSuffix}`;
+                    const existingEmail = await env.CHAT_KV.get(`user_handle_${tempHandle}`);
+                    if (!existingEmail) {
+                        isUnique = true;
+                    }
+                    attempts++;
+                }
+                if (isUnique) {
+                    userHandle = tempHandle;
+                    await env.CHAT_KV.put(`user_handle_${userHandle}`, cleanEmail);
+                }
+            } else {
+                // Ensure user_handle_${userHandle} exists and points to cleanEmail
+                const handleKey = `user_handle_${userHandle.toLowerCase().trim()}`;
+                const existingOwner = await env.CHAT_KV.get(handleKey);
+                if (!existingOwner) {
+                    await env.CHAT_KV.put(handleKey, cleanEmail);
+                }
+            }
+
             const userData = {
-                id: id || crypto.randomUUID(),
-                username: username || 'Utilisateur',
+                id: id || parsedExisting.id || crypto.randomUUID(),
+                username: username || parsedExisting.username || 'Utilisateur',
                 email: cleanEmail,
-                avatar: avatar || null,
-                provider: provider || 'email',
+                avatar: avatar || parsedExisting.avatar || null,
+                provider: provider || parsedExisting.provider || 'email',
+                handle: userHandle || parsedExisting.handle || null,
+                mixStatus: parsedExisting.mixStatus || body.mixStatus || null,
+                collectedCards: body.collectedCards || parsedExisting.collectedCards || [],
+                xp: body.xp !== undefined ? body.xp : (parsedExisting.xp || 0),
+                drops: body.drops !== undefined ? body.drops : (parsedExisting.drops || 0),
+                scores: body.scores || parsedExisting.scores || {},
+                trackIds: body.trackIds || parsedExisting.trackIds || [],
+                agendaFavorites: body.agendaFavorites || parsedExisting.agendaFavorites || [],
+                instagram: body.instagram || parsedExisting.instagram || null,
+                createdAt: body.createdAt || parsedExisting.createdAt || new Date().toISOString(),
                 lastSeen: new Date().toISOString()
             };
 
@@ -1276,6 +1327,267 @@ ${urls.map(u => `  <url>
             }
 
             return new Response(JSON.stringify({ success: true, user: userData }), { headers });
+        }
+
+        // --- API: CLAIM HANDLE ---
+        if (path === '/api/users/handle/claim' && request.method === 'POST') {
+            const body = await request.json();
+            const { email, handle } = body;
+            if (!email || !handle) {
+                return new Response(JSON.stringify({ error: 'Email and handle are required' }), { status: 400, headers });
+            }
+            const cleanEmail = email.toLowerCase().trim();
+            let cleanHandle = handle.trim().toLowerCase();
+            if (cleanHandle.startsWith('@')) {
+                cleanHandle = cleanHandle.substring(1);
+            }
+            const handleRegex = /^[a-z0-9_]{3,15}$/;
+            if (!handleRegex.test(cleanHandle)) {
+                return new Response(JSON.stringify({ error: 'Le handle doit faire entre 3 et 15 caractères et ne contenir que des lettres, chiffres ou _' }), { status: 400, headers });
+            }
+
+            const handleKey = `user_handle_${cleanHandle}`;
+            const existingOwnerEmail = await env.CHAT_KV.get(handleKey);
+            if (existingOwnerEmail && existingOwnerEmail.toLowerCase().trim() !== cleanEmail) {
+                return new Response(JSON.stringify({ error: 'Ce handle est déjà pris par un autre membre' }), { status: 400, headers });
+            }
+
+            const userKey = `community_user_${cleanEmail}`;
+            const userDataRaw = await env.CHAT_KV.get(userKey);
+            if (!userDataRaw) {
+                return new Response(JSON.stringify({ error: 'Utilisateur non trouvé' }), { status: 404, headers });
+            }
+
+            const userData = JSON.parse(userDataRaw);
+            const oldHandle = userData.handle;
+
+            userData.handle = cleanHandle;
+            await env.CHAT_KV.put(userKey, JSON.stringify(userData));
+
+            if (oldHandle && oldHandle !== cleanHandle) {
+                await env.CHAT_KV.delete(`user_handle_${oldHandle}`);
+            }
+
+            await env.CHAT_KV.put(handleKey, cleanEmail);
+
+            return new Response(JSON.stringify({ success: true, handle: cleanHandle, user: userData }), { headers });
+        }
+
+        // --- API: GET USER BY HANDLE ---
+        if (path === '/api/users/by-handle' && request.method === 'GET') {
+            const handle = url.searchParams.get('handle')?.toLowerCase().trim().replace(/^@/, '');
+            if (!handle) {
+                return new Response(JSON.stringify({ error: 'Handle requis' }), { status: 400, headers });
+            }
+
+            const email = await env.CHAT_KV.get(`user_handle_${handle}`);
+            if (!email) {
+                return new Response(JSON.stringify({ error: 'Membre non trouvé' }), { status: 404, headers });
+            }
+
+            const userDataRaw = await env.CHAT_KV.get(`community_user_${email.toLowerCase().trim()}`);
+            if (!userDataRaw) {
+                return new Response(JSON.stringify({ error: 'Données membre introuvables' }), { status: 404, headers });
+            }
+
+            const userData = JSON.parse(userDataRaw);
+            const publicProfile = {
+                id: userData.id,
+                username: userData.username,
+                avatar: userData.avatar,
+                handle: userData.handle,
+                collectedCards: userData.collectedCards || []
+            };
+
+            return new Response(JSON.stringify(publicProfile), { headers });
+        }
+
+        // --- API: GET PROFILE BY EMAIL ---
+        if (path === '/api/users/get-profile' && request.method === 'GET') {
+            const email = url.searchParams.get('email')?.toLowerCase().trim();
+            if (!email) {
+                return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+            }
+
+            const userDataRaw = await env.CHAT_KV.get(`community_user_${email}`);
+            if (!userDataRaw) {
+                return new Response(JSON.stringify({ error: 'Utilisateur non trouvé' }), { status: 404, headers });
+            }
+
+            return new Response(userDataRaw, { headers });
+        }
+
+        // --- API: CREATE TRADE OFFER ---
+        if (path === '/api/trades/create' && request.method === 'POST') {
+            const body = await request.json();
+            const { fromEmail, toHandle, offeredCardId, wantedCardId } = body;
+            if (!fromEmail || !toHandle || !offeredCardId || !wantedCardId) {
+                return new Response(JSON.stringify({ error: 'Paramètres manquants' }), { status: 400, headers });
+            }
+
+            const cleanFromEmail = fromEmail.toLowerCase().trim();
+            const cleanToHandle = toHandle.toLowerCase().trim().replace(/^@/, '');
+
+            const toEmail = await env.CHAT_KV.get(`user_handle_${cleanToHandle}`);
+            if (!toEmail) {
+                return new Response(JSON.stringify({ error: 'Destinataire non trouvé' }), { status: 404, headers });
+            }
+            const cleanToEmail = toEmail.toLowerCase().trim();
+
+            if (cleanFromEmail === cleanToEmail) {
+                return new Response(JSON.stringify({ error: 'Vous ne pouvez pas échanger avec vous-même' }), { status: 400, headers });
+            }
+
+            const fromUserRaw = await env.CHAT_KV.get(`community_user_${cleanFromEmail}`);
+            const toUserRaw = await env.CHAT_KV.get(`community_user_${cleanToEmail}`);
+
+            if (!fromUserRaw || !toUserRaw) {
+                return new Response(JSON.stringify({ error: 'Utilisateurs non trouvés' }), { status: 404, headers });
+            }
+
+            const fromUser = JSON.parse(fromUserRaw);
+            const toUser = JSON.parse(toUserRaw);
+
+            const offeredCard = (fromUser.collectedCards || []).find((c: any) => c.id === offeredCardId);
+            const wantedCard = (toUser.collectedCards || []).find((c: any) => c.id === wantedCardId);
+
+            if (!offeredCard) {
+                return new Response(JSON.stringify({ error: "Vous ne possédez plus cette carte" }), { status: 400, headers });
+            }
+            if (!wantedCard) {
+                return new Response(JSON.stringify({ error: "Le destinataire ne possède plus cette carte" }), { status: 400, headers });
+            }
+
+            const tradeId = crypto.randomUUID();
+            const tradeOffer = {
+                id: tradeId,
+                fromEmail: cleanFromEmail,
+                fromHandle: fromUser.handle,
+                fromUsername: fromUser.username,
+                toEmail: cleanToEmail,
+                toHandle: toUser.handle,
+                toUsername: toUser.username,
+                offeredCard,
+                wantedCard,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            await env.CHAT_KV.put(`trade_sent:${cleanFromEmail}:${tradeId}`, JSON.stringify(tradeOffer));
+            await env.CHAT_KV.put(`trade_received:${cleanToEmail}:${tradeId}`, JSON.stringify(tradeOffer));
+
+            return new Response(JSON.stringify({ success: true, trade: tradeOffer }), { headers });
+        }
+
+        // --- API: RESPOND TO TRADE OFFER ---
+        if (path === '/api/trades/respond' && request.method === 'POST') {
+            const body = await request.json();
+            const { email, tradeId, response } = body;
+            if (!email || !tradeId || !response) {
+                return new Response(JSON.stringify({ error: 'Paramètres manquants' }), { status: 400, headers });
+            }
+
+            const cleanEmail = email.toLowerCase().trim();
+            const receivedKey = `trade_received:${cleanEmail}:${tradeId}`;
+            const tradeRaw = await env.CHAT_KV.get(receivedKey);
+
+            if (!tradeRaw) {
+                return new Response(JSON.stringify({ error: 'Offre d\'échange introuvable' }), { status: 404, headers });
+            }
+
+            const trade = JSON.parse(tradeRaw);
+            if (trade.status !== 'pending') {
+                return new Response(JSON.stringify({ error: 'Cette offre a déjà été traitée' }), { status: 400, headers });
+            }
+
+            const senderEmail = trade.fromEmail.toLowerCase().trim();
+            const sentKey = `trade_sent:${senderEmail}:${tradeId}`;
+
+            if (response === 'rejected') {
+                trade.status = 'rejected';
+                await env.CHAT_KV.put(receivedKey, JSON.stringify(trade));
+                await env.CHAT_KV.put(sentKey, JSON.stringify(trade));
+                return new Response(JSON.stringify({ success: true, status: 'rejected' }), { headers });
+            }
+
+            if (response === 'accepted') {
+                const fromUserRaw = await env.CHAT_KV.get(`community_user_${senderEmail}`);
+                const toUserRaw = await env.CHAT_KV.get(`community_user_${cleanEmail}`);
+
+                if (!fromUserRaw || !toUserRaw) {
+                    trade.status = 'cancelled';
+                    await env.CHAT_KV.put(receivedKey, JSON.stringify(trade));
+                    await env.CHAT_KV.put(sentKey, JSON.stringify(trade));
+                    return new Response(JSON.stringify({ error: 'Utilisateurs introuvables' }), { status: 404, headers });
+                }
+
+                const fromUser = JSON.parse(fromUserRaw);
+                const toUser = JSON.parse(toUserRaw);
+
+                const offeredCardIdx = (fromUser.collectedCards || []).findIndex((c: any) => c.id === trade.offeredCard.id);
+                const wantedCardIdx = (toUser.collectedCards || []).findIndex((c: any) => c.id === trade.wantedCard.id);
+
+                if (offeredCardIdx === -1 || wantedCardIdx === -1) {
+                    trade.status = 'cancelled';
+                    await env.CHAT_KV.put(receivedKey, JSON.stringify(trade));
+                    await env.CHAT_KV.put(sentKey, JSON.stringify(trade));
+                    return new Response(JSON.stringify({ error: 'Une des cartes n\'est plus disponible pour l\'échange' }), { status: 400, headers });
+                }
+
+                const offeredCard = fromUser.collectedCards[offeredCardIdx];
+                const wantedCard = toUser.collectedCards[wantedCardIdx];
+
+                const newOfferedCard = { ...offeredCard, collectedAt: new Date().toISOString() };
+                const newWantedCard = { ...wantedCard, collectedAt: new Date().toISOString() };
+
+                fromUser.collectedCards.splice(offeredCardIdx, 1);
+                fromUser.collectedCards.push(newWantedCard);
+
+                toUser.collectedCards.splice(wantedCardIdx, 1);
+                toUser.collectedCards.push(newOfferedCard);
+
+                await env.CHAT_KV.put(`community_user_${senderEmail}`, JSON.stringify(fromUser));
+                await env.CHAT_KV.put(`community_user_${cleanEmail}`, JSON.stringify(toUser));
+
+                trade.status = 'accepted';
+                await env.CHAT_KV.put(receivedKey, JSON.stringify(trade));
+                await env.CHAT_KV.put(sentKey, JSON.stringify(trade));
+
+                return new Response(JSON.stringify({ success: true, status: 'accepted' }), { headers });
+            }
+
+            return new Response(JSON.stringify({ error: 'Réponse invalide' }), { status: 400, headers });
+        }
+
+        // --- API: LIST TRADES ---
+        if (path === '/api/trades/list' && request.method === 'GET') {
+            const email = url.searchParams.get('email')?.toLowerCase().trim();
+            if (!email) {
+                return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+            }
+
+            const sentList = await env.CHAT_KV.list({ prefix: `trade_sent:${email}:` });
+            const sent = await Promise.all(
+                sentList.keys.map(async (k) => {
+                    const data = await env.CHAT_KV.get(k.name);
+                    return data ? JSON.parse(data) : null;
+                })
+            );
+
+            const receivedList = await env.CHAT_KV.list({ prefix: `trade_received:${email}:` });
+            const received = await Promise.all(
+                receivedList.keys.map(async (k) => {
+                    const data = await env.CHAT_KV.get(k.name);
+                    return data ? JSON.parse(data) : null;
+                })
+            );
+
+            const sortFn = (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+
+            return new Response(JSON.stringify({
+                sent: sent.filter(Boolean).sort(sortFn),
+                received: received.filter(Boolean).sort(sortFn)
+            }), { headers });
         }
 
         if (path === '/api/users/delete' && request.method === 'POST') {

@@ -26,6 +26,7 @@ interface UserProfile {
     email: string;
     avatar?: string;
     provider?: string;
+    handle?: string; // --- NEW: Unique handle ---
     scores: Record<string, number>;
     trackIds: string[];
     agendaFavorites: number[];
@@ -62,6 +63,12 @@ interface UserContextType {
     triggerBooster: () => void;
     claimBooster: () => void;
     dismissBooster: () => void;
+    // --- NEW: Trades System ---
+    trades: { sent: any[], received: any[] };
+    loadTrades: () => Promise<void>;
+    claimHandle: (handle: string) => Promise<{ success: boolean; error?: string }>;
+    createTradeOffer: (toHandle: string, offeredCardId: string, wantedCardId: string) => Promise<{ success: boolean; error?: string }>;
+    respondToTrade: (tradeId: string, response: 'accepted' | 'rejected') => Promise<{ success: boolean; error?: string }>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -147,6 +154,141 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
     const [pendingBooster, setPendingBooster] = useState<DropsidersCard[] | null>(null);
+
+    // --- NEW: Trades State ---
+    const [trades, setTrades] = useState<{ sent: any[], received: any[] }>({ sent: [], received: [] });
+
+    const syncUserWithBackend = async (currentUser: UserProfile) => {
+        if (!currentUser || !currentUser.email) return;
+        try {
+            const res = await fetch('/api/users/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentUser)
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success && data.user) {
+                    setUser(prev => {
+                        if (!prev) return null;
+                        const updated = { ...prev, ...data.user };
+                        localStorage.setItem('dropsiders_user', JSON.stringify(updated));
+                        return updated;
+                    });
+                }
+            }
+        } catch (e) {
+            console.error('Failed to sync user with backend', e);
+        }
+    };
+
+    const loadTrades = async () => {
+        if (!user || !user.email) return;
+        try {
+            const res = await fetch(`/api/trades/list?email=${encodeURIComponent(user.email)}`);
+            if (res.ok) {
+                const data = await res.json();
+                setTrades(data);
+            }
+        } catch (e) {
+            console.error('Failed to load trades', e);
+        }
+    };
+
+    const claimHandle = async (handle: string): Promise<{ success: boolean; error?: string }> => {
+        if (!user || !user.email) return { success: false, error: 'Non connecté' };
+        try {
+            const res = await fetch('/api/users/handle/claim', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email, handle })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setUser(prev => {
+                    if (!prev) return null;
+                    const updated = { ...prev, handle: data.handle };
+                    localStorage.setItem('dropsiders_user', JSON.stringify(updated));
+                    return updated;
+                });
+                showNotification('Votre handle @' + data.handle + ' a été enregistré !', 'success');
+                return { success: true };
+            } else {
+                return { success: false, error: data.error || 'Erreur inconnue' };
+            }
+        } catch (e) {
+            console.error('Failed to claim handle', e);
+            return { success: false, error: 'Erreur de connexion' };
+        }
+    };
+
+    const createTradeOffer = async (toHandle: string, offeredCardId: string, wantedCardId: string): Promise<{ success: boolean; error?: string }> => {
+        if (!user || !user.email) return { success: false, error: 'Non connecté' };
+        try {
+            const res = await fetch('/api/trades/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fromEmail: user.email,
+                    toHandle,
+                    offeredCardId,
+                    wantedCardId
+                })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showNotification('Offre d\'échange envoyée avec succès !', 'success');
+                loadTrades();
+                return { success: true };
+            } else {
+                return { success: false, error: data.error || 'Erreur inconnue' };
+            }
+        } catch (e) {
+            console.error('Failed to create trade offer', e);
+            return { success: false, error: 'Erreur de connexion' };
+        }
+    };
+
+    const respondToTrade = async (tradeId: string, response: 'accepted' | 'rejected'): Promise<{ success: boolean; error?: string }> => {
+        if (!user || !user.email) return { success: false, error: 'Non connecté' };
+        try {
+            const res = await fetch('/api/trades/respond', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: user.email,
+                    tradeId,
+                    response
+                })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                showNotification(
+                    response === 'accepted' 
+                        ? 'Échange accepté ! Vos cartes ont été mises à jour.' 
+                        : 'Échange refusé.',
+                    'success'
+                );
+                const profileRes = await fetch(`/api/users/get-profile?email=${encodeURIComponent(user.email)}`);
+                if (profileRes.ok) {
+                    const backendUser = await profileRes.json();
+                    setUser(prev => {
+                        if (!prev) return null;
+                        const updated = { ...prev, ...backendUser };
+                        localStorage.setItem('dropsiders_user', JSON.stringify(updated));
+                        return updated;
+                    });
+                }
+                loadTrades();
+                return { success: true };
+            } else {
+                return { success: false, error: data.error || 'Erreur inconnue' };
+            }
+        } catch (e) {
+            console.error('Failed to respond to trade', e);
+            return { success: false, error: 'Erreur de connexion' };
+        }
+    };
 
     const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
         setNotification({ message, type });
@@ -238,6 +380,31 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 } catch (e) { console.error('Failed to sync favorites', e); }
             };
             syncFavorites();
+
+            const syncProfile = async () => {
+                try {
+                    const res = await fetch(`/api/users/get-profile?email=${encodeURIComponent(user.email)}`);
+                    if (res.ok) {
+                        const backendUser = await res.json();
+                        setUser(prev => {
+                            if (!prev) return null;
+                            const merged = {
+                                ...prev,
+                                ...backendUser,
+                                collectedCards: backendUser.collectedCards || prev.collectedCards || []
+                            };
+                            return merged;
+                        });
+                    } else if (res.status === 404) {
+                        syncUserWithBackend(user);
+                    }
+                } catch (e) { console.error('Failed to sync profile', e); }
+            };
+            syncProfile();
+
+            loadTrades();
+            const interval = setInterval(loadTrades, 20000);
+            return () => clearInterval(interval);
         }
     }, [user?.email]);
 
@@ -482,6 +649,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             const updatedUser = { ...user, collectedCards: [...existing, timestamped] };
             setUser(updatedUser);
             saveToRegisteredUsers(updatedUser);
+            syncUserWithBackend(updatedUser);
         } else {
             // Guest: store in localStorage
             try {
@@ -502,6 +670,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             const updatedUser = { ...user, collectedCards: [...existing, ...timestamped] };
             setUser(updatedUser);
             saveToRegisteredUsers(updatedUser);
+            syncUserWithBackend(updatedUser);
         } else {
             try {
                 const stored: DropsidersCard[] = JSON.parse(localStorage.getItem('dropsiders_guest_cards') || '[]');
@@ -538,6 +707,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
                 const updatedUser = { ...user, collectedCards: updatedCards };
                 setUser(updatedUser);
                 saveToRegisteredUsers(updatedUser);
+                syncUserWithBackend(updatedUser);
             }
         } else {
             // Guest: store in localStorage
@@ -593,7 +763,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             pendingBooster,
             triggerBooster,
             claimBooster,
-            dismissBooster
+            dismissBooster,
+            // --- NEW: Trades System ---
+            trades,
+            loadTrades,
+            claimHandle,
+            createTradeOffer,
+            respondToTrade
         }}>
             {children}
 
