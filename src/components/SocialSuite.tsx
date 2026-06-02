@@ -1022,12 +1022,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ? (Date.now() - recordingStartTimeRef.current) / 1000 
                     : (Date.now() % 5000) / 1000;
                 
-                // Positioned at the bottom
-                let currY = labelY + 150; 
+                // Positioned at the bottom (aligned with NEWS theme at labelY + 130)
+                let currY = labelY + 130; 
                 const texts = [
-                    { text: (lines[0] || '').toUpperCase(), size: 90, color: '#ffffff', font: 'Montserrat' },
-                    { text: (lines[1] || '').toUpperCase(), size: 60, color: activeData.color, font: 'Montserrat' },
-                    { text: (lines[2] || '').toUpperCase(), size: 36, color: '#ffffff', font: 'Orbitron', isOrbitron: true },
+                    { text: (lines[0] || '').toUpperCase(), size: 55, color: '#ffffff', font: 'Montserrat' },
+                    { text: (lines[1] || '').toUpperCase(), size: 55, color: activeData.color, font: 'Montserrat' },
+                    { text: (lines[2] || '').toUpperCase(), size: 55, color: '#ffffff', font: 'Orbitron', isOrbitron: true },
                 ];
 
                 texts.forEach((item, i) => {
@@ -1042,7 +1042,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (item.isOrbitron) ctx.letterSpacing = '10px';
                     else ctx.letterSpacing = '0px';
                     
-                    let yPos = currY + (i * 85);
+                    let yPos = currY + (i * 70);
 
                     let xOff = 0;
                     let yOff = 0;
