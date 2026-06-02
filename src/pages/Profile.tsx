@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, DownloadCloud, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight, BarChart2 } from 'lucide-react';
-import { CustomMixPlayer } from '../components/widgets/CustomMixPlayer';
+import { usePlayer } from '../context/PlayerContext';
 import { useUser, type DropsidersCard } from '../context/UserContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -133,7 +133,7 @@ export function Profile() {
     const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [mixStudioTab, setMixStudioTab] = useState<'mixes' | 'stats'>('mixes');
-    const [activeMixPlayer, setActiveMixPlayer] = useState<any | null>(null);
+    const { activeTrack, playTrack, closePlayer } = usePlayer();
     const [pendingPlayId, setPendingPlayId] = useState<string | null>(null);
 
     const [cardSearch, setCardSearch] = useState('');
@@ -196,7 +196,15 @@ export function Profile() {
         // Search in user's own mixes first
         const ownMix = userMixes.find((m: any) => m.id === pendingPlayId);
         if (ownMix) {
-            setActiveMixPlayer(ownMix);
+            playTrack({
+                id: ownMix.id,
+                title: ownMix.title,
+                artist: ownMix.username || user?.username || 'Dropsider',
+                label: ownMix.genre || ownMix.type,
+                url: ownMix.audioUrl || ownMix.url || '',
+                embedUrl: ownMix.embedUrl && !ownMix.audioUrl ? ownMix.embedUrl : undefined,
+                tracks: ownMix.tracklist || [],
+            });
             setPendingPlayId(null);
             return;
         }
@@ -206,12 +214,22 @@ export function Profile() {
                 .then(r => r.json())
                 .then((mixes: any[]) => {
                     const communityMix = mixes.find((m: any) => m.id === pendingPlayId);
-                    if (communityMix) setActiveMixPlayer(communityMix);
+                    if (communityMix) {
+                        playTrack({
+                            id: communityMix.id,
+                            title: communityMix.title,
+                            artist: communityMix.username || 'Dropsider',
+                            label: communityMix.genre || communityMix.type,
+                            url: communityMix.audioUrl || communityMix.url || '',
+                            embedUrl: communityMix.embedUrl && !communityMix.audioUrl ? communityMix.embedUrl : undefined,
+                            tracks: communityMix.tracklist || [],
+                        });
+                    }
                 })
                 .catch(() => {})
                 .finally(() => setPendingPlayId(null));
         }
-    }, [pendingPlayId, userMixes, user?.email]);
+    }, [pendingPlayId, userMixes, user?.email, playTrack]);
 
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -849,39 +867,14 @@ export function Profile() {
                                         <div className="space-y-4 pt-4 border-t border-white/5">
                                             <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Mes Mixes Publics</h4>
                                             
-                                            {/* Active Player - always visible when a mix is selected, even from community */}
-                                            <AnimatePresence>
-                                                {activeMixPlayer && (
-                                                    <motion.div
-                                                        key={activeMixPlayer.id}
-                                                        initial={{ opacity: 0, y: -20, scale: 0.97 }}
-                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                        exit={{ opacity: 0, y: -10, scale: 0.97 }}
-                                                        transition={{ duration: 0.35, ease: 'easeOut' }}
-                                                        className="mb-4"
-                                                    >
-                                                        <CustomMixPlayer
-                                                            track={{
-                                                                id: activeMixPlayer.id,
-                                                                title: activeMixPlayer.title,
-                                                                artist: activeMixPlayer.username || user?.username || 'Dropsider',
-                                                                label: activeMixPlayer.genre || activeMixPlayer.type,
-                                                                url: activeMixPlayer.audioUrl || activeMixPlayer.url || '',
-                                                                embedUrl: activeMixPlayer.embedUrl && !activeMixPlayer.audioUrl ? activeMixPlayer.embedUrl : undefined,
-                                                                tracks: activeMixPlayer.tracklist || [],
-                                                            }}
-                                                            onClose={() => setActiveMixPlayer(null)}
-                                                        />
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
+                                            {/* Active Player has been moved to Global Container */}
 
                                             {/* Mix Cards List */}
                                             {userMixes.length > 0 ? (
                                                 <div className="space-y-4">
                                                     {userMixes.map((mix) => {
                                                         const style = getCategoryStyle(mix.type);
-                                                        const isActive = activeMixPlayer?.id === mix.id;
+                                                        const isActive = activeTrack?.id === mix.id;
                                                         return (
                                                             <motion.div
                                                                 key={mix.id}
@@ -891,7 +884,21 @@ export function Profile() {
                                                                         ? `border-${style.colorName}/40 bg-gradient-to-r from-${style.colorName}/10 to-transparent shadow-[0_0_30px_rgba(0,0,0,0.3)]`
                                                                         : 'border-white/5 bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.05]'
                                                                 }`}
-                                                                onClick={() => setActiveMixPlayer(isActive ? null : mix)}
+                                                                onClick={() => {
+                                                                    if (isActive) {
+                                                                        closePlayer();
+                                                                    } else {
+                                                                        playTrack({
+                                                                            id: mix.id,
+                                                                            title: mix.title,
+                                                                            artist: mix.username || user?.username || 'Dropsider',
+                                                                            label: mix.genre || mix.type,
+                                                                            url: mix.audioUrl || mix.url || '',
+                                                                            embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
+                                                                            tracks: mix.tracklist || [],
+                                                                        });
+                                                                    }
+                                                                }}
                                                             >
                                                                 {/* Glow accent bar */}
                                                                 <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${style.bg} transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`} />
@@ -904,7 +911,22 @@ export function Profile() {
                                                                                 ? `${style.bg} text-black shadow-[0_0_20px_rgba(0,0,0,0.3)]`
                                                                                 : `${style.bgLight} ${style.text} group-hover:scale-110`
                                                                         }`}
-                                                                        onClick={(e) => { e.stopPropagation(); setActiveMixPlayer(isActive ? null : mix); }}
+                                                                        onClick={(e) => { 
+                                                                            e.stopPropagation(); 
+                                                                            if (isActive) {
+                                                                                closePlayer();
+                                                                            } else {
+                                                                                playTrack({
+                                                                                    id: mix.id,
+                                                                                    title: mix.title,
+                                                                                    artist: mix.username || user?.username || 'Dropsider',
+                                                                                    label: mix.genre || mix.type,
+                                                                                    url: mix.audioUrl || mix.url || '',
+                                                                                    embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
+                                                                                    tracks: mix.tracklist || [],
+                                                                                });
+                                                                            }
+                                                                        }}
                                                                     >
                                                                         {isActive
                                                                             ? <span className="flex gap-[3px] items-end h-4">

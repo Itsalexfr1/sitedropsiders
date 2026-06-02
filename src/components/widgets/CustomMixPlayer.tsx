@@ -446,10 +446,9 @@ export function CustomMixPlayer({ track, onClose }: CustomMixPlayerProps) {
         }
     }, [showShareModal]);
 
-    // Copy magic link to clipboard
     const getShareUrl = () => {
         const seconds = selectedSnippet ? selectedSnippet.seconds : 0;
-        return `${window.location.origin}${window.location.pathname}?play=${track.id}&t=${seconds}`;
+        return `${window.location.origin}/profil?tab=mixes&play=${track.id}&t=${seconds}`;
     };
 
     const copyShareLink = () => {

@@ -11,6 +11,8 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 import { lazyRetry } from './utils/lazyRetry';
 
 import { UserProvider } from './context/UserContext';
+import { PlayerProvider } from './context/PlayerContext';
+import { GlobalPlayerContainer } from './components/widgets/GlobalPlayerContainer';
 
 // Lazy load pages for better mobile performance
 const Home = lazyRetry(() => import('./pages/Home').then(m => m.Home));
@@ -131,9 +133,9 @@ function Root() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const play = params.get('play');
-    if (play && location.pathname !== '/musique') {
+    if (play && location.pathname !== '/profil') {
       const t = params.get('t');
-      navigate(`/musique?play=${play}${t ? `&t=${t}` : ''}`, { replace: true });
+      navigate(`/profil?tab=mixes&play=${play}${t ? `&t=${t}` : ''}`, { replace: true });
     }
   }, [location, navigate]);
 
@@ -176,6 +178,7 @@ function Root() {
         onClaim={claimBooster}
         onDismiss={dismissBooster}
       />
+      <GlobalPlayerContainer />
     </>
   );
 }
@@ -320,7 +323,9 @@ function App() {
 
   return (
     <UserProvider>
-      <RouterProvider router={router} />
+      <PlayerProvider>
+        <RouterProvider router={router} />
+      </PlayerProvider>
     </UserProvider>
   );
 }
