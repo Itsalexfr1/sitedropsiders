@@ -245,6 +245,7 @@ function DonutChart({ data, centerLabel, centerSub }: { data: any[], centerLabel
 // --- ADVANCED SVG COMPONENTS ---
 
 function ActivityHeatmap({ totalVisits }: { totalVisits: number }) {
+    const [hoveredHour, setHoveredHour] = useState<number | null>(null);
     const hours = Array.from({ length: 24 }, (_, i) => i);
     
     // Bell curve distribution (percentages that sum to 100%)
@@ -261,24 +262,32 @@ function ActivityHeatmap({ totalVisits }: { totalVisits: number }) {
                 const percent = hourlyDistribution[h];
                 const visits = Math.max(1, Math.round(totalVisits * percent));
                 const opacity = 0.1 + (percent / 0.10) * 0.9;
+                const isHovered = hoveredHour === h;
 
                 return (
-                    <div key={h} className="group relative flex flex-col items-center">
+                    <div 
+                        key={h} 
+                        className="relative flex flex-col items-center"
+                        onMouseEnter={() => setHoveredHour(h)}
+                        onMouseLeave={() => setHoveredHour(null)}
+                    >
                         <div 
-                            className="h-10 w-full rounded-xl bg-neon-red transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_15px_rgba(255,18,65,0.6)] cursor-pointer" 
+                            className={`h-10 w-full rounded-xl bg-neon-red transition-all duration-300 cursor-pointer ${isHovered ? 'scale-105 shadow-[0_0_15px_rgba(255,18,65,0.6)]' : ''}`}
                             style={{ opacity }}
                         />
                         
                         {/* Floating glassmorphic tooltip card */}
-                        <div className="absolute bottom-full mb-3 pointer-events-none bg-[#0a0a0a]/95 backdrop-blur-md border border-white/10 px-3 py-2 rounded-xl flex flex-col gap-0.5 shadow-2xl opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 z-30 transform -translate-y-1">
-                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest whitespace-nowrap">{h}h00 - {h}h59</span>
-                            <span className="text-[10px] font-display font-black text-white italic whitespace-nowrap">
-                                {visits.toLocaleString()} <span className="text-[8px] font-bold text-gray-400 not-italic">visites</span>
-                            </span>
-                            <span className="text-[7px] font-black text-neon-blue uppercase tracking-widest whitespace-nowrap">
-                                {Math.round(percent * 1000) / 10}% du trafic
-                            </span>
-                        </div>
+                        {isHovered && (
+                            <div className="absolute bottom-full mb-3 pointer-events-none bg-[#0a0a0a]/95 backdrop-blur-md border border-white/10 px-3 py-2 rounded-xl flex flex-col gap-0.5 shadow-2xl z-30 transform -translate-y-1 animate-in fade-in zoom-in-95 duration-150">
+                                <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest whitespace-nowrap">{h}h00 - {h}h59</span>
+                                <span className="text-[10px] font-display font-black text-white italic whitespace-nowrap">
+                                    {visits.toLocaleString()} <span className="text-[8px] font-bold text-gray-400 not-italic">visites</span>
+                                </span>
+                                <span className="text-[7px] font-black text-neon-blue uppercase tracking-widest whitespace-nowrap">
+                                    {Math.round(percent * 1000) / 10}% du trafic
+                                </span>
+                            </div>
+                        )}
                     </div>
                 );
             })}
