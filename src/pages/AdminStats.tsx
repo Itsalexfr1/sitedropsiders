@@ -227,31 +227,40 @@ export function AdminStats() {
     const [period, setPeriod] = useState<7 | 30 | 90>(7);
     const [serverStats, setServerStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [onlineUsers, setOnlineUsers] = useState(0);
     const [newsData, setNewsData] = useState<any[]>([]);
     const [recapsData, setRecapsData] = useState<any[]>([]);
     const [agendaData, setAgendaData] = useState<any[]>([]);
     const [subscribersData, setSubscribersData] = useState<any[]>([]);
 
+    const fetchAll = async () => {
+        try {
+            setError(null);
+            const res = await fetch('/api/analytics/stats');
+            if (!res.ok) {
+                throw new Error(`Erreur lors du chargement des statistiques (${res.status})`);
+            }
+            const data = await res.json();
+            setServerStats(data);
+            setOnlineUsers(data.onlineUsers || 0);
+
+            const [n, r, a, s] = await Promise.all([
+                fetch('/api/news').then(res => { if (!res.ok) throw new Error('News'); return res.json(); }),
+                fetch('/api/recaps').then(res => { if (!res.ok) throw new Error('Recaps'); return res.json(); }),
+                fetch('/api/agenda').then(res => { if (!res.ok) throw new Error('Agenda'); return res.json(); }),
+                fetch('/api/subscribers').then(res => { if (!res.ok) throw new Error('Subscribers'); return res.json(); })
+            ]);
+            setNewsData(n); setRecapsData(r); setAgendaData(a); setSubscribersData(s);
+        } catch (e: any) {
+            console.error(e);
+            setError(e.message || "Une erreur est survenue lors du chargement.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchAll = async () => {
-            try {
-                const res = await fetch('/api/analytics/stats');
-                if (res.ok) {
-                    const data = await res.json();
-                    setServerStats(data);
-                    setOnlineUsers(data.onlineUsers || 0);
-                }
-                const [n, r, a, s] = await Promise.all([
-                    fetch('/api/news').then(r => r.json()),
-                    fetch('/api/recaps').then(r => r.json()),
-                    fetch('/api/agenda').then(r => r.json()),
-                    fetch('/api/subscribers').then(r => r.json())
-                ]);
-                setNewsData(n); setRecapsData(r); setAgendaData(a); setSubscribersData(s);
-            } catch (e) { console.error(e); }
-            finally { setLoading(false); }
-        };
         fetchAll();
         const itv = setInterval(fetchAll, 30000); // 30s instead of 10s for performance
         return () => clearInterval(itv);
@@ -317,6 +326,26 @@ export function AdminStats() {
             health: { latency: '14ms', uptime: '99.99%', load: 'Normal' }
         };
     }, [serverStats, newsData, recapsData, period]);
+
+    if (error && !stats) return (
+        <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center text-white px-6">
+            <GlassCard className="p-10 max-w-md text-center border-neon-red/30">
+                <div className="text-neon-red text-4xl mb-4">⚠️</div>
+                <h2 className="text-2xl font-display font-black uppercase italic mb-4">Erreur de connexion</h2>
+                <p className="text-gray-400 text-sm mb-8">
+                    {error === 'News' || error === 'Recaps' || error === 'Agenda' || error === 'Subscribers' 
+                        ? `Impossible de charger les données : ${error}` 
+                        : error}
+                </p>
+                <button 
+                    onClick={() => { setLoading(true); setError(null); fetchAll(); }} 
+                    className="px-8 py-3 bg-neon-red hover:bg-neon-red/80 rounded-full font-black text-xs uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,18,65,0.4)]"
+                >
+                    Réessayer
+                </button>
+            </GlassCard>
+        </div>
+    );
 
     if (loading || !stats) return (
         <div className="min-h-screen bg-[#050505] flex items-center justify-center">

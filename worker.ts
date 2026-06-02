@@ -3415,7 +3415,8 @@ ${urls.map(u => `  <url>
                 // 3. Page Views
                 const pageKey = `analytics_page_${id}`;
                 const currentPageViews = parseInt(await env.CHAT_KV.get(pageKey) || '0');
-                await env.CHAT_KV.put(pageKey, (currentPageViews + 1).toString());
+                const newPageViews = currentPageViews + 1;
+                await env.CHAT_KV.put(pageKey, newPageViews.toString(), { metadata: { views: newPageViews } });
 
                 // 3b. Category Tracking
                 if (category) {
@@ -3428,7 +3429,8 @@ ${urls.map(u => `  <url>
                 // 4. Timeline (Stored for 90 days now)
                 const timelineKey = `analytics_timeline_${today}`;
                 const currentTimeline = parseInt(await env.CHAT_KV.get(timelineKey) || '0');
-                await env.CHAT_KV.put(timelineKey, (currentTimeline + 1).toString(), { expirationTtl: 60 * 60 * 24 * 90 });
+                const newTimeline = currentTimeline + 1;
+                await env.CHAT_KV.put(timelineKey, newTimeline.toString(), { expirationTtl: 60 * 60 * 24 * 90, metadata: { value: newTimeline } });
 
                 // 5. Online Session
                 const onlineKey = `analytics_online_${sessionId}`;
@@ -3699,25 +3701,76 @@ ${urls.map(u => `  <url>
                 const { keys: onlineKeys } = await env.CHAT_KV.list({ prefix: onlinePrefix });
 
                 // Timeline (Last 90 days)
-                const timeline = [];
+                const timelineKeysMap = new Map<string, any>();
+                const { keys: timelineKeys } = await env.CHAT_KV.list({ prefix: 'analytics_timeline_' });
+                for (const k of timelineKeys) {
+                    timelineKeysMap.set(k.name, k.metadata?.value);
+                }
+
+                const legacyTimelineToFetch: { date: string; keyName: string }[] = [];
+                const timeline: { date: string; value: number }[] = [];
                 for (let i = 0; i < 90; i++) {
                     const d = new Date();
                     d.setDate(d.getDate() - i);
                     const ds = d.toISOString().split('T')[0];
-                    const val = parseInt(await env.CHAT_KV.get(`analytics_timeline_${ds}`) || '0');
-                    // Even if 0, we might want it for the chart, but to save bandwidth we only send non-zero if needed
-                    // Actually, for a chart, we need the zeros to show the full period
-                    timeline.push({ date: ds, value: val });
+                    const keyName = `analytics_timeline_${ds}`;
+                    
+                    if (timelineKeysMap.has(keyName)) {
+                        const metaVal = timelineKeysMap.get(keyName);
+                        if (metaVal !== undefined && metaVal !== null) {
+                            timeline.push({ date: ds, value: parseInt(metaVal.toString()) });
+                        } else {
+                            legacyTimelineToFetch.push({ date: ds, keyName });
+                        }
+                    } else {
+                        timeline.push({ date: ds, value: 0 });
+                    }
                 }
-                timeline.reverse();
+
+                if (legacyTimelineToFetch.length > 0) {
+                    const keysToFetch = legacyTimelineToFetch.slice(0, 20);
+                    const fetchedVals = await Promise.all(
+                        keysToFetch.map(async (item) => {
+                            const val = await env.CHAT_KV.get(item.keyName);
+                            return { date: item.date, value: parseInt(val || '0') };
+                        })
+                    );
+                    timeline.push(...fetchedVals);
+                    
+                    for (const item of legacyTimelineToFetch.slice(20)) {
+                        timeline.push({ date: item.date, value: 0 });
+                    }
+                }
+                timeline.sort((a: any, b: any) => a.date.localeCompare(b.date));
 
                 // Top Articles
-                const topArticles = [];
                 const { keys: pageKeys } = await env.CHAT_KV.list({ prefix: 'analytics_page_' });
-                for (const key of pageKeys.slice(0, 100)) {
-                    const views = parseInt(await env.CHAT_KV.get(key.name) || '0');
-                    const id = key.name.replace('analytics_page_', '');
-                    topArticles.push({ id, views });
+                const pageKeysWithMeta: { id: string; views: number }[] = [];
+                const legacyPageKeys: any[] = [];
+                for (const key of pageKeys) {
+                    if (key.metadata?.views !== undefined && key.metadata?.views !== null) {
+                        pageKeysWithMeta.push({
+                            id: key.name.replace('analytics_page_', ''),
+                            views: parseInt(key.metadata.views.toString())
+                        });
+                    } else {
+                        legacyPageKeys.push(key);
+                    }
+                }
+
+                const topArticles: { id: string; views: number }[] = [...pageKeysWithMeta];
+                if (legacyPageKeys.length > 0) {
+                    const keysToFetch = legacyPageKeys.slice(0, 15);
+                    const fetchedArticles = await Promise.all(
+                        keysToFetch.map(async (key) => {
+                            const viewsVal = await env.CHAT_KV.get(key.name);
+                            return {
+                                id: key.name.replace('analytics_page_', ''),
+                                views: parseInt(viewsVal || '0')
+                            };
+                        })
+                    );
+                    topArticles.push(...fetchedArticles);
                 }
                 topArticles.sort((a, b) => b.views - a.views);
 
