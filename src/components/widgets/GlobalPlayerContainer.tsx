@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlayer } from '../../context/PlayerContext';
 import { CustomMixPlayer } from './CustomMixPlayer';
-import { Play, Pause, Maximize2, X, Music, Minimize2, SkipForward, SkipBack } from 'lucide-react';
+import { Play, Pause, Maximize2, X, Music, Minimize2, SkipForward, SkipBack, Share2 } from 'lucide-react';
 
 export function GlobalPlayerContainer() {
     const { 
@@ -168,7 +168,31 @@ export function GlobalPlayerContainer() {
                                         </button>
                                     )}
 
+                                    {/* Separator */}
                                     <div className="h-8 w-px bg-white/10" />
+
+                                    {/* Share button */}
+                                    <button
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            const url = `${window.location.origin}/profil?tab=mixes&play=${activeTrack.id}`;
+                                            if (navigator.share) {
+                                                try {
+                                                    await navigator.share({
+                                                        title: `${activeTrack.title} — Dropsiders`,
+                                                        text: `🎧 J'écoute "${activeTrack.title}" par ${activeTrack.artist} sur Dropsiders !`,
+                                                        url,
+                                                    });
+                                                } catch (_) {}
+                                            } else {
+                                                navigator.clipboard.writeText(url);
+                                            }
+                                        }}
+                                        className="w-9 h-9 flex items-center justify-center bg-white/5 hover:bg-neon-purple/20 border border-white/10 hover:border-neon-purple/30 rounded-xl transition-all group/share cursor-pointer"
+                                        title="Partager"
+                                    >
+                                        <Share2 className="w-3.5 h-3.5 text-white group-hover/share:text-neon-purple transition-colors" />
+                                    </button>
 
                                     <button
                                         onClick={(e) => {

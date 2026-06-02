@@ -124,6 +124,11 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
     const [videoProgress, setVideoProgress] = useState(0);
     const [storyTheme, setStoryTheme] = useState<'sunset' | 'acid' | 'void'>('sunset');
     const [copiedLink, setCopiedLink] = useState(false);
+    // Mobile clip sharing
+    const [clipDuration, setClipDuration] = useState<15 | 30 | 60>(30);
+    const [isRecordingClip, setIsRecordingClip] = useState(false);
+    const [clipProgress, setClipProgress] = useState(0);
+    const canNativeShare = typeof navigator !== 'undefined' && !!navigator.share;
 
     // Refs
     const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -721,6 +726,195 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
         }
     };
 
+    // ─── Helper: download a blob as a file ───────────────────────────────────
+    const downloadFile = (blob: Blob, fileName: string) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    // ─── Generate audio+video clip with AudioContext + Canvas + MediaRecorder ─
+    const generateAudioVideoClip = async () => {
+        if (!isHTML5 || !audioRef.current) {
+            // For SoundCloud/YouTube embeds we can't capture audio cross-origin,
+            // fall back to video-only story card generation
+            generateInstagramStoryVideo();
+            showToast('Audio non disponible pour les liens externes — vidéo sans son générée.');
+            return;
+        }
+
+        setIsRecordingClip(true);
+        setClipProgress(0);
+
+        try {
+            const audioEl = audioRef.current;
+
+            // 1. AudioContext: tap into the existing audio element
+            const audioCtx = new AudioContext();
+            const source = audioCtx.createMediaElementSource(audioEl);
+            const audioDestination = audioCtx.createMediaStreamDestination();
+            // Route audio: source → speakers + source → recorder
+            source.connect(audioCtx.destination);
+            source.connect(audioDestination);
+
+            // 2. Canvas 9:16 for Stories
+            const canvas = document.createElement('canvas');
+            canvas.width = 720;
+            canvas.height = 1280;
+            const ctx = canvas.getContext('2d')!;
+
+            // 3. Combine video stream + audio track
+            const videoStream = canvas.captureStream(30);
+            audioDestination.stream.getAudioTracks().forEach(t => videoStream.addTrack(t));
+
+            // 4. Choose best codec
+            let mimeType = 'video/webm;codecs=vp9,opus';
+            if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm;codecs=vp8,opus';
+            if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
+            if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = '';
+
+            const chunks: Blob[] = [];
+            const recorder = new MediaRecorder(videoStream, mimeType ? { mimeType } : undefined);
+            recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+
+            recorder.onstop = async () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const safeTitle = track.title.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+                const fileName = `Dropsiders_${safeTitle}_${clipDuration}s.webm`;
+                const file = new File([blob], fileName, { type: 'video/webm' });
+
+                // Try native share (mobile iOS/Android)
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: `${track.title} — Dropsiders`,
+                            text: `🎧 J'écoute "${track.title}" par ${track.artist} sur Dropsiders !\ndropsiders.fr`,
+                        });
+                        showToast('Partagé avec succès ! 🎉');
+                    } catch (err: any) {
+                        if (err.name !== 'AbortError') {
+                            downloadFile(blob, fileName);
+                            showToast('Clip téléchargé ! Importez-le dans votre Story. 🎬');
+                        }
+                    }
+                } else {
+                    // Desktop fallback: download
+                    downloadFile(blob, fileName);
+                    showToast('Clip vidéo téléchargé ! Importez-le dans Instagram Stories. 🎬');
+                }
+
+                setIsRecordingClip(false);
+                setClipProgress(0);
+                // Cleanup
+                try { source.disconnect(); audioCtx.close(); } catch (_) {}
+            };
+
+            // 5. Draw animated canvas frames during recording
+            let frame = 0;
+            const totalFrames = clipDuration * 30;
+            let barOffsets = new Array(28).fill(0).map(() => Math.random() * 60 + 10);
+            let rotation = 0;
+
+            const drawFrame = () => {
+                if (frame >= totalFrames) { recorder.stop(); return; }
+                rotation += 0.05;
+
+                // BG gradient
+                const grad = ctx.createLinearGradient(0, 0, 0, 1280);
+                if (storyTheme === 'sunset') {
+                    grad.addColorStop(0, '#ff0055'); grad.addColorStop(0.5, '#7a00ff'); grad.addColorStop(1, '#050515');
+                } else if (storyTheme === 'acid') {
+                    grad.addColorStop(0, '#39ff14'); grad.addColorStop(0.5, '#00e5ff'); grad.addColorStop(1, '#050515');
+                } else {
+                    grad.addColorStop(0, '#150030'); grad.addColorStop(0.5, '#0c001c'); grad.addColorStop(1, '#020205');
+                }
+                ctx.fillStyle = grad; ctx.fillRect(0, 0, 720, 1280);
+
+                // Grid
+                ctx.strokeStyle = 'rgba(255,255,255,0.025)'; ctx.lineWidth = 1;
+                for (let x = 0; x < 720; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1280); ctx.stroke(); }
+                for (let y = 0; y < 1280; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(720, y); ctx.stroke(); }
+
+                // Header
+                ctx.shadowColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055';
+                ctx.shadowBlur = 24;
+                ctx.fillStyle = '#ffffff'; ctx.font = 'italic bold 52px Arial'; ctx.textAlign = 'center';
+                ctx.fillText('DROPSIDERS', 360, 170); ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.font = 'bold 14px Arial';
+                ctx.fillText('LIVE RECORD MIX', 360, 208);
+
+                // Vinyl
+                const cX = 360, cY = 600;
+                ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 50;
+                ctx.beginPath(); ctx.arc(cX, cY, 240, 0, Math.PI * 2); ctx.fillStyle = '#050505'; ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 2;
+                for (let r = 80; r < 225; r += 18) { ctx.beginPath(); ctx.arc(cX, cY, r, 0, Math.PI * 2); ctx.stroke(); }
+                ctx.strokeStyle = storyTheme === 'acid' ? '#39ff14' : '#ff0055';
+                ctx.lineWidth = 5; ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = 18;
+                ctx.beginPath(); ctx.arc(cX, cY, 234, rotation, rotation + 1.4); ctx.stroke();
+                ctx.beginPath(); ctx.arc(cX, cY, 234, rotation + Math.PI, rotation + Math.PI + 1.4); ctx.stroke();
+                ctx.shadowBlur = 0;
+                ctx.beginPath(); ctx.arc(cX, cY, 72, 0, Math.PI * 2); ctx.fillStyle = '#ff0033'; ctx.fill();
+                ctx.save(); ctx.translate(cX, cY); ctx.rotate(-rotation);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 26px Arial'; ctx.textAlign = 'center';
+                ctx.fillText('DS', 0, 9); ctx.restore();
+
+                // Waveform bars
+                const totalBars = 28, startX = 120, endX = 600, waveY = 930;
+                const gap = (endX - startX) / totalBars;
+                const barColor = storyTheme === 'void' ? '#a855f7' : storyTheme === 'acid' ? '#00e5ff' : '#ffffff';
+                ctx.fillStyle = barColor; ctx.shadowColor = barColor; ctx.shadowBlur = 12;
+                for (let i = 0; i < totalBars; i++) {
+                    barOffsets[i] += (Math.random() - 0.5) * 22;
+                    barOffsets[i] = Math.max(6, Math.min(130, barOffsets[i]));
+                    ctx.fillRect(startX + i * gap, waveY - barOffsets[i] / 2, 9, barOffsets[i]);
+                }
+                ctx.shadowBlur = 0;
+
+                // Progress bar
+                const progressRatio = frame / totalFrames;
+                ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.beginPath();
+                (ctx as any).roundRect(80, 980, 560, 6, 3); ctx.fill();
+                ctx.fillStyle = barColor; ctx.shadowColor = barColor; ctx.shadowBlur = 8;
+                ctx.beginPath(); (ctx as any).roundRect(80, 980, 560 * progressRatio, 6, 3); ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Metadata card
+                const metaY = 1010;
+                ctx.fillStyle = 'rgba(255,255,255,0.06)'; ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2;
+                ctx.beginPath(); (ctx as any).roundRect(60, metaY, 600, 195, 36); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = storyTheme === 'acid' ? '#39ff14' : '#ff0055';
+                ctx.font = 'bold 12px Arial'; ctx.textAlign = 'center';
+                ctx.fillText('🎵 ÉCOUTE CE MIX SUR DROPSIDERS', 360, metaY + 38);
+                ctx.fillStyle = '#fff'; ctx.font = 'italic bold 30px Arial';
+                ctx.fillText(track.title.substring(0, 26), 360, metaY + 90);
+                ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = 'bold 16px Arial';
+                ctx.fillText(`Par ${track.artist}`, 360, metaY + 130);
+                ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.font = 'bold 11px Arial';
+                ctx.fillText('dropsiders.fr', 360, metaY + 168);
+
+                frame++;
+                setClipProgress(Math.floor((frame / totalFrames) * 100));
+                requestAnimationFrame(drawFrame);
+            };
+
+            recorder.start(100); // collect data every 100ms
+            drawFrame();
+
+        } catch (err: any) {
+            console.error('Clip generation error:', err);
+            showToast('Erreur de génération. Vérifiez les permissions du navigateur.');
+            setIsRecordingClip(false);
+        }
+    };
+
     const hasTracklist = !!(track.tracks && track.tracks.length > 0);
 
     return (
@@ -1111,260 +1305,222 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                 )}
             </AnimatePresence>
 
-            {/* INSTAGRAM & SOCIAL SHARING DRAWER MODAL */}
+            {/* ═══ SOUNDCLOUD-STYLE MOBILE SHARE MODAL ═══ */}
             <AnimatePresence>
                 {showShareModal && selectedSnippet && (
-                    <div className="fixed inset-0 z-[1500] flex items-center justify-center p-4">
-                        {/* Overlay backdrop */}
-                        <motion.div 
+                    <div className="fixed inset-0 z-[1500] flex items-end sm:items-center justify-center">
+                        {/* Backdrop */}
+                        <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => setShowShareModal(false)}
-                            className="fixed inset-0 bg-black/80 backdrop-blur-md"
+                            onClick={() => !isRecordingClip && setShowShareModal(false)}
+                            className="fixed inset-0 bg-black/85 backdrop-blur-xl"
                         />
 
-                        {/* Modal Container */}
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                            className="bg-black/90 border border-white/10 rounded-[40px] max-w-4xl w-full p-6 md:p-10 relative z-10 shadow-[0_40px_80px_rgba(0,0,0,0.7)] overflow-y-auto max-h-[90vh] custom-scrollbar"
+                        {/* Modal — bottom sheet on mobile, centered on desktop */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 80 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 60 }}
+                            transition={{ type: 'spring', stiffness: 280, damping: 30 }}
+                            className="relative z-10 bg-[#0a0a0f] border border-white/10 rounded-t-[40px] sm:rounded-[40px] w-full sm:max-w-xl max-h-[92vh] overflow-y-auto custom-scrollbar shadow-[0_-20px_80px_rgba(0,0,0,0.8)] sm:shadow-[0_40px_120px_rgba(0,0,0,0.9)]"
                         >
-                            {/* Close button */}
-                            <button 
-                                onClick={() => setShowShareModal(false)}
-                                className="absolute top-6 right-6 p-3 bg-white/5 border border-white/10 hover:border-white/20 rounded-2xl text-white/50 hover:text-white transition-all cursor-pointer"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-
-                            {/* Header details */}
-                            <div className="mb-8 text-center sm:text-left">
-                                <span className="px-3 py-1 bg-neon-purple/20 text-neon-purple border border-neon-purple/20 rounded-full text-[9px] font-black uppercase tracking-widest inline-block">
-                                    INSTANT SHARING DRAWER
-                                </span>
-                                <h3 className="text-white text-3xl font-display font-black uppercase italic tracking-tighter mt-3">
-                                    Partager l'extrait du mix
-                                </h3>
-                                <p className="text-gray-400 text-sm mt-1 font-medium">
-                                    Sélectionnez un thème et générez une vidéo animée personnalisée pour vos Stories Instagram et TikTok.
-                                </p>
+                            {/* ── Handle bar (mobile) ── */}
+                            <div className="flex justify-center pt-4 pb-2 sm:hidden">
+                                <div className="w-10 h-1 bg-white/20 rounded-full" />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                
-                                {/* INTERACTIVE STORY CARD VIEW PORT (LEFT) */}
-                                <div className="space-y-6 flex flex-col items-center">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">Aperçu de la Story Card (9:16)</span>
-                                    
-                                    {/* Glassmorphic simulated preview card */}
-                                    <div 
-                                        className={`w-[260px] h-[460px] rounded-[36px] border border-white/15 p-5 relative overflow-hidden flex flex-col justify-between items-center bg-gradient-to-b shadow-[0_20px_50px_rgba(0,0,0,0.4)] ${
-                                            storyTheme === 'sunset' 
-                                            ? 'from-[#ff0055] via-[#7a00ff] to-[#050515]' 
-                                            : storyTheme === 'acid' 
-                                            ? 'from-[#39ff14] via-[#00e5ff] to-[#050515]' 
-                                            : 'from-[#150030] via-[#0c001c] to-[#020205]'
-                                        }`}
+                            <div className="p-6 sm:p-8 space-y-6">
+
+                                {/* ── Header ── */}
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neon-purple">PARTAGER LE MIX</span>
+                                        <h3 className="text-white text-2xl font-display font-black uppercase italic tracking-tighter leading-tight mt-1">
+                                            {track.title}
+                                        </h3>
+                                        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">Par {track.artist}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => !isRecordingClip && setShowShareModal(false)}
+                                        className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white/50 hover:text-white transition-all cursor-pointer flex-shrink-0 mt-1"
                                     >
-                                        {/* Grid grid background effect */}
-                                        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
 
-                                        {/* Header */}
-                                        <div className="text-center relative z-10 mt-4">
-                                            <span className="text-white font-black italic text-xl tracking-tighter leading-none block">DROPSIDERS</span>
-                                            <span className="text-white/40 text-[7px] font-bold uppercase tracking-[0.4em] block mt-1">LIVE RECORD MIX</span>
-                                        </div>
-
-                                        {/* Spinning Vinyl Record center */}
-                                        <motion.div 
-                                            animate={{ rotate: 360 }}
-                                            transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
-                                            className="w-[150px] h-[150px] rounded-full bg-[#050505] border-4 border-[#12121b] relative flex items-center justify-center shadow-2xl"
+                                {/* ── Waveform preview + clip start ── */}
+                                <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-5 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40">Extrait sélectionné</span>
+                                        <button
+                                            onClick={generateRandomSnippet}
+                                            className="text-[8px] font-black uppercase tracking-widest text-neon-cyan hover:text-white px-3 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl transition-all cursor-pointer"
                                         >
-                                            {/* Vinyl edges neon indicator */}
-                                            <div className={`absolute inset-0 rounded-full border border-dashed ${
-                                                storyTheme === 'acid' ? 'border-[#39ff14]/40' : 'border-[#ff0055]/40'
-                                            }`} />
-                                            {/* Central sticker */}
-                                            <div className="w-[44px] h-[44px] rounded-full bg-[#ff0033] flex items-center justify-center">
-                                                <span className="text-white font-black text-[7px] leading-none">DS</span>
-                                            </div>
-                                        </motion.div>
-
-                                        {/* Simulated pulsing visualizer wave */}
-                                        <div className="flex gap-1 h-6 items-end">
-                                            {[...Array(12)].map((_, idx) => (
-                                                <motion.div 
-                                                    key={idx}
-                                                    animate={{ height: [6, Math.floor(Math.random() * 20) + 4, 6] }}
-                                                    transition={{ repeat: Infinity, duration: 0.8 + idx * 0.05, ease: "easeInOut" }}
-                                                    className={`w-1 rounded-t ${
-                                                        storyTheme === 'void' ? 'bg-[#a855f7]' : storyTheme === 'acid' ? 'bg-[#00e5ff]' : 'bg-white'
-                                                    }`}
-                                                    style={{ height: '6px' }}
-                                                />
-                                            ))}
-                                        </div>
-
-                                        {/* Track Info Card */}
-                                        <div className="w-full bg-white/5 border border-white/10 backdrop-blur-md rounded-3xl p-4 text-center space-y-1 relative z-10 mb-2">
-                                            <span className={`text-[8px] font-black uppercase tracking-wider block ${
-                                                storyTheme === 'acid' ? 'text-[#39ff14]' : 'text-[#ff0055]'
-                                            }`}>
-                                                🎵 EXTRAIT DROPSIDERS
-                                            </span>
-                                            <h5 className="text-white font-black text-sm uppercase italic tracking-tight truncate">
-                                                {track.title}
-                                            </h5>
-                                            <p className="text-white/80 font-bold text-[9px] uppercase tracking-wide truncate">
-                                                Piste : {selectedSnippet.trackName}
-                                            </p>
-                                            <p className="text-white/40 font-bold text-[8px] uppercase tracking-widest">
-                                                Démarre à {selectedSnippet.timeStr}
-                                            </p>
-                                        </div>
+                                            🎲 Autre piste
+                                        </button>
                                     </div>
 
-                                    {/* Color Theme Selector buttons */}
+                                    {/* Fake waveform with position marker */}
+                                    <div className="relative w-full h-14 flex items-center gap-px overflow-hidden">
+                                        {Array.from({ length: 60 }).map((_, i) => {
+                                            const h = 20 + Math.abs(Math.sin(i * 0.4 + selectedSnippet.seconds * 0.1)) * 32;
+                                            const isInClip = i >= 30 && i < 30 + (clipDuration === 15 ? 10 : clipDuration === 30 ? 20 : 40);
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className={`flex-1 rounded-sm transition-colors ${
+                                                        isInClip
+                                                            ? 'bg-neon-purple opacity-90'
+                                                            : 'bg-white/15'
+                                                    }`}
+                                                    style={{ height: `${h}px` }}
+                                                />
+                                            );
+                                        })}
+                                        {/* Current position cursor */}
+                                        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white/60 rounded-full" />
+                                    </div>
+
                                     <div className="flex items-center gap-3">
-                                        <button 
-                                            onClick={() => setStoryTheme('sunset')}
-                                            className={`px-4 py-2 border rounded-xl text-[8px] font-black uppercase tracking-widest transition-all cursor-pointer ${
-                                                storyTheme === 'sunset' 
-                                                ? 'bg-white text-black border-white' 
-                                                : 'bg-white/5 text-white/50 border-white/5 hover:border-white/10'
-                                            }`}
-                                        >
-                                            Sunset Cyber
-                                        </button>
-                                        <button 
-                                            onClick={() => setStoryTheme('acid')}
-                                            className={`px-4 py-2 border rounded-xl text-[8px] font-black uppercase tracking-widest transition-all cursor-pointer ${
-                                                storyTheme === 'acid' 
-                                                ? 'bg-white text-black border-white' 
-                                                : 'bg-white/5 text-white/50 border-white/5 hover:border-white/10'
-                                            }`}
-                                        >
-                                            Acid Neon
-                                        </button>
-                                        <button 
-                                            onClick={() => setStoryTheme('void')}
-                                            className={`px-4 py-2 border rounded-xl text-[8px] font-black uppercase tracking-widest transition-all cursor-pointer ${
-                                                storyTheme === 'void' 
-                                                ? 'bg-white text-black border-white' 
-                                                : 'bg-white/5 text-white/50 border-white/5 hover:border-white/10'
-                                            }`}
-                                        >
-                                            Midnight Void
-                                        </button>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-black text-white truncate">{selectedSnippet.trackName}</p>
+                                            <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mt-0.5">{selectedSnippet.artist} · Démarre à {selectedSnippet.timeStr}</p>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-purple/20 border border-neon-purple/30 flex items-center justify-center flex-shrink-0">
+                                            <Layers className="w-4 h-4 text-neon-purple" />
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* GENERATOR CONTROLS (RIGHT) */}
-                                <div className="space-y-6 flex flex-col justify-between">
-                                    <div className="space-y-6">
-                                        
-                                        {/* Snippet summary block */}
-                                        <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 space-y-4">
-                                            <span className="text-neon-cyan font-black uppercase text-[8px] tracking-[0.3em]">EXTRAIT CHOISI AU HASARD</span>
-                                            
-                                            <div className="space-y-1">
-                                                <h4 className="text-white text-xl font-black uppercase tracking-tight leading-tight">
-                                                    {selectedSnippet.trackName}
-                                                </h4>
-                                                <p className="text-white/60 text-xs font-bold uppercase tracking-wider">{selectedSnippet.artist}</p>
-                                            </div>
-
-                                            <div className="flex justify-between items-center pt-3 border-t border-white/5">
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="w-4 h-4 text-neon-cyan" />
-                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">
-                                                        MINUTE D'EXTRAIT : {selectedSnippet.timeStr}
-                                                    </span>
-                                                </div>
-                                                <button 
-                                                    onClick={generateRandomSnippet}
-                                                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-widest transition-all cursor-pointer"
-                                                >
-                                                    Piste différente 🎲
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Instructions list */}
-                                        <div className="space-y-3 px-4">
-                                            <div className="flex items-start gap-3">
-                                                <span className="w-5 h-5 rounded-full bg-neon-cyan/20 text-neon-cyan text-[10px] font-black flex items-center justify-center flex-shrink-0">1</span>
-                                                <p className="text-xs text-gray-400 font-medium">
-                                                    Choisissez votre **thème visuel** et tirez une **piste au hasard** pour varier vos partages.
-                                                </p>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="w-5 h-5 rounded-full bg-neon-cyan/20 text-neon-cyan text-[10px] font-black flex items-center justify-center flex-shrink-0">2</span>
-                                                <p className="text-xs text-gray-400 font-medium">
-                                                    Générez le **clip vidéo de Story**. Le lien magique est **automatiquement copié** dans votre presse-papiers !
-                                                </p>
-                                            </div>
-                                            <div className="flex items-start gap-3">
-                                                <span className="w-5 h-5 rounded-full bg-neon-cyan/20 text-neon-cyan text-[10px] font-black flex items-center justify-center flex-shrink-0">3</span>
-                                                <p className="text-xs text-gray-400 font-medium">
-                                                    Sur Instagram, uploadez le clip et collez le lien dans le **sticker "Lien"** ! Tes potes écouteront l'extrait dès leur arrivée.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Share Buttons */}
-                                    <div className="space-y-4 pt-6 border-t border-white/5">
-                                        
-                                        {/* Direct Story Card Generator download */}
-                                        <button 
-                                            onClick={generateInstagramStoryVideo}
-                                            disabled={isGeneratingVideo}
-                                            className="w-full py-4 bg-gradient-to-r from-neon-purple to-neon-cyan hover:brightness-110 text-white font-black text-xs rounded-2xl uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-98 shadow-[0_0_35px_rgba(0,229,255,0.2)] flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
-                                        >
-                                            {isGeneratingVideo ? (
-                                                <>
-                                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                                    <span>GÉNÉRATION DU CLIP STORY ({videoProgress}%) ...</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Video className="w-4 h-4 animate-pulse" />
-                                                    <span>Télécharger Story Card Vidéo 9:16</span>
-                                                </>
-                                            )}
-                                        </button>
-
-                                        {/* Copy / Twitter secondary share layout */}
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <button 
-                                                onClick={copyShareLink}
-                                                className={`py-4 border rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 cursor-pointer ${
-                                                    copiedLink 
-                                                    ? 'bg-neon-cyan text-black border-neon-cyan' 
-                                                    : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'
+                                {/* ── Durée du clip ── */}
+                                <div className="space-y-2">
+                                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40">Durée du clip</span>
+                                    <div className="flex gap-3">
+                                        {([15, 30, 60] as const).map((d) => (
+                                            <button
+                                                key={d}
+                                                onClick={() => setClipDuration(d)}
+                                                className={`flex-1 py-3 rounded-2xl border text-sm font-black transition-all cursor-pointer ${
+                                                    clipDuration === d
+                                                        ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.15)]'
+                                                        : 'bg-white/5 text-white/60 border-white/10 hover:border-white/20 hover:text-white'
                                                 }`}
                                             >
-                                                <ExternalLink className="w-3.5 h-3.5" />
-                                                {copiedLink ? "Lien Copié ! 🔗" : "Copier le Lien Magique"}
+                                                {d}s
                                             </button>
-
-                                            <button 
-                                                onClick={shareOnTwitter}
-                                                className="py-4 bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 border border-[#1DA1F2]/30 text-[#1DA1F2] rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
-                                            >
-                                                <Twitter className="w-3.5 h-3.5" />
-                                                Twitter / X
-                                            </button>
-                                        </div>
-
-                                        <p className="text-[9px] text-white/20 uppercase font-black tracking-widest text-center mt-2">
-                                            Dropsiders Magic Link Technology © 2026
-                                        </p>
+                                        ))}
                                     </div>
+                                </div>
+
+                                {/* ── Thème visuel ── */}
+                                <div className="space-y-2">
+                                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/40">Thème visuel</span>
+                                    <div className="flex gap-2">
+                                        {([
+                                            { key: 'sunset', label: 'Sunset', colors: ['#ff0055', '#7a00ff'] },
+                                            { key: 'acid',   label: 'Acid',   colors: ['#39ff14', '#00e5ff'] },
+                                            { key: 'void',   label: 'Void',   colors: ['#150030', '#a855f7'] },
+                                        ] as const).map(({ key, label, colors }) => (
+                                            <button
+                                                key={key}
+                                                onClick={() => setStoryTheme(key)}
+                                                className={`flex-1 py-2.5 rounded-2xl border text-[9px] font-black uppercase tracking-widest transition-all cursor-pointer flex flex-col items-center gap-2 ${
+                                                    storyTheme === key
+                                                        ? 'border-white/30 bg-white/10'
+                                                        : 'border-white/5 bg-white/[0.02] hover:border-white/15'
+                                                }`}
+                                            >
+                                                <div className="flex gap-1">
+                                                    <div className="w-3 h-3 rounded-full" style={{ background: colors[0] }} />
+                                                    <div className="w-3 h-3 rounded-full" style={{ background: colors[1] }} />
+                                                </div>
+                                                <span className="text-white/70">{label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* ── CTA principal : Générer + Partager (avec audio) ── */}
+                                <div className="space-y-3 pt-2">
+
+                                    {/* Progress bar pendant enregistrement */}
+                                    {isRecordingClip && (
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
+                                                <span className="text-neon-purple animate-pulse">⏺ Enregistrement en cours...</span>
+                                                <span className="text-white/50">{clipProgress}%</span>
+                                            </div>
+                                            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                                <motion.div
+                                                    className="h-full bg-gradient-to-r from-neon-purple to-neon-cyan rounded-full"
+                                                    animate={{ width: `${clipProgress}%` }}
+                                                    transition={{ duration: 0.2 }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Bouton principal : clip avec audio */}
+                                    <button
+                                        onClick={generateAudioVideoClip}
+                                        disabled={isRecordingClip || isGeneratingVideo}
+                                        className="w-full py-5 bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] hover:brightness-110 text-white font-black text-sm rounded-3xl uppercase tracking-[0.15em] transition-all hover:scale-[1.02] active:scale-98 shadow-[0_0_40px_rgba(253,29,29,0.3)] flex items-center justify-center gap-3 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
+                                    >
+                                        {isRecordingClip ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                <span>Génération {clipDuration}s... ({clipProgress}%)</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Instagram className="w-5 h-5" />
+                                                <span>
+                                                    {canNativeShare
+                                                        ? `Partager ${clipDuration}s sur Instagram / WhatsApp`
+                                                        : `Télécharger clip ${clipDuration}s pour Instagram`
+                                                    }
+                                                </span>
+                                            </>
+                                        )}
+                                    </button>
+
+                                    {canNativeShare && (
+                                        <p className="text-[9px] text-center text-neon-cyan/60 font-black uppercase tracking-widest">
+                                            ✓ Partage natif détecté — ouvre directement Instagram, WhatsApp, TikTok...
+                                        </p>
+                                    )}
+
+                                    {/* Secondaires */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={copyShareLink}
+                                            className={`py-3.5 border rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 cursor-pointer ${
+                                                copiedLink
+                                                    ? 'bg-neon-cyan text-black border-neon-cyan'
+                                                    : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'
+                                            }`}
+                                        >
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                            {copiedLink ? 'Copié ! 🔗' : 'Lien magique'}
+                                        </button>
+
+                                        <button
+                                            onClick={shareOnTwitter}
+                                            className="py-3.5 bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 border border-[#1DA1F2]/30 text-[#1DA1F2] rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            <Twitter className="w-3.5 h-3.5" />
+                                            X / Twitter
+                                        </button>
+                                    </div>
+
+                                    {!isHTML5 && (
+                                        <p className="text-[8px] text-amber-400/60 font-bold uppercase tracking-wider text-center px-4">
+                                            ⚠️ Audio non capturé pour les liens SoundCloud/YouTube (restriction cross-origin).
+                                            La vidéo sera générée sans son.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
