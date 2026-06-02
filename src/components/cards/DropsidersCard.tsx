@@ -840,7 +840,7 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                     </p>
                                 )}
 
-                            </div>
+                            </motion.div>
                         </div>
 
                     </div>
@@ -900,7 +900,7 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                         Exclusive Collection
                                     </p>
                                 </div>
-                            </motion.div>
+                            </div>
 
                             {/* Tech Borders */}
                             <div className="absolute top-4 left-4 w-6 h-6 border-t-[1.5px] border-l-[1.5px] border-neon-cyan/60" />

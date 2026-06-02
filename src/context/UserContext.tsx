@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { twMerge } from 'tailwind-merge';
 import wikiFestivals from '../data/wiki_festivals.json';
@@ -130,6 +130,7 @@ function buildCardPool(): DropsidersCard[] {
         });
 
     return [...festivalCards, ...clubCards, ...djCards];
+}
 
 function hydrateCards(stored: DropsidersCard[]): DropsidersCard[] {
     const pool = buildCardPool();
@@ -141,8 +142,6 @@ function hydrateCards(stored: DropsidersCard[]): DropsidersCard[] {
         if (!fresh) return card;
         return { ...fresh, id: card.id, collectedAt: card.collectedAt } as DropsidersCard;
     });
-}
-
 }
 
 function pick9RandomCards(): DropsidersCard[] {
