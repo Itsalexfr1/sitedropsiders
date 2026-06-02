@@ -14,6 +14,7 @@ export interface MixTrack {
     event?: string;
     url: string;
     embedUrl?: string;
+    cover?: string;
     tracks?: TrackItem[];
 }
 
