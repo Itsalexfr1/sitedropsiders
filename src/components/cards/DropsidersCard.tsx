@@ -698,10 +698,10 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                             {theme.styleLabel}
                                         </span>
                                         <h3 
-                                            className={`font-serif font-black uppercase italic tracking-tight leading-none ${theme.textColor}`}
+                                            className={`font-serif font-black uppercase italic tracking-tight leading-none text-[#b0b0b0]`}
                                             style={{
                                                 fontSize: Math.max(9, 13 * scale),
-                                                textShadow: theme.textColor === 'text-white' ? '0 1px 0 rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.7)' : '0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.7)'
+                                                textShadow: '0 1px 0 rgba(255,255,255,0.4), 0 2px 6px rgba(0,0,0,0.7)'
                                             }}
                                         >
                                             {card.name}

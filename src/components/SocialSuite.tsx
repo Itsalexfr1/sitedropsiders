@@ -1023,7 +1023,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : (Date.now() % 5000) / 1000;
                 
                 // Positioned at the bottom
-                let currY = 1480; 
+                let currY = effectiveTab === 'PUBLICATION' ? 980 : 1480; 
                 const texts = [
                     { text: (lines[0] || '').toUpperCase(), size: 90, color: '#ffffff', font: 'Montserrat' },
                     { text: (lines[1] || '').toUpperCase(), size: 60, color: activeData.color, font: 'Montserrat' },
