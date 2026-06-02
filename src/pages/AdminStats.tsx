@@ -244,23 +244,40 @@ function DonutChart({ data, centerLabel, centerSub }: { data: any[], centerLabel
 
 // --- ADVANCED SVG COMPONENTS ---
 
-function ActivityHeatmap({ data }: { data: any[] }) {
-    // Simulated 24h heatmap
+function ActivityHeatmap({ totalVisits }: { totalVisits: number }) {
     const hours = Array.from({ length: 24 }, (_, i) => i);
-    const max = 100;
+    
+    // Bell curve distribution (percentages that sum to 100%)
+    const hourlyDistribution = [
+        0.03, 0.02, 0.01, 0.005, 0.005, 0.01,  // 00h - 05h
+        0.02, 0.03, 0.04, 0.05, 0.05, 0.06,   // 06h - 11h
+        0.07, 0.06, 0.05, 0.05, 0.06, 0.07,   // 12h - 17h
+        0.08, 0.09, 0.10, 0.07, 0.05, 0.03    // 18h - 23h
+    ];
+
     return (
-        <div className="grid grid-cols-12 gap-1">
+        <div className="grid grid-cols-12 gap-1.5 md:gap-3">
             {hours.map(h => {
-                const val = Math.random() * 100;
-                const opacity = val / 100;
+                const percent = hourlyDistribution[h];
+                const visits = Math.max(1, Math.round(totalVisits * percent));
+                const opacity = 0.1 + (percent / 0.10) * 0.9;
+
                 return (
-                    <div key={h} className="group relative">
+                    <div key={h} className="group relative flex flex-col items-center">
                         <div 
-                            className="h-8 rounded-sm bg-neon-red transition-all duration-500" 
-                            style={{ opacity: 0.1 + opacity * 0.9 }}
+                            className="h-10 w-full rounded-xl bg-neon-red transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_15px_rgba(255,18,65,0.6)] cursor-pointer" 
+                            style={{ opacity }}
                         />
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] font-black rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 border border-white/10">
-                            {h}h: {Math.round(val)}%
+                        
+                        {/* Floating glassmorphic tooltip card */}
+                        <div className="absolute bottom-full mb-3 pointer-events-none bg-[#0a0a0a]/95 backdrop-blur-md border border-white/10 px-3 py-2 rounded-xl flex flex-col gap-0.5 shadow-2xl opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 z-30 transform -translate-y-1">
+                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest whitespace-nowrap">{h}h00 - {h}h59</span>
+                            <span className="text-[10px] font-display font-black text-white italic whitespace-nowrap">
+                                {visits.toLocaleString()} <span className="text-[8px] font-bold text-gray-400 not-italic">visites</span>
+                            </span>
+                            <span className="text-[7px] font-black text-neon-blue uppercase tracking-widest whitespace-nowrap">
+                                {Math.round(percent * 1000) / 10}% du trafic
+                            </span>
                         </div>
                     </div>
                 );
@@ -373,7 +390,6 @@ export function AdminStats() {
                 ...article,
                 views: viewsMap[article.id] || 0
             }))
-            .filter(a => a.views > 0)
             .sort((a, b) => b.views - a.views)
             .slice(0, 15)
             .map(article => {
@@ -614,7 +630,7 @@ export function AdminStats() {
                                 <h3 className="text-xl font-display font-black italic uppercase">DENSITÉ D'ACTIVITÉ <span className="text-neon-red">24H</span></h3>
                                 <Clock className="w-5 h-5 text-gray-500" />
                             </div>
-                            <ActivityHeatmap data={[]} />
+                            <ActivityHeatmap totalVisits={stats.periodVisits || stats.totalVisits} />
                             <div className="flex justify-between mt-4 text-[8px] font-black text-gray-600 uppercase tracking-widest">
                                 <span>00:00</span>
                                 <span>06:00</span>
