@@ -175,12 +175,12 @@ export function GlobalPlayerContainer() {
                                     <button
                                         onClick={async (e) => {
                                             e.stopPropagation();
-                                            const url = `${window.location.origin}/profil?tab=mixes&play=${activeTrack.id}`;
+                                            const url = `https://dropsiders.fr/profil?tab=mixes&play=${activeTrack.id}`;
                                             if (navigator.share) {
                                                 try {
                                                     await navigator.share({
                                                         title: `${activeTrack.title} — Dropsiders`,
-                                                        text: `🎧 J'écoute "${activeTrack.title}" par ${activeTrack.artist} sur Dropsiders !`,
+                                                        text: `"${activeTrack.title}" par ${activeTrack.artist}\n🎧 Écoute sur dropsiders.fr`,
                                                         url,
                                                     });
                                                 } catch (_) {}

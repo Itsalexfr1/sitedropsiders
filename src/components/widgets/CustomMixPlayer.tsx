@@ -481,7 +481,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
 
     const shareOnTwitter = () => {
         const snippetInfo = selectedSnippet ? `"${selectedSnippet.trackName}"` : "un extrait de folie";
-        const text = encodeURIComponent(`J'écoute le mix "${track.title}" de ${track.artist} sur Dropsiders ! 🎧🔥 Écoute cet extrait à ${selectedSnippet?.timeStr} (${snippetInfo}) :`);
+        const text = encodeURIComponent(`🎧 "${track.title}" par ${track.artist}\nÉcoute à ${selectedSnippet?.timeStr} (${snippetInfo})`);
         const url = encodeURIComponent(getShareUrl());
         window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
     };
@@ -794,13 +794,14 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                         await navigator.share({
                             files: [file],
                             title: `${track.title} — Dropsiders`,
-                            text: `🎧 J'écoute "${track.title}" par ${track.artist} sur Dropsiders !\ndropsiders.fr`,
+                            text: `"é${track.title}" par ${track.artist}\n🎧 Écoute sur dropsiders.fr`,
+                            url: getShareUrl(),
                         });
                         showToast('Partagé avec succès ! 🎉');
                     } catch (err: any) {
                         if (err.name !== 'AbortError') {
                             downloadFile(blob, fileName);
-                            showToast('Clip téléchargé ! Importez-le dans votre Story. 🎬');
+                            showToast('Clip téléchargé ! Importez-le dans votre Story. 🎥');
                         }
                     }
                 } else {
@@ -912,6 +913,116 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
             console.error('Clip generation error:', err);
             showToast('Erreur de génération. Vérifiez les permissions du navigateur.');
             setIsRecordingClip(false);
+        }
+    };
+
+    // ─── Generate a static PNG story card and share it (instant — unlocks Stories in native share sheet) ─
+    const [isGeneratingStory, setIsGeneratingStory] = useState(false);
+
+    const generateAndShareStoryImage = async () => {
+        setIsGeneratingStory(true);
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1080;
+            canvas.height = 1920;
+            const ctx = canvas.getContext('2d')!;
+
+            // Background gradient
+            const grad = ctx.createLinearGradient(0, 0, 0, 1920);
+            if (storyTheme === 'sunset') {
+                grad.addColorStop(0, '#ff0055'); grad.addColorStop(0.5, '#7a00ff'); grad.addColorStop(1, '#050515');
+            } else if (storyTheme === 'acid') {
+                grad.addColorStop(0, '#39ff14'); grad.addColorStop(0.5, '#00e5ff'); grad.addColorStop(1, '#050515');
+            } else {
+                grad.addColorStop(0, '#150030'); grad.addColorStop(0.5, '#0c001c'); grad.addColorStop(1, '#020205');
+            }
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1920);
+
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.025)'; ctx.lineWidth = 1;
+            for (let x = 0; x < 1080; x += 54) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1920); ctx.stroke(); }
+            for (let y = 0; y < 1920; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1080, y); ctx.stroke(); }
+
+            // Header — DROPSIDERS
+            ctx.shadowColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055'; ctx.shadowBlur = 40;
+            ctx.fillStyle = '#ffffff'; ctx.font = 'italic bold 96px Arial'; ctx.textAlign = 'center';
+            ctx.fillText('DROPSIDERS', 540, 240); ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = 'bold 22px Arial';
+            ctx.fillText('LIVE RECORD MIX', 540, 295);
+
+            // Vinyl
+            const cX = 540, cY = 860;
+            ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 80;
+            ctx.beginPath(); ctx.arc(cX, cY, 360, 0, Math.PI * 2); ctx.fillStyle = '#050505'; ctx.fill(); ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 3;
+            for (let r = 120; r < 340; r += 26) { ctx.beginPath(); ctx.arc(cX, cY, r, 0, Math.PI * 2); ctx.stroke(); }
+            // Neon edge
+            const edgeColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055';
+            ctx.strokeStyle = edgeColor; ctx.lineWidth = 8; ctx.shadowColor = edgeColor; ctx.shadowBlur = 30;
+            ctx.beginPath(); ctx.arc(cX, cY, 352, 0.3, 1.7); ctx.stroke();
+            ctx.beginPath(); ctx.arc(cX, cY, 352, 0.3 + Math.PI, 1.7 + Math.PI); ctx.stroke(); ctx.shadowBlur = 0;
+            // Center label
+            ctx.beginPath(); ctx.arc(cX, cY, 108, 0, Math.PI * 2); ctx.fillStyle = '#ff0033'; ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = 'bold 44px Arial'; ctx.textAlign = 'center'; ctx.fillText('DS', cX, cY + 16);
+
+            // Waveform bars
+            const barColor = storyTheme === 'void' ? '#a855f7' : storyTheme === 'acid' ? '#00e5ff' : '#ffffff';
+            ctx.fillStyle = barColor; ctx.shadowColor = barColor; ctx.shadowBlur = 18;
+            const totalBars = 36, sx = 160, ex = 920, wy = 1340;
+            const gap = (ex - sx) / totalBars;
+            for (let i = 0; i < totalBars; i++) {
+                const h = 30 + Math.abs(Math.sin(i * 0.55)) * 180;
+                ctx.fillRect(sx + i * gap, wy - h / 2, 14, h);
+            }
+            ctx.shadowBlur = 0;
+
+            // Metadata card
+            const metaY = 1440;
+            ctx.fillStyle = 'rgba(255,255,255,0.07)'; ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 3;
+            ctx.beginPath(); (ctx as any).roundRect(80, metaY, 920, 300, 60); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = edgeColor; ctx.font = 'bold 18px Arial'; ctx.textAlign = 'center';
+            ctx.fillText('🎵 ÉCOUTE CE MIX SUR DROPSIDERS', 540, metaY + 55);
+            ctx.fillStyle = '#fff'; ctx.font = 'italic bold 52px Arial';
+            ctx.fillText(track.title.substring(0, 22), 540, metaY + 138);
+            ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = 'bold 28px Arial';
+            ctx.fillText(`Par ${track.artist}`, 540, metaY + 200);
+            ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = 'bold 20px Arial';
+            ctx.fillText('dropsiders.fr', 540, metaY + 262);
+
+            // Convert to blob and share
+            canvas.toBlob(async (blob) => {
+                if (!blob) { setIsGeneratingStory(false); return; }
+                const file = new File([blob], `Dropsiders_Story_${track.title.replace(/[^a-z0-9]/gi, '_').substring(0, 20)}.png`, { type: 'image/png' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: `${track.title} — Dropsiders`,
+                            text: `"${track.title}" par ${track.artist}\n🎧 Écoute sur dropsiders.fr`,
+                            url: getShareUrl(),
+                        });
+                        showToast('Story partagée ! 🎉');
+                    } catch (err: any) {
+                        if (err.name !== 'AbortError') {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a'); a.href = url; a.download = file.name;
+                            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                            showToast('Image téléchargée ! Importez-la dans votre Story. 📸');
+                        }
+                    }
+                } else {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = file.name;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    showToast('Story Card téléchargée ! 📸');
+                }
+                setIsGeneratingStory(false);
+            }, 'image/png');
+        } catch (err) {
+            console.error('Story image error:', err);
+            showToast('Erreur lors de la génération de la Story.');
+            setIsGeneratingStory(false);
         }
     };
 
@@ -1493,7 +1604,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                     )}
 
                                     {/* Secondaires */}
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-3 gap-3">
                                         <button
                                             onClick={copyShareLink}
                                             className={`py-3.5 border rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 cursor-pointer ${
@@ -1503,7 +1614,20 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                             }`}
                                         >
                                             <ExternalLink className="w-3.5 h-3.5" />
-                                            {copiedLink ? 'Copié ! 🔗' : 'Lien magique'}
+                                            {copiedLink ? 'Copié ! 🔗' : 'Lien'}
+                                        </button>
+
+                                        <button
+                                            onClick={generateAndShareStoryImage}
+                                            disabled={isGeneratingStory || isRecordingClip}
+                                            className="py-3.5 bg-fuchsia-500/10 hover:bg-fuchsia-500/20 border border-fuchsia-500/30 text-fuchsia-400 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
+                                        >
+                                            {isGeneratingStory ? (
+                                                <div className="w-3.5 h-3.5 border-2 border-fuchsia-400 border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <Sparkles className="w-3.5 h-3.5" />
+                                            )}
+                                            Story
                                         </button>
 
                                         <button
@@ -1511,7 +1635,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                             className="py-3.5 bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 border border-[#1DA1F2]/30 text-[#1DA1F2] rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
                                         >
                                             <Twitter className="w-3.5 h-3.5" />
-                                            X / Twitter
+                                            Twitter
                                         </button>
                                     </div>
 

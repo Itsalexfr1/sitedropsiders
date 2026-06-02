@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Share2, MessageSquare, X, Maximize2, Trash2, Instagram, Music, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Heart, Share2, MessageSquare, X, Maximize2, Trash2, Instagram, Music, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 import { resolveImageUrl } from '../../utils/image';
 
@@ -28,9 +28,10 @@ interface MediaInteractionsProps {
     imageUrl?: string;
     images?: string[];
     onChangePhoto?: (id: string) => void;
+    pageUrl?: string; // lien vers la page dropsiders.fr (ex: /galerie/123)
 }
 
-export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl, imageUrl, images, onChangePhoto }: MediaInteractionsProps) {
+export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl, imageUrl, images, onChangePhoto, pageUrl }: MediaInteractionsProps) {
     const [currentId, setCurrentId] = useState(id);
     const [stats, setStats] = useState<MediaStats>({ likes: 0, shares: 0, commentsCount: 0, anecdote: null });
     const [comments, setComments] = useState<Comment[]>([]);
@@ -83,6 +84,14 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
         } catch (e) { console.error(e); }
     };
 
+    // Build canonical dropsiders.fr page URL
+    const getSharePageUrl = () => {
+        if (pageUrl) return `https://dropsiders.fr${pageUrl.startsWith('/') ? '' : '/'}${pageUrl}`;
+        const base = 'https://dropsiders.fr';
+        if (type === 'clip') return `${base}/clips`;
+        return `${base}/galerie`;
+    };
+
     const handleSocialShare = async (platform: 'instagram' | 'tiktok') => {
         try {
             await fetch('/api/media/share', {
@@ -91,17 +100,76 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                 body: JSON.stringify({ type, id: currentId, platform })
             });
 
-            const shareUrl = imageUrl || currentId;
-            const message = type === 'photo' ? "Check cette photo sur Dropsiders !" : "Check ce clip sur Dropsiders !";
+            const sharePageUrl = getSharePageUrl();
+            const label = type === 'photo' ? 'photo' : 'clip';
+            const message = `🔥 Check ce${type === 'photo' ? 'tte' : ''} ${label} — Voir sur dropsiders.fr`;
 
             if (navigator.share) {
-                await navigator.share({ title: 'Dropsiders', text: message, url: shareUrl });
+                await navigator.share({ title: 'Dropsiders', text: message, url: sharePageUrl });
             } else {
-                navigator.clipboard.writeText(shareUrl);
+                navigator.clipboard.writeText(sharePageUrl);
                 showToast(`Lien copié ! Ouvre ${platform} pour partager.`);
             }
             setStats(prev => ({ ...prev, shares: prev.shares + 1 }));
         } catch (e) { console.error(e); }
+    };
+
+    const handleStoryShare = async () => {
+        const mediaUrl = imageUrl || currentId;
+        const sharePageUrl = getSharePageUrl();
+        try {
+            // Try to fetch image as blob for direct file sharing (story mode)
+            const response = await fetch(resolveImageUrl(mediaUrl));
+            const blob = await response.blob();
+            const ext = blob.type.includes('png') ? 'png' : blob.type.includes('gif') ? 'gif' : 'jpg';
+            const file = new File([blob], `dropsiders-story.${ext}`, { type: blob.type });
+
+            await fetch('/api/media/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, id: currentId, platform: 'story' })
+            });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Dropsiders',
+                    text: `🔥 Voir sur dropsiders.fr`,
+                    url: sharePageUrl
+                });
+                setStats(prev => ({ ...prev, shares: prev.shares + 1 }));
+            } else if (navigator.share) {
+                // Fallback: share link
+                await navigator.share({
+                    title: 'Dropsiders',
+                    text: '🔥 Voir sur dropsiders.fr',
+                    url: sharePageUrl
+                });
+                setStats(prev => ({ ...prev, shares: prev.shares + 1 }));
+            } else {
+                // Desktop: download the image
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `dropsiders-story.${ext}`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+                showToast('Image téléchargée — ajoute-la en story !');
+            }
+        } catch (e) {
+            // If fetch fails (CORS etc), fallback to link share
+            try {
+                if (navigator.share) {
+                    await navigator.share({
+                        title: 'Dropsiders',
+                        text: '🔥 Voir sur dropsiders.fr',
+                        url: sharePageUrl
+                    });
+                } else {
+                    navigator.clipboard.writeText(sharePageUrl);
+                    showToast('Lien copié — ajoute-le en story !');
+                }
+            } catch { /* dismissed */ }
+        }
     };
 
     const handleShare = async () => {
@@ -112,11 +180,15 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                 body: JSON.stringify({ type, id: currentId })
             });
 
-            const shareUrl = imageUrl || currentId;
+            const sharePageUrl = getSharePageUrl();
             if (navigator.share) {
-                await navigator.share({ title: 'Dropsiders', url: shareUrl });
+                await navigator.share({
+                    title: 'Dropsiders',
+                    text: '🔥 Voir sur dropsiders.fr',
+                    url: sharePageUrl
+                });
             } else {
-                navigator.clipboard.writeText(shareUrl);
+                navigator.clipboard.writeText(sharePageUrl);
                 showToast('Lien copié !');
             }
             setStats(prev => ({ ...prev, shares: prev.shares + 1 }));
@@ -283,6 +355,12 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                                 <Music className="w-7 h-7" />
                             </div>
                             <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-tighter transition-colors">TikTok</span>
+                        </button>
+                        <button onClick={handleStoryShare} className="flex flex-col items-center gap-1.5 group">
+                            <div className="p-4 bg-white/5 rounded-[1.25rem] group-hover:bg-fuchsia-500/20 transition-all text-gray-400 group-hover:text-fuchsia-400">
+                                <Sparkles className="w-7 h-7" />
+                            </div>
+                            <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-tighter transition-colors">Story</span>
                         </button>
                         <button onClick={() => setShowComments(!showComments)} className="flex flex-col items-center gap-1.5 group">
                             <div className={`p-4 bg-white/5 rounded-[1.25rem] group-hover:bg-neon-green/20 transition-all ${showComments ? 'text-neon-green bg-neon-green/10 shadow-[0_0_20px_rgba(52,211,153,0.2)]' : 'text-gray-400'} group-hover:text-neon-green`}>
