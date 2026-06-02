@@ -416,9 +416,33 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             };
             syncProfile();
 
+            // Poll mix status every 30s if pending so access becomes effective immediately after admin approval
+            let mixPollInterval: ReturnType<typeof setInterval> | null = null;
+            if (user.mixStatus === 'pending') {
+                mixPollInterval = setInterval(async () => {
+                    try {
+                        const res = await fetch(`/api/users/get-profile?email=${encodeURIComponent(user.email)}`);
+                        if (res.ok) {
+                            const backendUser = await res.json();
+                            if (backendUser.mixStatus && backendUser.mixStatus !== user.mixStatus) {
+                                setUser(prev => prev ? { ...prev, mixStatus: backendUser.mixStatus } : null);
+                                if (backendUser.mixStatus === 'approved') {
+                                    // Clear the interval once approved
+                                    if (mixPollInterval) clearInterval(mixPollInterval);
+                                }
+                            }
+                        }
+                    } catch (e) { /* silent */ }
+                }, 30000);
+            }
+
             loadTrades();
             const interval = setInterval(loadTrades, 20000);
-            return () => clearInterval(interval);
+            return () => {
+                clearInterval(interval);
+                if (mixPollInterval) clearInterval(mixPollInterval);
+            };
+
         }
     }, [user?.email]);
 

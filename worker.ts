@@ -2027,11 +2027,77 @@ ${urls.map(u => `  <url>
             if (!userDataRaw) return new Response(JSON.stringify({ error: 'Utilisateur non trouvé' }), { status: 404, headers });
             
             const userData = JSON.parse(userDataRaw);
+            const previousStatus = userData.mixStatus;
             userData.mixStatus = status || 'approved';
             
             await env.CHAT_KV.put(userKey, JSON.stringify(userData));
+
+            // Send confirmation email to user when access is granted
+            if (status === 'approved' && previousStatus !== 'approved' && env.BREVO_API_KEY) {
+                const emailPayload = {
+                    sender: { name: 'Dropsiders Studio', email: 'studio@dropsiders.fr' },
+                    to: [{ email: userData.email, name: userData.username || userData.email }],
+                    subject: `🎵 Ton accès au Mix Studio est validé !`,
+                    htmlContent: `
+                        <!DOCTYPE html>
+                        <html>
+                        <head><meta charset="utf-8"></head>
+                        <body style="margin:0;padding:0;background:#0a0a0a;font-family:'Arial',sans-serif;">
+                            <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
+                                <div style="text-align:center;margin-bottom:40px;">
+                                    <img src="https://dropsiders.fr/DROPSIDERS_logo_blanc.svg" alt="Dropsiders" style="height:40px;margin-bottom:20px;" />
+                                    <div style="width:80px;height:80px;background:linear-gradient(135deg,#ff1234,#ff6b00);border-radius:20px;margin:0 auto 24px;display:flex;align-items:center;justify-content:center;">
+                                        <span style="font-size:36px;">🎧</span>
+                                    </div>
+                                    <h1 style="color:#ffffff;font-size:32px;font-weight:900;text-transform:uppercase;letter-spacing:-1px;margin:0 0 8px;">
+                                        Accès <span style="color:#ff1234;">Mix Studio</span>
+                                    </h1>
+                                    <p style="color:#ff1234;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:4px;margin:0;">
+                                        Validé ✓
+                                    </p>
+                                </div>
+
+                                <div style="background:#111;border:1px solid #222;border-radius:24px;padding:32px;margin-bottom:24px;">
+                                    <p style="color:#aaa;font-size:14px;line-height:1.6;margin:0 0 20px;">
+                                        Salut <strong style="color:#fff;">${userData.username || 'Dropsider'}</strong>,
+                                    </p>
+                                    <p style="color:#aaa;font-size:14px;line-height:1.6;margin:0 0 20px;">
+                                        Bonne nouvelle ! Ta demande d'accès au <strong style="color:#ff1234;">Mix Studio Dropsiders</strong> vient d'être validée. Tu peux maintenant uploader tes mixes directement depuis ton profil.
+                                    </p>
+                                    <div style="background:#1a0a0a;border:1px solid #ff123430;border-radius:16px;padding:20px;margin:24px 0;">
+                                        <p style="color:#ff1234;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:3px;margin:0 0 8px;">Ce que tu peux faire maintenant</p>
+                                        <ul style="color:#ccc;font-size:13px;line-height:2;margin:0;padding-left:20px;">
+                                            <li>Uploader tes <strong>Tracks, Remixes, Edits & Mixes</strong></li>
+                                            <li>Partager tes sons directement sur la plateforme</li>
+                                            <li>Apparaître dans la section Mix Studio de Dropsiders.fr</li>
+                                        </ul>
+                                    </div>
+                                    <div style="text-align:center;margin-top:28px;">
+                                        <a href="https://dropsiders.fr/profile" style="display:inline-block;background:linear-gradient(135deg,#ff1234,#cc0020);color:#fff;text-decoration:none;font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:3px;padding:16px 40px;border-radius:50px;box-shadow:0 10px 30px rgba(255,18,52,0.4);">
+                                            Accéder au Mix Studio →
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <p style="color:#444;font-size:11px;text-align:center;margin:0;">
+                                    © Dropsiders — <a href="https://dropsiders.fr" style="color:#666;text-decoration:none;">dropsiders.fr</a>
+                                </p>
+                            </div>
+                        </body>
+                        </html>
+                    `
+                };
+
+                fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: { 'accept': 'application/json', 'api-key': env.BREVO_API_KEY, 'content-type': 'application/json' },
+                    body: JSON.stringify(emailPayload)
+                }).catch(e => console.error('[STUDIO APPROVE] Brevo email error', e));
+            }
+
             return new Response(JSON.stringify({ success: true, user: userData }), { headers });
         }
+
 
         if (path === '/api/r2/delete' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });

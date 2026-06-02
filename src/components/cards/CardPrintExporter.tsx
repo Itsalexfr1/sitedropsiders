@@ -79,6 +79,7 @@ export const CardPrintExporter = forwardRef<CardPrintExporterHandle, CardPrintEx
                         flippable={false}
                         scale={PRINT_SCALE}
                         showDate={false}
+                        exportMode="front"
                     />
                 </div>
 
@@ -90,6 +91,7 @@ export const CardPrintExporter = forwardRef<CardPrintExporterHandle, CardPrintEx
                         startFaceDown={true}
                         scale={PRINT_SCALE}
                         showDate={false}
+                        exportMode="back"
                     />
                 </div>
             </div>

@@ -2375,6 +2375,18 @@ export function AdminDashboard() {
       baseColor: "purple",
       columns: 1,
     },
+    {
+      title: "Fichiers Cloudflare",
+      description: "Images, Vidéos, MP3",
+      icon: "HardDrive",
+      category: "STUDIO",
+      link: "#CLOUDFLARE_R2",
+      color: "border-neon-red/20 hover:border-neon-red",
+      bg: "bg-neon-red/5",
+      permission: "studio_upload",
+      baseColor: "red",
+      columns: 1,
+    },
 
     // SHOP & CONTACT
     {
@@ -4347,6 +4359,9 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsTopDropsidersModalOpen(true);
+                            } else if (action.link === "#CLOUDFLARE_R2") {
+                              e.preventDefault();
+                              setDashboardTab("R2");
                             } else if (action.title === "Planning Story") {
                               e.preventDefault();
                               setIsScheduleModalOpen(true);

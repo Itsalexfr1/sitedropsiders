@@ -619,7 +619,7 @@ export function Profile() {
                                             <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Mix Studio</h3>
                                         </div>
                                         
-                                        {user?.mixStatus === 'approved' ? (
+                                        {user?.mixStatus === 'approved' || localStorage.getItem('admin_auth_v2') === 'true' ? (
                                             <>
                                                 <div className="flex gap-2 justify-center mb-6">
                                                     {['Track', 'Remix', 'Edit', 'Mix'].map(type => (

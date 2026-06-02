@@ -14,6 +14,8 @@ interface DropsidersCardProps {
     scale?: number;
     /** Show date collected */
     showDate?: boolean;
+    /** Export mode to render flat faces for html-to-image without 3D transforms */
+    exportMode?: 'front' | 'back';
     onClick?: () => void;
 }
 
@@ -557,7 +559,7 @@ const getCardAttacks = (card: DropsidersCard, theme: CardTheme): Attack[] => {
 };
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
-export function DropsidersCardComponent({ card, flippable = false, startFaceDown = false, flipped: controlledFlipped, scale = 1, showDate = false, onClick }: DropsidersCardProps) {
+export function DropsidersCardComponent({ card, flippable = false, startFaceDown = false, flipped: controlledFlipped, scale = 1, showDate = false, exportMode, onClick }: DropsidersCardProps) {
     const [flipped, setFlipped] = useState(controlledFlipped !== undefined ? controlledFlipped : startFaceDown);
     const [hovered, setHovered] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
@@ -574,6 +576,12 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
     const hp = card.rarity === 'legendary' ? 150 : card.rarity === 'epic' ? 120 : card.rarity === 'rare' ? 90 : 70;
     const theme = getCardTheme(card);
     const attacks = getCardAttacks(card, theme);
+
+    const isWhiteText = theme.textColor === 'text-white';
+    const subColor = isWhiteText ? '#ffffff' : '#2c2c2c';
+    const subShadow = isWhiteText ? '0 1px 2px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.6)' : '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)';
+    const titleColor = isWhiteText ? '#ffffff' : '#1a1a1a';
+    const titleShadow = isWhiteText ? '0 1px 2px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.7)' : '0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.7)';
 
     // Dynamic Holographic foil gradient
     const holoBg = card.rarity === 'legendary'
@@ -622,29 +630,30 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
             style={{
                 width: W,
                 height: H,
-                perspective: 1200,
+                perspective: exportMode ? 'none' : 1200,
                 cursor: flippable ? 'pointer' : onClick ? 'pointer' : 'default',
-                rotateX: flipped ? 0 : rotateX,
-                rotateY: flipped ? 0 : rotateY,
-                transformStyle: 'preserve-3d',
+                rotateX: exportMode ? 0 : (flipped ? 0 : rotateX),
+                rotateY: exportMode ? 0 : (flipped ? 0 : rotateY),
+                transformStyle: exportMode ? 'flat' : 'preserve-3d',
             }}
-            onMouseMove={handleMouseMove}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={handleMouseLeave}
-            onClick={handleClick}
-            whileTap={{ scale: 0.97 }}
+            onMouseMove={exportMode ? undefined : handleMouseMove}
+            onMouseEnter={exportMode ? undefined : () => setHovered(true)}
+            onMouseLeave={exportMode ? undefined : handleMouseLeave}
+            onClick={exportMode ? undefined : handleClick}
+            whileTap={exportMode ? undefined : { scale: 0.97 }}
             className="select-none relative"
         >
             <motion.div
-                style={{ width: '100%', height: '100%', transformStyle: 'preserve-3d', position: 'relative' }}
-                animate={{ rotateY: flipped ? 180 : 0 }}
+                style={{ width: '100%', height: '100%', transformStyle: exportMode ? 'flat' : 'preserve-3d', position: 'relative' }}
+                animate={{ rotateY: exportMode ? 0 : (flipped ? 180 : 0) }}
                 transition={{ duration: 0.7, ease: [0.25, 1, 0.5, 1] }}
             >
                 {/* ─────────────────────────────────────────────────────────────
                     FRONT FACE (RECTO)
                     ───────────────────────────────────────────────────────────── */}
+                {exportMode !== 'back' && (
                 <div
-                    style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+                    style={exportMode === 'front' ? {} : { backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
                     className="absolute inset-0 z-10 w-full h-full p-[1px]"
                 >
                     {/* Golden Pokémon Card frame */}
@@ -749,7 +758,7 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                         background: `linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent)`,
                                     }}
                                 >
-                                    <p className={`font-serif italic font-bold tracking-tight uppercase`} style={{ fontSize: Math.max(5, 7 * scale), color: '#2c2c2c', textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}>
+                                    <p className={`font-serif italic font-bold tracking-tight uppercase`} style={{ fontSize: Math.max(5, 7 * scale), color: subColor, textShadow: subShadow }}>
                                         N° {card.djmag_rank.toString().padStart(3, '0')} · {card.type === 'festival' ? 'Festival' : card.type === 'dj' ? 'DJ' : 'Club'} · {card.city}, {card.country}
                                     </p>
                                 </div>
@@ -763,11 +772,11 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                                     <div className="flex gap-0.5 select-none">
                                                         {att.cost.map((c, i) => <EnergyBadge key={i} type={c === 'star' ? 'star' : theme.energyType} />)}
                                                     </div>
-                                                    <h4 className={`font-sans font-black tracking-tight ml-1 leading-none uppercase`} style={{ fontSize: Math.max(7, 10 * scale), color: '#1a1a1a', textShadow: '0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.7)' }}>
+                                                    <h4 className={`font-sans font-black tracking-tight ml-1 leading-none uppercase`} style={{ fontSize: Math.max(7, 10 * scale), color: titleColor, textShadow: titleShadow }}>
                                                         {att.name}
                                                     </h4>
                                                 </div>
-                                                <span className={`font-sans font-black leading-none`} style={{ fontSize: Math.max(8, 11 * scale), color: '#1a1a1a', textShadow: '0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.7)' }}>
+                                                <span className={`font-sans font-black leading-none`} style={{ fontSize: Math.max(8, 11 * scale), color: titleColor, textShadow: titleShadow }}>
                                                     {att.damage}
                                                 </span>
                                             </div>
@@ -781,10 +790,10 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                         <div className="w-full px-1">
                                             {(card.top_tracks && card.top_tracks.length > 0) && (
                                                 <>
-                                                    <p className={`font-serif italic font-bold text-center leading-normal`} style={{ fontSize: Math.max(5, 7 * scale), color: '#2c2c2c', textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}>
+                                                    <p className={`font-serif italic font-bold text-center leading-normal`} style={{ fontSize: Math.max(5, 7 * scale), color: subColor, textShadow: subShadow }}>
                                                         Top 3 des titres les plus écoutés :
                                                     </p>
-                                                    <div className={`font-sans font-medium text-center leading-tight mt-0.5 opacity-90`} style={{ fontSize: Math.max(4.5, 6 * scale), color: '#2c2c2c', textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}>
+                                                    <div className={`font-sans font-medium text-center leading-tight mt-0.5 opacity-90`} style={{ fontSize: Math.max(4.5, 6 * scale), color: subColor, textShadow: subShadow }}>
                                                         {card.top_tracks.slice(0,3).map((t, i) => <p key={i}>{i + 1}. {t}</p>)}
                                                     </div>
                                                 </>
@@ -793,12 +802,12 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                                     ) : (
                                         <div className="w-full px-1 flex flex-col items-center gap-0.5">
                                             {card.attendees_label && (
-                                                <p className={`font-sans font-black text-center leading-tight`} style={{ fontSize: Math.max(4.5, 6.5 * scale), color: '#2c2c2c', textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}>
+                                                <p className={`font-sans font-black text-center leading-tight`} style={{ fontSize: Math.max(4.5, 6.5 * scale), color: subColor, textShadow: subShadow }}>
                                                     🎟 {card.attendees_label}
                                                 </p>
                                             )}
                                             {card.type === 'club' && CLUB_MUSIC_STYLES[card.name] && (
-                                                <p className={`font-serif italic text-center leading-tight mt-0.5 opacity-90`} style={{ fontSize: Math.max(4, 5.5 * scale), color: '#2c2c2c', textShadow: '0 1px 0 rgba(255,255,255,0.8), 0 1px 4px rgba(0,0,0,0.6)' }}>
+                                                <p className={`font-serif italic text-center leading-tight mt-0.5 opacity-90`} style={{ fontSize: Math.max(4, 5.5 * scale), color: subColor, textShadow: subShadow }}>
                                                     🎵 {CLUB_MUSIC_STYLES[card.name]}
                                                 </p>
                                             )}
@@ -845,12 +854,14 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
 
                     </div>
                 </div>
+                )}
 
                 {/* ─────────────────────────────────────────────────────────────
                     BACK FACE (VERSO) - STYLISH DROPSIDERS DESIGN
                     ───────────────────────────────────────────────────────────── */}
+                {exportMode !== 'front' && (
                 <div
-                    style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                    style={exportMode === 'back' ? {} : { backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                     className="absolute inset-0 w-full h-full p-[1px]"
                 >
                     {/* Dark Premium Frame */}
@@ -910,6 +921,7 @@ export function DropsidersCardComponent({ card, flippable = false, startFaceDown
                         </div>
                     </div>
                 </div>
+                )}
 
             </motion.div>
         </motion.div>
