@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Headphones, Download, Share2, Globe, MapPin, BarChart2, RefreshCw, ChevronDown, TrendingUp } from 'lucide-react';
+import { Headphones, Download, Share2, Globe, MapPin, BarChart2, RefreshCw, ChevronDown, TrendingUp, Heart } from 'lucide-react';
 
 interface DailyPoint { date: string; count: number; }
 interface GeoEntry { country?: string; city?: string; count: number; }
@@ -11,6 +11,7 @@ interface MixStat {
     plays: number;
     downloads: number;
     shares: number;
+    likes?: number;
     topCountries: { country: string; count: number }[];
     topCities: { city: string; count: number }[];
     daily: DailyPoint[];
@@ -304,7 +305,11 @@ export function MixStatsPanel({ userEmail }: { userEmail: string }) {
                                             >
                                                 <span className={`text-[8px] font-black ${c.text} uppercase tracking-widest shrink-0`}>{m.type}</span>
                                                 <span className="text-xs text-white font-bold truncate">{m.title}</span>
-                                                <span className="ml-auto text-[9px] text-gray-500 shrink-0">{m.plays} 🎧</span>
+                                                <span className="ml-auto text-[9px] text-gray-500 shrink-0 flex items-center gap-1.5">
+                                                    <span>{m.plays} 🎧</span>
+                                                    <span>·</span>
+                                                    <span>{m.likes || 0} ❤️</span>
+                                                </span>
                                             </button>
                                         );
                                     })}
@@ -355,11 +360,12 @@ export function MixStatsPanel({ userEmail }: { userEmail: string }) {
 
                 {/* Selected mix stats */}
                 {selectedStat && (
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
+                    <div className="grid grid-cols-4 gap-2 pt-2 border-t border-white/5">
                         {[
                             { label: 'Écoutes', value: selectedStat.plays, icon: '🎧' },
                             { label: 'Téléchargements', value: selectedStat.downloads, icon: '⬇️' },
                             { label: 'Partages', value: selectedStat.shares, icon: '🔗' },
+                            { label: 'Likes', value: selectedStat.likes || 0, icon: '❤️' },
                         ].map(({ label, value, icon }) => (
                             <div key={label} className="text-center">
                                 <p className="text-lg font-black text-white">{value}</p>
@@ -450,6 +456,7 @@ export function MixStatsPanel({ userEmail }: { userEmail: string }) {
                                         <span className={`flex items-center gap-1 ${statsMode === 'play' ? 'text-neon-cyan font-black' : ''}`}><Headphones className="w-3 h-3" />{m.plays}</span>
                                         <span className={`flex items-center gap-1 ${statsMode === 'download' ? 'text-neon-purple font-black' : ''}`}><Download className="w-3 h-3" />{m.downloads}</span>
                                         <span className={`flex items-center gap-1 ${statsMode === 'share' ? 'text-neon-green font-black' : ''}`}><Share2 className="w-3 h-3" />{m.shares}</span>
+                                        <span className="flex items-center gap-1 text-pink-500"><Heart className="w-3 h-3 fill-pink-500/10 text-pink-500" />{m.likes || 0}</span>
                                     </div>
                                     <div className="w-16 hidden sm:block">
                                         <ProgressBar value={activeVal} max={topVal} color={col.glow.replace('0.6)', '0.9)')} />

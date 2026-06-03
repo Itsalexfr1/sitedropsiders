@@ -2264,6 +2264,7 @@ ${urls.map(u => `  <url>
                         plays: plays.length,
                         downloads: downloads.length,
                         shares: shares.length,
+                        likes: mix.likes || 0,
                         topCountries: playsStats.topCountries,
                         topCities: playsStats.topCities,
                         daily: playsStats.daily,
