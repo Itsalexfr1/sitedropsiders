@@ -58,8 +58,8 @@ const SnapchatIcon = (props: any) => (
 // ─── Native video player for uploaded videos (non-YouTube) ───────────────────
 const UploadedVideoPlayer: React.FC<{ src: string }> = ({ src }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const [playing, setPlaying] = useState(false);
-    const [muted, setMuted] = useState(false);
+    const [playing, setPlaying] = useState(true); // Autoplay starts as playing
+    const [muted, setMuted] = useState(true); // Autoplay starts as muted
     const [volume, setVolume] = useState(1);
     const [progress, setProgress] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -76,15 +76,32 @@ const UploadedVideoPlayer: React.FC<{ src: string }> = ({ src }) => {
 
     const togglePlay = () => {
         if (!videoRef.current) return;
-        if (videoRef.current.paused) { videoRef.current.play(); setPlaying(true); }
-        else { videoRef.current.pause(); setPlaying(false); setShowControls(true); }
+        if (videoRef.current.paused) { 
+            videoRef.current.play(); 
+            setPlaying(true); 
+        } else { 
+            videoRef.current.pause(); 
+            setPlaying(false); 
+            setShowControls(true); 
+        }
         scheduleHide();
     };
 
     const toggleMute = () => {
         if (!videoRef.current) return;
-        videoRef.current.muted = !muted;
-        setMuted(!muted);
+        const newMuted = !videoRef.current.muted;
+        videoRef.current.muted = newMuted;
+        setMuted(newMuted);
+    };
+
+    const handleVideoClick = () => {
+        if (!videoRef.current) return;
+        // Unmute on click if currently muted
+        if (videoRef.current.muted) {
+            videoRef.current.muted = false;
+            setMuted(false);
+        }
+        togglePlay();
     };
 
     const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,18 +151,35 @@ const UploadedVideoPlayer: React.FC<{ src: string }> = ({ src }) => {
                 src={src}
                 className="w-full h-full object-contain"
                 onTimeUpdate={handleTimeUpdate}
-                onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
+                onLoadedMetadata={() => {
+                    setDuration(videoRef.current?.duration || 0);
+                    // Explicitly remove controls attribute and trigger autoplay muted
+                    if (videoRef.current) {
+                        videoRef.current.controls = false;
+                        videoRef.current.removeAttribute('controls');
+                        videoRef.current.play().catch(err => console.log('Autoplay dedicated blocked:', err));
+                    }
+                }}
                 onPlay={() => setPlaying(true)}
                 onPause={() => setPlaying(false)}
-                onClick={togglePlay}
+                onClick={handleVideoClick}
+                autoPlay
+                muted
                 playsInline
+                controls={false}
             />
 
             {/* Big play button overlay when paused */}
             {!playing && (
                 <div
                     className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black/30 backdrop-blur-[2px] transition-opacity"
-                    onClick={togglePlay}
+                    onClick={() => {
+                        if (videoRef.current) {
+                            videoRef.current.muted = false;
+                            setMuted(false);
+                        }
+                        togglePlay();
+                    }}
                 >
                     <div className="w-20 h-20 rounded-full bg-neon-red/90 flex items-center justify-center shadow-[0_0_40px_rgba(255,0,51,0.6)] hover:scale-110 transition-transform">
                         <Play className="w-8 h-8 text-white fill-white ml-1" />
@@ -182,7 +216,17 @@ const UploadedVideoPlayer: React.FC<{ src: string }> = ({ src }) => {
 
                 {/* Buttons row */}
                 <div className="flex items-center gap-3">
-                    <button onClick={togglePlay} className="yt-btn" title={playing ? 'Pause' : 'Play'}>
+                    <button 
+                        onClick={() => {
+                            if (videoRef.current && videoRef.current.muted) {
+                                videoRef.current.muted = false;
+                                setMuted(false);
+                            }
+                            togglePlay();
+                        }} 
+                        className="yt-btn" 
+                        title={playing ? 'Pause' : 'Play'}
+                    >
                         {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                     </button>
                     <button onClick={toggleMute} className="yt-btn" title={muted ? 'Son' : 'Muet'}>
@@ -858,12 +902,16 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             bodyVideos.forEach((video) => {
                 video.setAttribute('data-dropsiders-player', '1');
 
-                // Stop the muted-autoplay behaviour set by the uploader
-                video.pause();
-                video.muted = false;
-                video.autoplay = false;
-                video.loop = false;
+                // Autoplay muted by default
+                video.muted = true;
+                video.autoplay = true;
+                video.loop = true;
+                video.playsInline = true;
                 video.controls = false;
+                video.removeAttribute('controls');
+
+                // Try to play immediately (browser will allow since it is muted)
+                video.play().catch(err => console.log('Autoplay inline blocked:', err));
 
                 // Wrap in a relative container so we can overlay controls
                 const parent = video.parentElement;
@@ -881,8 +929,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 video.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;';
 
                 // ── State ──
-                let playing = false;
-                let isMuted = false;
+                let playing = true; // Starts playing (autoplay)
+                let isMuted = true; // Starts muted (autoplay requirement)
                 let vol = 1;
 
                 // ── Big play overlay ──
@@ -925,11 +973,11 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 const soundSVG = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
                 const fsSVG    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`;
 
-                const playBtn = mkBtn(playSVG, 'Play / Pause');
-                const muteBtn = mkBtn(soundSVG, 'Couper le son');
+                const playBtn = mkBtn(pauseSVG, 'Play / Pause'); // Initially shows pause because it starts playing
+                const muteBtn = mkBtn(muteSVG, 'Activer le son'); // Initially shows mute because it starts muted
                 const label   = document.createElement('span'); label.className = 'yt-vol-label'; label.textContent = 'SON';
                 const volSlider = document.createElement('input');
-                volSlider.className = 'yt-volume-slider'; volSlider.type = 'range'; volSlider.min = '0'; volSlider.max = '1'; volSlider.step = '0.01'; volSlider.value = '1';
+                volSlider.className = 'yt-volume-slider'; volSlider.type = 'range'; volSlider.min = '0'; volSlider.max = '1'; volSlider.step = '0.01'; volSlider.value = '0'; // Starts at 0
                 const timeLabel = document.createElement('span');
                 timeLabel.style.cssText = 'margin-left:auto;font-size:10px;font-family:monospace;color:rgba(255,255,255,0.5);white-space:nowrap;';
                 timeLabel.textContent = '0:00 / 0:00';
@@ -950,6 +998,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 };
                 const updateMute = () => {
                     muteBtn.innerHTML = isMuted ? muteSVG : soundSVG;
+                    muteBtn.title = isMuted ? 'Activer le son' : 'Couper le son';
                 };
 
                 // Auto-show/hide bar
@@ -959,27 +1008,74 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 wrapper.addEventListener('mouseleave', () => { if (playing) bar.style.opacity = '0'; });
 
                 // ── Events ──
-                overlay.addEventListener('click', () => { video.play(); playing = true; updatePlay(); showBar(); });
-                playBtn.addEventListener('click', () => {
-                    if (video.paused) { video.play(); playing = true; } else { video.pause(); playing = false; }
-                    updatePlay(); showBar();
+                // Click on the video itself unmutes & plays/pauses
+                video.addEventListener('click', () => {
+                    if (video.muted) {
+                        video.muted = false;
+                        isMuted = false;
+                        updateMute();
+                        volSlider.value = String(vol);
+                    }
+                    if (video.paused) {
+                        video.play();
+                        playing = true;
+                    } else {
+                        video.pause();
+                        playing = false;
+                    }
+                    updatePlay();
+                    showBar();
                 });
+
+                overlay.addEventListener('click', () => {
+                    video.muted = false;
+                    isMuted = false;
+                    updateMute();
+                    volSlider.value = String(vol);
+                    video.play();
+                    playing = true;
+                    updatePlay();
+                    showBar();
+                });
+
+                playBtn.addEventListener('click', () => {
+                    if (video.muted) {
+                        video.muted = false;
+                        isMuted = false;
+                        updateMute();
+                        volSlider.value = String(vol);
+                    }
+                    if (video.paused) {
+                        video.play();
+                        playing = true;
+                    } else {
+                        video.pause();
+                        playing = false;
+                    }
+                    updatePlay();
+                    showBar();
+                });
+
                 muteBtn.addEventListener('click', () => {
                     isMuted = !isMuted; video.muted = isMuted; updateMute();
                     volSlider.value = isMuted ? '0' : String(vol);
                 });
+
                 volSlider.addEventListener('input', () => {
                     vol = parseFloat(volSlider.value); video.volume = vol;
                     if (vol === 0) { isMuted = true; video.muted = true; } else { isMuted = false; video.muted = false; }
                     updateMute();
                 });
+
                 progressInput.addEventListener('input', () => {
                     video.currentTime = parseFloat(progressInput.value) * video.duration;
                 });
+
                 fsBtn.addEventListener('click', () => {
                     if (document.fullscreenElement) document.exitFullscreen();
                     else wrapper.requestFullscreen?.();
                 });
+
                 video.addEventListener('timeupdate', () => {
                     if (!video.duration) return;
                     const pct = video.currentTime / video.duration;
@@ -987,6 +1083,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     progressInput.value = String(pct);
                     timeLabel.textContent = `${fmt(video.currentTime)} / ${fmt(video.duration)}`;
                 });
+
                 video.addEventListener('play',  () => { playing = true;  updatePlay(); });
                 video.addEventListener('pause', () => { playing = false; updatePlay(); bar.style.opacity = '1'; });
                 video.addEventListener('ended', () => { playing = false; updatePlay(); bar.style.opacity = '1'; });
