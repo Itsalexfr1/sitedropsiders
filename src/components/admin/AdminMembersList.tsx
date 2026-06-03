@@ -11,6 +11,9 @@ interface CommunityUser {
     provider: string;
     lastSeen: string;
     mixStatus?: 'none' | 'pending' | 'approved';
+    handle?: string;
+    createdAt?: string;
+    instagram?: string;
 }
 
 export function AdminMembersList({ onEditPermissions, authHeaders, filterStatus, onStatusChange }: { 
