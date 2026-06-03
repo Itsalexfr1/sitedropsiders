@@ -998,10 +998,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         return () => clearTimeout(t2);
     }, [displayContent]);
 
+    const displayTitle = language === 'en' && translatedTitle ? translatedTitle : article.title;
     const backLink = type === 'recap' ? '/recaps' : (isInterview ? '/interviews' : '/news');
     const backText = type === 'recap'
         ? t('recap_detail.back_to_recaps')
         : (isInterview ? t('article_detail.back_to_interviews') : t('article_detail.back_to_news'));
+
 
     // Calculate reading time
     const readingTime = Math.ceil(displayContent.split(/\s+/).length / 200);
