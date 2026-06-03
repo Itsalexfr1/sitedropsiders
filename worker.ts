@@ -1936,6 +1936,102 @@ ${urls.map(u => `  <url>
             }), { status: 500, headers });
         }
 
+        // --- API: MULTIPART UPLOAD START (R2) ---
+        if (path === '/api/upload/multipart/start' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { filename, type, path: fPath } = body;
+                if (!filename || !type) {
+                    return new Response(JSON.stringify({ error: 'Données manquantes' }), { status: 400, headers });
+                }
+
+                // Security: restrict folder access for non-admin users
+                const isAdmin = authenticated;
+                const targetFolder = fPath || (type.startsWith('audio/') ? 'SONS' : (type.startsWith('video/') ? 'VIDEOS' : 'uploads'));
+                if (!isAdmin) {
+                    const allowedFolders = ['membre', 'SONS', 'VIDEOS', 'uploads'];
+                    if (!allowedFolders.includes(targetFolder)) {
+                        return new Response(JSON.stringify({ error: 'Accès non autorisé : dossier de destination restreint aux administrateurs' }), { status: 401, headers });
+                    }
+                }
+
+                // Generate Unique Key
+                const randomId = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+                const extension = filename.split('.').pop() || (type.startsWith('audio/') ? 'mp3' : 'jpg');
+                const cleanName = filename.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+                const key = `${targetFolder}/${randomId}-${cleanName}.${extension}`;
+
+                // Create multipart upload
+                const upload = await env.R2.createMultipartUpload(key, {
+                    httpMetadata: { contentType: type }
+                });
+
+                return new Response(JSON.stringify({
+                    success: true,
+                    uploadId: upload.uploadId,
+                    key: upload.key
+                }), { headers });
+            } catch (e: any) {
+                console.error('Multipart start error:', e);
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: MULTIPART UPLOAD PART (R2) ---
+        if (path === '/api/upload/multipart/part' && request.method === 'POST') {
+            try {
+                const uploadId = url.searchParams.get('uploadId');
+                const key = url.searchParams.get('key');
+                const partNumStr = url.searchParams.get('partNumber');
+                
+                if (!uploadId || !key || !partNumStr) {
+                    return new Response(JSON.stringify({ error: 'Paramètres manquants' }), { status: 400, headers });
+                }
+
+                const partNumber = parseInt(partNumStr, 10);
+                const bodyBuffer = await request.arrayBuffer();
+
+                const upload = env.R2.resumeMultipartUpload(key, uploadId);
+                const part = await upload.uploadPart(partNumber, bodyBuffer);
+
+                return new Response(JSON.stringify({
+                    success: true,
+                    partNumber: part.partNumber,
+                    etag: part.etag
+                }), { headers });
+            } catch (e: any) {
+                console.error('Multipart part error:', e);
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: MULTIPART UPLOAD COMPLETE (R2) ---
+        if (path === '/api/upload/multipart/complete' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { uploadId, key, parts } = body;
+                
+                if (!uploadId || !key || !parts || !Array.isArray(parts)) {
+                    return new Response(JSON.stringify({ error: 'Données manquantes' }), { status: 400, headers });
+                }
+
+                // Sort parts by part number to be safe (R2 requires ordered parts)
+                const sortedParts = [...parts].sort((a, b) => a.partNumber - b.partNumber);
+
+                const upload = env.R2.resumeMultipartUpload(key, uploadId);
+                await upload.complete(sortedParts);
+
+                return new Response(JSON.stringify({
+                    success: true,
+                    url: `/uploads/${key}`,
+                    key: key
+                }), { headers });
+            } catch (e: any) {
+                console.error('Multipart complete error:', e);
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         // --- API: UPLOAD (R2) ---
         if (path === '/api/upload' && request.method === 'POST') {
             try {

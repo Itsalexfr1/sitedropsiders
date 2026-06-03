@@ -176,75 +176,204 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
     const [editArtist, setEditArtist] = useState('');
     const [editTitle, setEditTitle] = useState('');
     const [editTimestamp, setEditTimestamp] = useState('');
-
     useEffect(() => {
         if (isOpen && step === 'uploading' && file) {
             setProgress(0);
             setError(null);
             
-            const xhr = new XMLHttpRequest();
-            const url = `/api/upload?filename=${encodeURIComponent(file.name)}&type=${encodeURIComponent(file.type)}&path=${file.type.startsWith('audio/') ? 'SONS' : (file.type.startsWith('video/') ? 'VIDEOS' : 'uploads')}`;
-            
-            xhr.open('POST', url, true);
-            
-            // XHR progress event for exact upload percentage
-            xhr.upload.onprogress = (e) => {
-                if (e.lengthComputable) {
-                    const percent = Math.round((e.loaded / e.total) * 100);
-                    // Prevent 100% until response is actually processed by the server
-                    setProgress(percent < 100 ? percent : 99);
-                }
-            };
+            let active = true;
+            let xhr: XMLHttpRequest | null = null;
+            let abortMultipart = false;
 
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
+            const startUpload = async () => {
+                const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024; // 50MB
+                const subFolder = file.type.startsWith('audio/') ? 'SONS' : (file.type.startsWith('video/') ? 'VIDEOS' : 'uploads');
+
+                if (file.size > LARGE_FILE_THRESHOLD) {
                     try {
-                        const data = JSON.parse(xhr.responseText);
-                        if (data.success) {
-                            setProgress(100);
-                            (window as any).uploadedMediaUrl = data.url;
-                            (window as any).uploadedMediaKey = data.key;
-                            setTimeout(() => setStep('metadata'), 500);
+                        const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
+                        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+                        
+                        // 1. Start multipart upload
+                        const startRes = await fetch('/api/upload/multipart/start', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
+                                'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
+                            },
+                            body: JSON.stringify({
+                                filename: file.name,
+                                type: file.type,
+                                path: subFolder
+                            })
+                        });
+                        
+                        if (!startRes.ok) {
+                            const errData = await startRes.json().catch(() => ({}));
+                            throw new Error(errData.error || `Erreur d'initialisation multipart: ${startRes.status}`);
+                        }
+                        
+                        const { uploadId, key } = await startRes.json();
+                        const uploadedParts: { partNumber: number; etag: string }[] = [];
+                        
+                        // 2. Upload chunks sequentially
+                        for (let partNumber = 1; partNumber <= totalChunks; partNumber++) {
+                            if (!active || abortMultipart) return;
+
+                            const startByte = (partNumber - 1) * CHUNK_SIZE;
+                            const endByte = Math.min(partNumber * CHUNK_SIZE, file.size);
+                            const chunkBlob = file.slice(startByte, endByte);
+                            
+                            let attempts = 0;
+                            const maxAttempts = 3;
+                            let partEtag = '';
+                            
+                            while (attempts < maxAttempts) {
+                                if (!active || abortMultipart) return;
+                                try {
+                                    const partUrl = `/api/upload/multipart/part?uploadId=${encodeURIComponent(uploadId)}&key=${encodeURIComponent(key)}&partNumber=${partNumber}`;
+                                    const partRes = await fetch(partUrl, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/octet-stream',
+                                            'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
+                                            'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
+                                        },
+                                        body: chunkBlob
+                                    });
+                                    
+                                    if (!partRes.ok) {
+                                        throw new Error(`Morceau ${partNumber} rejeté: ${partRes.status}`);
+                                    }
+                                    
+                                    const data = await partRes.json();
+                                    partEtag = data.etag;
+                                    break; // success
+                                } catch (err) {
+                                    attempts++;
+                                    if (attempts >= maxAttempts) {
+                                        throw err;
+                                    }
+                                    await new Promise(r => setTimeout(r, 1000 * attempts));
+                                }
+                            }
+                            
+                            uploadedParts.push({ partNumber, etag: partEtag });
+                            
+                            if (active) {
+                                const percent = Math.round((partNumber / totalChunks) * 100);
+                                setProgress(percent < 100 ? percent : 99);
+                            }
+                        }
+                        
+                        if (!active || abortMultipart) return;
+
+                        // 3. Complete multipart upload
+                        const completeRes = await fetch('/api/upload/multipart/complete', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Admin-Password': localStorage.getItem('dropsiders_admin_password') || '',
+                                'X-Admin-Username': localStorage.getItem('dropsiders_admin_username') || ''
+                            },
+                            body: JSON.stringify({
+                                uploadId,
+                                key,
+                                parts: uploadedParts
+                            })
+                        });
+                        
+                        if (!completeRes.ok) {
+                            const errData = await completeRes.json().catch(() => ({}));
+                            throw new Error(errData.error || `Erreur de finalisation: ${completeRes.status}`);
+                        }
+                        
+                        const completeData = await completeRes.json();
+                        if (completeData.success && completeData.url) {
+                            if (active) {
+                                setProgress(100);
+                                (window as any).uploadedMediaUrl = completeData.url;
+                                (window as any).uploadedMediaKey = completeData.key;
+                                setTimeout(() => setStep('metadata'), 500);
+                            }
                         } else {
-                            setError(data.error || "Erreur lors de l'upload");
-                            setStep('metadata');
+                            throw new Error("L'assemblage final du fichier a échoué.");
                         }
                     } catch (err: any) {
-                        setError("Erreur lors de l'analyse de la réponse serveur");
-                        setStep('metadata');
+                        if (active) {
+                            setError(err.message || "Erreur lors de l'upload fragmenté");
+                            setStep('metadata');
+                        }
                     }
                 } else {
-                    try {
-                        const data = JSON.parse(xhr.responseText);
-                        setError(data.error || `Erreur serveur: ${xhr.status}`);
-                    } catch {
-                        setError(`Erreur lors de l'upload (${xhr.status})`);
-                    }
-                    setStep('metadata');
+                    // Regular upload for smaller files
+                    xhr = new XMLHttpRequest();
+                    const url = `/api/upload?filename=${encodeURIComponent(file.name)}&type=${encodeURIComponent(file.type)}&path=${subFolder}`;
+                    
+                    xhr.open('POST', url, true);
+                    
+                    xhr.upload.onprogress = (e) => {
+                        if (e.lengthComputable && active) {
+                            const percent = Math.round((e.loaded / e.total) * 100);
+                            setProgress(percent < 100 ? percent : 99);
+                        }
+                    };
+
+                    xhr.onload = () => {
+                        if (!active) return;
+                        if (xhr!.status >= 200 && xhr!.status < 300) {
+                            try {
+                                const data = JSON.parse(xhr!.responseText);
+                                if (data.success) {
+                                    setProgress(100);
+                                    (window as any).uploadedMediaUrl = data.url;
+                                    (window as any).uploadedMediaKey = data.key;
+                                    setTimeout(() => setStep('metadata'), 500);
+                                } else {
+                                    setError(data.error || "Erreur lors de l'upload");
+                                    setStep('metadata');
+                                }
+                            } catch (err: any) {
+                                setError("Erreur lors de l'analyse de la réponse serveur");
+                                setStep('metadata');
+                            }
+                        } else {
+                            try {
+                                const data = JSON.parse(xhr!.responseText);
+                                setError(data.error || `Erreur serveur: ${xhr!.status}`);
+                            } catch {
+                                setError(`Erreur lors de l'upload (${xhr!.status})`);
+                            }
+                            setStep('metadata');
+                        }
+                    };
+
+                    xhr.onerror = () => {
+                        if (active) {
+                            setError("Erreur réseau ou connexion perdue");
+                            setStep('metadata');
+                        }
+                    };
+
+                    xhr.setRequestHeader('X-Admin-Password', localStorage.getItem('dropsiders_admin_password') || '');
+                    xhr.setRequestHeader('X-Admin-Username', localStorage.getItem('dropsiders_admin_username') || '');
+                    
+                    xhr.send(file);
                 }
             };
 
-            xhr.onerror = () => {
-                setError("Erreur réseau ou connexion perdue");
-                setStep('metadata');
-            };
+            startUpload();
 
-            // Setup auth headers
-            xhr.setRequestHeader('X-Admin-Password', localStorage.getItem('dropsiders_admin_password') || '');
-            xhr.setRequestHeader('X-Admin-Username', localStorage.getItem('dropsiders_admin_username') || '');
-            
-            // Send binary file directly
-            xhr.send(file);
-
-            // Cleanup function to abort upload if modal is closed or state changes
             return () => {
-                if (xhr.readyState !== XMLHttpRequest.DONE) {
+                active = false;
+                abortMultipart = true;
+                if (xhr && xhr.readyState !== XMLHttpRequest.DONE) {
                     xhr.abort();
                 }
             };
         }
     }, [isOpen, step, file]);
-
     if (!isOpen) return null;
 
     const parseBulkText = (text: string): Track[] => {

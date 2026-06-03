@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown, Check, Globe, Search } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 import { getAuthHeaders } from '../utils/auth';
+import { uploadMultipartFile } from '../utils/uploadService';
 import settingsData from '../data/settings.json';
 
 interface ImageUploadModalProps {
@@ -406,7 +407,6 @@ export function ImageUploadModal({
                          throw new Error(data.error || 'Upload échoué');
                     }
                 }
-
                 if (item.file) {
                     const filename = forceFilename || sanitizeFilename(item.file.name);
                     let fileType = item.file.type;
@@ -424,22 +424,41 @@ export function ImageUploadModal({
                         fileBlob = new Blob([byteArr], { type: fileType });
                     }
 
-                    // Use direct binary upload (no base64 inflation, supports large files)
-                    const uploadUrl = `/api/upload?filename=${encodeURIComponent(filename)}&type=${encodeURIComponent(fileType)}`;
-                    const response = await fetch(uploadUrl, {
-                        method: 'POST',
-                        headers: { ...getAuthHeaders(null), 'Content-Type': fileType },
-                        body: fileBlob
-                    });
-
-                    const data = await response.json();
-                    if (data.success && data.url) {
-                        uploadedUrls.push(data.url);
+                    // Use multipart upload for files > 50MB
+                    const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024; // 50MB
+                    if (fileBlob.size > LARGE_FILE_THRESHOLD) {
+                        const targetFolder = fileType.startsWith('audio/') ? 'SONS' : (fileType.startsWith('video/') ? 'VIDEOS' : 'uploads');
+                        const fileObject = new File([fileBlob], filename, { type: fileType });
+                        const uploadUrl = await uploadMultipartFile(
+                            fileObject,
+                            targetFolder,
+                            (prog) => {
+                                const baseProgress = Math.round((i / toUpload.length) * 100);
+                                const chunkProgress = Math.round(prog / toUpload.length);
+                                setUploadProgress(Math.min(99, baseProgress + chunkProgress));
+                            }
+                        );
+                        const finalUrl = uploadUrl.startsWith('https://dropsiders.fr')
+                            ? uploadUrl.replace('https://dropsiders.fr', '')
+                            : uploadUrl;
+                        uploadedUrls.push(finalUrl);
                     } else {
-                        throw new Error(data.error || 'Upload échoué');
+                        // Use direct binary upload (no base64 inflation, supports large files)
+                        const uploadUrl = `/api/upload?filename=${encodeURIComponent(filename)}&type=${encodeURIComponent(fileType)}`;
+                        const response = await fetch(uploadUrl, {
+                            method: 'POST',
+                            headers: { ...getAuthHeaders(null), 'Content-Type': fileType },
+                            body: fileBlob
+                        });
+
+                        const data = await response.json();
+                        if (data.success && data.url) {
+                            uploadedUrls.push(data.url);
+                        } else {
+                            throw new Error(data.error || 'Upload échoué');
+                        }
                     }
-                }
-                
+                }                
                 setUploadProgress(Math.round(((i + 1) / toUpload.length) * 100));
             }
 

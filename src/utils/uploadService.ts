@@ -5,11 +5,127 @@
 export const uploadValidation = (file: File): { valid: boolean; error?: string } => {
     if (!file) return { valid: false, error: "Aucun fichier sélectionné." };
     if (!file.type.startsWith("image/") && !file.type.startsWith("video/") && !file.type.startsWith("audio/")) return { valid: false, error: "Le fichier doit être une image, une vidéo ou un fichier audio." };
-    if (file.size > 100 * 1024 * 1024) return { valid: false, error: "Le fichier est trop lourd (max 100Mo)." };
+    
+    // Increased size limit to 600MB to allow large video files
+    const limit = file.type.startsWith("video/") ? 600 * 1024 * 1024 : 500 * 1024 * 1024;
+    const limitLabel = file.type.startsWith("video/") ? "600Mo" : "500Mo";
+    if (file.size > limit) return { valid: false, error: `Le fichier est trop lourd (max ${limitLabel}).` };
+    
     return { valid: true };
 };
 
 import { getAuthHeaders } from './auth';
+
+/**
+ * Uploads a file using chunked R2 multipart upload (best for large files > 50MB)
+ */
+export const uploadMultipartFile = async (
+    file: File,
+    subFolder: string = 'uploads',
+    onProgress?: (progress: number) => void
+): Promise<string> => {
+    const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    
+    // 1. Start multipart upload
+    const startRes = await fetch('/api/upload/multipart/start', {
+        method: 'POST',
+        headers: {
+            ...getAuthHeaders(null),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            filename: file.name,
+            type: file.type,
+            path: subFolder
+        })
+    });
+    
+    if (!startRes.ok) {
+        const errData = await startRes.json().catch(() => ({}));
+        throw new Error(errData.error || `Erreur d'initialisation multipart: ${startRes.status}`);
+    }
+    
+    const { uploadId, key } = await startRes.json();
+    const uploadedParts: { partNumber: number; etag: string }[] = [];
+    
+    // 2. Upload chunks sequentially
+    for (let partNumber = 1; partNumber <= totalChunks; partNumber++) {
+        const startByte = (partNumber - 1) * CHUNK_SIZE;
+        const endByte = Math.min(partNumber * CHUNK_SIZE, file.size);
+        const chunkBlob = file.slice(startByte, endByte);
+        
+        // Retry mechanism for each part upload
+        let attempts = 0;
+        const maxAttempts = 3;
+        let partEtag = '';
+        
+        while (attempts < maxAttempts) {
+            try {
+                const partUrl = `/api/upload/multipart/part?uploadId=${encodeURIComponent(uploadId)}&key=${encodeURIComponent(key)}&partNumber=${partNumber}`;
+                const partRes = await fetch(partUrl, {
+                    method: 'POST',
+                    headers: {
+                        ...getAuthHeaders(null),
+                        'Content-Type': 'application/octet-stream'
+                    },
+                    body: chunkBlob
+                });
+                
+                if (!partRes.ok) {
+                    throw new Error(`Morceau ${partNumber} rejeté: ${partRes.status}`);
+                }
+                
+                const data = await partRes.json();
+                partEtag = data.etag;
+                break; // success
+            } catch (err) {
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    throw err; // fail after max attempts
+                }
+                // Backoff delay before retry
+                await new Promise(r => setTimeout(r, 1000 * attempts));
+            }
+        }
+        
+        uploadedParts.push({ partNumber, etag: partEtag });
+        
+        // Report progress
+        if (onProgress) {
+            const percent = Math.round((partNumber / totalChunks) * 100);
+            onProgress(percent);
+        }
+    }
+    
+    // 3. Complete multipart upload
+    const completeRes = await fetch('/api/upload/multipart/complete', {
+        method: 'POST',
+        headers: {
+            ...getAuthHeaders(null),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            uploadId,
+            key,
+            parts: uploadedParts
+        })
+    });
+    
+    if (!completeRes.ok) {
+        const errData = await completeRes.json().catch(() => ({}));
+        throw new Error(errData.error || `Erreur de finalisation multipart: ${completeRes.status}`);
+    }
+    
+    const completeData = await completeRes.json();
+    if (completeData.success && completeData.url) {
+        return completeData.url.startsWith('/uploads')
+            ? `https://dropsiders.fr${completeData.url}`
+            : completeData.url;
+    } else {
+        throw new Error("L'assemblage final du fichier a échoué.");
+    }
+};
 
 export const uploadFile = async (
     file: File,
