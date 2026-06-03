@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Edit2, Instagram, Facebook, Globe, Youtube, Link2, Sparkles } from 'lucide-react';
@@ -76,6 +76,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const [isAdmin, setIsAdmin] = useState(false);
     const [team, setTeam] = useState<any[]>([]);
     const [siteSocials, setSiteSocials] = useState<any>((settings as any).socials || {});
+    const ytPlayersRef = useRef<Record<string, { player: any; muted: boolean }>>({});
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth_v2') === 'true');
@@ -94,6 +95,16 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             }
         };
         fetchData();
+    }, []);
+
+    // Load YouTube IFrame API once
+    useEffect(() => {
+        if (!document.getElementById('yt-iframe-api-script')) {
+            const tag = document.createElement('script');
+            tag.id = 'yt-iframe-api-script';
+            tag.src = 'https://www.youtube.com/iframe_api';
+            document.head.appendChild(tag);
+        }
     }, []);
 
     const getAuthorInsta = (authorName: string) => {
@@ -598,6 +609,154 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         return () => contentArea.removeEventListener('click', handleContentClick as any);
     }, [displayContent, language]);
 
+    // Initialize custom YouTube controls for all yt-player iframes
+    useEffect(() => {
+        // Clean up stale refs when content changes
+        ytPlayersRef.current = {};
+
+        const initYTControls = () => {
+            const allYTIframes = document.querySelectorAll<HTMLIFrameElement>('iframe[id^="yt-player-"]');
+
+            allYTIframes.forEach((iframe) => {
+                const iframeId = iframe.id;
+                if (ytPlayersRef.current[iframeId]) return; // Already initialized
+
+                const wrapper = iframe.parentElement as HTMLElement;
+                if (!wrapper) return;
+
+                // Avoid double-inserting
+                const existingBar = wrapper.parentElement?.querySelector(`.yt-controls-bar[data-for="${iframeId}"]`);
+                if (existingBar) return;
+
+                // Build control bar HTML
+                const bar = document.createElement('div');
+                bar.className = 'yt-controls-bar';
+                bar.setAttribute('data-for', iframeId);
+                bar.innerHTML = `
+                    <button class="yt-btn yt-play-btn" title="Play / Pause" aria-label="Play Pause">
+                        <svg class="yt-icon-pause" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        <svg class="yt-icon-play" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="display:none"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                    <button class="yt-btn yt-vol-btn" title="Activer le son / Couper" aria-label="Son">
+                        <svg class="yt-icon-sound" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="display:none"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                        <svg class="yt-icon-mute" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM11 5.27L8.74 7.53 11 9.79V5.27z"/></svg>
+                    </button>
+                    <span class="yt-vol-label">SON</span>
+                    <input class="yt-volume-slider" type="range" min="0" max="100" value="100" aria-label="Volume" />
+                `;
+
+                // Insert the control bar right after the video wrapper
+                wrapper.parentNode?.insertBefore(bar, wrapper.nextSibling);
+
+                // Wait for YT API to be ready then init player
+                const tryInit = () => {
+                    const YT = (window as any).YT;
+                    if (!YT?.Player) {
+                        setTimeout(tryInit, 400);
+                        return;
+                    }
+
+                    // Mark as initialized immediately to avoid race conditions
+                    ytPlayersRef.current[iframeId] = { player: null, muted: true };
+
+                    const player = new YT.Player(iframe, {
+                        events: {
+                            onReady: (e: any) => {
+                                e.target.setVolume(100);
+                                // Autoplay starts muted by browsers — reflect this in UI
+                                ytPlayersRef.current[iframeId].player = e.target;
+                                const isMuted = e.target.isMuted();
+                                ytPlayersRef.current[iframeId].muted = isMuted;
+                                const soundIcon = bar.querySelector('.yt-icon-sound') as HTMLElement;
+                                const muteIcon = bar.querySelector('.yt-icon-mute') as HTMLElement;
+                                if (isMuted) {
+                                    if (soundIcon) soundIcon.style.display = 'none';
+                                    if (muteIcon) muteIcon.style.display = '';
+                                } else {
+                                    if (soundIcon) soundIcon.style.display = '';
+                                    if (muteIcon) muteIcon.style.display = 'none';
+                                }
+                            },
+                            onStateChange: (e: any) => {
+                                const pauseIcon = bar.querySelector('.yt-icon-pause') as HTMLElement;
+                                const playIcon = bar.querySelector('.yt-icon-play') as HTMLElement;
+                                if (!pauseIcon || !playIcon) return;
+                                if (e.data === 1) { // YT.PlayerState.PLAYING
+                                    pauseIcon.style.display = '';
+                                    playIcon.style.display = 'none';
+                                } else {
+                                    pauseIcon.style.display = 'none';
+                                    playIcon.style.display = '';
+                                }
+                            }
+                        }
+                    });
+
+                    ytPlayersRef.current[iframeId].player = player;
+
+                    // Play / Pause
+                    bar.querySelector('.yt-play-btn')?.addEventListener('click', () => {
+                        const p = ytPlayersRef.current[iframeId]?.player;
+                        if (!p?.getPlayerState) return;
+                        if (p.getPlayerState() === 1) p.pauseVideo();
+                        else p.playVideo();
+                    });
+
+                    // Mute / Unmute toggle
+                    bar.querySelector('.yt-vol-btn')?.addEventListener('click', () => {
+                        const ref = ytPlayersRef.current[iframeId];
+                        const p = ref?.player;
+                        if (!p?.isMuted) return;
+                        const soundIcon = bar.querySelector('.yt-icon-sound') as HTMLElement;
+                        const muteIcon = bar.querySelector('.yt-icon-mute') as HTMLElement;
+                        const slider = bar.querySelector('.yt-volume-slider') as HTMLInputElement;
+                        if (ref.muted || p.isMuted()) {
+                            p.unMute();
+                            p.setVolume(slider ? parseInt(slider.value) || 100 : 100);
+                            ref.muted = false;
+                            if (soundIcon) soundIcon.style.display = '';
+                            if (muteIcon) muteIcon.style.display = 'none';
+                        } else {
+                            p.mute();
+                            ref.muted = true;
+                            if (soundIcon) soundIcon.style.display = 'none';
+                            if (muteIcon) muteIcon.style.display = '';
+                        }
+                    });
+
+                    // Volume slider
+                    bar.querySelector('.yt-volume-slider')?.addEventListener('input', (e) => {
+                        const ref = ytPlayersRef.current[iframeId];
+                        const p = ref?.player;
+                        if (!p?.setVolume) return;
+                        const vol = parseInt((e.target as HTMLInputElement).value);
+                        const soundIcon = bar.querySelector('.yt-icon-sound') as HTMLElement;
+                        const muteIcon = bar.querySelector('.yt-icon-mute') as HTMLElement;
+                        p.setVolume(vol);
+                        if (vol === 0) {
+                            p.mute();
+                            ref.muted = true;
+                            if (soundIcon) soundIcon.style.display = 'none';
+                            if (muteIcon) muteIcon.style.display = '';
+                        } else {
+                            p.unMute();
+                            ref.muted = false;
+                            if (soundIcon) soundIcon.style.display = '';
+                            if (muteIcon) muteIcon.style.display = 'none';
+                        }
+                    });
+                };
+
+                tryInit();
+            });
+        };
+
+        const timer = setTimeout(initYTControls, 700);
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [displayContent, article?.youtubeId]);
+
     const displayTitle = language === 'en' && translatedTitle ? translatedTitle : article.title;
     const backLink = type === 'recap' ? '/recaps' : (isInterview ? '/interviews' : '/news');
     const backText = type === 'recap'
@@ -997,7 +1156,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             </h3>
                                             <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
                                                 <iframe
-                                                    src={`https://www.youtube-nocookie.com/embed/${extractId(article.youtubeId)}?enablejsapi=1&origin=${window.location.origin}`}
+                                                    src={`https://www.youtube-nocookie.com/embed/${extractId(article.youtubeId)}?enablejsapi=1&origin=${window.location.origin}&autoplay=1&mute=1`}
                                                     className="absolute top-0 left-0 w-full h-full"
                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                                     allowFullScreen
