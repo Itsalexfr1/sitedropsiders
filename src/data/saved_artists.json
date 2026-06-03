@@ -83,5 +83,19 @@
       "soundcloud": "",
       "beatport": ""
     }
+  },
+  {
+    "name": "FISHER",
+    "socials": {
+      "website": "https://followthefishtv.com",
+      "instagram": "https://www.instagram.com/followthefishtv/",
+      "tiktok": "",
+      "youtube": "https://www.youtube.com/channel/UCnr1-8gbgQ7YFd8twlBDhhg",
+      "facebook": "https://www.facebook.com/www.followthefishtv.tv/?ref=br_rs",
+      "x": "https://twitter.com/followthefishtv",
+      "spotify": "https://open.spotify.com/artist/1VJ0briNOlXRtJUAzoUJdt",
+      "soundcloud": "https://soundcloud.com/fish-tales",
+      "beatport": "https://www.beatport.com/fr/artist/fisher-oz/628537?srsltid=AfmBOoo5le9CVUSBs94-_mJ-oeGQux6akYqsbgaQhUm66iYLrSc3iS9t"
+    }
   }
 ]
