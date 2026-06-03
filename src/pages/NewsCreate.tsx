@@ -351,6 +351,7 @@ export function NewsCreate() {
         show: boolean;
         title: string;
         url: string;
+        isScheduled?: boolean;
         socialSuiteData: any;
     } | null>(null);
 
@@ -1828,21 +1829,24 @@ ${generateSocialsHtml()}
                 setStatus('success');
                 setIsDirty(false);
 
-                // Show share modal before Social Suite
+                // Show share modal only if not a draft
                 const newArticleId = isEditing ? (id || '') : (data.id || '');
-                setShareModalConfig({
-                    show: true,
-                    title: fixEncoding(title),
-                    url: `https://dropsiders.fr/article/${newArticleId}`,
-                    socialSuiteData: {
+                if (!finalIsDraft) {
+                    setShareModalConfig({
+                        show: true,
                         title: fixEncoding(title),
-                        imageUrl: finalImageUrl,
-                        type: type,
-                        category: finalCategory,
-                        articleId: newArticleId,
-                        isFocus: isFocus
-                    }
-                });
+                        url: `https://dropsiders.fr/article/${newArticleId}`,
+                        isScheduled: finalDate > new Date().toISOString().slice(0, 16),
+                        socialSuiteData: {
+                            title: fixEncoding(title),
+                            imageUrl: finalImageUrl,
+                            type: type,
+                            category: finalCategory,
+                            articleId: newArticleId,
+                            isFocus: isFocus
+                        }
+                    });
+                }
 
                 setMessage(isEditing ? 'Article mis à jour avec succès !' : (finalIsDraft ? 'Article enregistré en brouillon !' : (finalDate > new Date().toISOString().slice(0, 16) ? 'Article programmé avec succès !' : 'Article publié avec succès !')));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -5125,10 +5129,10 @@ ${generateSocialsHtml()}
                                 </div>
 
                                 <h3 className="text-3xl font-display font-black text-white uppercase italic mb-3 tracking-tight">
-                                    Article Publié !
+                                    {shareModalConfig.isScheduled ? 'Article Programmé !' : 'Article Publié !'}
                                 </h3>
                                 <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em] font-black mb-10">
-                                    Diffusion immédiate activée
+                                    {shareModalConfig.isScheduled ? 'Publication programmée avec succès' : 'Diffusion immédiate activée'}
                                 </p>
 
                                 <div className="grid grid-cols-2 gap-3 mb-8">

@@ -196,7 +196,7 @@ export function ImageUploadModal({
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
-                    const processed = (data.objects || []).map((p: any) => ({ ...p, url: p.key.startsWith('http') ? p.key : `/${p.key}` }));
+                    const processed = (data.objects || []).map((p: any) => ({ ...p, url: p.url ? (p.url.startsWith('http') ? p.url : p.url) : (p.key.startsWith('http') ? p.key : `/uploads/${p.key}`) }));
                     if (targetCursor) {
                         setR2Photos(prev => [...prev, ...processed]);
                     } else {
@@ -219,8 +219,8 @@ export function ImageUploadModal({
         }
     }, [sortBy]);
 
-    const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-    const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+    const MAX_IMAGE_SIZE = 500 * 1024 * 1024; // 500MB
+    const MAX_VIDEO_SIZE = 600 * 1024 * 1024; // 600MB
 
     const sanitizeFilename = (name: string) => {
         const parts = name.split('.');
@@ -258,7 +258,7 @@ export function ImageUploadModal({
             }
 
             if (file.size > maxSize) {
-                errors.push(`${file.name}: Trop volumineux (Max ${isImage ? '10' : '50'}MB).`);
+                errors.push(`${file.name}: Trop volumineux (Max ${isImage ? '500' : '600'}MB).`);
                 processedCount++;
                 if (processedCount === files.length) {
                     finalizeFileChange(newImages, errors);
@@ -267,15 +267,27 @@ export function ImageUploadModal({
             }
 
             if (isImage) {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    newImages.push({ file, preview: reader.result as string });
+                // Use object URL for preview to avoid loading huge files as base64 in memory
+                // For large files (>50MB), readAsDataURL would freeze the browser
+                const SMALL_FILE_THRESHOLD = 50 * 1024 * 1024; // 50MB
+                if (file.size <= SMALL_FILE_THRESHOLD) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        newImages.push({ file, preview: reader.result as string });
+                        processedCount++;
+                        if (processedCount === files.length) {
+                            finalizeFileChange(newImages, errors);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    // Large image: use object URL for preview (no memory explosion)
+                    newImages.push({ file, preview: URL.createObjectURL(file) });
                     processedCount++;
                     if (processedCount === files.length) {
                         finalizeFileChange(newImages, errors);
                     }
-                };
-                reader.readAsDataURL(file);
+                }
             } else if (isVideo) {
                 newImages.push({ file, preview: URL.createObjectURL(file) });
                 processedCount++;
@@ -398,17 +410,26 @@ export function ImageUploadModal({
                 if (item.file) {
                     const filename = forceFilename || sanitizeFilename(item.file.name);
                     let fileType = item.file.type;
-                    let base64 = item.preview;
-                    
-                    if (fileType.startsWith('image/')) {
-                        base64 = await processImage(item.preview);
+                    let fileBlob: Blob = item.file;
+
+                    // For images with watermark, process via canvas first (returns base64)
+                    if (fileType.startsWith('image/') && isWatermarkEnabled) {
+                        const base64 = await processImage(item.preview);
                         fileType = 'image/jpeg';
+                        // Convert base64 back to Blob for binary upload
+                        const base64Data = base64.split(',')[1] || base64;
+                        const binaryStr = atob(base64Data);
+                        const byteArr = new Uint8Array(binaryStr.length);
+                        for (let j = 0; j < binaryStr.length; j++) byteArr[j] = binaryStr.charCodeAt(j);
+                        fileBlob = new Blob([byteArr], { type: fileType });
                     }
 
-                    const response = await fetch('/api/upload', {
+                    // Use direct binary upload (no base64 inflation, supports large files)
+                    const uploadUrl = `/api/upload?filename=${encodeURIComponent(filename)}&type=${encodeURIComponent(fileType)}`;
+                    const response = await fetch(uploadUrl, {
                         method: 'POST',
-                        headers: { ...getAuthHeaders(null), 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ filename, content: base64, type: fileType })
+                        headers: { ...getAuthHeaders(null), 'Content-Type': fileType },
+                        body: fileBlob
                     });
 
                     const data = await response.json();
