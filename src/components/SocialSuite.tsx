@@ -66,7 +66,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -251,6 +251,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'SPOTLIGHT': { label: 'SPOTLIGHT', grad: '255, 0, 51', color: '#ff0033' },
         'CITATION': { label: 'CITATION', grad: '255, 255, 255', color: '#ffffff' },
         'CONSEILS': { label: 'CONSEILS', grad: '255, 0, 51', color: '#ff0033' },
+        'EVENT': { label: 'EVENT', grad: '0, 240, 255', color: '#00f0ff' },
     };
 
     useEffect(() => {
@@ -1500,7 +1501,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fill();
 
                 ctx.globalAlpha = 1;
-                ctx.fillStyle = (labelText === 'MUSIQUE' || labelText === 'TOP 100 DROPSIDERS') ? '#000' : '#FFF';
+                ctx.fillStyle = (labelText === 'MUSIQUE' || labelText === 'TOP 100 DROPSIDERS' || labelText === 'EVENT') ? '#000' : '#FFF';
                 const labelFontSize = 42;
                 ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
@@ -2091,6 +2092,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => setTheme('SPOTLIGHT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
             <button onClick={() => setTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
             <button onClick={() => setTheme('CONSEILS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONSEILS</button>
+            <button onClick={() => setTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
             
             {activeTab === 'REEL' && (
                 <>
