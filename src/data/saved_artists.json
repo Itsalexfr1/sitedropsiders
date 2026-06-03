@@ -111,5 +111,19 @@
       "soundcloud": "https://soundcloud.com/hayla-sings",
       "beatport": "https://www.beatport.com/fr/artist/hayla/672674?srsltid=AfmBOop1eKssQUDBuaSdFDNUO_jP1abgDrG5zsU6zgyuSsGU6tavhceD"
     }
+  },
+  {
+    "name": "TOMORROWLAND WINTER",
+    "socials": {
+      "website": "https://winter.tomorrowland.com/fr/bienvenue/",
+      "instagram": "https://www.instagram.com/tomorrowlandwinter/",
+      "tiktok": "https://www.tiktok.com/@tomorrowland_winter",
+      "youtube": "https://www.youtube.com/@tomorrowland",
+      "facebook": "https://www.facebook.com/TomorrowlandWinter/?locale=fr_FR",
+      "x": "https://x.com/TMLwinter?lang=fr",
+      "spotify": "",
+      "soundcloud": "",
+      "beatport": ""
+    }
   }
 ]
