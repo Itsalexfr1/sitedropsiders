@@ -413,8 +413,7 @@ export default {
             path === '/api/push/broadcast' ||
             path === '/api/extension/push' ||
             path === '/api/admin/users' ||
-            path === '/api/admin/users/approve-mix' ||
-            path === '/api/mix/stats'
+            path === '/api/admin/users/approve-mix'
         );
 
         let authenticated = false;
@@ -2195,7 +2194,6 @@ ${urls.map(u => `  <url>
 
         // --- API: GET MIX STATS (Private — owner only) ---
         if (path === '/api/mix/stats' && request.method === 'GET') {
-            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             const ownerEmail = url.searchParams.get('email');
             if (!ownerEmail) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
 

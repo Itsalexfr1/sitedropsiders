@@ -260,7 +260,7 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                                             className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:border-neon-cyan/50 hover:bg-white/10 hover:text-neon-cyan transition-all flex items-center justify-center text-white/70"
                                             title="Partager sur Telegram"
                                         >
-                                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="margin-right:2px">
+                                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" className="mr-0.5">
                                                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.18-.08-.04-.19-.01-.27.01-.12.02-1.96 1.24-5.52 3.65-.52.36-.97.53-1.34.52-.41-.01-1.2-.23-1.79-.42-.72-.24-1.29-.36-1.24-.77.03-.21.32-.43.88-.65 3.43-1.49 5.72-2.48 6.87-2.97 3.28-1.39 3.96-1.63 4.4-.15.1.18.23.53.22.75z"/>
                                             </svg>
                                         </a>
