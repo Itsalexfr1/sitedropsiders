@@ -125,5 +125,19 @@
       "soundcloud": "",
       "beatport": ""
     }
+  },
+  {
+    "name": "JOHN SUMMIT",
+    "socials": {
+      "website": "https://www.johnsummitmusic.com",
+      "instagram": "https://www.instagram.com/johnsummit",
+      "tiktok": "https://www.tiktok.com/@johnsummit",
+      "youtube": "http://youtube.com/johnsummit",
+      "facebook": "https://www.facebook.com/itsjohnsummit",
+      "x": "https://twitter.com/johnsummit",
+      "spotify": "https://open.spotify.com/artist/7kNqXtgeIwFtelmRjWv205?si=9i8mp_OWSsyfqEgHmMmoWg",
+      "soundcloud": "https://soundcloud.com/johnsummit",
+      "beatport": "https://open.spotify.com/artist/7kNqXtgeIwFtelmRjWv205?si=9i8mp_OWSsyfqEgHmMmoWg"
+    }
   }
 ]
