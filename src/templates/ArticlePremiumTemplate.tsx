@@ -55,6 +55,165 @@ const SnapchatIcon = (props: any) => (
 );
 
 
+// ─── Native video player for uploaded videos (non-YouTube) ───────────────────
+const UploadedVideoPlayer: React.FC<{ src: string }> = ({ src }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [playing, setPlaying] = useState(false);
+    const [muted, setMuted] = useState(false);
+    const [volume, setVolume] = useState(1);
+    const [progress, setProgress] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [buffered, setBuffered] = useState(0);
+    const [showControls, setShowControls] = useState(true);
+    const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const scheduleHide = () => {
+        if (hideTimer.current) clearTimeout(hideTimer.current);
+        hideTimer.current = setTimeout(() => { if (playing) setShowControls(false); }, 2500);
+    };
+
+    const handleMouseMove = () => { setShowControls(true); scheduleHide(); };
+
+    const togglePlay = () => {
+        if (!videoRef.current) return;
+        if (videoRef.current.paused) { videoRef.current.play(); setPlaying(true); }
+        else { videoRef.current.pause(); setPlaying(false); setShowControls(true); }
+        scheduleHide();
+    };
+
+    const toggleMute = () => {
+        if (!videoRef.current) return;
+        videoRef.current.muted = !muted;
+        setMuted(!muted);
+    };
+
+    const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const v = parseFloat(e.target.value);
+        if (!videoRef.current) return;
+        videoRef.current.volume = v;
+        setVolume(v);
+        if (v === 0) { videoRef.current.muted = true; setMuted(true); }
+        else { videoRef.current.muted = false; setMuted(false); }
+    };
+
+    const handleTimeUpdate = () => {
+        if (!videoRef.current) return;
+        setProgress(videoRef.current.currentTime);
+        if (videoRef.current.buffered.length > 0) {
+            setBuffered(videoRef.current.buffered.end(videoRef.current.buffered.length - 1));
+        }
+    };
+
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!videoRef.current) return;
+        videoRef.current.currentTime = parseFloat(e.target.value);
+        setProgress(parseFloat(e.target.value));
+    };
+
+    const handleFullscreen = () => {
+        const el = videoRef.current;
+        if (!el) return;
+        if (document.fullscreenElement) document.exitFullscreen();
+        else el.requestFullscreen?.();
+    };
+
+    const fmt = (s: number) => {
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return `${m}:${sec.toString().padStart(2, '0')}`;
+    };
+
+    return (
+        <div
+            className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group bg-black"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => { if (playing) setShowControls(false); }}
+        >
+            <video
+                ref={videoRef}
+                src={src}
+                className="w-full h-full object-contain"
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
+                onPlay={() => setPlaying(true)}
+                onPause={() => setPlaying(false)}
+                onClick={togglePlay}
+                playsInline
+            />
+
+            {/* Big play button overlay when paused */}
+            {!playing && (
+                <div
+                    className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black/30 backdrop-blur-[2px] transition-opacity"
+                    onClick={togglePlay}
+                >
+                    <div className="w-20 h-20 rounded-full bg-neon-red/90 flex items-center justify-center shadow-[0_0_40px_rgba(255,0,51,0.6)] hover:scale-110 transition-transform">
+                        <Play className="w-8 h-8 text-white fill-white ml-1" />
+                    </div>
+                </div>
+            )}
+
+            {/* Controls bar */}
+            <div
+                className={`absolute bottom-0 left-0 right-0 px-5 pt-8 pb-4 bg-gradient-to-t from-black/90 to-transparent transition-all duration-300 ${showControls || !playing ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}
+            >
+                {/* Progress bar */}
+                <div className="relative mb-3 h-1.5 rounded-full bg-white/10 cursor-pointer overflow-hidden">
+                    {/* Buffered */}
+                    <div
+                        className="absolute inset-y-0 left-0 bg-white/20 rounded-full"
+                        style={{ width: duration ? `${(buffered / duration) * 100}%` : '0%' }}
+                    />
+                    {/* Played */}
+                    <div
+                        className="absolute inset-y-0 left-0 bg-neon-red rounded-full shadow-[0_0_8px_rgba(255,0,51,0.8)]"
+                        style={{ width: duration ? `${(progress / duration) * 100}%` : '0%' }}
+                    />
+                    <input
+                        type="range"
+                        min={0}
+                        max={duration || 1}
+                        step={0.1}
+                        value={progress}
+                        onChange={handleSeek}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                </div>
+
+                {/* Buttons row */}
+                <div className="flex items-center gap-3">
+                    <button onClick={togglePlay} className="yt-btn" title={playing ? 'Pause' : 'Play'}>
+                        {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </button>
+                    <button onClick={toggleMute} className="yt-btn" title={muted ? 'Son' : 'Muet'}>
+                        {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                    </button>
+                    <span className="yt-vol-label">SON</span>
+                    <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        value={muted ? 0 : volume}
+                        onChange={handleVolume}
+                        className="yt-volume-slider"
+                    />
+                    <span className="ml-auto text-[10px] font-mono text-white/60">
+                        {fmt(progress)} / {fmt(duration)}
+                    </span>
+                    <button onClick={handleFullscreen} className="yt-btn" title="Plein écran">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+                            <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface ArticlePremiumTemplateProps {
     article: any;
     content: string;
@@ -689,7 +848,156 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         return () => clearTimeout(timer);
     }, [displayContent]);
 
-    const displayTitle = language === 'en' && translatedTitle ? translatedTitle : article.title;
+    // ── Inject custom controls for uploaded <video> elements inside the article body ──
+    useEffect(() => {
+        const initInlineVideoPlayers = () => {
+            const bodyVideos = document.querySelectorAll<HTMLVideoElement>(
+                '.article-body-premium video:not([data-dropsiders-player])'
+            );
+
+            bodyVideos.forEach((video) => {
+                video.setAttribute('data-dropsiders-player', '1');
+
+                // Stop the muted-autoplay behaviour set by the uploader
+                video.pause();
+                video.muted = false;
+                video.autoplay = false;
+                video.loop = false;
+                video.controls = false;
+
+                // Wrap in a relative container so we can overlay controls
+                const parent = video.parentElement;
+                if (!parent) return;
+
+                // Already wrapped?
+                if (parent.classList.contains('ds-video-wrapper')) return;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'ds-video-wrapper';
+                wrapper.style.cssText = 'position:relative;width:100%;border-radius:1.5rem;overflow:hidden;background:#000;aspect-ratio:16/9;';
+                parent.insertBefore(wrapper, video);
+                wrapper.appendChild(video);
+
+                video.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block;';
+
+                // ── State ──
+                let playing = false;
+                let isMuted = false;
+                let vol = 1;
+
+                // ── Big play overlay ──
+                const overlay = document.createElement('div');
+                overlay.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.35);cursor:pointer;transition:opacity 0.2s;z-index:5;';
+                overlay.innerHTML = `<div style="width:72px;height:72px;border-radius:50%;background:rgba(255,18,65,0.9);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(255,18,65,0.6);transition:transform 0.2s;">
+                    <svg viewBox="0 0 24 24" fill="white" width="28" height="28" style="margin-left:4px"><path d="M8 5v14l11-7z"/></svg>
+                </div>`;
+                wrapper.appendChild(overlay);
+
+                // ── Controls bar ──
+                const bar = document.createElement('div');
+                bar.className = 'ds-video-bar';
+                bar.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:24px 16px 12px;background:linear-gradient(to top,rgba(0,0,0,0.9),transparent);z-index:6;display:flex;flex-direction:column;gap:8px;transition:opacity 0.3s;opacity:0;';
+
+                // Progress row
+                const progressWrap = document.createElement('div');
+                progressWrap.style.cssText = 'position:relative;height:4px;border-radius:2px;background:rgba(255,255,255,0.15);cursor:pointer;overflow:hidden;';
+                const progressFill = document.createElement('div');
+                progressFill.style.cssText = 'position:absolute;inset-y:0;left:0;background:#ff1241;border-radius:2px;width:0%;box-shadow:0 0 8px rgba(255,18,65,0.8);transition:width 0.1s linear;';
+                const progressInput = document.createElement('input');
+                progressInput.type = 'range'; progressInput.min = '0'; progressInput.max = '1'; progressInput.step = '0.001'; progressInput.value = '0';
+                progressInput.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;';
+                progressWrap.appendChild(progressFill);
+                progressWrap.appendChild(progressInput);
+
+                // Buttons row
+                const btnRow = document.createElement('div');
+                btnRow.style.cssText = 'display:flex;align-items:center;gap:10px;';
+
+                const mkBtn = (svg: string, title: string) => {
+                    const b = document.createElement('button');
+                    b.className = 'yt-btn'; b.title = title;
+                    b.innerHTML = svg; return b;
+                };
+
+                const playSVG  = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>`;
+                const pauseSVG = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+                const muteSVG  = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM11 5.27L8.74 7.53 11 9.79V5.27z"/></svg>`;
+                const soundSVG = `<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>`;
+                const fsSVG    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`;
+
+                const playBtn = mkBtn(playSVG, 'Play / Pause');
+                const muteBtn = mkBtn(soundSVG, 'Couper le son');
+                const label   = document.createElement('span'); label.className = 'yt-vol-label'; label.textContent = 'SON';
+                const volSlider = document.createElement('input');
+                volSlider.className = 'yt-volume-slider'; volSlider.type = 'range'; volSlider.min = '0'; volSlider.max = '1'; volSlider.step = '0.01'; volSlider.value = '1';
+                const timeLabel = document.createElement('span');
+                timeLabel.style.cssText = 'margin-left:auto;font-size:10px;font-family:monospace;color:rgba(255,255,255,0.5);white-space:nowrap;';
+                timeLabel.textContent = '0:00 / 0:00';
+                const fsBtn = mkBtn(fsSVG, 'Plein écran');
+
+                btnRow.append(playBtn, muteBtn, label, volSlider, timeLabel, fsBtn);
+                bar.appendChild(progressWrap);
+                bar.appendChild(btnRow);
+                wrapper.appendChild(bar);
+
+                // ── Helpers ──
+                const fmt = (s: number) => { const m = Math.floor(s/60); return `${m}:${Math.floor(s%60).toString().padStart(2,'0')}`; };
+
+                const updatePlay = () => {
+                    playBtn.innerHTML = playing ? pauseSVG : playSVG;
+                    overlay.style.opacity = playing ? '0' : '1';
+                    overlay.style.pointerEvents = playing ? 'none' : 'auto';
+                };
+                const updateMute = () => {
+                    muteBtn.innerHTML = isMuted ? muteSVG : soundSVG;
+                };
+
+                // Auto-show/hide bar
+                let hideT: ReturnType<typeof setTimeout> | null = null;
+                const showBar = () => { bar.style.opacity = '1'; if (hideT) clearTimeout(hideT); if (playing) hideT = setTimeout(() => { bar.style.opacity = '0'; }, 2500); };
+                wrapper.addEventListener('mousemove', showBar);
+                wrapper.addEventListener('mouseleave', () => { if (playing) bar.style.opacity = '0'; });
+
+                // ── Events ──
+                overlay.addEventListener('click', () => { video.play(); playing = true; updatePlay(); showBar(); });
+                playBtn.addEventListener('click', () => {
+                    if (video.paused) { video.play(); playing = true; } else { video.pause(); playing = false; }
+                    updatePlay(); showBar();
+                });
+                muteBtn.addEventListener('click', () => {
+                    isMuted = !isMuted; video.muted = isMuted; updateMute();
+                    volSlider.value = isMuted ? '0' : String(vol);
+                });
+                volSlider.addEventListener('input', () => {
+                    vol = parseFloat(volSlider.value); video.volume = vol;
+                    if (vol === 0) { isMuted = true; video.muted = true; } else { isMuted = false; video.muted = false; }
+                    updateMute();
+                });
+                progressInput.addEventListener('input', () => {
+                    video.currentTime = parseFloat(progressInput.value) * video.duration;
+                });
+                fsBtn.addEventListener('click', () => {
+                    if (document.fullscreenElement) document.exitFullscreen();
+                    else wrapper.requestFullscreen?.();
+                });
+                video.addEventListener('timeupdate', () => {
+                    if (!video.duration) return;
+                    const pct = video.currentTime / video.duration;
+                    progressFill.style.width = `${pct * 100}%`;
+                    progressInput.value = String(pct);
+                    timeLabel.textContent = `${fmt(video.currentTime)} / ${fmt(video.duration)}`;
+                });
+                video.addEventListener('play',  () => { playing = true;  updatePlay(); });
+                video.addEventListener('pause', () => { playing = false; updatePlay(); bar.style.opacity = '1'; });
+                video.addEventListener('ended', () => { playing = false; updatePlay(); bar.style.opacity = '1'; });
+                wrapper.addEventListener('mouseenter', showBar);
+            });
+        };
+
+        const t2 = setTimeout(initInlineVideoPlayers, 600);
+        return () => clearTimeout(t2);
+    }, [displayContent]);
+
     const backLink = type === 'recap' ? '/recaps' : (isInterview ? '/interviews' : '/news');
     const backText = type === 'recap'
         ? t('recap_detail.back_to_recaps')
@@ -1071,7 +1379,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 {/* Video Section - High Priority for Recap/Interview */}
                                 {article.youtubeId &&
                                     (article.category === 'Interview' || article.category === 'Interviews' ? article.showVideo === true : article.showVideo !== false) &&
-                                    !article.category?.includes('Interview Video') && (
+                                    !article.category?.includes('Interview Video') && (() => {
+                                        const isUploadedVideo = /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(article.youtubeId);
+                                        return (
                                         <div className="mt-16 mb-16">
                                             <h3 className="flex items-center gap-5 mb-12 group">
                                                 <div className="w-14 h-14 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 group-hover:bg-neon-red/20 transition-all shadow-[0_0_20px_rgba(255,0,51,0.1)]">
@@ -1086,77 +1396,87 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                     </span>
                                                 </div>
                                             </h3>
-                                            <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
-                                                <iframe
-                                                    ref={dedicatedPlayerRef}
-                                                    src={`https://www.youtube-nocookie.com/embed/${extractId(article.youtubeId)}?enablejsapi=1&origin=${window.location.origin}&autoplay=1&mute=1`}
-                                                    className="absolute top-0 left-0 w-full h-full"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                                    allowFullScreen
-                                                    referrerPolicy="strict-origin-when-cross-origin"
-                                                    id={`yt-player-${extractId(article.youtubeId)}`}
-                                                />
-                                            </div>
-                                            {/* Custom React control bar for dedicated player */}
-                                            <div className="yt-controls-bar">
-                                                <button
-                                                    className="yt-btn"
-                                                    title={ytDedicatedPlaying ? 'Pause' : 'Play'}
-                                                    onClick={() => {
-                                                        if (ytDedicatedPlaying) {
-                                                            ytMsg(dedicatedPlayerRef.current, 'pauseVideo');
-                                                            setYtDedicatedPlaying(false);
-                                                        } else {
-                                                            ytMsg(dedicatedPlayerRef.current, 'playVideo');
-                                                            setYtDedicatedPlaying(true);
-                                                        }
-                                                    }}
-                                                >
-                                                    {ytDedicatedPlaying
-                                                        ? <Pause className="w-4 h-4" />
-                                                        : <Play className="w-4 h-4" />}
-                                                </button>
-                                                <button
-                                                    className="yt-btn"
-                                                    title={ytDedicatedMuted ? 'Activer le son' : 'Couper le son'}
-                                                    onClick={() => {
-                                                        if (ytDedicatedMuted) {
-                                                            ytMsg(dedicatedPlayerRef.current, 'unMute');
-                                                            ytMsg(dedicatedPlayerRef.current, 'setVolume', [ytDedicatedVolume]);
-                                                            setYtDedicatedMuted(false);
-                                                        } else {
-                                                            ytMsg(dedicatedPlayerRef.current, 'mute');
-                                                            setYtDedicatedMuted(true);
-                                                        }
-                                                    }}
-                                                >
-                                                    {ytDedicatedMuted
-                                                        ? <VolumeX className="w-4 h-4" />
-                                                        : <Volume2 className="w-4 h-4" />}
-                                                </button>
-                                                <span className="yt-vol-label">SON</span>
-                                                <input
-                                                    type="range"
-                                                    min="0"
-                                                    max="100"
-                                                    value={ytDedicatedVolume}
-                                                    className="yt-volume-slider"
-                                                    onChange={(e) => {
-                                                        const vol = parseInt(e.target.value);
-                                                        setYtDedicatedVolume(vol);
-                                                        ytMsg(dedicatedPlayerRef.current, 'setVolume', [vol]);
-                                                        if (vol === 0) {
-                                                            ytMsg(dedicatedPlayerRef.current, 'mute');
-                                                            setYtDedicatedMuted(true);
-                                                        } else if (ytDedicatedMuted) {
-                                                            ytMsg(dedicatedPlayerRef.current, 'unMute');
-                                                            setYtDedicatedMuted(false);
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
+
+                                            {isUploadedVideo ? (
+                                                /* ── Native HTML5 player for uploaded videos ── */
+                                                <UploadedVideoPlayer src={resolveImageUrl(article.youtubeId)} />
+                                            ) : (
+                                                /* ── YouTube iframe player ── */
+                                                <>
+                                                <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
+                                                    <iframe
+                                                        ref={dedicatedPlayerRef}
+                                                        src={`https://www.youtube-nocookie.com/embed/${extractId(article.youtubeId)}?enablejsapi=1&origin=${window.location.origin}&autoplay=1&mute=1`}
+                                                        className="absolute top-0 left-0 w-full h-full"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                        allowFullScreen
+                                                        referrerPolicy="strict-origin-when-cross-origin"
+                                                        id={`yt-player-${extractId(article.youtubeId)}`}
+                                                    />
+                                                </div>
+                                                {/* Custom React control bar for dedicated YouTube player */}
+                                                <div className="yt-controls-bar">
+                                                    <button
+                                                        className="yt-btn"
+                                                        title={ytDedicatedPlaying ? 'Pause' : 'Play'}
+                                                        onClick={() => {
+                                                            if (ytDedicatedPlaying) {
+                                                                ytMsg(dedicatedPlayerRef.current, 'pauseVideo');
+                                                                setYtDedicatedPlaying(false);
+                                                            } else {
+                                                                ytMsg(dedicatedPlayerRef.current, 'playVideo');
+                                                                setYtDedicatedPlaying(true);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {ytDedicatedPlaying
+                                                            ? <Pause className="w-4 h-4" />
+                                                            : <Play className="w-4 h-4" />}
+                                                    </button>
+                                                    <button
+                                                        className="yt-btn"
+                                                        title={ytDedicatedMuted ? 'Activer le son' : 'Couper le son'}
+                                                        onClick={() => {
+                                                            if (ytDedicatedMuted) {
+                                                                ytMsg(dedicatedPlayerRef.current, 'unMute');
+                                                                ytMsg(dedicatedPlayerRef.current, 'setVolume', [ytDedicatedVolume]);
+                                                                setYtDedicatedMuted(false);
+                                                            } else {
+                                                                ytMsg(dedicatedPlayerRef.current, 'mute');
+                                                                setYtDedicatedMuted(true);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {ytDedicatedMuted
+                                                            ? <VolumeX className="w-4 h-4" />
+                                                            : <Volume2 className="w-4 h-4" />}
+                                                    </button>
+                                                    <span className="yt-vol-label">SON</span>
+                                                    <input
+                                                        type="range"
+                                                        min="0"
+                                                        max="100"
+                                                        value={ytDedicatedVolume}
+                                                        className="yt-volume-slider"
+                                                        onChange={(e) => {
+                                                            const vol = parseInt(e.target.value);
+                                                            setYtDedicatedVolume(vol);
+                                                            ytMsg(dedicatedPlayerRef.current, 'setVolume', [vol]);
+                                                            if (vol === 0) {
+                                                                ytMsg(dedicatedPlayerRef.current, 'mute');
+                                                                setYtDedicatedMuted(true);
+                                                            } else if (ytDedicatedMuted) {
+                                                                ytMsg(dedicatedPlayerRef.current, 'unMute');
+                                                                setYtDedicatedMuted(false);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                                </>
+                                            )}
                                         </div>
-                                    )}
+                                        );
+                                    })()}
 
                                 {/* Gallery - Show for all except specifically requested exclusions */}
                                 {(article.images && article.images.length > 1 && type === 'recap') && (

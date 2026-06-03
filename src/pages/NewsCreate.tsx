@@ -515,7 +515,7 @@ export function NewsCreate() {
         width: 100
     });
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo-image' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string, allowMultiple?: boolean }>({ type: 'main' });
+    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo-image' | 'interview-media' | 'video-article', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string, allowMultiple?: boolean }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
     const [showVideo, setShowVideo] = useState(type !== 'Interview' || (type === 'Interview' && (searchParams.get('subtype') === 'video')));
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -2419,8 +2419,17 @@ ${generateSocialsHtml()}
                                             initial={{ opacity: 0, height: 0 }}
                                             animate={{ opacity: 1, height: 'auto' }}
                                             exit={{ opacity: 0, height: 0 }}
-                                            className="space-y-4"
+                                            className="space-y-3"
                                         >
+                                            {/* Video type selector */}
+                                            {youtubeId && (
+                                                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg w-fit text-[9px] font-black uppercase tracking-widest border ${/\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(youtubeId) ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                                                    {/\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(youtubeId)
+                                                        ? <><span>🎬</span> Vidéo uploadée</>
+                                                        : <><span>▶️</span> YouTube</>
+                                                    }
+                                                </div>
+                                            )}
                                             <div className="flex gap-2">
                                                 <input
                                                     type="text"
@@ -2436,7 +2445,7 @@ ${generateSocialsHtml()}
                                                         }
                                                         setYoutubeId(val);
 
-                                                        // Auto-fetch info
+                                                        // Auto-fetch YouTube info
                                                         if (val.length === 11) {
                                                             try {
                                                                 const resp = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${val}`);
@@ -2474,26 +2483,41 @@ ${generateSocialsHtml()}
                                                         }
                                                     }}
                                                     className="flex-1 bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                                    placeholder="ID ou URL YouTube"
+                                                    placeholder="ID YouTube — ou colle l'URL d'une vidéo uploadée"
                                                 />
-                                                <div className="flex gap-1 items-center">
-                                                    <StyledCheckbox
-                                                        checked={videoAutoplay}
-                                                        onChange={setVideoAutoplay}
-                                                        label="Autoplay"
-                                                        colorClass="neon-green"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => { setVideoStartTime(90); setVideoAutoplay(true); }}
-                                                        className={`px-3 py-2 rounded-lg border text-[8px] font-bold uppercase transition-all ${videoStartTime === 90 ? 'bg-neon-red border-neon-red text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
-                                                    >1:30</button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => { setVideoStartTime(105); setVideoAutoplay(true); }}
-                                                        className={`px-3 py-2 rounded-lg border text-[8px] font-bold uppercase transition-all ${videoStartTime === 105 ? 'bg-neon-red border-neon-red text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
-                                                    >1:45</button>
-                                                </div>
+                                                {/* Upload video button */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setUploadTarget({ type: 'video-article', initialImage: '' });
+                                                        setShowUploadModal(true);
+                                                    }}
+                                                    className="px-4 py-3 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-neon-cyan/20 transition-all flex items-center gap-2 whitespace-nowrap"
+                                                    title="Uploader une vidéo"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                                    Upload
+                                                </button>
+                                                {!(type === 'Interview' && interviewSubtype === 'video') && (
+                                                    <div className="flex gap-1 items-center">
+                                                        <StyledCheckbox
+                                                            checked={videoAutoplay}
+                                                            onChange={setVideoAutoplay}
+                                                            label="Autoplay"
+                                                            colorClass="neon-green"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => { setVideoStartTime(90); setVideoAutoplay(true); }}
+                                                            className={`px-3 py-2 rounded-lg border text-[8px] font-bold uppercase transition-all ${videoStartTime === 90 ? 'bg-neon-red border-neon-red text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                        >1:30</button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => { setVideoStartTime(105); setVideoAutoplay(true); }}
+                                                            className={`px-3 py-2 rounded-lg border text-[8px] font-bold uppercase transition-all ${videoStartTime === 105 ? 'bg-neon-red border-neon-red text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                        >1:45</button>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {suggestedTitles.length > 0 && (
@@ -4709,6 +4733,9 @@ ${generateSocialsHtml()}
                         setShowUploadModal(false);
                     } else if (uploadTarget.type === 'duo2' as any) {
                         setDuoModal(prev => ({ ...prev, url2: actualUrl }));
+                        setShowUploadModal(false);
+                    } else if (uploadTarget.type === 'video-article') {
+                        setYoutubeId(actualUrl);
                         setShowUploadModal(false);
                     } else if (uploadTarget.type === 'interview-media') {
                         setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: actualUrl } : q));
