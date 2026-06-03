@@ -205,9 +205,9 @@ export function GlobalPlayerContainer() {
                 
                 ctx.beginPath();
                 if ((ctx as any).roundRect) {
-                    (ctx as any).roundRect(140, cY - 55, 800, 110, 55);
+                    (ctx as any).roundRect(270, cY - 45, 540, 90, 45);
                 } else {
-                    ctx.rect(140, cY - 55, 800, 110);
+                    ctx.rect(270, cY - 45, 540, 90);
                 }
                 ctx.stroke();
                 ctx.restore();
@@ -216,9 +216,9 @@ export function GlobalPlayerContainer() {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
                 ctx.beginPath();
                 if ((ctx as any).roundRect) {
-                    (ctx as any).roundRect(140, cY - 55, 800, 110, 55);
+                    (ctx as any).roundRect(270, cY - 45, 540, 90, 45);
                 } else {
-                    ctx.rect(140, cY - 55, 800, 110);
+                    ctx.rect(270, cY - 45, 540, 90);
                 }
                 ctx.fill();
 
@@ -229,9 +229,9 @@ export function GlobalPlayerContainer() {
 
                 // Instruction text inside placeholder
                 ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 26px Arial';
+                ctx.font = 'bold 22px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText('🔗   PLACE TON STICKER LIEN ICI   🔗', 540, cY + 9);
+                ctx.fillText('🔗   PLACE TON STICKER LIEN ICI   🔗', 540, cY + 8);
 
                 // ── ANIMATED WAVEFORM (REACTIVE) ──
                 const totalBars = 32, wsx = 120, wex = 960, wy = 1330;

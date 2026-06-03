@@ -28,7 +28,7 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
     shareUrl,
     shareText
 }) => {
-    const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+    const isMobile = !!(/iPad|iPhone|iPod|Android/.test(navigator.userAgent) || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0));
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isInAppBrowser = /Instagram|FBAN|FBAV|Snapchat|TikTok/i.test(navigator.userAgent);
     const [showIosHint, setShowIosHint] = useState(false);
@@ -205,6 +205,67 @@ export const ExportSuccessModal: React.FC<ExportSuccessModalProps> = ({
                                 >
                                     🔗 {copied ? "Lien Copié !" : "Copier le Lien du Mix"}
                                 </button>
+                            )}
+
+                            {shareUrl && (
+                                <div className="w-full py-2.5 flex flex-col items-center gap-3 border-t border-b border-white/5 my-1">
+                                    <span className="text-[8px] font-black text-gray-500 uppercase tracking-[0.25em]">
+                                        Partager le lien sur vos réseaux
+                                    </span>
+                                    <div className="flex items-center justify-center gap-4">
+                                        {/* X (Twitter) */}
+                                        <a
+                                            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText || 'Écoute mon mix sur Dropsiders ! 🎧🔥')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:border-neon-cyan/50 hover:bg-white/10 hover:text-neon-cyan transition-all flex items-center justify-center text-white/70"
+                                            title="Partager sur X (Twitter)"
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                                            </svg>
+                                        </a>
+
+                                        {/* Facebook */}
+                                        <a
+                                            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:border-neon-cyan/50 hover:bg-white/10 hover:text-neon-cyan transition-all flex items-center justify-center text-white/70"
+                                            title="Partager sur Facebook"
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                                                <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z"/>
+                                            </svg>
+                                        </a>
+
+                                        {/* WhatsApp */}
+                                        <a
+                                            href={`https://api.whatsapp.com/send?text=${encodeURIComponent((shareText || 'Écoute mon mix sur Dropsiders ! 🎧🔥') + ' ' + shareUrl)}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:border-neon-cyan/50 hover:bg-white/10 hover:text-neon-cyan transition-all flex items-center justify-center text-white/70"
+                                            title="Partager sur WhatsApp"
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                                                <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 0 0 1.335 4.963L2 22l5.233-1.371a9.963 9.963 0 0 0 4.775 1.217h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.669-1.037-5.176-2.922-7.062A9.921 9.921 0 0 0 12.012 2zm5.727 14.123c-.253.708-1.47 1.298-2.022 1.353-.5.05-1.15.27-3.48-.69-2.98-1.22-4.9-4.27-5.05-4.47-.15-.2-1.23-1.63-1.23-3.11 0-1.48.77-2.2 1.04-2.5.27-.3.59-.37.79-.37.2 0 .4.01.57.02.18.01.41-.07.65.5.24.58.81 1.98.88 2.13.07.15.12.33.02.52-.1.2-.15.3-.3.48-.15.18-.3.38-.45.53-.15.15-.3.32-.13.62.17.3 1.1 1.8 2.37 2.93 1.63 1.45 3.01 1.9 3.44 2.11.43.2.69.17.95-.12.26-.3 1.13-1.31 1.43-1.76.3-.45.59-.38.99-.23.4.15 2.53 1.19 2.97 1.41.44.22.73.33.84.52.11.19.11 1.09-.14 1.8z"/>
+                                            </svg>
+                                        </a>
+
+                                        {/* Telegram */}
+                                        <a
+                                            href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText || 'Écoute mon mix sur Dropsiders ! 🎧🔥')}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:border-neon-cyan/50 hover:bg-white/10 hover:text-neon-cyan transition-all flex items-center justify-center text-white/70"
+                                            title="Partager sur Telegram"
+                                        >
+                                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="margin-right:2px">
+                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.18-.08-.04-.19-.01-.27.01-.12.02-1.96 1.24-5.52 3.65-.52.36-.97.53-1.34.52-.41-.01-1.2-.23-1.79-.42-.72-.24-1.29-.36-1.24-.77.03-.21.32-.43.88-.65 3.43-1.49 5.72-2.48 6.87-2.97 3.28-1.39 3.96-1.63 4.4-.15.1.18.23.53.22.75z"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
                             )}
 
                             {isIOS && type === 'video' && !isInAppBrowser && (
