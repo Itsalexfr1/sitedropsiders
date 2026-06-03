@@ -1059,44 +1059,11 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                 for (let y = 0; y < 1920; y += 54) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1080, y); ctx.stroke(); }
 
                 // Glow orb
-                const glow = ctx.createRadialGradient(540, 860, 0, 540, 860, 500);
+                const glow = ctx.createRadialGradient(540, 900, 0, 540, 900, 500);
                 glow.addColorStop(0, 'rgba(255,255,255,0.08)'); glow.addColorStop(1, 'transparent');
                 ctx.fillStyle = glow; ctx.fillRect(0, 0, 1080, 1920);
 
-                // ── TOP PLACEHOLDER FOR LINK STICKER ──
                 const edgeColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055';
-                ctx.save();
-                ctx.strokeStyle = edgeColor;
-                ctx.lineWidth = 4;
-                ctx.setLineDash([15, 10]); // dashed pattern
-                ctx.lineDashOffset = -frame * 0.8; // marching ants animation effect
-                ctx.shadowColor = edgeColor;
-                ctx.shadowBlur = 18;
-                
-                ctx.beginPath();
-                if ((ctx as any).roundRect) {
-                    (ctx as any).roundRect(140, 70, 800, 110, 55);
-                } else {
-                    ctx.rect(140, 70, 800, 110);
-                }
-                ctx.stroke();
-                ctx.restore();
-
-                // Faint fill inside
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
-                ctx.beginPath();
-                if ((ctx as any).roundRect) {
-                    (ctx as any).roundRect(140, 70, 800, 110, 55);
-                } else {
-                    ctx.rect(140, 70, 800, 110);
-                }
-                ctx.fill();
-
-                // Instruction text inside placeholder
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 26px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('🔗   PLACE TON STICKER LIEN ICI   🔗', 540, 136);
 
                 // ── HEADER ──
                 ctx.shadowColor = storyTheme === 'acid' ? '#39ff14' : '#ff0055'; ctx.shadowBlur = 40;
@@ -1106,7 +1073,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                 ctx.fillText('LIVE RECORD MIX', 540, 365);
 
                 // ── ROTATING VINYL ──
-                const cX = 540, cY = 860;
+                const cX = 540, cY = 900;
                 ctx.save();
                 ctx.translate(cX, cY); ctx.rotate(rotation); ctx.translate(-cX, -cY);
                 // Outer disc
@@ -1123,10 +1090,45 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                 ctx.beginPath(); ctx.arc(cX, cY, 352, 0.3 + Math.PI, 1.7 + Math.PI); ctx.stroke();
                 ctx.shadowBlur = 0;
                 ctx.restore();
-                // Center label (static)
-                ctx.beginPath(); ctx.arc(cX, cY, 108, 0, Math.PI * 2); ctx.fillStyle = '#ff0033'; ctx.fill();
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 44px Arial'; ctx.textAlign = 'center';
-                ctx.fillText('DS', cX, cY + 16);
+
+                // ── CENTER PLACEHOLDER FOR LINK STICKER ──
+                ctx.save();
+                ctx.strokeStyle = edgeColor;
+                ctx.lineWidth = 4;
+                ctx.setLineDash([15, 10]); // dashed pattern
+                ctx.lineDashOffset = -frame * 0.8; // marching ants animation effect
+                ctx.shadowColor = edgeColor;
+                ctx.shadowBlur = 18;
+                
+                ctx.beginPath();
+                if ((ctx as any).roundRect) {
+                    (ctx as any).roundRect(140, cY - 55, 800, 110, 55);
+                } else {
+                    ctx.rect(140, cY - 55, 800, 110);
+                }
+                ctx.stroke();
+                ctx.restore();
+
+                // Fill inside with high contrast dark pill
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                ctx.beginPath();
+                if ((ctx as any).roundRect) {
+                    (ctx as any).roundRect(140, cY - 55, 800, 110, 55);
+                } else {
+                    ctx.rect(140, cY - 55, 800, 110);
+                }
+                ctx.fill();
+
+                // Faint inner border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Instruction text inside placeholder
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 26px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🔗   PLACE TON STICKER LIEN ICI   🔗', 540, cY + 9);
 
                 // ── ANIMATED WAVEFORM (REACTIVE) ──
                 const totalBars = 32, wsx = 120, wex = 960, wy = 1330;

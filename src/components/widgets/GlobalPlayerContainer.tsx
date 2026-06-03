@@ -168,40 +168,6 @@ export function GlobalPlayerContainer() {
                 glow.addColorStop(0, 'rgba(168,85,247,0.28)'); glow.addColorStop(0.6, 'rgba(168,85,247,0.05)'); glow.addColorStop(1, 'transparent');
                 ctx.fillStyle = glow; ctx.fillRect(0, 0, 1080, 1920);
 
-                // ── TOP PLACEHOLDER FOR LINK STICKER ──
-                ctx.save();
-                ctx.strokeStyle = '#a855f7';
-                ctx.lineWidth = 4;
-                ctx.setLineDash([15, 10]); // dashed pattern
-                ctx.lineDashOffset = -frame * 0.8; // marching ants animation effect
-                ctx.shadowColor = '#a855f7';
-                ctx.shadowBlur = 18;
-                
-                ctx.beginPath();
-                if ((ctx as any).roundRect) {
-                    (ctx as any).roundRect(140, 70, 800, 110, 55);
-                } else {
-                    ctx.rect(140, 70, 800, 110);
-                }
-                ctx.stroke();
-                ctx.restore();
-
-                // Faint fill inside
-                ctx.fillStyle = 'rgba(168, 85, 247, 0.04)';
-                ctx.beginPath();
-                if ((ctx as any).roundRect) {
-                    (ctx as any).roundRect(140, 70, 800, 110, 55);
-                } else {
-                    ctx.rect(140, 70, 800, 110);
-                }
-                ctx.fill();
-
-                // Instruction text inside placeholder
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 26px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('🔗   PLACE TON STICKER LIEN ICI   🔗', 540, 136);
-
                 // ── HEADER ──
                 ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 35;
                 ctx.fillStyle = '#ffffff'; ctx.font = 'italic bold 90px Arial'; ctx.textAlign = 'center';
@@ -227,12 +193,45 @@ export function GlobalPlayerContainer() {
                 ctx.beginPath(); ctx.arc(cX, cY, 312, 0.3 + Math.PI, 1.9 + Math.PI); ctx.stroke();
                 ctx.shadowBlur = 0;
                 ctx.restore();
-                // Center label (static)
-                const lg = ctx.createRadialGradient(cX, cY, 0, cX, cY, 95);
-                lg.addColorStop(0, '#7c3aed'); lg.addColorStop(1, '#4c1d95');
-                ctx.beginPath(); ctx.arc(cX, cY, 95, 0, Math.PI * 2); ctx.fillStyle = lg; ctx.fill();
-                ctx.fillStyle = '#fff'; ctx.font = 'italic bold 52px Arial'; ctx.textAlign = 'center';
-                ctx.fillText('DS', cX, cY + 19);
+
+                // ── CENTER PLACEHOLDER FOR LINK STICKER ──
+                ctx.save();
+                ctx.strokeStyle = '#a855f7';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([15, 10]); // dashed pattern
+                ctx.lineDashOffset = -frame * 0.8; // marching ants animation effect
+                ctx.shadowColor = '#a855f7';
+                ctx.shadowBlur = 18;
+                
+                ctx.beginPath();
+                if ((ctx as any).roundRect) {
+                    (ctx as any).roundRect(140, cY - 55, 800, 110, 55);
+                } else {
+                    ctx.rect(140, cY - 55, 800, 110);
+                }
+                ctx.stroke();
+                ctx.restore();
+
+                // Fill inside with high contrast dark pill
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                ctx.beginPath();
+                if ((ctx as any).roundRect) {
+                    (ctx as any).roundRect(140, cY - 55, 800, 110, 55);
+                } else {
+                    ctx.rect(140, cY - 55, 800, 110);
+                }
+                ctx.fill();
+
+                // Faint inner border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Instruction text inside placeholder
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 26px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🔗   PLACE TON STICKER LIEN ICI   🔗', 540, cY + 9);
 
                 // ── ANIMATED WAVEFORM (REACTIVE) ──
                 const totalBars = 32, wsx = 120, wex = 960, wy = 1330;
