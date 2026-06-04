@@ -267,15 +267,6 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                         }
                     });
 
-                    // Set up interval to track YT current time
-                    const checkTimeInterval = setInterval(() => {
-                        if (ytPlayerRef.current && ytPlayerRef.current.getCurrentTime && isPlaying) {
-                            setCurrentTime(ytPlayerRef.current.getCurrentTime());
-                            setDuration(ytPlayerRef.current.getDuration() || 0);
-                        }
-                    }, 500);
-
-                    return () => clearInterval(checkTimeInterval);
                 } catch (e) {
                     console.error("YT Player binding error", e);
                 }
@@ -287,7 +278,23 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
         return () => {
             if (ytTimer) clearTimeout(ytTimer);
         };
-    }, [isYouTube, ytStatus, iframeId, isPlaying, track.embedUrl]);
+    }, [isYouTube, ytStatus, iframeId, track.embedUrl]);
+
+    // Always poll YouTube current time (independent of isPlaying state)
+    useEffect(() => {
+        if (!isYouTube) return;
+        const ytPollInterval = setInterval(() => {
+            if (ytPlayerRef.current && ytPlayerRef.current.getCurrentTime) {
+                try {
+                    const t = ytPlayerRef.current.getCurrentTime();
+                    if (typeof t === 'number') setCurrentTime(t);
+                    const d = ytPlayerRef.current.getDuration?.();
+                    if (d) setDuration(d);
+                } catch (_) {}
+            }
+        }, 500);
+        return () => clearInterval(ytPollInterval);
+    }, [isYouTube]);
 
     // Auto-check which track is playing based on timestamps
     useEffect(() => {
