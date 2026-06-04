@@ -96,6 +96,7 @@ export function PublicProfile() {
     const [profile, setProfile] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'cards' | 'mixes' | 'reviews'>('cards');
     const [playingMixId, setPlayingMixId] = useState<string | null>(null);
+    const [selectedCardForPreview, setSelectedCardForPreview] = useState<any | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const playTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const trackedPlaysRef = useRef<Set<string>>(new Set());
@@ -291,13 +292,20 @@ export function PublicProfile() {
                                 {sortedCards.length > 0 ? (
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 justify-items-center">
                                         {sortedCards.map(({ card, count }) => (
-                                            <div key={card.id} className="relative group">
+                                            <div key={card.id} className="relative group cursor-pointer" onClick={() => setSelectedCardForPreview(card)}>
                                                 {count > 1 && (
                                                     <div className="absolute top-2 left-2 z-40 bg-amber-500 text-black text-[9px] font-black px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]">
                                                         x{count}
                                                     </div>
                                                 )}
-                                                <DropsidersCardComponent card={card} scale={0.75} />
+                                                <div className="transition-transform duration-300 group-hover:scale-105">
+                                                    <DropsidersCardComponent card={card} scale={0.75} />
+                                                </div>
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                                    <div className="bg-black/60 backdrop-blur-sm rounded-xl px-3 py-1.5 border border-white/20">
+                                                        <span className="text-[9px] font-black text-white uppercase tracking-widest">Agrandir</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -456,6 +464,51 @@ export function PublicProfile() {
                 </AnimatePresence>
 
             </div>
+
+            {/* FULLSCREEN CARD PREVIEW MODAL */}
+            <AnimatePresence>
+                {selectedCardForPreview && (
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedCardForPreview(null)}
+                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                        />
+
+                        {/* Modal Container */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="relative z-10 flex flex-col items-center gap-6"
+                        >
+                            {/* Card agrandie avec flip */}
+                            <DropsidersCardComponent
+                                card={selectedCardForPreview}
+                                flippable={true}
+                                scale={1.4}
+                            />
+
+                            {/* Info & bouton fermer */}
+                            <div className="text-center space-y-2">
+                                <p className="text-[10px] font-black tracking-[0.3em] text-white/40 uppercase">
+                                    Clique sur la carte pour la retourner
+                                </p>
+                                <button
+                                    onClick={() => setSelectedCardForPreview(null)}
+                                    className="mt-2 px-6 py-2.5 bg-white/10 hover:bg-white/25 border border-white/10 text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95"
+                                >
+                                    Fermer
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
