@@ -75,6 +75,30 @@ export function AdminMembersList({ onEditPermissions, authHeaders, filterStatus,
         return matchesSearch && matchesStatus;
     });
 
+    const handleToggleNewsletter = async (user: CommunityUser & { isSubscribedToNewsletter?: boolean }) => {
+        const isCurrentlySub = user.isSubscribedToNewsletter;
+        const endpoint = isCurrentlySub ? '/api/unsubscribe' : '/api/subscribe';
+        try {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ email: user.email })
+            });
+            if (res.ok) {
+                setUsers(prev => prev.map(u =>
+                    u.email === user.email
+                        ? { ...u, isSubscribedToNewsletter: !isCurrentlySub }
+                        : u
+                ));
+            } else {
+                const err = await res.json().catch(() => ({}));
+                console.error('[Newsletter] Error:', err);
+            }
+        } catch (e) {
+            console.error('[Newsletter] Fetch error:', e);
+        }
+    };
+
     const handleApproveMix = async (email: string, status: 'approved' | 'none') => {
         try {
             const res = await fetch('/api/admin/users/approve-mix', {
@@ -209,19 +233,19 @@ export function AdminMembersList({ onEditPermissions, authHeaders, filterStatus,
                                             />
                                         </td>
                                         <td className="py-4 px-6 text-center">
-                                            <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                                                user.isSubscribedToNewsletter 
-                                                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                                                    : 'bg-red-500/10 text-red-500 border border-red-500/20'
-                                            }`}>
-                                                {user.isSubscribedToNewsletter ? 'Abonné' : 'Non'}
-                                            </span>
+                                            <input
+                                                type="checkbox"
+                                                checked={!!user.isSubscribedToNewsletter}
+                                                onChange={() => handleToggleNewsletter(user)}
+                                                className="w-4 h-4 rounded border-white/20 bg-white/5 text-green-400 focus:ring-0 focus:ring-offset-0 cursor-pointer accent-green-400"
+                                                title={user.isSubscribedToNewsletter ? "Désinscrire de la newsletter" : "Inscrire à la newsletter"}
+                                            />
                                         </td>
                                         <td className="py-4 px-6 text-right">
                                             <div className="flex justify-end gap-2">
                                                 <button 
-                                                    className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-neon-red hover:text-white transition-all shadow-xl"
-                                                    title="Donner/Modifier les accès admin"
+                                                    className="p-2 bg-neon-red/10 hover:bg-neon-red border border-neon-red/20 hover:border-neon-red rounded-lg text-neon-red hover:text-white transition-all shadow-xl"
+                                                    title="Donner/Modifier les droits Admin"
                                                     onClick={() => onEditPermissions && onEditPermissions(user.email)}
                                                 >
                                                     <ShieldAlert className="w-3.5 h-3.5" />
@@ -371,9 +395,10 @@ export function AdminMembersList({ onEditPermissions, authHeaders, filterStatus,
                 )}
             </AnimatePresence>
             
-            <div className="p-6 bg-neon-cyan/5 border border-neon-cyan/10 rounded-3xl">
-                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">
-                    Astuce : Pour donner des accès Admin ou Éditeur, rendez-vous dans l'onglet **TEAM** et ajoutez l'email du membre dans la section "Gestion Éditeurs".
+            <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl flex items-center gap-4">
+                <ShieldAlert className="w-4 h-4 text-neon-red shrink-0" />
+                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest italic">
+                    Cliquez sur l'icône <span className="text-neon-red">bouclier</span> pour ouvrir la gestion des droits d'un membre dans l'onglet Éditeurs.
                 </p>
             </div>
         </div>

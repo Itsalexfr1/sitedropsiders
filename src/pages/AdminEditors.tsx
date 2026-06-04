@@ -123,6 +123,7 @@ export function AdminEditors() {
     useEffect(() => {
         if (initialEmail) {
             setNewEditor(prev => ({ ...prev, email: initialEmail }));
+            setShowAddModal(true); // Auto-open modal when email is pre-filled from URL
         }
     }, [initialEmail]);
 

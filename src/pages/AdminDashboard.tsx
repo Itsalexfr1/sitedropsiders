@@ -12559,7 +12559,7 @@ export function AdminDashboard() {
                             authHeaders={getAuthHeaders()}
                             onEditPermissions={(email) => {
                               setTeamModalTab("EDITORS");
-                              // You could also auto-open editor edit here if needed
+                              navigate(`/admin/editors?email=${encodeURIComponent(email)}`);
                             }}
                           />
                         </motion.div>
