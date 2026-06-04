@@ -153,5 +153,19 @@
       "soundcloud": "",
       "beatport": ""
     }
+  },
+  {
+    "name": "AXWELL",
+    "socials": {
+      "website": "https://www.swedishhousemafia.com/",
+      "instagram": "https://www.instagram.com/axwell/?hl=fr",
+      "tiktok": "https://www.tiktok.com/@axwell",
+      "youtube": "https://www.youtube.com/@axwell",
+      "facebook": "https://www.facebook.com/axwell",
+      "x": "https://twitter.com/Axwell",
+      "spotify": "https://open.spotify.com/intl-fr/artist/1xNmvlEiICkRlRGqlNFZ43",
+      "soundcloud": "https://soundcloud.com/axwell",
+      "beatport": "https://www.beatport.com/fr/artist/axwell/5804?srsltid=AfmBOorXKXPjFdUEadqMeDxlIKUADr4IMnLUsTgdxaUa6r6AOEHiuIyO"
+    }
   }
 ]
