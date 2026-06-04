@@ -78,6 +78,8 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                    cat.includes('artist') ||
                    cat.includes('recap') ||
                    cat.includes('interview') ||
+                   cat.includes('sets') ||
+                   cat.includes('mix') ||
                    item.isFocus || 
                    cat.includes('focus');
         });

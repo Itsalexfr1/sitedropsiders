@@ -161,7 +161,7 @@ export function Navbar() {
         let path = '';
         const searchType = (item.searchType || item.category || '').toLowerCase();
 
-        if (searchType.includes('news') || searchType.includes('interview') || searchType.includes('musique') || searchType.includes('music')) {
+        if (searchType.includes('news') || searchType.includes('interview') || searchType.includes('musique') || searchType.includes('music') || searchType.includes('sets') || searchType.includes('mix')) {
             path = getArticleLink(item);
         }
         else if (searchType === 'recap') path = getRecapLink(item);

@@ -61,7 +61,7 @@ export function MobileHome() {
         return sortedNews.filter(n => {
             const cat = n.category?.toLowerCase() || '';
             const isInterview = cat.includes('interview');
-            const isNewsOrMusic = cat.includes('news') || cat.includes('musique') || cat.includes('music');
+            const isNewsOrMusic = cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('sets') || cat.includes('mix');
             return isNewsOrMusic && !isInterview;
         }).slice(0, 6);
     }, [sortedNews]);

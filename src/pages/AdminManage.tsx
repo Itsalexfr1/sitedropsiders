@@ -246,7 +246,7 @@ export function AdminManage() {
                     : activeTab === 'Interviews'
                         ? allNews.filter((item: any) => item.category?.startsWith('Interview') && !item.isDraft)
                         : activeTab === 'Musique'
-                            ? allNews.filter((item: any) => item.category === 'Musique' && !item.isDraft)
+                            ? allNews.filter((item: any) => (item.category === 'Musique' || item.category === 'Sets-Mixes') && !item.isDraft)
                             : activeTab === 'Focus'
                                 ? allNews.filter((item: any) => item.isFocus && !item.isDraft)
                                 : allNews.filter((item: any) => item.isDraft);
@@ -302,7 +302,7 @@ export function AdminManage() {
 
     const handleEdit = (item: any) => {
         const isInterview = item.category === 'Interview' || item.category === 'Interviews' || item.category === 'Interview Video' || activeTab === 'Interviews';
-        const isMusique = item.category === 'Musique' || activeTab === 'Musique';
+        const isMusique = item.category === 'Musique' || item.category === 'Sets-Mixes' || activeTab === 'Musique';
         const isFocus = item.isFocus || activeTab === 'Focus';
 
         let editPath = '';
@@ -468,7 +468,7 @@ export function AdminManage() {
                 updatedList = fullList.map(item => {
                     const matchesTab = activeTab === 'News' ? (item.category === 'News' && !item.isFocus && !item.isDraft)
                         : activeTab === 'Interviews' ? (item.category?.startsWith('Interview') && !item.isDraft)
-                            : activeTab === 'Musique' ? (item.category === 'Musique' && !item.isDraft)
+                            : activeTab === 'Musique' ? ((item.category === 'Musique' || item.category === 'Sets-Mixes') && !item.isDraft)
                                 : activeTab === 'Focus' ? (item.isFocus && !item.isDraft)
                                     : activeTab === 'Brouillons' ? item.isDraft
                                         : false;

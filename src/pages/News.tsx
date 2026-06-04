@@ -150,6 +150,8 @@ export function News() {
                     cat.includes('actu') ||
                     cat.includes('festival') ||
                     cat.includes('artist') ||
+                    cat.includes('sets') ||
+                    cat.includes('mix') ||
                     item.isFocus;
             })
             .sort((a, b) => {
