@@ -712,6 +712,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const festivalSocials = processedContent.festivalSocials;
     const festivalLabel = processedContent.festivalLabel;
     const isMusic = article.category === 'Musique' || article.category === 'Music';
+    const isSetsMixes = article.category === 'Sets-Mixes';
 
     // Support Top Lists for Music Category
     if (isMusic) {
@@ -1399,6 +1400,97 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                             {/* LEFT COLUMN: Main Content (9 spans) */}
                             <div className="lg:col-span-9">
+                                {/* ── VIDEO AU-DESSUS DE LA TRACKLIST pour Sets & Mixes ── */}
+                                {isSetsMixes && article.youtubeId && article.showVideo !== false && (() => {
+                                    const isUploadedVideo = /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(article.youtubeId);
+                                    return (
+                                        <div className="mb-10">
+                                            <h3 className="flex items-center gap-4 mb-6 group">
+                                                <div className="w-10 h-10 rounded-xl bg-neon-purple/10 flex items-center justify-center border border-neon-purple/30 shadow-[0_0_20px_rgba(191,0,255,0.15)]">
+                                                    <Play className="w-5 h-5 text-neon-purple fill-neon-purple animate-pulse" />
+                                                </div>
+                                                <span className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                                    Écouter le Set
+                                                </span>
+                                            </h3>
+                                            {isUploadedVideo ? (
+                                                <UploadedVideoPlayer src={resolveImageUrl(article.youtubeId)} />
+                                            ) : (
+                                                <>
+                                                <div className="relative aspect-video rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(191,0,255,0.15)] group">
+                                                    <iframe
+                                                        ref={dedicatedPlayerRef}
+                                                        src={`https://www.youtube-nocookie.com/embed/${extractId(article.youtubeId)}?enablejsapi=1&origin=${window.location.origin}&autoplay=0&mute=0`}
+                                                        className="absolute top-0 left-0 w-full h-full"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                        allowFullScreen
+                                                        referrerPolicy="strict-origin-when-cross-origin"
+                                                        id={`yt-player-${extractId(article.youtubeId)}`}
+                                                    />
+                                                </div>
+                                                <div className="yt-controls-bar">
+                                                    <button
+                                                        className="yt-btn"
+                                                        title={ytDedicatedPlaying ? 'Pause' : 'Play'}
+                                                        onClick={() => {
+                                                            if (ytDedicatedPlaying) {
+                                                                ytMsg(dedicatedPlayerRef.current, 'pauseVideo');
+                                                                setYtDedicatedPlaying(false);
+                                                            } else {
+                                                                ytMsg(dedicatedPlayerRef.current, 'playVideo');
+                                                                setYtDedicatedPlaying(true);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {ytDedicatedPlaying
+                                                            ? <Pause className="w-4 h-4" />
+                                                            : <Play className="w-4 h-4" />}
+                                                    </button>
+                                                    <button
+                                                        className="yt-btn"
+                                                        title={ytDedicatedMuted ? 'Activer le son' : 'Couper le son'}
+                                                        onClick={() => {
+                                                            if (ytDedicatedMuted) {
+                                                                ytMsg(dedicatedPlayerRef.current, 'unMute');
+                                                                ytMsg(dedicatedPlayerRef.current, 'setVolume', [ytDedicatedVolume]);
+                                                                setYtDedicatedMuted(false);
+                                                            } else {
+                                                                ytMsg(dedicatedPlayerRef.current, 'mute');
+                                                                setYtDedicatedMuted(true);
+                                                            }
+                                                        }}
+                                                    >
+                                                        {ytDedicatedMuted
+                                                            ? <VolumeX className="w-4 h-4" />
+                                                            : <Volume2 className="w-4 h-4" />}
+                                                    </button>
+                                                    <span className="yt-vol-label">SON</span>
+                                                    <input
+                                                        type="range"
+                                                        min="0"
+                                                        max="100"
+                                                        value={ytDedicatedVolume}
+                                                        className="yt-volume-slider"
+                                                        onChange={(e) => {
+                                                            const vol = parseInt(e.target.value);
+                                                            setYtDedicatedVolume(vol);
+                                                            ytMsg(dedicatedPlayerRef.current, 'setVolume', [vol]);
+                                                            if (vol === 0) {
+                                                                ytMsg(dedicatedPlayerRef.current, 'mute');
+                                                                setYtDedicatedMuted(true);
+                                                            } else if (ytDedicatedMuted) {
+                                                                ytMsg(dedicatedPlayerRef.current, 'unMute');
+                                                                setYtDedicatedMuted(false);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+
                                 <div className="article-body-premium w-full">
                                     {isLoading && !content ? (
                                         <div className="space-y-4 animate-pulse">
@@ -1475,8 +1567,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
 
 
-                                {/* Video Section - High Priority for Recap/Interview */}
+                                {/* Video Section - High Priority for Recap/Interview (not for Sets-Mixes, shown above) */}
                                 {article.youtubeId &&
+                                    !isSetsMixes &&
                                     (article.category === 'Interview' || article.category === 'Interviews' ? article.showVideo === true : article.showVideo !== false) &&
                                     !article.category?.includes('Interview Video') && (() => {
                                         const isUploadedVideo = /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(article.youtubeId);
