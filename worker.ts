@@ -7128,7 +7128,12 @@ ${urls.map(u => `  <url>
                     }
                     
                     // Sort by upload date (latest first)
-                    allObjects.sort((a: any, b: any) => b.uploaded.getTime() - a.uploaded.getTime());
+                    // Coerce .uploaded to Date in case R2 returns an ISO string
+                    allObjects.sort((a: any, b: any) => {
+                        const ta = a.uploaded instanceof Date ? a.uploaded.getTime() : new Date(a.uploaded).getTime();
+                        const tb = b.uploaded instanceof Date ? b.uploaded.getTime() : new Date(b.uploaded).getTime();
+                        return tb - ta;
+                    });
                     
                     // Handle pagination for the sorted list manually or just return the first chunk
                     // Since we already have everything, we can just slice it
@@ -7136,13 +7141,19 @@ ${urls.map(u => `  <url>
                     const paginated = allObjects.slice(offset, offset + limit);
                     const nextOffset = (offset + limit < allObjects.length) ? btoa((offset + limit).toString()) : undefined;
 
+                    const buildUrl = (key: string) => {
+                        if (key.startsWith('uploads/')) return `/uploads/${key.replace('uploads/', '')}`;
+                        if (key.startsWith('SONS/') || key.startsWith('VIDEOS/')) return `/${key}`;
+                        return `/uploads/${key}`;
+                    };
+
                     return new Response(JSON.stringify({
                         objects: paginated.map(obj => ({
                             key: obj.key,
                             size: obj.size,
                             uploaded: obj.uploaded,
                             etag: obj.etag,
-                            url: obj.key.startsWith('uploads/') ? `/uploads/${obj.key.replace('uploads/', '')}` : `/uploads/${obj.key}`
+                            url: buildUrl(obj.key)
                         })),
                         truncated: !!nextOffset,
                         cursor: nextOffset,
@@ -7151,13 +7162,19 @@ ${urls.map(u => `  <url>
                 }
 
                 const listResult = await env.R2.list({ cursor, prefix, limit });
+
+                const buildUrl = (key: string) => {
+                    if (key.startsWith('uploads/')) return `/uploads/${key.replace('uploads/', '')}`;
+                    if (key.startsWith('SONS/') || key.startsWith('VIDEOS/')) return `/${key}`;
+                    return `/uploads/${key}`;
+                };
                 
                 const objects = listResult.objects.map(obj => ({
                     key: obj.key,
                     size: obj.size,
                     uploaded: obj.uploaded,
                     etag: obj.etag,
-                    url: obj.key.startsWith('uploads/') ? `/uploads/${obj.key.replace('uploads/', '')}` : `/uploads/${obj.key}`
+                    url: buildUrl(obj.key)
                 }));
                 
                 return new Response(JSON.stringify({
