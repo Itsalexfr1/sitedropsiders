@@ -139,5 +139,19 @@
       "soundcloud": "https://soundcloud.com/johnsummit",
       "beatport": "https://open.spotify.com/artist/7kNqXtgeIwFtelmRjWv205?si=9i8mp_OWSsyfqEgHmMmoWg"
     }
+  },
+  {
+    "name": "STARLIGHT FESTIVAL",
+    "socials": {
+      "website": "https://starlight-festival.org",
+      "instagram": "https://www.instagram.com/starlight.festival",
+      "tiktok": "",
+      "youtube": "https://www.youtube.com/@exitfestival",
+      "facebook": "https://www.facebook.com/people/Starlight-Festival/61590006202259/",
+      "x": "",
+      "spotify": "",
+      "soundcloud": "",
+      "beatport": ""
+    }
   }
 ]
