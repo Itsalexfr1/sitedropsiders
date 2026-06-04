@@ -957,54 +957,6 @@ export function NewsletterComposer() {
                                     )}
                                 </div>
 
-                                {/* === AGENDA DU MOIS === */}
-                                <div className={`p-4 rounded-xl border transition-all duration-300 space-y-4 ${showAgenda ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/5 border-white/10'}`}>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className={`p-1.5 rounded-lg transition-colors ${showAgenda ? 'bg-cyan-500/20' : 'bg-white/5'}`}>
-                                                <Calendar size={13} className={showAgenda ? 'text-cyan-400' : 'text-gray-500'} />
-                                            </div>
-                                            <div>
-                                                <div className="text-[11px] font-black text-white uppercase tracking-widest">Agenda du Mois</div>
-                                                <div className="text-[9px] text-gray-500 mt-0.5">{agendaEvents.length} événement(s) ce mois</div>
-                                            </div>
-                                        </div>
-                                        <button onClick={() => setShowAgenda(!showAgenda)} className={`relative w-11 h-6 rounded-full border transition-all duration-300 flex-shrink-0 ${showAgenda ? 'bg-cyan-500/30 border-cyan-500/60' : 'bg-white/5 border-white/10'}`}>
-                                            <div className={`absolute top-0.5 w-5 h-5 rounded-full transition-all duration-300 shadow-sm ${showAgenda ? 'left-[22px] bg-cyan-400' : 'left-0.5 bg-gray-600'}`} />
-                                        </button>
-                                    </div>
-                                    {showAgenda && (
-                                        <div className="pt-3 border-t border-white/5 space-y-3">
-                                            {/* Sélecteur de mois Agenda */}
-                                            <div>
-                                                <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block mb-1.5">Mois de l'agenda</label>
-                                                <select
-                                                    value={agendaMonth}
-                                                    onChange={e => setAgendaMonth(Number(e.target.value))}
-                                                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-cyan-400 font-bold outline-none focus:border-cyan-500/50 transition-colors"
-                                                >
-                                                    {MONTHS.map(m => (
-                                                        <option key={m.value} value={m.value}>{m.label}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            {agendaEvents.length > 0 ? (
-                                                <div className="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar">
-                                                    {agendaEvents.map((e: any) => (
-                                                        <div key={e.id} className="flex items-center gap-2 p-2 bg-black/50 rounded-lg border border-white/5">
-                                                            <span className="text-[9px] font-black text-cyan-400 w-12 flex-shrink-0">{new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
-                                                            <span className="text-[10px] text-gray-300 truncate flex-1">{e.title}</span>
-                                                            <span className="text-[9px] text-gray-600 flex-shrink-0 hidden sm:block">{e.location}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <p className="text-[10px] text-gray-600 text-center py-2">Aucun événement ce mois</p>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-
                                 {/* === INTERVIEWS === */}
                                 <div className={`p-4 rounded-xl border transition-all duration-300 space-y-4 ${showInterviews ? 'bg-purple-500/5 border-purple-500/20' : 'bg-white/5 border-white/10'}`}>
                                     <div className="flex items-center justify-between">
@@ -1079,6 +1031,53 @@ export function NewsletterComposer() {
                                                 );
                                             }) : (
                                                 <p className="text-[10px] text-gray-600 text-center py-2">Aucun récap disponible</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* === AGENDA DU MOIS === */}
+                                <div className={`p-4 rounded-xl border transition-all duration-300 space-y-4 ${showAgenda ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/5 border-white/10'}`}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className={`p-1.5 rounded-lg transition-colors ${showAgenda ? 'bg-cyan-500/20' : 'bg-white/5'}`}>
+                                                <Calendar size={13} className={showAgenda ? 'text-cyan-400' : 'text-gray-500'} />
+                                            </div>
+                                            <div>
+                                                <div className="text-[11px] font-black text-white uppercase tracking-widest">Agenda du Mois</div>
+                                                <div className="text-[9px] text-gray-500 mt-0.5">{agendaEvents.length} événement(s) ce mois</div>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setShowAgenda(!showAgenda)} className={`relative w-11 h-6 rounded-full border transition-all duration-300 flex-shrink-0 ${showAgenda ? 'bg-cyan-500/30 border-cyan-500/60' : 'bg-white/5 border-white/10'}`}>
+                                            <div className={`absolute top-0.5 w-5 h-5 rounded-full transition-all duration-300 shadow-sm ${showAgenda ? 'left-[22px] bg-cyan-400' : 'left-0.5 bg-gray-600'}`} />
+                                        </button>
+                                    </div>
+                                    {showAgenda && (
+                                        <div className="pt-3 border-t border-white/5 space-y-3">
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block mb-1.5">Mois de l'agenda</label>
+                                                <select
+                                                    value={agendaMonth}
+                                                    onChange={e => setAgendaMonth(Number(e.target.value))}
+                                                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-cyan-400 font-bold outline-none focus:border-cyan-500/50 transition-colors"
+                                                >
+                                                    {MONTHS.map(m => (
+                                                        <option key={m.value} value={m.value}>{m.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            {agendaEvents.length > 0 ? (
+                                                <div className="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar">
+                                                    {agendaEvents.map((e: any) => (
+                                                        <div key={e.id} className="flex items-center gap-2 p-2 bg-black/50 rounded-lg border border-white/5">
+                                                            <span className="text-[9px] font-black text-cyan-400 w-12 flex-shrink-0">{new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                            <span className="text-[10px] text-gray-300 truncate flex-1">{e.title}</span>
+                                                            <span className="text-[9px] text-gray-600 flex-shrink-0 hidden sm:block">{e.location}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-[10px] text-gray-600 text-center py-2">Aucun événement ce mois</p>
                                             )}
                                         </div>
                                     )}
