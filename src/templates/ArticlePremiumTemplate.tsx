@@ -115,10 +115,12 @@ const UploadedVideoPlayer: React.FC<{ src: string }> = ({ src }) => {
 
     const handleTimeUpdate = () => {
         if (!videoRef.current) return;
-        setProgress(videoRef.current.currentTime);
+        const curTime = videoRef.current.currentTime;
+        setProgress(curTime);
         if (videoRef.current.buffered.length > 0) {
             setBuffered(videoRef.current.buffered.end(videoRef.current.buffered.length - 1));
         }
+        document.dispatchEvent(new CustomEvent('ds-timeupdate', { detail: { currentTime: curTime } }));
     };
 
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1006,6 +1008,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     progressFill.style.width = `${pct * 100}%`;
                     progressInput.value = String(pct);
                     timeLabel.textContent = `${fmt(video.currentTime)} / ${fmt(video.duration)}`;
+                    document.dispatchEvent(new CustomEvent('ds-timeupdate', { detail: { currentTime: video.currentTime } }));
                 });
 
                 video.addEventListener('play',  () => { playing = true;  updatePlay(); });
@@ -1019,7 +1022,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         return () => clearTimeout(t2);
     }, [displayContent]);
 
-    // Handle seeking in YouTube iframe player when clicking tracklist items in article body
+    // Handle seeking in YouTube iframe player when clicking tracklist items, and highlight current active track
     useEffect(() => {
         const parseTimeToSeconds = (timeStr?: string): number => {
             if (!timeStr) return 0;
@@ -1030,6 +1033,56 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 return parts[0] * 60 + parts[1];
             }
             return 0;
+        };
+
+        const updateActiveTrack = (currentTime: number) => {
+            const items = document.querySelectorAll('.tracklist-item');
+            if (items.length === 0) return;
+
+            let activeIndex = -1;
+            const parsedTracks = Array.from(items).map((item, idx) => {
+                const timestampSpan = item.querySelector('.track-timestamp');
+                const timeStr = timestampSpan?.textContent?.trim() || '';
+                const seconds = (timeStr && timeStr !== 'W/') ? parseTimeToSeconds(timeStr) : -1;
+                return { item, seconds, idx };
+            }).filter(t => t.seconds >= 0);
+
+            // Find the active track corresponding to currentTime
+            for (let i = 0; i < parsedTracks.length; i++) {
+                const track = parsedTracks[i];
+                const nextTrack = parsedTracks[i + 1];
+                if (currentTime >= track.seconds && (!nextTrack || currentTime < nextTrack.seconds)) {
+                    activeIndex = track.idx;
+                    break;
+                }
+            }
+
+            // Highlight active, reset others
+            items.forEach((item, idx) => {
+                if (idx === activeIndex) {
+                    if (!item.classList.contains('playing-track')) {
+                        item.classList.add('playing-track');
+                    }
+                    
+                    let nowLogo = item.querySelector('.now-playing-logo');
+                    if (!nowLogo) {
+                        const titleSpan = item.querySelector('.track-title');
+                        if (titleSpan) {
+                            nowLogo = document.createElement('span');
+                            nowLogo.className = 'now-playing-logo';
+                            nowLogo.innerHTML = '⚡ NOW &nbsp;';
+                            nowLogo.style.cssText = 'color: #39ff14; font-weight: 900; letter-spacing: 0.1em; font-size: 9px; animation: pulse-neon 1.5s infinite;';
+                            titleSpan.insertBefore(nowLogo, titleSpan.firstChild);
+                        }
+                    }
+                } else {
+                    item.classList.remove('playing-track');
+                    const nowLogo = item.querySelector('.now-playing-logo');
+                    if (nowLogo) {
+                        nowLogo.remove();
+                    }
+                }
+            });
         };
 
         const handleTrackItemClick = (e: Event) => {
@@ -1073,6 +1126,29 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             }
         };
 
+        // Listen to custom native timeupdate events
+        const handleNativeTimeUpdate = (e: Event) => {
+            const customEvent = e as CustomEvent;
+            if (customEvent.detail && typeof customEvent.detail.currentTime === 'number') {
+                updateActiveTrack(customEvent.detail.currentTime);
+            }
+        };
+        document.addEventListener('ds-timeupdate', handleNativeTimeUpdate);
+
+        // Listen to YouTube postMessages
+        const handleYoutubeMessages = (e: MessageEvent) => {
+            if (e.origin !== 'https://www.youtube.com' && e.origin !== 'https://www.youtube-nocookie.com') return;
+            try {
+                const data = JSON.parse(e.data);
+                if (data.event === 'infoDelivery' && data.info && typeof data.info.currentTime === 'number') {
+                    updateActiveTrack(data.info.currentTime);
+                }
+            } catch (err) {
+                // Ignore parsing errors for other messages
+            }
+        };
+        window.addEventListener('message', handleYoutubeMessages);
+
         const timer = setTimeout(() => {
             const items = document.querySelectorAll('.tracklist-item');
             items.forEach(item => {
@@ -1092,6 +1168,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             items.forEach(item => {
                 item.removeEventListener('click', handleTrackItemClick);
             });
+            document.removeEventListener('ds-timeupdate', handleNativeTimeUpdate);
+            window.removeEventListener('message', handleYoutubeMessages);
         };
     }, [displayContent]);
 
