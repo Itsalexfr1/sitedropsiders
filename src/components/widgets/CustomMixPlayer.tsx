@@ -1287,12 +1287,16 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                                 }}
                                                 className={`flex items-center gap-4 py-3 px-4 rounded-2xl cursor-pointer border transition-all group ${
                                                     isCurrent 
-                                                    ? 'bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan shadow-[0_0_15px_rgba(0,229,255,0.05)]' 
+                                                    ? 'bg-neon-green/10 border-neon-green/20 text-neon-green shadow-[0_0_15px_rgba(57,255,20,0.05)]' 
                                                     : 'bg-transparent border-transparent hover:bg-white/[0.02] text-white/60 hover:text-white hover:border-white/5'
                                                 }`}
                                             >
-                                                <span className={`text-[10px] font-black w-6 text-center ${isCurrent ? 'text-neon-cyan' : 'text-white/20'}`}>
-                                                    {(idx + 1).toString().padStart(2, '0')}
+                                                <span className={`text-[10px] font-black w-6 flex justify-center items-center ${isCurrent ? 'text-neon-green' : 'text-white/20'}`}>
+                                                    {isCurrent ? (
+                                                        <Play className="w-3.5 h-3.5 fill-neon-green/20 animate-pulse text-neon-green" />
+                                                    ) : (
+                                                        (idx + 1).toString().padStart(2, '0')
+                                                    )}
                                                 </span>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-xs font-black uppercase tracking-tight truncate">
@@ -1301,8 +1305,8 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                                     <p className="text-[9px] font-bold uppercase tracking-widest opacity-60 mt-0.5">{t.artist}</p>
                                                 </div>
                                                 {t.time && (
-                                                    <span className={`text-[9px] font-black tabular-nums border px-2 py-0.5 rounded-lg ${
-                                                        isCurrent ? 'bg-neon-cyan/10 border-neon-cyan/20' : 'bg-white/5 border-white/5 group-hover:border-white/10'
+                                                    <span className={`text-[9px] font-black tabular-nums border px-2 py-0.5 rounded-lg transition-colors ${
+                                                        isCurrent ? 'bg-neon-green/10 border-neon-green/20 text-neon-green' : 'bg-white/5 border-white/5 group-hover:border-white/10'
                                                     }`}>
                                                         {t.time}
                                                     </span>
