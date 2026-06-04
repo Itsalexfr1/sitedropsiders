@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Shield, Trophy, Headphones, PlayCircle, PauseCircle, Download, Share2, MessageSquare, Star, ArrowLeft } from 'lucide-react';
 import { DropsidersCardComponent } from '../components/cards/DropsidersCard';
+import { usePlayer } from '../context/PlayerContext';
 
 const categoryStyles = {
     Track: {
@@ -95,9 +96,8 @@ export function PublicProfile() {
     const [isLoading, setIsLoading] = useState(true);
     const [profile, setProfile] = useState<any>(null);
     const [activeTab, setActiveTab] = useState<'cards' | 'mixes' | 'reviews'>('cards');
-    const [playingMixId, setPlayingMixId] = useState<string | null>(null);
+    const { activeTrack, playTrack, closePlayer, isPlaying: globalIsPlaying } = usePlayer();
     const [selectedCardForPreview, setSelectedCardForPreview] = useState<any | null>(null);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
     const playTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const trackedPlaysRef = useRef<Set<string>>(new Set());
 
@@ -325,29 +325,26 @@ export function PublicProfile() {
                                     <div className="space-y-3">
                                         {profile.mixes.map((mix: any) => {
                                             const style = getCategoryStyle(mix.type);
-                                            const isPlaying = playingMixId === mix.id;
+                                            const isActive = activeTrack?.id === mix.id;
+                                            const isPlaying = isActive && globalIsPlaying;
 
                                             const handlePlay = () => {
-                                                // Stop current
-                                                if (audioRef.current) {
-                                                    audioRef.current.pause();
-                                                    audioRef.current = null;
-                                                }
                                                 if (playTimerRef.current) clearTimeout(playTimerRef.current);
 
-                                                if (isPlaying) {
-                                                    setPlayingMixId(null);
+                                                if (isActive) {
+                                                    closePlayer();
                                                     return;
                                                 }
 
-                                                setPlayingMixId(mix.id);
-
-                                                if (mix.audioUrl) {
-                                                    const audio = new Audio(mix.audioUrl);
-                                                    audio.play().catch(() => {});
-                                                    audioRef.current = audio;
-                                                    audio.onended = () => setPlayingMixId(null);
-                                                }
+                                                playTrack({
+                                                    id: mix.id,
+                                                    title: mix.title,
+                                                    artist: profile.username || 'Dropsider',
+                                                    label: mix.genre || mix.type,
+                                                    url: mix.audioUrl || mix.url || '',
+                                                    embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
+                                                    tracks: mix.tracklist || [],
+                                                });
 
                                                 // Track play only once per session, after 10s
                                                 if (!trackedPlaysRef.current.has(mix.id)) {
