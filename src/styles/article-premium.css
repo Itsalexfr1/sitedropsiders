@@ -887,6 +887,7 @@
     width: 100%;
     box-sizing: border-box;
     min-width: 0;
+    cursor: pointer;
 }
 
 .tracklist-item::before {

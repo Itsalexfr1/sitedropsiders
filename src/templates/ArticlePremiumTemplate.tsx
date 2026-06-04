@@ -1019,6 +1019,82 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         return () => clearTimeout(t2);
     }, [displayContent]);
 
+    // Handle seeking in YouTube iframe player when clicking tracklist items in article body
+    useEffect(() => {
+        const parseTimeToSeconds = (timeStr?: string): number => {
+            if (!timeStr) return 0;
+            const parts = timeStr.split(':').map(Number);
+            if (parts.length === 3) {
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            } else if (parts.length === 2) {
+                return parts[0] * 60 + parts[1];
+            }
+            return 0;
+        };
+
+        const handleTrackItemClick = (e: Event) => {
+            const item = e.currentTarget as HTMLElement;
+            const timestampSpan = item.querySelector('.track-timestamp');
+            if (!timestampSpan) return;
+            const timeStr = timestampSpan.textContent?.trim();
+            if (!timeStr || timeStr === 'W/') return;
+
+            const seconds = parseTimeToSeconds(timeStr);
+            
+            // Try to find the YouTube player iframe
+            let iframe = dedicatedPlayerRef.current;
+            if (!iframe) {
+                const iframes = document.querySelectorAll('iframe');
+                for (let i = 0; i < iframes.length; i++) {
+                    const src = iframes[i].getAttribute('src') || '';
+                    if (src.includes('youtube.com') || src.includes('youtube-nocookie.com')) {
+                        iframe = iframes[i];
+                        break;
+                    }
+                }
+            }
+
+            if (iframe && iframe.contentWindow) {
+                try {
+                    iframe.contentWindow.postMessage(JSON.stringify({
+                        event: 'command',
+                        func: 'seekTo',
+                        args: [seconds, true]
+                    }), '*');
+                    
+                    iframe.contentWindow.postMessage(JSON.stringify({
+                        event: 'command',
+                        func: 'playVideo',
+                        args: []
+                    }), '*');
+                } catch (err) {
+                    console.error("Failed to post seek message to iframe:", err);
+                }
+            }
+        };
+
+        const timer = setTimeout(() => {
+            const items = document.querySelectorAll('.tracklist-item');
+            items.forEach(item => {
+                const timestampSpan = item.querySelector('.track-timestamp');
+                if (timestampSpan) {
+                    const timeStr = timestampSpan.textContent?.trim();
+                    if (timeStr && timeStr !== 'W/') {
+                        item.addEventListener('click', handleTrackItemClick);
+                    }
+                }
+            });
+        }, 800);
+
+        return () => {
+            clearTimeout(timer);
+            const items = document.querySelectorAll('.tracklist-item');
+            items.forEach(item => {
+                item.removeEventListener('click', handleTrackItemClick);
+            });
+        };
+    }, [displayContent]);
+
     const displayTitle = language === 'en' && translatedTitle ? translatedTitle : article.title;
     const backLink = type === 'recap' ? '/recaps' : (isInterview ? '/interviews' : '/news');
     const backText = type === 'recap'
