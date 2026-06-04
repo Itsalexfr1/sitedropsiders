@@ -72,9 +72,8 @@ export function NewsletterComposer() {
 
     // Récaps d'events
     const [showRecaps, setShowRecaps] = useState(true);
-    const [recaps, setRecaps] = useState<any[]>([]);
-    const [recapMonth, setRecapMonth] = useState<number>(() => new Date().getMonth());
     const [allRecaps, setAllRecaps] = useState<any[]>([]);
+    const [selectedRecapIds, setSelectedRecapIds] = useState<Set<string | number>>(new Set());
 
     // Top 3 uploads communauté
     const [showCommunityUploads, setShowCommunityUploads] = useState(true);
@@ -250,17 +249,18 @@ export function NewsletterComposer() {
         setAgendaEvents(filtered);
     }, [agendaMonth, allAgendaEvents]);
 
-    // Filtrer les récaps en fonction du mois sélectionné
-    useEffect(() => {
-        const filtered = allRecaps
-            .filter((r: any) => {
-                if (!r.date) return false;
-                const d = new Date(r.date);
-                return d.getMonth() === recapMonth;
-            })
-            .slice(0, 2);
-        setRecaps(filtered);
-    }, [recapMonth, allRecaps]);
+    // Dériver les récaps sélectionnés
+    const recaps = allRecaps.filter((r: any) => selectedRecapIds.has(r.id));
+
+    // Toggle un récap dans la sélection
+    const toggleRecap = (id: string | number) => {
+        setSelectedRecapIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
 
     // Mettre à jour selectedAutoNews quand autoNewsCount change
     useEffect(() => {
@@ -1048,7 +1048,7 @@ export function NewsletterComposer() {
                                             </div>
                                             <div>
                                                 <div className="text-[11px] font-black text-white uppercase tracking-widest">Récaps d'Events</div>
-                                                <div className="text-[9px] text-gray-500 mt-0.5">{recaps.length} récap(s) disponible(s)</div>
+                                                <div className="text-[9px] text-gray-500 mt-0.5">{selectedRecapIds.size} sélectionné(s) / {allRecaps.length} dispo</div>
                                             </div>
                                         </div>
                                         <button onClick={() => setShowRecaps(!showRecaps)} className={`relative w-11 h-6 rounded-full border transition-all duration-300 flex-shrink-0 ${showRecaps ? 'bg-yellow-500/30 border-yellow-500/60' : 'bg-white/5 border-white/10'}`}>
@@ -1056,34 +1056,29 @@ export function NewsletterComposer() {
                                         </button>
                                     </div>
                                     {showRecaps && (
-                                        <div className="pt-3 border-t border-white/5 space-y-3">
-                                            {/* Sélecteur de mois Récaps */}
-                                            <div>
-                                                <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block mb-1.5">Mois des récaps</label>
-                                                <select
-                                                    value={recapMonth}
-                                                    onChange={e => setRecapMonth(Number(e.target.value))}
-                                                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-yellow-400 font-bold outline-none focus:border-yellow-500/50 transition-colors"
-                                                >
-                                                    {MONTHS.map(m => (
-                                                        <option key={m.value} value={m.value}>{m.label}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            {recaps.length > 0 ? (
-                                                <div className="space-y-1.5">
-                                                    {recaps.map((item: any) => (
-                                                        <div key={item.id} className="flex items-center gap-2.5 p-2 bg-black/50 rounded-lg border border-white/5">
-                                                            {(item.image || item.cover) && <img src={(item.image || item.cover || '').startsWith('http') ? (item.image || item.cover) : `https://dropsiders.fr${item.image || item.cover}`} alt="" className="w-7 h-7 object-cover rounded flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="text-[10px] text-gray-300 truncate">{item.title}</div>
-                                                                {item.date && <div className="text-[9px] text-yellow-400">{new Date(item.date).toLocaleDateString('fr-FR')}</div>}
-                                                            </div>
+                                        <div className="pt-3 border-t border-white/5 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                            {allRecaps.length > 0 ? allRecaps.map((item: any) => {
+                                                const isSelected = selectedRecapIds.has(item.id);
+                                                return (
+                                                    <div
+                                                        key={item.id}
+                                                        onClick={() => toggleRecap(item.id)}
+                                                        className={`flex items-center gap-2.5 p-2 rounded-lg border cursor-pointer transition-all select-none
+                                                            ${isSelected ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-black/50 border-white/5 hover:border-white/10'}`}
+                                                    >
+                                                        <div className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors
+                                                            ${isSelected ? 'bg-yellow-400 border-yellow-400' : 'border-gray-600 bg-black'}`}>
+                                                            {isSelected && <svg viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3" className="w-2.5 h-2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>}
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <p className="text-[10px] text-gray-600 text-center py-2">Aucun récap disponible ce mois</p>
+                                                        {(item.image || item.cover) && <img src={(item.image || item.cover || '').startsWith('http') ? (item.image || item.cover) : `https://dropsiders.fr${item.image || item.cover}`} alt="" className="w-7 h-7 object-cover rounded flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className={`text-[10px] truncate ${isSelected ? 'text-white' : 'text-gray-400'}`}>{item.title}</div>
+                                                            {item.date && <div className="text-[9px] text-yellow-500/70">{new Date(item.date).toLocaleDateString('fr-FR')}</div>}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }) : (
+                                                <p className="text-[10px] text-gray-600 text-center py-2">Aucun récap disponible</p>
                                             )}
                                         </div>
                                     )}
