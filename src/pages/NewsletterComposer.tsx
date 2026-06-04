@@ -640,8 +640,8 @@ export function NewsletterComposer() {
     };
 
     const handleSendClick = () => {
-        if (!subject || !mainArticle.title) {
-            setAlertModal({ isOpen: true, isError: true, message: 'Erreur : Le SUJET et le TITRE PRINCIPAL sont obligatoires.' });
+        if (!subject) {
+            setAlertModal({ isOpen: true, isError: true, message: 'Erreur : Le SUJET de l\'email est obligatoire.' });
             return;
         }
         if (selectedSubscribers.length === 0) {
