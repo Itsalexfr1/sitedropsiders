@@ -193,7 +193,8 @@ export function ImageUploadModal({
             }
 
             const sortParam = sortBy === 'newest' ? '&sort=date' : '';
-            const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}`;
+            const prefixParam = '&prefix=uploads%2F';
+            const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${prefixParam}${sortParam}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
@@ -750,7 +751,11 @@ export function ImageUploadModal({
                                             ) : (
                                                 <>
                                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 max-h-[60vh] overflow-y-auto no-scrollbar rounded-3xl p-4 w-full auto-rows-max content-start">
-                                                        {r2Photos.filter(p => !searchTerm || p.key.toLowerCase().includes(searchTerm.toLowerCase())).map(photo => (
+                                                        {r2Photos.filter(p => {
+                                                            const ext = (p.key.split('.').pop() || '').toLowerCase();
+                                                            const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif', 'ico'].includes(ext);
+                                                            return isImg && (!searchTerm || p.key.toLowerCase().includes(searchTerm.toLowerCase()));
+                                                        }).map(photo => (
                                                             <div 
                                                                 key={photo.key} 
                                                                 onClick={() => {

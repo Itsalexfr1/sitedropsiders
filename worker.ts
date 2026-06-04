@@ -7143,7 +7143,6 @@ ${urls.map(u => `  <url>
 
                     const buildUrl = (key: string) => {
                         if (key.startsWith('uploads/')) return `/uploads/${key.replace('uploads/', '')}`;
-                        if (key.startsWith('SONS/') || key.startsWith('VIDEOS/')) return `/${key}`;
                         return `/uploads/${key}`;
                     };
 
@@ -7165,7 +7164,6 @@ ${urls.map(u => `  <url>
 
                 const buildUrl = (key: string) => {
                     if (key.startsWith('uploads/')) return `/uploads/${key.replace('uploads/', '')}`;
-                    if (key.startsWith('SONS/') || key.startsWith('VIDEOS/')) return `/${key}`;
                     return `/uploads/${key}`;
                 };
                 
