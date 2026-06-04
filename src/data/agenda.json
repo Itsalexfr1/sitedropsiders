@@ -5140,5 +5140,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1023,
+    "title": "JOHN SUMMIT CTRL ESCAPE ALBUM RELEASE SHOW",
+    "date": "2026-06-21",
+    "startDate": "2026-06-21",
+    "endDate": "2026-06-21",
+    "venue": "LOFI",
+    "location": "AMSTERDAM",
+    "country": "PAYS-BAS",
+    "type": "Concert",
+    "image": "/uploads/uploads/4f0755718acb9853-zqzruxvujhx3.png",
+    "url": "https://shop.weeztix.com/c94f3c61-fedf-4358-8df6-4159ab41efd1/tickets?_sc=MzgxOTEzNCMzNTk5NTA%3D&utm_campaign=Week%2023%20-%20Pre-sale%20for%20John%20Summit&utm_medium=email&utm_source=brevo&shop_code=53kbjkcb&original_referer=https%3A%2F%2Fr.routage9.arenametrix.fr%2F",
+    "genre": "House",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
