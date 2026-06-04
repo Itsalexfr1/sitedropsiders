@@ -894,7 +894,7 @@ export function NewsCreate() {
     useEffect(() => {
         if (!isEditing) {
             setCategory(type || 'News');
-            if (type === 'Musique') {
+            if (type === 'Musique' && activeTab !== 'Sets-Mixes' && !title) {
                 const today = new Date();
                 const dd = String(today.getDate()).padStart(2, '0');
                 const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -902,7 +902,7 @@ export function NewsCreate() {
                 setTitle(`Les Sorties de la Semaine - ${dd}/${mm}/${yyyy}`);
             }
         }
-    }, [type, isEditing]);
+    }, [type, isEditing, activeTab]);
 
 
     // const handleUpload = async (file: File) => {
@@ -2162,7 +2162,12 @@ ${generateSocialsHtml()}
                                 <Music className="w-3.5 h-3.5" /> Musique
                             </button>
                             <button
-                                onClick={() => setActiveTab('Sets-Mixes')}
+                                onClick={() => {
+                                    setActiveTab('Sets-Mixes');
+                                    if (!isEditing && title.startsWith('Les Sorties de la Semaine')) {
+                                        setTitle('');
+                                    }
+                                }}
                                 className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'Sets-Mixes' ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(189,0,255,0.4)]' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <Music className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Sets & Mixes</span><span className="sm:hidden">Sets</span>
@@ -2433,11 +2438,38 @@ ${generateSocialsHtml()}
                                         placeholder={`Coller le texte brut ici...\n\nExemple :\n00:04\nHard Rock Sofa & Swanky Tunes vs. Pryda - Feedback vs. Glimma (Alesso Bootleg)  PRYDA/SPINNIN'\n02:20\nSwedish House Mafia & Knife Party ft. ADL - Antidote (Swedish House Mafia Rework) VIRGIN`}
                                         className="w-full bg-black/30 border border-neon-purple/30 rounded-xl py-4 px-4 text-white placeholder-gray-600 font-mono text-xs focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all resize-y"
                                     />
-                                    {tracklistRaw.trim() && (
-                                        <div className="text-xs text-neon-purple/70 font-mono mt-1">
-                                            ✓ {parseTracklist(tracklistRaw).length} titre(s) détecté(s)
-                                        </div>
-                                    )}
+                                    {tracklistRaw.trim() && (() => {
+                                        const parsed = parseTracklist(tracklistRaw);
+                                        return (
+                                            <div className="mt-2">
+                                                <div className="text-xs text-neon-purple/70 font-mono mb-3">
+                                                    ✓ {parsed.length} titre(s) détecté(s)
+                                                </div>
+                                                {parsed.length > 0 && (
+                                                    <div className="mt-4 border border-white/5 rounded-3xl p-6 bg-black/40">
+                                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] block mb-4">Aperçu du Rendu</span>
+                                                        <div className="tracklist-container !my-0">
+                                                            <div className="tracklist-header">
+                                                                <span className="tracklist-icon">♫</span> TRACKLIST
+                                                            </div>
+                                                            <div className="tracklist-body">
+                                                                {parsed.map((track, idx) => {
+                                                                    const isW = track.timestamp === 'w/';
+                                                                    return (
+                                                                        <div key={idx} className={`tracklist-item${isW ? ' tracklist-item-w' : ''}`} data-index={idx + 1}>
+                                                                            <span className="track-num">{idx + 1}</span>
+                                                                            <span className="track-timestamp">{isW ? 'W/' : track.timestamp}</span>
+                                                                            <span className="track-title">{track.title}</span>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             )}
                             <div className="space-y-2">
