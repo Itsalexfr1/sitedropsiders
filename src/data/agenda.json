@@ -5102,5 +5102,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1021,
+    "title": "Starlight Festival ",
+    "date": "2026-10-08",
+    "startDate": "2026-10-08",
+    "endDate": "2026-10-11",
+    "venue": "Grandes Pyramides de Gizeh",
+    "location": "GIZEH",
+    "country": "EGYPTE",
+    "type": "Festival",
+    "image": "/uploads/uploads/e3c4e9764227f926-71a09876_5dac_11f1_889d_124658.avif",
+    "url": "https://starlight-festival.org/",
+    "genre": "Multi Styles",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
