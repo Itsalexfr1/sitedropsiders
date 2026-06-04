@@ -155,12 +155,13 @@ export function NewsletterComposer() {
                 const res = await fetch('/api/news', { headers: getAuthHeaders(null) });
                 if (res.ok) {
                     const data = await res.json();
-                    const EXCLUDED_CATS = ['interview', 'fast quizz', 'drop & talk', 'playlist', 'recap', 'récap'];
+                    const EXCLUDED_CATS = ['interview', 'fast quizz', 'drop & talk', 'playlist', 'recap', 'récap', 'liveset', 'replay'];
                     const filtered = (Array.isArray(data) ? data : [])
                         .filter((n: any) => {
                             if (n.isDraft) return false;
                             const cat = (n.category || '').toLowerCase();
-                            return !EXCLUDED_CATS.some(ex => cat.includes(ex));
+                            const title = (n.title || '').toLowerCase();
+                            return !EXCLUDED_CATS.some(ex => cat.includes(ex) || title.includes(ex));
                         })
                         .slice(0, 20);
                     setAvailableNews(filtered);
