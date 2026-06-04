@@ -2428,6 +2428,32 @@ ${generateSocialsHtml()}
                             )}
                             {activeTab === 'Sets-Mixes' && (
                                 <div className="space-y-2 md:col-span-3">
+                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Link2 className="w-4 h-4 text-neon-purple" /> Lien de l'écoute (YouTube, SoundCloud, Mixcloud...)
+                                    </label>
+                                    <div className="relative group">
+                                        <input
+                                            type="text"
+                                            value={youtubeId}
+                                            onChange={(e) => {
+                                                let val = e.target.value;
+                                                if (val.includes('youtube.com/watch?v=')) {
+                                                    val = val.split('v=')[1].split('&')[0];
+                                                } else if (val.includes('youtu.be/')) {
+                                                    val = val.split('youtu.be/')[1].split('?')[0];
+                                                } else if (val.includes('youtube.com/embed/')) {
+                                                    val = val.split('youtube.com/embed/')[1].split('?')[0];
+                                                }
+                                                setYoutubeId(val);
+                                            }}
+                                            placeholder="URL ou ID YouTube, SoundCloud, Mixcloud, etc."
+                                            className="w-full bg-black/20 border border-neon-purple/20 rounded-xl py-4 px-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                            {activeTab === 'Sets-Mixes' && (
+                                <div className="space-y-2 md:col-span-3">
                                     <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                         <Music className="w-4 h-4 text-neon-purple" /> Tracklist (coller depuis 1001tracklists)
                                     </label>
@@ -2491,7 +2517,7 @@ ${generateSocialsHtml()}
 
 
                         {/* Image & Youtube */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className={activeTab === 'Sets-Mixes' ? "grid grid-cols-1 gap-6" : "grid grid-cols-1 md:grid-cols-2 gap-6"}>
                             <div>
                                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                                     <ImageIcon className="w-4 h-4" /> Image <span className="text-neon-red">*</span>
@@ -2527,7 +2553,7 @@ ${generateSocialsHtml()}
 
                                 </div>
                             </div>
-                            {activeTab !== 'Musique' && (
+                            {activeTab !== 'Musique' && activeTab !== 'Sets-Mixes' && (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between mb-2">
                                         <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
@@ -2796,7 +2822,7 @@ ${generateSocialsHtml()}
 
 
                     {/* WIDGET EDITOR SECTION (Always available to add flexibility) */}
-                    {(activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Musique' || activeTab === 'Sets-Mixes' || type === 'Interview') && (
+                    {activeTab !== 'Sets-Mixes' && (activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Musique' || type === 'Interview') && (
                         <div className="pt-8 border-t border-white/10">
                             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${isMobileEditorActive ? 'hidden' : ''}`}>
                                 <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
