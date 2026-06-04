@@ -13,7 +13,10 @@ export function NewsletterComposer() {
     // -----------------------------------------------------------
 
     // Métadonnées Email
-    const [subject, setSubject] = useState('');
+    const [subject, setSubject] = useState(() => {
+        const monthStr = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).toUpperCase();
+        return `DROPSIDERS NEWSLETTER - ${monthStr}`;
+    });
 
     // Article Principal (Gros bloc en haut)
     const [mainArticle, setMainArticle] = useState({
@@ -197,10 +200,25 @@ export function NewsletterComposer() {
         // Charger les uploads communauté
         const fetchCommunityUploads = async () => {
             try {
-                const res = await fetch('/api/community-music?type=mix&limit=3');
+                const res = await fetch('/api/community/mixes');
                 if (res.ok) {
                     const data = await res.json();
-                    setCommunityUploads(Array.isArray(data) ? data.slice(0, 3) : []);
+                    if (Array.isArray(data)) {
+                        // Tri par likes décroissant (puis fallback par id décroissant) pour obtenir le top 3
+                        const sorted = [...data].sort((a: any, b: any) => {
+                            const likesDiff = (b.likes || 0) - (a.likes || 0);
+                            if (likesDiff !== 0) return likesDiff;
+                            return (b.id || '').localeCompare(a.id || '');
+                        });
+                        const mapped = sorted.slice(0, 3).map((item: any) => ({
+                            id: item.id,
+                            title: item.title,
+                            artist: item.username || 'Dropsider',
+                            likes: item.likes || 0,
+                            embedUrl: item.audioUrl || item.embedUrl || item.url || ''
+                        }));
+                        setCommunityUploads(mapped);
+                    }
                 }
             } catch (e) { console.error('Error fetching community uploads:', e); }
         };
@@ -449,6 +467,7 @@ export function NewsletterComposer() {
                     </div>
                     
                     <!-- ARTICLE PRINCIPAL -->
+                    ${mainArticle.title ? `
                     <div class="main-article">
                         ${mainArticle.image ? `<img src="${resolveImageForEmail(mainArticle.image)}" alt="Cover" class="main-image">` : ''}
                         <h1 class="main-title">${mainArticle.title}</h1>
@@ -461,6 +480,7 @@ export function NewsletterComposer() {
                         </div>
                         ` : ''}
                     </div>
+                    ` : ''}
                     
                     <!-- NEWS SECONDAIRES (GRID) -->
                     ${(news1.title || news2.title) ? `
