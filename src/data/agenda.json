@@ -5178,5 +5178,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1025,
+    "title": "JOHN SUMMIT CTRL ESCAPE ALBUM RELEASE SHOW",
+    "date": "2026-06-27",
+    "startDate": "2026-06-27",
+    "endDate": "2026-06-27",
+    "venue": "GEORG ELSER",
+    "location": "HAMBURG",
+    "country": "ALLEMAGNE",
+    "type": "Concert",
+    "image": "/uploads/uploads/6ea601e8277f6803-main_graphic__3_.jpg",
+    "url": "https://drop.cobrand.com/d/JohnSummit/ctrl-escape-eu-album-release-shows",
+    "genre": "Drum & Bass",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
