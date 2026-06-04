@@ -813,85 +813,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
     };
 
-    // Inject custom controls for inline YouTube iframes (in article body HTML)
-    useEffect(() => {
-        ytPlayersRef.current = {};
-
-        const initInlineControls = () => {
-            // Only target iframes INSIDE the article body (not the dedicated React player)
-            const bodyIframes = document.querySelectorAll<HTMLIFrameElement>(
-                '.article-body-premium iframe[id^="yt-player-"]'
-            );
-
-            bodyIframes.forEach((iframe) => {
-                const iframeId = iframe.id;
-                if (ytPlayersRef.current[iframeId]) return;
-
-                const wrapper = iframe.parentElement as HTMLElement;
-                if (!wrapper) return;
-
-                if (document.querySelector(`.yt-controls-bar[data-for="${iframeId}"]`)) return;
-
-                // Local state per inline player
-                let isPlaying = true;
-                let isMuted = true;
-                let volume = 100;
-
-                const post = (func: string, args: any[] = []) =>
-                    iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
-
-                const bar = document.createElement('div');
-                bar.className = 'yt-controls-bar';
-                bar.setAttribute('data-for', iframeId);
-                bar.innerHTML = `
-                    <button class="yt-btn yt-play-btn" title="Play / Pause">
-                        <svg class="yt-icon-pause" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                        <svg class="yt-icon-play" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="display:none"><path d="M8 5v14l11-7z"/></svg>
-                    </button>
-                    <button class="yt-btn yt-vol-btn" title="Activer le son">
-                        <svg class="yt-icon-mute" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM11 5.27L8.74 7.53 11 9.79V5.27z"/></svg>
-                        <svg class="yt-icon-sound" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style="display:none"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                    </button>
-                    <span class="yt-vol-label">SON</span>
-                    <input class="yt-volume-slider" type="range" min="0" max="100" value="100" />
-                `;
-
-                wrapper.parentNode?.insertBefore(bar, wrapper.nextSibling);
-                ytPlayersRef.current[iframeId] = { player: iframe, muted: true };
-
-                bar.querySelector('.yt-play-btn')?.addEventListener('click', () => {
-                    const pi = bar.querySelector('.yt-icon-pause') as HTMLElement;
-                    const pl = bar.querySelector('.yt-icon-play') as HTMLElement;
-                    if (isPlaying) { post('pauseVideo'); isPlaying = false; pi.style.display='none'; pl.style.display=''; }
-                    else           { post('playVideo');  isPlaying = true;  pi.style.display='';    pl.style.display='none'; }
-                });
-
-                bar.querySelector('.yt-vol-btn')?.addEventListener('click', () => {
-                    const mi = bar.querySelector('.yt-icon-mute') as HTMLElement;
-                    const si = bar.querySelector('.yt-icon-sound') as HTMLElement;
-                    const sl = bar.querySelector('.yt-volume-slider') as HTMLInputElement;
-                    if (isMuted) {
-                        post('unMute'); post('setVolume', [sl ? parseInt(sl.value) || 100 : 100]);
-                        isMuted = false; mi.style.display='none'; si.style.display='';
-                    } else {
-                        post('mute'); isMuted = true; mi.style.display=''; si.style.display='none';
-                    }
-                });
-
-                bar.querySelector('.yt-volume-slider')?.addEventListener('input', (e) => {
-                    const mi = bar.querySelector('.yt-icon-mute') as HTMLElement;
-                    const si = bar.querySelector('.yt-icon-sound') as HTMLElement;
-                    volume = parseInt((e.target as HTMLInputElement).value);
-                    post('setVolume', [volume]);
-                    if (volume === 0) { post('mute'); isMuted=true; mi.style.display=''; si.style.display='none'; }
-                    else if (isMuted) { post('unMute'); isMuted=false; mi.style.display='none'; si.style.display=''; }
-                });
-            });
-        };
-
-        const timer = setTimeout(initInlineControls, 800);
-        return () => clearTimeout(timer);
-    }, [displayContent]);
+    // Custom controls for YouTube iframes intentionally removed.
+    // The yt-controls-bar is only rendered for uploaded <video> elements (ds-video-bar), not YouTube links.
 
     // ── Inject custom controls for uploaded <video> elements inside the article body ──
     useEffect(() => {
@@ -1416,7 +1339,6 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             {isUploadedVideo ? (
                                                 <UploadedVideoPlayer src={resolveImageUrl(article.youtubeId)} />
                                             ) : (
-                                                <>
                                                 <div className="relative aspect-video rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(191,0,255,0.15)] group">
                                                     <iframe
                                                         ref={dedicatedPlayerRef}
@@ -1428,64 +1350,6 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                         id={`yt-player-${extractId(article.youtubeId)}`}
                                                     />
                                                 </div>
-                                                <div className="yt-controls-bar">
-                                                    <button
-                                                        className="yt-btn"
-                                                        title={ytDedicatedPlaying ? 'Pause' : 'Play'}
-                                                        onClick={() => {
-                                                            if (ytDedicatedPlaying) {
-                                                                ytMsg(dedicatedPlayerRef.current, 'pauseVideo');
-                                                                setYtDedicatedPlaying(false);
-                                                            } else {
-                                                                ytMsg(dedicatedPlayerRef.current, 'playVideo');
-                                                                setYtDedicatedPlaying(true);
-                                                            }
-                                                        }}
-                                                    >
-                                                        {ytDedicatedPlaying
-                                                            ? <Pause className="w-4 h-4" />
-                                                            : <Play className="w-4 h-4" />}
-                                                    </button>
-                                                    <button
-                                                        className="yt-btn"
-                                                        title={ytDedicatedMuted ? 'Activer le son' : 'Couper le son'}
-                                                        onClick={() => {
-                                                            if (ytDedicatedMuted) {
-                                                                ytMsg(dedicatedPlayerRef.current, 'unMute');
-                                                                ytMsg(dedicatedPlayerRef.current, 'setVolume', [ytDedicatedVolume]);
-                                                                setYtDedicatedMuted(false);
-                                                            } else {
-                                                                ytMsg(dedicatedPlayerRef.current, 'mute');
-                                                                setYtDedicatedMuted(true);
-                                                            }
-                                                        }}
-                                                    >
-                                                        {ytDedicatedMuted
-                                                            ? <VolumeX className="w-4 h-4" />
-                                                            : <Volume2 className="w-4 h-4" />}
-                                                    </button>
-                                                    <span className="yt-vol-label">SON</span>
-                                                    <input
-                                                        type="range"
-                                                        min="0"
-                                                        max="100"
-                                                        value={ytDedicatedVolume}
-                                                        className="yt-volume-slider"
-                                                        onChange={(e) => {
-                                                            const vol = parseInt(e.target.value);
-                                                            setYtDedicatedVolume(vol);
-                                                            ytMsg(dedicatedPlayerRef.current, 'setVolume', [vol]);
-                                                            if (vol === 0) {
-                                                                ytMsg(dedicatedPlayerRef.current, 'mute');
-                                                                setYtDedicatedMuted(true);
-                                                            } else if (ytDedicatedMuted) {
-                                                                ytMsg(dedicatedPlayerRef.current, 'unMute');
-                                                                setYtDedicatedMuted(false);
-                                                            }
-                                                        }}
-                                                    />
-                                                </div>
-                                                </>
                                             )}
                                         </div>
                                     );
@@ -1594,7 +1458,6 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                 <UploadedVideoPlayer src={resolveImageUrl(article.youtubeId)} />
                                             ) : (
                                                 /* ── YouTube iframe player ── */
-                                                <>
                                                 <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
                                                     <iframe
                                                         ref={dedicatedPlayerRef}
@@ -1606,65 +1469,6 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                         id={`yt-player-${extractId(article.youtubeId)}`}
                                                     />
                                                 </div>
-                                                {/* Custom React control bar for dedicated YouTube player */}
-                                                <div className="yt-controls-bar">
-                                                    <button
-                                                        className="yt-btn"
-                                                        title={ytDedicatedPlaying ? 'Pause' : 'Play'}
-                                                        onClick={() => {
-                                                            if (ytDedicatedPlaying) {
-                                                                ytMsg(dedicatedPlayerRef.current, 'pauseVideo');
-                                                                setYtDedicatedPlaying(false);
-                                                            } else {
-                                                                ytMsg(dedicatedPlayerRef.current, 'playVideo');
-                                                                setYtDedicatedPlaying(true);
-                                                            }
-                                                        }}
-                                                    >
-                                                        {ytDedicatedPlaying
-                                                            ? <Pause className="w-4 h-4" />
-                                                            : <Play className="w-4 h-4" />}
-                                                    </button>
-                                                    <button
-                                                        className="yt-btn"
-                                                        title={ytDedicatedMuted ? 'Activer le son' : 'Couper le son'}
-                                                        onClick={() => {
-                                                            if (ytDedicatedMuted) {
-                                                                ytMsg(dedicatedPlayerRef.current, 'unMute');
-                                                                ytMsg(dedicatedPlayerRef.current, 'setVolume', [ytDedicatedVolume]);
-                                                                setYtDedicatedMuted(false);
-                                                            } else {
-                                                                ytMsg(dedicatedPlayerRef.current, 'mute');
-                                                                setYtDedicatedMuted(true);
-                                                            }
-                                                        }}
-                                                    >
-                                                        {ytDedicatedMuted
-                                                            ? <VolumeX className="w-4 h-4" />
-                                                            : <Volume2 className="w-4 h-4" />}
-                                                    </button>
-                                                    <span className="yt-vol-label">SON</span>
-                                                    <input
-                                                        type="range"
-                                                        min="0"
-                                                        max="100"
-                                                        value={ytDedicatedVolume}
-                                                        className="yt-volume-slider"
-                                                        onChange={(e) => {
-                                                            const vol = parseInt(e.target.value);
-                                                            setYtDedicatedVolume(vol);
-                                                            ytMsg(dedicatedPlayerRef.current, 'setVolume', [vol]);
-                                                            if (vol === 0) {
-                                                                ytMsg(dedicatedPlayerRef.current, 'mute');
-                                                                setYtDedicatedMuted(true);
-                                                            } else if (ytDedicatedMuted) {
-                                                                ytMsg(dedicatedPlayerRef.current, 'unMute');
-                                                                setYtDedicatedMuted(false);
-                                                            }
-                                                        }}
-                                                    />
-                                                </div>
-                                                </>
                                             )}
                                         </div>
                                         );
