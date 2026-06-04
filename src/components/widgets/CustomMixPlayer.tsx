@@ -393,6 +393,16 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
         }
     };
 
+    // Helper: extract YouTube video ID from embedUrl or url, and build a timestamped YouTube link
+    const getYouTubeTimestampUrl = (seconds: number): string | null => {
+        const src = track.embedUrl || track.url || '';
+        const match = src.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/);
+        if (match) {
+            return `https://www.youtube.com/watch?v=${match[1]}&t=${Math.floor(seconds)}s`;
+        }
+        return null;
+    };
+
     const handleVolumeChange = (newVal: number) => {
         setVolume(newVal);
         setIsMuted(newVal === 0);
@@ -1284,19 +1294,33 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                 {track.tracks && track.tracks.length > 0 ? (
                                     track.tracks.map((t, idx) => {
                                         const isCurrent = idx === currentTrackIndex;
+                                        const secs = parseTimeToSeconds(t.time);
+                                        const ytUrl = t.time ? getYouTubeTimestampUrl(secs) : null;
+                                        const canSeekInPlayer = (isSoundCloud && !!scWidgetRef.current) ||
+                                            (isYouTube && !!ytPlayerRef.current) ||
+                                            (isHTML5 && !!audioRef.current);
+
                                         return (
                                             <div 
                                                 key={idx} 
                                                 onClick={() => {
-                                                    const secs = parseTimeToSeconds(t.time);
-                                                    handleSeekToSeconds(secs);
-                                                    showToast(`Saut à : ${t.title} (${t.time})`);
+                                                    if (canSeekInPlayer) {
+                                                        handleSeekToSeconds(secs);
+                                                        showToast(`⏩ ${t.title}${t.time ? ` — ${t.time}` : ''}`);
+                                                    } else if (ytUrl) {
+                                                        window.open(ytUrl, '_blank', 'noopener,noreferrer');
+                                                    } else if (track.url && track.url !== '#') {
+                                                        window.open(track.url, '_blank', 'noopener,noreferrer');
+                                                    } else {
+                                                        showToast(`${t.title}${t.time ? ` — ${t.time}` : ''}`);
+                                                    }
                                                 }}
                                                 className={`flex items-center gap-4 py-3 px-4 rounded-2xl cursor-pointer border transition-all group ${
                                                     isCurrent 
                                                     ? 'bg-neon-green/10 border-neon-green/20 text-neon-green shadow-[0_0_15px_rgba(57,255,20,0.05)]' 
                                                     : 'bg-transparent border-transparent hover:bg-white/[0.02] text-white/60 hover:text-white hover:border-white/5'
                                                 }`}
+                                                title={ytUrl ? `Ouvrir sur YouTube à ${t.time}` : t.title}
                                             >
                                                 <span className={`text-[10px] font-black w-6 flex justify-center items-center ${isCurrent ? 'text-neon-green' : 'text-white/20'}`}>
                                                     {isCurrent ? (
@@ -1312,11 +1336,20 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                                     <p className="text-[9px] font-bold uppercase tracking-widest opacity-60 mt-0.5">{t.artist}</p>
                                                 </div>
                                                 {t.time && (
-                                                    <span className={`text-[9px] font-black tabular-nums border px-2 py-0.5 rounded-lg transition-colors ${
-                                                        isCurrent ? 'bg-neon-green/10 border-neon-green/20 text-neon-green' : 'bg-white/5 border-white/5 group-hover:border-white/10'
-                                                    }`}>
+                                                    <a
+                                                        href={ytUrl || track.url || '#'}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={e => e.stopPropagation()}
+                                                        title={`Ouvrir sur YouTube à ${t.time}`}
+                                                        className={`text-[9px] font-black tabular-nums border px-2 py-0.5 rounded-lg transition-all hover:scale-105 ${
+                                                            isCurrent 
+                                                            ? 'bg-neon-green/10 border-neon-green/20 text-neon-green hover:bg-neon-green/20' 
+                                                            : 'bg-white/5 border-white/5 group-hover:border-white/10 hover:border-neon-purple/40 hover:text-neon-purple'
+                                                        }`}
+                                                    >
                                                         {t.time}
-                                                    </span>
+                                                    </a>
                                                 )}
                                             </div>
                                         );

@@ -135,8 +135,8 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                 <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {latestRecaps.map((item: any, index: number) => {
                         const isGallery = item.contentType === 'gallery';
-                        const itemColor = isGallery ? '#ffffff' : '#bf00ff';
-                        const itemColorTranslucent = isGallery ? 'rgba(255,255,255,0.3)' : 'rgba(191, 0, 255, 0.3)';
+                        const itemColor = isGallery ? '#ffffff' : '#ff6700';
+                        const itemColorTranslucent = isGallery ? 'rgba(255,255,255,0.3)' : 'rgba(255, 103, 0, 0.3)';
                         
                         return (
                             <Link 
@@ -156,7 +156,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                                     }}
                                     onMouseOver={(e) => {
                                         e.currentTarget.style.borderColor = itemColor;
-                                        e.currentTarget.style.boxShadow = `0 0 20px ${isGallery ? 'rgba(255,255,255,0.3)' : 'rgba(191,0,255,0.3)'}`;
+                                        e.currentTarget.style.boxShadow = `0 0 20px ${isGallery ? 'rgba(255,255,255,0.3)' : 'rgba(255,103,0,0.3)'}`;
                                     }}
                                     onMouseOut={(e) => {
                                         e.currentTarget.style.borderColor = itemColorTranslucent;
@@ -197,7 +197,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                                             style={{
                                                 borderColor: itemColor,
                                                 color: itemColor,
-                                                boxShadow: `0 0 10px ${isGallery ? 'rgba(255,255,255,0.3)' : 'rgba(191,0,255,0.3)'}`
+                                                boxShadow: `0 0 10px ${isGallery ? 'rgba(255,255,255,0.3)' : 'rgba(255,103,0,0.3)'}`
                                             }}
                                         >
                                             {isGallery ? 'Photo' : t('home.recap_badge')}
