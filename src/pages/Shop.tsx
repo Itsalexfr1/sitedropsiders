@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+﻿import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Construction, Loader2, ExternalLink, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AVAILABLE_COLORS } from '../data/colors';
@@ -81,7 +81,7 @@ export function Shop() {
     if (loading) {
         return (
             <div className="min-h-[70vh] flex flex-col items-center justify-center">
-                <Loader2 className="w-12 h-12 text-neon-red animate-spin opacity-20" />
+                <Loader2 className="w-12 h-12 text-neon-blue animate-spin opacity-20" />
             </div>
         );
     }
@@ -107,12 +107,12 @@ export function Shop() {
                         className="w-full max-w-md bg-white/5 border border-white/10 rounded-[40px] p-12 shadow-2xl backdrop-blur-xl relative overflow-hidden"
                     >
                         {/* Decorative Elements */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-red/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
-                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-neon-red/5 blur-[40px] rounded-full translate-y-1/2 -translate-x-1/2" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-blue/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-neon-blue/5 blur-[40px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
                     <div className="relative z-10 text-center">
-                        <div className="w-20 h-20 bg-neon-red/10 rounded-[24px] flex items-center justify-center mx-auto mb-8 border border-neon-red/20 rotate-12 group hover:rotate-0 transition-transform duration-500">
-                            <ShoppingBag className="w-10 h-10 text-neon-red" />
+                        <div className="w-20 h-20 bg-neon-blue/10 rounded-[24px] flex items-center justify-center mx-auto mb-8 border border-neon-blue/20 rotate-12 group hover:rotate-0 transition-transform duration-500">
+                            <ShoppingBag className="w-10 h-10 text-neon-blue" />
                         </div>
 
                         <h1 className="text-4xl font-display font-black text-white mb-4 uppercase italic tracking-tighter" dangerouslySetInnerHTML={{ __html: t('shop.auth.title') }} />
@@ -127,14 +127,14 @@ export function Shop() {
                                     placeholder={t('shop.auth.placeholder')}
                                     value={passwordInput}
                                     onChange={(e) => setPasswordInput(e.target.value)}
-                                    className={`w-full bg-black/60 border ${passwordError ? 'border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.2)]' : 'border-white/10 focus:border-neon-red'} rounded-2xl px-6 py-4 text-white text-center font-bold tracking-[0.3em] outline-none transition-all placeholder:text-gray-700`}
+                                    className={`w-full bg-black/60 border ${passwordError ? 'border-neon-blue shadow-[0_0_15px_rgba(0,112,255,0.2)]' : 'border-white/10 focus:border-neon-blue'} rounded-2xl px-6 py-4 text-white text-center font-bold tracking-[0.3em] outline-none transition-all placeholder:text-gray-700`}
                                     autoFocus
                                 />
                                 {passwordError && (
                                     <motion.p
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="text-[10px] text-neon-red font-black uppercase tracking-widest mt-3"
+                                        className="text-[10px] text-neon-blue font-black uppercase tracking-widest mt-3"
                                     >
                                         {t('shop.auth.error')}
                                     </motion.p>
@@ -143,7 +143,7 @@ export function Shop() {
 
                             <button
                                 type="submit"
-                                className="w-full py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-[0.2em] italic hover:bg-neon-red/80 transition-all shadow-[0_10px_30px_rgba(255,0,51,0.3)] hover:shadow-[0_15px_40px_rgba(255,0,51,0.4)] active:scale-95"
+                                className="w-full py-5 bg-neon-blue text-white rounded-2xl font-black uppercase tracking-[0.2em] italic hover:bg-neon-blue/80 transition-all shadow-[0_10px_30px_rgba(0,112,255,0.3)] hover:shadow-[0_15px_40px_rgba(0,112,255,0.4)] active:scale-95"
                             >
                                 {t('shop.auth.submit')}
                             </button>
@@ -203,8 +203,8 @@ export function Shop() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="text-center"
                     >
-                        <div className="w-20 h-20 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neon-red/20 shadow-[0_0_20px_rgba(255,0,51,0.2)]">
-                            <Construction className="w-10 h-10 text-neon-red" />
+                        <div className="w-20 h-20 bg-neon-blue/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neon-blue/20 shadow-[0_0_20px_rgba(0,112,255,0.2)]">
+                            <Construction className="w-10 h-10 text-neon-blue" />
                         </div>
                     <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-6 uppercase italic tracking-tighter" dangerouslySetInnerHTML={{ __html: t('shop.coming_soon.title') }} />
                     <p className="text-gray-400 max-w-md mx-auto mb-10 font-bold uppercase tracking-widest text-sm opacity-60">
@@ -244,7 +244,7 @@ export function Shop() {
             <div className={`min-h-screen bg-dark-bg text-white ${isMini ? 'py-8 px-2' : 'py-32 px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24'} overflow-x-hidden relative`}>
             {/* Background Ambient Glows */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-red/10 animate-pulse transition-all duration-1000" />
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-blue/10 animate-pulse transition-all duration-1000" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-cyan/10 animate-pulse [animation-delay:2s] transition-all duration-1000" />
             </div>
 
@@ -255,15 +255,15 @@ export function Shop() {
                         animate={{ opacity: 1, y: 0 }}
                     >
                         <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                            <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
-                                <ShoppingBag className="w-5 h-5 text-neon-red" />
+                            <div className="p-2 bg-neon-blue/10 rounded-xl border border-neon-blue/20 shadow-[0_0_15px_rgba(0,112,255,0.1)]">
+                                <ShoppingBag className="w-5 h-5 text-neon-blue" />
                             </div>
-                            <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">{t('shop.badge')}</span>
+                            <span className="text-neon-blue font-black tracking-[0.3em] text-[10px] uppercase">{t('shop.badge')}</span>
                         </div>
                         
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
                             <h1 className={`${isMini ? 'text-4xl md:text-5xl' : 'text-4xl md:text-7xl'} font-display font-black text-white uppercase italic tracking-tighter leading-tight`}>
-                                {t('shop.title')}<span className="text-neon-red">{t('shop.title_span')}</span>
+                                {t('shop.title')}<span className="text-neon-blue">{t('shop.title_span')}</span>
                             </h1>
                             {/* Espace Professionnel moved to Admin Edit Bar (doublon) */}
                         </div>
@@ -272,9 +272,9 @@ export function Shop() {
                             {t('shop.subtitle')}
                         </p>
 
-                        <div className="mt-8 mb-8 text-center sm:text-left text-white text-[10px] font-black uppercase tracking-widest bg-neon-red/5 py-4 px-6 border border-neon-red/10 rounded-2xl max-w-2xl sm:mx-0 shadow-[0_0_20px_rgba(255,0,51,0.05)] leading-relaxed flex items-center gap-4">
-                            <div className="w-8 h-8 rounded-lg bg-neon-red/20 flex items-center justify-center shrink-0">
-                                <span className="text-neon-red text-xs">!</span>
+                        <div className="mt-8 mb-8 text-center sm:text-left text-white text-[10px] font-black uppercase tracking-widest bg-neon-blue/5 py-4 px-6 border border-neon-blue/10 rounded-2xl max-w-2xl sm:mx-0 shadow-[0_0_20px_rgba(0,112,255,0.05)] leading-relaxed flex items-center gap-4">
+                            <div className="w-8 h-8 rounded-lg bg-neon-blue/20 flex items-center justify-center shrink-0">
+                                <span className="text-neon-blue text-xs">!</span>
                             </div>
                             <p>{t('shop.disclaimer')}</p>
                         </div>
@@ -290,8 +290,8 @@ export function Shop() {
                                         whileTap={{ scale: 0.95 }}
                                         className={`relative px-7 py-3 rounded-2xl font-black uppercase tracking-[0.1em] text-[10px] transition-all duration-300 border flex-shrink-0
                                         ${isActive
-                                                ? 'bg-neon-red text-white border-transparent shadow-[0_0_20px_rgba(255,17,17,0.4)]'
-                                                : 'bg-white/[0.03] text-white/40 border-white/10 hover:border-neon-red/40 hover:text-neon-red'
+                                                ? 'bg-neon-blue text-white border-transparent shadow-[0_0_20px_rgba(255,17,17,0.4)]'
+                                                : 'bg-white/[0.03] text-white/40 border-white/10 hover:border-neon-blue/40 hover:text-neon-blue'
                                             }`}
                                     >
                                         <span className="relative z-10">
@@ -346,8 +346,8 @@ export function Shop() {
                             exit={{ opacity: 0, scale: 0.9 }}
                             className="relative w-full max-w-lg bg-[#0a0a0a] rounded-[32px] border border-white/10 p-12 text-center shadow-2xl"
                         >
-                            <div className="w-20 h-20 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-neon-red/20">
-                                <ShoppingBag className="w-10 h-10 text-neon-red" />
+                            <div className="w-20 h-20 bg-neon-blue/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-neon-blue/20">
+                                <ShoppingBag className="w-10 h-10 text-neon-blue" />
                             </div>
 
                             {isPasswordProtected && passwordImage && (
@@ -364,7 +364,7 @@ export function Shop() {
                             )}
 
                             <h3 className="text-3xl font-display font-black text-white uppercase italic mb-4">
-                                Redirection vers <span className="text-neon-red">le paiement</span>
+                                Redirection vers <span className="text-neon-blue">le paiement</span>
                             </h3>
                             <p className="text-gray-400 mb-10 font-medium leading-relaxed">
                                 Vous allez être redirigé vers notre plateforme de paiement sécurisée Fourthwall pour finaliser votre commande.
@@ -509,7 +509,7 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                     )}
 
                     <div className="flex flex-col items-end flex-shrink-0">
-                        <span className={`text-neon-red font-display font-black italic ${isMini ? 'text-sm md:text-lg' : 'text-base md:text-2xl'}`}>{product.price}€</span>
+                        <span className={`text-neon-blue font-display font-black italic ${isMini ? 'text-sm md:text-lg' : 'text-base md:text-2xl'}`}>{product.price}€</span>
                         {!isMini && <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">+ frais de port</span>}
                     </div>
                 </div>
@@ -520,7 +520,7 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                             e.preventDefault();
                             onBuy();
                         }}
-                        className={`w-full bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-center shadow-lg shadow-neon-red/20 transform hover:scale-[1.02] active:scale-[0.98] transition-all ${isMini ? 'py-2 text-[10px]' : 'py-4'}`}
+                        className={`w-full bg-neon-blue text-white rounded-xl font-black uppercase tracking-widest text-center shadow-lg shadow-neon-blue/20 transform hover:scale-[1.02] active:scale-[0.98] transition-all ${isMini ? 'py-2 text-[10px]' : 'py-4'}`}
                     >
                         ACHETER
                     </button>

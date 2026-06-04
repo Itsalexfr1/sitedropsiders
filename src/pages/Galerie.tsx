@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+﻿import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { Camera } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
@@ -68,7 +68,7 @@ export function Galerie() {
         <div className="bg-dark-bg min-h-screen relative">
             {/* Background Ambient Glows */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-red/10 animate-pulse transition-all duration-1000" />
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-pink/10 animate-pulse transition-all duration-1000" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-cyan/5 animate-pulse [animation-delay:2s] transition-all duration-1000" />
             </div>
 
@@ -84,13 +84,13 @@ export function Galerie() {
                 >
                     <div>
                         <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                            <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
-                                <Camera className="w-5 h-5 text-neon-red" />
+                            <div className="p-2 bg-neon-pink/10 rounded-xl border border-neon-pink/20 shadow-[0_0_15px_rgba(255,0,127,0.1)]">
+                                <Camera className="w-5 h-5 text-neon-pink" />
                             </div>
-                            <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">{t('communaute.badge')}</span>
+                            <span className="text-neon-pink font-black tracking-[0.3em] text-[10px] uppercase">{t('communaute.badge')}</span>
                         </div>
                         <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
-                            LA <span className="text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.4)]">COMMUNAUTÉ</span>
+                            LA <span className="text-neon-pink shadow-[0_0_20px_rgba(255,0,127,0.4)]">COMMUNAUTÉ</span>
                         </h1>
                         <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">
                             Capturez l'instant, préservez l'émotion. Retrouvez ici les meilleurs moments partagés par la communauté sur les plus grands festivals du monde.
@@ -101,11 +101,11 @@ export function Galerie() {
                         whileHover={{ scale: 1.05, y: -5 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => navigate('/communaute/partager')}
-                        className="group relative px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:bg-neon-red hover:text-white transition-all duration-500 overflow-hidden mx-auto sm:mx-0"
+                        className="group relative px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:bg-neon-pink hover:text-white transition-all duration-500 overflow-hidden mx-auto sm:mx-0"
                     >
                         <span className="relative z-10 flex items-center gap-4">
                             Partager Album
-                            <div className="p-2 bg-black text-white group-hover:bg-white group-hover:text-neon-red rounded-lg transition-colors">
+                            <div className="p-2 bg-black text-white group-hover:bg-white group-hover:text-neon-pink rounded-lg transition-colors">
                                 <Camera className="w-4 h-4" />
                             </div>
                         </span>
@@ -117,11 +117,11 @@ export function Galerie() {
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-32 space-y-8 bg-white/5 border border-white/10 rounded-[3rem] backdrop-blur-md">
                         <div className="relative">
-                            <div className="w-20 h-20 border-4 border-neon-red/10 rounded-full" />
-                            <div className="absolute inset-0 w-20 h-20 border-t-4 border-neon-red rounded-full animate-spin" />
+                            <div className="w-20 h-20 border-4 border-neon-pink/10 rounded-full" />
+                            <div className="absolute inset-0 w-20 h-20 border-t-4 border-neon-pink rounded-full animate-spin" />
                         </div>
                         <div className="flex flex-col items-center gap-2">
-                            <span className="text-xl font-display font-black text-white italic uppercase tracking-tighter">DROPSIDERS <span className="text-neon-red">ARCHIVES</span></span>
+                            <span className="text-xl font-display font-black text-white italic uppercase tracking-tighter">DROPSIDERS <span className="text-neon-pink">ARCHIVES</span></span>
                             <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.5em] animate-pulse">Initialisation du flux multimédia...</span>
                         </div>
                     </div>
@@ -133,12 +133,12 @@ export function Galerie() {
                             <div className="space-y-12">
                                 <div className="max-w-4xl mx-auto py-12">
                                     <div className="bg-white/5 border border-white/10 rounded-[3rem] p-12 md:p-20 backdrop-blur-3xl text-center space-y-10 shadow-2xl">
-                                        <div className="inline-flex p-5 bg-neon-red/10 rounded-3xl">
-                                            <Camera className="w-12 h-12 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.3)]" />
+                                        <div className="inline-flex p-5 bg-neon-pink/10 rounded-3xl">
+                                            <Camera className="w-12 h-12 text-neon-pink shadow-[0_0_20px_rgba(255,0,127,0.3)]" />
                                         </div>
                                         <div className="space-y-4">
                                             <h2 className="text-4xl md:text-6xl font-display font-black uppercase italic tracking-tighter text-white">
-                                                VOS <span className="text-neon-red">PHOTOS</span>
+                                                VOS <span className="text-neon-pink">PHOTOS</span>
                                             </h2>
                                             <p className="text-white/40 max-w-xl mx-auto text-[10px] font-black uppercase tracking-[0.3em] leading-loose">
                                                 Partagez vos moments forts avec la communauté. Les meilleures photos seront exposées sur le Memory Wall.
@@ -149,7 +149,7 @@ export function Galerie() {
                                                 whileHover={{ scale: 1.05, y: -5 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => navigate('/communaute/partager')}
-                                                className="px-16 py-6 bg-white text-black rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(255,255,255,0.05)] hover:bg-neon-red hover:text-white transition-all duration-500"
+                                                className="px-16 py-6 bg-white text-black rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(255,255,255,0.05)] hover:bg-neon-pink hover:text-white transition-all duration-500"
                                             >
                                                 ENVOYER MES PHOTOS
                                             </motion.button>
@@ -191,7 +191,7 @@ export function Galerie() {
                                             ))
                                         ) : (
                                             filteredAlbums.slice(0, ALBUMS_PER_PAGE).map(album => (
-                                                <Link key={album.id} to={getGalleryLink(album)} className="group relative aspect-square bg-white/5 rounded-3xl overflow-hidden border border-white/10 hover:border-neon-red transition-all duration-500">
+                                                <Link key={album.id} to={getGalleryLink(album)} className="group relative aspect-square bg-white/5 rounded-3xl overflow-hidden border border-white/10 hover:border-neon-pink transition-all duration-500">
                                                     <img 
                                                         src={resolveImageUrl(album.cover)} 
                                                         className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import { TeamContactModal } from '../components/widgets/TeamContactModal';
@@ -45,24 +45,24 @@ export function Team() {
                         transition={{ delay: index * 0.1 }}
                         className="group relative"
                     >
-                        <div className="relative block overflow-hidden rounded-2xl aspect-square mb-4 group-hover:shadow-[0_0_30px_rgba(255,0,51,0.3)] transition-all duration-500 max-w-[200px] mx-auto border border-white/5">
+                        <div className="relative block overflow-hidden rounded-2xl aspect-square mb-4 group-hover:shadow-[0_0_30px_rgba(204,255,0,0.3)] transition-all duration-500 max-w-[200px] mx-auto border border-white/5">
                             <div className="absolute inset-0 bg-black/40 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-6 backdrop-blur-[2px]">
                                 <a
                                     href={member.socials.instagram}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-neon-red/20 hover:border-neon-red/50 hover:scale-110 transition-all duration-300 backdrop-blur-xl group/social"
+                                    className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-neon-lime/20 hover:border-neon-lime/50 hover:scale-110 transition-all duration-300 backdrop-blur-xl group/social"
                                 >
-                                    <Instagram className="w-6 h-6 text-white opacity-80 group-hover/social:opacity-100 group-hover/social:text-neon-red transition-all duration-300" />
+                                    <Instagram className="w-6 h-6 text-white opacity-80 group-hover/social:opacity-100 group-hover/social:text-neon-lime transition-all duration-300" />
                                 </a>
                                 {member.socials.tiktok && member.socials.tiktok !== '#' && (
                                     <a
                                         href={member.socials.tiktok}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-neon-red/20 hover:border-neon-red/50 hover:scale-110 transition-all duration-300 backdrop-blur-xl group/social"
+                                        className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-neon-lime/20 hover:border-neon-lime/50 hover:scale-110 transition-all duration-300 backdrop-blur-xl group/social"
                                     >
-                                        <Music className="w-5 h-5 text-white opacity-80 group-hover/social:opacity-100 group-hover/social:text-neon-red transition-all duration-300" />
+                                        <Music className="w-5 h-5 text-white opacity-80 group-hover/social:opacity-100 group-hover/social:text-neon-lime transition-all duration-300" />
                                     </a>
                                 )}
                             </div>
@@ -74,8 +74,8 @@ export function Team() {
                         </div>
 
                         <div className="text-center">
-                            <h3 className="text-sm md:text-base font-bold text-white mb-0.5 group-hover:text-neon-red transition-colors">{member.name}</h3>
-                            <p className="text-neon-red font-medium tracking-wider text-[10px] md:text-xs uppercase">{member.role}</p>
+                            <h3 className="text-sm md:text-base font-bold text-white mb-0.5 group-hover:text-neon-lime transition-colors">{member.name}</h3>
+                            <p className="text-neon-lime font-medium tracking-wider text-[10px] md:text-xs uppercase">{member.role}</p>
                         </div>
                     </motion.div>
                 ))}
@@ -87,7 +87,7 @@ export function Team() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-32 p-12 rounded-3xl bg-gradient-to-br from-white/5 to-transparent border border-white/10 text-center relative overflow-hidden"
             >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/10 blur-[100px] pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-neon-lime/10 blur-[100px] pointer-events-none" />
                 <div className="relative z-10">
                     <h2 className="text-3xl font-display font-black text-white mb-6 uppercase italic">{t('team.join_title')}</h2>
                     <p className="text-gray-400 max-w-xl mx-auto mb-10 text-lg">
@@ -95,7 +95,7 @@ export function Team() {
                     </p>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="inline-flex items-center px-8 py-4 bg-neon-red text-white font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-neon-red transition-all duration-300 transform hover:scale-105"
+                        className="inline-flex items-center px-8 py-4 bg-neon-lime text-white font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-neon-lime transition-all duration-300 transform hover:scale-105"
                     >
                         {t('team.contact_btn')}
                     </button>

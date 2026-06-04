@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { 
     Navigation, MapPin, Calendar, ArrowRight, Zap, Info, Clock, 
     TrendingDown, Share2, ExternalLink, ChevronDown, Plane, Bus, ArrowRightLeft, HelpCircle, Users
@@ -59,12 +59,12 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType 
                     if (travelType !== 'flight') onSelect({ name: val, iata: val });
                 }}
                 placeholder={placeholder}
-                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/40 focus:bg-black/60 transition-all uppercase text-[11px] font-black tracking-widest placeholder:text-gray-700 shadow-inner"
+                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-green/40 focus:bg-black/60 transition-all uppercase text-[11px] font-black tracking-widest placeholder:text-gray-700 shadow-inner"
             />
             
             {isLoading && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                    <div className="w-3 h-3 border-2 border-neon-red/20 border-t-neon-red rounded-full animate-spin" />
+                    <div className="w-3 h-3 border-2 border-neon-green/20 border-t-neon-green rounded-full animate-spin" />
                 </div>
             )}
 
@@ -93,7 +93,7 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType 
                                     </span>
                                 </div>
                                 {s.iata_code && (
-                                    <span className="text-neon-red text-[11px] font-black px-2.5 py-1 bg-neon-red/10 rounded-lg border border-neon-red/20">
+                                    <span className="text-neon-green text-[11px] font-black px-2.5 py-1 bg-neon-green/10 rounded-lg border border-neon-green/20">
                                         {s.iata_code}
                                     </span>
                                 )}
@@ -327,12 +327,12 @@ export function Voyage() {
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="inline-flex items-center gap-2 px-3 py-1 bg-neon-red/10 border border-neon-red/20 rounded-full mb-6"
+                        className="inline-flex items-center gap-2 px-3 py-1 bg-neon-green/10 border border-neon-green/20 rounded-full mb-6"
                     >
-                        <Zap className="w-3 h-3 text-neon-red" />
-                        <span className="text-[10px] font-black text-neon-red uppercase tracking-widest italic">TRAVEL ENGINE v4.2</span>
+                        <Zap className="w-3 h-3 text-neon-green" />
+                        <span className="text-[10px] font-black text-neon-green uppercase tracking-widest italic">TRAVEL ENGINE v4.2</span>
                     </motion.div>
-                    <h1 className="text-5xl md:text-8xl font-display font-black text-neon-red outline-text italic uppercase tracking-tighter leading-tight">
+                    <h1 className="text-5xl md:text-8xl font-display font-black text-neon-green outline-text italic uppercase tracking-tighter leading-tight">
                         VOYAGE
                     </h1>
                 </div>
@@ -392,7 +392,7 @@ export function Voyage() {
                                         <button 
                                             type="button"
                                             onClick={() => { const d = depObj; setDepObj(destObj); setDestObj(d); }}
-                                            className="w-12 h-12 bg-black border-2 border-white/10 rounded-full flex items-center justify-center text-white hover:border-neon-red hover:text-neon-red transition-all group scale-90 shadow-2xl"
+                                            className="w-12 h-12 bg-black border-2 border-white/10 rounded-full flex items-center justify-center text-white hover:border-neon-green hover:text-neon-green transition-all group scale-90 shadow-2xl"
                                         >
                                             <ArrowRightLeft className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
                                         </button>
@@ -407,13 +407,13 @@ export function Voyage() {
                                     <div className="space-y-3">
                                         <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DATE ALLER</span>
                                         <div className="relative group">
-                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-red transition-colors" />
+                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-green transition-colors" />
                                             <input 
                                                 type="date" 
                                                 required
                                                 value={date}
                                                 onChange={(e) => setDate(e.target.value)}
-                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/40 transition-all font-black text-xs [color-scheme:dark]"
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-green/40 transition-all font-black text-xs [color-scheme:dark]"
                                             />
                                         </div>
                                     </div>
@@ -423,12 +423,12 @@ export function Voyage() {
                                             <span className="text-[9px] font-black uppercase text-gray-600 tracking-[0.1em] italic">Optionnel</span>
                                         </div>
                                         <div className="relative group">
-                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-red transition-colors" />
+                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-green transition-colors" />
                                             <input 
                                                 type="date" 
                                                 value={returnDate}
                                                 onChange={(e) => { setReturnDate(e.target.value); setIsRoundTrip(!!e.target.value); }}
-                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/40 transition-all font-black text-xs [color-scheme:dark]"
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-green/40 transition-all font-black text-xs [color-scheme:dark]"
                                             />
                                         </div>
                                     </div>
@@ -459,7 +459,7 @@ export function Voyage() {
                                                         onClick={() => { setCabinClass(cls.id); setResults([]); setError(null); }}
                                                         className={`flex items-center justify-center gap-2 px-4 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-300 ${
                                                             cabinClass === cls.id
-                                                                ? 'bg-neon-red/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.15)] scale-[1.02]'
+                                                                ? 'bg-neon-green/10 border-neon-green text-white shadow-[0_0_20px_rgba(255,18,65,0.15)] scale-[1.02]'
                                                                 : 'bg-white/5 border-white/5 text-gray-600 hover:bg-white/10 hover:border-white/10'
                                                         }`}
                                                     >
@@ -481,7 +481,7 @@ export function Voyage() {
                                                     onClick={() => { travelType === 'flight' ? setFlightProvider(p) : setBusProvider(p); setResults([]); setError(null); }}
                                                     className={`px-6 py-4 rounded-xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
                                                         (travelType === 'flight' ? flightProvider : busProvider) === p 
-                                                            ? 'bg-white/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.15)]' 
+                                                            ? 'bg-white/10 border-neon-green text-white shadow-[0_0_20px_rgba(255,18,65,0.15)]' 
                                                             : 'bg-white/5 border-white/5 text-gray-600 hover:bg-white/10 hover:border-white/10'
                                                     }`}
                                                 >
@@ -495,7 +495,7 @@ export function Voyage() {
                                         <button
                                             type="submit"
                                             disabled={isSearching}
-                                            className="w-full py-7 bg-neon-red text-white rounded-3xl font-black uppercase text-sm tracking-[0.4em] hover:bg-white hover:text-black transition-all duration-500 shadow-[0_0_50px_rgba(255,18,65,0.3)] disabled:opacity-50 flex items-center justify-center gap-4 group"
+                                            className="w-full py-7 bg-neon-green text-white rounded-3xl font-black uppercase text-sm tracking-[0.4em] hover:bg-white hover:text-black transition-all duration-500 shadow-[0_0_50px_rgba(255,18,65,0.3)] disabled:opacity-50 flex items-center justify-center gap-4 group"
                                         >
                                             {isSearching ? (
                                                 <div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin" />
@@ -521,11 +521,11 @@ export function Voyage() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
-                                className="mt-8 p-8 bg-neon-red/5 border-2 border-neon-red/20 rounded-[40px] flex flex-col gap-6"
+                                className="mt-8 p-8 bg-neon-green/5 border-2 border-neon-green/20 rounded-[40px] flex flex-col gap-6"
                             >
                                 <div className="flex gap-5 items-start">
-                                    <div className="w-10 h-10 bg-neon-red/10 rounded-full flex items-center justify-center shrink-0">
-                                        <Info className="w-5 h-5 text-neon-red" />
+                                    <div className="w-10 h-10 bg-neon-green/10 rounded-full flex items-center justify-center shrink-0">
+                                        <Info className="w-5 h-5 text-neon-green" />
                                     </div>
                                     <div className="space-y-1">
                                         <h4 className="text-white text-sm font-black uppercase tracking-widest">AIE... MOTEUR INDISPONIBLE</h4>
@@ -558,7 +558,7 @@ export function Voyage() {
                                 className="mt-20 flex flex-col items-center gap-10 py-10"
                             >
                                 <div className="relative">
-                                    <div className="w-24 h-24 border-b-4 border-neon-red rounded-full animate-spin"></div>
+                                    <div className="w-24 h-24 border-b-4 border-neon-green rounded-full animate-spin"></div>
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <Zap className="w-8 h-8 text-white animate-pulse" />
                                     </div>
@@ -566,8 +566,8 @@ export function Voyage() {
                                 <div className="text-center space-y-4">
                                     <h3 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">ANALYSE EN COURS</h3>
                                     <div className="flex flex-col items-center gap-2">
-                                        <div className="px-4 py-1.5 bg-neon-red/10 border border-neon-red/20 rounded-full">
-                                            <span className="text-[11px] font-black text-neon-red uppercase tracking-[0.3em]">{searchStatus}</span>
+                                        <div className="px-4 py-1.5 bg-neon-green/10 border border-neon-green/20 rounded-full">
+                                            <span className="text-[11px] font-black text-neon-green uppercase tracking-[0.3em]">{searchStatus}</span>
                                         </div>
                                         <p className="text-[10px] font-black text-gray-700 uppercase tracking-[0.5em] mt-2">DÉCRYPTAGE DU FLUX DUFFEL v2</p>
                                     </div>
@@ -618,15 +618,15 @@ export function Voyage() {
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: idx * 0.05 }}
-                                        className="bg-[#0c0c0c] border border-white/5 rounded-[32px] overflow-hidden hover:border-neon-red/30 transition-all group shadow-2xl"
+                                        className="bg-[#0c0c0c] border border-white/5 rounded-[32px] overflow-hidden hover:border-neon-green/30 transition-all group shadow-2xl"
                                     >
                                         <div className="p-8 md:p-10 flex flex-col lg:flex-row justify-between items-center gap-10">
                                             <div className="flex items-center gap-8 w-full lg:w-auto">
                                                 
                                                 <div className="flex-1 space-y-6">
                                                     <div className="flex items-center gap-4">
-                                                        <span className="text-base font-black text-white uppercase italic tracking-tighter group-hover:text-neon-red transition-colors">{r.company}</span>
-                                                        <span className={`text-[10px] font-black px-3 py-1 border rounded-lg uppercase tracking-widest ${r.stops === 0 ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-neon-red border-neon-red/20 bg-neon-red/5'}`}>
+                                                        <span className="text-base font-black text-white uppercase italic tracking-tighter group-hover:text-neon-green transition-colors">{r.company}</span>
+                                                        <span className={`text-[10px] font-black px-3 py-1 border rounded-lg uppercase tracking-widest ${r.stops === 0 ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-neon-green border-neon-green/20 bg-neon-green/5'}`}>
                                                             {r.stops === 0 ? t('voyage.direct') : `${r.stops} ${t('voyage.stops')}`}
                                                         </span>
                                                         {r.cabin_class && (
@@ -660,15 +660,15 @@ export function Voyage() {
                                                                 {r.stops > 0 && Array.from({length: r.stops}).map((_, i) => (
                                                                     <div 
                                                                         key={i} 
-                                                                        className="absolute w-1.5 h-1.5 bg-neon-red/40 border border-neon-red/20 rounded-full top-1/2 -translate-y-1/2" 
+                                                                        className="absolute w-1.5 h-1.5 bg-neon-green/40 border border-neon-green/20 rounded-full top-1/2 -translate-y-1/2" 
                                                                         style={{ left: `${((i + 1) / (r.stops + 1)) * 100}%` }}
                                                                     />
                                                                 ))}
 
-                                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-neon-red/30 rounded-full border border-neon-red/20 animate-pulse" />
+                                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-neon-green/30 rounded-full border border-neon-green/20 animate-pulse" />
                                                             </div>
                                                             {r.stopCodes && (
-                                                                <div className="text-[8px] font-black text-neon-red/40 uppercase tracking-widest bg-neon-red/[0.03] px-2 py-0.5 rounded-md">
+                                                                <div className="text-[8px] font-black text-neon-green/40 uppercase tracking-widest bg-neon-green/[0.03] px-2 py-0.5 rounded-md">
                                                                     Escale: {r.stopCodes}
                                                                 </div>
                                                             )}
@@ -694,7 +694,7 @@ export function Voyage() {
                                                 
                                                 <button 
                                                     onClick={() => openSearchRedirect('skyscanner')}
-                                            className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] flex items-center gap-3 shrink-0 active:scale-95"
+                                            className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] hover:bg-neon-green hover:text-white transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] flex items-center gap-3 shrink-0 active:scale-95"
                                                 >
                                                     {t('voyage.book')} <ArrowRight className="w-4 h-4" />
                                                 </button>
@@ -709,14 +709,14 @@ export function Voyage() {
                                                 </span>
                                                 <button 
                                                     onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                                                    className="text-[9px] font-black text-neon-red uppercase tracking-widest flex items-center gap-2 hover:text-white transition-colors"
+                                                    className="text-[9px] font-black text-neon-green uppercase tracking-widest flex items-center gap-2 hover:text-white transition-colors"
                                                 >
                                                     <ChevronDown className={`w-3 h-3 transition-transform duration-500 ${expandedId === r.id ? 'rotate-180' : ''}`} /> 
                                                     {expandedId === r.id ? t('voyage.hide_details') : t('voyage.show_details')}
                                                 </button>
                                             </div>
                                             <div className="hidden md:block">
-                                                 <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] italic">{t('voyage.last_seats')}</span>
+                                                 <span className="text-[9px] font-black text-neon-green uppercase tracking-[0.2em] italic">{t('voyage.last_seats')}</span>
                                             </div>
                                         </div>
 
@@ -771,9 +771,9 @@ export function Voyage() {
                                                                 {/* Layover Info */}
                                                                 {sIdx < r.allSegments.length - 1 && (
                                                                     <div className="ml-21 py-6">
-                                                                        <div className="inline-flex items-center gap-3 px-4 py-2 bg-neon-red/5 border border-neon-red/10 rounded-full">
-                                                                            <Clock className="w-3 h-3 text-neon-red" />
-                                                                            <span className="text-[9px] font-black text-neon-red uppercase tracking-widest">
+                                                                        <div className="inline-flex items-center gap-3 px-4 py-2 bg-neon-green/5 border border-neon-green/10 rounded-full">
+                                                                            <Clock className="w-3 h-3 text-neon-green" />
+                                                                            <span className="text-[9px] font-black text-neon-green uppercase tracking-widest">
                                                                                 {t('voyage.layover_at')} {segment.destination}
                                                                             </span>
                                                                         </div>
@@ -813,7 +813,7 @@ export function Voyage() {
                 <div className="lg:col-span-4 space-y-8">
                     <div className="bg-[#0c0c0c] border border-white/10 rounded-[40px] p-8 md:p-10 space-y-12">
                         <section className="space-y-8">
-                            <h3 className="text-xl font-display font-black text-white italic uppercase italic">AIDE <span className="text-neon-red">& INFO</span></h3>
+                            <h3 className="text-xl font-display font-black text-white italic uppercase italic">AIDE <span className="text-neon-green">& INFO</span></h3>
                             <div className="space-y-12">
                                 {[
                                     { title: 'MOTEU FLASH', desc: 'Scan temps réel via notre Proxy sécurisé.', icon: Zap },
@@ -822,7 +822,7 @@ export function Voyage() {
                                 ].map((f, i) => (
                                     <div key={i} className="flex gap-5">
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/5">
-                                            <f.icon className="w-5 h-5 text-neon-red" />
+                                            <f.icon className="w-5 h-5 text-neon-green" />
                                         </div>
                                         <div className="pt-1">
                                             <h4 className="text-[11px] font-black uppercase text-white tracking-[0.2em]">{f.title}</h4>
@@ -834,13 +834,13 @@ export function Voyage() {
                         </section>
 
                         <div className="pt-10 border-t border-white/5">
-                            <div className="bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-[32px] p-8 group relative overflow-hidden cursor-pointer" onClick={() => { setTravelType('covoit'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-                                <h3 className="text-white text-2xl font-display font-black italic uppercase leading-tight">COVOITURAGE<br/><span className="text-neon-red">FESTIVAL</span></h3>
+                            <div className="bg-gradient-to-br from-neon-green/10 to-transparent border border-neon-green/20 rounded-[32px] p-8 group relative overflow-hidden cursor-pointer" onClick={() => { setTravelType('covoit'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
+                                <h3 className="text-white text-2xl font-display font-black italic uppercase leading-tight">COVOITURAGE<br/><span className="text-neon-green">FESTIVAL</span></h3>
                                 <p className="text-gray-500 text-[10px] font-bold mt-4 uppercase tracking-[0.2em]">Partage les frais & voyage ensemble.</p>
-                                <button className="mt-8 flex items-center gap-3 text-white text-[10px] font-black uppercase tracking-[0.4em] hover:text-neon-red transition-all">
-                                    REJOINDRE LE FLOT <ArrowRight className="w-4 h-4 text-neon-red" />
+                                <button className="mt-8 flex items-center gap-3 text-white text-[10px] font-black uppercase tracking-[0.4em] hover:text-neon-green transition-all">
+                                    REJOINDRE LE FLOT <ArrowRight className="w-4 h-4 text-neon-green" />
                                 </button>
-                                <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-neon-red/15 blur-3xl rounded-full" />
+                                <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-neon-green/15 blur-3xl rounded-full" />
                             </div>
                         </div>
                     </div>

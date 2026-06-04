@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+﻿import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Users, Camera, Star, Info,
@@ -880,7 +880,7 @@ export function Community() {
                 <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
                     <div className={twMerge(
                         "absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] animate-pulse transition-all duration-1000",
-                        isNightMode ? "bg-neon-red/10 scale-110" : "bg-neon-red/5"
+                        isNightMode ? "bg-neon-fuchsia/10 scale-110" : "bg-neon-fuchsia/5"
                     )} />
                     <div className={twMerge(
                         "absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] animate-pulse [animation-delay:2s] transition-all duration-1000",
@@ -921,7 +921,7 @@ export function Community() {
                             <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
                             </div>
                             <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
-                                LA <span className="text-neon-red drop-shadow-[0_0_20px_rgba(255,0,51,0.5)]">COMMUNAUTÉ</span>
+                                LA <span className="text-neon-fuchsia drop-shadow-[0_0_20px_rgba(255,0,255,0.5)]">COMMUNAUTÉ</span>
                             </h1>
                             <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">
                                 Connectez-vous avec la scène, partagez vos récaps, et créez vos propres expériences. Le futur des festivals s'écrit ici.
@@ -932,11 +932,11 @@ export function Community() {
                             whileHover={{ scale: 1.05, y: -5 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => navigate('/communaute/partager')}
-                            className="group relative px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:bg-neon-red hover:text-white transition-all duration-500 overflow-hidden mx-auto sm:mx-0"
+                            className="group relative px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:bg-neon-fuchsia hover:text-white transition-all duration-500 overflow-hidden mx-auto sm:mx-0"
                         >
                             <span className="relative z-10 flex items-center gap-4">
                                 Partager Album
-                                <div className="p-2 bg-black text-white group-hover:bg-white group-hover:text-neon-red rounded-lg transition-colors">
+                                <div className="p-2 bg-black text-white group-hover:bg-white group-hover:text-neon-fuchsia rounded-lg transition-colors">
                                     <Camera className="w-4 h-4" />
                                 </div>
                             </span>
@@ -1043,7 +1043,7 @@ export function Community() {
                                     
                                     <div className="text-center space-y-2">
                                         <h2 className="text-4xl md:text-6xl font-display font-black uppercase italic tracking-tighter">
-                                            ESPACE <span className="text-neon-red">CONCOURS</span>
+                                            ESPACE <span className="text-neon-fuchsia">CONCOURS</span>
                                         </h2>
                                         <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">
                                             {contestTab === 'QUIZ' ? 'Tentez de gagner en répondant au Blind Test' : 'Comment valider votre participation via Instagram'}
@@ -1106,11 +1106,11 @@ export function Community() {
                             >
                                 <div className="bg-white/5 border border-white/10 rounded-[4rem] p-8 md:p-16 backdrop-blur-3xl space-y-12">
                                     <div className="text-center space-y-4">
-                                        <div className="inline-flex p-4 bg-neon-red/10 rounded-3xl mb-4">
-                                            <Camera className="w-10 h-10 text-neon-red" />
+                                        <div className="inline-flex p-4 bg-neon-fuchsia/10 rounded-3xl mb-4">
+                                            <Camera className="w-10 h-10 text-neon-fuchsia" />
                                         </div>
                                         <h2 className="text-3xl md:text-5xl font-display font-black uppercase italic tracking-tighter">
-                                            PARTAGEZ VOS <span className="text-neon-red">SOUVENIRS</span>
+                                            PARTAGEZ VOS <span className="text-neon-fuchsia">SOUVENIRS</span>
                                         </h2>
                                         <p className="text-white/40 max-w-xl mx-auto text-[10px] font-black uppercase tracking-widest leading-loose">
                                             Indiquez l'événement et envoyez vos pépites. Elles seront classées automatiquement dans l'album correspondant après modération.
@@ -1123,7 +1123,7 @@ export function Community() {
                                                 <div className="space-y-3 relative">
                                                     <label className="text-[10px] font-black uppercase text-white/40 ml-4">Événement / Festival</label>
                                                     <div className="relative group/input">
-                                                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within/input:text-neon-red transition-colors" />
+                                                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within/input:text-neon-fuchsia transition-colors" />
                                                         <input 
                                                             type="text"
                                                             value={uploadFestival}
@@ -1137,7 +1137,7 @@ export function Community() {
                                                                 }, 200);
                                                             }}
                                                             placeholder="NOM DU FESTIVAL OU ÉVÉNEMENT..."
-                                                            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-5 py-5 text-xs font-black italic uppercase focus:border-neon-red outline-none transition-all placeholder:text-white/10"
+                                                            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-5 py-5 text-xs font-black italic uppercase focus:border-neon-fuchsia outline-none transition-all placeholder:text-white/10"
                                                         />
                                                         {isAutoCorrected && uploadFestival && (
                                                             <motion.span 
@@ -1158,15 +1158,15 @@ export function Community() {
                                                         value={uploadMessage}
                                                         onChange={(e) => setUploadMessage(e.target.value)}
                                                         placeholder="UN PETIT MOT SUR CETTE PHOTO..."
-                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-xs font-black italic uppercase focus:border-neon-red outline-none"
+                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-xs font-black italic uppercase focus:border-neon-fuchsia outline-none"
                                                     />
                                                 </div>
                                             </div>
 
-                                            <div className="border-2 border-dashed border-white/10 rounded-[2.5rem] p-12 text-center group hover:border-neon-red/50 transition-all cursor-pointer bg-white/[0.02]">
+                                            <div className="border-2 border-dashed border-white/10 rounded-[2.5rem] p-12 text-center group hover:border-neon-fuchsia/50 transition-all cursor-pointer bg-white/[0.02]">
                                                 <input type="file" className="hidden" id="photo-upload" accept="image/*" multiple />
                                                 <label htmlFor="photo-upload" className="cursor-pointer block">
-                                                    <Plus className="w-12 h-12 text-white/20 mx-auto mb-4 group-hover:scale-110 group-hover:text-neon-red transition-all" />
+                                                    <Plus className="w-12 h-12 text-white/20 mx-auto mb-4 group-hover:scale-110 group-hover:text-neon-fuchsia transition-all" />
                                                     <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/40 group-hover:text-white transition-colors">Déposer vos photos ici</span>
                                                     <span className="block text-[8px] font-bold text-white/20 uppercase mt-2">JPG, PNG, WEBP (Max 10MB)</span>
                                                 </label>
@@ -1181,7 +1181,7 @@ export function Community() {
                                                     setUploadSuccess(true);
                                                     setTimeout(() => setUploadSuccess(false), 5000);
                                                 }}
-                                                className="w-full py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-500 shadow-xl"
+                                                className="w-full py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-fuchsia hover:text-white transition-all duration-500 shadow-xl"
                                             >
                                                 Envoyer pour modération & Tri Auto
                                             </button>
@@ -1205,13 +1205,13 @@ export function Community() {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl flex items-center gap-4">
-                                            <Sparkles className="w-5 h-5 text-neon-red shrink-0" />
+                                            <Sparkles className="w-5 h-5 text-neon-fuchsia shrink-0" />
                                             <p className="text-[9px] text-white/40 font-bold uppercase leading-relaxed">
                                                 Tri automatique par festival pour un accès facilité la saison prochaine.
                                             </p>
                                         </div>
                                         <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl flex items-center gap-4">
-                                            <Trophy className="w-5 h-5 text-neon-red shrink-0" />
+                                            <Trophy className="w-5 h-5 text-neon-fuchsia shrink-0" />
                                             <p className="text-[9px] text-white/40 font-bold uppercase leading-relaxed">
                                                 Les contributeurs actifs gagnent des points d'XP exclusifs.
                                             </p>
@@ -1258,12 +1258,12 @@ export function Community() {
                                                 </div>
                                                 <div className="flex-1 max-w-md w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/5 mx-6">
                                                     <motion.div
-                                                        className={twMerge("h-full", remainingBudget < 0 ? "bg-neon-red" : "bg-gradient-to-r from-amber-400 to-amber-600")}
+                                                        className={twMerge("h-full", remainingBudget < 0 ? "bg-neon-fuchsia" : "bg-gradient-to-r from-amber-400 to-amber-600")}
                                                         animate={{ width: `${Math.min(100, (totalSpent / (budget + sponsorsBonus)) * 100)}%` }}
                                                     />
                                                 </div>
                                                 <div className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl">
-                                                    <span className={twMerge("text-sm font-black italic", remainingBudget < 0 ? "text-neon-red animate-pulse" : "text-emerald-400")}>
+                                                    <span className={twMerge("text-sm font-black italic", remainingBudget < 0 ? "text-neon-fuchsia animate-pulse" : "text-emerald-400")}>
                                                         {remainingBudget.toLocaleString()}€ DISPONIBLE
                                                     </span>
                                                 </div>
@@ -1444,18 +1444,18 @@ export function Community() {
                                                                 <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Trésorerie</span>
                                                                 <div className="flex flex-col items-end">
                                                                     <span className="text-2xl font-black font-mono text-white tracking-widest">{totalSpent.toLocaleString()}€</span>
-                                                                    {isPriceRising && <span className="text-[8px] text-neon-red font-black uppercase animate-pulse">Alerte : Prix en hausse !</span>}
+                                                                    {isPriceRising && <span className="text-[8px] text-neon-fuchsia font-black uppercase animate-pulse">Alerte : Prix en hausse !</span>}
                                                                 </div>
                                                             </div>
                                                             <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
                                                                 <motion.div
-                                                                    className={twMerge("h-full transition-colors duration-500", remainingBudget < 0 ? "bg-neon-red" : "bg-amber-400")}
+                                                                    className={twMerge("h-full transition-colors duration-500", remainingBudget < 0 ? "bg-neon-fuchsia" : "bg-amber-400")}
                                                                     animate={{ width: `${Math.min(100, (totalSpent / (budget + sponsorsBonus)) * 100)}%` }}
                                                                 />
                                                             </div>
                                                             <div className="flex justify-between">
                                                                 <span className="text-[9px] font-bold text-white/20 uppercase">Budget Max: {(budget + sponsorsBonus).toLocaleString()}€</span>
-                                                                <span className={twMerge("text-[9px] font-black uppercase", remainingBudget < 0 ? "text-neon-red animate-pulse" : "text-emerald-400")}>
+                                                                <span className={twMerge("text-[9px] font-black uppercase", remainingBudget < 0 ? "text-neon-fuchsia animate-pulse" : "text-emerald-400")}>
                                                                     Reste: {remainingBudget.toLocaleString()}€
                                                                 </span>
                                                             </div>
@@ -1506,7 +1506,7 @@ export function Community() {
                                                         <button
                                                             disabled={selectedDjs.length < 5 || remainingBudget < 0 || !selectedDate}
                                                             onClick={generatePoster}
-                                                            className="w-full py-6 rounded-[1.5rem] bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] disabled:opacity-20 hover:bg-neon-red hover:text-white transition-all duration-500 shadow-2xl"
+                                                            className="w-full py-6 rounded-[1.5rem] bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] disabled:opacity-20 hover:bg-neon-fuchsia hover:text-white transition-all duration-500 shadow-2xl"
                                                         >
                                                             {selectedDjs.length < 5 ? `Artistes: ${selectedDjs.length}/5` : "Lancer le Festival"}
                                                         </button>
@@ -1628,8 +1628,8 @@ export function Community() {
                                                                         className="max-w-xl w-full p-12 bg-white/5 border border-white/10 rounded-[4rem] space-y-10"
                                                                     >
                                                                         <div className="text-center space-y-4">
-                                                                            <div className="w-20 h-20 bg-neon-red/20 rounded-3xl flex items-center justify-center mx-auto border border-neon-red/30">
-                                                                                <AlertCircle className="w-10 h-10 text-neon-red animate-pulse" />
+                                                                            <div className="w-20 h-20 bg-neon-fuchsia/20 rounded-3xl flex items-center justify-center mx-auto border border-neon-fuchsia/30">
+                                                                                <AlertCircle className="w-10 h-10 text-neon-fuchsia animate-pulse" />
                                                                             </div>
                                                                             <h2 className="text-4xl font-black italic tracking-tighter uppercase text-white">{activeCrisis.name}</h2>
                                                                             <p className="text-white/40 text-xs font-black uppercase tracking-[0.2em]">{activeCrisis.desc}</p>
@@ -1886,7 +1886,7 @@ export function Community() {
                                                             "relative aspect-[3/4] shadow-[0_60px_120px_rgba(0,0,0,0.9)] rounded-[3rem] p-8 md:p-12 overflow-hidden flex flex-col",
                                                             posterStyle === 'ULTRA' ? "bg-white border-[1px] border-black" :
                                                                 posterStyle === 'TOMORROWLAND' ? "bg-[#0a0a0d] border-[16px] border-[#d4af37]" :
-                                                                    "bg-black border-[2px] border-neon-red shadow-[0_0_80px_rgba(255,0,0,0.2)]"
+                                                                    "bg-black border-[2px] border-neon-fuchsia shadow-[0_0_80px_rgba(255,0,255,0.2)]"
                                                         )}
                                                     >
                                                         {/* Background Elements */}
@@ -1948,7 +1948,7 @@ export function Community() {
                                                                                 fontSizeClass,
                                                                                 posterStyle === 'ULTRA' ? (isHeadline ? "text-black font-display" : "text-black/40") :
                                                                                     posterStyle === 'TOMORROWLAND' ? (isHeadline ? "text-[#d4af37]" : "text-white/30") :
-                                                                                        (isHeadline ? "text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" : "text-neon-red/50")
+                                                                                        (isHeadline ? "text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" : "text-neon-fuchsia/50")
                                                                             )}
                                                                             style={{ lineHeight: 1.1 }}
                                                                         >
@@ -1988,7 +1988,7 @@ export function Community() {
                                                             <div className="p-8 bg-white/[0.03] rounded-[2rem] border border-white/5 text-center">
                                                                 <Euro className="w-8 h-8 text-emerald-400 mx-auto mb-4" />
                                                                 <span className="text-[9px] font-black text-white/40 uppercase block mb-1 tracking-widest">Profit Net</span>
-                                                                <span className={twMerge("text-3xl font-black", profit >= 0 ? "text-emerald-400" : "text-neon-red")}>{profit.toLocaleString()}€</span>
+                                                                <span className={twMerge("text-3xl font-black", profit >= 0 ? "text-emerald-400" : "text-neon-fuchsia")}>{profit.toLocaleString()}€</span>
                                                             </div>
                                                         </div>
 
@@ -2033,7 +2033,7 @@ export function Community() {
                                                             </div>
 
                                                             <div className="flex flex-col sm:flex-row gap-4">
-                                                                <button onClick={() => window.print()} className="flex-1 py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">Sauvegarder Affiche</button>
+                                                                <button onClick={() => window.print()} className="flex-1 py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-fuchsia hover:text-white transition-all">Sauvegarder Affiche</button>
                                                                 <button
                                                                     onClick={async () => {
                                                                         const earnedXp = Math.floor((profit > 0 ? profit / 1000 : 0) + (attendance / 200));
@@ -2097,7 +2097,7 @@ export function Community() {
                                                                         </div>
                                                                         <div className="flex justify-between items-end">
                                                                             <span className="text-[9px] font-bold text-white/40">{entry.location}</span>
-                                                                            <span className={twMerge("text-xs font-black font-mono", entry.profit >= 0 ? "text-emerald-400" : "text-neon-red")}>{entry.profit.toLocaleString()}€</span>
+                                                                            <span className={twMerge("text-xs font-black font-mono", entry.profit >= 0 ? "text-emerald-400" : "text-neon-fuchsia")}>{entry.profit.toLocaleString()}€</span>
                                                                         </div>
                                                                     </div>
                                                                 ))
@@ -2214,17 +2214,17 @@ export function Community() {
                         className="max-w-md w-full bg-[#050510]/80 border-2 border-white/10 rounded-[3rem] p-10 md:p-14 text-center space-y-10 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative overflow-hidden cursor-default"
                     >
                         {/* Glows */}
-                        <div className="absolute -top-24 -left-24 w-48 h-48 bg-neon-red/20 rounded-full blur-[80px] animate-pulse" />
+                        <div className="absolute -top-24 -left-24 w-48 h-48 bg-neon-fuchsia/20 rounded-full blur-[80px] animate-pulse" />
                         <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-neon-cyan/20 rounded-full blur-[80px] animate-pulse" />
 
                         <div className="relative space-y-6">
-                            <div className="w-24 h-24 bg-neon-red/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-neon-red/20">
-                                <Lock className="w-10 h-10 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.5)]" />
+                            <div className="w-24 h-24 bg-neon-fuchsia/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-neon-fuchsia/20">
+                                <Lock className="w-10 h-10 text-neon-fuchsia shadow-[0_0_20px_rgba(255,0,255,0.5)]" />
                             </div>
                             
                             <div className="space-y-4">
                                 <h2 className="text-3xl md:text-4xl font-display font-black text-white italic uppercase tracking-tighter leading-none">
-                                    EXPÉRIENCE <span className="text-neon-red">RÉSERVÉE</span>
+                                    EXPÉRIENCE <span className="text-neon-fuchsia">RÉSERVÉE</span>
                                 </h2>
                                 <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] leading-relaxed">
                                     Rejoignez la communauté Dropsiders pour accéder aux concours, au jeu Producer et au mur de souvenirs.
@@ -2234,7 +2234,7 @@ export function Community() {
                             <div className="pt-6 space-y-4">
                                 <button
                                     onClick={() => setIsAuthModalOpen(true)}
-                                    className="w-full py-6 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-500 shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
+                                    className="w-full py-6 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-neon-fuchsia hover:text-white transition-all duration-500 shadow-[0_15px_40px_rgba(0,0,0,0.5)]"
                                 >
                                     Créer mon compte
                                 </button>

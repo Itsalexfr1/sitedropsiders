@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ChevronLeft, ChevronRight, Edit2, Loader2, Filter, Calendar } from 'lucide-react';
@@ -17,10 +17,10 @@ type TabKey = 'all' | 'written' | 'video' | 'fast-quizz' | 'playlist' | 'drop-ta
 
 const TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: string }[] = [
     { key: 'all', label: 'Toutes', activeClass: 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]', inactiveClass: 'text-white/40 border-white/10 hover:border-white/30 hover:text-white' },
-    { key: 'written', label: 'Écrites', activeClass: 'bg-neon-purple text-white shadow-[0_0_20px_rgba(189,0,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-purple/40 hover:text-neon-purple' },
+    { key: 'written', label: 'Écrites', activeClass: 'bg-neon-yellow text-white shadow-[0_0_20px_rgba(255,240,31,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-yellow/40 hover:text-neon-yellow' },
     { key: 'video', label: 'Interviews', activeClass: 'bg-neon-blue text-white shadow-[0_0_20px_rgba(0,100,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-blue/40 hover:text-neon-blue' },
     { key: 'fast-quizz', label: 'Fast Quizz', activeClass: 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(0,240,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-cyan/40 hover:text-neon-cyan' },
-    { key: 'playlist', label: 'La Playlist', activeClass: 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,153,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-red/40 hover:text-neon-red' },
+    { key: 'playlist', label: 'La Playlist', activeClass: 'bg-neon-yellow text-white shadow-[0_0_20px_rgba(255,0,153,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-yellow/40 hover:text-neon-yellow' },
     { key: 'drop-talk', label: 'Drop & Talk', activeClass: 'bg-neon-yellow text-black shadow-[0_0_20px_rgba(255,204,0,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-yellow/40 hover:text-neon-yellow' },
 ];
 
@@ -192,7 +192,7 @@ export function Interviews() {
             return { label: 'Fast Quizz', color: 'text-neon-cyan border-neon-cyan/30' };
         }
         if (cat.includes('la playlist') || cat.includes('playlist') || title.includes('la playlist')) {
-            return { label: 'La Playlist', color: 'text-neon-red border-neon-red/30' };
+            return { label: 'La Playlist', color: 'text-neon-yellow border-neon-yellow/30' };
         }
         if (cat.includes('drop & talk') || title.includes('drop & talk')) {
             return { label: 'Drop & Talk', color: 'text-neon-yellow border-neon-yellow/30' };
@@ -200,7 +200,7 @@ export function Interviews() {
         if (cat.includes('interview video')) {
             return { label: 'Interview', color: 'text-neon-blue border-neon-blue/30' };
         }
-        return { label: 'Écrite', color: 'text-neon-purple border-neon-purple/30' };
+        return { label: 'Écrite', color: 'text-neon-yellow border-neon-yellow/30' };
     };
 
     return (
@@ -217,13 +217,13 @@ export function Interviews() {
                     className="mb-12"
                 >
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-neon-red/10 rounded-lg">
-                            <Mail className="w-6 h-6 text-neon-red" />
+                        <div className="p-2 bg-neon-yellow/10 rounded-lg">
+                            <Mail className="w-6 h-6 text-neon-yellow" />
                         </div>
-                        <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('nav.interviews')}</span>
+                        <span className="text-neon-yellow font-bold tracking-widest text-sm uppercase">{t('nav.interviews')}</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4 uppercase italic tracking-tighter">
-                        {t('interviews.title')}<span className="text-neon-red">{t('interviews.title_span')}</span>
+                        {t('interviews.title')}<span className="text-neon-yellow">{t('interviews.title_span')}</span>
                     </h1>
                     <p className="text-gray-400 max-w-2xl text-lg">
                         {t('news.subtitle')}
@@ -249,11 +249,11 @@ export function Interviews() {
                                     key={tab.key}
                                     onClick={() => handleTabChange(tab.key)}
                                     data-cursor-color={
-                                        tab.key === 'written' ? 'neon-purple' :
+                                        tab.key === 'written' ? 'neon-yellow' :
                                             tab.key === 'video' ? 'neon-blue' :
                                                 tab.key === 'fast-quizz' ? 'neon-cyan' :
-                                                    tab.key === 'playlist' ? 'neon-red' :
-                                                        tab.key === 'drop-talk' ? 'neon-yellow' : 'neon-red'
+                                                    tab.key === 'playlist' ? 'neon-yellow' :
+                                                        tab.key === 'drop-talk' ? 'neon-yellow' : 'neon-yellow'
                                     }
                                     whileHover={{ scale: 1.04 }}
                                     whileTap={{ scale: 0.96 }}
@@ -279,7 +279,7 @@ export function Interviews() {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: 20 }}
                                 onClick={() => paginate(currentPage - 1)}
-                                className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
+                                className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-yellow transition-colors duration-300 hidden xl:block z-20"
                             >
                                 <ChevronLeft className="w-16 h-16" strokeWidth={1} />
                             </motion.button>
@@ -306,7 +306,7 @@ export function Interviews() {
                                         <motion.article
                                             key={item.id}
                                             onMouseEnter={playHoverSound}
-                                            className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-purple/50 hover:shadow-[0_0_40px_rgba(189,0,255,0.2)] md:flex md:flex-col"
+                                            className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-yellow/50 hover:shadow-[0_0_40px_rgba(255,240,31,0.2)] md:flex md:flex-col"
                                         >
                                             {isAdmin && (
                                                 <button
@@ -361,7 +361,7 @@ export function Interviews() {
                                                             </span>
                                                             <span className="text-[9px] text-gray-500 font-bold uppercase">{item.date}</span>
                                                         </div>
-                                                        <h2 className="text-xl font-display font-black text-white mb-3 group-hover:text-neon-purple transition-colors line-clamp-2 uppercase italic leading-tight h-12"
+                                                        <h2 className="text-xl font-display font-black text-white mb-3 group-hover:text-neon-yellow transition-colors line-clamp-2 uppercase italic leading-tight h-12"
                                                             dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
                                                         />
                                                         <p className="text-gray-400 text-sm line-clamp-3"
@@ -379,13 +379,13 @@ export function Interviews() {
                                     <div className="col-span-full py-32 flex flex-col items-center justify-center border border-white/5 rounded-[40px] bg-white/[0.02] backdrop-blur-3xl">
                                         {isLoading ? (
                                             <div className="flex flex-col items-center">
-                                                <Loader2 className="w-12 h-12 text-neon-red animate-spin mb-4" />
+                                                <Loader2 className="w-12 h-12 text-neon-yellow animate-spin mb-4" />
                                                 <p className="text-white/60 font-medium">Chargement des interviews...</p>
                                             </div>
                                         ) : (
                                             <>
-                                                <div className="w-20 h-20 rounded-full bg-neon-red/10 flex items-center justify-center mb-6">
-                                                    <Calendar className="w-10 h-10 text-neon-red opacity-50" />
+                                                <div className="w-20 h-20 rounded-full bg-neon-yellow/10 flex items-center justify-center mb-6">
+                                                    <Calendar className="w-10 h-10 text-neon-yellow opacity-50" />
                                                 </div>
                                                 <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">{t('interviews.no_interviews')}</h3>
                                                 <p className="text-gray-500 font-medium">{t('interviews.no_interviews_subtitle')}</p>
@@ -405,7 +405,7 @@ export function Interviews() {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
                                 onClick={() => paginate(currentPage + 1)}
-                                className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
+                                className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-yellow transition-colors duration-300 hidden xl:block z-20"
                             >
                                 <ChevronRight className="w-16 h-16" strokeWidth={1} />
                             </motion.button>
