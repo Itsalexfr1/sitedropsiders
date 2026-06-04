@@ -1063,41 +1063,46 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     if (!item.classList.contains('playing-track')) {
                         item.classList.add('playing-track');
                     }
-                    
                     let nowLogo = item.querySelector('.now-playing-logo') as HTMLElement | null;
                     if (!nowLogo) {
                         const titleSpan = item.querySelector('.track-title');
                         if (titleSpan) {
                             const newLogo = document.createElement('span');
                             newLogo.className = 'now-playing-logo';
-                            newLogo.innerHTML = '⚡ NOW &nbsp;';
-                            newLogo.style.cssText = 'color: #39ff14; font-weight: 900; letter-spacing: 0.1em; font-size: 9px; animation: pulse-neon 1.5s infinite;';
+                            newLogo.innerHTML = '▶ NOW &nbsp;';
+                            newLogo.style.cssText = 'color: #39ff14; font-weight: 900; letter-spacing: 0.08em; font-size: 10px; animation: pulse-neon 1.5s ease-in-out infinite; display: inline-block;';
                             titleSpan.insertBefore(newLogo, titleSpan.firstChild);
                         }
                     }
                 } else {
                     item.classList.remove('playing-track');
                     const nowLogo = item.querySelector('.now-playing-logo');
-                    if (nowLogo) {
-                        nowLogo.remove();
-                    }
+                    if (nowLogo) nowLogo.remove();
                 }
             });
         };
 
+        // ── Tracklist item click → seek YouTube player ─────────────────────────
         const handleTrackItemClick = (e: Event) => {
             const item = e.currentTarget as HTMLElement;
             const timestampSpan = item.querySelector('.track-timestamp');
             if (!timestampSpan) return;
             const timeStr = timestampSpan.textContent?.trim();
             if (!timeStr || timeStr === 'W/') return;
-
             const seconds = parseTimeToSeconds(timeStr);
-            
-            // Try to find the YouTube player iframe
-            let iframe = dedicatedPlayerRef.current;
+
+            // Use YT.Player if available (most reliable)
+            const ytPlayerGlobal = (window as any).__dsYtPlayer;
+            if (ytPlayerGlobal && typeof ytPlayerGlobal.seekTo === 'function') {
+                ytPlayerGlobal.seekTo(seconds, true);
+                ytPlayerGlobal.playVideo();
+                return;
+            }
+
+            // Fallback: postMessage to iframe
+            let iframe: HTMLIFrameElement | null = dedicatedPlayerRef.current;
             if (!iframe) {
-                const iframes = document.querySelectorAll('iframe');
+                const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe');
                 for (let i = 0; i < iframes.length; i++) {
                     const src = iframes[i].getAttribute('src') || '';
                     if (src.includes('youtube.com') || src.includes('youtube-nocookie.com')) {
@@ -1106,27 +1111,13 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     }
                 }
             }
-
-            if (iframe && iframe.contentWindow) {
-                try {
-                    iframe.contentWindow.postMessage(JSON.stringify({
-                        event: 'command',
-                        func: 'seekTo',
-                        args: [seconds, true]
-                    }), '*');
-                    
-                    iframe.contentWindow.postMessage(JSON.stringify({
-                        event: 'command',
-                        func: 'playVideo',
-                        args: []
-                    }), '*');
-                } catch (err) {
-                    console.error("Failed to post seek message to iframe:", err);
-                }
+            if (iframe?.contentWindow) {
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [seconds, true] }), '*');
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
             }
         };
 
-        // Listen to custom native timeupdate events
+        // ── Native video timeupdate ────────────────────────────────────────────
         const handleNativeTimeUpdate = (e: Event) => {
             const customEvent = e as CustomEvent;
             if (customEvent.detail && typeof customEvent.detail.currentTime === 'number') {
@@ -1135,42 +1126,124 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         };
         document.addEventListener('ds-timeupdate', handleNativeTimeUpdate);
 
-        // Listen to YouTube postMessages
-        const handleYoutubeMessages = (e: MessageEvent) => {
-            if (e.origin !== 'https://www.youtube.com' && e.origin !== 'https://www.youtube-nocookie.com') return;
+
+        // ── YouTube IFrame API tracking ────────────────────────────────────────
+        // We load the YouTube IFrame API script and create a YT.Player around the
+        // existing iframe. This is the ONLY reliable way to call getCurrentTime()
+        // without the full IFrame API — postMessage alone does not work.
+        let ytPollInterval: ReturnType<typeof setInterval> | null = null;
+        let ytPlayer: any = null;
+
+        const startYtPolling = (player: any) => {
+            (window as any).__dsYtPlayer = player;
+            if (ytPollInterval) clearInterval(ytPollInterval);
+            ytPollInterval = setInterval(() => {
+                try {
+                    if (player && typeof player.getPlayerState === 'function') {
+                        const state = player.getPlayerState(); // 1 = playing
+                        if (state === 1 && typeof player.getCurrentTime === 'function') {
+                            updateActiveTrack(player.getCurrentTime());
+                        }
+                    }
+                } catch { /* player not ready */ }
+            }, 500);
+        };
+
+        const initYtPlayer = () => {
+            const YT = (window as any).YT;
+            if (!YT?.Player) return;
+
+            // Find first YouTube iframe in article body or player wrappers
+            const selectors = [
+                '.article-body-premium iframe',
+                '.youtube-player-widget iframe',
+                '.youtube-player-wrapper iframe',
+                'iframe[src*="youtube"]',
+                'iframe[src*="youtube-nocookie"]'
+            ];
+            let targetIframe: HTMLIFrameElement | null = null;
+            for (const sel of selectors) {
+                const el = document.querySelector<HTMLIFrameElement>(sel);
+                if (el) { targetIframe = el; break; }
+            }
+            if (!targetIframe) return;
+
+            // Assign an ID if missing (required by YT.Player)
+            if (!targetIframe.id) targetIframe.id = `ds-yt-${Date.now()}`;
+
+            // Ensure enablejsapi=1 is present in the src
+            let src = targetIframe.getAttribute('src') || '';
+            if (!src.includes('enablejsapi=1')) {
+                src += (src.includes('?') ? '&' : '?') + 'enablejsapi=1';
+                targetIframe.setAttribute('src', src);
+            }
+
             try {
-                const data = JSON.parse(e.data);
-                if (data.event === 'infoDelivery' && data.info && typeof data.info.currentTime === 'number') {
-                    updateActiveTrack(data.info.currentTime);
-                }
+                ytPlayer = new YT.Player(targetIframe.id, {
+                    events: {
+                        onReady: (e: any) => startYtPolling(e.target),
+                        onStateChange: (e: any) => {
+                            if (e.data === 1) startYtPolling(e.target);
+                            if (e.data === 2 || e.data === 0) {
+                                if (ytPollInterval) { clearInterval(ytPollInterval); ytPollInterval = null; }
+                            }
+                        }
+                    }
+                });
             } catch (err) {
-                // Ignore parsing errors for other messages
+                console.warn('[DS] YT.Player init failed:', err);
             }
         };
-        window.addEventListener('message', handleYoutubeMessages);
 
+        const ensureYtApiLoaded = () => {
+            if ((window as any).YT?.Player) {
+                setTimeout(initYtPlayer, 200);
+                return;
+            }
+            if (!document.getElementById('yt-iframe-api-script')) {
+                const s = document.createElement('script');
+                s.id = 'yt-iframe-api-script';
+                s.src = 'https://www.youtube.com/iframe_api';
+                document.head.appendChild(s);
+            }
+            const prev = (window as any).onYouTubeIframeAPIReady;
+            (window as any).onYouTubeIframeAPIReady = () => {
+                if (typeof prev === 'function') prev();
+                initYtPlayer();
+            };
+        };
+
+        // Only activate YouTube tracking if article has a tracklist
+        const hasTracklistTimer = setTimeout(() => {
+            if (document.querySelector('.tracklist-item')) {
+                ensureYtApiLoaded();
+            }
+        }, 1500);
+
+        // Register click handlers on tracklist items
         const timer = setTimeout(() => {
-            const items = document.querySelectorAll('.tracklist-item');
-            items.forEach(item => {
-                const timestampSpan = item.querySelector('.track-timestamp');
-                if (timestampSpan) {
-                    const timeStr = timestampSpan.textContent?.trim();
-                    if (timeStr && timeStr !== 'W/') {
-                        item.addEventListener('click', handleTrackItemClick);
-                    }
+            document.querySelectorAll('.tracklist-item').forEach(item => {
+                const ts = item.querySelector('.track-timestamp');
+                if (ts && ts.textContent?.trim() && ts.textContent.trim() !== 'W/') {
+                    item.addEventListener('click', handleTrackItemClick);
                 }
             });
         }, 800);
 
         return () => {
             clearTimeout(timer);
-            const items = document.querySelectorAll('.tracklist-item');
-            items.forEach(item => {
+            clearTimeout(hasTracklistTimer);
+            if (ytPollInterval) clearInterval(ytPollInterval);
+            try {
+                const p = (window as any).__dsYtPlayer;
+                if (p && typeof p.destroy === 'function') { p.destroy(); delete (window as any).__dsYtPlayer; }
+            } catch {}
+            document.querySelectorAll('.tracklist-item').forEach(item => {
                 item.removeEventListener('click', handleTrackItemClick);
             });
             document.removeEventListener('ds-timeupdate', handleNativeTimeUpdate);
-            window.removeEventListener('message', handleYoutubeMessages);
         };
+
     }, [displayContent]);
 
     const displayTitle = language === 'en' && translatedTitle ? translatedTitle : article.title;
