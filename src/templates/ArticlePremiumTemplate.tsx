@@ -1064,15 +1064,15 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                         item.classList.add('playing-track');
                     }
                     
-                    let nowLogo = item.querySelector('.now-playing-logo');
+                    let nowLogo = item.querySelector('.now-playing-logo') as HTMLElement | null;
                     if (!nowLogo) {
                         const titleSpan = item.querySelector('.track-title');
                         if (titleSpan) {
-                            nowLogo = document.createElement('span');
-                            nowLogo.className = 'now-playing-logo';
-                            nowLogo.innerHTML = '⚡ NOW &nbsp;';
-                            nowLogo.style.cssText = 'color: #39ff14; font-weight: 900; letter-spacing: 0.1em; font-size: 9px; animation: pulse-neon 1.5s infinite;';
-                            titleSpan.insertBefore(nowLogo, titleSpan.firstChild);
+                            const newLogo = document.createElement('span');
+                            newLogo.className = 'now-playing-logo';
+                            newLogo.innerHTML = '⚡ NOW &nbsp;';
+                            newLogo.style.cssText = 'color: #39ff14; font-weight: 900; letter-spacing: 0.1em; font-size: 9px; animation: pulse-neon 1.5s infinite;';
+                            titleSpan.insertBefore(newLogo, titleSpan.firstChild);
                         }
                     }
                 } else {
