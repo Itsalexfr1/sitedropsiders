@@ -7,6 +7,20 @@ import { Send, Copy, Eye, Type, Image as ImageIcon, Users, ArrowLeft, Music, You
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 
+const MONTHS = [
+    { value: 0, label: 'Janvier' },
+    { value: 1, label: 'Février' },
+    { value: 2, label: 'Mars' },
+    { value: 3, label: 'Avril' },
+    { value: 4, label: 'Mai' },
+    { value: 5, label: 'Juin' },
+    { value: 6, label: 'Juillet' },
+    { value: 7, label: 'Août' },
+    { value: 8, label: 'Septembre' },
+    { value: 9, label: 'Octobre' },
+    { value: 10, label: 'Novembre' },
+    { value: 11, label: 'Décembre' }
+];
 
 export function NewsletterComposer() {
     // SECTION 1 : ÉTATS (DATA)
@@ -14,8 +28,8 @@ export function NewsletterComposer() {
 
     // Métadonnées Email
     const [subject, setSubject] = useState(() => {
-        const monthStr = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).toUpperCase();
-        return `DROPSIDERS NEWSLETTER - ${monthStr}`;
+        const monthStr = new Date().toLocaleDateString('fr-FR', { month: 'long' }).toUpperCase();
+        return `DROPSIDERS NEWSLETTER ${monthStr}`;
     });
 
     // Article Principal (Gros bloc en haut)
@@ -49,6 +63,8 @@ export function NewsletterComposer() {
     // Agenda du mois
     const [showAgenda, setShowAgenda] = useState(true);
     const [agendaEvents, setAgendaEvents] = useState<any[]>([]);
+    const [agendaMonth, setAgendaMonth] = useState<number>(() => new Date().getMonth());
+    const [allAgendaEvents, setAllAgendaEvents] = useState<any[]>([]);
 
     // 2 dernières Interviews
     const [showInterviews, setShowInterviews] = useState(true);
@@ -57,6 +73,8 @@ export function NewsletterComposer() {
     // Récaps d'events
     const [showRecaps, setShowRecaps] = useState(true);
     const [recaps, setRecaps] = useState<any[]>([]);
+    const [recapMonth, setRecapMonth] = useState<number>(() => new Date().getMonth());
+    const [allRecaps, setAllRecaps] = useState<any[]>([]);
 
     // Top 3 uploads communauté
     const [showCommunityUploads, setShowCommunityUploads] = useState(true);
@@ -153,18 +171,7 @@ export function NewsletterComposer() {
                 const res = await fetch('/api/agenda');
                 if (res.ok) {
                     const data = await res.json();
-                    const now = new Date();
-                    const currentMonth = now.getMonth();
-                    const currentYear = now.getFullYear();
-                    const monthEvents = (Array.isArray(data) ? data : [])
-                        .filter((e: any) => {
-                            if (!e.date) return false;
-                            const d = new Date(e.date);
-                            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-                        })
-                        .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
-                        .slice(0, 10);
-                    setAgendaEvents(monthEvents);
+                    setAllAgendaEvents(Array.isArray(data) ? data : []);
                 }
             } catch (e) { console.error('Error fetching agenda:', e); }
         };
@@ -192,7 +199,7 @@ export function NewsletterComposer() {
                 const res = await fetch('/api/recaps');
                 if (res.ok) {
                     const data = await res.json();
-                    setRecaps((Array.isArray(data) ? data : []).slice(0, 2));
+                    setAllRecaps(Array.isArray(data) ? data : []);
                 }
             } catch (e) { console.error('Error fetching recaps:', e); }
         };
@@ -230,6 +237,31 @@ export function NewsletterComposer() {
         fetchCommunityUploads();
     }, []);
 
+    // Filtrer l'agenda en fonction du mois sélectionné
+    useEffect(() => {
+        const filtered = allAgendaEvents
+            .filter((e: any) => {
+                if (!e.date) return false;
+                const d = new Date(e.date);
+                return d.getMonth() === agendaMonth;
+            })
+            .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .slice(0, 10);
+        setAgendaEvents(filtered);
+    }, [agendaMonth, allAgendaEvents]);
+
+    // Filtrer les récaps en fonction du mois sélectionné
+    useEffect(() => {
+        const filtered = allRecaps
+            .filter((r: any) => {
+                if (!r.date) return false;
+                const d = new Date(r.date);
+                return d.getMonth() === recapMonth;
+            })
+            .slice(0, 2);
+        setRecaps(filtered);
+    }, [recapMonth, allRecaps]);
+
     // Mettre à jour selectedAutoNews quand autoNewsCount change
     useEffect(() => {
         setSelectedAutoNews(availableNews.slice(0, autoNewsCount));
@@ -249,8 +281,15 @@ export function NewsletterComposer() {
         return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
     };
 
-    const getMonthName = (): string => {
-        return new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).toUpperCase();
+    const getMonthName = (monthIdx: number): string => {
+        const d = new Date();
+        const currentMonth = d.getMonth();
+        // Si le mois sélectionné est antérieur au mois actuel, il est pour l'année suivante
+        if (monthIdx < currentMonth) {
+            d.setFullYear(d.getFullYear() + 1);
+        }
+        d.setMonth(monthIdx);
+        return d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).toUpperCase();
     };
 
     const generateHTML = (isPreview = false) => {
@@ -279,7 +318,7 @@ export function NewsletterComposer() {
                 <span style="font-family: Impact, sans-serif; font-size: 13px; color: ${C.textMuted}; text-transform: uppercase; letter-spacing: 3px;">Dernières News</span>
             </div>
             ${selectedAutoNews.map((n: any) => `
-            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 16px; background: #1a1a1a; border-radius: 10px; overflow: hidden; border: 1px solid ${C.border};">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 16px; background: transparent; border-radius: 10px; overflow: hidden; border: 1px solid ${C.border};">
                 <tr>
                     ${n.image ? `<td width="110" valign="top" style="padding: 0;">
                         <img src="${resolveImageForEmail(n.image)}" alt="" width="110" style="display: block; width: 110px; height: 80px; object-fit: cover;">
@@ -300,7 +339,7 @@ export function NewsletterComposer() {
         <div style="padding: 30px; border-bottom: 1px solid ${C.border}; background: #080808;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
                 <div style="width: 4px; height: 20px; background: ${C.cyan}; border-radius: 2px; display: inline-block;"></div>
-                <span style="font-family: Impact, sans-serif; font-size: 13px; color: ${C.textMuted}; text-transform: uppercase; letter-spacing: 3px;">Agenda &middot; ${getMonthName()}</span>
+                <span style="font-family: Impact, sans-serif; font-size: 13px; color: ${C.textMuted}; text-transform: uppercase; letter-spacing: 3px;">Agenda &middot; ${getMonthName(agendaMonth)}</span>
             </div>
             <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 ${agendaEvents.map((e: any, i: number) => `
@@ -504,9 +543,9 @@ export function NewsletterComposer() {
                     ` : ''}
                     
                     ${autoNewsHtml}
-                    ${agendaHtml}
                     ${interviewsHtml}
                     ${recapsHtml}
+                    ${agendaHtml}
                     ${communityHtml}
                     
                     <!-- SECTION MEDIA -->
@@ -934,19 +973,35 @@ export function NewsletterComposer() {
                                             <div className={`absolute top-0.5 w-5 h-5 rounded-full transition-all duration-300 shadow-sm ${showAgenda ? 'left-[22px] bg-cyan-400' : 'left-0.5 bg-gray-600'}`} />
                                         </button>
                                     </div>
-                                    {showAgenda && agendaEvents.length > 0 && (
-                                        <div className="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pt-3 border-t border-white/5">
-                                            {agendaEvents.map((e: any) => (
-                                                <div key={e.id} className="flex items-center gap-2 p-2 bg-black/50 rounded-lg border border-white/5">
-                                                    <span className="text-[9px] font-black text-cyan-400 w-12 flex-shrink-0">{new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
-                                                    <span className="text-[10px] text-gray-300 truncate flex-1">{e.title}</span>
-                                                    <span className="text-[9px] text-gray-600 flex-shrink-0 hidden sm:block">{e.location}</span>
+                                    {showAgenda && (
+                                        <div className="pt-3 border-t border-white/5 space-y-3">
+                                            {/* Sélecteur de mois Agenda */}
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block mb-1.5">Mois de l'agenda</label>
+                                                <select
+                                                    value={agendaMonth}
+                                                    onChange={e => setAgendaMonth(Number(e.target.value))}
+                                                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-cyan-400 font-bold outline-none focus:border-cyan-500/50 transition-colors"
+                                                >
+                                                    {MONTHS.map(m => (
+                                                        <option key={m.value} value={m.value}>{m.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            {agendaEvents.length > 0 ? (
+                                                <div className="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar">
+                                                    {agendaEvents.map((e: any) => (
+                                                        <div key={e.id} className="flex items-center gap-2 p-2 bg-black/50 rounded-lg border border-white/5">
+                                                            <span className="text-[9px] font-black text-cyan-400 w-12 flex-shrink-0">{new Date(e.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                            <span className="text-[10px] text-gray-300 truncate flex-1">{e.title}</span>
+                                                            <span className="text-[9px] text-gray-600 flex-shrink-0 hidden sm:block">{e.location}</span>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                            ))}
+                                            ) : (
+                                                <p className="text-[10px] text-gray-600 text-center py-2">Aucun événement ce mois</p>
+                                            )}
                                         </div>
-                                    )}
-                                    {showAgenda && agendaEvents.length === 0 && (
-                                        <p className="text-[10px] text-gray-600 text-center py-2 pt-3 border-t border-white/5">Aucun événement ce mois</p>
                                     )}
                                 </div>
 
@@ -1000,21 +1055,37 @@ export function NewsletterComposer() {
                                             <div className={`absolute top-0.5 w-5 h-5 rounded-full transition-all duration-300 shadow-sm ${showRecaps ? 'left-[22px] bg-yellow-400' : 'left-0.5 bg-gray-600'}`} />
                                         </button>
                                     </div>
-                                    {showRecaps && recaps.length > 0 && (
-                                        <div className="space-y-1.5 pt-3 border-t border-white/5">
-                                            {recaps.map((item: any) => (
-                                                <div key={item.id} className="flex items-center gap-2.5 p-2 bg-black/50 rounded-lg border border-white/5">
-                                                    {(item.image || item.cover) && <img src={(item.image || item.cover || '').startsWith('http') ? (item.image || item.cover) : `https://dropsiders.fr${item.image || item.cover}`} alt="" className="w-7 h-7 object-cover rounded flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="text-[10px] text-gray-300 truncate">{item.title}</div>
-                                                        {item.date && <div className="text-[9px] text-yellow-400">{new Date(item.date).toLocaleDateString('fr-FR')}</div>}
-                                                    </div>
+                                    {showRecaps && (
+                                        <div className="pt-3 border-t border-white/5 space-y-3">
+                                            {/* Sélecteur de mois Récaps */}
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block mb-1.5">Mois des récaps</label>
+                                                <select
+                                                    value={recapMonth}
+                                                    onChange={e => setRecapMonth(Number(e.target.value))}
+                                                    className="w-full bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] text-yellow-400 font-bold outline-none focus:border-yellow-500/50 transition-colors"
+                                                >
+                                                    {MONTHS.map(m => (
+                                                        <option key={m.value} value={m.value}>{m.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            {recaps.length > 0 ? (
+                                                <div className="space-y-1.5">
+                                                    {recaps.map((item: any) => (
+                                                        <div key={item.id} className="flex items-center gap-2.5 p-2 bg-black/50 rounded-lg border border-white/5">
+                                                            {(item.image || item.cover) && <img src={(item.image || item.cover || '').startsWith('http') ? (item.image || item.cover) : `https://dropsiders.fr${item.image || item.cover}`} alt="" className="w-7 h-7 object-cover rounded flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />}
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="text-[10px] text-gray-300 truncate">{item.title}</div>
+                                                                {item.date && <div className="text-[9px] text-yellow-400">{new Date(item.date).toLocaleDateString('fr-FR')}</div>}
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                            ))}
+                                            ) : (
+                                                <p className="text-[10px] text-gray-600 text-center py-2">Aucun récap disponible ce mois</p>
+                                            )}
                                         </div>
-                                    )}
-                                    {showRecaps && recaps.length === 0 && (
-                                        <p className="text-[10px] text-gray-600 text-center py-2 pt-3 border-t border-white/5">Aucun récap disponible</p>
                                     )}
                                 </div>
 
