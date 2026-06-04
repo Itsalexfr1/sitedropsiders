@@ -52,3 +52,6 @@ tmp_migration_backup/
 
 # Static Assets (Stored on R2)
 public/uploads/
+
+# Scratch directory
+scratch/

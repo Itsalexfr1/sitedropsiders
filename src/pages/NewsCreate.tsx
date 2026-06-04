@@ -275,6 +275,7 @@ export function NewsCreate() {
     const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean; message: string } | null>(null);
     const [locationInput, setLocationInput] = useState(editingItem?.location || '');
     const [country, setCountry] = useState(editingItem?.country || '');
+    const [venue, setVenue] = useState(editingItem?.venue || '');
     const [isAutoLocating, setIsAutoLocating] = useState(false);
     const [imageUrl, setImageUrl] = useState(editingItem?.image || '');
     
@@ -486,8 +487,8 @@ export function NewsCreate() {
         { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', artistColor: '#ff1241', question: '', answer: '' }
     ]);
 
-    const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus'>(
-        (searchParams.get('tab') as 'News' | 'Musique' | 'Focus') ||
+    const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus' | 'Sets-Mixes'>(
+        (searchParams.get('tab') as 'News' | 'Musique' | 'Focus' | 'Sets-Mixes') ||
         (type === 'Musique' ? 'Musique' : 'News')
     );
     const [musicItems, setMusicItems] = useState<{ id: string, title: string, media: string, imageUrl: string, playerType: 'spotify' | 'youtube' | 'beatport', description: string, canVote: boolean }[]>(() => {
@@ -520,6 +521,8 @@ export function NewsCreate() {
     const [showVideo, setShowVideo] = useState(type !== 'Interview' || (type === 'Interview' && (searchParams.get('subtype') === 'video')));
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
+    const [showTracklistModal, setShowTracklistModal] = useState(false);
+    const [tracklistRaw, setTracklistRaw] = useState('');
     const [artistSocials, setArtistSocials] = useState({
         website: '',
         instagram: '',
@@ -639,6 +642,7 @@ export function NewsCreate() {
             if (articleData.isDraft !== undefined) setIsDraft(articleData.isDraft);
             if (articleData.location) setLocationInput(articleData.location);
             if (articleData.country) setCountry(articleData.country);
+            if (articleData.venue) setVenue(articleData.venue);
             if (articleData.image) setImageUrl(articleData.image);
             
             const dateValue = articleData.date || '';
@@ -658,6 +662,7 @@ export function NewsCreate() {
 
             if (articleData.category === 'Focus' || (articleData.category === 'News' && articleData.isFocus)) setActiveTab('Focus');
             else if (articleData.category === 'Musique') setActiveTab('Musique');
+            else if (articleData.category === 'Sets-Mixes' || (articleData.category || '').toLowerCase().includes('sets') || (articleData.category || '').toLowerCase().includes('mix')) setActiveTab('Sets-Mixes');
             else setActiveTab('News');
 
             if (articleData.showVideo !== undefined) setShowVideo(articleData.showVideo);
@@ -750,7 +755,7 @@ export function NewsCreate() {
                         foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'spotify', mediaUrl: section.getAttribute('data-media-url') || '' });
                     } else if (section.classList.contains('interview-beatport-block')) {
                         foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'beatport', mediaUrl: section.getAttribute('data-media-url') || '' });
-                    } else if (!section.innerHTML.includes('artist-socials-premium')) {
+                    } else if (!section.innerHTML.includes('artist-socials-premium') && !section.innerHTML.includes('tracklist-container')) {
                         foundWidgets.push({ id: Math.random().toString(36).substring(2, 11), content: section.innerHTML.trim() });
                     }
                 });
@@ -759,6 +764,10 @@ export function NewsCreate() {
             if (foundWidgets.length > 0) setWidgets(foundWidgets);
             else if (c && !c.includes('article-section')) setWidgets([{ id: 'legacy-1', content: c }]);
             if (foundQuestions.length > 0) setInterviewQuestions(foundQuestions);
+
+            // Restore raw tracklist text from embedded HTML comment
+            const rawMatch = c.match(/<!--\s*TRACKLIST_RAW_START\s*([\s\S]*?)\s*TRACKLIST_RAW_END\s*-->/);
+            if (rawMatch && rawMatch[1]) setTracklistRaw(rawMatch[1].trim());
 
             if (articleData.category === 'Musique') {
                 const domItems = Array.from(doc.querySelectorAll('.music-top-item-premium')).map(el => ({
@@ -1568,6 +1577,46 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
         return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n<h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style="color: ${customColor || '#6b7280'}">SUIVEZ ${displayName}</h3>\n<div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n</div>\n</div>`;
     };
 
+    const parseTracklist = (rawText: string): { timestamp: string; title: string }[] => {
+        const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const parsedTracks: { timestamp: string; title: string }[] = [];
+        const matchedTitleIndices = new Set<number>();
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const isTimestamp = /^\d{1,2}:\d{2}(?::\d{2})?$/.test(line);
+            const isW = /^w\/?$/i.test(line);
+            if (isTimestamp || isW) {
+                for (let j = i + 1; j < Math.min(lines.length, i + 8); j++) {
+                    if (lines[j].includes(' - ') && !matchedTitleIndices.has(j)) {
+                        const title = lines[j].replace(/\s+Artwork$/i, '').trim();
+                        matchedTitleIndices.add(j);
+                        parsedTracks.push({ timestamp: isW ? 'w/' : line, title });
+                        break;
+                    }
+                }
+            }
+        }
+        return parsedTracks;
+    };
+
+    const generateTracklistHtml = (rawText: string): string => {
+        const tracks = parseTracklist(rawText);
+        if (tracks.length === 0) return '';
+        const items = tracks.map((track, idx) => {
+            const isW = track.timestamp === 'w/';
+            return `<div class="tracklist-item${isW ? ' tracklist-item-w' : ''}" data-index="${idx + 1}">
+  <span class="track-num">${idx + 1}</span>
+  <span class="track-timestamp">${isW ? 'W/' : track.timestamp}</span>
+  <span class="track-title">${track.title}</span>
+</div>`;
+        }).join('\n');
+        return `<div class="tracklist-container">
+<div class="tracklist-header"><span class="tracklist-icon">&#9834;</span> TRACKLIST</div>
+<div class="tracklist-body">
+${items}
+</div>
+</div>`;
+    };
 
     const handleDelete = async () => {
         if (!id) return;
@@ -1785,6 +1834,20 @@ ${generateSocialsHtml()}
   ${youtubeId ? `<div class="article-section"><div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12"><iframe src="https://www.youtube.com/embed/${youtubeId}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe></div></div>` : ''}
   ${generateSocialsHtml()}
 </div>`;
+            } else if (activeTab === 'Sets-Mixes') {
+                finalCategory = 'Sets-Mixes';
+                const widgetsHtml = widgets.map(w =>
+                    `<div class="article-section">\n\n${w.content}\n\n</div>`
+                ).join('\n\n');
+
+                const tracklistBlock = tracklistRaw.trim()
+                    ? `\n\n<div class="article-section">${generateTracklistHtml(tracklistRaw)}</div>`
+                    : '';
+                const rawComment = tracklistRaw.trim()
+                    ? `\n\n<!-- TRACKLIST_RAW_START\n${tracklistRaw}\nTRACKLIST_RAW_END -->`
+                    : '';
+                const socialsHtml = generateSocialsHtml();
+                finalContent = widgetsHtml + tracklistBlock + (socialsHtml ? `\n\n<div class="article-section">${socialsHtml}</div>` : '') + rawComment;
             } else {
                 if (type === 'Interview') finalCategory = 'Interview';
                 // Construct Final Content with HTML Wrappers for Automatic Styling
@@ -1803,6 +1866,7 @@ ${generateSocialsHtml()}
                 title: fixEncoding(title),
                 location: fixEncoding(locationInput),
                 country: fixEncoding(country),
+                venue: fixEncoding(venue),
                 date: finalDate,
                 image: finalImageUrl,
                 category: finalCategory,
@@ -1859,6 +1923,7 @@ ${generateSocialsHtml()}
                     setTitle('');
                     setLocationInput('');
                     setCountry('');
+                    setVenue('');
                     setWidgets(isInterviewVideo ? [] : [
                         { id: 'initial-' + Math.random().toString(36).substr(2, 9), content: '<h2 class="premium-section-title">TITRE DE L\'ARTICLE</h2>' }
                     ]);
@@ -2071,29 +2136,36 @@ ${generateSocialsHtml()}
                     transition={{ delay: 0.1, duration: 0.5 }}
                     className={`bg-white/[0.03] backdrop-blur-2xl transition-all duration-500 ${isMobileEditorActive ? 'min-h-screen rounded-none border-0' : 'rounded-[2.5rem] border border-white/5 shadow-[0_25px_100px_-25px_rgba(0,0,0,0.5)]'} p-4 md:p-10`}
                 >
-                    {/* Tabs Selector - Only for News */}
-                    {type === 'News' && (
+                    {/* Tabs Selector - For News and Musique types */}
+                    {(type === 'News' || type === 'Musique') && (
                         <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-8 w-full md:w-fit mx-auto overflow-x-auto">
-                            <button
-                                onClick={() => setActiveTab('News')}
-                                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'News' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,18,65,0.4)]' : 'text-gray-500 hover:text-white'
-                                    }`}
-                            >
-                                <FileText className="w-3.5 h-3.5" /> News
-                            </button>
+                            {type === 'News' && (
+                                <>
+                                    <button
+                                        onClick={() => setActiveTab('News')}
+                                        className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'News' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,18,65,0.4)]' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        <FileText className="w-3.5 h-3.5" /> News
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveTab('Focus')}
+                                        className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'Focus' ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(189,0,255,0.4)]' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        <Star className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Focus de la semaine</span><span className="sm:hidden">Focus</span>
+                                    </button>
+                                </>
+                            )}
                             <button
                                 onClick={() => setActiveTab('Musique')}
-                                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'Musique' ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,255,243,0.4)]' : 'text-gray-500 hover:text-white'
-                                    }`}
+                                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'Musique' ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,255,243,0.4)]' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <Music className="w-3.5 h-3.5" /> Musique
                             </button>
                             <button
-                                onClick={() => setActiveTab('Focus')}
-                                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'Focus' ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(189,0,255,0.4)]' : 'text-gray-500 hover:text-white'
-                                    }`}
+                                onClick={() => setActiveTab('Sets-Mixes')}
+                                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'Sets-Mixes' ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(189,0,255,0.4)]' : 'text-gray-500 hover:text-white'}`}
                             >
-                                <Star className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Focus de la semaine</span><span className="sm:hidden">Focus</span>
+                                <Music className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Sets & Mixes</span><span className="sm:hidden">Sets</span>
                             </button>
                         </div>
                     )}
@@ -2332,6 +2404,41 @@ ${generateSocialsHtml()}
                                         </div>
                                     </div>
                                 </>
+                            )}
+                            {(activeTab === 'Sets-Mixes') && (
+                                <div className="space-y-2 md:col-span-3">
+                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                        <MapPin className="w-4 h-4 text-neon-purple" /> Club ou Festival
+                                    </label>
+                                    <div className="relative group">
+                                        <input
+                                            type="text"
+                                            value={venue}
+                                            onChange={(e) => setVenue(e.target.value)}
+                                            placeholder="Ex: Tomorrowland, Pacha Ibiza, Club Rex..."
+                                            className="w-full bg-black/20 border border-neon-purple/20 rounded-xl py-4 px-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                            {activeTab === 'Sets-Mixes' && (
+                                <div className="space-y-2 md:col-span-3">
+                                    <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Music className="w-4 h-4 text-neon-purple" /> Tracklist (coller depuis 1001tracklists)
+                                    </label>
+                                    <textarea
+                                        value={tracklistRaw}
+                                        onChange={(e) => setTracklistRaw(e.target.value)}
+                                        rows={14}
+                                        placeholder={`Coller le texte brut ici...\n\nExemple :\n00:04\nHard Rock Sofa & Swanky Tunes vs. Pryda - Feedback vs. Glimma (Alesso Bootleg)  PRYDA/SPINNIN'\n02:20\nSwedish House Mafia & Knife Party ft. ADL - Antidote (Swedish House Mafia Rework) VIRGIN`}
+                                        className="w-full bg-black/30 border border-neon-purple/30 rounded-xl py-4 px-4 text-white placeholder-gray-600 font-mono text-xs focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all resize-y"
+                                    />
+                                    {tracklistRaw.trim() && (
+                                        <div className="text-xs text-neon-purple/70 font-mono mt-1">
+                                            ✓ {parseTracklist(tracklistRaw).length} titre(s) détecté(s)
+                                        </div>
+                                    )}
+                                </div>
                             )}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année</label>
@@ -2657,7 +2764,7 @@ ${generateSocialsHtml()}
 
 
                     {/* WIDGET EDITOR SECTION (Always available to add flexibility) */}
-                    {(activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Musique' || type === 'Interview') && (
+                    {(activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Musique' || activeTab === 'Sets-Mixes' || type === 'Interview') && (
                         <div className="pt-8 border-t border-white/10">
                             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${isMobileEditorActive ? 'hidden' : ''}`}>
                                 <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -2721,6 +2828,13 @@ ${generateSocialsHtml()}
                                         className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-[#02FF95]/20 border border-[#02FF95]/30 text-[#02FF95] rounded-full hover:bg-[#02FF95]/30 transition-all font-bold uppercase tracking-widest text-[9px]"
                                     >
                                         <BeatportIcon className="w-3.5 h-3.5" /> Beatport
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowTracklistModal(true)}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <List className="w-3 h-3" /> Tracklist
                                     </button>
                                 </div>
                             </div>

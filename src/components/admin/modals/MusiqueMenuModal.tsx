@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { X, Plus, RefreshCw, Loader2 } from 'lucide-react';
+import { X, Plus, RefreshCw, Loader2, Music } from 'lucide-react';
 
 interface MusiqueMenuModalProps {
     isOpen: boolean;
@@ -23,7 +23,7 @@ export function MusiqueMenuModal({
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                        className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-3xl w-full shadow-2xl relative overflow-hidden"
                     >
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-green via-white to-neon-green" />
 
@@ -42,29 +42,41 @@ export function MusiqueMenuModal({
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                             <Link
-                                to="/news/create?type=Musique"
+                                to="/news/create?type=Musique&tab=Musique"
                                 onClick={onClose}
-                                className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
+                                className="p-6 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
                             >
-                                <div className="w-12 h-12 bg-neon-green/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-green/30 group-hover:scale-110 transition-transform">
-                                    <Plus className="w-6 h-6 text-neon-green" />
+                                <div className="w-10 h-10 bg-neon-green/20 rounded-xl flex items-center justify-center mb-4 border border-neon-green/30 group-hover:scale-110 transition-transform">
+                                    <Plus className="w-5 h-5 text-neon-green" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel Article</h3>
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Focus musique</p>
+                                <h3 className="text-lg font-bold text-white uppercase italic mb-1">Nouvel Article</h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Focus musique</p>
+                            </Link>
+
+                            <Link
+                                to="/news/create?type=Musique&tab=Sets-Mixes"
+                                onClick={onClose}
+                                className="p-6 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                            >
+                                <div className="w-10 h-10 bg-neon-purple/20 rounded-xl flex items-center justify-center mb-4 border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                                    <Music className="w-5 h-5 text-neon-purple" />
+                                </div>
+                                <h3 className="text-lg font-bold text-white uppercase italic mb-1">Set / Mix</h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Sets & mixes</p>
                             </Link>
 
                             <button
                                 onClick={onUpdateCharts}
                                 disabled={isUpdatingCharts}
-                                className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group flex flex-col items-center justify-center text-center"
+                                className="p-6 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group flex flex-col items-center justify-center text-center"
                             >
-                                <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                                    {isUpdatingCharts ? <Loader2 className="w-6 h-6 text-neon-cyan animate-spin" /> : <RefreshCw className="w-6 h-6 text-neon-cyan" />}
+                                <div className="w-10 h-10 bg-neon-cyan/20 rounded-xl flex items-center justify-center mb-4 border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                                    {isUpdatingCharts ? <Loader2 className="w-5 h-5 text-neon-cyan animate-spin" /> : <RefreshCw className="w-5 h-5 text-neon-cyan" />}
                                 </div>
-                                <h3 className="text-xl font-bold text-white uppercase italic mb-1">Mettre à jour Top 20</h3>
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Forcer la rotation</p>
+                                <h3 className="text-lg font-bold text-white uppercase italic mb-1">Mettre à jour</h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Forcer la rotation</p>
                             </button>
                         </div>
 

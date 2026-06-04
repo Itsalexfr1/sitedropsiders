@@ -35,41 +35,53 @@ export function NewsModal({ isOpen, onClose }: NewsModalProps) {
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                             <Link
                                 to="/news/create"
                                 onClick={onClose}
-                                className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
+                                className="p-6 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
                             >
-                                <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-blue/30 group-hover:scale-110 transition-transform">
-                                    <FileText className="w-6 h-6 text-neon-blue" />
+                                <div className="w-10 h-10 bg-neon-blue/20 rounded-xl flex items-center justify-center mb-4 border border-neon-blue/30 group-hover:scale-110 transition-transform">
+                                    <FileText className="w-5 h-5 text-neon-blue" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white uppercase italic mb-1">Actualité</h3>
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouvel article news</p>
+                                <h3 className="text-lg font-bold text-white uppercase italic mb-1">Actualité</h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Nouvel article news</p>
                             </Link>
 
                             <Link
-                                to="/news/create?type=Musique"
+                                to="/news/create?type=Musique&tab=Musique"
                                 onClick={onClose}
-                                className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
+                                className="p-6 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
                             >
-                                <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                                    <Music className="w-6 h-6 text-neon-cyan" />
+                                <div className="w-10 h-10 bg-neon-cyan/20 rounded-xl flex items-center justify-center mb-4 border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                                    <Music className="w-5 h-5 text-neon-cyan" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white uppercase italic mb-1">Musique</h3>
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouvel article musique</p>
+                                <h3 className="text-lg font-bold text-white uppercase italic mb-1">Musique</h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Nouvel article musique</p>
+                            </Link>
+
+                            <Link
+                                to="/news/create?type=Musique&tab=Sets-Mixes"
+                                onClick={onClose}
+                                className="p-6 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                            >
+                                <div className="w-10 h-10 bg-neon-purple/20 rounded-xl flex items-center justify-center mb-4 border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                                    <Music className="w-5 h-5 text-neon-purple" />
+                                </div>
+                                <h3 className="text-lg font-bold text-white uppercase italic mb-1">Sets & Mixes</h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Nouveau set / mix</p>
                             </Link>
 
                             <Link
                                 to="/news/create?tab=Focus"
                                 onClick={onClose}
-                                className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group sm:col-span-2 lg:col-span-1"
+                                className="p-6 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
                             >
-                                <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                                    <Zap className="w-6 h-6 text-neon-purple" />
+                                <div className="w-10 h-10 bg-neon-purple/20 rounded-xl flex items-center justify-center mb-4 border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                                    <Zap className="w-5 h-5 text-neon-purple" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white uppercase italic mb-1">Focus</h3>
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Focus de la semaine</p>
+                                <h3 className="text-lg font-bold text-white uppercase italic mb-1">Focus</h3>
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Focus de la semaine</p>
                             </Link>
                         </div>
 

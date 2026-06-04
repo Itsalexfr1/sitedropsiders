@@ -16,12 +16,13 @@ import { getCategoryColor } from '../utils/theme';
 import { Plus, FileText } from 'lucide-react';
 import { fetchWithFallback } from '../utils/fetcher';
 
-type TabKey = 'all' | 'news' | 'musique' | 'focus';
+type TabKey = 'all' | 'news' | 'musique' | 'focus' | 'sets-mixes';
 
 const DEFAULT_TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: string }[] = [
     { key: 'all', label: 'Toutes', activeClass: 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]', inactiveClass: 'text-white/40 border-white/10 hover:border-white/30 hover:text-white' },
     { key: 'news', label: 'News', activeClass: 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,17,17,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-red/40 hover:text-neon-red' },
     { key: 'musique', label: 'Musiques', activeClass: 'bg-neon-green text-white shadow-[0_0_20px_rgba(17,255,17,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-green/40 hover:text-neon-green' },
+    { key: 'sets-mixes', label: 'Sets & Mixes', activeClass: 'bg-neon-purple text-white shadow-[0_0_20px_rgba(191,0,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-purple/40 hover:text-neon-purple' },
     { key: 'focus', label: 'Focus de la semaine', activeClass: 'bg-yellow-500 text-white shadow-[0_0_20px_rgba(234,179,8,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-yellow-500/40 hover:text-yellow-500' },
 ];
 
@@ -97,7 +98,7 @@ export function News() {
         };
         fetchRecaps();
 
-        if (tabParam && ['all', 'news', 'musique', 'focus'].includes(tabParam)) {
+        if (tabParam && ['all', 'news', 'musique', 'focus', 'sets-mixes'].includes(tabParam)) {
             setActiveTab(tabParam);
         }
     }, [tabParam]);
@@ -162,11 +163,15 @@ export function News() {
         if (activeTab === 'all') return baseNews;
         if (activeTab === 'news') return baseNews.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
-            return (cat.includes('news') || cat.includes('actu') || cat.includes('festival')) && !item.isFocus;
+            return (cat.includes('news') || cat.includes('actu') || cat.includes('festival')) && !item.isFocus && !cat.includes('sets') && !cat.includes('mix');
         });
         if (activeTab === 'musique') return baseNews.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
-            return cat.includes('musique') || cat.includes('music');
+            return (cat.includes('musique') || cat.includes('music')) && !cat.includes('sets') && !cat.includes('mix');
+        });
+        if (activeTab === 'sets-mixes') return baseNews.filter((item: any) => {
+            const cat = (item.category || '').toLowerCase();
+            return cat.includes('sets') || cat.includes('mix');
         });
         if (activeTab === 'focus') return baseNews.filter((item: any) => item.isFocus);
         return baseNews;
