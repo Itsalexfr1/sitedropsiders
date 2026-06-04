@@ -448,7 +448,7 @@ export function NewsletterComposer() {
                         <div style="font-size: 11px; color: ${C.textMuted}; margin-top: 2px;">${item.artist || ''} &middot; ${item.likes || 0} likes</div>
                     </td>
                     ${item.embedUrl ? `<td width="80" align="right" valign="middle" style="padding-right: 14px;">
-                        <a href="${item.embedUrl}" style="display: inline-block; padding: 6px 10px; background: rgba(0,255,153,0.12); border: 1px solid rgba(0,255,153,0.3); color: ${C.success}; font-size: 9px; font-weight: 900; text-decoration: none; text-transform: uppercase; border-radius: 6px;">&Eacute;couter</a>
+                        <a href="${resolveImageForEmail(item.embedUrl)}" style="display: inline-block; padding: 6px 10px; background: rgba(0,255,153,0.12); border: 1px solid rgba(0,255,153,0.3); color: ${C.success}; font-size: 9px; font-weight: 900; text-decoration: none; text-transform: uppercase; border-radius: 6px;">&Eacute;couter</a>
                     </td>` : ''}
                 </tr>
             </table>`).join('')}
