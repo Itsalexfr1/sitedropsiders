@@ -242,7 +242,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
         'HIGHLIGHTS': { label: 'HIGHLIGHTS', grad: '0, 112, 255', color: '#0070ff' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
-        'RECAP': { label: 'RÉCAP', grad: '189, 0, 255', color: '#bd00ff' },
+        'RECAP': { label: 'RÉCAP', grad: '255, 103, 0', color: '#ff6700' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
@@ -2084,7 +2084,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => setTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
             <button onClick={() => setTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
             <button onClick={() => setTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
-            <button onClick={() => setTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
+            <button onClick={() => setTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
             <button onClick={() => setTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
             <button onClick={() => setTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
             <button onClick={() => setTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
@@ -2864,10 +2864,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/90 backdrop-blur-2xl">
                     <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-8 max-w-4xl w-full shadow-2xl relative overflow-hidden h-[80vh] flex flex-col">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-pink-500 to-neon-red" />
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-orange via-pink-500 to-neon-red" />
                         <div className="flex justify-between items-start mb-8">
                             <div>
-                                <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-1">Importer un <span className="text-neon-purple">Récap Écrit</span></h2>
+                                <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-1">Importer un <span className="text-neon-orange">Récap Écrit</span></h2>
                                 <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Sélectionnez un article pour générer le visuel</p>
                             </div>
                             <button onClick={() => setIsRecapPickerOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"><X className="w-5 h-5" /></button>
@@ -2893,12 +2893,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <img src={recap.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[10px] font-black text-neon-purple uppercase tracking-widest mb-1">{recap.festival || 'FESTIVAL'}</p>
+                                            <p className="text-[10px] font-black text-neon-orange uppercase tracking-widest mb-1">{recap.festival || 'FESTIVAL'}</p>
                                             <h3 className="text-white font-black uppercase italic tracking-tighter text-sm line-clamp-1 mb-1">{fixEncoding(recap.title)}</h3>
                                             <p className="text-[9px] text-gray-500 font-medium line-clamp-2 leading-relaxed">{fixEncoding(recap.summary || '')}</p>
                                         </div>
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <div className="w-8 h-8 rounded-full bg-neon-purple text-white flex items-center justify-center">
+                                            <div className="w-8 h-8 rounded-full bg-neon-orange text-white flex items-center justify-center">
                                                 <Plus className="w-4 h-4" />
                                             </div>
                                         </div>
@@ -2961,7 +2961,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                 Télécharger Vidéo/Photo (URL)
                             </button>
-                            <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-neon-purple/10 border border-neon-purple/30 rounded-xl flex items-center justify-center gap-2 text-neon-purple text-[9px] font-black uppercase hover:bg-neon-purple/20 transition-all group">
+                            <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-neon-orange/10 border border-neon-orange/30 rounded-xl flex items-center justify-center gap-2 text-neon-orange text-[9px] font-black uppercase hover:bg-neon-orange/20 transition-all group">
                                 <PlusCircle className="w-3.5 h-3.5" />
                                 Importer un RÉCAP ÉCRIT
                             </button>
@@ -3340,7 +3340,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                                 <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
                                             </button>
-                                            <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-4 bg-neon-purple/10 border border-neon-purple/30 rounded-2xl flex items-center justify-center gap-2 text-neon-purple text-[10px] font-black uppercase hover:bg-neon-purple/20 transition-all group">
+                                            <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-4 bg-neon-orange/10 border border-neon-orange/30 rounded-2xl flex items-center justify-center gap-2 text-neon-orange text-[10px] font-black uppercase hover:bg-neon-orange/20 transition-all group">
                                                 <PlusCircle className="w-4 h-4" />Importer un RÉCAP ÉCRIT
                                             </button>
                                             <button onClick={() => setShowText(!showText)} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${!showText ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>

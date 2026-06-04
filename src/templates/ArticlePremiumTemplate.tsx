@@ -1038,6 +1038,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         themeColorName === 'neon-purple' ? '#BF00FF' :
         themeColorName === 'neon-cyan' ? '#00FFFF' :
         themeColorName === 'neon-green' ? '#39FF14' :
+        themeColorName === 'neon-orange' ? '#ff6700' :
         '#FF1241'; // neon-red default
 
     return (

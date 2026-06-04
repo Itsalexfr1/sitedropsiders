@@ -66,7 +66,7 @@ export function MobileNavbar() {
         ...(isLiveActive ? [{ icon: Users, label: navLabels.communaute || 'Communaute', path: '/communaute', color: 'text-neon-pink' }] : []),
         { icon: Newspaper, label: navLabels.news || 'News', path: '/news', color: 'text-neon-red' },
         { icon: Plane, label: navLabels.voyage || t('nav.voyage'), path: '/voyage', color: 'text-neon-green' },
-        { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
+        { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-orange' },
         { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-neon-orange' },
         { icon: Users, label: navLabels.team || t('nav.team'), path: '/team', color: 'text-neon-lime' },
         { 

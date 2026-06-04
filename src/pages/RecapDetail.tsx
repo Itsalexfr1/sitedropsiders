@@ -89,7 +89,7 @@ export function RecapDetail() {
     if (isLoading) {
         return (
             <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4">
-                <div className="w-12 h-12 rounded-full border-t-2 border-neon-red animate-spin" />
+                <div className="w-12 h-12 rounded-full border-t-2 border-neon-orange animate-spin" />
             </div>
         );
     }
@@ -101,7 +101,7 @@ export function RecapDetail() {
                     <h1 className="text-4xl font-display font-black text-white mb-4">{t('recap_detail.not_found_title')}</h1>
                     <Link
                         to="/recaps"
-                        className="text-neon-red hover:underline font-bold"
+                        className="text-neon-orange hover:underline font-bold"
                         onMouseEnter={playHoverSound}
                     >
                         {t('recap_detail.not_found_btn')}
