@@ -2410,6 +2410,59 @@ ${generateSocialsHtml()}
                                     </div>
                                 </>
                             )}
+                            {activeTab === 'Sets-Mixes' && (
+                                <div className="space-y-2 md:col-span-3">
+                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année</label>
+                                    <div className="relative group">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                        <input
+                                            type="number"
+                                            value={year}
+                                            onChange={(e) => setYear(e.target.value)}
+                                            placeholder="Ex: 2026"
+                                            min="1900"
+                                            max="2100"
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                            {activeTab === 'Sets-Mixes' && (
+                                <div className="md:col-span-3">
+                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                        <ImageIcon className="w-4 h-4" /> Image <span className="text-neon-red">*</span>
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={imageUrl}
+                                            onChange={(e) => setImageUrl(e.target.value)}
+                                            className="flex-1 bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                            placeholder="https://..."
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setUploadTarget({ type: 'main', initialImage: imageUrl });
+                                                setShowUploadModal(true);
+                                            }}
+                                            className="px-6 py-4 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-xl font-bold uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
+                                        >
+                                            Upload
+                                        </button>
+                                        {imageUrl && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setImageUrl('')}
+                                                className="p-3 bg-red-600/10 border border-red-600/20 text-red-600 rounded-xl hover:bg-red-600/20 transition-all flex items-center justify-center h-full"
+                                                title="Supprimer l'image"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                             {(activeTab === 'Sets-Mixes') && (
                                 <div className="space-y-2 md:col-span-3">
                                     <label className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
@@ -2498,6 +2551,7 @@ ${generateSocialsHtml()}
                                     })()}
                                 </div>
                             )}
+                            {activeTab !== 'Sets-Mixes' && (
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année</label>
                                 <div className="relative group">
@@ -2513,11 +2567,13 @@ ${generateSocialsHtml()}
                                     />
                                 </div>
                             </div>
+                            )}
                         </div>
 
 
                         {/* Image & Youtube */}
-                        <div className={activeTab === 'Sets-Mixes' ? "grid grid-cols-1 gap-6" : "grid grid-cols-1 md:grid-cols-2 gap-6"}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {activeTab !== 'Sets-Mixes' && (
                             <div>
                                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                                     <ImageIcon className="w-4 h-4" /> Image <span className="text-neon-red">*</span>
@@ -2553,6 +2609,7 @@ ${generateSocialsHtml()}
 
                                 </div>
                             </div>
+                            )}
                             {activeTab !== 'Musique' && activeTab !== 'Sets-Mixes' && (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between mb-2">
