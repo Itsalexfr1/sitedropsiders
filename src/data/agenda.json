@@ -1380,25 +1380,6 @@
     "isLiveDropsiders": false
   },
   {
-    "id": 318,
-    "title": "FISHER",
-    "date": "2026-06-04",
-    "startDate": "2026-06-04",
-    "endDate": "2026-06-04",
-    "venue": "UNVRS",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/f1ce41716aefa129-a8f7fefd_4ca7_4363_98a2_a9895c.webp",
-    "url": "https://www.unvrs.com/events/2026/fisher/04-06-2026",
-    "genre": "Tech House",
-    "month": "JUIN",
-    "isWeekly": true,
-    "dayOfWeek": 4,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
-  },
-  {
     "id": 319,
     "title": "FISHER",
     "date": "2026-06-11",
