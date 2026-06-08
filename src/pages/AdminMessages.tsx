@@ -700,27 +700,27 @@ Alex (Dropsiders)`;
     };
 
     return (
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen text-white" style={{ background: 'linear-gradient(135deg, #0d0d0f 0%, #111318 50%, #0d0f14 100%)' }}>
             {/* Header */}
-            <div className="border-b border-white/5 bg-black/80 backdrop-blur-xl sticky top-0 z-30">
-                <div className="max-w-full mx-auto px-4 md:px-12 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <Link to="/admin" className="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-white group">
-                            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            <div className="sticky top-0 z-30 backdrop-blur-2xl" style={{ background: 'rgba(13,13,15,0.85)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="max-w-full mx-auto px-4 md:px-10 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <Link to="/admin" className="p-2 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-white/8 group" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                         </Link>
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20">
-                                <Inbox className="w-5 h-5 text-neon-red" />
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(255,18,65,0.2), rgba(255,18,65,0.05))', border: '1px solid rgba(255,18,65,0.25)' }}>
+                                <Inbox className="w-4.5 h-4.5 text-neon-red" />
                             </div>
                             <div>
-                                <h1 className="text-lg md:text-xl font-display font-black uppercase italic tracking-tight text-white leading-tight">
-                                    MESSAGERIE <span className="text-neon-red">& CONTACTS</span>
+                                <h1 className="text-base md:text-lg font-display font-black uppercase italic tracking-tight text-white leading-tight">
+                                    Messagerie <span className="text-neon-red">& Contacts</span>
                                 </h1>
-                                <p className="text-gray-500 text-xs">{filteredMessages.length} messages · {unreadCount} non lus</p>
+                                <p className="text-gray-500 text-[10px] font-medium">{filteredMessages.length} messages&nbsp;·&nbsp;<span className={unreadCount > 0 ? 'text-neon-red font-bold' : ''}>{unreadCount} non lu{unreadCount > 1 ? 's' : ''}</span></p>
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={() => {
                                 setIsNewMail(true);
@@ -742,7 +742,8 @@ Alex (Dropsiders)`;
                                 setReplyBody(getPressReleaseTemplate('FR', ''));
                                 setReplyModal(true);
                             }}
-                            className="flex-1 md:flex-none justify-center px-4 py-2 bg-neon-red/10 border border-neon-red/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red text-white transition-all flex items-center gap-2 group shadow-lg shadow-neon-red/10"
+                            className="flex-1 md:flex-none justify-center px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg"
+                            style={{ background: 'linear-gradient(135deg, #ff1241, #cc0030)', boxShadow: '0 4px 20px rgba(255,18,65,0.25)' }}
                         >
                             <Send className="w-3 h-3" />
                             <span className="hidden sm:inline">Nouveau Message</span>
@@ -752,15 +753,17 @@ Alex (Dropsiders)`;
                             href="https://mail.dropsiders.fr"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex-1 md:flex-none justify-center px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2 group"
+                            className="flex-1 md:flex-none justify-center px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
                         >
                             <Mail className="w-3 h-3 text-neon-red" />
-                            <span className="hidden sm:inline">Accès Messagerie Pro</span>
-                            <span className="sm:hidden">Pro</span>
+                            <span className="hidden sm:inline text-gray-300">Messagerie Pro</span>
+                            <span className="sm:hidden text-gray-300">Pro</span>
                         </a>
                         {unreadCount > 0 && (
-                            <div className="hidden lg:block px-3 py-1 bg-neon-red rounded-full text-white text-[9px] font-black uppercase tracking-tight">
-                                {unreadCount} NOUVEAU{unreadCount > 1 ? 'X' : ''}
+                            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-[9px] font-black uppercase tracking-widest" style={{ background: 'rgba(255,18,65,0.15)', border: '1px solid rgba(255,18,65,0.3)' }}>
+                                <div className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse" />
+                                {unreadCount} nouveau{unreadCount > 1 ? 'x' : ''}
                             </div>
                         )}
                     </div>
@@ -785,124 +788,153 @@ Alex (Dropsiders)`;
                 )}
             </AnimatePresence>
 
-            <div className={`max-w-full mx-auto flex h-[calc(100vh-65px)] px-0 md:px-12`}>
+            <div className={`max-w-full mx-auto flex h-[calc(100vh-60px)] px-0 md:px-8`}>
                 {/* LEFT: Message List */}
-                <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r border-white/5 flex-shrink-0 flex-col bg-white/[0.015]`}>
+                <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-[380px] flex-shrink-0 flex-col`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                     {/* Inbox / Sent tabs */}
-                    <div className="flex border-b border-white/5 shrink-0 overflow-x-auto no-scrollbar">
-                        <button onClick={() => { setMailboxTab('inbox'); setSelectedSent(null); setSelectedArchived(null); }} className={`flex-1 min-w-[100px] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'inbox' ? 'text-white border-b-2 border-neon-red' : 'text-gray-600 hover:text-white'}`}>
-                            <Inbox className="w-3.5 h-3.5" /> Reçus <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${unreadCount > 0 ? 'bg-neon-red text-white' : 'bg-white/10 text-gray-500'}`}>{filteredMessages.length}</span>
-                        </button>
-                        <button onClick={() => { setMailboxTab('sent'); setSelected(null); setSelectedArchived(null); }} className={`flex-1 min-w-[100px] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'sent' ? 'text-white border-b-2 border-neon-cyan' : 'text-gray-600 hover:text-white'}`}>
-                            <Send className="w-3.5 h-3.5" /> Envoyés <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-white/10 text-gray-500">{sentMessages.length}</span>
-                        </button>
-                        <button onClick={() => { setMailboxTab('archived'); setSelected(null); setSelectedSent(null); }} className={`flex-1 min-w-[100px] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'archived' ? 'text-white border-b-2 border-neon-purple' : 'text-gray-600 hover:text-white'}`}>
-                            <Archive className="w-3.5 h-3.5" /> Archivés <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-white/10 text-gray-500">{archivedMessages.length}</span>
-                        </button>
+                    <div className="flex shrink-0 overflow-x-auto no-scrollbar px-3 pt-3 gap-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                        {[
+                            { id: 'inbox', label: 'Reçus', icon: <Inbox className="w-3 h-3" />, count: filteredMessages.length, color: '#ff1241', active: mailboxTab === 'inbox', onClick: () => { setMailboxTab('inbox'); setSelectedSent(null); setSelectedArchived(null); } },
+                            { id: 'sent', label: 'Envoyés', icon: <Send className="w-3 h-3" />, count: sentMessages.length, color: '#00FFFF', active: mailboxTab === 'sent', onClick: () => { setMailboxTab('sent'); setSelected(null); setSelectedArchived(null); } },
+                            { id: 'archived', label: 'Archivés', icon: <Archive className="w-3 h-3" />, count: archivedMessages.length, color: '#BF00FF', active: mailboxTab === 'archived', onClick: () => { setMailboxTab('archived'); setSelected(null); setSelectedSent(null); } }
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={tab.onClick}
+                                className={`flex-1 min-w-[90px] pb-2.5 pt-1 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all relative`}
+                                style={{ borderBottom: tab.active ? `2px solid ${tab.color}` : '2px solid transparent', color: tab.active ? 'white' : 'rgba(255,255,255,0.35)' }}
+                            >
+                                {tab.icon}
+                                {tab.label}
+                                <span className="px-1.5 py-0.5 rounded-full text-[8px]" style={{ background: tab.active && tab.id === 'inbox' && unreadCount > 0 ? tab.color : 'rgba(255,255,255,0.08)', color: tab.active && tab.id === 'inbox' && unreadCount > 0 ? 'white' : 'rgba(255,255,255,0.4)' }}>
+                                    {tab.count}
+                                </span>
+                            </button>
+                        ))}
                     </div>
                     {isAlex && (
-                        <div className="flex gap-1.5 p-2 border-b border-white/5 bg-white/[0.01] overflow-x-auto no-scrollbar shrink-0">
+                        <div className="flex gap-1.5 p-2.5 overflow-x-auto no-scrollbar shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                             {[
-                                { id: 'all', label: 'Tous' },
-                                { id: 'general', label: 'Général' },
-                                // Dynamic editors from API (exclude Alex herself)
+                                { id: 'all', label: 'Tous', emoji: '📥' },
+                                { id: 'general', label: 'Général', emoji: '📬' },
                                 ...editors
                                     .filter(e => e.username && e.username.toLowerCase() !== 'alex')
-                                    .map(e => ({ id: e.username.toLowerCase(), label: e.username }))
-                            ].map(filter => (
-                                <button
-                                    key={filter.id}
-                                    onClick={() => {
-                                        setSelectedEditorFilter(filter.id);
-                                        setSelected(null);
-                                        setSelectedArchived(null);
-                                    }}
-                                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
-                                        selectedEditorFilter === filter.id
-                                            ? 'bg-neon-red text-white'
-                                            : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-                                    }`}
-                                >
-                                    {filter.label}
-                                    {filter.id !== 'all' && filter.id !== 'general' && (
-                                        <span className="ml-1 opacity-50">
-                                            ({messages.filter(m => {
-                                                const recip = (m.recipient || '').toLowerCase();
-                                                return recip === `${filter.id}@dropsiders.fr` || recip === filter.id;
-                                            }).length})
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
+                                    .map(e => ({ id: e.username.toLowerCase(), label: e.username, emoji: e.username.charAt(0).toUpperCase() }))
+                            ].map(filter => {
+                                const isActive = selectedEditorFilter === filter.id;
+                                const msgCount = filter.id !== 'all' && filter.id !== 'general'
+                                    ? messages.filter(m => {
+                                        const recip = (m.recipient || '').toLowerCase();
+                                        return recip === `${filter.id}@dropsiders.fr` || recip === filter.id;
+                                      }).length
+                                    : null;
+                                return (
+                                    <button
+                                        key={filter.id}
+                                        onClick={() => { setSelectedEditorFilter(filter.id); setSelected(null); setSelectedArchived(null); }}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
+                                        style={isActive
+                                            ? { background: 'linear-gradient(135deg, #ff1241, #cc0030)', color: 'white', boxShadow: '0 2px 12px rgba(255,18,65,0.35)' }
+                                            : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }
+                                        }
+                                    >
+                                        {filter.label}
+                                        {msgCount !== null && (
+                                            <span className="px-1 rounded-full" style={{ background: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)', fontSize: '8px' }}>
+                                                {msgCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
                     )}
 
                     <div className="flex-1 overflow-y-auto">
                         {loading ? (
-                            <div className="flex items-center justify-center h-48 text-gray-600">
-                                <div className="animate-spin w-6 h-6 border-2 border-neon-red border-t-transparent rounded-full" />
+                            <div className="flex items-center justify-center h-48">
+                                <div className="flex flex-col items-center gap-3">
+                                    <div className="animate-spin w-8 h-8 rounded-full" style={{ border: '2px solid rgba(255,18,65,0.15)', borderTop: '2px solid #ff1241' }} />
+                                    <span className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">Chargement...</span>
+                                </div>
                             </div>
                         ) : mailboxTab === 'sent' ? (
                             sentMessages.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-600">
-                                    <Archive className="w-12 h-12 opacity-20" />
-                                    <p className="text-sm font-bold uppercase tracking-widest">Aucun message envoyé</p>
+                                <div className="flex flex-col items-center justify-center h-64 gap-3">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                        <Send className="w-5 h-5 text-gray-600" />
+                                    </div>
+                                    <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">Aucun message envoyé</p>
                                 </div>
                             ) : (
-                                <div className="divide-y divide-white/5">
+                                <div>
                                     {sentMessages.map(msg => (
                                         <div
                                             key={msg.id}
                                             onClick={() => setSelectedSent(msg)}
-                                            className={`p-4 hover:bg-white/5 transition-all cursor-pointer relative ${selectedSent?.id === msg.id ? 'bg-white/5 border-l-2 border-neon-cyan' : 'border-l-2 border-transparent'}`}
+                                            className="px-4 py-3.5 cursor-pointer transition-all relative"
+                                            style={{
+                                                background: selectedSent?.id === msg.id ? 'rgba(0,255,255,0.04)' : 'transparent',
+                                                borderLeft: selectedSent?.id === msg.id ? '3px solid #00FFFF' : '3px solid transparent',
+                                                borderBottom: '1px solid rgba(255,255,255,0.04)'
+                                            }}
                                         >
-                                            <div className="flex items-center justify-between mb-1">
-                                                <span className="text-[10px] font-black text-neon-cyan uppercase truncate">{msg.to}</span>
-                                                <span className="text-[9px] text-gray-600 flex-shrink-0 ml-2">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black flex-shrink-0" style={{ background: 'linear-gradient(135deg, rgba(0,255,255,0.15), rgba(0,255,255,0.05))', color: '#00FFFF', border: '1px solid rgba(0,255,255,0.15)' }}>
+                                                    {(msg.to.charAt(0) || 'E').toUpperCase()}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                                                        <span className="text-xs font-bold text-white/80 truncate">{msg.to}</span>
+                                                        <span className="text-[9px] flex-shrink-0 ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                    </div>
+                                                    <p className="text-[11px] font-semibold truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{msg.subject}</p>
+                                                    <p className="text-[10px] truncate mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>{msg.body.slice(0, 55)}…</p>
+                                                </div>
                                             </div>
-                                            <p className="text-sm font-bold text-white/70 truncate">{msg.subject}</p>
-                                            <p className="text-xs text-gray-500 truncate mt-0.5">{msg.body.slice(0, 60)}...</p>
-                                            <span className="text-[9px] text-gray-600 mt-1 block">Signataire : {msg.signer}</span>
                                         </div>
                                     ))}
                                 </div>
                             )
                         ) : mailboxTab === 'archived' ? (
                             filteredArchivedMessages.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-600">
-                                    <Archive className="w-12 h-12 opacity-20" />
-                                    <p className="text-sm font-bold uppercase tracking-widest">Aucun message archivé</p>
+                                <div className="flex flex-col items-center justify-center h-64 gap-3">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                        <Archive className="w-5 h-5 text-gray-600" />
+                                    </div>
+                                    <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">Aucun message archivé</p>
                                 </div>
                             ) : (
-                                <div className="divide-y divide-white/5">
+                                <div>
                                     {filteredArchivedMessages.map(msg => (
                                         <motion.div
                                             key={msg.id}
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             onClick={() => setSelectedArchived(msg)}
-                                            className={`p-4 cursor-pointer transition-all hover:bg-white/5 relative ${selectedArchived?.id === msg.id ? 'bg-white/5 border-l-2 border-neon-purple' : 'border-l-2 border-transparent'}`}
+                                            className="px-4 py-3.5 cursor-pointer transition-all"
+                                            style={{
+                                                background: selectedArchived?.id === msg.id ? 'rgba(191,0,255,0.04)' : 'transparent',
+                                                borderLeft: selectedArchived?.id === msg.id ? '3px solid #BF00FF' : '3px solid transparent',
+                                                borderBottom: '1px solid rgba(255,255,255,0.04)'
+                                            }}
                                         >
                                             <div className="flex items-start gap-3">
-                                                <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 bg-white/5 text-gray-500">
+                                                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black flex-shrink-0" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}>
                                                     {msg.name.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center justify-between gap-1">
-                                                        <span className="text-sm truncate text-gray-400 font-medium">{msg.name}</span>
-                                                        <span className="text-[10px] text-gray-600 flex-shrink-0">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                    <div className="flex items-center justify-between gap-1 mb-0.5">
+                                                        <span className="text-xs font-semibold truncate" style={{ color: 'rgba(255,255,255,0.55)' }}>{msg.name}</span>
+                                                        <span className="text-[9px] flex-shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }}>{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                                     </div>
-                                                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                                                        <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border truncate max-w-full block md:inline ${getSubjectColor(msg.subject)}`}>
-                                                            {msg.subject}
-                                                        </span>
+                                                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>{msg.subject}</span>
                                                         {msg.recipient && msg.recipient.toLowerCase() !== 'contact@dropsiders.fr' && (
-                                                            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border border-neon-cyan/20 bg-neon-cyan/5 text-neon-cyan truncate max-w-full block md:inline">
-                                                                Pour : {msg.recipient.split('@')[0]}
-                                                            </span>
+                                                            <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,255,255,0.08)', border: '1px solid rgba(0,255,255,0.15)', color: '#00FFFF' }}>→ {msg.recipient.split('@')[0]}</span>
                                                         )}
                                                     </div>
-                                                    <p className="text-xs md:text-sm truncate mt-2 font-medium text-white/40">{msg.message}</p>
+                                                    <p className="text-[10px] truncate mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{msg.message}</p>
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -910,46 +942,55 @@ Alex (Dropsiders)`;
                                 </div>
                             )
                         ) : filteredMessages.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-600">
-                                <MessageSquare className="w-12 h-12 opacity-20" />
-                                <p className="text-sm font-bold uppercase tracking-widest">Aucun message</p>
+                            <div className="flex flex-col items-center justify-center h-64 gap-3">
+                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                    <MessageSquare className="w-5 h-5 text-gray-600" />
+                                </div>
+                                <p className="text-xs font-bold text-gray-600 uppercase tracking-widest">Aucun message</p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-white/5">
+                            <div>
                                 {filteredMessages.map(msg => (
                                     <motion.div
                                         key={msg.id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
+                                        initial={{ opacity: 0, y: 4 }}
+                                        animate={{ opacity: 1, y: 0 }}
                                         onClick={() => openMessage(msg)}
-                                        className={`p-4 cursor-pointer transition-all hover:bg-white/5 relative ${selected?.id === msg.id ? 'bg-white/5 border-l-2 border-neon-red' : 'border-l-2 border-transparent'}`}
+                                        className="px-4 py-3.5 cursor-pointer transition-all relative"
+                                        style={{
+                                            background: selected?.id === msg.id ? 'rgba(255,18,65,0.05)' : 'transparent',
+                                            borderLeft: selected?.id === msg.id ? '3px solid #ff1241' : '3px solid transparent',
+                                            borderBottom: '1px solid rgba(255,255,255,0.04)'
+                                        }}
                                     >
                                         {!msg.read && (
-                                            <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-neon-red" />
+                                            <div className="absolute top-4 right-4 w-2 h-2 rounded-full animate-pulse" style={{ background: '#ff1241', boxShadow: '0 0 6px rgba(255,18,65,0.6)' }} />
                                         )}
                                         <div className="flex items-start gap-3">
-                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${msg.read ? 'bg-white/5 text-gray-500' : 'bg-neon-red/20 text-neon-red'}`}>
+                                            <div
+                                                className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black flex-shrink-0"
+                                                style={msg.read
+                                                    ? { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.08)' }
+                                                    : { background: 'rgba(255,18,65,0.15)', color: '#ff1241', border: '1px solid rgba(255,18,65,0.25)' }
+                                                }
+                                            >
                                                 {msg.name.charAt(0).toUpperCase()}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between gap-1">
-                                                    <span className={`text-sm truncate ${msg.read ? 'text-gray-400 font-medium' : 'text-white font-black'}`}>{msg.name}</span>
-                                                    <span className="text-[10px] text-gray-600 flex-shrink-0">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                <div className="flex items-center justify-between gap-1 mb-0.5">
+                                                    <span className={`text-sm truncate ${msg.read ? 'font-medium' : 'font-black'}`} style={{ color: msg.read ? 'rgba(255,255,255,0.55)' : 'white' }}>{msg.name}</span>
+                                                    <span className="text-[9px] flex-shrink-0 ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                                 </div>
-                                                <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                                                    <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border truncate max-w-full block md:inline ${getSubjectColor(msg.subject)}`}>
-                                                        {msg.subject}
-                                                    </span>
+                                                <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                                                    <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>{msg.subject}</span>
                                                     {msg.recipient && msg.recipient.toLowerCase() !== 'contact@dropsiders.fr' && (
-                                                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border border-neon-cyan/20 bg-neon-cyan/5 text-neon-cyan truncate max-w-full block md:inline">
-                                                            Pour : {msg.recipient.split('@')[0]}
-                                                        </span>
+                                                        <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,255,255,0.08)', border: '1px solid rgba(0,255,255,0.15)', color: '#00FFFF' }}>→ {msg.recipient.split('@')[0]}</span>
                                                     )}
                                                 </div>
-                                                <p className={`text-xs md:text-sm truncate mt-2 font-medium ${msg.read ? 'text-white/40' : 'text-white/80'}`}>{msg.message}</p>
+                                                <p className={`text-[10px] truncate mt-1 ${msg.read ? '' : 'font-semibold'}`} style={{ color: msg.read ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.65)' }}>{msg.message}</p>
                                                 {msg.replied && (
-                                                    <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black text-neon-cyan/70 mt-1">
-                                                        <Reply className="w-3 h-3" /> Répondu
+                                                    <span className="inline-flex items-center gap-1 text-[8px] uppercase font-black mt-1" style={{ color: 'rgba(0,255,255,0.6)' }}>
+                                                        <Check className="w-2.5 h-2.5" /> Répondu
                                                     </span>
                                                 )}
                                             </div>
@@ -962,12 +1003,13 @@ Alex (Dropsiders)`;
                 </div>
 
                 {/* RIGHT: Message Detail */}
-                <div className={`${(selected || selectedSent || selectedArchived) ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto flex-col bg-white/[0.04] border-l border-white/5`}>
+                <div className={`${(selected || selectedSent || selectedArchived) ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto flex-col`} style={{ background: 'rgba(255,255,255,0.015)' }}>
                     {(selected || selectedSent || selectedArchived) ? (
                         <motion.div
                             key={selected?.id || selectedSent?.id || selectedArchived?.id}
-                            initial={{ opacity: 0, x: 20 }}
+                            initial={{ opacity: 0, x: 16 }}
                             animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.2 }}
                             className="p-4 md:p-8 max-w-full"
                         >
                             {/* Mobile Back Button */}
@@ -1067,9 +1109,10 @@ Alex (Dropsiders)`;
                             </div>
 
                             {/* Message Body */}
-                            <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6">
+                            <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                                 <div 
-                                    className="text-gray-300 leading-relaxed text-sm"
+                                    className="leading-relaxed text-sm"
+                                    style={{ color: 'rgba(255,255,255,0.75)' }}
                                     dangerouslySetInnerHTML={{ 
                                         __html: linkify((selected || selectedArchived)?.message || selectedSent?.body || '') 
                                     }}
@@ -1115,9 +1158,14 @@ Alex (Dropsiders)`;
                             )}
                         </motion.div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full gap-4 text-gray-700">
-                            <Mail className="w-16 h-16 opacity-10" />
-                            <p className="text-sm font-bold uppercase tracking-widest">Sélectionnez un message</p>
+                        <div className="flex flex-col items-center justify-center h-full gap-5">
+                            <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                <Mail className="w-9 h-9" style={{ color: 'rgba(255,255,255,0.15)' }} />
+                            </div>
+                            <div className="text-center">
+                                <p className="text-sm font-black uppercase tracking-widest" style={{ color: 'rgba(255,255,255,0.2)' }}>Sélectionnez un message</p>
+                                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.12)' }}>pour le lire ici</p>
+                            </div>
                         </div>
                     )}
                 </div>
