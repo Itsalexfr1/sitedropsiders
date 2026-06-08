@@ -8754,8 +8754,18 @@ const contentType = response.headers.get("content-type");
     async email(message, env, ctx) {
         const to = (message.to || '').toLowerCase();
         
-        // Skip contact@dropsiders.fr as it is for the main admin (Alex) and already set up separately.
-        if (!to.endsWith('@dropsiders.fr') || to === 'contact@dropsiders.fr') {
+        // Skip emails not for @dropsiders.fr
+        if (!to.endsWith('@dropsiders.fr')) {
+            return;
+        }
+
+        // Forward contact@ and alex@ to their personal emails
+        if (to === 'contact@dropsiders.fr') {
+            await message.forward('alexflex30@gmail.com');
+            return;
+        }
+        if (to === 'alex@dropsiders.fr') {
+            await message.forward('alexflex30@gmail.com');
             return;
         }
 
@@ -8812,9 +8822,14 @@ const contentType = response.headers.get("content-type");
             contacts.push(newMsg);
             await saveGitHubFile(CONTACTS_PATH, contacts, `Inbound email to ${to} from ${fromEmail} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
 
-            // Send notification to editor's personal email
-            const BREVO_KEY = env.BREVO_API_KEY;
+            // Forward the actual email to the editor's personal inbox
             const personalEmail = editor.email;
+            if (personalEmail) {
+                await message.forward(personalEmail);
+            }
+
+            // Send Brevo notification
+            const BREVO_KEY = env.BREVO_API_KEY;
             if (BREVO_KEY && personalEmail) {
                 ctx.waitUntil((async () => {
                     try {
