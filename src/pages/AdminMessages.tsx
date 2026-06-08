@@ -139,7 +139,7 @@ export function AdminMessages() {
     const [mailSubject, setMailSubject] = useState('');
     const [signatureName, setSignatureName] = useState('');
 
-    const [selectedEditorFilter, setSelectedEditorFilter] = useState<'all' | 'guillaume' | 'julien' | 'tanguy' | 'general'>('all');
+    const [selectedEditorFilter, setSelectedEditorFilter] = useState<string>('all');
 
     const currentEditor = useMemo(() => {
         if (!adminUser) return null;
@@ -662,20 +662,29 @@ Alex (Dropsiders)`;
         if (!isAlex) return messages;
         if (selectedEditorFilter === 'all') return messages;
         if (selectedEditorFilter === 'general') {
-            return messages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr');
+            return messages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
-        const filterEmail = `${selectedEditorFilter.toLowerCase()}@dropsiders.fr`;
-        return messages.filter(m => m.recipient && m.recipient.toLowerCase() === filterEmail);
+        // Dynamic: match by username or email
+        const filterLower = selectedEditorFilter.toLowerCase();
+        return messages.filter(m => {
+            if (!m.recipient) return false;
+            const recip = m.recipient.toLowerCase();
+            return recip === `${filterLower}@dropsiders.fr` || recip === filterLower;
+        });
     }, [messages, isAlex, selectedEditorFilter]);
 
     const filteredArchivedMessages = useMemo(() => {
         if (!isAlex) return archivedMessages;
         if (selectedEditorFilter === 'all') return archivedMessages;
         if (selectedEditorFilter === 'general') {
-            return archivedMessages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr');
+            return archivedMessages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
-        const filterEmail = `${selectedEditorFilter.toLowerCase()}@dropsiders.fr`;
-        return archivedMessages.filter(m => m.recipient && m.recipient.toLowerCase() === filterEmail);
+        const filterLower = selectedEditorFilter.toLowerCase();
+        return archivedMessages.filter(m => {
+            if (!m.recipient) return false;
+            const recip = m.recipient.toLowerCase();
+            return recip === `${filterLower}@dropsiders.fr` || recip === filterLower;
+        });
     }, [archivedMessages, isAlex, selectedEditorFilter]);
 
     const unreadCount = filteredMessages.filter(m => !m.read).length;
@@ -794,16 +803,17 @@ Alex (Dropsiders)`;
                     {isAlex && (
                         <div className="flex gap-1.5 p-2 border-b border-white/5 bg-white/[0.01] overflow-x-auto no-scrollbar shrink-0">
                             {[
-                                { id: 'all', label: 'All' },
+                                { id: 'all', label: 'Tous' },
                                 { id: 'general', label: 'Général' },
-                                { id: 'tanguy', label: 'Tanguy' },
-                                { id: 'julien', label: 'Julien' },
-                                { id: 'guillaume', label: 'Guillaume' }
+                                // Dynamic editors from API (exclude Alex herself)
+                                ...editors
+                                    .filter(e => e.username && e.username.toLowerCase() !== 'alex')
+                                    .map(e => ({ id: e.username.toLowerCase(), label: e.username }))
                             ].map(filter => (
                                 <button
                                     key={filter.id}
                                     onClick={() => {
-                                        setSelectedEditorFilter(filter.id as any);
+                                        setSelectedEditorFilter(filter.id);
                                         setSelected(null);
                                         setSelectedArchived(null);
                                     }}
@@ -814,6 +824,14 @@ Alex (Dropsiders)`;
                                     }`}
                                 >
                                     {filter.label}
+                                    {filter.id !== 'all' && filter.id !== 'general' && (
+                                        <span className="ml-1 opacity-50">
+                                            ({messages.filter(m => {
+                                                const recip = (m.recipient || '').toLowerCase();
+                                                return recip === `${filter.id}@dropsiders.fr` || recip === filter.id;
+                                            }).length})
+                                        </span>
+                                    )}
                                 </button>
                             ))}
                         </div>
