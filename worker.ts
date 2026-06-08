@@ -8754,18 +8754,8 @@ const contentType = response.headers.get("content-type");
     async email(message, env, ctx) {
         const to = (message.to || '').toLowerCase();
         
-        // Skip emails not for @dropsiders.fr
-        if (!to.endsWith('@dropsiders.fr')) {
-            return;
-        }
-
-        // Forward contact@ and alex@ to their personal emails
-        if (to === 'contact@dropsiders.fr') {
-            await message.forward('alexflex30@gmail.com');
-            return;
-        }
-        if (to === 'alex@dropsiders.fr') {
-            await message.forward('alexflex30@gmail.com');
+        // Skip contact@ and alex@ — handled separately on LWS, do not touch.
+        if (!to.endsWith('@dropsiders.fr') || to === 'contact@dropsiders.fr' || to === 'alex@dropsiders.fr') {
             return;
         }
 
