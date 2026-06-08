@@ -819,7 +819,7 @@ Alex (Dropsiders)`;
 
             <div className={`max-w-full mx-auto flex h-[calc(100vh-60px)] px-0 md:px-8`}>
                 {/* LEFT: Message List */}
-                <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-[480px] flex-shrink-0 flex-col`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-[650px] flex-shrink-0 flex-col`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                     {/* Inbox / Sent tabs */}
                     <div className="flex shrink-0 overflow-x-auto no-scrollbar px-3 pt-3 gap-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                         {[
@@ -842,7 +842,7 @@ Alex (Dropsiders)`;
                         ))}
                     </div>
                     {isAlex && (
-                        <div className="flex gap-1.5 p-2.5 overflow-x-auto no-scrollbar shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div className="flex flex-wrap gap-1.5 p-2.5 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                             {[
                                 { id: 'all', label: 'Tous', emoji: '📥' },
                                 { id: 'general', label: 'Général', emoji: '📬' },
