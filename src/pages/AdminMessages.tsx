@@ -21,6 +21,35 @@ const getEditorColor = (username: string) => {
     return EDITOR_COLORS[Math.abs(hash) % EDITOR_COLORS.length];
 };
 
+const getEditorTabStyle = (id: string, isActive: boolean) => {
+    if (!isActive) {
+        return {
+            background: 'rgba(255,255,255,0.04)',
+            color: 'rgba(255,255,255,0.5)',
+            border: '1px solid rgba(255,255,255,0.08)'
+        };
+    }
+    
+    if (id === 'all') {
+        return {
+            background: 'linear-gradient(135deg, #ffffff, #a3a3a3)',
+            color: '#000000',
+            boxShadow: '0 4px 15px rgba(255,255,255,0.2)',
+            border: '1px solid #ffffff'
+        };
+    }
+    
+    const color = id === 'general' ? '#ff1241' : getEditorColor(id);
+    const isLightColor = ['#00ffff', '#39ff14', '#fff01f'].includes(color.toLowerCase());
+    
+    return {
+        background: `linear-gradient(135deg, ${color}, ${color}cc)`,
+        color: isLightColor ? '#000000' : '#ffffff',
+        boxShadow: `0 4px 15px ${color}40`,
+        border: `1px solid ${color}aa`
+    };
+};
+
 interface ContactMessage {
     id: string;
     name: string;
@@ -790,7 +819,7 @@ Alex (Dropsiders)`;
 
             <div className={`max-w-full mx-auto flex h-[calc(100vh-60px)] px-0 md:px-8`}>
                 {/* LEFT: Message List */}
-                <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-[440px] flex-shrink-0 flex-col`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-[480px] flex-shrink-0 flex-col`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                     {/* Inbox / Sent tabs */}
                     <div className="flex shrink-0 overflow-x-auto no-scrollbar px-3 pt-3 gap-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                         {[
@@ -822,25 +851,39 @@ Alex (Dropsiders)`;
                                     .map(e => ({ id: e.username.toLowerCase(), label: e.username, emoji: e.username.charAt(0).toUpperCase() }))
                             ].map(filter => {
                                 const isActive = selectedEditorFilter === filter.id;
-                                const msgCount = filter.id !== 'all' && filter.id !== 'general'
-                                    ? messages.filter(m => {
-                                        const recip = (m.recipient || '').toLowerCase();
-                                        return recip === `${filter.id}@dropsiders.fr` || recip === filter.id;
-                                      }).length
-                                    : null;
+                                const msgCount = filter.id === 'all'
+                                    ? messages.length
+                                    : filter.id === 'general'
+                                        ? messages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'general').length
+                                        : messages.filter(m => {
+                                            const recip = (m.recipient || '').toLowerCase();
+                                            return recip === `${filter.id}@dropsiders.fr` || recip === filter.id;
+                                          }).length;
+
+                                const color = filter.id === 'general' ? '#ff1241' : getEditorColor(filter.id);
+                                const isLightColor = ['#00ffff', '#39ff14', '#fff01f'].includes(color.toLowerCase());
+                                const tabStyle = getEditorTabStyle(filter.id, isActive);
+
                                 return (
                                     <button
                                         key={filter.id}
                                         onClick={() => { setSelectedEditorFilter(filter.id); setSelected(null); setSelectedArchived(null); }}
                                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
-                                        style={isActive
-                                            ? { background: 'linear-gradient(135deg, #ff1241, #cc0030)', color: 'white', boxShadow: '0 2px 12px rgba(255,18,65,0.35)' }
-                                            : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }
-                                        }
+                                        style={tabStyle}
                                     >
                                         {filter.label}
                                         {msgCount !== null && (
-                                            <span className="px-1 rounded-full" style={{ background: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)', fontSize: '8px' }}>
+                                            <span 
+                                                className="px-1.5 py-0.5 rounded-full text-[8px] font-black" 
+                                                style={{ 
+                                                    background: isActive 
+                                                        ? (isLightColor || filter.id === 'all' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.25)') 
+                                                        : 'rgba(255,255,255,0.08)',
+                                                    color: isActive 
+                                                        ? (isLightColor || filter.id === 'all' ? '#000000' : '#ffffff') 
+                                                        : 'rgba(255,255,255,0.4)'
+                                                }}
+                                            >
                                                 {msgCount}
                                             </span>
                                         )}
