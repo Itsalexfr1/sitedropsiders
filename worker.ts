@@ -8783,7 +8783,9 @@ const contentType = response.headers.get("content-type");
 
             // Parse raw message using postal-mime
             const parser = new PostalMime();
-            const parsed = await parser.parse(message.raw);
+            const rawEmail = new Response(message.raw);
+            const arrayBuffer = await rawEmail.arrayBuffer();
+            const parsed = await parser.parse(arrayBuffer);
 
             const subject = parsed.subject || "Pas de sujet";
             const textBody = parsed.text || parsed.html || "(Message vide)";
