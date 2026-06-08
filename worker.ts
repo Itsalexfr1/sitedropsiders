@@ -1,6 +1,6 @@
 // @ts-nocheck
 import webpush from 'web-push';
-import { simpleParser } from 'mailparser';
+import PostalMime from 'postal-mime';
 
 const VAPID_PUB = '';
 const VAPID_PRI = '';
@@ -8781,21 +8781,14 @@ const contentType = response.headers.get("content-type");
                 return;
             }
 
-            // Parse raw message using mailparser
-            const chunks = [];
-            const reader = message.raw.getReader();
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                chunks.push(value);
-            }
-            const buffer = Buffer.concat(chunks);
-            const parsed = await simpleParser(buffer);
+            // Parse raw message using postal-mime
+            const parser = new PostalMime();
+            const parsed = await parser.parse(message.raw);
 
             const subject = parsed.subject || "Pas de sujet";
             const textBody = parsed.text || parsed.html || "(Message vide)";
             const fromEmail = message.from;
-            const fromName = parsed.from && parsed.from.text ? parsed.from.text : fromEmail;
+            const fromName = parsed.from && parsed.from.name ? parsed.from.name : fromEmail;
 
             // Save email to src/data/contacts.json
             const CONTACTS_PATH = 'src/data/contacts.json';
