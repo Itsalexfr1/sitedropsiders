@@ -30,6 +30,7 @@ interface ContactMessage {
     date: string;
     read: boolean;
     replied: boolean;
+    recipient?: string;
     attachments?: { name: string; url?: string; size: number }[];
 }
 
@@ -76,7 +77,7 @@ export function AdminMessages() {
     const [isLoading, setIsLoading] = useState(true);
 
     // Editors state for signatures
-    const [editors, setEditors] = useState<{name: string; username: string}[]>([]);
+    const [editors, setEditors] = useState<{name: string; username: string; email?: string}[]>([]);
 
     useEffect(() => {
         fetchEditors();
@@ -137,6 +138,34 @@ export function AdminMessages() {
     const [senderEmail, setSenderEmail] = useState('contact@dropsiders.fr');
     const [mailSubject, setMailSubject] = useState('');
     const [signatureName, setSignatureName] = useState('');
+
+    const [selectedEditorFilter, setSelectedEditorFilter] = useState<'all' | 'guillaume' | 'julien' | 'tanguy' | 'general'>('all');
+
+    const currentEditor = useMemo(() => {
+        if (!adminUser) return null;
+        return editors.find(e => 
+            (e.username && e.username.toLowerCase() === adminUser.toLowerCase()) || 
+            (e.email && e.email.toLowerCase() === adminUser.toLowerCase())
+        );
+    }, [editors, adminUser]);
+
+    const userProEmail = useMemo(() => {
+        if (isAlex) return 'contact@dropsiders.fr';
+        if (!currentEditor) return 'contact@dropsiders.fr';
+        return `${currentEditor.username.toLowerCase()}@dropsiders.fr`;
+    }, [currentEditor, isAlex]);
+
+    useEffect(() => {
+        setSenderEmail(userProEmail);
+    }, [userProEmail]);
+
+    useEffect(() => {
+        if (currentEditor) {
+            setSignatureName(currentEditor.username);
+        } else if (isAlex) {
+            setSignatureName('Alex');
+        }
+    }, [currentEditor, isAlex]);
 
     // Accreditation Request States
     const [isAccreditationMode, setIsAccreditationMode] = useState(false);
@@ -629,7 +658,28 @@ Alex (Dropsiders)`;
         }
     }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, interviewDate, interviewFestival, accreditationLang, isNewMail, signatureName]);
 
-    const unreadCount = messages.filter(m => !m.read).length;
+    const filteredMessages = useMemo(() => {
+        if (!isAlex) return messages;
+        if (selectedEditorFilter === 'all') return messages;
+        if (selectedEditorFilter === 'general') {
+            return messages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr');
+        }
+        const filterEmail = `${selectedEditorFilter.toLowerCase()}@dropsiders.fr`;
+        return messages.filter(m => m.recipient && m.recipient.toLowerCase() === filterEmail);
+    }, [messages, isAlex, selectedEditorFilter]);
+
+    const filteredArchivedMessages = useMemo(() => {
+        if (!isAlex) return archivedMessages;
+        if (selectedEditorFilter === 'all') return archivedMessages;
+        if (selectedEditorFilter === 'general') {
+            return archivedMessages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr');
+        }
+        const filterEmail = `${selectedEditorFilter.toLowerCase()}@dropsiders.fr`;
+        return archivedMessages.filter(m => m.recipient && m.recipient.toLowerCase() === filterEmail);
+    }, [archivedMessages, isAlex, selectedEditorFilter]);
+
+    const unreadCount = filteredMessages.filter(m => !m.read).length;
+
 
     const getSubjectColor = (subject: string) => {
         const s = subject.toLowerCase();
@@ -657,7 +707,7 @@ Alex (Dropsiders)`;
                                 <h1 className="text-lg md:text-xl font-display font-black uppercase italic tracking-tight text-white leading-tight">
                                     MESSAGERIE <span className="text-neon-red">& CONTACTS</span>
                                 </h1>
-                                <p className="text-gray-500 text-xs">{messages.length} messages · {unreadCount} non lus</p>
+                                <p className="text-gray-500 text-xs">{filteredMessages.length} messages · {unreadCount} non lus</p>
                             </div>
                         </div>
                     </div>
@@ -666,8 +716,8 @@ Alex (Dropsiders)`;
                             onClick={() => {
                                 setIsNewMail(true);
                                 setDestinationEmails(['']);
-                                setSenderEmail('contact@dropsiders.fr');
-                                setSignatureName('');
+                                setSenderEmail(userProEmail);
+                                setSignatureName(currentEditor ? currentEditor.username : 'Alex');
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                 setIsAccreditationMode(false);
                                 setIsPhotoAccreditationMode(false);
@@ -732,7 +782,7 @@ Alex (Dropsiders)`;
                     {/* Inbox / Sent tabs */}
                     <div className="flex border-b border-white/5 shrink-0 overflow-x-auto no-scrollbar">
                         <button onClick={() => { setMailboxTab('inbox'); setSelectedSent(null); setSelectedArchived(null); }} className={`flex-1 min-w-[100px] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'inbox' ? 'text-white border-b-2 border-neon-red' : 'text-gray-600 hover:text-white'}`}>
-                            <Inbox className="w-3.5 h-3.5" /> Reçus <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${unreadCount > 0 ? 'bg-neon-red text-white' : 'bg-white/10 text-gray-500'}`}>{messages.length}</span>
+                            <Inbox className="w-3.5 h-3.5" /> Reçus <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${unreadCount > 0 ? 'bg-neon-red text-white' : 'bg-white/10 text-gray-500'}`}>{filteredMessages.length}</span>
                         </button>
                         <button onClick={() => { setMailboxTab('sent'); setSelected(null); setSelectedArchived(null); }} className={`flex-1 min-w-[100px] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'sent' ? 'text-white border-b-2 border-neon-cyan' : 'text-gray-600 hover:text-white'}`}>
                             <Send className="w-3.5 h-3.5" /> Envoyés <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-white/10 text-gray-500">{sentMessages.length}</span>
@@ -741,6 +791,34 @@ Alex (Dropsiders)`;
                             <Archive className="w-3.5 h-3.5" /> Archivés <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-white/10 text-gray-500">{archivedMessages.length}</span>
                         </button>
                     </div>
+                    {isAlex && (
+                        <div className="flex gap-1.5 p-2 border-b border-white/5 bg-white/[0.01] overflow-x-auto no-scrollbar shrink-0">
+                            {[
+                                { id: 'all', label: 'All' },
+                                { id: 'general', label: 'Général' },
+                                { id: 'tanguy', label: 'Tanguy' },
+                                { id: 'julien', label: 'Julien' },
+                                { id: 'guillaume', label: 'Guillaume' }
+                            ].map(filter => (
+                                <button
+                                    key={filter.id}
+                                    onClick={() => {
+                                        setSelectedEditorFilter(filter.id as any);
+                                        setSelected(null);
+                                        setSelectedArchived(null);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                                        selectedEditorFilter === filter.id
+                                            ? 'bg-neon-red text-white'
+                                            : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                                    }`}
+                                >
+                                    {filter.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     <div className="flex-1 overflow-y-auto">
                         {loading ? (
                             <div className="flex items-center justify-center h-48 text-gray-600">
@@ -772,14 +850,14 @@ Alex (Dropsiders)`;
                                 </div>
                             )
                         ) : mailboxTab === 'archived' ? (
-                            archivedMessages.length === 0 ? (
+                            filteredArchivedMessages.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-600">
                                     <Archive className="w-12 h-12 opacity-20" />
                                     <p className="text-sm font-bold uppercase tracking-widest">Aucun message archivé</p>
                                 </div>
                             ) : (
                                 <div className="divide-y divide-white/5">
-                                    {archivedMessages.map(msg => (
+                                    {filteredArchivedMessages.map(msg => (
                                         <motion.div
                                             key={msg.id}
                                             initial={{ opacity: 0 }}
@@ -796,10 +874,15 @@ Alex (Dropsiders)`;
                                                         <span className="text-sm truncate text-gray-400 font-medium">{msg.name}</span>
                                                         <span className="text-[10px] text-gray-600 flex-shrink-0">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                                                         <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border truncate max-w-full block md:inline ${getSubjectColor(msg.subject)}`}>
                                                             {msg.subject}
                                                         </span>
+                                                        {msg.recipient && msg.recipient.toLowerCase() !== 'contact@dropsiders.fr' && (
+                                                            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border border-neon-cyan/20 bg-neon-cyan/5 text-neon-cyan truncate max-w-full block md:inline">
+                                                                Pour : {msg.recipient.split('@')[0]}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <p className="text-xs md:text-sm truncate mt-2 font-medium text-white/40">{msg.message}</p>
                                                 </div>
@@ -808,14 +891,14 @@ Alex (Dropsiders)`;
                                     ))}
                                 </div>
                             )
-                        ) : messages.length === 0 ? (
+                        ) : filteredMessages.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-600">
                                 <MessageSquare className="w-12 h-12 opacity-20" />
                                 <p className="text-sm font-bold uppercase tracking-widest">Aucun message</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-white/5">
-                                {messages.map(msg => (
+                                {filteredMessages.map(msg => (
                                     <motion.div
                                         key={msg.id}
                                         initial={{ opacity: 0 }}
@@ -835,10 +918,15 @@ Alex (Dropsiders)`;
                                                     <span className={`text-sm truncate ${msg.read ? 'text-gray-400 font-medium' : 'text-white font-black'}`}>{msg.name}</span>
                                                     <span className="text-[10px] text-gray-600 flex-shrink-0">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                                 </div>
-                                                <div className="flex items-center gap-2 mt-0.5">
+                                                <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                                                     <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border truncate max-w-full block md:inline ${getSubjectColor(msg.subject)}`}>
                                                         {msg.subject}
                                                     </span>
+                                                    {msg.recipient && msg.recipient.toLowerCase() !== 'contact@dropsiders.fr' && (
+                                                        <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border border-neon-cyan/20 bg-neon-cyan/5 text-neon-cyan truncate max-w-full block md:inline">
+                                                            Pour : {msg.recipient.split('@')[0]}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <p className={`text-xs md:text-sm truncate mt-2 font-medium ${msg.read ? 'text-white/40' : 'text-white/80'}`}>{msg.message}</p>
                                                 {msg.replied && (
@@ -902,6 +990,16 @@ Alex (Dropsiders)`;
                                         <button
                                             onClick={() => {
                                                 setIsNewMail(false);
+                                                const activeMsg = selected || selectedArchived;
+                                                if (activeMsg && activeMsg.recipient) {
+                                                    setSenderEmail(activeMsg.recipient.toLowerCase());
+                                                    const prefix = activeMsg.recipient.split('@')[0];
+                                                    const matched = editors.find(e => e.username && e.username.toLowerCase() === prefix.toLowerCase());
+                                                    setSignatureName(matched ? matched.username : (prefix.charAt(0).toUpperCase() + prefix.slice(1)));
+                                                } else {
+                                                    setSenderEmail(userProEmail);
+                                                    setSignatureName(currentEditor ? currentEditor.username : 'Alex');
+                                                }
                                                 const sig = `\n\n\n`;
                                                 setReplyBody(sig);
                                                 setReplyModal(true);

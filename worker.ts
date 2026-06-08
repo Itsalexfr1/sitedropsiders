@@ -1,5 +1,6 @@
 // @ts-nocheck
 import webpush from 'web-push';
+import { simpleParser } from 'mailparser';
 
 const VAPID_PUB = '';
 const VAPID_PRI = '';
@@ -5791,7 +5792,27 @@ ${urls.map(u => `  <url>
         if (path === '/api/contacts' && request.method === 'GET') {
             try {
                 const file = await fetchGitHubFile('src/data/contacts.json', gitConfig) || { content: [] };
-                return new Response(JSON.stringify(file.content || []), { status: 200, headers });
+                const contacts = Array.isArray(file.content) ? file.content : [];
+
+                const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
+                const isAlex = isSuperEmail || requestUsername === 'alex';
+
+                if (isAlex) {
+                    return new Response(JSON.stringify(contacts), { status: 200, headers });
+                }
+
+                // Non-admin editors only see their recipient emails
+                const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                const editors = editorsFile?.content || [];
+                const editor = editors.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
+
+                if (!editor) {
+                    return new Response(JSON.stringify([]), { status: 200, headers });
+                }
+
+                const proEmail = `${editor.username.toLowerCase()}@dropsiders.fr`;
+                const filtered = contacts.filter(c => c && c.recipient && c.recipient.toLowerCase() === proEmail);
+                return new Response(JSON.stringify(filtered), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
@@ -5803,6 +5824,22 @@ ${urls.map(u => `  <url>
                 const CONTACTS_PATH = 'src/data/contacts.json';
                 const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
+
+                const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
+                const isAlex = isSuperEmail || requestUsername === 'alex';
+
+                const msg = contacts.find(c => c.id === id);
+                if (!msg) return new Response(JSON.stringify({ error: 'Message not found' }), { status: 404, headers });
+
+                if (!isAlex) {
+                    const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                    const editors = editorsFile?.content || [];
+                    const editor = editors.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
+                    if (!editor || !msg.recipient || msg.recipient.toLowerCase() !== `${editor.username.toLowerCase()}@dropsiders.fr`) {
+                        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
+                    }
+                }
+
                 const updated = contacts.map(c => c.id === id ? { ...c, read: true } : c);
                 await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${id}`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
@@ -5817,6 +5854,22 @@ ${urls.map(u => `  <url>
                 const CONTACTS_PATH = 'src/data/contacts.json';
                 const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
+
+                const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
+                const isAlex = isSuperEmail || requestUsername === 'alex';
+
+                const msg = contacts.find(c => c.id === id);
+                if (!msg) return new Response(JSON.stringify({ error: 'Message not found' }), { status: 404, headers });
+
+                if (!isAlex) {
+                    const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                    const editors = editorsFile?.content || [];
+                    const editor = editors.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
+                    if (!editor || !msg.recipient || msg.recipient.toLowerCase() !== `${editor.username.toLowerCase()}@dropsiders.fr`) {
+                        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
+                    }
+                }
+
                 const updated = contacts.filter(c => c.id !== id);
                 await saveGitHubFile(CONTACTS_PATH, updated, `Delete contact: ${id}`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
@@ -8696,6 +8749,118 @@ const contentType = response.headers.get("content-type");
         }
 
         return response;
+    },
+
+    async email(message, env, ctx) {
+        const to = (message.to || '').toLowerCase();
+        
+        // Skip contact@dropsiders.fr as it is for the main admin (Alex) and already set up separately.
+        if (!to.endsWith('@dropsiders.fr') || to === 'contact@dropsiders.fr') {
+            return;
+        }
+
+        const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
+        const REPO = env.GITHUB_REPO || 'sitedropsiders';
+        const TOKEN = env.GITHUB_TOKEN;
+        const gitConfig = { OWNER, REPO, TOKEN };
+        const EDITORS_PATH = 'src/data/editors.json';
+
+        try {
+            // Load editors to see if one matches this professional address prefix
+            const editorsRes = await fetchGitHubFile(EDITORS_PATH, gitConfig);
+            if (!editorsRes || !editorsRes.content) {
+                console.error('Failed to load editors.json from GitHub');
+                return;
+            }
+
+            const usernamePrefix = to.split('@')[0];
+            const editor = editorsRes.content.find(e => e.username && e.username.toLowerCase() === usernamePrefix);
+
+            if (!editor) {
+                console.log(`No editor matching recipient: ${to}`);
+                return;
+            }
+
+            // Parse raw message using mailparser
+            const chunks = [];
+            const reader = message.raw.getReader();
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+            }
+            const buffer = Buffer.concat(chunks);
+            const parsed = await simpleParser(buffer);
+
+            const subject = parsed.subject || "Pas de sujet";
+            const textBody = parsed.text || parsed.html || "(Message vide)";
+            const fromEmail = message.from;
+            const fromName = parsed.from && parsed.from.text ? parsed.from.text : fromEmail;
+
+            // Save email to src/data/contacts.json
+            const CONTACTS_PATH = 'src/data/contacts.json';
+            const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
+            const contacts = Array.isArray(file.content) ? file.content : [];
+
+            const newMsg = {
+                id: Date.now().toString(),
+                name: fromName,
+                email: fromEmail,
+                subject: subject,
+                message: textBody,
+                recipient: to,
+                date: new Date().toISOString(),
+                read: false,
+                replied: false
+            };
+
+            contacts.push(newMsg);
+            await saveGitHubFile(CONTACTS_PATH, contacts, `Inbound email to ${to} from ${fromEmail} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+
+            // Send notification to editor's personal email
+            const BREVO_KEY = env.BREVO_API_KEY;
+            const personalEmail = editor.email;
+            if (BREVO_KEY && personalEmail) {
+                ctx.waitUntil((async () => {
+                    try {
+                        await fetch('https://api.brevo.com/v3/smtp/email', {
+                            method: 'POST',
+                            headers: { 
+                                'accept': 'application/json', 
+                                'api-key': BREVO_KEY, 
+                                'content-type': 'application/json' 
+                            },
+                            body: JSON.stringify({
+                                sender: { name: 'Dropsiders System', email: 'bot@dropsiders.fr' },
+                                to: [{ email: personalEmail, name: editor.username }],
+                                subject: `✉️ [Messagerie] Nouveau message de ${fromName}`,
+                                htmlContent: `
+                                    <div style="font-family: sans-serif; padding: 20px; background: #f9f9f9; color: #333;">
+                                        <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; border: 1px solid #eee; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                            <h2 style="color: #ff0033; margin-top: 0; font-size: 20px; font-weight: 900; text-transform: uppercase;">Nouveau message reçu !</h2>
+                                            <p>Bonjour <strong>${editor.username}</strong>,</p>
+                                            <p>Vous venez de recevoir un message sur votre adresse professionnelle <strong>${to}</strong> :</p>
+                                            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; border-left: 4px solid #ff0033; margin: 20px 0;">
+                                                <p style="margin: 0 0 10px 0;"><strong>De :</strong> ${fromName} (${fromEmail})</p>
+                                                <p style="margin: 0 0 10px 0;"><strong>Sujet :</strong> ${subject}</p>
+                                                <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0;">
+                                                <div style="white-space: pre-wrap; line-height: 1.6; color: #555;">${textBody}</div>
+                                            </div>
+                                            <p>Pour lire ce message et y répondre, connectez-vous à votre espace administration :</p>
+                                            <a href="https://dropsiders.fr/admin" style="display: inline-block; background: #ff0033; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-top: 10px;">Répondre via le Tableau de Bord</a>
+                                        </div>
+                                    </div>
+                                `
+                            })
+                        });
+                    } catch (e) {
+                        console.error('Failed to send notification email to editor:', e);
+                    }
+                })());
+            }
+        } catch (err) {
+            console.error('Error in email handler:', err);
+        }
     },
 
     async scheduled(event, env, ctx) {
