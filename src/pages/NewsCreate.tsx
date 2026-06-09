@@ -4561,6 +4561,67 @@ ${generateSocialsHtml()}
                                         )}
                                     </div>
                                 </div>
+                            ) : activeTab === 'Top-Festival' ? (
+                                <div className="festival-top10-wrapper">
+                                    {festivalArtists.filter(a => a.name.trim()).map((artist) => {
+                                        const isReversed = artist.rank % 2 === 0;
+                                        return (
+                                            <div
+                                                key={artist.id}
+                                                className={`festival-artist-card${isReversed ? ' festival-reversed' : ''} article-section`}
+                                            >
+                                                <div className="festival-artist-inner">
+                                                    <div className="festival-rank-badge">{artist.rank}</div>
+                                                    <div className="festival-artist-photo-wrap">
+                                                        {artist.photo
+                                                            ? <img src={artist.photo} alt={artist.name} className="festival-artist-photo" />
+                                                            : <div className="festival-artist-photo-placeholder" style={{ minHeight: 180 }} />
+                                                        }
+                                                    </div>
+                                                    <div className="festival-artist-info">
+                                                        <h3 className="festival-artist-name">{artist.name || 'NOM ARTISTE'}</h3>
+                                                        <div className="festival-artist-meta">
+                                                            {artist.stage && <span className="festival-meta-stage">📍 {artist.stage}</span>}
+                                                            {artist.day && <span className="festival-meta-day">📅 {artist.day}</span>}
+                                                        </div>
+                                                        {artist.tracks.some(t => t.title) && (
+                                                            <div className="festival-tracks-list">
+                                                                <div className="festival-tracks-label">Top Titres</div>
+                                                                {artist.tracks.filter(t => t.title).map((track, ti) => {
+                                                                    const embedId = track.spotifyUrl
+                                                                        ? (track.spotifyUrl.includes('track/') ? track.spotifyUrl.split('track/')[1].split('?')[0] : track.spotifyUrl)
+                                                                        : '';
+                                                                    return (
+                                                                        <div key={ti} className="festival-track-item">
+                                                                            <span className="festival-track-num">{ti + 1}</span>
+                                                                            <span className="festival-track-title">{track.title}</span>
+                                                                            {embedId && (
+                                                                                <a href={`https://open.spotify.com/track/${embedId}`} target="_blank" rel="noopener" className="festival-spotify-link" onClick={e => e.stopPropagation()}>
+                                                                                    <SpotifyIcon style={{ width: 12, height: 12 }} /> Écouter
+                                                                                </a>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {festivalArtists.every(a => !a.name.trim()) && (
+                                        <div className="text-center py-16 text-gray-600">
+                                            <span className="text-4xl block mb-4">🏆</span>
+                                            <p className="text-sm font-bold uppercase tracking-widest">Remplis les artistes ci-dessus pour voir l'aperçu</p>
+                                        </div>
+                                    )}
+                                    {Object.values(artistSocials).some(v => v) && (
+                                        <div className="article-section pt-12 border-t border-white/5 mt-12">
+                                            <div dangerouslySetInnerHTML={{ __html: generateSocialsHtml(artistNameLabel) }} />
+                                        </div>
+                                    )}
+                                </div>
                             ) : (
                                 <>
                                     {/* Widgets Content Rendering in Preview */}
