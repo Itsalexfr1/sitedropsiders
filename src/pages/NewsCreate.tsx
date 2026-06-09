@@ -1923,7 +1923,8 @@ ${generateSocialsHtml()}
   </a>` : ''}
 </div>`;
                             }).join('\n');
-                        return `<div class="article-section festival-artist-card" data-festival-artist data-rank="${a.rank}" data-artist-name="${a.name}" data-stage="${a.stage}" data-day="${a.day}" data-photo="${a.photo}">
+                        const isReversed = a.rank % 2 === 0;
+                        return `<div class="article-section festival-artist-card${isReversed ? ' festival-reversed' : ''}" data-festival-artist data-rank="${a.rank}" data-artist-name="${a.name}" data-stage="${a.stage}" data-day="${a.day}" data-photo="${a.photo}">
   <div class="festival-artist-inner">
     <div class="festival-rank-badge">${a.rank}</div>
     ${a.photo ? `<div class="festival-artist-photo-wrap"><img src="${a.photo}" alt="${a.name}" class="festival-artist-photo" /></div>` : '<div class="festival-artist-photo-wrap festival-artist-photo-placeholder"></div>'}
@@ -2994,14 +2995,14 @@ ${generateSocialsHtml()}
                                         transition={{ delay: idx * 0.03 }}
                                         className="relative bg-black/40 border border-white/10 rounded-3xl p-6 hover:border-amber-500/30 transition-all group"
                                     >
-                                        {/* Rank badge */}
-                                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-amber-500 text-black font-black text-sm flex items-center justify-center shadow-lg shadow-amber-500/30">
+                                        {/* Rank badge — right side for even ranks */}
+                                        <div className={`absolute -top-3 w-8 h-8 rounded-full bg-amber-500 text-black font-black text-sm flex items-center justify-center shadow-lg shadow-amber-500/30 ${artist.rank % 2 === 0 ? '-right-3' : '-left-3'}`}>
                                             {artist.rank}
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-[140px_1fr] gap-6">
-                                            {/* Photo section */}
-                                            <div className="flex flex-col items-center gap-3">
+                                        <div className={`grid grid-cols-1 gap-6 ${artist.rank % 2 === 0 ? 'md:grid-cols-[1fr_140px]' : 'md:grid-cols-[140px_1fr]'}`}>
+                                            {/* Photo section — order changes based on rank parity */}
+                                            <div className={`flex flex-col items-center gap-3 ${artist.rank % 2 === 0 ? 'md:order-2' : 'md:order-1'}`}>
                                                 <div className="relative w-32 h-32 md:w-full md:h-36 rounded-2xl overflow-hidden border border-white/10 bg-black/60 flex items-center justify-center">
                                                     {artist.photo ? (
                                                         <img src={artist.photo} alt={artist.name || `Artiste ${artist.rank}`} className="w-full h-full object-cover" />
@@ -3041,7 +3042,7 @@ ${generateSocialsHtml()}
                                             </div>
 
                                             {/* Info section */}
-                                            <div className="flex flex-col gap-4">
+                                            <div className={`flex flex-col gap-4 ${artist.rank % 2 === 0 ? 'md:order-1' : 'md:order-2'}`}>
                                                 {/* Name */}
                                                 <div>
                                                     <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Nom de l'artiste</label>
