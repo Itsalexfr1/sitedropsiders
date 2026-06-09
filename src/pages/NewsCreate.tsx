@@ -509,6 +509,28 @@ export function NewsCreate() {
     const [festivalArtists, setFestivalArtists] = useState(
         Array.from({ length: 10 }, (_, i) => defaultFestivalArtist(i + 1))
     );
+    const [wikiDjs, setWikiDjs] = useState<any[]>([]);
+    const [activeSearchIdx, setActiveSearchIdx] = useState<number | null>(null);
+    const filteredDjs = useMemo(() => {
+        if (activeSearchIdx === null) return [];
+        const query = festivalArtists[activeSearchIdx]?.name || '';
+        if (query.trim().length < 2) return [];
+        return wikiDjs
+            .filter((dj: any) => (dj.name || '').toLowerCase().includes(query.toLowerCase()))
+            .slice(0, 5);
+    }, [festivalArtists, activeSearchIdx, wikiDjs]);
+
+    useEffect(() => {
+        if (activeTab === 'Top-Festival' && wikiDjs.length === 0) {
+            fetch('/api/wiki/list?type=DJS', { headers: getAuthHeaders() })
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) setWikiDjs(data);
+                })
+                .catch(err => console.error('Failed to load wiki DJs:', err));
+        }
+    }, [activeTab, wikiDjs.length]);
+
     const [musicItems, setMusicItems] = useState<{ id: string, title: string, media: string, imageUrl: string, playerType: 'spotify' | 'youtube' | 'beatport', description: string, canVote: boolean }[]>(() => {
         if (type === 'Musique') return [];
         return [{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify', description: '', canVote: true }];
@@ -3053,16 +3075,54 @@ ${generateSocialsHtml()}
                                             {/* Info section */}
                                             <div className={`flex flex-col gap-4 ${artist.rank % 2 === 0 ? 'md:order-1' : 'md:order-2'}`}>
                                                 {/* Name */}
-                                                <div>
-                                                    <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Nom de l'artiste</label>
-                                                    <input
-                                                        type="text"
-                                                        value={artist.name}
-                                                        onChange={e => setFestivalArtists(prev => prev.map((a, i) => i === idx ? { ...a, name: e.target.value } : a))}
-                                                        placeholder="Ex: Martin Garrix"
-                                                        className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:border-amber-500/50 outline-none transition-all placeholder-gray-600 text-sm"
-                                                    />
-                                                </div>
+                                                 <div className="relative">
+                                                     <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Nom de l'artiste</label>
+                                                     <input
+                                                         type="text"
+                                                         value={artist.name}
+                                                         onChange={e => {
+                                                             const val = e.target.value;
+                                                             setFestivalArtists(prev => prev.map((a, i) => i === idx ? { ...a, name: val } : a));
+                                                             setActiveSearchIdx(idx);
+                                                         }}
+                                                         onFocus={() => setActiveSearchIdx(idx)}
+                                                         onBlur={() => setTimeout(() => setActiveSearchIdx(null), 250)}
+                                                         placeholder="Ex: Martin Garrix"
+                                                         className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:border-amber-500/50 outline-none transition-all placeholder-gray-600 text-sm"
+                                                     />
+                                                     
+                                                     {activeSearchIdx === idx && filteredDjs.length > 0 && (
+                                                         <div className="absolute z-50 left-0 right-0 mt-1 bg-[#151515] border border-white/10 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.8)] overflow-hidden max-h-60 overflow-y-auto">
+                                                             {filteredDjs.map((dj) => (
+                                                                 <button
+                                                                     key={dj.id}
+                                                                     type="button"
+                                                                     onClick={() => {
+                                                                         setFestivalArtists(prev => prev.map((a, i) => i === idx ? {
+                                                                             ...a,
+                                                                             name: dj.name,
+                                                                             photo: dj.image || a.photo
+                                                                         } : a));
+                                                                         setActiveSearchIdx(null);
+                                                                     }}
+                                                                     className="w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 transition-all text-left border-b border-white/5 last:border-b-0"
+                                                                 >
+                                                                     {dj.image ? (
+                                                                         <img src={dj.image} alt={dj.name} className="w-8 h-8 rounded-lg object-cover" />
+                                                                     ) : (
+                                                                         <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                                                                             <User className="w-4 h-4 text-gray-500" />
+                                                                         </div>
+                                                                     )}
+                                                                     <div>
+                                                                         <div className="text-white text-xs font-bold">{dj.name}</div>
+                                                                         {dj.country && <div className="text-[9px] text-gray-500 font-medium uppercase tracking-widest">{dj.country}</div>}
+                                                                     </div>
+                                                                 </button>
+                                                             ))}
+                                                         </div>
+                                                     )}
+                                                 </div>
 
                                                 <div className="grid grid-cols-2 gap-3">
                                                     {/* Stage */}
