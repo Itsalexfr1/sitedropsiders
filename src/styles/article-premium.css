@@ -1078,29 +1078,52 @@
 .festival-artist-photo-wrap {
     width: 100%;
     aspect-ratio: 1 / 1;
-    border-radius: 1rem;
-    overflow: hidden;
+    border-radius: 1rem !important;
+    overflow: hidden !important;
     border: 1px solid rgba(255,255,255,0.08);
     background: rgba(0,0,0,0.4);
     flex-shrink: 0;
+    /* Fix: prevent the wrapper from growing with the image */
+    position: relative;
+    display: block;
+    max-height: 300px;
 }
 
-.festival-artist-photo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+/* Override the global .article-body-premium img rule that breaks festival photos */
+.festival-artist-photo,
+.article-body-premium .festival-artist-photo,
+.festival-top10-wrapper .festival-artist-photo {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    object-fit: cover !important;
     margin: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
+    transform: none;
     transition: transform 0.5s ease;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+}
+
+/* Make the wrap relative so absolute child fills it correctly */
+.festival-artist-photo-wrap {
+    position: relative !important;
 }
 
 .festival-artist-card:hover .festival-artist-photo {
-    transform: scale(1.03);
+    transform: scale(1.03) !important;
 }
 
 .festival-artist-photo-placeholder {
+    width: 100%;
+    height: 100%;
     background: linear-gradient(135deg, rgba(245,158,11,0.05), rgba(0,0,0,0.3));
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 /* Artist Info */
