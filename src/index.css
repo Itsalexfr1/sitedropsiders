@@ -258,7 +258,7 @@ body {
   }
 
   /* Force Zéro sur tous les conteneurs générés - SAUF DUO PHOTOS, VIDÉOS ET PLAYERS */
-  .article-body-premium div:not(.duo-photos-premium):not(.youtube-player-widget):not(.spotify-compact-widget):not(.beatport-compact-widget):not(.youtube-gallery-grid):not(.gallery-premium-grid):not(.spotify-player-widget):not(.media-player-widget):not(.video-wrapper),
+  .article-body-premium div:not(.duo-photos-premium):not(.youtube-player-widget):not(.spotify-compact-widget):not(.beatport-compact-widget):not(.youtube-gallery-grid):not(.gallery-premium-grid):not(.spotify-player-widget):not(.media-player-widget):not(.video-wrapper):not([class*="festival-"]),
   .article-body-premium section,
   .article-body-premium article,
   .article-body-premium .jw-strip,

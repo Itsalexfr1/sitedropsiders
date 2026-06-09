@@ -2018,6 +2018,47 @@ ${generateSocialsHtml()}
                 setStatus('success');
                 setIsDirty(false);
 
+                // Auto-create DJs in Wiki DJS database if they don't exist
+                if (activeTab === 'Top-Festival') {
+                    const wikiNames = new Set(wikiDjs.map(dj => (dj.name || '').toLowerCase().trim()));
+                    const missingDjs = festivalArtists.filter(a => {
+                        const name = a.name.trim();
+                        return name !== "" && !wikiNames.has(name.toLowerCase());
+                    });
+
+                    if (missingDjs.length > 0) {
+                        Promise.all(
+                            missingDjs.map(async (dj) => {
+                                try {
+                                    await fetch('/api/wiki/add', {
+                                        method: 'POST',
+                                        headers: getAuthHeaders(),
+                                        body: JSON.stringify({
+                                            type: 'DJS',
+                                            entry: {
+                                                name: dj.name.trim(),
+                                                image: dj.photo || '',
+                                                status: 'verified',
+                                                country: 'Intl'
+                                            }
+                                        })
+                                    });
+                                } catch (e) {
+                                    console.error('Failed to auto-create DJ in Wiki:', dj.name, e);
+                                }
+                            })
+                        ).then(() => {
+                            // Refetch the wiki DJs list to keep state updated
+                            fetch('/api/wiki/list?type=DJS', { headers: getAuthHeaders() })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (Array.isArray(data)) setWikiDjs(data);
+                                })
+                                .catch(err => console.error('Failed to reload wiki DJs:', err));
+                        });
+                    }
+                }
+
                 // Show share modal only if not a draft
                 const newArticleId = isEditing ? (id || '') : (data.id || '');
                 if (!finalIsDraft) {
