@@ -805,20 +805,33 @@ export function NewsCreate() {
                 const festivalCards = Array.from(doc.querySelectorAll('.festival-artist-card'));
                 if (festivalCards.length > 0) {
                     const parsed = festivalCards.map((card, idx) => {
+                        const trackEmbeds = Array.from(card.querySelectorAll('iframe[src*="spotify.com/embed"]'));
                         const trackItems = Array.from(card.querySelectorAll('.festival-track-item'));
                         const tracks: [{ title: string; spotifyUrl: string }, { title: string; spotifyUrl: string }, { title: string; spotifyUrl: string }] = [
                             { title: '', spotifyUrl: '' },
                             { title: '', spotifyUrl: '' },
                             { title: '', spotifyUrl: '' },
                         ];
-                        trackItems.slice(0, 3).forEach((ti, tIdx) => {
-                            const titleEl = ti.querySelector('.festival-track-title');
-                            const linkEl = ti.querySelector('.festival-spotify-link');
-                            tracks[tIdx] = {
-                                title: titleEl?.textContent?.trim() || '',
-                                spotifyUrl: linkEl?.getAttribute('href') || '',
-                            };
-                        });
+                        if (trackEmbeds.length > 0) {
+                            trackEmbeds.slice(0, 3).forEach((iframe, tIdx) => {
+                                const src = iframe.getAttribute('src') || '';
+                                const match = src.match(/track\/([^?]+)/);
+                                const trackId = match ? match[1] : '';
+                                tracks[tIdx] = {
+                                    title: '',
+                                    spotifyUrl: trackId ? `https://open.spotify.com/track/${trackId}` : '',
+                                };
+                            });
+                        } else {
+                            trackItems.slice(0, 3).forEach((ti, tIdx) => {
+                                const titleEl = ti.querySelector('.festival-track-title');
+                                const linkEl = ti.querySelector('.festival-spotify-link');
+                                tracks[tIdx] = {
+                                    title: titleEl?.textContent?.trim() || '',
+                                    spotifyUrl: linkEl?.getAttribute('href') || '',
+                                };
+                            });
+                        }
                         return {
                             id: Math.random().toString(36).substr(2, 9),
                             rank: parseInt(card.getAttribute('data-rank') || String(idx + 1), 10),
@@ -1909,20 +1922,16 @@ ${generateSocialsHtml()}
                     .filter(a => a.name.trim())
                     .map(a => {
                         const tracksHtml = a.tracks
-                            .filter(t => t.title.trim())
+                            .filter(t => t.spotifyUrl.trim())
                             .map((t, ti) => {
                                 const embedId = t.spotifyUrl
                                     ? (t.spotifyUrl.includes('track/') ? t.spotifyUrl.split('track/')[1].split('?')[0] : t.spotifyUrl)
                                     : '';
-                                return `<div class="festival-track-item">
-  <span class="festival-track-num">${ti + 1}</span>
-  <span class="festival-track-title">${t.title}</span>
-  ${embedId ? `<a href="https://open.spotify.com/track/${embedId}" target="_blank" rel="noopener" class="festival-spotify-link" aria-label="Écouter sur Spotify">
-    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.2.3-.6.4-.9.2-2.8-1.7-6.4-2.1-10.6-1.1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 4.7-1.1 8.7-.6 11.8 1.3.2.2.3.5.1.8zm1.5-3.3c-.3.4-.8.5-1.2.3-3.2-2-8.2-2.6-12-1.4-.4.1-.9-.1-1-.5-.1-.4.1-.9.5-1 4.4-1.3 9.9-.7 13.6 1.6.3.3.4.8.1 1zM19.2 10.6c-3.9-2.3-10.3-2.5-14.1-1.4-.6.2-1.2-.2-1.4-.8-.2-.6.2-1.2.8-1.4 4.3-1.3 11.4-1.1 16 1.6.5.3.7 1 .4 1.5-.3.5-1 .7-1.5.4v.1z"/></svg>
-    Écouter
-  </a>` : ''}
+                                if (!embedId) return '';
+                                return `<div class="festival-track-embed my-2">
+  <iframe src="https://open.spotify.com/embed/track/${embedId}?utm_source=generator&theme=0" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 12px;"></iframe>
 </div>`;
-                            }).join('\n');
+                            }).filter(Boolean).join('\n');
                         const isReversed = a.rank % 2 === 0;
                         return `<div class="article-section festival-artist-card${isReversed ? ' festival-reversed' : ''}" data-festival-artist data-rank="${a.rank}" data-artist-name="${a.name}" data-stage="${a.stage}" data-day="${a.day}" data-photo="${a.photo}">
   <div class="festival-artist-inner">
@@ -3083,24 +3092,12 @@ ${generateSocialsHtml()}
                                                 {/* Top 3 Tracks */}
                                                 <div>
                                                     <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                                        <SpotifyIcon className="w-3 h-3 text-green-500" /> Top 3 Titres
+                                                        <SpotifyIcon className="w-3 h-3 text-green-500" /> Top 3 Titres (Liens Spotify)
                                                     </label>
                                                     <div className="space-y-2">
                                                         {artist.tracks.map((track, tIdx) => (
                                                             <div key={tIdx} className="flex gap-2 items-center">
                                                                 <div className="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center text-[9px] font-black shrink-0">{tIdx + 1}</div>
-                                                                <input
-                                                                    type="text"
-                                                                    value={track.title}
-                                                                    onChange={e => setFestivalArtists(prev => prev.map((a, i) => {
-                                                                        if (i !== idx) return a;
-                                                                        const newTracks = [...a.tracks] as typeof a.tracks;
-                                                                        newTracks[tIdx] = { ...newTracks[tIdx], title: e.target.value };
-                                                                        return { ...a, tracks: newTracks };
-                                                                    }))}
-                                                                    placeholder={`Titre ${tIdx + 1}`}
-                                                                    className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:border-green-500/50 outline-none transition-all placeholder-gray-600"
-                                                                />
                                                                 <input
                                                                     type="text"
                                                                     value={track.spotifyUrl}
@@ -3110,8 +3107,8 @@ ${generateSocialsHtml()}
                                                                         newTracks[tIdx] = { ...newTracks[tIdx], spotifyUrl: e.target.value };
                                                                         return { ...a, tracks: newTracks };
                                                                     }))}
-                                                                    placeholder="Lien Spotify"
-                                                                    className="flex-1 bg-black/30 border border-green-500/10 rounded-lg px-3 py-2 text-white text-xs focus:border-green-500/50 outline-none transition-all placeholder-gray-600"
+                                                                    placeholder="Lien Spotify (ex: https://open.spotify.com/track/...)"
+                                                                    className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:border-green-500/50 outline-none transition-all placeholder-gray-600"
                                                                 />
                                                             </div>
                                                         ))}
@@ -4584,22 +4581,25 @@ ${generateSocialsHtml()}
                                                             {artist.stage && <span className="festival-meta-stage">📍 {artist.stage}</span>}
                                                             {artist.day && <span className="festival-meta-day">📅 {artist.day}</span>}
                                                         </div>
-                                                        {artist.tracks.some(t => t.title) && (
+                                                        {artist.tracks.some(t => t.spotifyUrl) && (
                                                             <div className="festival-tracks-list">
                                                                 <div className="festival-tracks-label">Top Titres</div>
-                                                                {artist.tracks.filter(t => t.title).map((track, ti) => {
+                                                                {artist.tracks.filter(t => t.spotifyUrl).map((track, ti) => {
                                                                     const embedId = track.spotifyUrl
                                                                         ? (track.spotifyUrl.includes('track/') ? track.spotifyUrl.split('track/')[1].split('?')[0] : track.spotifyUrl)
                                                                         : '';
+                                                                    if (!embedId) return null;
                                                                     return (
-                                                                        <div key={ti} className="festival-track-item">
-                                                                            <span className="festival-track-num">{ti + 1}</span>
-                                                                            <span className="festival-track-title">{track.title}</span>
-                                                                            {embedId && (
-                                                                                <a href={`https://open.spotify.com/track/${embedId}`} target="_blank" rel="noopener" className="festival-spotify-link" onClick={e => e.stopPropagation()}>
-                                                                                    <SpotifyIcon style={{ width: 12, height: 12 }} /> Écouter
-                                                                                </a>
-                                                                            )}
+                                                                        <div key={ti} className="festival-track-embed my-2">
+                                                                            <iframe
+                                                                                src={`https://open.spotify.com/embed/track/${embedId}?utm_source=generator&theme=0`}
+                                                                                width="100%"
+                                                                                height="80"
+                                                                                frameBorder="0"
+                                                                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                                                                loading="lazy"
+                                                                                style={{ borderRadius: 12 }}
+                                                                            />
                                                                         </div>
                                                                     );
                                                                 })}

@@ -560,7 +560,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 iframe.closest('.youtube-player-wrapper') ||
                 iframe.closest('.youtube-player-widget') ||
                 iframe.closest('.music-top-item-premium') ||
-                iframe.closest('.music-top-section');
+                iframe.closest('.music-top-section') ||
+                iframe.closest('.festival-track-embed');
 
             const isTrustedSource =
                 isYouTube ||
