@@ -8754,8 +8754,12 @@ const contentType = response.headers.get("content-type");
     async email(message, env, ctx) {
         const to = (message.to || '').toLowerCase();
         
-        // Skip contact@ and alex@ — handled separately on LWS, do not touch.
-        if (!to.endsWith('@dropsiders.fr') || to === 'contact@dropsiders.fr' || to === 'alex@dropsiders.fr') {
+        // Accept @dropsiders.fr (except contact@ and alex@ which are on LWS)
+        // and @team.dropsiders.fr for editors
+        const isMainDomain = to.endsWith('@dropsiders.fr') && to !== 'contact@dropsiders.fr' && to !== 'alex@dropsiders.fr';
+        const isTeamDomain = to.endsWith('@team.dropsiders.fr');
+        
+        if (!isMainDomain && !isTeamDomain) {
             return;
         }
 

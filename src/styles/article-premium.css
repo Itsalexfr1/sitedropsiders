@@ -977,3 +977,241 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
 }
+
+/* =====================================================
+   FESTIVAL TOP 10 — Article Display Styles
+   ===================================================== */
+
+.festival-top10-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    padding: 0;
+}
+
+.festival-artist-card {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.04) 0%, rgba(0,0,0,0) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.15);
+    border-radius: 1.5rem;
+    overflow: visible;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+}
+
+.festival-artist-card:hover {
+    border-color: rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.08);
+}
+
+.festival-artist-inner {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 2rem;
+    align-items: start;
+    padding: 2rem;
+    position: relative;
+}
+
+@media (max-width: 640px) {
+    .festival-artist-inner {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+}
+
+/* Rank Badge */
+.festival-rank-badge {
+    position: absolute;
+    top: -1rem;
+    left: -1rem;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #000;
+    font-weight: 900;
+    font-family: var(--font-display, 'Orbitron', monospace);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.5), 0 4px 10px rgba(0,0,0,0.5);
+    z-index: 2;
+}
+
+/* Artist Photo */
+.festival-artist-photo-wrap {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.4);
+    flex-shrink: 0;
+}
+
+.festival-artist-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transition: transform 0.5s ease;
+}
+
+.festival-artist-card:hover .festival-artist-photo {
+    transform: scale(1.03);
+}
+
+.festival-artist-photo-placeholder {
+    background: linear-gradient(135deg, rgba(245,158,11,0.05), rgba(0,0,0,0.3));
+}
+
+/* Artist Info */
+.festival-artist-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.festival-artist-name {
+    font-family: var(--font-display, 'Orbitron', monospace) !important;
+    font-size: clamp(1.2rem, 3vw, 1.75rem) !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    color: white !important;
+    letter-spacing: 0.03em !important;
+    text-shadow: 0 0 20px rgba(245, 158, 11, 0.2) !important;
+    text-align: left !important;
+    margin: 0 !important;
+}
+
+/* Meta info (stage + day) */
+.festival-artist-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.festival-meta-stage,
+.festival-meta-day {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 2rem;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.7);
+}
+
+.festival-meta-stage {
+    border-color: rgba(245,158,11,0.2);
+    color: #fbbf24;
+    background: rgba(245,158,11,0.06);
+}
+
+/* Tracks list */
+.festival-tracks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.festival-tracks-label {
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 0.25rem;
+}
+
+.festival-track-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 0.75rem;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.festival-track-item:hover {
+    background: rgba(245,158,11,0.05);
+    border-color: rgba(245,158,11,0.15);
+}
+
+.festival-track-num {
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    background: rgba(245,158,11,0.15);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: #fbbf24;
+    font-size: 0.6rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.festival-track-title {
+    flex: 1;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.85);
+    text-align: left;
+}
+
+.festival-spotify-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #1db954 !important;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-decoration: none !important;
+    background: rgba(29,185,84,0.1);
+    border: 1px solid rgba(29,185,84,0.2);
+    border-radius: 0.5rem;
+    padding: 0.3rem 0.6rem;
+    transition: background 0.2s, border-color 0.2s;
+    flex-shrink: 0;
+}
+
+.festival-spotify-link:hover {
+    background: rgba(29,185,84,0.2) !important;
+    border-color: rgba(29,185,84,0.4) !important;
+    color: #1db954 !important;
+    text-shadow: none !important;
+    text-decoration: none !important;
+}
+
+@media (max-width: 640px) {
+    .festival-rank-badge {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 0.9rem;
+    }
+
+    .festival-track-item {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .festival-spotify-link {
+        width: 100%;
+        justify-content: center;
+    }
+}

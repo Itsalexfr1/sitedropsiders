@@ -487,9 +487,27 @@ export function NewsCreate() {
         { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', artistColor: '#ff1241', question: '', answer: '' }
     ]);
 
-    const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus' | 'Sets-Mixes'>(
-        (searchParams.get('tab') as 'News' | 'Musique' | 'Focus' | 'Sets-Mixes') ||
+    const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus' | 'Sets-Mixes' | 'Top-Festival'>(
+        (searchParams.get('tab') as 'News' | 'Musique' | 'Focus' | 'Sets-Mixes' | 'Top-Festival') ||
         (type === 'Musique' ? 'Musique' : 'News')
+    );
+
+    // Festival Top 10 state
+    const defaultFestivalArtist = (rank: number) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        rank,
+        name: '',
+        photo: '',
+        stage: '',
+        day: '',
+        tracks: [
+            { title: '', spotifyUrl: '' },
+            { title: '', spotifyUrl: '' },
+            { title: '', spotifyUrl: '' },
+        ] as [{ title: string; spotifyUrl: string }, { title: string; spotifyUrl: string }, { title: string; spotifyUrl: string }]
+    });
+    const [festivalArtists, setFestivalArtists] = useState(
+        Array.from({ length: 10 }, (_, i) => defaultFestivalArtist(i + 1))
     );
     const [musicItems, setMusicItems] = useState<{ id: string, title: string, media: string, imageUrl: string, playerType: 'spotify' | 'youtube' | 'beatport', description: string, canVote: boolean }[]>(() => {
         if (type === 'Musique') return [];
@@ -516,7 +534,7 @@ export function NewsCreate() {
         width: 100
     });
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo-image' | 'interview-media' | 'video-article', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string, allowMultiple?: boolean }>({ type: 'main' });
+    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo-image' | 'interview-media' | 'video-article' | 'festival-artist', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string, allowMultiple?: boolean }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
     const [showVideo, setShowVideo] = useState(type !== 'Interview' || (type === 'Interview' && (searchParams.get('subtype') === 'video')));
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -663,6 +681,7 @@ export function NewsCreate() {
             if (articleData.category === 'Focus' || (articleData.category === 'News' && articleData.isFocus)) setActiveTab('Focus');
             else if (articleData.category === 'Musique') setActiveTab('Musique');
             else if (articleData.category === 'Sets-Mixes' || (articleData.category || '').toLowerCase().includes('sets') || (articleData.category || '').toLowerCase().includes('mix')) setActiveTab('Sets-Mixes');
+            else if (articleData.category === 'Top-Festival') setActiveTab('Top-Festival');
             else setActiveTab('News');
 
             if (articleData.showVideo !== undefined) setShowVideo(articleData.showVideo);
@@ -780,6 +799,42 @@ export function NewsCreate() {
                     canVote: !!el.querySelector('.music-vote-button')
                 })).filter(m => m.media);
                 if (domItems.length > 0) setMusicItems(domItems);
+            }
+
+            if (articleData.category === 'Top-Festival') {
+                const festivalCards = Array.from(doc.querySelectorAll('.festival-artist-card'));
+                if (festivalCards.length > 0) {
+                    const parsed = festivalCards.map((card, idx) => {
+                        const trackItems = Array.from(card.querySelectorAll('.festival-track-item'));
+                        const tracks: [{ title: string; spotifyUrl: string }, { title: string; spotifyUrl: string }, { title: string; spotifyUrl: string }] = [
+                            { title: '', spotifyUrl: '' },
+                            { title: '', spotifyUrl: '' },
+                            { title: '', spotifyUrl: '' },
+                        ];
+                        trackItems.slice(0, 3).forEach((ti, tIdx) => {
+                            const titleEl = ti.querySelector('.festival-track-title');
+                            const linkEl = ti.querySelector('.festival-spotify-link');
+                            tracks[tIdx] = {
+                                title: titleEl?.textContent?.trim() || '',
+                                spotifyUrl: linkEl?.getAttribute('href') || '',
+                            };
+                        });
+                        return {
+                            id: Math.random().toString(36).substr(2, 9),
+                            rank: parseInt(card.getAttribute('data-rank') || String(idx + 1), 10),
+                            name: card.getAttribute('data-artist-name') || '',
+                            photo: card.getAttribute('data-photo') || '',
+                            stage: card.getAttribute('data-stage') || '',
+                            day: card.getAttribute('data-day') || '',
+                            tracks,
+                        };
+                    });
+                    // Pad to 10 entries
+                    while (parsed.length < 10) {
+                        parsed.push(defaultFestivalArtist(parsed.length + 1));
+                    }
+                    setFestivalArtists(parsed as any);
+                }
             }
 
             setIsLoading(false);
@@ -1848,6 +1903,44 @@ ${generateSocialsHtml()}
                     : '';
                 const socialsHtml = generateSocialsHtml();
                 finalContent = widgetsHtml + tracklistBlock + (socialsHtml ? `\n\n<div class="article-section">${socialsHtml}</div>` : '') + rawComment;
+            } else if (activeTab === 'Top-Festival') {
+                finalCategory = 'Top-Festival';
+                const artistsHtml = festivalArtists
+                    .filter(a => a.name.trim())
+                    .map(a => {
+                        const tracksHtml = a.tracks
+                            .filter(t => t.title.trim())
+                            .map((t, ti) => {
+                                const embedId = t.spotifyUrl
+                                    ? (t.spotifyUrl.includes('track/') ? t.spotifyUrl.split('track/')[1].split('?')[0] : t.spotifyUrl)
+                                    : '';
+                                return `<div class="festival-track-item">
+  <span class="festival-track-num">${ti + 1}</span>
+  <span class="festival-track-title">${t.title}</span>
+  ${embedId ? `<a href="https://open.spotify.com/track/${embedId}" target="_blank" rel="noopener" class="festival-spotify-link" aria-label="Écouter sur Spotify">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.2.3-.6.4-.9.2-2.8-1.7-6.4-2.1-10.6-1.1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 4.7-1.1 8.7-.6 11.8 1.3.2.2.3.5.1.8zm1.5-3.3c-.3.4-.8.5-1.2.3-3.2-2-8.2-2.6-12-1.4-.4.1-.9-.1-1-.5-.1-.4.1-.9.5-1 4.4-1.3 9.9-.7 13.6 1.6.3.3.4.8.1 1zM19.2 10.6c-3.9-2.3-10.3-2.5-14.1-1.4-.6.2-1.2-.2-1.4-.8-.2-.6.2-1.2.8-1.4 4.3-1.3 11.4-1.1 16 1.6.5.3.7 1 .4 1.5-.3.5-1 .7-1.5.4v.1z"/></svg>
+    Écouter
+  </a>` : ''}
+</div>`;
+                            }).join('\n');
+                        return `<div class="article-section festival-artist-card" data-festival-artist data-rank="${a.rank}" data-artist-name="${a.name}" data-stage="${a.stage}" data-day="${a.day}" data-photo="${a.photo}">
+  <div class="festival-artist-inner">
+    <div class="festival-rank-badge">${a.rank}</div>
+    ${a.photo ? `<div class="festival-artist-photo-wrap"><img src="${a.photo}" alt="${a.name}" class="festival-artist-photo" /></div>` : '<div class="festival-artist-photo-wrap festival-artist-photo-placeholder"></div>'}
+    <div class="festival-artist-info">
+      <h3 class="festival-artist-name">${a.name}</h3>
+      <div class="festival-artist-meta">
+        ${a.stage ? `<span class="festival-meta-stage">📍 ${a.stage}</span>` : ''}
+        ${a.day ? `<span class="festival-meta-day">📅 ${a.day}</span>` : ''}
+      </div>
+      ${tracksHtml ? `<div class="festival-tracks-list"><div class="festival-tracks-label">Top Titres</div>${tracksHtml}</div>` : ''}
+    </div>
+  </div>
+</div>`;
+                    }).join('\n\n');
+
+                const socialsHtml = generateSocialsHtml();
+                finalContent = `<div class="festival-top10-wrapper">\n${artistsHtml}\n${socialsHtml ? `<div class="article-section">${socialsHtml}</div>` : ''}\n</div>`;
             } else {
                 if (type === 'Interview') finalCategory = 'Interview';
                 // Construct Final Content with HTML Wrappers for Automatic Styling
@@ -2171,6 +2264,12 @@ ${generateSocialsHtml()}
                                 className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'Sets-Mixes' ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(189,0,255,0.4)]' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <Music className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Sets & Mixes</span><span className="sm:hidden">Sets</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('Top-Festival')}
+                                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'Top-Festival' ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                <span>🏆</span> <span className="hidden sm:inline">Top Festival</span><span className="sm:hidden">Festival</span>
                             </button>
                         </div>
                     )}
@@ -2876,10 +2975,157 @@ ${generateSocialsHtml()}
                         </div>
                     )}
 
+                    {/* FESTIVAL TOP 10 EDITOR */}
+                    {activeTab === 'Top-Festival' && (
+                        <div className="pt-8 border-t border-amber-500/20">
+                            <div className="flex items-center gap-3 mb-8">
+                                <span className="text-2xl">🏆</span>
+                                <div>
+                                    <h2 className="text-sm font-black text-amber-400 uppercase tracking-widest">Top 10 Festival</h2>
+                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">Remplis les artistes à voir — les cases vides ne seront pas publiées</p>
+                                </div>
+                            </div>
+                            <div className="space-y-6">
+                                {festivalArtists.map((artist, idx) => (
+                                    <motion.div
+                                        key={artist.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.03 }}
+                                        className="relative bg-black/40 border border-white/10 rounded-3xl p-6 hover:border-amber-500/30 transition-all group"
+                                    >
+                                        {/* Rank badge */}
+                                        <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-amber-500 text-black font-black text-sm flex items-center justify-center shadow-lg shadow-amber-500/30">
+                                            {artist.rank}
+                                        </div>
 
+                                        <div className="grid grid-cols-1 md:grid-cols-[140px_1fr] gap-6">
+                                            {/* Photo section */}
+                                            <div className="flex flex-col items-center gap-3">
+                                                <div className="relative w-32 h-32 md:w-full md:h-36 rounded-2xl overflow-hidden border border-white/10 bg-black/60 flex items-center justify-center">
+                                                    {artist.photo ? (
+                                                        <img src={artist.photo} alt={artist.name || `Artiste ${artist.rank}`} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <User className="w-10 h-10 text-gray-600" />
+                                                    )}
+                                                </div>
+                                                <div className="flex gap-2 w-full">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setUploadTarget({ type: 'festival-artist', index: idx, initialImage: artist.photo });
+                                                            setShowUploadModal(true);
+                                                        }}
+                                                        className="flex-1 flex items-center justify-center gap-1 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all"
+                                                    >
+                                                        <Upload className="w-3 h-3" /> Upload
+                                                    </button>
+                                                    {artist.photo && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setFestivalArtists(prev => prev.map((a, i) => i === idx ? { ...a, photo: '' } : a))}
+                                                            className="p-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl hover:bg-red-500/20 transition-all"
+                                                            title="Supprimer la photo"
+                                                        >
+                                                            <Trash2 className="w-3 h-3" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={artist.photo}
+                                                    onChange={e => setFestivalArtists(prev => prev.map((a, i) => i === idx ? { ...a, photo: e.target.value } : a))}
+                                                    placeholder="URL photo..."
+                                                    className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-[9px] focus:border-amber-500/50 outline-none transition-all placeholder-gray-600"
+                                                />
+                                            </div>
+
+                                            {/* Info section */}
+                                            <div className="flex flex-col gap-4">
+                                                {/* Name */}
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">Nom de l'artiste</label>
+                                                    <input
+                                                        type="text"
+                                                        value={artist.name}
+                                                        onChange={e => setFestivalArtists(prev => prev.map((a, i) => i === idx ? { ...a, name: e.target.value } : a))}
+                                                        placeholder="Ex: Martin Garrix"
+                                                        className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white font-bold focus:border-amber-500/50 outline-none transition-all placeholder-gray-600 text-sm"
+                                                    />
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {/* Stage */}
+                                                    <div>
+                                                        <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">📍 Stage</label>
+                                                        <input
+                                                            type="text"
+                                                            value={artist.stage}
+                                                            onChange={e => setFestivalArtists(prev => prev.map((a, i) => i === idx ? { ...a, stage: e.target.value } : a))}
+                                                            placeholder="Ex: Main Stage"
+                                                            className="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-white text-xs focus:border-amber-500/50 outline-none transition-all placeholder-gray-600"
+                                                        />
+                                                    </div>
+                                                    {/* Day */}
+                                                    <div>
+                                                        <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">📅 Jour</label>
+                                                        <input
+                                                            type="text"
+                                                            value={artist.day}
+                                                            onChange={e => setFestivalArtists(prev => prev.map((a, i) => i === idx ? { ...a, day: e.target.value } : a))}
+                                                            placeholder="Ex: Samedi 5 Juillet"
+                                                            className="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-white text-xs focus:border-amber-500/50 outline-none transition-all placeholder-gray-600"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Top 3 Tracks */}
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                                                        <SpotifyIcon className="w-3 h-3 text-green-500" /> Top 3 Titres
+                                                    </label>
+                                                    <div className="space-y-2">
+                                                        {artist.tracks.map((track, tIdx) => (
+                                                            <div key={tIdx} className="flex gap-2 items-center">
+                                                                <div className="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 flex items-center justify-center text-[9px] font-black shrink-0">{tIdx + 1}</div>
+                                                                <input
+                                                                    type="text"
+                                                                    value={track.title}
+                                                                    onChange={e => setFestivalArtists(prev => prev.map((a, i) => {
+                                                                        if (i !== idx) return a;
+                                                                        const newTracks = [...a.tracks] as typeof a.tracks;
+                                                                        newTracks[tIdx] = { ...newTracks[tIdx], title: e.target.value };
+                                                                        return { ...a, tracks: newTracks };
+                                                                    }))}
+                                                                    placeholder={`Titre ${tIdx + 1}`}
+                                                                    className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:border-green-500/50 outline-none transition-all placeholder-gray-600"
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    value={track.spotifyUrl}
+                                                                    onChange={e => setFestivalArtists(prev => prev.map((a, i) => {
+                                                                        if (i !== idx) return a;
+                                                                        const newTracks = [...a.tracks] as typeof a.tracks;
+                                                                        newTracks[tIdx] = { ...newTracks[tIdx], spotifyUrl: e.target.value };
+                                                                        return { ...a, tracks: newTracks };
+                                                                    }))}
+                                                                    placeholder="Lien Spotify"
+                                                                    className="flex-1 bg-black/30 border border-green-500/10 rounded-lg px-3 py-2 text-white text-xs focus:border-green-500/50 outline-none transition-all placeholder-gray-600"
+                                                                />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* WIDGET EDITOR SECTION (Always available to add flexibility) */}
-                    {activeTab !== 'Sets-Mixes' && (activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Musique' || type === 'Interview') && (
+                    {activeTab !== 'Sets-Mixes' && activeTab !== 'Top-Festival' && (activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Musique' || type === 'Interview') && (
                         <div className="pt-8 border-t border-white/10">
                             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${isMobileEditorActive ? 'hidden' : ''}`}>
                                 <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -4957,6 +5203,10 @@ ${generateSocialsHtml()}
                     if (uploadTarget.type === 'main') {
                         setImageUrl(actualUrl);
                         setShowUploadModal(false);
+                    } else if (uploadTarget.type === 'festival-artist') {
+                        const idx = uploadTarget.index!;
+                        setFestivalArtists(prev => prev.map((a, i) => i === idx ? { ...a, photo: actualUrl } : a));
+                        setShowUploadModal(false);
                     } else if (uploadTarget.type === 'duo1' as any) {
                         setDuoModal(prev => ({ ...prev, url1: actualUrl }));
                         setShowUploadModal(false);
@@ -5005,6 +5255,9 @@ ${generateSocialsHtml()}
                 onClear={() => {
                     if (uploadTarget.type === 'main') {
                         setImageUrl('');
+                    } else if (uploadTarget.type === 'festival-artist') {
+                        const idx = uploadTarget.index!;
+                        setFestivalArtists(prev => prev.map((a, i) => i === idx ? { ...a, photo: '' } : a));
                     } else if (uploadTarget.type === 'duo-image' as any) {
                         const newUrls = [...duoModal.urls];
                         newUrls[uploadTarget.index!] = '';
