@@ -5051,5 +5051,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1026,
+    "title": "EDC THAILAND",
+    "date": "2026-12-18",
+    "startDate": "2026-12-18",
+    "endDate": "2026-12-20",
+    "venue": "Rhythm Park",
+    "location": "PHUKET",
+    "country": "THAILANDE",
+    "type": "Festival",
+    "image": "/uploads/6483a3ce03b21f75-edcth_dec_2026_mk_lu_soc_no_ct.png",
+    "url": "https://thailand.electricdaisycarnival.com",
+    "genre": "Multi Styles",
+    "month": "DÉCEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
