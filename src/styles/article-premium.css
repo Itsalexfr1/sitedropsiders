@@ -1034,23 +1034,28 @@
 
 @media (max-width: 640px) {
     .festival-artist-inner {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-        padding: 1.5rem;
+        grid-template-columns: 120px 1fr !important;
+        gap: 1.25rem !important;
+        padding: 1.25rem !important;
     }
-    /* No reversal on mobile — always stacked */
+    /* Keep alternating layout on mobile */
     .festival-artist-card.festival-reversed .festival-artist-inner {
-        grid-template-columns: 1fr;
-    }
-    .festival-artist-card.festival-reversed .festival-rank-badge {
-        left: -1rem;
-        right: auto;
+        grid-template-columns: 1fr 120px !important;
     }
     .festival-artist-card.festival-reversed .festival-artist-photo-wrap {
-        order: 0;
+        order: 2 !important;
     }
     .festival-artist-card.festival-reversed .festival-artist-info {
-        order: 0;
+        order: 1 !important;
+    }
+    .festival-artist-card.festival-reversed .festival-rank-badge {
+        left: auto !important;
+        right: -0.75rem !important;
+    }
+    .festival-artist-photo-wrap {
+        width: 120px !important;
+        height: 120px !important;
+        max-height: 120px !important;
     }
 }
 
@@ -1077,6 +1082,7 @@
 /* Artist Photo */
 .festival-artist-photo-wrap {
     width: 100%;
+    max-width: 180px;
     aspect-ratio: 1 / 1;
     border-radius: 1rem !important;
     overflow: hidden !important;

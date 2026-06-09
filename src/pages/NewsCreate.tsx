@@ -4575,7 +4575,7 @@ ${generateSocialsHtml()}
                                                     <div className="festival-artist-photo-wrap">
                                                         {artist.photo
                                                             ? <img src={artist.photo} alt={artist.name} className="festival-artist-photo" />
-                                                            : <div className="festival-artist-photo-placeholder" style={{ minHeight: 180 }} />
+                                                            : <div className="festival-artist-photo-placeholder" />
                                                         }
                                                     </div>
                                                     <div className="festival-artist-info">
