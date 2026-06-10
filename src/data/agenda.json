@@ -5057,5 +5057,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1027,
+    "title": "RÜFÜS DU SOL [DJ SET] x ANOTR",
+    "date": "2026-07-14",
+    "startDate": "2026-07-14",
+    "endDate": "2026-07-14",
+    "venue": "Pacha",
+    "location": "IBIZA",
+    "country": "ESPAGNE",
+    "type": "Events",
+    "image": "/uploads/uploads/b7315cc9c2db6dcc-image.webp",
+    "url": "https://pacha.com/event/rufus-du-sol-dj-set-14-07-2026",
+    "genre": "House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
