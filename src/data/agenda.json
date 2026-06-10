@@ -5266,5 +5266,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1038,
+    "title": "Mosimann",
+    "date": "2026-08-03",
+    "startDate": "2026-08-03",
+    "endDate": "2026-08-03",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/228aac8d31efbb89-mosi_shotgun_eqwzet.avif",
+    "url": "https://shotgun.live/fr/events/mosimann-lundi-3-aout-2026-amnesia",
+    "genre": "Tech House",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
