@@ -5114,5 +5114,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1030,
+    "title": "Dj Snake ACT 1",
+    "date": "2026-07-11",
+    "startDate": "2026-07-11",
+    "endDate": "2026-07-11",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/e811fcdef7388a11-snake_shotgun_utyqdn.avif",
+    "url": "https://shotgun.live/fr/events/dj-snake-samedi-11-juillet-2026-amnesia",
+    "genre": "Bass Music",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
