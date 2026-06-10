@@ -5228,5 +5228,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1036,
+    "title": "Venga",
+    "date": "2026-07-27",
+    "startDate": "2026-07-27",
+    "endDate": "2026-07-27",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/a40a6e3ab27e7bb5-venga_shotgun_dvshnc.avif",
+    "url": "https://shotgun.live/fr/events/venga-lundi-27-juillet-2026-amnesia",
+    "genre": "Bass Music",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
