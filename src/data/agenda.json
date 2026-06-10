@@ -5076,5 +5076,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1028,
+    "title": "Ofenbach @ Amnesia (Opening)",
+    "date": "2026-06-27",
+    "startDate": "2026-06-27",
+    "endDate": "2026-06-27",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Opening",
+    "image": "/uploads/uploads/09d9f9ea8db7c02d-ofenbach_shotgun_jd866q.avif",
+    "url": "https://shotgun.live/fr/events/ofenbach-samedi-27-juin-2026-opening-amnesia",
+    "genre": "House",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
