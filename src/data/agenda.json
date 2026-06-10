@@ -5095,5 +5095,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1029,
+    "title": "Morten",
+    "date": "2026-07-04",
+    "startDate": "2026-07-04",
+    "endDate": "2026-07-04",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/4f037bd351842848-morten_shotgun_hysqqc.avif",
+    "url": "https://shotgun.live/fr/events/morten-samedi-4-juillet-2026-amnesia",
+    "genre": "Tech House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
