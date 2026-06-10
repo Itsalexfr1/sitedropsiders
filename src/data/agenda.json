@@ -5513,5 +5513,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1051,
+    "title": "Dimitri Vegas",
+    "date": "2026-08-22",
+    "startDate": "2026-08-22",
+    "endDate": "2026-08-22",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/710e260de4f83bda-dv_shotgun_oaog49.avif",
+    "url": "https://shotgun.live/fr/events/dimitri-vegas-samedi-22-aout-2026-amnesia",
+    "genre": "Big Room",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
