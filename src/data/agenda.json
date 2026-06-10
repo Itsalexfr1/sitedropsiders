@@ -5570,5 +5570,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1054,
+    "title": "Feder",
+    "date": "2026-08-29",
+    "startDate": "2026-08-29",
+    "endDate": "2026-08-29",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/6c8712285c34b226-feder_shotgun_ilgzfy.avif",
+    "url": "https://shotgun.live/fr/events/feder-samedi-29-aout-2026-amnesia",
+    "genre": "House",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
