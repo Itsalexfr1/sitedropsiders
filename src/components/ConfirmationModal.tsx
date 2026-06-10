@@ -9,7 +9,7 @@ interface ConfirmationModalProps {
     cancelLabel?: string;
     onConfirm: () => void | Promise<void>;
     onCancel: () => void | Promise<void>;
-    accentColor?: 'neon-red' | 'neon-blue' | 'neon-cyan' | 'neon-purple' | 'neon-yellow';
+    accentColor?: 'neon-red' | 'neon-blue' | 'neon-cyan' | 'neon-purple' | 'neon-yellow' | 'neon-fuchsia' | 'neon-pink';
     children?: React.ReactNode;
 }
 
@@ -31,6 +31,8 @@ export function ConfirmationModal({
         'neon-cyan': 'text-neon-cyan bg-neon-cyan/20 border-neon-cyan/30',
         'neon-purple': 'text-neon-purple bg-neon-purple/20 border-neon-purple/30',
         'neon-yellow': 'text-neon-yellow bg-neon-yellow/20 border-neon-yellow/30',
+        'neon-fuchsia': 'text-neon-fuchsia bg-neon-fuchsia/20 border-neon-fuchsia/30',
+        'neon-pink': 'text-neon-pink bg-neon-pink/20 border-neon-pink/30',
     };
 
     const activeColorClasses = colors[accentColor];
