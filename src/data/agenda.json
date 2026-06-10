@@ -5247,5 +5247,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1037,
+    "title": "Amor",
+    "date": "2026-08-01",
+    "startDate": "2026-08-01",
+    "endDate": "2026-08-01",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/521042a4b60dfb98-amor_shotgun_uwxxcv.avif",
+    "url": "https://shotgun.live/fr/events/amor-samedi-1-aout-2026-amnesia",
+    "genre": "Afro House",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
