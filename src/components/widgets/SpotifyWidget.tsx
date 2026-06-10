@@ -310,6 +310,7 @@ export function SpotifyWidget({
                                             url: mix.audioUrl || mix.url || '',
                                             embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
                                             tracks: mix.tracklist || [],
+                                            ownerEmail: mix.ownerEmail || mix.userEmail
                                         });
                                     }}
                                     className="flex-none w-[280px] p-6 bg-white/[0.03] border border-white/10 rounded-[2.5rem] relative group cursor-pointer hover:border-neon-purple/40 hover:bg-white/[0.05] transition-all duration-300 snap-center"

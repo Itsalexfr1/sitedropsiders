@@ -98,8 +98,6 @@ export function PublicProfile() {
     const [activeTab, setActiveTab] = useState<'cards' | 'mixes' | 'reviews'>('cards');
     const { activeTrack, playTrack, closePlayer, isPlaying: globalIsPlaying } = usePlayer();
     const [selectedCardForPreview, setSelectedCardForPreview] = useState<any | null>(null);
-    const playTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const trackedPlaysRef = useRef<Set<string>>(new Set());
 
     // Helper: silently track an event
     const trackMixEvent = (mix: any, event: 'play' | 'download' | 'share') => {
@@ -329,8 +327,6 @@ export function PublicProfile() {
                                             const isPlaying = isActive && globalIsPlaying;
 
                                             const handlePlay = () => {
-                                                if (playTimerRef.current) clearTimeout(playTimerRef.current);
-
                                                 if (isActive) {
                                                     closePlayer();
                                                     return;
@@ -344,15 +340,8 @@ export function PublicProfile() {
                                                     url: mix.audioUrl || mix.url || '',
                                                     embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
                                                     tracks: mix.tracklist || [],
+                                                    ownerEmail: mix.ownerEmail || mix.userEmail || profile.email
                                                 });
-
-                                                // Track play only once per session, after 10s
-                                                if (!trackedPlaysRef.current.has(mix.id)) {
-                                                    playTimerRef.current = setTimeout(() => {
-                                                        trackedPlaysRef.current.add(mix.id);
-                                                        trackMixEvent(mix, 'play');
-                                                    }, 10000);
-                                                }
                                             };
 
                                             const handleDownload = () => {

@@ -204,6 +204,7 @@ export function Profile() {
                 url: ownMix.audioUrl || ownMix.url || '',
                 embedUrl: ownMix.embedUrl && !ownMix.audioUrl ? ownMix.embedUrl : undefined,
                 tracks: ownMix.tracklist || [],
+                ownerEmail: ownMix.ownerEmail || ownMix.userEmail || user?.email
             });
             setPendingPlayId(null);
             return;
@@ -223,6 +224,7 @@ export function Profile() {
                             url: communityMix.audioUrl || communityMix.url || '',
                             embedUrl: communityMix.embedUrl && !communityMix.audioUrl ? communityMix.embedUrl : undefined,
                             tracks: communityMix.tracklist || [],
+                            ownerEmail: communityMix.ownerEmail || communityMix.userEmail
                         });
                     }
                 })
@@ -253,6 +255,22 @@ export function Profile() {
             }
         }
         setIsEditingName(false);
+    };
+
+    const handleDownloadMix = (e: React.MouseEvent, mix: any) => {
+        e.stopPropagation();
+        if (mix.audioUrl && mix.allowDownload && user?.email) {
+            fetch('/api/mix/stats/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mixId: mix.id, event: 'download', ownerEmail: user.email })
+            }).catch(() => {});
+            
+            const a = document.createElement('a');
+            a.href = mix.audioUrl;
+            a.download = `${mix.title}.mp3`;
+            a.click();
+        }
     };
 
     const handleDeleteMix = async (id: string) => {
@@ -896,6 +914,7 @@ export function Profile() {
                                                                             url: mix.audioUrl || mix.url || '',
                                                                             embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
                                                                             tracks: mix.tracklist || [],
+                                                                            ownerEmail: mix.ownerEmail || mix.userEmail || user?.email
                                                                         });
                                                                     }
                                                                 }}
@@ -924,6 +943,7 @@ export function Profile() {
                                                                                     url: mix.audioUrl || mix.url || '',
                                                                                     embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
                                                                                     tracks: mix.tracklist || [],
+                                                                                    ownerEmail: mix.ownerEmail || mix.userEmail || user?.email
                                                                                 });
                                                                             }
                                                                         }}
@@ -951,15 +971,13 @@ export function Profile() {
                                                                     {/* Actions */}
                                                                     <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                         {mix.allowDownload && mix.audioUrl && (
-                                                                            <a
-                                                                                href={mix.audioUrl}
-                                                                                download={`${mix.title}.mp3`}
+                                                                            <button
                                                                                 className={`w-9 h-9 border ${style.borderLight} ${style.bgBg} rounded-xl flex items-center justify-center ${style.text} hover:${style.bgLight} transition-all`}
                                                                                 title="Télécharger"
-                                                                                onClick={e => e.stopPropagation()}
+                                                                                onClick={(e) => handleDownloadMix(e, mix)}
                                                                             >
                                                                                 <DownloadCloud className="w-4 h-4" />
-                                                                            </a>
+                                                                            </button>
                                                                         )}
                                                                         <button
                                                                             onClick={(e) => { e.stopPropagation(); setDeleteTargetId(mix.id); }}

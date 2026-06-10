@@ -16,6 +16,7 @@ export interface MixTrack {
     embedUrl?: string;
     cover?: string;
     tracks?: TrackItem[];
+    ownerEmail?: string;
 }
 
 interface PlayerContextType {

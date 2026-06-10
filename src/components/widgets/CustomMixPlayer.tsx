@@ -1,29 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePlayer } from '../../context/PlayerContext';
+import type { MixTrack } from '../../context/PlayerContext';
 import { 
     Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, 
     Share2, Disc, ExternalLink, X, Clock, Sparkles, 
     Download, Video, Layers, Instagram, Twitter, Minimize2 
 } from 'lucide-react';
 import { ExportSuccessModal } from '../ExportSuccessModal';
-
-interface TrackItem {
-    title: string;
-    artist: string;
-    time?: string;
-}
-
-interface MixTrack {
-    id: string;
-    title: string;
-    artist: string;
-    label?: string;
-    event?: string;
-    url: string;
-    embedUrl?: string;
-    tracks?: TrackItem[];
-}
 
 interface CustomMixPlayerProps {
     track: MixTrack;
@@ -165,6 +149,37 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
             });
         }
     }, [track.id, isHTML5]);
+
+    // Track play event after 10 seconds of cumulative/continuous play
+    const trackedPlaysRef = useRef<Set<string>>(new Set());
+    const playTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (playTimerRef.current) {
+            clearTimeout(playTimerRef.current);
+            playTimerRef.current = null;
+        }
+
+        const email = track.ownerEmail || (track as any).userEmail;
+        if (isPlaying && track.id && email) {
+            if (!trackedPlaysRef.current.has(track.id)) {
+                playTimerRef.current = setTimeout(() => {
+                    trackedPlaysRef.current.add(track.id);
+                    fetch('/api/mix/stats/track', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mixId: track.id, event: 'play', ownerEmail: email })
+                    }).catch(() => {});
+                }, 10000);
+            }
+        }
+
+        return () => {
+            if (playTimerRef.current) {
+                clearTimeout(playTimerRef.current);
+            }
+        };
+    }, [track.id, isPlaying, track.ownerEmail, (track as any).userEmail]);
 
     // Register togglePlay with the global context so GlobalPlayerContainer's mini-player can control audio
     useEffect(() => {
@@ -489,12 +504,24 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
         return `${window.location.origin}/profil?tab=mixes&play=${track.id}&t=${seconds}`;
     };
 
+    const trackShareEvent = () => {
+        const email = track.ownerEmail || (track as any).userEmail;
+        if (track.id && email) {
+            fetch('/api/mix/stats/track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mixId: track.id, event: 'share', ownerEmail: email })
+            }).catch(() => {});
+        }
+    };
+
     const copyShareLink = () => {
         const url = getShareUrl();
         navigator.clipboard.writeText(url);
         setCopiedLink(true);
         showToast("Lien d'extrait copié ! Prêt à être inséré en sticker Story ! 🔗🔥");
         setTimeout(() => setCopiedLink(false), 2000);
+        trackShareEvent();
     };
 
     const shareOnTwitter = () => {
@@ -502,6 +529,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
         const text = encodeURIComponent(`🎧 "${track.title}" par ${track.artist}\nÉcoute à ${selectedSnippet?.timeStr} (${snippetInfo})`);
         const url = encodeURIComponent(getShareUrl());
         window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+        trackShareEvent();
     };
 
     // Generate Vertical 9:16 Instagram Video Story Card
@@ -766,6 +794,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
             return;
         }
 
+        trackShareEvent();
         setIsRecordingClip(true);
         setClipProgress(0);
 
@@ -942,6 +971,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
 
     const generateAndShareStoryImage = async () => {
         if (isGeneratingStory) return;
+        trackShareEvent();
         setIsGeneratingStory(true);
         setClipProgress(0);
 

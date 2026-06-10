@@ -442,6 +442,7 @@ export function PlaylistSharing() {
                                                     url: mix.audioUrl || mix.url || '',
                                                     embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
                                                     tracks: mix.tracklist || [],
+                                                    ownerEmail: mix.ownerEmail || mix.userEmail
                                                 });
                                             }}
                                             className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2.5 transition-all bg-white/5 border border-white/10 hover:border-neon-purple/40 hover:bg-neon-purple/10 text-white/60 hover:text-white"

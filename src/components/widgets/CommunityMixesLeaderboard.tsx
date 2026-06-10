@@ -14,6 +14,8 @@ interface Mix {
     embedUrl?: string;
     likes: number;
     tracklist?: any[];
+    ownerEmail?: string;
+    userEmail?: string;
 }
 
 const typeStyles: Record<string, { bg: string; text: string; border: string }> = {
@@ -103,6 +105,7 @@ export function CommunityMixesLeaderboard() {
             url: mix.audioUrl || mix.url || '',
             embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
             tracks: mix.tracklist || [],
+            ownerEmail: mix.ownerEmail || mix.userEmail
         });
     };
 

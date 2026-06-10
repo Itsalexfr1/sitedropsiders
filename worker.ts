@@ -1458,7 +1458,13 @@ ${urls.map(u => `  <url>
             let mixes = [];
             if (email) {
                 const mixesRaw = await env.CHAT_KV.get(`user_mixes:${email.toLowerCase().trim()}`);
-                if (mixesRaw) mixes = JSON.parse(mixesRaw);
+                if (mixesRaw) {
+                    mixes = JSON.parse(mixesRaw).map((m: any) => ({
+                        ...m,
+                        userEmail: email.toLowerCase().trim(),
+                        ownerEmail: email.toLowerCase().trim()
+                    }));
+                }
             }
 
             const publicProfile = {
@@ -2120,7 +2126,12 @@ ${urls.map(u => `  <url>
 
             if (request.method === 'GET') {
                 const data = await env.CHAT_KV.get(kvKey) || "[]";
-                return new Response(data, { headers });
+                const parsed = JSON.parse(data).map((m: any) => ({
+                    ...m,
+                    userEmail: userEmail.toLowerCase().trim(),
+                    ownerEmail: userEmail.toLowerCase().trim()
+                }));
+                return new Response(JSON.stringify(parsed), { headers });
             }
 
             if (request.method === 'POST') {
@@ -4567,6 +4578,7 @@ ${urls.map(u => `  <url>
                                     allMixes.push({
                                         ...mix,
                                         userEmail: email,
+                                        ownerEmail: email,
                                         username: usernameMap.get(email) || 'Dropsider'
                                     });
                                 });
