@@ -5304,5 +5304,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1040,
+    "title": "Fatal Bazooka & Friends ",
+    "date": "2026-08-05",
+    "startDate": "2026-08-05",
+    "endDate": "2026-08-05",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/8eb0adc8d4b5d5b9-fatal1_shotgun_mr2lz0.avif",
+    "url": "https://shotgun.live/fr/events/fatal-bazooka-mercredi-5-aout-2026-amnesia",
+    "genre": "Hybride",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
