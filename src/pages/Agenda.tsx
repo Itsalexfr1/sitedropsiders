@@ -1,4 +1,4 @@
-﻿import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, Link } from 'react-router-dom';
 import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar, Heart } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
@@ -266,7 +266,7 @@ export function Agenda() {
                 }
 
                 // Month filter
-                if (selectedMonth) {
+                if (selectedMonth && !selectedLocation) {
                     const [year, month] = selectedMonth.split('-');
                     if (eventDate.getFullYear() !== parseInt(year) || (eventDate.getMonth() + 1) !== parseInt(month)) {
                         return false;
@@ -394,7 +394,7 @@ export function Agenda() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="w-12 h-12 border-4 border-neon-cyan/20 border-t-neon-cyan rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-neon-fuchsia/20 border-t-neon-fuchsia rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -403,8 +403,8 @@ export function Agenda() {
         <div className="bg-dark-bg min-h-screen relative">
             {/* Background Ambient Glows */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-cyan/10 animate-pulse transition-all duration-1000" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-cyan/5 animate-pulse [animation-delay:2s] transition-all duration-1000" />
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-fuchsia/10 animate-pulse transition-all duration-1000" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-fuchsia/5 animate-pulse [animation-delay:2s] transition-all duration-1000" />
             </div>
 
             <SEO
@@ -420,13 +420,13 @@ export function Agenda() {
                     <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8 mb-12">
                         <div>
                             <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                                <div className="p-2 bg-neon-cyan/10 rounded-xl border border-neon-cyan/20 shadow-[0_0_15px_rgba(0,240,255,0.1)]">
-                                    <Calendar className="w-5 h-5 text-neon-cyan" />
+                                <div className="p-2 bg-neon-fuchsia/10 rounded-xl border border-neon-fuchsia/20 shadow-[0_0_15px_rgba(255,0,255,0.1)]">
+                                    <Calendar className="w-5 h-5 text-neon-fuchsia" />
                                 </div>
-                                <span className="text-neon-cyan font-black tracking-[0.3em] text-[10px] uppercase">Calendrier Officiel</span>
+                                <span className="text-neon-fuchsia font-black tracking-[0.3em] text-[10px] uppercase">Calendrier Officiel</span>
                             </div>
                             <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
-                                {t('agenda.title').split(' ')[0]} <span className="text-neon-cyan drop-shadow-[0_0_20px_rgba(0,240,255,0.5)]">{t('agenda.title').split(' ').slice(1).join(' ')}</span>
+                                {t('agenda.title').split(' ')[0]} <span className="text-neon-fuchsia drop-shadow-[0_0_20px_rgba(255,0,255,0.5)]">{t('agenda.title').split(' ').slice(1).join(' ')}</span>
                             </h1>
                             <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">
                                 Retrouvez tous les festivals EDM, Techno et House à travers le monde. Planifiez vos prochaines escapades musicales en un clin d'oeil.
@@ -439,7 +439,7 @@ export function Agenda() {
                                     setEditingEvent(null);
                                     setIsEditModalOpen(true);
                                 }}
-                                className="flex items-center justify-center gap-3 px-8 py-4 bg-neon-cyan text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(0,240,255,0.3)] mx-auto sm:mx-0"
+                                className="flex items-center justify-center gap-3 px-8 py-4 bg-neon-fuchsia text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,255,0.3)] mx-auto sm:mx-0"
                             >
                                 <Plus className="w-5 h-5" />
                                 <span>{t('admin.add')}</span>
@@ -457,7 +457,7 @@ export function Agenda() {
                             className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] bg-dark-bg/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center gap-6 shadow-2xl"
                         >
                             <div className="flex items-center gap-3">
-                                <CheckSquare className="w-5 h-5 text-neon-cyan" />
+                                <CheckSquare className="w-5 h-5 text-neon-fuchsia" />
                                 <span className="text-sm font-black text-white uppercase tracking-wider">{selectedEvents.size} sélectionné(s)</span>
                             </div>
                             <div className="h-6 w-[1px] bg-white/10" />
@@ -468,7 +468,7 @@ export function Agenda() {
                                         setBulkType('');
                                         setIsBulkEditModalOpen(true);
                                     }}
-                                    className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan/30 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
+                                    className="flex items-center gap-2 px-4 py-2 bg-neon-fuchsia/20 text-neon-fuchsia hover:bg-neon-fuchsia/30 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
                                 >
                                     <Edit2 className="w-4 h-4" />
                                     Modifier
@@ -506,8 +506,8 @@ export function Agenda() {
                             whileHover={{ scale: 1.05 }}
                             onMouseEnter={playHoverSound}
                             className={`px-6 py-2 rounded-full text-[10px] font-black tracking-widest transition-all duration-300 border ${activeCategory === cat.id
-                                ? 'bg-neon-cyan border-transparent text-white shadow-[0_0_20px_rgba(255,17,17,0.4)]'
-                                : 'bg-white/5 border-white/10 text-white/40 hover:border-neon-cyan/40 hover:text-neon-cyan'
+                                ? 'bg-neon-fuchsia border-transparent text-white shadow-[0_0_20px_rgba(255,17,17,0.4)]'
+                                : 'bg-white/5 border-white/10 text-white/40 hover:border-neon-fuchsia/40 hover:text-neon-fuchsia'
                                 } uppercase`}
                         >
                             {cat.label}
@@ -519,7 +519,7 @@ export function Agenda() {
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex flex-wrap items-center gap-4 mb-8 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan px-6 py-3 rounded-full w-fit"
+                        className="flex flex-wrap items-center gap-4 mb-8 bg-neon-fuchsia/10 border border-neon-fuchsia/20 text-neon-fuchsia px-6 py-3 rounded-full w-fit"
                     >
                         <MapPin className="w-5 h-5" />
                         <span className="text-sm font-bold uppercase tracking-wider">
@@ -531,46 +531,48 @@ export function Agenda() {
                                 params.delete('location');
                                 setSearchParams(params);
                             }}
-                            className="ml-4 p-1 hover:bg-neon-cyan/20 rounded-full transition-colors"
+                            className="ml-4 p-1 hover:bg-neon-fuchsia/20 rounded-full transition-colors"
                         >
                             <X className="w-4 h-4" />
                         </button>
                     </motion.div>
                 )}
 
-                <div className="mb-12 flex justify-center">
-                    <div className="flex items-center justify-center p-4 bg-white/5 border border-white/10 rounded-3xl gap-4 md:gap-8 shadow-xl">
-                        <button
-                            onClick={() => {
-                                const currentIndex = months.indexOf(selectedMonth || '');
-                                if (currentIndex > 0) setSelectedMonth(months[currentIndex - 1]);
-                            }}
-                            disabled={months.length === 0 || months.indexOf(selectedMonth || '') <= 0}
-                            className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-cyan hover:text-neon-cyan disabled:opacity-20 transition-all group"
-                            onMouseEnter={playHoverSound}
-                        >
-                            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
-                        </button>
+                {!selectedLocation && (
+                    <div className="mb-12 flex justify-center">
+                        <div className="flex items-center justify-center p-4 bg-white/5 border border-white/10 rounded-3xl gap-4 md:gap-8 shadow-xl">
+                            <button
+                                onClick={() => {
+                                    const currentIndex = months.indexOf(selectedMonth || '');
+                                    if (currentIndex > 0) setSelectedMonth(months[currentIndex - 1]);
+                                }}
+                                disabled={months.length === 0 || months.indexOf(selectedMonth || '') <= 0}
+                                className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-fuchsia hover:text-neon-fuchsia disabled:opacity-20 transition-all group"
+                                onMouseEnter={playHoverSound}
+                            >
+                                <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                            </button>
 
-                        <div className="w-64 md:w-80 text-center">
-                            <h2 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                                {selectedMonth ? formatMonthName(selectedMonth) : '—'}
-                            </h2>
+                            <div className="w-64 md:w-80 text-center">
+                                <h2 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                                    {selectedMonth ? formatMonthName(selectedMonth) : '—'}
+                                </h2>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    const currentIndex = months.indexOf(selectedMonth || '');
+                                    if (currentIndex !== -1 && currentIndex < months.length - 1) setSelectedMonth(months[currentIndex + 1]);
+                                }}
+                                disabled={months.length === 0 || (selectedMonth ? months.indexOf(selectedMonth) >= months.length - 1 : true)}
+                                className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-fuchsia hover:text-neon-fuchsia disabled:opacity-20 transition-all group"
+                                onMouseEnter={playHoverSound}
+                            >
+                                <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                            </button>
                         </div>
-
-                        <button
-                            onClick={() => {
-                                const currentIndex = months.indexOf(selectedMonth || '');
-                                if (currentIndex !== -1 && currentIndex < months.length - 1) setSelectedMonth(months[currentIndex + 1]);
-                            }}
-                            disabled={months.length === 0 || (selectedMonth ? months.indexOf(selectedMonth) >= months.length - 1 : true)}
-                            className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-cyan hover:text-neon-cyan disabled:opacity-20 transition-all group"
-                            onMouseEnter={playHoverSound}
-                        >
-                            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                        </button>
                     </div>
-                </div>
+                )}
 
                 {months.length === 0 && (
                     <div className="mb-8 flex justify-center">
@@ -589,7 +591,7 @@ export function Agenda() {
                         >
                             <Link
                                 to="/live"
-                                className="block relative group overflow-hidden rounded-[2rem] md:rounded-2xl border-2 border-neon-cyan shadow-[0_0_30px_rgba(0,240,255,0.4)] transition-all duration-500 hover:scale-[1.01] hover:shadow-[0_0_50px_rgba(0,240,255,0.6)] bg-black/40 backdrop-blur-xl"
+                                className="block relative group overflow-hidden rounded-[2rem] md:rounded-2xl border-2 border-neon-fuchsia shadow-[0_0_30px_rgba(255,0,255,0.4)] transition-all duration-500 hover:scale-[1.01] hover:shadow-[0_0_50px_rgba(255,0,255,0.6)] bg-black/40 backdrop-blur-xl"
                             >
                                 <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
                                     <motion.div 
@@ -601,18 +603,18 @@ export function Agenda() {
 
                                 <div className="p-6 md:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-10 relative z-10">
                                     <div className="relative shrink-0">
-                                        <div className="absolute inset-0 bg-neon-cyan blur-xl rounded-full animate-pulse opacity-40" />
-                                        <div className="w-20 h-20 md:w-28 md:h-28 bg-black rounded-full border-4 border-neon-cyan flex items-center justify-center relative z-10 shadow-[0_0_30px_rgba(0,240,255,0.4)]">
+                                        <div className="absolute inset-0 bg-neon-fuchsia blur-xl rounded-full animate-pulse opacity-40" />
+                                        <div className="w-20 h-20 md:w-28 md:h-28 bg-black rounded-full border-4 border-neon-fuchsia flex items-center justify-center relative z-10 shadow-[0_0_30px_rgba(255,0,255,0.4)]">
                                             <div className="flex flex-col items-center">
-                                                <span className="text-neon-cyan font-black text-xl md:text-3xl animate-pulse italic">LIVE</span>
-                                                <div className="w-2 h-2 bg-neon-cyan rounded-full mt-1 animate-ping" />
+                                                <span className="text-neon-fuchsia font-black text-xl md:text-3xl animate-pulse italic">LIVE</span>
+                                                <div className="w-2 h-2 bg-neon-fuchsia rounded-full mt-1 animate-ping" />
                                             </div>
                                         </div>
                                     </div>
                                     
                                     <div className="flex-1 text-center md:text-left min-w-0">
                                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-3">
-                                            <span className="px-4 py-1.5 bg-neon-cyan text-white text-[10px] md:text-xs font-black rounded-full uppercase tracking-widest animate-pulse shadow-[0_0_15px_rgba(0,240,255,0.8)]">
+                                            <span className="px-4 py-1.5 bg-neon-fuchsia text-white text-[10px] md:text-xs font-black rounded-full uppercase tracking-widest animate-pulse shadow-[0_0_15px_rgba(255,0,255,0.8)]">
                                                 {t('home.live_now')}
                                             </span>
                                             <div className="h-4 w-[1px] bg-white/10 hidden md:block" />
@@ -621,7 +623,7 @@ export function Agenda() {
                                             </span>
                                         </div>
                                         
-                                        <h2 className="text-2xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-tight mb-4 group-hover:text-neon-cyan transition-colors duration-300 truncate">
+                                        <h2 className="text-2xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-tight mb-4 group-hover:text-neon-fuchsia transition-colors duration-300 truncate">
                                             {takeoverSettings?.title || currentLiveEvent?.title || 'DROPSIDERS LIVE'}
                                         </h2>
                                         
@@ -633,7 +635,7 @@ export function Agenda() {
                                     </div>
 
                                     <div className="shrink-0 w-full md:w-auto">
-                                        <button className="w-full md:w-auto px-10 py-5 bg-neon-cyan text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(0,240,255,0.3)]">
+                                        <button className="w-full md:w-auto px-10 py-5 bg-neon-fuchsia text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,255,0.3)]">
                                             Regarder le Live
                                         </button>
                                     </div>
@@ -673,10 +675,10 @@ export function Agenda() {
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: index * 0.05 }}
-                                        className={`group relative z-10 bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden transition-all duration-300 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:max-w-none md:w-auto md:flex-shrink-1 md:rounded-xl md:border ${styles.hoverBorder} ${styles.shadow} ${isSelected ? 'border-neon-cyan/50 bg-neon-cyan/5' : ''} ${isPast ? 'opacity-40 grayscale-[0.5]' : ''} ${isNext ? 'shadow-[0_0_40px_rgba(0,240,255,0.4)] border border-neon-cyan z-20 overflow-visible before:absolute before:-inset-[1px] before:border before:border-neon-cyan/50 before:rounded-xl before:animate-pulse before:pointer-events-none' : ''}`}
+                                        className={`group relative z-10 bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden transition-all duration-300 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:max-w-none md:w-auto md:flex-shrink-1 md:rounded-xl md:border ${styles.hoverBorder} ${styles.shadow} ${isSelected ? 'border-neon-fuchsia/50 bg-neon-fuchsia/5' : ''} ${isPast ? 'opacity-40 grayscale-[0.5]' : ''} ${isNext ? 'shadow-[0_0_40px_rgba(255,0,255,0.4)] border border-neon-fuchsia z-20 overflow-visible before:absolute before:-inset-[1px] before:border before:border-neon-fuchsia/50 before:rounded-xl before:animate-pulse before:pointer-events-none' : ''}`}
                                     >
                                         {isNext && (
-                                            <div className="absolute top-0 right-0 px-3 py-1 bg-neon-cyan text-white text-[8px] font-black uppercase tracking-widest rounded-bl-3xl md:rounded-bl-xl shadow-lg z-20">
+                                            <div className="absolute top-0 right-0 px-3 py-1 bg-neon-fuchsia text-white text-[8px] font-black uppercase tracking-widest rounded-bl-3xl md:rounded-bl-xl shadow-lg z-20">
                                                 Prochainement
                                             </div>
                                         )}
@@ -716,8 +718,16 @@ export function Agenda() {
                                                 <h2 className="text-2xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-3 mb-2 shadow-black drop-shadow-lg">
                                                     {event.title}
                                                 </h2>
-                                                <div className="flex items-center gap-2 text-white/80 text-xs font-bold uppercase tracking-wider">
-                                                    <MapPin className="w-4 h-4 text-neon-cyan" />
+                                                <div 
+                                                    className="flex items-center gap-2 text-white/80 text-xs font-bold uppercase tracking-wider cursor-pointer hover:text-neon-fuchsia transition-colors relative z-20"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const params = new URLSearchParams(searchParams);
+                                                        params.set('location', event.location);
+                                                        setSearchParams(params);
+                                                    }}
+                                                >
+                                                    <MapPin className="w-4 h-4 text-neon-fuchsia" />
                                                     <span className="truncate">{event.location}</span>
                                                 </div>
                                             </div>
@@ -738,7 +748,7 @@ export function Agenda() {
                                                         }}
                                                     >
                                                         {isSelected ? (
-                                                            <CheckSquare className="w-6 h-6 text-neon-cyan" />
+                                                            <CheckSquare className="w-6 h-6 text-neon-fuchsia" />
                                                         ) : (
                                                             <Square className="w-6 h-6 text-gray-700" />
                                                         )}
@@ -751,7 +761,7 @@ export function Agenda() {
                                                     <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
                                                         <div className="flex items-center gap-4 md:gap-6">
                                                             {/* Timeline Dot (Mobile Only) */}
-                                                            <div className={`md:hidden absolute left-[28px] w-1.5 h-1.5 rounded-full z-20 transition-all ${isPast ? 'bg-gray-700 border border-white/10' : (isNext ? 'bg-neon-cyan shadow-[0_0_20px_#ff0033] animate-pulse w-2.5 h-2.5 -ml-[2px]' : styles.bg.replace('/20', ''))}`} />
+                                                            <div className={`md:hidden absolute left-[28px] w-1.5 h-1.5 rounded-full z-20 transition-all ${isPast ? 'bg-gray-700 border border-white/10' : (isNext ? 'bg-neon-fuchsia shadow-[0_0_20px_#ff0033] animate-pulse w-2.5 h-2.5 -ml-[2px]' : styles.bg.replace('/20', ''))}`} />
 
                                                             <div className="flex-shrink-0 text-center bg-dark-bg border border-white/10 rounded-md md:rounded-xl p-1.5 md:p-4 w-12 md:w-24 min-h-0 md:min-h-[6.5rem] flex flex-col justify-center relative z-20">
                                                                 <span className={`block text-[8px] md:text-[11px] ${styles.text} font-black uppercase mb-0.5 md:mb-1.5 tracking-tight`}>
@@ -787,17 +797,25 @@ export function Agenda() {
                                                                     {event.isLiveDropsiders && (
                                                                         <button 
                                                                             onClick={(e) => { e.stopPropagation(); window.location.href = '/live'; }}
-                                                                            className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 animate-pulse hover:bg-neon-cyan hover:text-white transition-colors cursor-pointer"
+                                                                            className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-neon-fuchsia/20 text-neon-fuchsia border border-neon-fuchsia/30 animate-pulse hover:bg-neon-fuchsia hover:text-white transition-colors cursor-pointer"
                                                                         >
                                                                             LIVE
                                                                         </button>
                                                                     )}
                                                                 </div>
-                                                                <h3 className="text-sm md:text-2xl font-black text-white group-hover:text-neon-cyan transition-colors leading-tight uppercase italic truncate max-w-[150px] md:max-w-none">
+                                                                <h3 className="text-sm md:text-2xl font-black text-white group-hover:text-neon-fuchsia transition-colors leading-tight uppercase italic truncate max-w-[150px] md:max-w-none">
                                                                     {event.title}
                                                                 </h3>
-                                                                <div className="flex items-center gap-1.5 mt-1 text-[9px] md:text-base text-gray-500 uppercase font-bold tracking-wider">
-                                                                    <MapPin className="w-2.5 h-2.5 md:w-5 md:h-5 text-neon-cyan" />
+                                                                <div 
+                                                                    className="flex items-center gap-1.5 mt-1 text-[9px] md:text-base text-gray-500 uppercase font-bold tracking-wider cursor-pointer hover:text-neon-fuchsia transition-colors w-fit relative z-20"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const params = new URLSearchParams(searchParams);
+                                                                        params.set('location', event.location);
+                                                                        setSearchParams(params);
+                                                                    }}
+                                                                >
+                                                                    <MapPin className="w-2.5 h-2.5 md:w-5 md:h-5 text-neon-fuchsia" />
                                                                     <span className="truncate">{event.venue && `${event.venue}, `}{event.location}</span>
                                                                     <FlagIcon location={event.country || event.location} />
                                                                 </div>
@@ -808,10 +826,10 @@ export function Agenda() {
                                                             {!isPast && (
                                                                 <button
                                                                     onClick={handleReminder}
-                                                                    className="hidden sm:flex w-10 h-10 rounded-xl bg-white/5 border border-white/10 items-center justify-center hover:bg-neon-cyan/10 hover:border-neon-cyan transition-all group/btn"
+                                                                    className="hidden sm:flex w-10 h-10 rounded-xl bg-white/5 border border-white/10 items-center justify-center hover:bg-neon-fuchsia/10 hover:border-neon-fuchsia transition-all group/btn"
                                                                     title="Rappel Calendrier"
                                                                 >
-                                                                    <Calendar className="w-5 h-5 text-gray-500 group-hover/btn:text-neon-cyan" />
+                                                                    <Calendar className="w-5 h-5 text-gray-500 group-hover/btn:text-neon-fuchsia" />
                                                                 </button>
                                                             )}
                                                             <button
@@ -836,7 +854,7 @@ export function Agenda() {
                                                                                 e.stopPropagation();
                                                                                 window.location.href = '/communaute?tab=CONCOURS';
                                                                             }}
-                                                                            className="px-6 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all bg-neon-cyan border-neon-cyan text-white hover:shadow-[0_0_20px_rgba(0,240,255,0.3)]"
+                                                                            className="px-6 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all bg-neon-fuchsia border-neon-fuchsia text-white hover:shadow-[0_0_20px_rgba(255,0,255,0.3)]"
                                                                         >
                                                                             Participer
                                                                         </button>
@@ -858,13 +876,13 @@ export function Agenda() {
                                                                     href={event.url}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className={`hidden md:block px-8 py-3 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all ${event.isSoldOut ? 'bg-neon-cyan/10 text-neon-cyan border-neon-cyan/30' : 'bg-white/5 border-white/10 text-white hover:bg-neon-cyan hover:border-neon-cyan hover:shadow-[0_0_20px_rgba(0,240,255,0.3)]'}`}
+                                                                    className={`hidden md:block px-8 py-3 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all ${event.isSoldOut ? 'bg-neon-fuchsia/10 text-neon-fuchsia border-neon-fuchsia/30' : 'bg-white/5 border-white/10 text-white hover:bg-neon-fuchsia hover:border-neon-fuchsia hover:shadow-[0_0_20px_rgba(255,0,255,0.3)]'}`}
                                                                     onClick={e => e.stopPropagation()}
                                                                 >
                                                                     {event.isSoldOut ? 'Sold Out' : t('agenda.infos_tickets')}
                                                                 </a>
                                                              )}
-                                                            <ChevronDown className={`w-5 h-5 md:w-6 md:h-6 text-gray-600 transition-transform ${isExpanded ? 'rotate-180 text-neon-cyan' : ''}`} />
+                                                            <ChevronDown className={`w-5 h-5 md:w-6 md:h-6 text-gray-600 transition-transform ${isExpanded ? 'rotate-180 text-neon-fuchsia' : ''}`} />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -897,8 +915,8 @@ export function Agenda() {
                                                                         }}
                                                                     />
                                                                     {event.isLiveDropsiders && takeoverEnabled && (
-                                                                        <div className="absolute inset-0 bg-neon-cyan/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                            <span className="bg-neon-cyan text-white px-4 py-2 rounded-full text-xs font-black uppercase italic animate-pulse">REJOINDRE LE LIVE</span>
+                                                                        <div className="absolute inset-0 bg-neon-fuchsia/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                            <span className="bg-neon-fuchsia text-white px-4 py-2 rounded-full text-xs font-black uppercase italic animate-pulse">REJOINDRE LE LIVE</span>
                                                                         </div>
                                                                     )}
                                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -914,7 +932,7 @@ export function Agenda() {
                                                                             {event.genre}
                                                                         </span>
                                                                         <span className="text-white/20">•</span>
-                                                                        <span className={`text-[12px] md:text-base font-black uppercase tracking-[0.3em] ${getEventStyles("", event.type).text} drop-shadow-[0_0_10px_rgba(0,240,255,0.3)]`}>
+                                                                        <span className={`text-[12px] md:text-base font-black uppercase tracking-[0.3em] ${getEventStyles("", event.type).text} drop-shadow-[0_0_10px_rgba(255,0,255,0.3)]`}>
                                                                             {event.type}
                                                                         </span>
                                                                     </div>
@@ -931,7 +949,7 @@ export function Agenda() {
                                                                                     onClick={() => {
                                                                                         window.location.href = '/communaute?tab=CONCOURS';
                                                                                     }}
-                                                                                    className="flex-1 md:flex-none px-10 py-5 bg-neon-cyan text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(0,240,255,0.3)] text-center text-xs md:text-sm"
+                                                                                    className="flex-1 md:flex-none px-10 py-5 bg-neon-fuchsia text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,255,0.3)] text-center text-xs md:text-sm"
                                                                                 >
                                                                                     {event.isSoldOut ? 'SITE OFFICIEL' : 'Participer au Concours'}
                                                                                 </button>
@@ -954,7 +972,7 @@ export function Agenda() {
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
                                                                             onClick={() => trackInteraction('click_tickets', 'agenda', event.title)}
-                                                                            className="flex-1 md:flex-none px-10 py-5 bg-neon-cyan text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(0,240,255,0.3)] text-center text-xs md:text-sm"
+                                                                            className="flex-1 md:flex-none px-10 py-5 bg-neon-fuchsia text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,255,0.3)] text-center text-xs md:text-sm"
                                                                         >
                                                                             {event.isSoldOut ? 'SITE OFFICIEL' : t('agenda.book_tickets')}
                                                                         </a>
@@ -965,7 +983,7 @@ export function Agenda() {
                                                                             onClick={handleReminder}
                                                                             className="flex-1 md:flex-none flex items-center justify-center gap-3 px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all text-xs md:text-sm"
                                                                         >
-                                                                            <Calendar className="w-5 h-5 text-neon-cyan" />
+                                                                            <Calendar className="w-5 h-5 text-neon-fuchsia" />
                                                                             M'en rappeler
                                                                         </button>
                                                                     )}
@@ -978,7 +996,7 @@ export function Agenda() {
                                                                                 setEditingEvent(original || event);
                                                                                 setIsEditModalOpen(true);
                                                                             }}
-                                                                            className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20 rounded-xl font-black uppercase tracking-widest hover:bg-neon-cyan/20 transition-all text-xs"
+                                                                            className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-neon-fuchsia/10 text-neon-fuchsia border border-neon-fuchsia/20 rounded-xl font-black uppercase tracking-widest hover:bg-neon-fuchsia/20 transition-all text-xs"
                                                                         >
                                                                             <Edit2 className="w-4 h-4" />
                                                                             {t('admin.modify')}
@@ -1003,7 +1021,7 @@ export function Agenda() {
                 </div>
 
                 <div className="mt-20 pt-16 border-t border-white/10 relative">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80vw] h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80vw] h-[1px] bg-gradient-to-r from-transparent via-neon-fuchsia/20 to-transparent" />
                     <CollaborativeCalendar />
                     <AgendaModal
                         isOpen={isEditModalOpen}
@@ -1024,7 +1042,7 @@ export function Agenda() {
                         cancelLabel="Annuler"
                         onConfirm={handleBulkUpdate}
                         onCancel={() => setIsBulkEditModalOpen(false)}
-                        accentColor="neon-cyan"
+                        accentColor="neon-fuchsia"
                     >
                         <div className="mt-6 space-y-4 text-left">
                             <div className="space-y-2">
@@ -1103,7 +1121,7 @@ export function Agenda() {
                         setIsDeleting(false);
                         setItemToDelete(null);
                     }}
-                    accentColor="neon-cyan"
+                    accentColor="neon-fuchsia"
                 />
             </div >
             <AdminEditBar

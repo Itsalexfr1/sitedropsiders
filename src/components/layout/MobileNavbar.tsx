@@ -48,9 +48,9 @@ export function MobileNavbar() {
             label: isLiveActive ? 'LIVE' : (navLabels.communaute || 'Communaute'),
             path: isLiveActive ? '/live' : '/communaute',
             isCenter: true,
-            color: isLiveActive ? 'neon-fuchsia' : 'neon-pink'
+            color: isLiveActive ? 'neon-fuchsia' : 'neon-cyan'
         },
-        { icon: Calendar, label: navLabels.agenda || 'Agenda', path: '/agenda', color: 'neon-cyan' },
+        { icon: Calendar, label: navLabels.agenda || 'Agenda', path: '/agenda', color: 'neon-pink' },
         {
             icon: MoreHorizontal,
             label: 'Plus',
@@ -63,7 +63,7 @@ export function MobileNavbar() {
 
     const menuItems = [
         // Live moved to center if active
-        ...(isLiveActive ? [{ icon: Users, label: navLabels.communaute || 'Communaute', path: '/communaute', color: 'text-neon-pink' }] : []),
+        ...(isLiveActive ? [{ icon: Users, label: navLabels.communaute || 'Communaute', path: '/communaute', color: 'text-neon-cyan' }] : []),
         { icon: Newspaper, label: navLabels.news || 'News', path: '/news', color: 'text-neon-red' },
         { icon: Plane, label: navLabels.voyage || t('nav.voyage'), path: '/voyage', color: 'text-neon-green' },
         { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-orange' },
@@ -98,7 +98,7 @@ export function MobileNavbar() {
                     if (item.isCenter) {
                         const styleClasses = isLiveActive
                             ? "bg-neon-fuchsia/40 border-neon-fuchsia/50 shadow-[0_0_30px_rgba(255,0,255,0.4)]"
-                            : "bg-neon-pink/40 border-neon-pink/50 shadow-[0_0_30px_rgba(255,0,127,0.4)]";
+                            : "bg-neon-cyan/40 border-neon-cyan/50 shadow-[0_0_30px_rgba(0,255,255,0.4)]";
 
                         return (
                             <Link

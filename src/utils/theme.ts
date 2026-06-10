@@ -8,11 +8,11 @@ export const getCategoryColor = (category: string = ''): string => {
     if (cat.includes('musique') || cat.includes('music')) return 'neon-green';
     if (cat.includes('sets') || cat.includes('mix')) return 'neon-purple';
     if (cat.includes('news')) return 'neon-red';
-    if (cat.includes('agenda')) return 'neon-cyan';
+    if (cat.includes('agenda')) return 'neon-pink';
     if (cat.includes('recap')) return 'neon-orange';
     if (cat.includes('interview')) return 'neon-orange';
     if (cat.includes('top 100') || cat.includes('top100')) return 'neon-yellow';
-    if (cat.includes('communaute')) return 'neon-pink';
+    if (cat.includes('communaute')) return 'neon-cyan';
     if (cat.includes('voyage') || cat.includes('vols')) return 'neon-green';
     if (cat.includes('team')) return 'neon-lime';
     if (cat.includes('shop')) return 'neon-blue';
