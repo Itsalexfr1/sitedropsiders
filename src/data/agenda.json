@@ -5418,5 +5418,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1046,
+    "title": "Afrojack ",
+    "date": "2026-08-13",
+    "startDate": "2026-08-13",
+    "endDate": "2026-08-13",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/0e5fcdb428e9136d-afrojack_shotgun_ze6dis.avif",
+    "url": "https://shotgun.live/fr/events/afrojack-jeudi-13-aout-2026-amnesia",
+    "genre": "Big Room",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
