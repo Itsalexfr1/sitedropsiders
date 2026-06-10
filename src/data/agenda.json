@@ -5475,5 +5475,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1049,
+    "title": "Trym",
+    "date": "2026-08-18",
+    "startDate": "2026-08-18",
+    "endDate": "2026-08-18",
+    "venue": "AMNESIA",
+    "location": "CAP D'AGDE",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/6b560db4f2676c4f-trym_shotgun_pikedc.avif",
+    "url": "https://shotgun.live/fr/events/trym-mardi-18-aout-2026-amnesia",
+    "genre": "Hard Techno",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
