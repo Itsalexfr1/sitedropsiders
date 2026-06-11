@@ -5741,5 +5741,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1065,
+    "title": "Rüfüs Du Sol",
+    "date": "2026-07-26",
+    "startDate": "2026-07-26",
+    "endDate": "2026-07-26",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/caf50a674b96222d-rufus_du_sol.webp",
+    "url": "https://shotgun.live/fr/events/klub-day-11",
+    "genre": "Melodic Techno",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
