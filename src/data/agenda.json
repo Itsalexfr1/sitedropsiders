@@ -5798,5 +5798,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1068,
+    "title": "Mochakk",
+    "date": "2026-07-30",
+    "startDate": "2026-07-30",
+    "endDate": "2026-07-30",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/91e38197d57ae61c-mochakknewpressshot.jpg",
+    "url": "https://shotgun.live/fr/events/klub-day-14",
+    "genre": "Tech House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
