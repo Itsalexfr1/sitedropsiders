@@ -917,9 +917,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textAlign = 'center';
                     
                     // Animation logic: Loop in preview, start from 0 in recording
-                    const elapsed = isVideoRecording 
-                        ? (Date.now() - recordingStartTimeRef.current) / 1000 
-                        : (Date.now() % 5000) / 1000;
+                    const elapsed = (isVideoRecording || (bgVideo && !isDownloading))
+                        ? (isVideoRecording 
+                            ? (Date.now() - recordingStartTimeRef.current) / 1000 
+                            : (Date.now() % 5000) / 1000)
+                        : 99.0;
                     
                     let currY = 1480; 
 
@@ -1019,9 +1021,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 };
 
                 // Animation logic: Loop in preview, start from 0 in recording
-                const elapsed = isVideoRecording 
-                    ? (Date.now() - recordingStartTimeRef.current) / 1000 
-                    : (Date.now() % 5000) / 1000;
+                const elapsed = (isVideoRecording || (bgVideo && !isDownloading))
+                    ? (isVideoRecording 
+                        ? (Date.now() - recordingStartTimeRef.current) / 1000 
+                        : (Date.now() % 5000) / 1000)
+                    : 99.0;
                 
                 // Positioned at the bottom (aligned with NEWS theme at labelY + 130)
                 let currY = labelY + 130; 
