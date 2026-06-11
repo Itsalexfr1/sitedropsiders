@@ -6007,5 +6007,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1079,
+    "title": "Tresor New Faces hosted by MAEDON",
+    "date": "2026-06-17",
+    "startDate": "2026-06-17",
+    "endDate": "2026-06-17",
+    "venue": "Trésor",
+    "location": "BERLIN",
+    "country": "ALLEMAGNE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/a69cf2ac62c677a9-30445a1ce1f2013db9f243306c51cc.webp",
+    "url": "https://tresorberlin.com/event/20260617-tresor-new-faces-hosted-by-maedon/",
+    "genre": "Techno",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
