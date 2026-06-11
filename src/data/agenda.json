@@ -5589,5 +5589,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1057,
+    "title": "Black Coffee",
+    "date": "2026-07-17",
+    "startDate": "2026-07-17",
+    "endDate": "2026-07-17",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/a05c8d6888bd122c-9aabfdba_a56e_11f0_b7d7_0a58a9.webp",
+    "url": "https://shotgun.live/fr/events/klub-day-3",
+    "genre": "Afro House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
