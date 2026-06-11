@@ -2528,7 +2528,7 @@ ${generateSocialsHtml()}
 
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {activeTab !== 'Musique' && (
+                            {activeTab !== 'Musique' && activeTab !== 'Review' && (
                                 <>
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Ville</label>
@@ -2793,7 +2793,7 @@ ${generateSocialsHtml()}
                                 </div>
                             </div>
                             )}
-                            {activeTab !== 'Musique' && activeTab !== 'Sets-Mixes' && (
+                            {activeTab !== 'Musique' && activeTab !== 'Review' && activeTab !== 'Sets-Mixes' && (
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between mb-2">
                                         <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">

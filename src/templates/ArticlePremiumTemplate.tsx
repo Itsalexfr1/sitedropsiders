@@ -1663,6 +1663,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 {/* Video Section - High Priority for Recap/Interview (not for Sets-Mixes, shown above) */}
                                 {article.youtubeId &&
                                     !isSetsMixes &&
+                                    article.category !== 'Review' &&
                                     (article.category === 'Interview' || article.category === 'Interviews' ? article.showVideo === true : article.showVideo !== false) &&
                                     !article.category?.includes('Interview Video') && (() => {
                                         const isUploadedVideo = /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(article.youtubeId);
