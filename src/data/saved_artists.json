@@ -223,5 +223,19 @@
       "soundcloud": "",
       "beatport": ""
     }
+  },
+  {
+    "name": "PROSPA",
+    "socials": {
+      "website": "",
+      "instagram": "https://www.instagram.com/prospa__/",
+      "tiktok": "https://www.tiktok.com/@prospa",
+      "youtube": "https://www.youtube.com/channel/UCMasYklV4R1r6q3-YeBSnwQ",
+      "facebook": "https://www.facebook.com/prospauk/?locale=fr_FR",
+      "x": "https://twitter.com/Prospauk",
+      "spotify": "https://open.spotify.com/artist/6HabM2PUM519iIxervGWSb?si=MXDAmWT8Ql2Fpih_LJgIUA",
+      "soundcloud": "https://soundcloud.com/prospauk",
+      "beatport": "https://www.beatport.com/artist/prospa/460053"
+    }
   }
 ]
