@@ -6083,5 +6083,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1083,
+    "title": "Logistic Records 30 Yrs Afterparty",
+    "date": "2026-06-20",
+    "startDate": "2026-06-20",
+    "endDate": "2026-06-20",
+    "venue": "Club der Visionaere",
+    "location": "BERLIN",
+    "country": "ALLEMAGNE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/13bb60d52e828877-crop_1781170379260.jpg",
+    "url": "https://clubdervisionaere.com",
+    "genre": "Techno",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
