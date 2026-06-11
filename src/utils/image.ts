@@ -45,8 +45,8 @@ export function resolveImageUrl(url: string | undefined | null, seed?: string): 
     // 2. If it's an absolute URL to another domain, return it through our proxy
     if (processedUrl.startsWith('http') || processedUrl.startsWith('//')) {
         const fullUrl = processedUrl.startsWith('//') ? 'https:' + processedUrl : processedUrl;
-        // Don't proxy if it's already a local/R2 URL
-        if (fullUrl.includes('dropsiders.fr')) return fullUrl;
+        // Don't proxy if it's already a local/R2 URL or already processed by weserv
+        if (fullUrl.includes('dropsiders.fr') || fullUrl.includes('images.weserv.nl')) return fullUrl;
         return `/api/proxy-image?url=${encodeURIComponent(fullUrl)}`;
     }
 

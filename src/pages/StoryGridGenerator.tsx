@@ -169,11 +169,17 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
         const selected = filteredSource.slice(0, randomLimit);
         const generationTimestamp = Date.now();
         const wikiItems: StoryItem[] = selected.map((item, idx) => {
-            const rawImg = resolveImageUrl(item.image || item.photo || null, item.name);
+            const originalImg = item.image || item.photo || null;
+            const rawImg = resolveImageUrl(originalImg, item.name);
             let displayImg = rawImg;
             
-            if (rawImg && rawImg.startsWith('http') && !rawImg.includes('blob:') && !rawImg.includes('data:') && !rawImg.includes('dropsiders.fr')) {
-                displayImg = `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=300&h=300&fit=cover&v=${generationTimestamp}-${idx}`;
+            if (originalImg && 
+                (originalImg.startsWith('http') || originalImg.startsWith('//')) && 
+                !originalImg.includes('dropsiders.fr') &&
+                !originalImg.includes('blob:') && 
+                !originalImg.includes('data:')) {
+                const absoluteImgUrl = originalImg.startsWith('//') ? `https:${originalImg}` : originalImg;
+                displayImg = `https://images.weserv.nl/?url=${encodeURIComponent(absoluteImgUrl)}&w=300&h=300&fit=cover&v=${generationTimestamp}-${idx}`;
             }
 
             return {
@@ -205,10 +211,26 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
             if (item.id === id) {
                 const newItem = { ...item, ...updates };
                 if (updates.image !== undefined) {
-                    const rawImg = resolveImageUrl(newItem.image, newItem.label);
+                    const originalImg = updates.image;
+                    const rawImg = resolveImageUrl(originalImg, newItem.label);
                     newItem.image = rawImg;
-                    if (rawImg && rawImg.startsWith('http') && !rawImg.includes('blob:') && !rawImg.includes('data:') && !rawImg.includes('dropsiders.fr')) {
-                        newItem.displayImage = `https://images.weserv.nl/?url=${encodeURIComponent(rawImg)}&w=300&h=300&fit=cover&v=${Date.now()}-${item.id}`;
+                    
+                    let externalUrl = null;
+                    if (originalImg && (originalImg.startsWith('http') || originalImg.startsWith('//')) && !originalImg.includes('dropsiders.fr')) {
+                        externalUrl = originalImg.startsWith('//') ? `https:${originalImg}` : originalImg;
+                    } else if (rawImg && rawImg.startsWith('/api/proxy-image')) {
+                        try {
+                            const urlParam = new URL(rawImg, window.location.origin).searchParams.get('url');
+                            if (urlParam) {
+                                externalUrl = urlParam;
+                            }
+                        } catch (e) {
+                            console.error("Failed to parse proxy url", e);
+                        }
+                    }
+                    
+                    if (externalUrl && !externalUrl.includes('blob:') && !externalUrl.includes('data:')) {
+                        newItem.displayImage = `https://images.weserv.nl/?url=${encodeURIComponent(externalUrl)}&w=300&h=300&fit=cover&v=${Date.now()}-${item.id}`;
                     } else {
                         newItem.displayImage = rawImg;
                     }

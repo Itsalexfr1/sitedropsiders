@@ -1723,7 +1723,7 @@ ${urls.map(u => `  <url>
                 
                 const proxyHeaders = new Headers(headers);
                 proxyHeaders.set('Content-Type', contentType);
-                proxyHeaders.set('Cache-Control', 'public, max-age=86400');
+                proxyHeaders.set('Cache-Control', 'private, max-age=86400');
                 
                 return new Response(imgData, { headers: proxyHeaders });
             } catch (e) {
