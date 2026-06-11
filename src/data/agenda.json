@@ -5684,5 +5684,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1062,
+    "title": "Vintage Culture",
+    "date": "2026-07-23",
+    "startDate": "2026-07-23",
+    "endDate": "2026-07-23",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/f781553d0a76f0c1-1a10ce14_301d_11ef_954e_0ecc81.jpeg",
+    "url": "https://shotgun.live/fr/events/klub-day-8",
+    "genre": "House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
