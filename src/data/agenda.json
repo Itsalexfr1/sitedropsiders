@@ -5703,5 +5703,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1063,
+    "title": "Jamie Jones",
+    "date": "2026-07-24",
+    "startDate": "2026-07-24",
+    "endDate": "2026-07-24",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/23ed24a9bc9a4583-320f4521_f2af_4cfa_b793_8941b6.webp",
+    "url": "https://shotgun.live/fr/events/klub-day-9",
+    "genre": "House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
