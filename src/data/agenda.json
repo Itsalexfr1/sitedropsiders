@@ -6045,5 +6045,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1081,
+    "title": "Renate x Salo",
+    "date": "2026-06-18",
+    "startDate": "2026-06-18",
+    "endDate": "2026-06-18",
+    "venue": "Renate",
+    "location": "BERLIN",
+    "country": "ALLEMAGNE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/e72bbf63e190f990-crop_1781170204080.jpg",
+    "url": "https://www.renate.cc",
+    "genre": "Techno",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
