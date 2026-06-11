@@ -5969,5 +5969,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1077,
+    "title": "Carlita",
+    "date": "2026-08-14",
+    "startDate": "2026-08-14",
+    "endDate": "2026-08-14",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/807547e78d1c6dcb-carlita_1_jpg.webp",
+    "url": "https://shotgun.live/fr/events/klub-day-23",
+    "genre": "House",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
