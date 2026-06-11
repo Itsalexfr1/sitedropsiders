@@ -5627,5 +5627,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1059,
+    "title": "Hugel",
+    "date": "2026-07-19",
+    "startDate": "2026-07-19",
+    "endDate": "2026-07-19",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/787d3855c25139ac-tonight___grand_opening_w___hu.jpg",
+    "url": "https://shotgun.live/fr/events/klub-day-5",
+    "genre": "Afro House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
