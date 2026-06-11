@@ -5722,5 +5722,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1064,
+    "title": "Bedouin",
+    "date": "2026-07-25",
+    "startDate": "2026-07-25",
+    "endDate": "2026-07-25",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/55e3ce4e96573baa-bedouin_2.jpeg",
+    "url": "https://shotgun.live/fr/events/klub-day-10",
+    "genre": "House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
