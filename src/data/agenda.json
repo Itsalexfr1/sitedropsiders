@@ -6026,5 +6026,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1080,
+    "title": "Pure Space",
+    "date": "2026-06-18",
+    "startDate": "2026-06-18",
+    "endDate": "2026-06-18",
+    "venue": "Säule (Berghain)",
+    "location": "BERLIN",
+    "country": "ALLEMAGNE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/83d134afde70a2cc-crop_1781170112482.jpg",
+    "url": "https://www.berghain.berlin/en/event/80831/",
+    "genre": "Techno",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
