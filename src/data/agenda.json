@@ -5570,5 +5570,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1056,
+    "title": "Whomadewho",
+    "date": "2026-07-15",
+    "startDate": "2026-07-15",
+    "endDate": "2026-07-15",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "https://onlytechno.net/wp-content/uploads/2021/09/WhoMadeWho-by-Sasha-Charoensub-1.jpg",
+    "url": "https://shotgun.live/fr/events/klub-day-2",
+    "genre": "House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
