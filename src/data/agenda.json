@@ -5608,5 +5608,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1058,
+    "title": "Solomun",
+    "date": "2026-07-18",
+    "startDate": "2026-07-18",
+    "endDate": "2026-07-18",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/b2f3036802609a63-solomun__2_.jpg",
+    "url": "https://shotgun.live/fr/events/klub-day-4",
+    "genre": "House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
