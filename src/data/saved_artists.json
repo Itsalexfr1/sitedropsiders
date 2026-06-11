@@ -237,5 +237,19 @@
       "soundcloud": "https://soundcloud.com/prospauk",
       "beatport": "https://www.beatport.com/artist/prospa/460053"
     }
+  },
+  {
+    "name": "HUGEL",
+    "socials": {
+      "website": "",
+      "instagram": "http://instagram.com/hugelthug/",
+      "tiktok": "https://www.tiktok.com/@hugelthug?lang=de",
+      "youtube": "https://www.youtube.com/@HUGELBeats",
+      "facebook": "http://www.facebook.com/hugelmusic",
+      "x": "http://twitter.com/hugelthug",
+      "spotify": "https://open.spotify.com/intl-fr/artist/5PlfkPxwCpRRWQJBxCa0By",
+      "soundcloud": "https://soundcloud.com/hugelmusic",
+      "beatport": "https://www.beatport.com/fr/artist/hugel/484708?srsltid=AfmBOoqmisq7JO7yMd9rwk75A3GP2RQdc1CGyH2TTlu718UGERVGvXob"
+    }
   }
 ]
