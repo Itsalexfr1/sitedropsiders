@@ -21,7 +21,7 @@ type TabKey = 'all' | 'news' | 'musique' | 'focus' | 'sets-mixes';
 const DEFAULT_TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: string }[] = [
     { key: 'all', label: 'Toutes', activeClass: 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]', inactiveClass: 'text-white/40 border-white/10 hover:border-white/30 hover:text-white' },
     { key: 'news', label: 'News', activeClass: 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,17,17,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-red/40 hover:text-neon-red' },
-    { key: 'musique', label: 'Musiques', activeClass: 'bg-neon-green text-white shadow-[0_0_20px_rgba(17,255,17,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-green/40 hover:text-neon-green' },
+    { key: 'musique', label: 'Top Tracks', activeClass: 'bg-neon-green text-white shadow-[0_0_20px_rgba(17,255,17,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-green/40 hover:text-neon-green' },
     { key: 'sets-mixes', label: 'Sets & Mixes', activeClass: 'bg-neon-purple text-white shadow-[0_0_20px_rgba(191,0,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-purple/40 hover:text-neon-purple' },
     { key: 'focus', label: 'Focus de la semaine', activeClass: 'bg-yellow-500 text-white shadow-[0_0_20px_rgba(234,179,8,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-yellow-500/40 hover:text-yellow-500' },
 ];
@@ -147,6 +147,7 @@ export function News() {
                 return cat.includes('news') ||
                     cat.includes('musique') ||
                     cat.includes('music') ||
+                    cat.includes('review') ||
                     cat.includes('actu') ||
                     cat.includes('festival') ||
                     cat.includes('artist') ||
@@ -169,7 +170,7 @@ export function News() {
         });
         if (activeTab === 'musique') return baseNews.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
-            return (cat.includes('musique') || cat.includes('music')) && !cat.includes('sets') && !cat.includes('mix');
+            return (cat.includes('musique') || cat.includes('music') || cat.includes('review')) && !cat.includes('sets') && !cat.includes('mix');
         });
         if (activeTab === 'sets-mixes') return baseNews.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
@@ -314,14 +315,14 @@ export function News() {
                             <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
                                 <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border backdrop-blur-md mb-2 inline-block ${heroArticle.isFocus 
                                     ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' 
-                                    : (heroArticle.category || '').toLowerCase().includes('musique')
+                                    : ((heroArticle.category || '').toLowerCase().includes('musique') || (heroArticle.category || '').toLowerCase().includes('review'))
                                         ? 'bg-neon-green/20 text-neon-green border-neon-green/30'
                                         : (heroArticle.category || '').toLowerCase().includes('recap')
                                             ? 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/30'
                                             : (heroArticle.category || '').toLowerCase().includes('interview')
                                                 ? 'bg-neon-purple/20 text-neon-purple border-neon-purple/30'
                                                 : 'bg-neon-red/20 text-neon-red border-neon-red/30'}`}>
-                                    {heroArticle.isFocus ? '⭐ FOCUS' : heroArticle.category}
+                                    {heroArticle.isFocus ? '⭐ FOCUS' : (heroArticle.category === 'Review' ? 'REVIEW' : (heroArticle.category === 'Musique' || heroArticle.category === 'Music') ? 'TOP TRACK' : heroArticle.category)}
                                 </span>
                                 <h2
                                     className="text-sm font-display font-black italic uppercase leading-tight tracking-tight line-clamp-3 group-hover:text-[var(--theme-color)] transition-colors duration-200 text-white"
@@ -380,12 +381,12 @@ export function News() {
                                 )}
                                 <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
                                     <span className={`text-[8px] font-black px-2 py-0.5 rounded-md border backdrop-blur-md mb-1.5 inline-block ${
-                                        (item.category || '').toLowerCase().includes('musique') ? 'bg-neon-green/20 text-neon-green border-neon-green/30' : 
+                                        ((item.category || '').toLowerCase().includes('musique') || (item.category || '').toLowerCase().includes('review')) ? 'bg-neon-green/20 text-neon-green border-neon-green/30' : 
                                         (item.category || '').toLowerCase().includes('recap') ? 'bg-neon-cyan/20 text-neon-cyan border-neon-cyan/30' : 
                                         (item.category || '').toLowerCase().includes('interview') ? 'bg-neon-purple/20 text-neon-purple border-neon-purple/30' : 
                                         'bg-neon-red/20 text-neon-red border-neon-red/30'
                                     }`}>
-                                        {item.category}
+                                        {item.category === 'Review' ? 'REVIEW' : (item.category === 'Musique' || item.category === 'Music') ? 'TOP TRACK' : item.category}
                                     </span>
                                     <h3
                                         className="text-xs font-display font-black text-white italic uppercase leading-tight line-clamp-3 group-active:text-[var(--theme-color)] group-hover:text-[var(--theme-color)] transition-colors duration-200"
@@ -626,7 +627,7 @@ export function News() {
                                                                 ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
                                                                 : `bg-${getCategoryColor(item.category)}/10 text-${getCategoryColor(item.category)} border-${getCategoryColor(item.category)}/20`
                                                                 }`}>
-                                                                {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
+                                                                {item.isFocus ? t('article_detail.focus').toUpperCase() : (item.category === 'Review' ? 'REVIEW' : (item.category === 'Musique' || item.category === 'Music') ? 'TOP TRACK' : item.category)}
                                                             </span>
                                                             <div className="flex flex-col items-end">
                                                                 <span className="text-[9px] text-white/30 font-black uppercase tracking-widest">{item.date}</span>

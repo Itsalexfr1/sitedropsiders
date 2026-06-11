@@ -5,7 +5,7 @@
 export const getCategoryColor = (category: string = ''): string => {
     const cat = category.toLowerCase().trim();
     
-    if (cat.includes('musique') || cat.includes('music')) return 'neon-green';
+    if (cat.includes('musique') || cat.includes('music') || cat.includes('review')) return 'neon-green';
     if (cat.includes('sets') || cat.includes('mix')) return 'neon-purple';
     if (cat.includes('news')) return 'neon-red';
     if (cat.includes('agenda')) return 'neon-pink';

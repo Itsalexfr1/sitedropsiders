@@ -714,7 +714,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const artistLabel = processedContent.artistLabel;
     const festivalSocials = processedContent.festivalSocials;
     const festivalLabel = processedContent.festivalLabel;
-    const isMusic = article.category === 'Musique' || article.category === 'Music';
+    const isMusic = article.category === 'Musique' || article.category === 'Music' || article.category === 'Review';
     const isSetsMixes = article.category === 'Sets-Mixes';
 
     // Support Top Lists for Music Category
@@ -1460,7 +1460,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 ? 'bg-yellow-500 shadow-yellow-500/20'
                                 : `bg-${themeColorName} shadow-${themeColorName}/20`
                                 }`}>
-                                {article.isFocus ? t('article_detail.focus').toUpperCase() : (article.category || (type === 'recap' ? 'Recap' : 'News'))}
+                                {article.isFocus ? t('article_detail.focus').toUpperCase() : (article.category === 'Review' ? 'REVIEW' : (article.category === 'Musique' || article.category === 'Music') ? 'TOP TRACK' : (article.category || (type === 'recap' ? 'Recap' : 'News')))}
                             </span>
                             <span className="px-5 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[10px] flex items-center gap-2 uppercase tracking-widest">
                                 <Clock className="w-3.5 h-3.5 text-neon-red" />

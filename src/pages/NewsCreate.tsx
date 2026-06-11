@@ -487,8 +487,8 @@ export function NewsCreate() {
         { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', artistColor: '#ff1241', question: '', answer: '' }
     ]);
 
-    const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus' | 'Sets-Mixes' | 'Top-Festival'>(
-        (searchParams.get('tab') as 'News' | 'Musique' | 'Focus' | 'Sets-Mixes' | 'Top-Festival') ||
+    const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Review' | 'Focus' | 'Sets-Mixes' | 'Top-Festival'>(
+        (searchParams.get('tab') as 'News' | 'Musique' | 'Review' | 'Focus' | 'Sets-Mixes' | 'Top-Festival') ||
         (type === 'Musique' ? 'Musique' : 'News')
     );
 
@@ -558,6 +558,7 @@ export function NewsCreate() {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo-image' | 'interview-media' | 'video-article' | 'festival-artist', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string, allowMultiple?: boolean }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
+    const [isReview, setIsReview] = useState(false);
     const [showVideo, setShowVideo] = useState(type !== 'Interview' || (type === 'Interview' && (searchParams.get('subtype') === 'video')));
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -697,10 +698,12 @@ export function NewsCreate() {
             if (articleData.youtubeId) setYoutubeId(articleData.youtubeId);
             if (articleData.year) setYear(articleData.year);
             if (articleData.isFeatured !== undefined) setIsFeatured(articleData.isFeatured);
+            if (articleData.isReview !== undefined) setIsReview(articleData.isReview);
             if (articleData.author) setAuthor(articleData.author);
             setIsAuthorConfirmed(true);
 
             if (articleData.category === 'Focus' || (articleData.category === 'News' && articleData.isFocus)) setActiveTab('Focus');
+            else if (articleData.category === 'Review' || articleData.isReview) setActiveTab('Review');
             else if (articleData.category === 'Musique') setActiveTab('Musique');
             else if (articleData.category === 'Sets-Mixes' || (articleData.category || '').toLowerCase().includes('sets') || (articleData.category || '').toLowerCase().includes('mix')) setActiveTab('Sets-Mixes');
             else if (articleData.category === 'Top-Festival') setActiveTab('Top-Festival');
@@ -1496,7 +1499,7 @@ export function NewsCreate() {
             return item;
         }));
 
-        if (field === 'media' && value && activeTab === 'Musique') {
+        if (field === 'media' && value && (activeTab === 'Musique' || activeTab === 'Review')) {
             fetchMusicMetadata(id, value);
         }
     };
@@ -1891,8 +1894,8 @@ ${generateSocialsHtml()}
                 const mainColor = firstQA?.artistColor || '#ff1241';
 
                 finalContent = widgetsHtml + "\n" + interviewHtml + (interviewHtml || widgetsHtml ? `\n<div class="article-section">${generateSocialsHtml(artistNameLabel || mainName, mainColor)}</div>` : '');
-            } else if (activeTab === 'Musique') {
-                finalCategory = 'Musique';
+            } else if (activeTab === 'Musique' || activeTab === 'Review') {
+                finalCategory = activeTab === 'Review' ? 'Review' : 'Musique';
                 const musicTopHtml = musicItems.map((item, index) => {
 
                     return `
@@ -2001,6 +2004,7 @@ ${generateSocialsHtml()}
                 year: year || undefined,
                 isFocus,
                 isFeatured,
+                isReview: activeTab === 'Review',
                 isDraft: finalIsDraft,
                 author
             };
@@ -2105,6 +2109,7 @@ ${generateSocialsHtml()}
                         { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', artistColor: '#ff1241', question: '', answer: '' }
                     ]);
                     setIsFeatured(false);
+                    setIsReview(false);
                     setIsAuthorConfirmed(false);
                     setActiveTab('News');
                     setShowVideo(type !== 'Interview');
@@ -2232,7 +2237,7 @@ ${generateSocialsHtml()}
                                     </div>
                                 </div>
                                 <h1 className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                    {isEditing ? 'Modifier' : 'Créer'} <span className="text-neon-red drop-shadow-[0_0_15px_rgba(255,18,65,0.3)]">{type === 'Interview' ? 'une Interview' : activeTab === 'Musique' ? 'un article Musique' : 'une Actualité'}</span>
+                                    {isEditing ? 'Modifier' : 'Créer'} <span className="text-neon-red drop-shadow-[0_0_15px_rgba(255,18,65,0.3)]">{type === 'Interview' ? 'une Interview' : activeTab === 'Musique' ? 'un article Top Track' : activeTab === 'Review' ? 'une Review' : 'une Actualité'}</span>
                                 </h1>
                             </div>
                         </div>
@@ -2325,7 +2330,13 @@ ${generateSocialsHtml()}
                                 onClick={() => setActiveTab('Musique')}
                                 className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'Musique' ? 'bg-neon-cyan text-black shadow-[0_0_15px_rgba(0,255,243,0.4)]' : 'text-gray-500 hover:text-white'}`}
                             >
-                                <Music className="w-3.5 h-3.5" /> Musique
+                                <Music className="w-3.5 h-3.5" /> Top Track
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('Review')}
+                                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${activeTab === 'Review' ? 'bg-neon-green text-black shadow-[0_0_15px_rgba(57,255,20,0.4)]' : 'text-gray-500 hover:text-white'}`}
+                            >
+                                <Music className="w-3.5 h-3.5" /> Review
                             </button>
                             <button
                                 onClick={() => {
@@ -2940,8 +2951,8 @@ ${generateSocialsHtml()}
                         </div>
                     </div>
 
-                    {/* ARTIST SOCIALS (Everywhere except Musique) */}
-                    {activeTab !== 'Musique' && (
+                    {/* ARTIST SOCIALS */}
+                    {true && (
                         <div className="pt-8 border-t border-white/10 mt-4">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
@@ -3224,7 +3235,7 @@ ${generateSocialsHtml()}
                     )}
 
                     {/* WIDGET EDITOR SECTION (Always available to add flexibility) */}
-                    {activeTab !== 'Sets-Mixes' && activeTab !== 'Top-Festival' && (activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Musique' || type === 'Interview') && (
+                    {activeTab !== 'Sets-Mixes' && activeTab !== 'Top-Festival' && (activeTab === 'News' || activeTab === 'Focus' || activeTab === 'Musique' || activeTab === 'Review' || type === 'Interview') && (
                         <div className="pt-8 border-t border-white/10">
                             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${isMobileEditorActive ? 'hidden' : ''}`}>
                                 <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -4213,12 +4224,14 @@ ${generateSocialsHtml()}
                     )}
 
                     {/* MUSIC TOP LIST EDITOR */}
-                    {activeTab === 'Musique' && (
+                    {(activeTab === 'Musique' || activeTab === 'Review') && (
                         <div className="pt-8 border-t border-white/10">
-                            <div className="flex justify-between items-center mb-6">
-                                <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                    <Music className="w-4 h-4 text-neon-cyan" /> TOP LISTE MUSIQUE
-                                </label>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <div className="flex flex-wrap items-center gap-6">
+                                    <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Music className="w-4 h-4 text-neon-cyan" /> {activeTab === 'Review' ? 'TOP LISTE REVIEW' : 'TOP LISTE TOP TRACK'}
+                                    </label>
+                                </div>
                                 <button
                                     onClick={addMusicItem}
                                     className="flex items-center gap-2 px-6 py-2 bg-neon-cyan text-black rounded-full hover:bg-neon-cyan/80 transition-all font-bold uppercase tracking-widest text-[10px]"
@@ -4329,7 +4342,7 @@ ${generateSocialsHtml()}
                     )}
 
                     {/* WIDGET EDITOR FOR MUSIQUE (Placed below tracks as requested) */}
-                    {activeTab === 'Musique' && (
+                    {(activeTab === 'Musique' || activeTab === 'Review') && (
                         <div className="pt-8 border-t border-white/10 mt-8">
                             <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${isMobileEditorActive ? 'hidden' : ''}`}>
                                 <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -4532,8 +4545,8 @@ ${generateSocialsHtml()}
                             {/* Aperçu de l'En-tête */}
                             <div className="mb-12 border-b border-white/10 pb-8">
                                 <div className="flex flex-wrap justify-center gap-2 mb-6">
-                                    <span className={`px-4 py-1.5 rounded-full text-white font-black text-[9px] uppercase tracking-widest shadow-lg ${activeTab === 'Focus' ? 'bg-yellow-500 shadow-yellow-500/20' : activeTab === 'Musique' ? 'bg-neon-green shadow-neon-green/20' : 'bg-neon-red shadow-neon-red/20'}`}>
-                                        {activeTab === 'Focus' ? 'FOCUS' : activeTab === 'Musique' ? 'MUSIQUE' : (category || 'NEWS')}
+                                    <span className={`px-4 py-1.5 rounded-full text-white font-black text-[9px] uppercase tracking-widest shadow-lg ${activeTab === 'Focus' ? 'bg-yellow-500 shadow-yellow-500/20' : (activeTab === 'Musique' || activeTab === 'Review') ? 'bg-neon-green shadow-neon-green/20' : 'bg-neon-red shadow-neon-red/20'}`}>
+                                        {activeTab === 'Focus' ? 'FOCUS' : activeTab === 'Review' ? 'REVIEW' : activeTab === 'Musique' ? 'TOP TRACK' : (category || 'NEWS')}
                                     </span>
                                     <span className="px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
                                         <Clock className="w-3 h-3 text-neon-red" />
@@ -4565,7 +4578,7 @@ ${generateSocialsHtml()}
                                 )}
                             </div>
 
-                            {activeTab === 'Musique' ? (
+                            {(activeTab === 'Musique' || activeTab === 'Review') ? (
                                 <div className="musique-preview-container">
                                     {/* Widgets first (if any) */}
                                     {widgets.length > 0 && widgets[0].content && (
