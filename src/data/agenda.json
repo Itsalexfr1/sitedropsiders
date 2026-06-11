@@ -5646,5 +5646,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1060,
+    "title": "&Me",
+    "date": "2026-07-21",
+    "startDate": "2026-07-21",
+    "endDate": "2026-07-21",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/259a4935deae9488-703936115_17879412471598201_44.jpg",
+    "url": "https://shotgun.live/fr/events/klub-day-6",
+    "genre": "Afro House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
