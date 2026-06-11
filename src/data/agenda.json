@@ -6102,5 +6102,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1084,
+    "title": "Klubnacht",
+    "date": "2026-06-11",
+    "startDate": "2026-06-11",
+    "endDate": "2026-06-11",
+    "venue": "Berghain",
+    "location": "BERLIN",
+    "country": "ALLEMAGNE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/c2784154ab7a4a0e-93d2b55388db039ee27ccf919923c5.webp",
+    "url": "https://www.berghain.berlin/en/event/80730/",
+    "genre": "Techno",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
