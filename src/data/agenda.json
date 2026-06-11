@@ -5950,5 +5950,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1076,
+    "title": "Adam Ten B2b Mita Gami",
+    "date": "2026-08-13",
+    "startDate": "2026-08-13",
+    "endDate": "2026-08-13",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/f538191f23fa1608-mita_gami_adam_ten_1000x667.jpeg",
+    "url": "https://shotgun.live/fr/events/klub-day-22",
+    "genre": "Indie Dance",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
