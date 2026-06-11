@@ -5928,7 +5928,7 @@
     "genre": "House",
     "month": "AOÛT",
     "isWeekly": false,
-    "isSoldOut": false,
+    "isSoldOut": true,
     "isLiveDropsiders": false,
     "additionalDates": []
   },
