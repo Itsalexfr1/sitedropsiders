@@ -67,7 +67,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
         // Logical fallback to identify which one is in the Hero slot
         const heroItem = featured || all.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus') || cat.includes('recap') || cat.includes('interview') || cat.includes('sets') || cat.includes('mix');
+            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('review') || cat.includes('focus') || cat.includes('recap') || cat.includes('interview') || cat.includes('sets') || cat.includes('mix');
         })[0];
 
         return all
@@ -76,7 +76,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                 if (heroItem && item.id === heroItem.id) return false;
 
                 const cat = (item.category || '').toLowerCase();
-                return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus') || cat.includes('recap') || cat.includes('interview') || cat.includes('sets') || cat.includes('mix');
+                return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('review') || cat.includes('focus') || cat.includes('recap') || cat.includes('interview') || cat.includes('sets') || cat.includes('mix');
             })
             .slice(0, 8);
     }, [newsData]);

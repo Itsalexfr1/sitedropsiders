@@ -73,6 +73,7 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
             return cat.includes('news') || 
                    cat.includes('musique') || 
                    cat.includes('music') || 
+                   cat.includes('review') || 
                    cat.includes('actu') || 
                    cat.includes('festival') || 
                    cat.includes('artist') ||
