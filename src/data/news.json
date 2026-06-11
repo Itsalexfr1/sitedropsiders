@@ -326,13 +326,14 @@
     ],
     "youtubeId": "n7QlUH0zrPg",
     "showVideo": true,
-    "category": "Musique",
+    "category": "Review",
     "isFeatured": false,
     "isFocus": false,
     "isDraft": false,
     "year": "2024",
     "link": "https://dropsiders.fr/news/275_hugel-vient-t-il-de-sortir-le-tube-de-l-t-",
-    "author": "Alex"
+    "author": "Alex",
+    "isReview": true
   },
   {
     "id": 274,
