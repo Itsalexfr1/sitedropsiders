@@ -5931,5 +5931,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1075,
+    "title": "Dennis Cruz B2b Mau P ",
+    "date": "2026-08-11",
+    "startDate": "2026-08-11",
+    "endDate": "2026-08-11",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/51bb455b094881f0-68bc21bf82b8fc85d31df2f4_mau_p.png",
+    "url": "https://shotgun.live/fr/events/klub-day-21",
+    "genre": "Tech House",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
