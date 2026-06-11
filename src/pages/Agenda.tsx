@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, Link } from 'react-router-dom';
-import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar, Heart } from 'lucide-react';
+import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar, Heart, Search } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
@@ -23,6 +23,7 @@ export function Agenda() {
     const playHoverSound = useHoverSound();
     const [expandedEvent, setExpandedEvent] = useState<number | string | null>(null);
     const [activeCategory, setActiveCategory] = useState('ALL');
+    const [searchQuery, setSearchQuery] = useState('');
     const [permissions, setPermissions] = useState<string[]>([]);
     const storedUser = localStorage.getItem('admin_user');
 
@@ -266,7 +267,7 @@ export function Agenda() {
                 }
 
                 // Month filter
-                if (selectedMonth && !selectedLocation) {
+                if (selectedMonth && !selectedLocation && !searchQuery.trim()) {
                     const [year, month] = selectedMonth.split('-');
                     if (eventDate.getFullYear() !== parseInt(year) || (eventDate.getMonth() + 1) !== parseInt(month)) {
                         return false;
@@ -280,12 +281,34 @@ export function Agenda() {
                     }
                 }
 
+                // Search query filter
+                if (searchQuery.trim()) {
+                    const query = searchQuery.toLowerCase().trim();
+                    const title = (event.title || '').toLowerCase();
+                    const location = (event.location || '').toLowerCase();
+                    const genre = (event.genre || '').toLowerCase();
+                    const type = (event.type || '').toLowerCase();
+                    const description = (event.description || '').toLowerCase();
+                    const lineUp = Array.isArray(event.lineUp) ? event.lineUp.join(' ').toLowerCase() : (event.lineUp || '').toLowerCase();
+                    
+                    if (
+                        !title.includes(query) &&
+                        !location.includes(query) &&
+                        !genre.includes(query) &&
+                        !type.includes(query) &&
+                        !description.includes(query) &&
+                        !lineUp.includes(query)
+                    ) {
+                        return false;
+                    }
+                }
+
                 return true;
             })
             .sort((a: any, b: any) => {
                 return new Date(a.startDate || a.date).getTime() - new Date(b.startDate || b.date).getTime();
             });
-    }, [activeCategory, selectedMonth, selectedLocation, explodedAgenda]);
+    }, [activeCategory, selectedMonth, selectedLocation, explodedAgenda, searchQuery]);
 
     const formatMonthName = (monthKey: string) => {
         const [year, month] = monthKey.split('-');
@@ -494,6 +517,28 @@ export function Agenda() {
                     )}
                 </AnimatePresence>
 
+                {/* Search Bar */}
+                <div className="mb-8 max-w-md">
+                    <div className="relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-fuchsia transition-colors" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Rechercher un festival, artiste, ville..."
+                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:border-neon-fuchsia focus:ring-1 focus:ring-neon-fuchsia transition-all"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+
                 <div className="flex flex-wrap items-center gap-4 mb-12">
                     <div className="flex items-center gap-2 text-gray-500 mr-2">
                         <Filter className="w-4 h-4" />
@@ -538,7 +583,7 @@ export function Agenda() {
                     </motion.div>
                 )}
 
-                {!selectedLocation && (
+                {!selectedLocation && !searchQuery.trim() && (
                     <div className="mb-12 flex justify-center">
                         <div className="flex items-center justify-center p-4 bg-white/5 border border-white/10 rounded-3xl gap-4 md:gap-8 shadow-xl">
                             <button
@@ -574,7 +619,15 @@ export function Agenda() {
                     </div>
                 )}
 
-                {months.length === 0 && (
+                {searchQuery.trim() && (
+                    <div className="mb-12 flex justify-center text-center">
+                        <p className="text-sm font-black text-neon-fuchsia uppercase tracking-widest animate-pulse">
+                            Recherche active : {filteredEvents.length} résultat(s) trouvé(s)
+                        </p>
+                    </div>
+                )}
+
+                {(months.length === 0 || filteredEvents.length === 0) && (
                     <div className="mb-8 flex justify-center">
                         <p className="text-gray-500 font-display font-black uppercase tracking-widest text-sm">
                             {t('agenda.no_results')}
