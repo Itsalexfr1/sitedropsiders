@@ -5760,5 +5760,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1066,
+    "title": "Seth Troxler",
+    "date": "2026-07-28",
+    "startDate": "2026-07-28",
+    "endDate": "2026-07-28",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/76bc68c589d52e28-seth_troxler_press_03_billboar.png",
+    "url": "https://shotgun.live/fr/events/klub-day-12",
+    "genre": "House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
