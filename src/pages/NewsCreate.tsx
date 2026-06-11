@@ -813,13 +813,13 @@ export function NewsCreate() {
             const rawMatch = c.match(/<!--\s*TRACKLIST_RAW_START\s*([\s\S]*?)\s*TRACKLIST_RAW_END\s*-->/);
             if (rawMatch && rawMatch[1]) setTracklistRaw(rawMatch[1].trim());
 
-            if (articleData.category === 'Musique') {
+            if (articleData.category === 'Musique' || articleData.category === 'Review') {
                 const domItems = Array.from(doc.querySelectorAll('.music-top-item-premium')).map(el => ({
                     id: Math.random().toString(36).substr(2, 9),
                     title: el.querySelector('h3')?.textContent?.trim() || '',
-                    media: el.getAttribute('data-media') || '',
+                    media: el.getAttribute('data-media') || el.querySelector('.music-vote-button')?.getAttribute('data-item-media') || el.querySelector('iframe')?.getAttribute('src') || '',
                     imageUrl: el.querySelector('.vinyl-wrapper img')?.getAttribute('src') || '',
-                    playerType: (el.getAttribute('data-player-type') || 'spotify') as any,
+                    playerType: (el.getAttribute('data-player-type') || el.querySelector('.music-vote-button')?.getAttribute('data-item-player-type') || 'spotify') as any,
                     description: el.querySelector('.music-item-description p')?.innerHTML || '',
                     canVote: !!el.querySelector('.music-vote-button')
                 })).filter(m => m.media);
@@ -1899,7 +1899,7 @@ ${generateSocialsHtml()}
                 const musicTopHtml = musicItems.map((item, index) => {
 
                     return `
-<div class="music-top-item-premium mb-16 last:mb-0" data-item-id="${item.id}">
+<div class="music-top-item-premium mb-16 last:mb-0" data-item-id="${item.id}" data-media="${item.media || ''}" data-player-type="${item.playerType || 'spotify'}">
   <h3 class="text-2xl lg:text-4xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-6">${item.title}</h3>
   <div class="music-player-container rounded-2xl overflow-hidden bg-black relative">
     ${renderMediaEmbed(item.media, item.playerType)}
