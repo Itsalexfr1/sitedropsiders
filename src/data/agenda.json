@@ -5551,5 +5551,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1055,
+    "title": "Adriatique X Casa Neos Miami",
+    "date": "2026-07-14",
+    "startDate": "2026-07-14",
+    "endDate": "2026-07-14",
+    "venue": "Klub",
+    "location": "CANNES",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "https://www.electronicbeats.net/app/uploads/2018/11/2018-Adriatique-Press-02a-color-Raphael-Rapior.jpg",
+    "url": "https://shotgun.live/fr/events/klub-day-1",
+    "genre": "Melodic Techno",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
