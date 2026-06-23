@@ -26,6 +26,11 @@ const XIcon = (props: any) => (
 
 export function Footer() {
     const { t, language } = useLanguage();
+    const getCopyrightDate = () => {
+        const locale = language === 'en' ? 'en-US' : 'fr-FR';
+        const dateStr = new Date().toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+        return dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+    };
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
     const [socials, setSocials] = useState(settings.socials || { instagram: 'dropsiders.eu', tiktok: '@dropsiders.eu' });
@@ -215,7 +220,7 @@ export function Footer() {
                 <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 relative">
                     <div className="flex flex-col md:flex-row items-center gap-8">
                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                            <ZoomText text={`© ${new Date().getFullYear()} DROPSIDERS. ${t('footer.rights')}`} />
+                            <ZoomText text={`© ${getCopyrightDate()} DROPSIDERS. ${t('footer.rights')}`} />
                             <Link to="/admin" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-gray-800 hover:text-neon-red transition-colors ml-2" title="Admin">
                                 <Lock className="w-3 h-3" />
                             </Link>
