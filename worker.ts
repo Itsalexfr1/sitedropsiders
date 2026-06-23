@@ -6056,7 +6056,7 @@ ${urls.map(u => `  <url>
             if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
             try {
                 const body = await request.json().catch(() => ({}));
-                const { to, subject, message, pdfBase64, invoiceHtml, filename, invoiceData } = body;
+                const { to, subject, message, pdfBase64, invoiceHtml, filename, invoiceData, skipEmail } = body;
 
                 if (!to) {
                     return new Response(JSON.stringify({ error: 'Destinataire manquant' }), { status: 400, headers });
