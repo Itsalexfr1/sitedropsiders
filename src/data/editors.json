@@ -69,5 +69,21 @@
     ],
     "created": "2026-05-03T21:49:24.941Z",
     "verified": false
+  },
+  {
+    "email": "tiffany.tournier@hotmail.com",
+    "username": "Tiffany",
+    "pseudo": "Tiffany",
+    "role": "",
+    "permissions": [
+      "news_focus",
+      "musique_releases",
+      "interviews_video",
+      "recaps_festivals",
+      "agenda_events",
+      "social_studio"
+    ],
+    "created": "2026-06-24T19:31:36.327Z",
+    "verified": true
   }
 ]
