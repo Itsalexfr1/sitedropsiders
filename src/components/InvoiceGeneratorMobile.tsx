@@ -77,6 +77,8 @@ export function InvoiceGeneratorMobile() {
     });
 
     const [invoiceNumber, setInvoiceNumber] = useState<number>(() => { const s = localStorage.getItem('inv_number'); return s ? parseInt(s) : 67; });
+    const [docType, setDocType] = useState<'facture' | 'devis'>('facture');
+    const [devisNumber, setDevisNumber] = useState<number>(() => { const s = localStorage.getItem('dev_number'); return s ? parseInt(s) : 1; });
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [dueDate, setDueDate] = useState('');
     const [clientName, setClientName] = useState('');
@@ -85,7 +87,8 @@ export function InvoiceGeneratorMobile() {
     const [clientEmail, setClientEmail] = useState('');
     const [iban, setIban] = useState(() => localStorage.getItem('inv_iban') || 'BE59 9675 0891 6526');
     const [bic, setBic] = useState(() => localStorage.getItem('inv_bic') || 'TRWIBEB1XXX');
-    const [notes] = useState('');
+    const [notes, setNotes] = useState('');
+    const [notice, setNotice] = useState('');
     const [eventClub, setEventClub] = useState('');
     const [eventDate, setEventDate] = useState('');
     const [lines, setLines] = useState<InvoiceLine[]>([{ id: '1', description: 'Prestation Light', quantity: 1, unitPrice: 0 }]);
@@ -115,6 +118,7 @@ export function InvoiceGeneratorMobile() {
     const [history, setHistory] = useState<any[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [showDeleteInvoiceId, setShowDeleteInvoiceId] = useState<number | null>(null);
+    const [showEmailConfirm, setShowEmailConfirm] = useState(false);
 
     useEffect(() => {
         if (view === 'archive') fetchHistory();
@@ -128,7 +132,35 @@ export function InvoiceGeneratorMobile() {
             const res = await fetch('/api/invoices?t=' + Date.now(), {
                 headers: { 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }
             });
-            if (res.ok) setHistory(await res.json());
+            if (res.ok) {
+                const data = await res.json();
+                setHistory(data);
+                
+                // Auto-update next invoice/devis numbers based on history
+                if (data && data.length > 0) {
+                    const invoiceNumbers = data.filter((inv: any) => !inv.type || inv.type === 'facture').map((inv: any) => {
+                        const parts = (inv.number || '').split('-');
+                        return parseInt(parts[parts.length - 1]) || 0;
+                    });
+                    const devisNumbers = data.filter((inv: any) => inv.type === 'devis').map((inv: any) => {
+                        const parts = (inv.number || '').split('-');
+                        return parseInt(parts[parts.length - 1]) || 0;
+                    });
+                    
+                    if (invoiceNumbers.length > 0) {
+                        const maxInv = Math.max(...invoiceNumbers);
+                        if (maxInv >= invoiceNumber) {
+                            setInvoiceNumber(maxInv + 1);
+                        }
+                    }
+                    if (devisNumbers.length > 0) {
+                        const maxDev = Math.max(...devisNumbers);
+                        if (maxDev >= devisNumber) {
+                            setDevisNumber(maxDev + 1);
+                        }
+                    }
+                }
+            }
         } catch { } finally { setIsLoadingHistory(false); }
     };
 
@@ -177,10 +209,12 @@ export function InvoiceGeneratorMobile() {
     const [emailMessage, setEmailMessage] = useState('');
 
     const total = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
-    const formattedNumber = `INV-${new Date(date).getFullYear()}-${invoiceNumber.toString().padStart(3, '0')}`;
-    const displayNumber = `Facture ${invoiceNumber.toString().padStart(3, '0')}`;
+    const prefix = docType === 'facture' ? 'INV' : 'DEV';
+    const formattedNumber = `${prefix}-${new Date(date).getFullYear()}-${(docType === 'facture' ? invoiceNumber : devisNumber).toString().padStart(3, '0')}`;
+    const displayNumber = `${docType === 'facture' ? 'Facture' : 'Devis'} ${(docType === 'facture' ? invoiceNumber : devisNumber).toString().padStart(3, '0')}`;
 
     useEffect(() => { localStorage.setItem('inv_number', invoiceNumber.toString()); }, [invoiceNumber]);
+    useEffect(() => { localStorage.setItem('dev_number', devisNumber.toString()); }, [devisNumber]);
     useEffect(() => { localStorage.setItem('inv_iban', iban); localStorage.setItem('inv_bic', bic); }, [iban, bic]);
 
     const addLine = () => { const nl: InvoiceLine = { id: Date.now().toString(), description: 'Prestation Light', quantity: 1, unitPrice: 0 }; setLines(p => [...p, nl]); setEditingLine(nl); setSheet('line'); };
@@ -212,7 +246,8 @@ export function InvoiceGeneratorMobile() {
 
     const buildHTML = () => {
         const rows = lines.map(l => `<tr><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;font-style:italic;color:#1a1a1a">${l.description}</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:center">${l.quantity}</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:right">${l.unitPrice.toFixed(2)} €</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;color:#1a1a1a;text-align:right">${(l.quantity * l.unitPrice).toFixed(2)} €</td></tr>`).join('');
-        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>Facture ${formattedNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:210mm;min-height:297mm;padding:20mm;background:#fff;margin:0 auto}@media print{body{margin:0}.page{padding:15mm;width:100%}@page{margin:0;size:A4}}</style></head><body><div class="page"><table style="width:100%;margin-bottom:40px"><tr><td style="vertical-align:top"><div style="font-size:22px;font-weight:900;color:#000;letter-spacing:-1px;text-transform:uppercase">${sender.name}</div><div style="font-size:11px;color:#666;margin-top:4px">SIRET : ${sender.siret}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.address}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.email}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.phone}</div></td><td style="vertical-align:top;text-align:right"><div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">FACTURE</div><div style="font-size:13px;color:#666;margin-top:6px">N° <strong style="color:#000">${formattedNumber}</strong></div><div style="font-size:13px;color:#666;margin-top:4px">Date : <strong style="color:#000">${new Date(date).toLocaleDateString('fr-FR')}</strong></div>${dueDate ? `<div style="font-size:13px;color:#e00;margin-top:4px">Échéance : <strong>${new Date(dueDate).toLocaleDateString('fr-FR')}</strong></div>` : ''}</td></tr></table><div style="height:2px;background:#000;margin-bottom:32px"></div><table style="width:100%;margin-bottom:40px"><tr><td style="width:50%"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">Facturé à</div><div style="font-size:15px;font-weight:700;color:#000">${clientName || '—'}</div><div style="font-size:12px;color:#666;margin-top:4px">${clientAddress}${clientCity ? `, ${clientCity}` : ''}</div>${clientEmail ? `<div style="font-size:12px;color:#666;margin-top:4px">${clientEmail}</div>` : ''}</td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:32px"><thead><tr style="background:#3730a3"><th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Description</th><th style="padding:12px 16px;text-align:center;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Qté</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">P.U. HT</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Total HT</th></tr></thead><tbody>${rows}</tbody></table><table style="width:100%;margin-bottom:48px"><tr><td style="width:60%">${notes ? `<div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:6px">Notes</div><div style="font-size:12px;color:#444;line-height:1.6">${notes}</div>` : ''}</td><td style="width:40%;vertical-align:bottom"><table style="width:100%"><tr><td style="padding:8px 0;font-size:12px;color:#666;border-top:1px solid #f0f0f0">Sous-total HT</td><td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${total.toFixed(2)} €</td></tr><tr><td style="padding:8px 0;font-size:11px;color:#999">TVA</td><td style="padding:8px 0;font-size:11px;color:#999;text-align:right">Non applicable</td></tr><tr style="background:#3730a3"><td style="padding:14px 16px;font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">TOTAL TTC</td><td style="padding:14px 16px;font-size:18px;font-weight:900;color:#fff;text-align:right">${total.toFixed(2)} €</td></tr></table></td></tr></table>${iban ? `<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:20px;margin-bottom:32px"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:12px">Coordonnées bancaires</div><table style="width:100%"><tr><td style="font-size:11px;color:#666">IBAN</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${iban}</td><td style="font-size:11px;color:#666;padding-left:32px">BIC</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${bic}</td></tr></table></div>` : ''}<div style="border-top:1px solid #eee;padding-top:16px"><div style="font-size:10px;color:#aaa;line-height:1.6">${sender.legal}</div></div></div></body></html>`;
+        const isDevis = docType === 'devis';
+        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>${isDevis ? 'Devis' : 'Facture'} ${formattedNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:210mm;min-height:297mm;padding:20mm;background:#fff;margin:0 auto}@media print{body{margin:0}.page{padding:15mm;width:100%}@page{margin:0;size:A4}}</style></head><body><div class="page"><table style="width:100%;margin-bottom:40px"><tr><td style="vertical-align:top"><div style="font-size:22px;font-weight:900;color:#000;letter-spacing:-1px;text-transform:uppercase">${sender.name}</div><div style="font-size:11px;color:#666;margin-top:4px">SIRET : ${sender.siret}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.address}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.email}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.phone}</div></td><td style="vertical-align:top;text-align:right"><div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">${isDevis ? 'DEVIS' : 'FACTURE'}</div><div style="font-size:13px;color:#666;margin-top:6px">N° <strong style="color:#000">${formattedNumber}</strong></div><div style="font-size:13px;color:#666;margin-top:4px">Date : <strong style="color:#000">${new Date(date).toLocaleDateString('fr-FR')}</strong></div>${dueDate ? `<div style="font-size:13px;color:#e00;margin-top:4px">Échéance : <strong>${new Date(dueDate).toLocaleDateString('fr-FR')}</strong></div>` : ''}</td></tr></table><div style="height:2px;background:#000;margin-bottom:32px"></div><table style="width:100%;margin-bottom:40px"><tr><td style="width:50%"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">${isDevis ? 'Adressé à' : 'Facturé à'}</div><div style="font-size:15px;font-weight:700;color:#000">${clientName || '—'}</div><div style="font-size:12px;color:#666;margin-top:4px">${clientAddress}${clientCity ? `, ${clientCity}` : ''}</div>${clientEmail ? `<div style="font-size:12px;color:#666;margin-top:4px">${clientEmail}</div>` : ''}</td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:32px"><thead><tr style="background:#3730a3"><th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Description</th><th style="padding:12px 16px;text-align:center;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Qté</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">P.U. HT</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Total HT</th></tr></thead><tbody>${rows}</tbody></table><table style="width:100%;margin-bottom:48px"><tr><td style="width:60%">${notes ? `<div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:6px">Notes</div><div style="font-size:12px;color:#444;line-height:1.6">${notes}</div>` : ''}</td><td style="width:40%;vertical-align:bottom"><table style="width:100%"><tr><td style="padding:8px 0;font-size:12px;color:#666;border-top:1px solid #f0f0f0">Sous-total HT</td><td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${total.toFixed(2)} €</td></tr><tr><td style="padding:8px 0;font-size:11px;color:#999">TVA</td><td style="padding:8px 0;font-size:11px;color:#999;text-align:right">Non applicable</td></tr><tr style="background:#3730a3"><td style="padding:14px 16px;font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">${isDevis ? 'TOTAL DEVIS' : 'TOTAL TTC'}</td><td style="padding:14px 16px;font-size:18px;font-weight:900;color:#fff;text-align:right">${total.toFixed(2)} €</td></tr></table></td></tr></table>${iban ? `<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:20px;margin-bottom:32px"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:12px">Coordonnées bancaires</div><table style="width:100%"><tr><td style="font-size:11px;color:#666">IBAN</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${iban}</td><td style="font-size:11px;color:#666;padding-left:32px">BIC</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${bic}</td></tr></table></div>` : ''}<div style="border-top:1px solid #eee;padding-top:16px"><div style="font-size:10px;color:#aaa;line-height:1.6">${sender.legal}</div></div></div></body></html>`;
     };
 
     const handlePrint = () => { const w = window.open('', '_blank'); if (!w) return; w.document.write(buildHTML()); w.document.close(); w.onload = () => { w.focus(); w.print(); }; };
@@ -220,14 +255,14 @@ export function InvoiceGeneratorMobile() {
         const element = document.createElement('a');
         const file = new Blob([buildHTML()], { type: 'text/html' });
         element.href = URL.createObjectURL(file);
-        element.download = `Facture_${formattedNumber}.html`;
+        element.download = `${docType === 'facture' ? 'Facture' : 'Devis'}_${formattedNumber}.html`;
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
     };
     const openPreview = () => { setPreviewKey(k => k + 1); setSheet('preview'); };
 
-    const openEmail = () => { setEmailTo(clientEmail); setEmailSubject(`Facture ${formattedNumber} – ${sender.name}`); setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver votre facture N° ${formattedNumber} — ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`); setSendStatus('idle'); setSendError(''); setSheet('email'); };
+    const openEmail = () => { setEmailTo(clientEmail); setEmailSubject(`${docType === 'facture' ? 'Facture' : 'Devis'} ${formattedNumber} – ${sender.name}`); setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver votre ${docType === 'facture' ? 'facture' : 'devis'} N° ${formattedNumber} — ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`); setSendStatus('idle'); setSendError(''); setSheet('email'); };
 
     const handleSendEmail = async () => {
         if (!emailTo) { setSendError('Email requis'); return; }
@@ -248,7 +283,7 @@ export function InvoiceGeneratorMobile() {
 
             const opt = { 
                 margin: 0, 
-                filename: `Facture_${formattedNumber}.pdf`, 
+                filename: `${docType === 'facture' ? 'Facture' : 'Devis'}_${formattedNumber}.pdf`, 
                 image: { type: 'jpeg' as const, quality: 0.98 }, 
                 html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
@@ -265,14 +300,18 @@ export function InvoiceGeneratorMobile() {
                     subject: emailSubject, 
                     message: emailMessage, 
                     pdfBase64: pdfDataUri,
-                    filename: `Facture_${formattedNumber}.pdf`, 
-                    invoiceData: { number: formattedNumber, client: clientName, total, date } 
+                    filename: `${docType === 'facture' ? 'Facture' : 'Devis'}_${formattedNumber}.pdf`, 
+                    invoiceData: { number: formattedNumber, client: clientName, clientAddress, clientCity, clientEmail, total, date, dueDate, type: docType, lines, notes, iban, bic } 
                 }) 
             });
             if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur'); }
             setSendStatus('success');
             fetchHistory();
-            setInvoiceNumber(n => n + 1);
+            if (docType === 'facture') {
+                setInvoiceNumber(n => n + 1);
+            } else {
+                setDevisNumber(n => n + 1);
+            }
             setTimeout(() => { setSendStatus('idle'); setSheet('none'); }, 2500);
         } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
     };
@@ -290,15 +329,51 @@ export function InvoiceGeneratorMobile() {
                 body: JSON.stringify({ 
                     to: clientEmail || 'Archive Mobile', 
                     skipEmail: true,
-                    invoiceData: { number: formattedNumber, client: clientName, total, date } 
+                    invoiceData: { number: formattedNumber, client: clientName, clientAddress, clientCity, clientEmail, total, date, dueDate, type: docType, lines, notes, iban, bic } 
                 }) 
             });
             if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur'); }
             setSendStatus('success');
             fetchHistory();
-            setInvoiceNumber(n => n + 1);
+            if (docType === 'facture') {
+                setInvoiceNumber(n => n + 1);
+            } else {
+                setDevisNumber(n => n + 1);
+            }
             setTimeout(() => { setSendStatus('idle'); setSheet('none'); }, 2500);
         } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
+    };
+
+    const handleLoadDocument = (inv: any, forceAsInvoice: boolean = false) => {
+        const currentType = forceAsInvoice ? 'facture' : (inv.type || 'facture');
+        setDocType(currentType);
+        
+        if (inv.date) setDate(inv.date);
+        if (inv.dueDate) setDueDate(inv.dueDate);
+        
+        setClientName(inv.client || '');
+        setClientAddress(inv.clientAddress || '');
+        setClientCity(inv.clientCity || '');
+        setClientEmail(inv.clientEmail || inv.emailTo || '');
+        setNotes(inv.notes || '');
+        if (inv.iban) setIban(inv.iban);
+        if (inv.bic) setBic(inv.bic);
+        
+        if (inv.lines && Array.isArray(inv.lines)) {
+            setLines(inv.lines);
+        } else {
+            setLines([
+                { id: '1', description: 'Prestation Light', quantity: 1, unitPrice: parseFloat(inv.total || 0) }
+            ]);
+        }
+        
+        if (forceAsInvoice) {
+            setNotice(`Devis ${inv.number} converti en Facture dans l'éditeur.`);
+        } else {
+            setNotice(`Document ${inv.number} chargé.`);
+        }
+        setTimeout(() => setNotice(''), 8000);
+        setView('edit');
     };
 
     const dueDateLabel = dueDate ? new Date(dueDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Aucune';
@@ -335,6 +410,30 @@ export function InvoiceGeneratorMobile() {
                     {/* ========== FACTURE TAB ========== */}
                     {view === 'edit' && (
                         <motion.div key="edit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-10">
+                            {/* Document Type Selector Toggle */}
+                            <div className="px-4 pt-4 flex justify-start">
+                                <div className="flex p-0.5 bg-white/5 border border-white/10 rounded-lg w-full">
+                                    <button type="button" onClick={() => setDocType('facture')}
+                                        className={`flex-1 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${docType === 'facture' ? 'bg-indigo-600 text-white' : 'text-white/40 hover:text-white/60'}`}>
+                                        Facture
+                                    </button>
+                                    <button type="button" onClick={() => setDocType('devis')}
+                                        className={`flex-1 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${docType === 'devis' ? 'bg-indigo-600 text-white' : 'text-white/40 hover:text-white/60'}`}>
+                                        Devis
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Notice Banner */}
+                            {notice && (
+                                <div className="mx-4 mt-4 bg-indigo-500/20 border border-indigo-500/30 rounded-2xl px-4 py-3 flex items-center justify-between text-indigo-200 text-xs">
+                                    <span className="flex-1 pr-2">{notice}</span>
+                                    <button onClick={() => setNotice('')} className="text-indigo-400 hover:text-indigo-200">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Invoice title */}
                             <div className="px-4 pt-6 pb-4 border-b border-white/[0.05]">
                                 <p className="text-[9px] font-black text-indigo-400/60 uppercase tracking-[0.25em] mb-1">{formattedNumber}</p>
@@ -369,7 +468,7 @@ export function InvoiceGeneratorMobile() {
                                     <span className={ROW_VALUE}>{clientName || 'Ajouter un client'}<ChevronRight className="w-4 h-4" /></span>
                                 </button>
                                 <button className={ROW} onClick={() => setSheet('date')}>
-                                    <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Date d'échéance</span>
+                                    <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Date & Numéro</span>
                                     <span className={ROW_VALUE}>{dueDateLabel}<ChevronRight className="w-4 h-4" /></span>
                                 </button>
                                 <button className={ROW + " border-b-0"} onClick={() => setSheet('details')}>
@@ -443,6 +542,7 @@ export function InvoiceGeneratorMobile() {
                                 <div className="flex items-center justify-center py-20"><Loader className="w-8 h-8 animate-spin text-indigo-400" /></div>
                             ) : (() => {
                                 const stats = history.reduce((acc, inv) => {
+                                    if (inv.type === 'devis') return acc; // Exclude estimates from turnover stats
                                     const d = new Date(inv.date || inv.created_at || Date.now());
                                     const t = parseFloat(inv.total) || 0;
                                     acc.allTime += t;
@@ -480,14 +580,25 @@ export function InvoiceGeneratorMobile() {
                                                                     <span className="text-[10px] font-black text-indigo-400">#{inv.id}</span>
                                                                     <span className="text-xs font-bold text-white truncate">{inv.client || 'Client inconnu'}</span>
                                                                 </div>
-                                                                <div className="text-[10px] text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
+                                                                <div className="text-[10px] text-white/30 flex flex-wrap items-center gap-1.5 mt-0.5">
+                                                                    <span>{inv.number}</span>
+                                                                    <span className={`px-1.5 py-0.5 rounded-full text-[7px] font-black uppercase tracking-wider ${inv.type === 'devis' ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'}`}>
+                                                                        {inv.type === 'devis' ? 'Devis' : 'Facture'}
+                                                                    </span>
+                                                                    <span>•</span>
+                                                                    <span>{new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</span>
+                                                                </div>
                                                                 {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 whitespace-nowrap overflow-hidden text-ellipsis truncate">{inv.emailTo}</div>}
                                                                 <div className="font-black text-sm text-white mt-1">{parseFloat(inv.total || 0).toFixed(2)} €</div>
                                                             </div>
                                                             <div className="flex flex-col gap-2">
                                                                 <button onClick={() => togglePaid(inv.id, inv.paid)}
                                                                     className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30'}`}>
-                                                                    {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> Attente</>}
+                                                                    {inv.type === 'devis' ? (
+                                                                        inv.paid ? <><CheckCircle className="w-3 h-3" /> Accepté</> : <><Clock className="w-3 h-3" /> En attente</>
+                                                                    ) : (
+                                                                        inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> En attente</>
+                                                                    )}
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -499,6 +610,16 @@ export function InvoiceGeneratorMobile() {
                                                             ) : (
                                                                 <div className="flex-1" />
                                                             )}
+                                                            {inv.type === 'devis' && (
+                                                                <button onClick={() => handleLoadDocument(inv, true)}
+                                                                    className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-indigo-600 text-white hover:bg-indigo-700">
+                                                                    <Plus className="w-3 h-3" /> Facturer
+                                                                </button>
+                                                            )}
+                                                            <button onClick={() => handleLoadDocument(inv, false)}
+                                                                className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
+                                                                <RefreshCw className="w-3 h-3" /> Reprendre
+                                                            </button>
                                                             <button onClick={() => deleteInvoice(inv.id)} className="p-3 border border-white/10 rounded-xl text-red-500/50 bg-white/5">
                                                                 <Trash2 className="w-4 h-4" />
                                                             </button>
@@ -627,8 +748,17 @@ export function InvoiceGeneratorMobile() {
             </Sheet>
 
             {/* DATE */}
-            <Sheet open={sheet === 'date'} onClose={() => setSheet('none')} title="Dates">
-                <Field label="Date de la facture">
+            <Sheet open={sheet === 'date'} onClose={() => setSheet('none')} title="Date & Numéro">
+                <Field label={docType === 'facture' ? 'N° Facture' : 'N° Devis'}>
+                    <input type="number" value={docType === 'facture' ? invoiceNumber : devisNumber}
+                        onChange={e => {
+                            const val = parseInt(e.target.value) || 1;
+                            if (docType === 'facture') setInvoiceNumber(val);
+                            else setDevisNumber(val);
+                        }}
+                        className={INPUT + " font-black text-lg"} />
+                </Field>
+                <Field label="Date du document">
                     <input type="date" value={date} onChange={e => setDate(e.target.value)} className={INPUT + " text-white [color-scheme:dark]"} />
                 </Field>
                 <Field label="Date d'échéance (optionnel)">
@@ -730,7 +860,7 @@ export function InvoiceGeneratorMobile() {
                             <textarea value={emailMessage} onChange={e => setEmailMessage(e.target.value)} rows={5} className={INPUT + " resize-none"} />
                         </Field>
                         {sendError && <p className="text-red-400 text-xs font-bold px-4 py-3 bg-red-500/10 rounded-xl">{sendError}</p>}
-                        <button onClick={handleSendEmail} disabled={sendStatus === 'sending'}
+                        <button onClick={() => { if (!emailTo) { setSendError('Email requis'); return; } setShowEmailConfirm(true); }} disabled={sendStatus === 'sending'}
                             className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50">
                             {sendStatus === 'sending' ? <><Loader className="w-4 h-4 animate-spin" /> Envoi…</> : <><Send className="w-4 h-4" /> Envoyer</>}
                         </button>
@@ -758,6 +888,19 @@ export function InvoiceGeneratorMobile() {
                 accentColor="neon-red"
                 onCancel={() => setShowDeleteInvoiceId(null)}
                 onConfirm={() => { if (showDeleteInvoiceId !== null) doDeleteInvoice(showDeleteInvoiceId); }}
+            />
+            <ConfirmationModal
+                isOpen={showEmailConfirm}
+                title="Confirmer l'envoi"
+                message={`Voulez-vous vraiment envoyer ce document (${formattedNumber}) par email à l'adresse ${emailTo} ?`}
+                confirmLabel="Oui, envoyer"
+                cancelLabel="Annuler"
+                accentColor="neon-purple"
+                onCancel={() => setShowEmailConfirm(false)}
+                onConfirm={() => {
+                    setShowEmailConfirm(false);
+                    handleSendEmail();
+                }}
             />
         </div>
     );
