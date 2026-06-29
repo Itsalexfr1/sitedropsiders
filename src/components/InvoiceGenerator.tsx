@@ -531,6 +531,7 @@ export function InvoiceGenerator() {
                 } catch { }
                 setConfirmModal(null);
             }
+        });
     };
 
     const handleLoadDocument = (inv: any, forceAsInvoice: boolean = false) => {
