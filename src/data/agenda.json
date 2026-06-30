@@ -67,19 +67,6 @@
     "country": "Pays-Bas"
   },
   {
-    "id": 24,
-    "title": "John Summit - Experts Only",
-    "date": "2026-06-29",
-    "location": "UNVRS Ibiza",
-    "type": "Residence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/106bd1a6f66b07b1-fiesta_john_summit_experts_onl.webp",
-    "description": "Experts Only takeover at UNVRS.",
-    "url": "https://unvrs.com/",
-    "genre": "Tech House",
-    "isWeekly": true,
-    "country": "Espagne"
-  },
-  {
     "id": 25,
     "title": "John Summit - Experts Only",
     "date": "2026-07-06",
@@ -3338,25 +3325,6 @@
     "month": "OCTOBRE",
     "isWeekly": true,
     "dayOfWeek": 5,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
-  },
-  {
-    "id": 478,
-    "title": "David Guetta présent F*** Me I'm Famous ",
-    "date": "2026-06-29",
-    "startDate": "2026-06-29",
-    "endDate": "2026-06-29",
-    "venue": "Ushuaïa ",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/2f639945acf13d87-fiesta_david_guetta_fmif_ushua.webp",
-    "url": "https://www.theushuaiaexperience.com/en/club/calendar",
-    "genre": "Big Room",
-    "month": "JUIN",
-    "isWeekly": true,
-    "dayOfWeek": 1,
     "isSoldOut": false,
     "isLiveDropsiders": false
   },
