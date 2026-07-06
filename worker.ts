@@ -6186,13 +6186,14 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/invoices/update' && request.method === 'POST') {
             try {
-                const { id, paid } = await request.json();
+                const body = await request.json();
+                const { id } = body;
                 const INVOICE_FILE = 'src/data/invoices.json';
                 const file = await fetchGitHubFile(INVOICE_FILE, gitConfig);
                 if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
 
-                const updated = file.content.map(inv => inv.id === id ? { ...inv, paid } : inv);
-                await saveGitHubFile(INVOICE_FILE, updated, `Update invoice status: ${id}`, file.sha, gitConfig);
+                const updated = file.content.map(inv => inv.id === id ? { ...inv, ...body } : inv);
+                await saveGitHubFile(INVOICE_FILE, updated, `Update billing item: ${id}`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });

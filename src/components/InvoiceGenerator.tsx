@@ -54,6 +54,7 @@ function buildInvoiceHTML(data: {
     total: number;
     notes: string;
     sender: Sender;
+    type?: 'devis' | 'facture';
 }) {
     const { sender } = data;
     const rows = data.lines.map(l => `
@@ -65,11 +66,13 @@ function buildInvoiceHTML(data: {
         </tr>
     `).join('');
 
+    const isDevis = data.type === 'devis';
+
     return `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>Facture ${data.invoiceNumber}</title>
+<title>${isDevis ? 'Devis' : 'Facture'} ${data.invoiceNumber}</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #fff; color: #1a1a1a; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -89,7 +92,7 @@ function buildInvoiceHTML(data: {
                 <div style="font-size:11px;color:#666;margin-top:2px">${sender.phone}</div>
             </td>
             <td style="vertical-align:top;text-align:right">
-                <div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">FACTURE</div>
+                <div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">${isDevis ? 'DEVIS' : 'FACTURE'}</div>
                 <div style="font-size:13px;color:#666;margin-top:6px">N° <strong style="color:#000">${data.invoiceNumber}</strong></div>
                 <div style="font-size:13px;color:#666;margin-top:4px">Date : <strong style="color:#000">${new Date(data.date).toLocaleDateString('fr-FR')}</strong></div>
                 ${data.dueDate ? `<div style="font-size:13px;color:#e00;margin-top:4px">Échéance : <strong>${new Date(data.dueDate).toLocaleDateString('fr-FR')}</strong></div>` : ''}
@@ -100,7 +103,7 @@ function buildInvoiceHTML(data: {
     <table style="width:100%;margin-bottom:40px">
         <tr>
             <td style="width:50%">
-                <div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">Facturé à</div>
+                <div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">${isDevis ? 'Destinataire' : 'Facturé à'}</div>
                 <div style="font-size:15px;font-weight:700;color:#000">${data.clientName || '—'}</div>
                 <div style="font-size:12px;color:#666;margin-top:4px;white-space:pre-line">${data.clientAddress || ''}</div>
                 ${data.clientEmail ? `<div style="font-size:12px;color:#666;margin-top:4px">${data.clientEmail}</div>` : ''}
@@ -177,6 +180,11 @@ export function InvoiceGenerator() {
         const saved = localStorage.getItem('inv_number');
         return saved ? parseInt(saved) : 67;
     });
+    const [docType, setDocType] = useState<'facture' | 'devis'>('facture');
+    const [devisNumber, setDevisNumber] = useState<number>(() => {
+        const saved = localStorage.getItem('dev_number');
+        return saved ? parseInt(saved) : 1;
+    });
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [dueDate, setDueDate] = useState('');
     const [clientName, setClientName] = useState('');
@@ -196,6 +204,7 @@ export function InvoiceGenerator() {
     const [eventDate2, setEventDate2] = useState(''); // optional end date
 
     const [view, setView] = useState<'edit' | 'archive' | 'clients' | 'settings'>('edit');
+    const [archiveSubTab, setArchiveSubTab] = useState<'factures' | 'devis'>('factures');
     const [history, setHistory] = useState<any[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
@@ -244,9 +253,12 @@ export function InvoiceGenerator() {
     };
 
     const total = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
-    const formattedNumber = `INV-${new Date(date).getFullYear()}-${invoiceNumber.toString().padStart(3, '0')}`;
+    const formattedNumber = docType === 'facture'
+        ? `INV-${new Date(date).getFullYear()}-${invoiceNumber.toString().padStart(3, '0')}`
+        : `DEV-${new Date(date).getFullYear()}-${devisNumber.toString().padStart(3, '0')}`;
 
     useEffect(() => { localStorage.setItem('inv_number', invoiceNumber.toString()); }, [invoiceNumber]);
+    useEffect(() => { localStorage.setItem('dev_number', devisNumber.toString()); }, [devisNumber]);
     useEffect(() => { localStorage.setItem('inv_iban', iban); localStorage.setItem('inv_bic', bic); }, [iban, bic]);
 
     const fetchHistory = async () => {
@@ -266,15 +278,31 @@ export function InvoiceGenerator() {
                 const data = await res.json();
                 setHistory(data);
                 
-                // Auto-update next invoice number based on history
+                // Auto-update next invoice and devis numbers based on history
                 if (data && data.length > 0) {
-                    const numbers = data.map((inv: any) => {
-                        const parts = (inv.number || '').split('-');
-                        return parseInt(parts[parts.length - 1]) || 0;
-                    });
-                    const maxNum = Math.max(...numbers);
-                    if (maxNum >= invoiceNumber) {
-                        setInvoiceNumber(maxNum + 1);
+                    const invoiceRecords = data.filter((inv: any) => !inv.type || inv.type === 'facture');
+                    const devisRecords = data.filter((inv: any) => inv.type === 'devis');
+
+                    if (invoiceRecords.length > 0) {
+                        const numbers = invoiceRecords.map((inv: any) => {
+                            const parts = (inv.number || '').split('-');
+                            return parseInt(parts[parts.length - 1]) || 0;
+                        });
+                        const maxNum = Math.max(...numbers);
+                        if (maxNum >= invoiceNumber) {
+                            setInvoiceNumber(maxNum + 1);
+                        }
+                    }
+
+                    if (devisRecords.length > 0) {
+                        const devNumbers = devisRecords.map((dev: any) => {
+                            const parts = (dev.number || '').split('-');
+                            return parseInt(parts[parts.length - 1]) || 0;
+                        });
+                        const maxDevNum = Math.max(...devNumbers);
+                        if (maxDevNum >= devisNumber) {
+                            setDevisNumber(maxDevNum + 1);
+                        }
                     }
                 }
             }
@@ -329,7 +357,23 @@ export function InvoiceGenerator() {
         localStorage.setItem('inv_articles', JSON.stringify(updated));
     };
 
-    const getInvoiceData = () => ({ invoiceNumber: formattedNumber, date, dueDate, clientName, clientAddress, clientEmail, lines, iban, bic, total, notes, sender });
+    const getInvoiceData = () => ({ 
+        invoiceNumber: formattedNumber, 
+        date, 
+        dueDate, 
+        clientName, 
+        clientAddress, 
+        clientEmail, 
+        clientCity,
+        lines, 
+        iban, 
+        bic, 
+        total, 
+        notes, 
+        sender,
+        type: docType,
+        status: docType === 'devis' ? 'pending' : undefined
+    });
 
     const handlePrint = () => {
         const html = buildInvoiceHTML(getInvoiceData());
@@ -352,14 +396,20 @@ export function InvoiceGenerator() {
         const blob = new Blob([html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = `Facture_${formattedNumber}.html`; a.click();
+        const prefix = docType === 'devis' ? 'Devis' : 'Facture';
+        a.href = url; a.download = `${prefix}_${formattedNumber}.html`; a.click();
         URL.revokeObjectURL(url);
     };
 
     const openEmail = () => {
         setEmailTo(clientEmail);
-        setEmailSubject(`Facture ${formattedNumber} – ${sender.name}`);
-        setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver en pièce jointe votre facture N° ${formattedNumber} d'un montant de ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`);
+        if (docType === 'devis') {
+            setEmailSubject(`Devis ${formattedNumber} – ${sender.name}`);
+            setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver en pièce jointe votre devis N° ${formattedNumber} d'un montant de ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`);
+        } else {
+            setEmailSubject(`Facture ${formattedNumber} – ${sender.name}`);
+            setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver en pièce jointe votre facture N° ${formattedNumber} d'un montant de ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`);
+        }
         setSendStatus('idle'); setSendError(''); setShowEmailModal(true);
     };
 
@@ -381,9 +431,10 @@ export function InvoiceGenerator() {
             element.innerHTML = html;
             document.body.appendChild(element);
 
+            const prefix = docType === 'devis' ? 'Devis' : 'Facture';
             const opt = { 
                 margin: 0, 
-                filename: `Facture_${formattedNumber}.pdf`, 
+                filename: `${prefix}_${formattedNumber}.pdf`, 
                 image: { type: 'jpeg' as const, quality: 0.98 }, 
                 html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
@@ -403,14 +454,18 @@ export function InvoiceGenerator() {
                     subject: emailSubject, 
                     message: emailMessage, 
                     pdfBase64: pdfDataUri, 
-                    filename: `Facture_${formattedNumber}.pdf`, 
-                    invoiceData: { number: formattedNumber, client: clientName, total, date } 
+                    filename: `${prefix}_${formattedNumber}.pdf`, 
+                    invoiceData: getInvoiceData()
                 })
             });
             if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur serveur'); }
             setSendStatus('success');
             fetchHistory();
-            setInvoiceNumber(n => n + 1);
+            if (docType === 'devis') {
+                setDevisNumber(n => n + 1);
+            } else {
+                setInvoiceNumber(n => n + 1);
+            }
             setTimeout(() => { setSendStatus('idle'); setShowEmailModal(false); }, 3000);
         } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
     };
@@ -433,13 +488,17 @@ export function InvoiceGenerator() {
                 body: JSON.stringify({ 
                     to: clientEmail || 'Archive Locale', 
                     skipEmail: true,
-                    invoiceData: { number: formattedNumber, client: clientName, total, date } 
+                    invoiceData: getInvoiceData()
                 })
             });
             if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur serveur'); }
             setSendStatus('success');
             fetchHistory();
-            setInvoiceNumber(n => n + 1);
+            if (docType === 'devis') {
+                setDevisNumber(n => n + 1);
+            } else {
+                setInvoiceNumber(n => n + 1);
+            }
             setTimeout(() => { setSendStatus('idle'); }, 3000);
         } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
     };
@@ -463,11 +522,69 @@ export function InvoiceGenerator() {
         } catch { }
     };
 
+    const updateDevisStatus = async (id: number, status: 'pending' | 'accepted' | 'declined' | 'invoiced') => {
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            await fetch('/api/invoices/update', { 
+                method: 'POST', 
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-Admin-Username': adminUser, 
+                    'X-Admin-Password': adminPass,
+                    'X-Session-ID': sessionId
+                }, 
+                body: JSON.stringify({ id, status }) 
+            });
+            setHistory(prev => prev.map(dev => dev.id === id ? { ...dev, status } : dev));
+        } catch { }
+    };
+
+    const convertDevisToInvoice = async (dev: any) => {
+        setClientName(dev.client || '');
+        setClientAddress(dev.clientAddress || '');
+        setClientCity(dev.clientCity || '');
+        setClientEmail(dev.clientEmail || '');
+        setNotes(dev.notes || '');
+        if (dev.lines && dev.lines.length > 0) {
+            setLines(dev.lines);
+        } else {
+            setLines([{ id: '1', description: dev.description || 'Prestation de service', quantity: 1, unitPrice: dev.total }]);
+        }
+        setIban(dev.iban || iban);
+        setBic(dev.bic || bic);
+        setDueDate(dev.dueDate || '');
+        setDate(new Date().toISOString().split('T')[0]);
+
+        setDocType('facture');
+        setView('edit');
+
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            await fetch('/api/invoices/update', { 
+                method: 'POST', 
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-Admin-Username': adminUser, 
+                    'X-Admin-Password': adminPass,
+                    'X-Session-ID': sessionId
+                }, 
+                body: JSON.stringify({ id: dev.id, status: 'invoiced' }) 
+            });
+            fetchHistory();
+        } catch (e) {
+            console.error('Failed to update devis status', e);
+        }
+    };
+
     const deleteInvoice = async (id: number) => {
         setConfirmModal({
             show: true,
-            title: 'Suppression Facture',
-            text: 'Voulez-vous vraiment supprimer cette facture de l\'archive ? Cette action est irréversible.',
+            title: 'Suppression Fichier',
+            text: 'Voulez-vous vraiment supprimer cet élément de l\'archive ? Cette action est irréversible.',
             onConfirm: async () => {
                 try {
                     const adminUser = localStorage.getItem('admin_user') || '';
@@ -504,7 +621,7 @@ export function InvoiceGenerator() {
             <div className="hidden md:flex shrink-0 px-8 py-5 items-center justify-between border-b border-white/5 bg-black/60 backdrop-blur-xl">
                 <div className="flex items-center gap-6">
                     <div>
-                        <h1 className="text-lg font-black uppercase tracking-tight text-white">Générateur de Factures</h1>
+                        <h1 className="text-lg font-black uppercase tracking-tight text-white">Générateur de Factures & Devis</h1>
                         <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{sender.name} • {sender.siret}</p>
                     </div>
                     <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/10 rounded-xl ml-4">
@@ -518,7 +635,7 @@ export function InvoiceGenerator() {
                 </div>
                 <div className="flex items-center gap-3">
                     <button onClick={handleSaveOnly} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400/80 flex items-center gap-2 transition-all">
-                        <Save className="w-4 h-4" /> Enregistrer (Archives)
+                        <Save className="w-4 h-4" /> Enregistrer ({docType === 'devis' ? 'Devis' : 'Archives'})
                     </button>
                     <button onClick={handleDownload} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-2 transition-all">
                         <Download className="w-4 h-4" /> Télécharger HTML
@@ -575,13 +692,30 @@ export function InvoiceGenerator() {
 
                                 {/* Invoice meta */}
                                 <div className={cardCls + " space-y-4"}>
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Numéro & Date</h3>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Numéro & Date</h3>
+                                        <div className="flex items-center gap-1 p-0.5 bg-white/5 border border-white/10 rounded-xl">
+                                            <button type="button" onClick={() => setDocType('facture')}
+                                                className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${docType === 'facture' ? 'bg-indigo-600 text-white' : 'text-white/30 hover:text-white/60'}`}>
+                                                Facture
+                                            </button>
+                                            <button type="button" onClick={() => setDocType('devis')}
+                                                className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${docType === 'devis' ? 'bg-indigo-600 text-white' : 'text-white/30 hover:text-white/60'}`}>
+                                                Devis
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className={labelCls}>N° Facture</label>
-                                                <input type="number" value={invoiceNumber} onChange={e => setInvoiceNumber(parseInt(e.target.value) || 1)}
-                                                    className={inputCls + " font-black text-lg"} />
+                                                <label className={labelCls}>{docType === 'facture' ? 'N° Facture' : 'N° Devis'}</label>
+                                                {docType === 'facture' ? (
+                                                    <input type="number" value={invoiceNumber} onChange={e => setInvoiceNumber(parseInt(e.target.value) || 1)}
+                                                        className={inputCls + " font-black text-lg"} />
+                                                ) : (
+                                                    <input type="number" value={devisNumber} onChange={e => setDevisNumber(parseInt(e.target.value) || 1)}
+                                                        className={inputCls + " font-black text-lg"} />
+                                                )}
                                             </div>
                                             <div>
                                                 <label className={labelCls}>Date</label>
@@ -768,7 +902,19 @@ export function InvoiceGenerator() {
                     {view === 'archive' && (
                         <motion.div key="archive" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-8">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-black uppercase tracking-tight text-white">Archives des Factures</h2>
+                                <div className="flex items-center gap-6">
+                                    <h2 className="text-xl font-black uppercase tracking-tight text-white">Archives</h2>
+                                    <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/10 rounded-xl">
+                                        <button onClick={() => setArchiveSubTab('factures')}
+                                            className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${archiveSubTab === 'factures' ? 'bg-indigo-600 text-white' : 'text-white/30 hover:text-white/60'}`}>
+                                            Factures
+                                        </button>
+                                        <button onClick={() => setArchiveSubTab('devis')}
+                                            className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${archiveSubTab === 'devis' ? 'bg-indigo-600 text-white' : 'text-white/30 hover:text-white/60'}`}>
+                                            Devis
+                                        </button>
+                                    </div>
+                                </div>
                                 <button onClick={fetchHistory} className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/50 hover:text-white transition-all">
                                     <RefreshCw className={`w-5 h-5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
                                 </button>
@@ -776,76 +922,179 @@ export function InvoiceGenerator() {
                             {isLoadingHistory ? (
                                 <div className="flex items-center justify-center h-48"><Loader className="w-8 h-8 animate-spin text-indigo-400" /></div>
                             ) : (() => {
-                                const stats = history.reduce((acc, inv) => {
-                                    const d = new Date(inv.date || inv.created_at || Date.now());
-                                    const t = parseFloat(inv.total) || 0;
-                                    acc.allTime += t;
-                                    if (d.getFullYear() === new Date().getFullYear()) {
-                                        acc.thisYear += t;
-                                        if (d.getMonth() === new Date().getMonth()) acc.thisMonth += t;
-                                    }
-                                    return acc;
-                                }, { thisMonth: 0, thisYear: 0, allTime: 0 });
+                                const invoices = history.filter(inv => !inv.type || inv.type === 'facture');
+                                const devis = history.filter(inv => inv.type === 'devis');
 
-                                return (
-                                    <>
-                                        <div className="grid grid-cols-3 gap-4 mb-6">
-                                            <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 text-center">
-                                                <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400/70 mb-1">Ce Mois</div>
-                                                <div className="text-xl font-black text-indigo-400">{stats.thisMonth.toFixed(2)} €</div>
+                                if (archiveSubTab === 'factures') {
+                                    const stats = invoices.reduce((acc, inv) => {
+                                        const d = new Date(inv.date || inv.created_at || Date.now());
+                                        const t = parseFloat(inv.total) || 0;
+                                        acc.allTime += t;
+                                        if (d.getFullYear() === new Date().getFullYear()) {
+                                            acc.thisYear += t;
+                                            if (d.getMonth() === new Date().getMonth()) acc.thisMonth += t;
+                                        }
+                                        return acc;
+                                    }, { thisMonth: 0, thisYear: 0, allTime: 0 });
+
+                                    return (
+                                        <>
+                                            <div className="grid grid-cols-3 gap-4 mb-6">
+                                                <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 text-center">
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400/70 mb-1">Ce Mois</div>
+                                                    <div className="text-xl font-black text-indigo-400">{stats.thisMonth.toFixed(2)} €</div>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Cette Année</div>
+                                                    <div className="text-xl font-black text-white">{stats.thisYear.toFixed(2)} €</div>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Total CA</div>
+                                                    <div className="text-xl font-black text-white">{stats.allTime.toFixed(2)} €</div>
+                                                </div>
                                             </div>
-                                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                                                <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Cette Année</div>
-                                                <div className="text-xl font-black text-white">{stats.thisYear.toFixed(2)} €</div>
-                                            </div>
-                                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                                                <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Total CA</div>
-                                                <div className="text-xl font-black text-white">{stats.allTime.toFixed(2)} €</div>
-                                            </div>
-                                        </div>
-                                        {history.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center h-48 text-white/20">
-                                                <Building2 className="w-12 h-12 mb-4" />
-                                                <p className="text-sm font-bold opacity-30">Aucune facture envoyée</p>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-3 pb-20">
-                                                {history.map((inv: any) => {
-                                                    const shortNumber = inv.number ? inv.number.split('-').pop()?.replace(/^0+/, '') : inv.id;
-                                                    return (
-                                                        <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 lg:p-6 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
-                                                            <div className="hidden lg:flex w-12 h-12 bg-indigo-500/10 rounded-xl items-center justify-center shrink-0 border border-indigo-500/20">
-                                                                <span className="text-sm font-black text-indigo-400">#{shortNumber}</span>
+                                            {invoices.length === 0 ? (
+                                                <div className="flex flex-col items-center justify-center h-48 text-white/20">
+                                                    <Building2 className="w-12 h-12 mb-4" />
+                                                    <p className="text-sm font-bold opacity-30">Aucune facture envoyée</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3 pb-20">
+                                                    {invoices.map((inv: any) => {
+                                                        const shortNumber = inv.number ? inv.number.split('-').pop()?.replace(/^0+/, '') : inv.id;
+                                                        return (
+                                                            <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 lg:p-6 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
+                                                                <div className="hidden lg:flex w-12 h-12 bg-indigo-500/10 rounded-xl items-center justify-center shrink-0 border border-indigo-500/20">
+                                                                    <span className="text-sm font-black text-indigo-400">#{shortNumber}</span>
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="font-black text-sm text-white truncate">{inv.client || 'Client inconnu'}</div>
+                                                                    <div className="text-xs text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
+                                                                    {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 truncate max-w-[250px]">{inv.emailTo}</div>}
+                                                                </div>
+                                                                <div className="text-left lg:text-right shrink-0">
+                                                                    <div className="font-black text-lg text-indigo-400">{parseFloat(inv.total || 0).toFixed(2)} €</div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2 shrink-0">
+                                                                    {inv.pdfUrl && (
+                                                                        <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400 hover:border-indigo-500/50 transition-all">
+                                                                            <BookOpen className="w-3 h-3" /> PDF
+                                                                        </a>
+                                                                    )}
+                                                                    <button onClick={() => togglePaid(inv.id, inv.paid)}
+                                                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30 hover:border-indigo-500/50'}`}>
+                                                                        {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> En attente</>}
+                                                                    </button>
+                                                                    <button onClick={() => deleteInvoice(inv.id)} className="p-2 bg-white/5 border border-white/10 rounded-xl text-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all">
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
                                                             </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="font-black text-sm text-white truncate">{inv.client || 'Client inconnu'}</div>
-                                                                <div className="text-xs text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
-                                                                {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 truncate max-w-[250px]">{inv.emailTo}</div>}
-                                                            </div>
-                                                            <div className="text-left lg:text-right shrink-0">
-                                                                <div className="font-black text-lg text-indigo-400">{parseFloat(inv.total || 0).toFixed(2)} €</div>
-                                                            </div>
-                                                            <div className="flex items-center gap-2 shrink-0">
-                                                                {inv.pdfUrl && (
-                                                                    <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400 hover:border-indigo-500/50 transition-all">
-                                                                        <BookOpen className="w-3 h-3" /> PDF
-                                                                    </a>
-                                                                )}
-                                                                <button onClick={() => togglePaid(inv.id, inv.paid)}
-                                                                    className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30 hover:border-indigo-500/50'}`}>
-                                                                    {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> En attente</>}
-                                                                </button>
-                                                                <button onClick={() => deleteInvoice(inv.id)} className="p-2 bg-white/5 border border-white/10 rounded-xl text-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all">
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                } else {
+                                    const stats = devis.reduce((acc, dev) => {
+                                        const t = parseFloat(dev.total) || 0;
+                                        acc.totalAmount += t;
+                                        if (dev.status === 'accepted' || dev.status === 'invoiced') {
+                                            acc.acceptedAmount += t;
+                                        } else if (dev.status === 'declined') {
+                                            acc.declinedAmount += t;
+                                        } else {
+                                            acc.pendingAmount += t;
+                                        }
+                                        return acc;
+                                    }, { totalAmount: 0, acceptedAmount: 0, declinedAmount: 0, pendingAmount: 0 });
+
+                                    return (
+                                        <>
+                                            <div className="grid grid-cols-3 gap-4 mb-6">
+                                                <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-center">
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">En attente</div>
+                                                    <div className="text-xl font-black text-amber-400">{stats.pendingAmount.toFixed(2)} €</div>
+                                                </div>
+                                                <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-4 text-center">
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-green-400 mb-1">Acceptés / Facturés</div>
+                                                    <div className="text-xl font-black text-green-400">{stats.acceptedAmount.toFixed(2)} €</div>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Volume Total</div>
+                                                    <div className="text-xl font-black text-white">{stats.totalAmount.toFixed(2)} €</div>
+                                                </div>
                                             </div>
-                                        )}
-                                    </>
-                                );
+                                            {devis.length === 0 ? (
+                                                <div className="flex flex-col items-center justify-center h-48 text-white/20">
+                                                    <Building2 className="w-12 h-12 mb-4" />
+                                                    <p className="text-sm font-bold opacity-30">Aucun devis enregistré</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3 pb-20">
+                                                    {devis.map((dev: any) => {
+                                                        const shortNumber = dev.number ? dev.number.split('-').pop()?.replace(/^0+/, '') : dev.id;
+                                                        const statusColors = {
+                                                            pending: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+                                                            accepted: 'bg-green-500/10 border-green-500/20 text-green-400',
+                                                            declined: 'bg-red-500/10 border-red-500/20 text-red-400',
+                                                            invoiced: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
+                                                        };
+                                                        const status = dev.status || 'pending';
+
+                                                        return (
+                                                            <div key={dev.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 lg:p-6 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
+                                                                <div className="hidden lg:flex w-12 h-12 bg-amber-500/10 rounded-xl items-center justify-center shrink-0 border border-amber-500/20">
+                                                                    <span className="text-sm font-black text-amber-400">#{shortNumber}</span>
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="font-black text-sm text-white truncate">{dev.client || 'Client inconnu'}</div>
+                                                                    <div className="text-xs text-white/30">{dev.number} • {new Date(dev.date || dev.created_at).toLocaleDateString('fr-FR')}</div>
+                                                                    {dev.emailTo && <div className="text-[10px] text-white/50 mt-1 truncate max-w-[250px]">{dev.emailTo}</div>}
+                                                                </div>
+                                                                <div className="text-left lg:text-right shrink-0">
+                                                                    <div className="font-black text-lg text-amber-400">{parseFloat(dev.total || 0).toFixed(2)} €</div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2 shrink-0">
+                                                                    {dev.pdfUrl && (
+                                                                        <a href={dev.pdfUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400 hover:border-indigo-500/50 transition-all">
+                                                                            <BookOpen className="w-3 h-3" /> PDF
+                                                                        </a>
+                                                                    )}
+                                                                    
+                                                                    <select
+                                                                        value={status}
+                                                                        onChange={(e) => updateDevisStatus(dev.id, e.target.value as any)}
+                                                                        className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border bg-[#16192c] transition-all cursor-pointer outline-none ${statusColors[status as keyof typeof statusColors] || ''}`}
+                                                                    >
+                                                                        <option value="pending">En attente</option>
+                                                                        <option value="accepted">Accepté</option>
+                                                                        <option value="declined">Refusé</option>
+                                                                        <option value="invoiced">Facturé</option>
+                                                                    </select>
+
+                                                                    {status !== 'invoiced' && (
+                                                                        <button 
+                                                                            onClick={() => convertDevisToInvoice(dev)}
+                                                                            className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white transition-all flex items-center gap-1.5 shadow-md shadow-indigo-600/10"
+                                                                        >
+                                                                            <RefreshCw className="w-3 h-3" /> Facturer
+                                                                        </button>
+                                                                    )}
+
+                                                                    <button onClick={() => deleteInvoice(dev.id)} className="p-2 bg-white/5 border border-white/10 rounded-xl text-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all">
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                }
                             })()}
                         </motion.div>
                     )}

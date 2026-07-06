@@ -77,6 +77,8 @@ export function InvoiceGeneratorMobile() {
     });
 
     const [invoiceNumber, setInvoiceNumber] = useState<number>(() => { const s = localStorage.getItem('inv_number'); return s ? parseInt(s) : 67; });
+    const [docType, setDocType] = useState<'facture' | 'devis'>('facture');
+    const [devisNumber, setDevisNumber] = useState<number>(() => { const s = localStorage.getItem('dev_number'); return s ? parseInt(s) : 1; });
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [dueDate, setDueDate] = useState('');
     const [clientName, setClientName] = useState('');
@@ -112,7 +114,10 @@ export function InvoiceGeneratorMobile() {
     const [ncAddress, setNcAddress] = useState('');
     const [ncCity, setNcCity] = useState('');
     const [ncEmail, setNcEmail] = useState('');
+    const [archiveSubTab, setArchiveSubTab] = useState<'factures' | 'devis'>('factures');
     const [history, setHistory] = useState<any[]>([]);
+    
+    useEffect(() => { localStorage.setItem('dev_number', devisNumber.toString()); }, [devisNumber]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [showDeleteInvoiceId, setShowDeleteInvoiceId] = useState<number | null>(null);
 
@@ -128,20 +133,96 @@ export function InvoiceGeneratorMobile() {
             const res = await fetch('/api/invoices?t=' + Date.now(), {
                 headers: { 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }
             });
-            if (res.ok) setHistory(await res.json());
+            if (res.ok) {
+                const data = await res.json();
+                setHistory(data);
+                
+                if (data && data.length > 0) {
+                    const invoiceRecords = data.filter((inv: any) => !inv.type || inv.type === 'facture');
+                    const devisRecords = data.filter((inv: any) => inv.type === 'devis');
+
+                    if (invoiceRecords.length > 0) {
+                        const numbers = invoiceRecords.map((inv: any) => {
+                            const parts = (inv.number || '').split('-');
+                            return parseInt(parts[parts.length - 1]) || 0;
+                        });
+                        const maxNum = Math.max(...numbers);
+                        if (maxNum >= invoiceNumber) {
+                            setInvoiceNumber(maxNum + 1);
+                        }
+                    }
+
+                    if (devisRecords.length > 0) {
+                        const devNumbers = devisRecords.map((dev: any) => {
+                            const parts = (dev.number || '').split('-');
+                            return parseInt(parts[parts.length - 1]) || 0;
+                        });
+                        const maxDevNum = Math.max(...devNumbers);
+                        if (maxDevNum >= devisNumber) {
+                            setDevisNumber(maxDevNum + 1);
+                        }
+                    }
+                }
+            }
         } catch { } finally { setIsLoadingHistory(false); }
     };
 
     const togglePaid = async (id: number, paid: boolean) => {
         try {
             const adminPass = localStorage.getItem('admin_password') || '';
+            const adminUser = localStorage.getItem('admin_user') || '';
             await fetch('/api/invoices/update', { 
                 method: 'POST', 
-                headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPass }, 
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }, 
                 body: JSON.stringify({ id, paid: !paid }) 
             });
             setHistory(prev => prev.map(inv => inv.id === id ? { ...inv, paid: !paid } : inv));
         } catch { }
+    };
+
+    const updateDevisStatus = async (id: number, status: 'pending' | 'accepted' | 'declined' | 'invoiced') => {
+        try {
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const adminUser = localStorage.getItem('admin_user') || '';
+            await fetch('/api/invoices/update', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }, 
+                body: JSON.stringify({ id, status }) 
+            });
+            setHistory(prev => prev.map(dev => dev.id === id ? { ...dev, status } : dev));
+        } catch { }
+    };
+
+    const convertDevisToInvoice = async (dev: any) => {
+        setClientName(dev.client || '');
+        setClientAddress(dev.clientAddress || '');
+        setClientCity(dev.clientCity || '');
+        setClientEmail(dev.clientEmail || '');
+        if (dev.lines && dev.lines.length > 0) {
+            setLines(dev.lines);
+        } else {
+            setLines([{ id: '1', description: dev.description || 'Prestation Light', quantity: 1, unitPrice: dev.total }]);
+        }
+        setIban(dev.iban || iban);
+        setBic(dev.bic || bic);
+        setDueDate(dev.dueDate || '');
+        setDate(new Date().toISOString().split('T')[0]);
+
+        setDocType('facture');
+        setView('edit');
+
+        try {
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const adminUser = localStorage.getItem('admin_user') || '';
+            await fetch('/api/invoices/update', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }, 
+                body: JSON.stringify({ id: dev.id, status: 'invoiced' }) 
+            });
+            fetchHistory();
+        } catch (e) {
+            console.error('Failed to update devis status', e);
+        }
     };
 
     const deleteInvoice = async (id: number) => {
@@ -177,8 +258,12 @@ export function InvoiceGeneratorMobile() {
     const [emailMessage, setEmailMessage] = useState('');
 
     const total = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
-    const formattedNumber = `INV-${new Date(date).getFullYear()}-${invoiceNumber.toString().padStart(3, '0')}`;
-    const displayNumber = `Facture ${invoiceNumber.toString().padStart(3, '0')}`;
+    const formattedNumber = docType === 'facture'
+        ? `INV-${new Date(date).getFullYear()}-${invoiceNumber.toString().padStart(3, '0')}`
+        : `DEV-${new Date(date).getFullYear()}-${devisNumber.toString().padStart(3, '0')}`;
+    const displayNumber = docType === 'facture'
+        ? `Facture ${invoiceNumber.toString().padStart(3, '0')}`
+        : `Devis ${devisNumber.toString().padStart(3, '0')}`;
 
     useEffect(() => { localStorage.setItem('inv_number', invoiceNumber.toString()); }, [invoiceNumber]);
     useEffect(() => { localStorage.setItem('inv_iban', iban); localStorage.setItem('inv_bic', bic); }, [iban, bic]);
@@ -210,9 +295,27 @@ export function InvoiceGeneratorMobile() {
 
     const saveSenderSettings = () => { setSender(senderDraft); localStorage.setItem('inv_sender', JSON.stringify(senderDraft)); setSettingsSaved(true); setTimeout(() => setSettingsSaved(false), 2000); };
 
+    const getInvoiceData = () => ({ 
+        number: formattedNumber, 
+        client: clientName, 
+        clientAddress,
+        clientEmail,
+        clientCity,
+        total, 
+        date,
+        dueDate,
+        lines,
+        iban,
+        bic,
+        sender,
+        type: docType,
+        status: docType === 'devis' ? 'pending' : undefined
+    });
+
     const buildHTML = () => {
         const rows = lines.map(l => `<tr><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;font-style:italic;color:#1a1a1a">${l.description}</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:center">${l.quantity}</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:right">${l.unitPrice.toFixed(2)} €</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;color:#1a1a1a;text-align:right">${(l.quantity * l.unitPrice).toFixed(2)} €</td></tr>`).join('');
-        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>Facture ${formattedNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:210mm;min-height:297mm;padding:20mm;background:#fff;margin:0 auto}@media print{body{margin:0}.page{padding:15mm;width:100%}@page{margin:0;size:A4}}</style></head><body><div class="page"><table style="width:100%;margin-bottom:40px"><tr><td style="vertical-align:top"><div style="font-size:22px;font-weight:900;color:#000;letter-spacing:-1px;text-transform:uppercase">${sender.name}</div><div style="font-size:11px;color:#666;margin-top:4px">SIRET : ${sender.siret}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.address}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.email}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.phone}</div></td><td style="vertical-align:top;text-align:right"><div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">FACTURE</div><div style="font-size:13px;color:#666;margin-top:6px">N° <strong style="color:#000">${formattedNumber}</strong></div><div style="font-size:13px;color:#666;margin-top:4px">Date : <strong style="color:#000">${new Date(date).toLocaleDateString('fr-FR')}</strong></div>${dueDate ? `<div style="font-size:13px;color:#e00;margin-top:4px">Échéance : <strong>${new Date(dueDate).toLocaleDateString('fr-FR')}</strong></div>` : ''}</td></tr></table><div style="height:2px;background:#000;margin-bottom:32px"></div><table style="width:100%;margin-bottom:40px"><tr><td style="width:50%"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">Facturé à</div><div style="font-size:15px;font-weight:700;color:#000">${clientName || '—'}</div><div style="font-size:12px;color:#666;margin-top:4px">${clientAddress}${clientCity ? `, ${clientCity}` : ''}</div>${clientEmail ? `<div style="font-size:12px;color:#666;margin-top:4px">${clientEmail}</div>` : ''}</td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:32px"><thead><tr style="background:#3730a3"><th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Description</th><th style="padding:12px 16px;text-align:center;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Qté</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">P.U. HT</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Total HT</th></tr></thead><tbody>${rows}</tbody></table><table style="width:100%;margin-bottom:48px"><tr><td style="width:60%">${notes ? `<div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:6px">Notes</div><div style="font-size:12px;color:#444;line-height:1.6">${notes}</div>` : ''}</td><td style="width:40%;vertical-align:bottom"><table style="width:100%"><tr><td style="padding:8px 0;font-size:12px;color:#666;border-top:1px solid #f0f0f0">Sous-total HT</td><td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${total.toFixed(2)} €</td></tr><tr><td style="padding:8px 0;font-size:11px;color:#999">TVA</td><td style="padding:8px 0;font-size:11px;color:#999;text-align:right">Non applicable</td></tr><tr style="background:#3730a3"><td style="padding:14px 16px;font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">TOTAL TTC</td><td style="padding:14px 16px;font-size:18px;font-weight:900;color:#fff;text-align:right">${total.toFixed(2)} €</td></tr></table></td></tr></table>${iban ? `<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:20px;margin-bottom:32px"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:12px">Coordonnées bancaires</div><table style="width:100%"><tr><td style="font-size:11px;color:#666">IBAN</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${iban}</td><td style="font-size:11px;color:#666;padding-left:32px">BIC</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${bic}</td></tr></table></div>` : ''}<div style="border-top:1px solid #eee;padding-top:16px"><div style="font-size:10px;color:#aaa;line-height:1.6">${sender.legal}</div></div></div></body></html>`;
+        const isDev = docType === 'devis';
+        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>${isDev ? 'Devis' : 'Facture'} ${formattedNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:210mm;min-height:297mm;padding:20mm;background:#fff;margin:0 auto}@media print{body{margin:0}.page{padding:15mm;width:100%}@page{margin:0;size:A4}}</style></head><body><div class="page"><table style="width:100%;margin-bottom:40px"><tr><td style="vertical-align:top"><div style="font-size:22px;font-weight:900;color:#000;letter-spacing:-1px;text-transform:uppercase">${sender.name}</div><div style="font-size:11px;color:#666;margin-top:4px">SIRET : ${sender.siret}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.address}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.email}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.phone}</div></td><td style="vertical-align:top;text-align:right"><div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">${isDev ? 'DEVIS' : 'FACTURE'}</div><div style="font-size:13px;color:#666;margin-top:6px">N° <strong style="color:#000">${formattedNumber}</strong></div><div style="font-size:13px;color:#666;margin-top:4px">Date : <strong style="color:#000">${new Date(date).toLocaleDateString('fr-FR')}</strong></div>${dueDate ? `<div style="font-size:13px;color:#e00;margin-top:4px">Échéance : <strong>${new Date(dueDate).toLocaleDateString('fr-FR')}</strong></div>` : ''}</td></tr></table><div style="height:2px;background:#000;margin-bottom:32px"></div><table style="width:100%;margin-bottom:40px"><tr><td style="width:50%"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">${isDev ? 'Destinataire' : 'Facturé à'}</div><div style="font-size:15px;font-weight:700;color:#000">${clientName || '—'}</div><div style="font-size:12px;color:#666;margin-top:4px">${clientAddress}${clientCity ? `, ${clientCity}` : ''}</div>${clientEmail ? `<div style="font-size:12px;color:#666;margin-top:4px">${clientEmail}</div>` : ''}</td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:32px"><thead><tr style="background:#3730a3"><th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Description</th><th style="padding:12px 16px;text-align:center;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Qté</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">P.U. HT</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Total HT</th></tr></thead><tbody>${rows}</tbody></table><table style="width:100%;margin-bottom:48px"><tr><td style="width:60%">${notes ? `<div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:6px">Notes</div><div style="font-size:12px;color:#444;line-height:1.6">${notes}</div>` : ''}</td><td style="width:40%;vertical-align:bottom"><table style="width:100%"><tr><td style="padding:8px 0;font-size:12px;color:#666;border-top:1px solid #f0f0f0">Sous-total HT</td><td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${total.toFixed(2)} €</td></tr><tr><td style="padding:8px 0;font-size:11px;color:#999">TVA</td><td style="padding:8px 0;font-size:11px;color:#999;text-align:right">Non applicable</td></tr><tr style="background:#3730a3"><td style="padding:14px 16px;font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">TOTAL TTC</td><td style="padding:14px 16px;font-size:18px;font-weight:900;color:#fff;text-align:right">${total.toFixed(2)} €</td></tr></table></td></tr></table>${iban ? `<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:20px;margin-bottom:32px"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:12px">Coordonnées bancaires</div><table style="width:100%"><tr><td style="font-size:11px;color:#666">IBAN</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${iban}</td><td style="font-size:11px;color:#666;padding-left:32px">BIC</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${bic}</td></tr></table></div>` : ''}<div style="border-top:1px solid #eee;padding-top:16px"><div style="font-size:10px;color:#aaa;line-height:1.6">${sender.legal}</div></div></div></body></html>`;
     };
 
     const handlePrint = () => { const w = window.open('', '_blank'); if (!w) return; w.document.write(buildHTML()); w.document.close(); w.onload = () => { w.focus(); w.print(); }; };
@@ -220,14 +323,25 @@ export function InvoiceGeneratorMobile() {
         const element = document.createElement('a');
         const file = new Blob([buildHTML()], { type: 'text/html' });
         element.href = URL.createObjectURL(file);
-        element.download = `Facture_${formattedNumber}.html`;
+        const prefix = docType === 'devis' ? 'Devis' : 'Facture';
+        element.download = `${prefix}_${formattedNumber}.html`;
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
     };
     const openPreview = () => { setPreviewKey(k => k + 1); setSheet('preview'); };
 
-    const openEmail = () => { setEmailTo(clientEmail); setEmailSubject(`Facture ${formattedNumber} – ${sender.name}`); setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver votre facture N° ${formattedNumber} — ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`); setSendStatus('idle'); setSendError(''); setSheet('email'); };
+    const openEmail = () => { 
+        setEmailTo(clientEmail); 
+        if (docType === 'devis') {
+            setEmailSubject(`Devis ${formattedNumber} – ${sender.name}`); 
+            setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver votre devis N° ${formattedNumber} — ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`); 
+        } else {
+            setEmailSubject(`Facture ${formattedNumber} – ${sender.name}`); 
+            setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver votre facture N° ${formattedNumber} — ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`); 
+        }
+        setSendStatus('idle'); setSendError(''); setSheet('email'); 
+    };
 
     const handleSendEmail = async () => {
         if (!emailTo) { setSendError('Email requis'); return; }
@@ -246,9 +360,10 @@ export function InvoiceGeneratorMobile() {
             element.innerHTML = buildHTML();
             document.body.appendChild(element);
 
+            const prefix = docType === 'devis' ? 'Devis' : 'Facture';
             const opt = { 
                 margin: 0, 
-                filename: `Facture_${formattedNumber}.pdf`, 
+                filename: `${prefix}_${formattedNumber}.pdf`, 
                 image: { type: 'jpeg' as const, quality: 0.98 }, 
                 html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
@@ -265,14 +380,18 @@ export function InvoiceGeneratorMobile() {
                     subject: emailSubject, 
                     message: emailMessage, 
                     pdfBase64: pdfDataUri,
-                    filename: `Facture_${formattedNumber}.pdf`, 
-                    invoiceData: { number: formattedNumber, client: clientName, total, date } 
+                    filename: `${prefix}_${formattedNumber}.pdf`, 
+                    invoiceData: getInvoiceData()
                 }) 
             });
             if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur'); }
             setSendStatus('success');
             fetchHistory();
-            setInvoiceNumber(n => n + 1);
+            if (docType === 'devis') {
+                setDevisNumber(n => n + 1);
+            } else {
+                setInvoiceNumber(n => n + 1);
+            }
             setTimeout(() => { setSendStatus('idle'); setSheet('none'); }, 2500);
         } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
     };
@@ -290,13 +409,17 @@ export function InvoiceGeneratorMobile() {
                 body: JSON.stringify({ 
                     to: clientEmail || 'Archive Mobile', 
                     skipEmail: true,
-                    invoiceData: { number: formattedNumber, client: clientName, total, date } 
+                    invoiceData: getInvoiceData()
                 }) 
             });
             if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur'); }
             setSendStatus('success');
             fetchHistory();
-            setInvoiceNumber(n => n + 1);
+            if (docType === 'devis') {
+                setDevisNumber(n => n + 1);
+            } else {
+                setInvoiceNumber(n => n + 1);
+            }
             setTimeout(() => { setSendStatus('idle'); setSheet('none'); }, 2500);
         } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
     };
@@ -335,6 +458,18 @@ export function InvoiceGeneratorMobile() {
                     {/* ========== FACTURE TAB ========== */}
                     {view === 'edit' && (
                         <motion.div key="edit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-10">
+                            {/* Document type selector */}
+                            <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/10 rounded-2xl mx-4 mt-4">
+                                <button type="button" onClick={() => setDocType('facture')}
+                                    className={`flex-1 py-2 text-center rounded-xl text-xs font-black uppercase tracking-widest transition-all ${docType === 'facture' ? 'bg-indigo-600 text-white' : 'text-white/30'}`}>
+                                    Facture
+                                </button>
+                                <button type="button" onClick={() => setDocType('devis')}
+                                    className={`flex-1 py-2 text-center rounded-xl text-xs font-black uppercase tracking-widest transition-all ${docType === 'devis' ? 'bg-indigo-600 text-white' : 'text-white/30'}`}>
+                                    Devis
+                                </button>
+                            </div>
+
                             {/* Invoice title */}
                             <div className="px-4 pt-6 pb-4 border-b border-white/[0.05]">
                                 <p className="text-[9px] font-black text-indigo-400/60 uppercase tracking-[0.25em] mb-1">{formattedNumber}</p>
@@ -419,12 +554,12 @@ export function InvoiceGeneratorMobile() {
                             <div className="p-4 mt-4 space-y-3">
                                 <button onClick={openEmail}
                                     className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:bg-indigo-700 transition-colors">
-                                    <Send className="w-4 h-4" /> Envoyer la facture
+                                    <Send className="w-4 h-4" /> Envoyer {docType === 'devis' ? 'le devis' : 'la facture'}
                                 </button>
                                 <button onClick={handleSaveOnly}
                                     className="w-full py-4 bg-white/5 border border-white/10 text-white/50 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:bg-white/10 transition-colors">
                                     {sendStatus === 'sending' ? <Loader className="w-4 h-4 animate-spin text-indigo-400" /> : <Save className="w-4 h-4 text-indigo-400" />}
-                                    Archiver sans envoyer
+                                    Archiver ({docType === 'devis' ? 'Devis' : 'sans envoyer'})
                                 </button>
                             </div>
                         </motion.div>
@@ -434,7 +569,19 @@ export function InvoiceGeneratorMobile() {
                     {view === 'archive' && (
                         <motion.div key="archive" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-black text-white tracking-tight">Archives</h2>
+                                <div className="flex items-center gap-3">
+                                    <h2 className="text-2xl font-black text-white tracking-tight">Archives</h2>
+                                    <div className="flex items-center gap-1 p-0.5 bg-white/5 border border-white/10 rounded-xl">
+                                        <button onClick={() => setArchiveSubTab('factures')}
+                                            className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${archiveSubTab === 'factures' ? 'bg-indigo-600 text-white' : 'text-white/30'}`}>
+                                            Factures
+                                        </button>
+                                        <button onClick={() => setArchiveSubTab('devis')}
+                                            className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${archiveSubTab === 'devis' ? 'bg-indigo-600 text-white' : 'text-white/30'}`}>
+                                            Devis
+                                        </button>
+                                    </div>
+                                </div>
                                 <button onClick={fetchHistory} className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/50 hover:text-white transition-all">
                                     <RefreshCw className={`w-5 h-5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
                                 </button>
@@ -442,76 +589,175 @@ export function InvoiceGeneratorMobile() {
                             {isLoadingHistory ? (
                                 <div className="flex items-center justify-center py-20"><Loader className="w-8 h-8 animate-spin text-indigo-400" /></div>
                             ) : (() => {
-                                const stats = history.reduce((acc, inv) => {
-                                    const d = new Date(inv.date || inv.created_at || Date.now());
-                                    const t = parseFloat(inv.total) || 0;
-                                    acc.allTime += t;
-                                    if (d.getFullYear() === new Date().getFullYear()) {
-                                        acc.thisYear += t;
-                                        if (d.getMonth() === new Date().getMonth()) acc.thisMonth += t;
-                                    }
-                                    return acc;
-                                }, { thisMonth: 0, thisYear: 0, allTime: 0 });
+                                const invoices = history.filter(inv => !inv.type || inv.type === 'facture');
+                                const devis = history.filter(inv => inv.type === 'devis');
 
-                                return (
-                                    <>
-                                        <div className="grid grid-cols-2 gap-3 mb-6">
-                                            <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 text-center">
-                                                <div className="text-[9px] font-black uppercase tracking-widest text-indigo-400/70 mb-1">Ce Mois</div>
-                                                <div className="text-xl font-black text-indigo-400">{stats.thisMonth.toFixed(2)} €</div>
+                                if (archiveSubTab === 'factures') {
+                                    const stats = invoices.reduce((acc, inv) => {
+                                        const d = new Date(inv.date || inv.created_at || Date.now());
+                                        const t = parseFloat(inv.total) || 0;
+                                        acc.allTime += t;
+                                        if (d.getFullYear() === new Date().getFullYear()) {
+                                            acc.thisYear += t;
+                                            if (d.getMonth() === new Date().getMonth()) acc.thisMonth += t;
+                                        }
+                                        return acc;
+                                    }, { thisMonth: 0, thisYear: 0, allTime: 0 });
+
+                                    return (
+                                        <>
+                                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                                <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 text-center">
+                                                    <div className="text-[9px] font-black uppercase tracking-widest text-indigo-400/70 mb-1">Ce Mois</div>
+                                                    <div className="text-xl font-black text-indigo-400">{stats.thisMonth.toFixed(2)} €</div>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                                                    <div className="text-[9px] font-black uppercase tracking-widest text-white/40 mb-1">Cette Année</div>
+                                                    <div className="text-xl font-black text-white">{stats.thisYear.toFixed(2)} €</div>
+                                                </div>
                                             </div>
-                                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                                                <div className="text-[9px] font-black uppercase tracking-widest text-white/40 mb-1">Cette Année</div>
-                                                <div className="text-xl font-black text-white">{stats.thisYear.toFixed(2)} €</div>
-                                            </div>
-                                        </div>
-                                        {history.length === 0 ? (
-                                            <div className="text-center py-20 border border-dashed border-white/5 rounded-3xl">
-                                                <History className="w-12 h-12 text-white/5 mx-auto mb-4" />
-                                                <p className="text-sm font-black text-white/20 uppercase tracking-widest">Aucune facture</p>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-4 pb-20">
-                                                {history.map((inv: any) => (
-                                                    <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4">
-                                                        <div className="flex items-start justify-between mb-3">
-                                                            <div className="flex-1 min-w-0 mr-4">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <span className="text-[10px] font-black text-indigo-400">#{inv.id}</span>
-                                                                    <span className="text-xs font-bold text-white truncate">{inv.client || 'Client inconnu'}</span>
+                                            {invoices.length === 0 ? (
+                                                <div className="text-center py-20 border border-dashed border-white/5 rounded-3xl">
+                                                    <History className="w-12 h-12 text-white/5 mx-auto mb-4" />
+                                                    <p className="text-sm font-black text-white/20 uppercase tracking-widest">Aucune facture</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4 pb-20">
+                                                    {invoices.map((inv: any) => (
+                                                        <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4">
+                                                            <div className="flex items-start justify-between mb-3">
+                                                                <div className="flex-1 min-w-0 mr-4">
+                                                                    <div className="flex items-center gap-2 mb-1">
+                                                                        <span className="text-[10px] font-black text-indigo-400">#{inv.id}</span>
+                                                                        <span className="text-xs font-bold text-white truncate">{inv.client || 'Client inconnu'}</span>
+                                                                    </div>
+                                                                    <div className="text-[10px] text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
+                                                                    {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 whitespace-nowrap overflow-hidden text-ellipsis truncate">{inv.emailTo}</div>}
+                                                                    <div className="font-black text-sm text-white mt-1">{parseFloat(inv.total || 0).toFixed(2)} €</div>
                                                                 </div>
-                                                                <div className="text-[10px] text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
-                                                                {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 whitespace-nowrap overflow-hidden text-ellipsis truncate">{inv.emailTo}</div>}
-                                                                <div className="font-black text-sm text-white mt-1">{parseFloat(inv.total || 0).toFixed(2)} €</div>
+                                                                <div className="flex flex-col gap-2">
+                                                                    <button onClick={() => togglePaid(inv.id, inv.paid)}
+                                                                        className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30'}`}>
+                                                                        {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> Attente</>}
+                                                                    </button>
+                                                                </div>
                                                             </div>
-                                                            <div className="flex flex-col gap-2">
-                                                                <button onClick={() => togglePaid(inv.id, inv.paid)}
-                                                                    className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30'}`}>
-                                                                    {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> Attente</>}
+                                                            <div className="flex items-center gap-2 pt-3 border-t border-white/5">
+                                                                {inv.pdfUrl ? (
+                                                                    <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
+                                                                        <BookOpen className="w-3 h-3" /> PDF
+                                                                    </a>
+                                                                ) : (
+                                                                    <div className="flex-1" />
+                                                                )}
+                                                                <button onClick={() => deleteInvoice(inv.id)} className="p-3 border border-white/10 rounded-xl text-red-500/50 bg-white/5">
+                                                                    <Trash2 className="w-4 h-4" />
                                                                 </button>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2 pt-3 border-t border-white/5">
-                                                            {inv.pdfUrl ? (
-                                                                <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
-                                                                    <BookOpen className="w-3 h-3" /> PDF
-                                                                </a>
-                                                            ) : (
-                                                                <div className="flex-1" />
-                                                            )}
-                                                            <button onClick={() => deleteInvoice(inv.id)} className="p-3 border border-white/10 rounded-xl text-red-500/50 bg-white/5">
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                } else {
+                                    const stats = devis.reduce((acc, dev) => {
+                                        const t = parseFloat(dev.total) || 0;
+                                        acc.totalAmount += t;
+                                        if (dev.status === 'accepted' || dev.status === 'invoiced') {
+                                            acc.acceptedAmount += t;
+                                        } else if (dev.status === 'declined') {
+                                            acc.declinedAmount += t;
+                                        } else {
+                                            acc.pendingAmount += t;
+                                        }
+                                        return acc;
+                                    }, { totalAmount: 0, acceptedAmount: 0, declinedAmount: 0, pendingAmount: 0 });
+
+                                    return (
+                                        <>
+                                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                                <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-center">
+                                                    <div className="text-[9px] font-black uppercase tracking-widest text-amber-400 mb-1">En attente</div>
+                                                    <div className="text-xl font-black text-amber-400">{stats.pendingAmount.toFixed(2)} €</div>
+                                                </div>
+                                                <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-4 text-center">
+                                                    <div className="text-[9px] font-black uppercase tracking-widest text-green-400 mb-1">Acceptés / Facturés</div>
+                                                    <div className="text-xl font-black text-green-400">{stats.acceptedAmount.toFixed(2)} €</div>
+                                                </div>
                                             </div>
-                                        )}
-                                    </>
-                                );
+                                            {devis.length === 0 ? (
+                                                <div className="text-center py-20 border border-dashed border-white/5 rounded-3xl">
+                                                    <History className="w-12 h-12 text-white/5 mx-auto mb-4" />
+                                                    <p className="text-sm font-black text-white/20 uppercase tracking-widest">Aucun devis</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4 pb-20">
+                                                    {devis.map((dev: any) => {
+                                                        const statusColors = {
+                                                            pending: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+                                                            accepted: 'bg-green-500/10 border-green-500/20 text-green-400',
+                                                            declined: 'bg-red-500/10 border-red-500/20 text-red-400',
+                                                            invoiced: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400'
+                                                        };
+                                                        const status = dev.status || 'pending';
+
+                                                        return (
+                                                            <div key={dev.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4">
+                                                                <div className="flex items-start justify-between mb-3">
+                                                                    <div className="flex-1 min-w-0 mr-4">
+                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                            <span className="text-[10px] font-black text-amber-400">#{dev.id}</span>
+                                                                            <span className="text-xs font-bold text-white truncate">{dev.client || 'Client inconnu'}</span>
+                                                                        </div>
+                                                                        <div className="text-[10px] text-white/30">{dev.number} • {new Date(dev.date || dev.created_at).toLocaleDateString('fr-FR')}</div>
+                                                                        {dev.emailTo && <div className="text-[10px] text-white/50 mt-1 whitespace-nowrap overflow-hidden text-ellipsis truncate">{dev.emailTo}</div>}
+                                                                        <div className="font-black text-sm text-white mt-1">{parseFloat(dev.total || 0).toFixed(2)} €</div>
+                                                                    </div>
+                                                                    <div className="flex flex-col gap-2 shrink-0">
+                                                                        <select
+                                                                            value={status}
+                                                                            onChange={(e) => updateDevisStatus(dev.id, e.target.value as any)}
+                                                                            className={`px-2 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border bg-[#16192c] transition-all cursor-pointer outline-none ${statusColors[status as keyof typeof statusColors] || ''}`}
+                                                                        >
+                                                                            <option value="pending">En attente</option>
+                                                                            <option value="accepted">Accepté</option>
+                                                                            <option value="declined">Refusé</option>
+                                                                            <option value="invoiced">Facturé</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2 pt-3 border-t border-white/5">
+                                                                    {dev.pdfUrl && (
+                                                                        <a href={dev.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
+                                                                            <BookOpen className="w-3 h-3" /> PDF
+                                                                        </a>
+                                                                    )}
+                                                                    
+                                                                    {status !== 'invoiced' && (
+                                                                        <button 
+                                                                            onClick={() => convertDevisToInvoice(dev)}
+                                                                            className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10"
+                                                                        >
+                                                                            <RefreshCw className="w-3 h-3" /> Facturer
+                                                                        </button>
+                                                                    )}
+
+                                                                    <button onClick={() => deleteInvoice(dev.id)} className="p-3 border border-white/10 rounded-xl text-red-500/50 bg-white/5">
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                }
                             })()}
-                        </motion.div>
-                    )}
+                                </motion.div>
+                            )}
 
                     {/* ========== CLIENTS TAB ========== */}
                     {view === 'clients' && (
