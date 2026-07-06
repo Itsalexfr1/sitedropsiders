@@ -33,7 +33,7 @@
     "date": "2026-06-23",
     "id": 1782210743348,
     "sentDate": "2026-06-23T10:32:23.348Z",
-    "paid": false,
+    "paid": true,
     "emailTo": "contact@cbg-france.fr",
     "pdfUrl": ""
   },
