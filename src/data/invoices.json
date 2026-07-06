@@ -1,5 +1,32 @@
 [
   {
+    "number": "INV-2026-072",
+    "client": "Les Ardentes SA",
+    "clientAddress": "118 Bld De La Sauveniere \n1184000 Liège, Belgique",
+    "clientCity": "",
+    "clientEmail": "lola@lesardentes.be",
+    "total": 600,
+    "date": "2026-07-06",
+    "dueDate": "2026-07-31",
+    "type": "facture",
+    "lines": [
+      {
+        "id": "1",
+        "description": "Bon de Commande 2026003650 Prestation Clips Twitch du 2 au 5 Juillet 2026 ",
+        "quantity": 1,
+        "unitPrice": 600
+      }
+    ],
+    "notes": "",
+    "iban": "BE59 9675 0891 6526",
+    "bic": "TRWIBEB1XXX",
+    "id": 1783342138622,
+    "sentDate": "2026-07-06T12:48:58.622Z",
+    "paid": false,
+    "emailTo": "lola@lesardentes.be",
+    "pdfUrl": ""
+  },
+  {
     "number": "INV-2026-071",
     "client": "CBG France",
     "total": 1000,
