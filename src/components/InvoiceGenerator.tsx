@@ -52,6 +52,8 @@ function buildInvoiceHTML(data: {
     iban: string;
     bic: string;
     total: number;
+    subtotal?: number;
+    discount?: number;
     notes: string;
     sender: Sender;
     type?: 'devis' | 'facture';
@@ -130,8 +132,12 @@ function buildInvoiceHTML(data: {
                 <table style="width:100%">
                     <tr>
                         <td style="padding:8px 0;font-size:12px;color:#666;border-top:1px solid #f0f0f0">Sous-total HT</td>
-                        <td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${data.total.toFixed(2)} €</td>
+                        <td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${(data.subtotal ?? data.total).toFixed(2)} €</td>
                     </tr>
+                    ${(data.discount && data.discount > 0) ? `<tr>
+                        <td style="padding:8px 0;font-size:12px;color:#e55">Réduction</td>
+                        <td style="padding:8px 0;font-size:12px;color:#e55;font-weight:700;text-align:right">- ${data.discount.toFixed(2)} €</td>
+                    </tr>` : ''}
                     <tr>
                         <td style="padding:8px 0;font-size:11px;color:#999">TVA</td>
                         <td style="padding:8px 0;font-size:11px;color:#999;text-align:right">Non applicable</td>
@@ -194,6 +200,7 @@ export function InvoiceGenerator() {
     const [iban, setIban] = useState(() => localStorage.getItem('inv_iban') || 'BE59 9675 0891 6526');
     const [bic, setBic] = useState(() => localStorage.getItem('inv_bic') || 'TRWIBEB1XXX');
     const [notes, setNotes] = useState('');
+    const [discount, setDiscount] = useState<number>(0);
     const [lines, setLines] = useState<InvoiceLine[]>([
         { id: '1', description: 'Prestation de service', quantity: 1, unitPrice: 0 }
     ]);
@@ -252,7 +259,8 @@ export function InvoiceGenerator() {
         setNcName(''); setNcAddress(''); setNcCity(''); setNcEmail('');
     };
 
-    const total = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
+    const subtotal = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
+    const total = Math.max(0, subtotal - discount);
     const formattedNumber = docType === 'facture'
         ? `INV-${new Date(date).getFullYear()}-${invoiceNumber.toString().padStart(3, '0')}`
         : `DEV-${new Date(date).getFullYear()}-${devisNumber.toString().padStart(3, '0')}`;
@@ -368,6 +376,8 @@ export function InvoiceGenerator() {
         lines, 
         iban, 
         bic, 
+        subtotal,
+        discount,
         total, 
         notes, 
         sender,
@@ -843,6 +853,21 @@ export function InvoiceGenerator() {
                                             </motion.div>
                                         ))}
                                     </div>
+                                    {/* Discount row */}
+                                    <div className="flex items-center gap-4 pt-4 border-t border-white/5">
+                                        <div className="flex-1">
+                                            <label className={labelCls}>Réduction (€)</label>
+                                            <input type="number" min="0" step="0.01" value={discount || ''} placeholder="0.00"
+                                                onChange={e => setDiscount(parseFloat(e.target.value) || 0)}
+                                                className={inputCls} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className={labelCls}>Sous-total HT</label>
+                                            <div className="h-[46px] flex items-center justify-end px-4 bg-white/5 border border-white/10 rounded-xl text-white/50 font-bold">
+                                                {subtotal.toFixed(2)} €
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -856,6 +881,11 @@ export function InvoiceGenerator() {
                                             {total.toFixed(2)}
                                             <span className="text-xl opacity-60">€</span>
                                         </div>
+                                        {discount > 0 && (
+                                            <div className="text-[11px] font-bold opacity-70 mt-1">
+                                                Sous-total : {subtotal.toFixed(2)} € — Réduction : -{discount.toFixed(2)} €
+                                            </div>
+                                        )}
                                         <div className="h-px bg-white/10 my-4" />
                                         <div className="text-[10px] font-black uppercase tracking-widest opacity-40 leading-relaxed">
                                             TVA non applicable<br/>Article 293 B du CGI
