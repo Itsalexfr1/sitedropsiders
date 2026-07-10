@@ -1,42 +1,5 @@
 [
   {
-    "invoiceNumber": "INV-2026-074",
-    "date": "2026-07-10",
-    "dueDate": "",
-    "clientName": "CBG FRANCE",
-    "clientAddress": "",
-    "clientEmail": "",
-    "clientCity": "",
-    "lines": [
-      {
-        "id": "1",
-        "description": "Prestation de service",
-        "quantity": 6,
-        "unitPrice": 180
-      }
-    ],
-    "iban": "BE59 9675 0891 6526",
-    "bic": "TRWIBEB1XXX",
-    "subtotal": 1080,
-    "discount": 643.99,
-    "total": 436.01,
-    "notes": "",
-    "sender": {
-      "name": "CUENCA ALEXANDRE",
-      "siret": "805 131 828 00010",
-      "address": "411 Rue de Bouillargue, 30000 Nîmes",
-      "email": "alexlight3034@icloud.com",
-      "phone": "07 62 05 45 89",
-      "legal": "Auto-entrepreneur – TVA non applicable, art. 293 B du CGI"
-    },
-    "type": "facture",
-    "id": 1783710419379,
-    "sentDate": "2026-07-10T19:06:59.379Z",
-    "paid": false,
-    "emailTo": "Archive Locale",
-    "pdfUrl": ""
-  },
-  {
     "invoiceNumber": "INV-2026-073",
     "date": "2026-07-10",
     "dueDate": "",
