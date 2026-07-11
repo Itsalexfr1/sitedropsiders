@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Calendar, MapPin, Tag, Image as ImageIcon, Link as LinkIcon, Send, AlertCircle, FileText, Globe, Upload, Plus, X } from 'lucide-react';
+import { Calendar, MapPin, Tag, Image as ImageIcon, Link as LinkIcon, Send, AlertCircle, FileText, Globe, Upload, Plus, X, CheckCircle, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders } from '../../utils/auth';
 import { ImageUploadModal } from '../ImageUploadModal';
@@ -12,6 +12,40 @@ interface AgendaFormProps {
     isModal?: boolean;
 }
 
+const EVENT_TYPES = [
+    'Festival',
+    'Showcase',
+    'Concert',
+    'Résidence',
+    'Opening',
+    'Events',
+    'Pool Party',
+    'Clubs',
+    'Live Take Over',
+];
+
+function resetForm() {
+    return {
+        title: '',
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: '',
+        venue: '',
+        locationInput: '',
+        country: '',
+        type: '',
+        imageUrl: '',
+        url: '',
+        genre: '',
+        isWeekly: false,
+        isMultiDay: false,
+        isSoldOut: false,
+        isLiveDropsiders: false,
+        isContest: false,
+        additionalDates: [] as string[],
+        year: new Date().getFullYear().toString(),
+    };
+}
+
 export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }: AgendaFormProps) {
     const isEditing = !!editingItem;
 
@@ -22,7 +56,8 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
     const [locationInput, setLocationInput] = useState('');
     const [country, setCountry] = useState('');
     const [isAutoLocating, setIsAutoLocating] = useState(false);
-    const [type, setType] = useState('Festival');
+    // type defaults to '' to force the user to choose
+    const [type, setType] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [url, setUrl] = useState('');
     const [genre, setGenre] = useState('');
@@ -34,6 +69,10 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
     const [additionalDates, setAdditionalDates] = useState<string[]>([]);
     const [year, setYear] = useState(new Date().getFullYear().toString());
     const [showUploadModal, setShowUploadModal] = useState(false);
+
+    // Post-creation success modal
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [createdItem, setCreatedItem] = useState<any>(null);
 
     // Autocomplete State
     const [citySuggestions, setCitySuggestions] = useState<{ city: string, country: string }[]>([]);
@@ -111,7 +150,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
             setVenue(editingItem.venue || '');
             setLocationInput(editingItem.location || '');
             setCountry(editingItem.country || '');
-            setType(editingItem.type || 'Festival');
+            setType(editingItem.type || '');
             setImageUrl(editingItem.image || '');
             setUrl(editingItem.url || '');
             setGenre(editingItem.genre || '');
@@ -160,8 +199,39 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
         return () => clearTimeout(timer);
     }, [locationInput, venue]);
 
+    const applyReset = () => {
+        const d = resetForm();
+        setTitle(d.title);
+        setStartDate(d.startDate);
+        setEndDate(d.endDate);
+        setVenue(d.venue);
+        setLocationInput(d.locationInput);
+        setCountry(d.country);
+        setType(d.type);
+        setImageUrl(d.imageUrl);
+        setUrl(d.url);
+        setGenre(d.genre);
+        setIsWeekly(d.isWeekly);
+        setIsMultiDay(d.isMultiDay);
+        setIsSoldOut(d.isSoldOut);
+        setIsLiveDropsiders(d.isLiveDropsiders);
+        setIsContest(d.isContest);
+        setAdditionalDates(d.additionalDates);
+        setYear(d.year);
+        setStatus('idle');
+        setMessage('');
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Extra guard: type must be selected
+        if (!type) {
+            setStatus('error');
+            setMessage("Veuillez choisir un type d'événement.");
+            return;
+        }
+
         setStatus('loading');
         setMessage('Action en cours...');
 
@@ -210,15 +280,32 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
             setStatus('success');
             setMessage(isEditing ? 'Événement mis à jour !' : 'Événement ajouté !');
 
-            setTimeout(() => {
-                onSuccess(result);
-            }, 1500);
+            if (isEditing) {
+                // In edit mode, just call success after a short delay
+                setTimeout(() => {
+                    onSuccess(result);
+                }, 1500);
+            } else {
+                // In create mode, show the post-creation modal
+                setCreatedItem(result);
+                setShowSuccessModal(true);
+            }
 
         } catch (error: any) {
             console.error('Error saving agenda item:', error);
             setStatus('error');
             setMessage(error instanceof Error ? error.message : 'Une erreur est survenue');
         }
+    };
+
+    const handleCreateAnother = () => {
+        setShowSuccessModal(false);
+        applyReset();
+    };
+
+    const handleGoBack = () => {
+        setShowSuccessModal(false);
+        onSuccess(createdItem);
     };
 
     return (
@@ -358,32 +445,42 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                             <Tag className="w-3 h-3 text-neon-cyan" /> Catégorie
                         </h3>
 
+                        {/* Type d'événement — REQUIRED, no default */}
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type d'Événement</label>
-                            <select
-                                value={type}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    setType(val);
-                                    if (val === 'Résidence') {
-                                        setIsWeekly(true);
-                                        setIsMultiDay(false);
-                                    } else {
-                                        setIsWeekly(false);
-                                    }
-                                }}
-                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white outline-none appearance-none cursor-pointer"
-                            >
-                                <option value="Festival">Festival</option>
-                                <option value="Showcase">Showcase</option>
-                                <option value="Concert">Concert</option>
-                                <option value="Résidence">Résidence</option>
-                                <option value="Opening">Opening</option>
-                                <option value="Events">Events</option>
-                                <option value="Pool Party">Pool Party</option>
-                                <option value="Clubs">Clubs</option>
-                                <option value="Live Take Over">LIVE TAKE OVER</option>
-                            </select>
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                Type d'Événement <span className="text-neon-red">*</span>
+                            </label>
+                            <div className="relative">
+                                <select
+                                    value={type}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setType(val);
+                                        if (val === 'Résidence') {
+                                            setIsWeekly(true);
+                                            setIsMultiDay(false);
+                                        } else {
+                                            setIsWeekly(false);
+                                        }
+                                    }}
+                                    required
+                                    className={`w-full bg-black/40 border rounded-xl py-3 px-4 text-white outline-none appearance-none cursor-pointer transition-all ${
+                                        !type
+                                            ? 'border-neon-orange/60 ring-1 ring-neon-orange/30 text-gray-400'
+                                            : 'border-white/10 focus:border-neon-cyan'
+                                    }`}
+                                >
+                                    <option value="" disabled>— Choisir un type —</option>
+                                    {EVENT_TYPES.map(t => (
+                                        <option key={t} value={t}>{t}</option>
+                                    ))}
+                                </select>
+                                {!type && (
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-neon-orange uppercase tracking-widest pointer-events-none">
+                                        Requis
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         <div className="space-y-2">
@@ -404,7 +501,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                 <option value="Multi Styles">Multi Styles</option>
                                 <option value="Hybride">Hybride</option>
                                 <option value="Hardstyle">Hardstyle</option>
-                                <option value="Drum & Bass">Drum & Bass</option>
+                                <option value="Drum & Bass">Drum &amp; Bass</option>
                                 <option value="House">House</option>
                                 <option value="Hardcore">Hardcore</option>
                                 <option value="Hard Techno">Hard Techno</option>
@@ -643,7 +740,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
 
                 {/* Status Message */}
                 <AnimatePresence>
-                    {status !== 'idle' && message && (
+                    {status !== 'idle' && message && !showSuccessModal && (
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -658,6 +755,67 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                     )}
                 </AnimatePresence>
             </form>
+
+            {/* ─── Post-creation modal ─── */}
+            <AnimatePresence>
+                {showSuccessModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+                        style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)' }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.85, opacity: 0, y: 30 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.85, opacity: 0, y: 30 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                            className="bg-[#111] border border-neon-yellow/30 rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center relative overflow-hidden"
+                        >
+                            {/* Glow */}
+                            <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(255,240,0,0.08) 0%, transparent 70%)' }} />
+
+                            {/* Icon */}
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: 'spring', delay: 0.1, stiffness: 400, damping: 20 }}
+                                className="w-16 h-16 rounded-full bg-neon-yellow/10 border border-neon-yellow/40 flex items-center justify-center mx-auto mb-5"
+                            >
+                                <CheckCircle className="w-8 h-8 text-neon-yellow" />
+                            </motion.div>
+
+                            <h2 className="text-xl font-black uppercase tracking-widest text-white mb-1">
+                                Événement ajouté !
+                            </h2>
+                            <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">
+                                <span className="text-neon-yellow font-black">{title}</span>
+                            </p>
+                            <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-8">
+                                {type} · {locationInput || '—'}
+                            </p>
+
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={handleCreateAnother}
+                                    className="w-full py-3.5 bg-neon-yellow hover:bg-neon-yellow/85 text-black font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Créer un autre événement
+                                </button>
+                                <button
+                                    onClick={handleGoBack}
+                                    className="w-full py-3.5 bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                                >
+                                    <ArrowLeft className="w-4 h-4" />
+                                    Retour
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <ImageUploadModal
                 isOpen={showUploadModal}

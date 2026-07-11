@@ -8,6 +8,7 @@ import { standardizeContent } from '../../utils/standardizer';
 import { getCategoryColor } from '../../utils/theme';
 import { useMemo, useState, useEffect } from 'react';
 import { TopTracksLeaderboard } from '../widgets/TopTracksLeaderboard';
+import { fetchWithFallback } from '../../utils/fetcher';
 
 
 export function MobileHome() {
@@ -21,24 +22,23 @@ export function MobileHome() {
     useEffect(() => {
         const fetchAll = async () => {
             try {
-                const [newsRes, agendaRes, recapsRes, galerieRes, interviewsRes] = await Promise.all([
-                    fetch('/api/news'),
-                    fetch('/api/agenda'),
-                    fetch('/api/recaps'),
-                    fetch('/api/galerie'),
-                    fetch('/api/interviews')
+                const [news, agenda, recaps, galerie, interviews] = await Promise.all([
+                    fetchWithFallback('/api/news'),
+                    fetchWithFallback('/api/agenda'),
+                    fetchWithFallback('/api/recaps'),
+                    fetchWithFallback('/api/galerie'),
+                    fetchWithFallback('/api/interviews')
                 ]);
 
                 let combinedNews: any[] = [];
-                if (newsRes.ok) combinedNews = await newsRes.json();
-                if (interviewsRes.ok) {
-                    const intDatas = await interviewsRes.json();
-                    combinedNews = [...combinedNews, ...intDatas.map((i: any) => ({...i, category: 'INTERVIEW'}))];
+                if (Array.isArray(news)) combinedNews = [...news];
+                if (Array.isArray(interviews)) {
+                    combinedNews = [...combinedNews, ...interviews.map((i: any) => ({...i, category: 'INTERVIEW'}))];
                 }
                 setNewsData(combinedNews);
-                if (agendaRes.ok) setAgendaData(await agendaRes.json());
-                if (recapsRes.ok) setRecapsData(await recapsRes.json());
-                if (galerieRes.ok) setGalerieData(await galerieRes.json());
+                if (Array.isArray(agenda)) setAgendaData(agenda);
+                if (Array.isArray(recaps)) setRecapsData(recaps);
+                if (Array.isArray(galerie)) setGalerieData(galerie);
             } catch (err) {
                 console.error('Failed to fetch mobile home data', err);
             }
@@ -51,20 +51,49 @@ export function MobileHome() {
     }, [newsData]);
 
     const featuredNews = useMemo(() => {
-        const featured = sortedNews.filter(n => n.isFeatured).slice(0, 1);
-        if (featured.length > 0) return featured;
-        return sortedNews.slice(0, 1);
-    }, [sortedNews]);
+        // Build a combined pool including recaps (as on desktop FeaturedNews.tsx)
+        const recapsMapped = recapsData
+            .filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10))
+            .map(r => {
+                let title = r.title || '';
+                if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                    title = `Récap : ${title}`;
+                }
+                return { ...r, title: title.toUpperCase(), _isRecap: true };
+            });
 
-    // 2. Filter News (include musique/news, exclude interviews)
+        const all = [...sortedNews, ...recapsMapped]
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        const featured = all.filter(n => n.isFeatured).slice(0, 1);
+        if (featured.length > 0) return featured;
+        return all.slice(0, 1);
+    }, [sortedNews, recapsData]);
+
+    // 2. Filter News (include musique/news/recaps-with-content, exclude interviews)
     const newsHighlight = useMemo(() => {
-        return sortedNews.filter(n => {
-            const cat = n.category?.toLowerCase() || '';
-            const isInterview = cat.includes('interview');
-            const isNewsOrMusic = cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('review') || cat.includes('sets') || cat.includes('mix');
-            return isNewsOrMusic && !isInterview;
-        }).slice(0, 6);
-    }, [sortedNews]);
+        const recapsMapped = recapsData
+            .filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10))
+            .map(r => {
+                let title = r.title || '';
+                if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                    title = `Récap : ${title}`;
+                }
+                return { ...r, title: title.toUpperCase(), category: 'RECAP', _isRecap: true };
+            });
+
+        const combined = [
+            ...sortedNews.filter(n => {
+                const cat = n.category?.toLowerCase() || '';
+                const isInterview = cat.includes('interview');
+                const isNewsOrMusic = cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('review') || cat.includes('sets') || cat.includes('mix');
+                return isNewsOrMusic && !isInterview;
+            }),
+            ...recapsMapped
+        ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        return combined.slice(0, 8);
+    }, [sortedNews, recapsData]);
 
     // 3. Recaps
     const recapsHighlight = useMemo(() => {
