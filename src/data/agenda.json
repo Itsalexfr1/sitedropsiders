@@ -4999,5 +4999,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1097,
+    "title": "Dj Tennis",
+    "date": "2026-08-12",
+    "startDate": "2026-08-12",
+    "endDate": "2026-08-12",
+    "venue": "Lillys",
+    "location": "LILLYS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Clubs",
+    "image": "/uploads/7e5e29b9e94109b4-ccdabd974fbdb141e6e582506e1eb4.webp",
+    "url": "https://lillysclub.com/future-events#/event/dj-tennis-lillys-club/235893",
+    "genre": "House",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
