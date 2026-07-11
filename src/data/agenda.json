@@ -5132,5 +5132,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1104,
+    "title": "Kilimanjaro",
+    "date": "2026-08-23",
+    "startDate": "2026-08-23",
+    "endDate": "2026-08-23",
+    "venue": "Lillys",
+    "location": "ST TROPEZ",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/7e5e29b9e94109b4-ccdabd974fbdb141e6e582506e1eb4.webp",
+    "url": "https://lillysclub.com/future-events#/event/kilimanjaro-lillys-club/235899",
+    "genre": "House",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
