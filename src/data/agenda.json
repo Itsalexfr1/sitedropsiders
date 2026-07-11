@@ -5189,5 +5189,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1107,
+    "title": "Experts Only ",
+    "date": "2026-10-03",
+    "startDate": "2026-10-03",
+    "endDate": "2026-10-04",
+    "venue": "The Gorge",
+    "location": "WASHINGTON",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Festival",
+    "image": "/uploads/uploads/8e1a162190b6383d-static_social_facebook_1200x63.webp",
+    "url": "https://expertsonlygorge.frontgatetickets.com",
+    "genre": "Tech House",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
