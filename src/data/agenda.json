@@ -4942,5 +4942,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1094,
+    "title": "Mind Against",
+    "date": "2026-08-06",
+    "startDate": "2026-08-06",
+    "endDate": "2026-08-06",
+    "venue": "Lillys",
+    "location": "ST TROPEZ",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/7e5e29b9e94109b4-ccdabd974fbdb141e6e582506e1eb4.webp",
+    "url": "https://lillysclub.com/future-events#/event/mind-against-lillys-club-2/235889",
+    "genre": "Melodic Techno",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
