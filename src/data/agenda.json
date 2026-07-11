@@ -4657,5 +4657,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1079,
+    "title": "Isabelle St Tropez",
+    "date": "2026-07-17",
+    "startDate": "2026-07-17",
+    "endDate": "2026-07-18",
+    "venue": "Citadelle St Tropez",
+    "location": "CITADELLE",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/227aca597554eccc-images.jpg",
+    "url": "https://www.isabellesainttropez.com",
+    "genre": "House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
