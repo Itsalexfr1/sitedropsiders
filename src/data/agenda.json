@@ -4809,5 +4809,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1087,
+    "title": "Dom Dolla",
+    "date": "2026-07-26",
+    "startDate": "2026-07-26",
+    "endDate": "2026-07-26",
+    "venue": "Lillys",
+    "location": "ST TROPEZ",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/7e5e29b9e94109b4-ccdabd974fbdb141e6e582506e1eb4.webp",
+    "url": "https://lillysclub.com/future-events#/event/dom-dolla-lillys-club/234477",
+    "genre": "House",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
