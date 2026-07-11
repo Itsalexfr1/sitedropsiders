@@ -4961,5 +4961,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1095,
+    "title": "Central Cee",
+    "date": "2026-08-08",
+    "startDate": "2026-08-08",
+    "endDate": "2026-08-08",
+    "venue": "Lillys",
+    "location": "ST TROPEZ",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/7e5e29b9e94109b4-ccdabd974fbdb141e6e582506e1eb4.webp",
+    "url": "https://lillysclub.com/future-events#/event/central-cee-lillys-club/235891",
+    "genre": "Hybride",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
