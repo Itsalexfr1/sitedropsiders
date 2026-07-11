@@ -4752,5 +4752,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1084,
+    "title": "Artbat",
+    "date": "2026-07-22",
+    "startDate": "2026-07-22",
+    "endDate": "2026-07-22",
+    "venue": "Lillys",
+    "location": "LILLYS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Clubs",
+    "image": "/uploads/7e5e29b9e94109b4-ccdabd974fbdb141e6e582506e1eb4.webp",
+    "url": "https://lillysclub.com/future-events#/event/arbat-lillys-club/234481",
+    "genre": "Melodic Techno",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
