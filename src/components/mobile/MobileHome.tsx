@@ -59,7 +59,7 @@ export function MobileHome() {
                 if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
                     title = `Récap : ${title}`;
                 }
-                return { ...r, title: title.toUpperCase(), _isRecap: true };
+                return { ...r, title: title.toUpperCase(), category: 'RECAP', _isRecap: true };
             });
 
         const all = [...sortedNews, ...recapsMapped]
