@@ -5151,5 +5151,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1105,
+    "title": "Andrea Oliva",
+    "date": "2026-08-26",
+    "startDate": "2026-08-26",
+    "endDate": "2026-08-26",
+    "venue": "Lillys",
+    "location": "ST TROPEZ",
+    "country": "FRANCE",
+    "type": "Clubs",
+    "image": "/uploads/7e5e29b9e94109b4-ccdabd974fbdb141e6e582506e1eb4.webp",
+    "url": "https://lillysclub.com/future-events#/event/andrea-oliva-lillys-club/235902",
+    "genre": "Tech House",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
