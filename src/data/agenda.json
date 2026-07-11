@@ -5208,5 +5208,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1108,
+    "title": "Experts Only Festival",
+    "date": "2026-09-19",
+    "startDate": "2026-09-19",
+    "endDate": "2026-09-20",
+    "venue": "Randall's Island Park",
+    "location": "NEW YORK",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Festival",
+    "image": "/uploads/uploads/210faea7efc3fa72-experts_only_festival_2026_lin.webp",
+    "url": "https://www.expertsonlyfest.com",
+    "genre": "Tech House",
+    "month": "SEPTEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
