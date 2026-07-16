@@ -1495,32 +1495,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // Artist list from customText
-                if (customText) {
-                    const artistLines = customText.toUpperCase().split('\n').filter(l => l.trim() !== '');
-                    const fontSize = 48;
-                    const lineHeight = fontSize * 1.18;
-                    const startY = titleY + (festivalNameText ? 130 : 80);
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.font = `900 italic ${fontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 12;
-                    const maxArtistLines = effectiveTab === 'PUBLICATION' ? 7 : 9;
-                    artistLines.slice(0, maxArtistLines).forEach((line, i) => {
-                        // Shrink per line if needed
-                        let fs = fontSize;
-                        ctx.font = `900 italic ${fs}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
-                        while (ctx.measureText(line).width > canvas.width - 160 && fs > 22) {
-                            fs--;
-                            ctx.font = `900 italic ${fs}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
-                        }
-                        ctx.fillStyle = textColor;
-                        ctx.fillText(line, centerX, startY + i * lineHeight);
-                    });
-                    ctx.restore();
-                }
-
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -3116,7 +3090,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
                             ) : theme === 'ARTISTE FESTIVAL' ? (
                                 <>
-                                    <span className="text-[10px] font-black text-gray-500 uppercase">Artistes & Festival</span>
+                                    <span className="text-[10px] font-black text-gray-500 uppercase">Festival</span>
                                     <div className="space-y-3">
                                         <input
                                             value={festivalNameText}
@@ -3127,7 +3101,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             autoCapitalize="words"
                                             className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
                                         />
-                                        {textEditor}
                                     </div>
                                 </>
                             ) : (
@@ -3447,7 +3420,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                     autoCapitalize="words"
                                     className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
                                 />
-                                {textEditor}
                             </div>
                         ) : textEditor}
                                     </div>
