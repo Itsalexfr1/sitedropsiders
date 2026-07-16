@@ -1437,8 +1437,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const centerX = canvas.width / 2;
                 const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
 
-                // Capsule noire
-                const capsuleLabel = 'LES 10 ARTISTES À VOIR';
+                // Capsule noire contenant uniquement le nom du festival
+                const capsuleLabel = festivalNameText ? festivalNameText.toUpperCase() : 'FESTIVAL';
                 const capsuleFontSize = 36;
                 ctx.save();
                 ctx.font = `900 italic ${capsuleFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
@@ -1464,31 +1464,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(capsuleLabel, canvas.width / 2, capY + 44);
                 ctx.restore();
 
-                // Festival name (Large, styled with Orbitron)
-                if (festivalNameText) {
-                    const titleY = labelY + 125;
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.fillStyle = '#ffffff';
-                    
-                    // Create a subtle neon shadow/glow to make the text stand out and look premium
-                    ctx.shadowColor = '#00f0ff'; // Neon cyan glow
-                    ctx.shadowBlur = 20;
+                // Title: LES 10 ARTISTES À VOIR (Large, styled with Orbitron)
+                const titleY = labelY + 125;
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                
+                // Create a subtle neon shadow/glow to make the text stand out and look premium
+                ctx.shadowColor = '#00f0ff'; // Neon cyan glow
+                ctx.shadowBlur = 20;
 
-                    let titleFs = 80;
+                let titleFs = 80;
+                ctx.font = `900 italic ${titleFs}px "Orbitron", sans-serif`;
+                ctx.letterSpacing = '8px';
+                
+                const displayTitle = 'LES 10 ARTISTES À VOIR';
+                
+                // Shrink if too wide
+                while (ctx.measureText(displayTitle).width > canvas.width - 160 && titleFs > 28) {
+                    titleFs--;
                     ctx.font = `900 italic ${titleFs}px "Orbitron", sans-serif`;
-                    ctx.letterSpacing = '8px';
-                    
-                    const displayTitle = festivalNameText.toUpperCase();
-                    
-                    // Shrink if too wide
-                    while (ctx.measureText(displayTitle).width > canvas.width - 160 && titleFs > 28) {
-                        titleFs--;
-                        ctx.font = `900 italic ${titleFs}px "Orbitron", sans-serif`;
-                    }
-                    ctx.fillText(displayTitle, centerX, titleY);
-                    ctx.restore();
                 }
+                ctx.fillText(displayTitle, centerX, titleY);
+                ctx.restore();
 
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
