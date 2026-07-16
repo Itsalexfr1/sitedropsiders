@@ -66,7 +66,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -252,6 +252,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'CITATION': { label: 'CITATION', grad: '255, 255, 255', color: '#ffffff' },
         'CONSEILS': { label: 'CONSEILS', grad: '255, 0, 51', color: '#ff0033' },
         'EVENT': { label: 'EVENT', grad: '0, 240, 255', color: '#00f0ff' },
+        'ARTISTE FESTIVAL': { label: 'ARTISTE FESTIVAL', grad: '0, 0, 0', color: '#000000' },
     };
 
     useEffect(() => {
@@ -1432,6 +1433,94 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
                 ctx.restore();
 
+            } else if (theme === 'ARTISTE FESTIVAL') {
+                const centerX = canvas.width / 2;
+                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
+
+                // Capsule noire
+                const capsuleLabel = 'ARTISTE FESTIVAL';
+                const capsuleFontSize = 42;
+                ctx.save();
+                ctx.font = `900 italic ${capsuleFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                ctx.textAlign = 'center';
+                const capW = ctx.measureText(capsuleLabel).width + 80;
+                ctx.globalAlpha = 0.95;
+                ctx.fillStyle = '#000000';
+                const capX = (canvas.width - capW) / 2;
+                const capY = labelY - 52;
+                ctx.beginPath();
+                ctx.roundRect(capX, capY, capW, 80, 20);
+                ctx.fill();
+                // Thin white border on the capsule
+                ctx.globalAlpha = 0.4;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.roundRect(capX, capY, capW, 80, 20);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#ffffff';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(capsuleLabel, canvas.width / 2, capY + 44);
+                ctx.restore();
+
+                // Fixed title: "LES 10 ARTISTES À VOIR"
+                const titleY = labelY + 110;
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 15;
+                ctx.font = '900 italic 62px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                const fixedTitle = 'LES 10 ARTISTES À VOIR';
+                // Shrink if too wide
+                let titleFs = 62;
+                while (ctx.measureText(fixedTitle).width > canvas.width - 160 && titleFs > 28) {
+                    titleFs--;
+                    ctx.font = `900 italic ${titleFs}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                }
+                ctx.fillText(fixedTitle, centerX, titleY);
+                ctx.restore();
+
+                // Festival name (colored accent)
+                if (festivalNameText) {
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.font = '700 italic 38px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                    ctx.shadowBlur = 10;
+                    ctx.letterSpacing = '2px';
+                    ctx.fillText(`@ ${festivalNameText.toUpperCase()}`, centerX, titleY + 65);
+                    ctx.restore();
+                }
+
+                // Artist list from customText
+                if (customText) {
+                    const artistLines = customText.toUpperCase().split('\n').filter(l => l.trim() !== '');
+                    const fontSize = 48;
+                    const lineHeight = fontSize * 1.18;
+                    const startY = titleY + (festivalNameText ? 130 : 80);
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.font = `900 italic ${fontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 12;
+                    const maxArtistLines = effectiveTab === 'PUBLICATION' ? 7 : 9;
+                    artistLines.slice(0, maxArtistLines).forEach((line, i) => {
+                        // Shrink per line if needed
+                        let fs = fontSize;
+                        ctx.font = `900 italic ${fs}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                        while (ctx.measureText(line).width > canvas.width - 160 && fs > 22) {
+                            fs--;
+                            ctx.font = `900 italic ${fs}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                        }
+                        ctx.fillStyle = textColor;
+                        ctx.fillText(line, centerX, startY + i * lineHeight);
+                    });
+                    ctx.restore();
+                }
+
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -2097,6 +2186,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => setTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
             <button onClick={() => setTheme('CONSEILS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONSEILS</button>
             <button onClick={() => setTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
+            <button onClick={() => setTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-2 ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
             
             {activeTab === 'REEL' && (
                 <>
@@ -3024,6 +3114,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Conseils & Image</span>{conseilsEditor}</>
                             ) : theme === 'CITATION' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
+                            ) : theme === 'ARTISTE FESTIVAL' ? (
+                                <>
+                                    <span className="text-[10px] font-black text-gray-500 uppercase">Artistes & Festival</span>
+                                    <div className="space-y-3">
+                                        <input
+                                            value={festivalNameText}
+                                            onChange={e => setFestivalNameText(e.target.value)}
+                                            placeholder="NOM DU FESTIVAL (ex: TOMORROWLAND)"
+                                            spellCheck="true"
+                                            autoCorrect="on"
+                                            autoCapitalize="words"
+                                            className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                                        />
+                                        {textEditor}
+                                    </div>
+                                </>
                             ) : (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
                             )}
@@ -3330,7 +3436,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : textEditor}
+                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'ARTISTE FESTIVAL' ? (
+                            <div className="space-y-3">
+                                <input
+                                    value={festivalNameText}
+                                    onChange={e => setFestivalNameText(e.target.value)}
+                                    placeholder="NOM DU FESTIVAL (ex: TOMORROWLAND)"
+                                    spellCheck="true"
+                                    autoCorrect="on"
+                                    autoCapitalize="words"
+                                    className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                                />
+                                {textEditor}
+                            </div>
+                        ) : textEditor}
                                     </div>
                                 )}
 
