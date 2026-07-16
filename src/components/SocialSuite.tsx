@@ -252,7 +252,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'CITATION': { label: 'CITATION', grad: '255, 255, 255', color: '#ffffff' },
         'CONSEILS': { label: 'CONSEILS', grad: '255, 0, 51', color: '#ff0033' },
         'EVENT': { label: 'EVENT', grad: '0, 240, 255', color: '#00f0ff' },
-        'ARTISTE FESTIVAL': { label: 'ARTISTE FESTIVAL', grad: '0, 0, 0', color: '#000000' },
+        'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À VOIR', grad: '0, 0, 0', color: '#000000' },
     };
 
     useEffect(() => {
@@ -1438,8 +1438,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
 
                 // Capsule noire
-                const capsuleLabel = 'ARTISTE FESTIVAL';
-                const capsuleFontSize = 42;
+                const capsuleLabel = 'LES 10 ARTISTES À VOIR';
+                const capsuleFontSize = 36;
                 ctx.save();
                 ctx.font = `900 italic ${capsuleFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textAlign = 'center';
@@ -1464,34 +1464,29 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(capsuleLabel, canvas.width / 2, capY + 44);
                 ctx.restore();
 
-                // Fixed title: "LES 10 ARTISTES À VOIR"
-                const titleY = labelY + 110;
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                ctx.shadowBlur = 15;
-                ctx.font = '900 italic 62px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
-                const fixedTitle = 'LES 10 ARTISTES À VOIR';
-                // Shrink if too wide
-                let titleFs = 62;
-                while (ctx.measureText(fixedTitle).width > canvas.width - 160 && titleFs > 28) {
-                    titleFs--;
-                    ctx.font = `900 italic ${titleFs}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
-                }
-                ctx.fillText(fixedTitle, centerX, titleY);
-                ctx.restore();
-
-                // Festival name (colored accent)
+                // Festival name (Large, styled with Orbitron)
                 if (festivalNameText) {
+                    const titleY = labelY + 125;
                     ctx.save();
                     ctx.textAlign = 'center';
-                    ctx.font = '700 italic 38px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
-                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-                    ctx.shadowBlur = 10;
-                    ctx.letterSpacing = '2px';
-                    ctx.fillText(`@ ${festivalNameText.toUpperCase()}`, centerX, titleY + 65);
+                    ctx.fillStyle = '#ffffff';
+                    
+                    // Create a subtle neon shadow/glow to make the text stand out and look premium
+                    ctx.shadowColor = '#00f0ff'; // Neon cyan glow
+                    ctx.shadowBlur = 20;
+
+                    let titleFs = 80;
+                    ctx.font = `900 italic ${titleFs}px "Orbitron", sans-serif`;
+                    ctx.letterSpacing = '8px';
+                    
+                    const displayTitle = festivalNameText.toUpperCase();
+                    
+                    // Shrink if too wide
+                    while (ctx.measureText(displayTitle).width > canvas.width - 160 && titleFs > 28) {
+                        titleFs--;
+                        ctx.font = `900 italic ${titleFs}px "Orbitron", sans-serif`;
+                    }
+                    ctx.fillText(displayTitle, centerX, titleY);
                     ctx.restore();
                 }
 
