@@ -252,7 +252,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'CITATION': { label: 'CITATION', grad: '255, 255, 255', color: '#ffffff' },
         'CONSEILS': { label: 'CONSEILS', grad: '255, 0, 51', color: '#ff0033' },
         'EVENT': { label: 'EVENT', grad: '0, 240, 255', color: '#00f0ff' },
-        'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À VOIR', grad: '0, 0, 0', color: '#000000' },
+        'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À NE PAS LOUPER', grad: '0, 0, 0', color: '#000000' },
     };
 
     useEffect(() => {
@@ -1464,26 +1464,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(capsuleLabel, canvas.width / 2, capY + 44);
                 ctx.restore();
 
-                // Title: LES 10 ARTISTES À VOIR (Large, styled with Orbitron)
+                // Title: LES 10 ARTISTES À NE PAS LOUPER (Styled with Montserrat and red glow)
                 const titleY = labelY + 125;
                 ctx.save();
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
                 
-                // Create a subtle neon shadow/glow to make the text stand out and look premium
-                ctx.shadowColor = '#00f0ff'; // Neon cyan glow
-                ctx.shadowBlur = 20;
+                // Create a subtle neon shadow/glow in RED to make it look premium
+                ctx.shadowColor = '#ff0033'; // Neon red glow
+                ctx.shadowBlur = 15;
 
-                let titleFs = 80;
-                ctx.font = `900 italic ${titleFs}px "Orbitron", sans-serif`;
-                ctx.letterSpacing = '8px';
+                let titleFs = 56; // Smaller font size (was 80)
+                ctx.font = `900 italic ${titleFs}px "Montserrat", sans-serif`;
+                ctx.letterSpacing = '2px';
                 
-                const displayTitle = 'LES 10 ARTISTES À VOIR';
+                const displayTitle = 'LES 10 ARTISTES À NE PAS LOUPER';
                 
                 // Shrink if too wide
                 while (ctx.measureText(displayTitle).width > canvas.width - 160 && titleFs > 28) {
                     titleFs--;
-                    ctx.font = `900 italic ${titleFs}px "Orbitron", sans-serif`;
+                    ctx.font = `900 italic ${titleFs}px "Montserrat", sans-serif`;
                 }
                 ctx.fillText(displayTitle, centerX, titleY);
                 ctx.restore();
