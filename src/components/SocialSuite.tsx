@@ -1204,7 +1204,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (artistNameText) {
                     ctx.save();
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 italic 80px "Orbitron", sans-serif';
+                    let fontSize = 80;
+                    ctx.font = `900 italic ${fontSize}px "Orbitron", sans-serif`;
+                    const maxArtistWidth = 650;
+                    let textWidth = ctx.measureText(artistNameText.toUpperCase()).width;
+                    if (textWidth > maxArtistWidth) {
+                        fontSize = Math.max(30, Math.floor(fontSize * (maxArtistWidth / textWidth)));
+                        ctx.font = `900 italic ${fontSize}px "Orbitron", sans-serif`;
+                    }
                     ctx.textAlign = 'left';
                     ctx.shadowColor = 'rgba(0,0,0,0.5)';
                     ctx.shadowBlur = 15;
@@ -1246,42 +1253,63 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // Stage Section
-                    let currY = taglineY + 150; // Dynamique selon le nombre de lignes de la tagline (réduit de 180 à 150)
+                    let currY = taglineY + 180; // Restored base layout spacing
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                    ctx.font = '900 27px "Orbitron", sans-serif'; // Réduit de 32px à 27px (15%)
+                    ctx.font = '900 32px "Orbitron", sans-serif'; // Restored base size
                     ctx.letterSpacing = '4px';
                     ctx.fillText('STAGE', 80, currY);
                     
                     ctx.fillStyle = activeColor.color; // Yellow
-                    ctx.font = '900 italic 72px "Orbitron", sans-serif'; // Réduit de 85px à 72px (15%)
+                    let stageFontSize = 85; // Restored base size
+                    ctx.font = `900 italic ${stageFontSize}px "Orbitron", sans-serif`;
+                    let stageWidth = ctx.measureText(stageName).width;
+                    const maxStageWidth = 650;
+                    if (stageWidth > maxStageWidth) {
+                        stageFontSize = Math.max(30, Math.floor(stageFontSize * (maxStageWidth / stageWidth)));
+                        ctx.font = `900 italic ${stageFontSize}px "Orbitron", sans-serif`;
+                    }
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(stageName, 75, currY + 70); // Réduit décalage de 85 à 70
-
+                    ctx.fillText(stageName, 75, currY + 85); // Restored base offset
+                    
                     // Day Section
-                    currY += 165; // Réduit de 210 à 165
+                    currY += 210; // Restored base layout spacing
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                    ctx.font = '900 27px "Orbitron", sans-serif'; // Réduit de 32px à 27px (15%)
+                    ctx.font = '900 32px "Orbitron", sans-serif'; // Restored base size
                     ctx.letterSpacing = '4px';
                     ctx.fillText('JOUR', 80, currY);
                     
                     const dayName = lines[2] || '';
                     ctx.fillStyle = activeColor.color; // Yellow
-                    ctx.font = '900 italic 72px "Orbitron", sans-serif'; // Réduit de 85px à 72px (15%)
+                    let dayFontSize = 85; // Restored base size
+                    ctx.font = `900 italic ${dayFontSize}px "Orbitron", sans-serif`;
+                    let dayWidth = ctx.measureText(dayName).width;
+                    const maxDayWidth = 650;
+                    if (dayWidth > maxDayWidth) {
+                        dayFontSize = Math.max(30, Math.floor(dayFontSize * (maxDayWidth / dayWidth)));
+                        ctx.font = `900 italic ${dayFontSize}px "Orbitron", sans-serif`;
+                    }
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(dayName, 75, currY + 70); // Réduit décalage de 85 à 70
-
+                    ctx.fillText(dayName, 75, currY + 85); // Restored base offset
+                    
                     // Hour Section
-                    currY += 165; // Nouvel espacement
+                    currY += 210; // Restored base layout spacing
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                    ctx.font = '900 27px "Orbitron", sans-serif'; // 27px
+                    ctx.font = '900 32px "Orbitron", sans-serif'; // Restored base size
                     ctx.letterSpacing = '4px';
                     ctx.fillText('HEURE', 80, currY);
                     
                     const hourName = lines[4] || '';
                     ctx.fillStyle = activeColor.color; // Yellow
-                    ctx.font = '900 italic 72px "Orbitron", sans-serif'; // 72px
+                    let hourFontSize = 85; // Restored base size
+                    ctx.font = `900 italic ${hourFontSize}px "Orbitron", sans-serif`;
+                    let hourWidth = ctx.measureText(hourName).width;
+                    const maxHourWidth = 650;
+                    if (hourWidth > maxHourWidth) {
+                        hourFontSize = Math.max(30, Math.floor(hourFontSize * (maxHourWidth / hourWidth)));
+                        ctx.font = `900 italic ${hourFontSize}px "Orbitron", sans-serif`;
+                    }
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(hourName, 75, currY + 70);
+                    ctx.fillText(hourName, 75, currY + 85); // Restored base offset
                     
                     ctx.restore();
                 }
@@ -1299,7 +1327,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (festivalNameText) {
                     ctx.save();
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 italic 45px "Montserrat", sans-serif';
+                    let festFontSize = 45;
+                    ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
+                    const maxFestWidth = 650;
+                    let festWidth = ctx.measureText(festivalNameText.toUpperCase()).width;
+                    if (festWidth > maxFestWidth) {
+                        festFontSize = Math.max(20, Math.floor(festFontSize * (maxFestWidth / festWidth)));
+                        ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
+                    }
                     ctx.textAlign = 'left';
                     ctx.letterSpacing = '2px';
                     ctx.fillText(festivalNameText.toUpperCase(), 80, canvas.height - 120);
