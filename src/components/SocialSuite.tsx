@@ -1246,29 +1246,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // Stage Section
-                    let currY = taglineY + 180; // Dynamique selon le nombre de lignes de la tagline
+                    let currY = taglineY + 150; // Dynamique selon le nombre de lignes de la tagline (réduit de 180 à 150)
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                    ctx.font = '900 32px "Orbitron", sans-serif';
+                    ctx.font = '900 27px "Orbitron", sans-serif'; // Réduit de 32px à 27px (15%)
                     ctx.letterSpacing = '4px';
                     ctx.fillText('STAGE', 80, currY);
                     
                     ctx.fillStyle = activeColor.color; // Yellow
-                    ctx.font = '900 italic 85px "Orbitron", sans-serif';
+                    ctx.font = '900 italic 72px "Orbitron", sans-serif'; // Réduit de 85px à 72px (15%)
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(stageName, 75, currY + 85); // Décalage vers la gauche (75 au lieu de 80)
+                    ctx.fillText(stageName, 75, currY + 70); // Réduit décalage de 85 à 70
 
                     // Day Section
-                    currY += 210;
+                    currY += 165; // Réduit de 210 à 165
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                    ctx.font = '900 32px "Orbitron", sans-serif';
+                    ctx.font = '900 27px "Orbitron", sans-serif'; // Réduit de 32px à 27px (15%)
                     ctx.letterSpacing = '4px';
                     ctx.fillText('JOUR', 80, currY);
                     
                     const dayName = lines[2] || '';
                     ctx.fillStyle = activeColor.color; // Yellow
-                    ctx.font = '900 italic 85px "Orbitron", sans-serif';
+                    ctx.font = '900 italic 72px "Orbitron", sans-serif'; // Réduit de 85px à 72px (15%)
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(dayName, 75, currY + 85); // Décalage vers la gauche (75 au lieu de 80)
+                    ctx.fillText(dayName, 75, currY + 70); // Réduit décalage de 85 à 70
+
+                    // Hour Section
+                    currY += 165; // Nouvel espacement
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.font = '900 27px "Orbitron", sans-serif'; // 27px
+                    ctx.letterSpacing = '4px';
+                    ctx.fillText('HEURE', 80, currY);
+                    
+                    const hourName = lines[4] || '';
+                    ctx.fillStyle = activeColor.color; // Yellow
+                    ctx.font = '900 italic 72px "Orbitron", sans-serif'; // 72px
+                    ctx.letterSpacing = '-2px';
+                    ctx.fillText(hourName, 75, currY + 70);
                     
                     ctx.restore();
                 }
@@ -2730,7 +2743,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nom Stage</label>
                     <input 
@@ -2756,6 +2769,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setCustomText(lines.join('\n'));
                         }} 
                         placeholder="SATURDAY" 
+                        className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs" 
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Heure</label>
+                    <input 
+                        value={customText.split('\n')[4] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            while (lines.length < 5) lines.push('');
+                            lines[4] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="22:00 - 23:00" 
                         className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs" 
                     />
                 </div>
