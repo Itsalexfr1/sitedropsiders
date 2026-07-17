@@ -2184,31 +2184,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
+    // Themes that use a bright/light color and need black text on the canvas
+    const LIGHT_TEXT_THEMES: ThemeType[] = ['MUSIQUE', 'TOP 100 DROPSIDERS', 'EVENT', 'TOP 5 ARTISTE', 'TOP 5 STYLES'];
+
+    const handleSetTheme = (newTheme: ThemeType) => {
+        setTheme(newTheme);
+        setTextColor(LIGHT_TEXT_THEMES.includes(newTheme) ? '#000000' : '#ffffff');
+    };
+
     // Shared content blocks (used in both mobile & desktop)
     const themeButtons = (
         <div className="grid grid-cols-3 gap-1.5">
             {/* All themes accessible in both modes, except TOP 5 which are Story-specific for now */}
-            <button onClick={() => setTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
-            <button onClick={() => setTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
-            <button onClick={() => setTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
-            <button onClick={() => setTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
-            <button onClick={() => setTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
-            <button onClick={() => setTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
-            <button onClick={() => setTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
-            <button onClick={() => setTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
-            <button onClick={() => setTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
-            <button onClick={() => setTheme('SPOTLIGHT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
-            <button onClick={() => setTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
-            <button onClick={() => setTheme('CONSEILS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONSEILS</button>
-            <button onClick={() => setTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
-            <button onClick={() => setTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-2 ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
+            <button onClick={() => handleSetTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
+            <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
+            <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
+            <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
+            <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
+            <button onClick={() => handleSetTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
+            <button onClick={() => handleSetTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
+            <button onClick={() => handleSetTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
+            <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
+            <button onClick={() => handleSetTheme('SPOTLIGHT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
+            <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
+            <button onClick={() => handleSetTheme('CONSEILS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONSEILS</button>
+            <button onClick={() => handleSetTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
+            <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-2 ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
             
             {activeTab === 'REEL' && (
                 <>
-                    <button onClick={() => setTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
-                    <button onClick={() => setTheme('INTRO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
-                    <button onClick={() => setTheme('TOP 5 ARTISTE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
-                    <button onClick={() => setTheme('TOP 5 STYLES')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
+                    <button onClick={() => handleSetTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
+                    <button onClick={() => handleSetTheme('INTRO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
+                    <button onClick={() => handleSetTheme('TOP 5 ARTISTE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
+                    <button onClick={() => handleSetTheme('TOP 5 STYLES')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
                 </>
             )}
 
