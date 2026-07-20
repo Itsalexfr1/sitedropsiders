@@ -66,7 +66,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -88,6 +88,22 @@ const STYLE_PRESETS = [
     { name: 'MELODIC', grad: '0, 150, 255', color: '#0096ff' },
     { name: 'DRUM N BASS', grad: '150, 0, 255', color: '#9600ff' }
 ];
+
+const lon2tile = (lon: number, zoom: number) => {
+    return ((lon + 180) / 360) * Math.pow(2, zoom);
+};
+
+const lat2tile = (lat: number, zoom: number) => {
+    return (
+        ((1 -
+            Math.log(
+                Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)
+            ) /
+                Math.PI) /
+            2) *
+        Math.pow(2, zoom)
+    );
+};
 
 export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
@@ -145,6 +161,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
     const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | null>(null);
+
+    // MAP Theme States
+    const [mapFestivalText, setMapFestivalText] = useState('LOLLAPALOOZA');
+    const [mapCityCountry, setMapCityCountry] = useState('Paris, France');
+    const [mapZoom, setMapZoom] = useState(11);
+    const [mapLatitude, setMapLatitude] = useState(48.8566);
+    const [mapLongitude, setMapLongitude] = useState(2.3522);
+    const [isMapLoading, setIsMapLoading] = useState(false);
+    const [mapStyle, setMapStyle] = useState<'dark' | 'voyager' | 'light'>('dark');
+    const [mapPinColor, setMapPinColor] = useState('#ff0033');
+    const [mapLabelText, setMapLabelText] = useState('PARIS, FRANCE');
+    const [showMapPin, setShowMapPin] = useState(true);
+    const [showMapLabel, setShowMapLabel] = useState(true);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -254,16 +283,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'EVENT': { label: 'EVENT', grad: '0, 240, 255', color: '#00f0ff' },
         'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À NE PAS LOUPER', grad: '0, 0, 0', color: '#000000' },
         'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
+        'MAP': { label: 'MAP', grad: '255, 0, 51', color: '#ff0033' },
     };
 
     useEffect(() => {
         if (activeTab === 'REEL') {
             // Only set default if current theme is not a Reel-specific theme
-            if (theme !== 'TRACKLIST' && theme !== 'INTRO' && theme !== 'TOP 100 DROPSIDERS' && !theme.startsWith('TOP ')) {
+            if (theme !== 'TRACKLIST' && theme !== 'INTRO' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'MAP' && !theme.startsWith('TOP ')) {
                 setTheme('TRACKLIST');
             }
         } else {
-            if (theme === 'TRACKLIST' || theme === 'INTRO' || theme.startsWith('TOP ')) {
+            if (theme === 'TRACKLIST' || theme === 'INTRO' || theme === 'MAP' || theme.startsWith('TOP ')) {
                 setTheme('NEWS');
             }
         }
@@ -314,6 +344,159 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
         return () => cancelAnimationFrame(frame);
     }, [theme, isVideoRecording]);
+
+    const handleGeocode = async () => {
+        if (!mapCityCountry.trim()) return;
+        setIsMapLoading(true);
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapCityCountry)}&limit=1`);
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                setMapLatitude(lat);
+                setMapLongitude(lon);
+                setMapLabelText(mapCityCountry.toUpperCase());
+            }
+        } catch (error) {
+            console.error("Geocoding error:", error);
+        } finally {
+            setIsMapLoading(false);
+            setTimeout(() => generateImage(), 100);
+        }
+    };
+
+    // Auto-geocode when city/country text changes (debounced)
+    useEffect(() => {
+        if (!mapCityCountry.trim() || mapCityCountry.trim().length < 3) return;
+        const timer = setTimeout(() => {
+            handleGeocode();
+        }, 600);
+        return () => clearTimeout(timer);
+    }, [mapCityCountry]);
+
+    const drawMap = (
+        ctx: CanvasRenderingContext2D,
+        lat: number,
+        lon: number,
+        zoom: number,
+        width: number,
+        height: number,
+        dx: number,
+        dy: number
+    ) => {
+        const centerTileX = lon2tile(lon, zoom);
+        const centerTileY = lat2tile(lat, zoom);
+
+        const canvasCenterX = dx + width / 2;
+        const canvasCenterY = dy + height / 2;
+
+        const tilesX = Math.ceil(width / 256) + 1;
+        const tilesY = Math.ceil(height / 256) + 1;
+
+        const startX = Math.floor(centerTileX - tilesX / 2);
+        const endX = Math.ceil(centerTileX + tilesX / 2);
+        const startY = Math.floor(centerTileY - tilesY / 2);
+        const endY = Math.ceil(centerTileY + tilesY / 2);
+
+        let allLoaded = true;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(dx, dy, width, height);
+        ctx.clip();
+
+        for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+                const mapX = Math.floor(x);
+                const mapY = Math.floor(y);
+                const maxTileVal = Math.pow(2, zoom);
+                
+                if (mapY < 0 || mapY >= maxTileVal) continue;
+                const wrappedX = ((mapX % maxTileVal) + maxTileVal) % maxTileVal;
+
+                let tileUrl = '';
+                if (mapStyle === 'voyager') {
+                    tileUrl = `https://basemaps.cartocdn.com/rastertiles/voyager/${zoom}/${wrappedX}/${mapY}@2x.png`;
+                } else if (mapStyle === 'light') {
+                    tileUrl = `https://basemaps.cartocdn.com/rastertiles/light_all/${zoom}/${wrappedX}/${mapY}@2x.png`;
+                } else {
+                    tileUrl = `https://basemaps.cartocdn.com/rastertiles/dark_all/${zoom}/${wrappedX}/${mapY}@2x.png`;
+                }
+
+                let tileImg = imageCacheRef.current[tileUrl];
+                if (!tileImg) {
+                    const imgObj = new Image();
+                    imgObj.crossOrigin = 'anonymous';
+                    imgObj.src = tileUrl;
+                    imgObj.onload = () => {
+                        imageCacheRef.current[tileUrl] = imgObj;
+                        generateImage();
+                    };
+                    imageCacheRef.current[tileUrl] = imgObj;
+                    allLoaded = false;
+                } else if (tileImg.complete && tileImg.naturalWidth > 0) {
+                    const tileDx = canvasCenterX + (x - centerTileX) * 256;
+                    const tileDy = canvasCenterY + (y - centerTileY) * 256;
+                    ctx.drawImage(tileImg, tileDx, tileDy, 256, 256);
+                } else {
+                    allLoaded = false;
+                }
+            }
+        }
+
+        // Draw pin/marker at center
+        if (showMapPin) {
+            ctx.shadowColor = mapPinColor;
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = mapPinColor;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+
+            ctx.beginPath();
+            ctx.arc(canvasCenterX, canvasCenterY, 16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(canvasCenterX, canvasCenterY, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+        }
+
+        // Location capsule below the pin
+        if (showMapLabel && mapLabelText) {
+            const locationText = mapLabelText.toUpperCase();
+            ctx.save();
+            ctx.shadowColor = mapPinColor;
+            ctx.shadowBlur = 10;
+            ctx.font = '900 italic 28px "Montserrat", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const tagW = ctx.measureText(locationText).width + 60;
+            const tagH = 56;
+            const tagX = canvasCenterX;
+            const tagY = showMapPin ? canvasCenterY + 70 : canvasCenterY;
+
+            ctx.fillStyle = 'rgba(10, 10, 10, 0.9)';
+            ctx.beginPath();
+            ctx.roundRect(tagX - tagW / 2, tagY - tagH / 2, tagW, tagH, 12);
+            ctx.fill();
+
+            ctx.strokeStyle = mapPinColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(tagX - tagW / 2, tagY - tagH / 2, tagW, tagH, 12);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(locationText, tagX, tagY + 2);
+            ctx.restore();
+        }
+
+        ctx.restore();
+        return allLoaded;
+    };
 
     const generateImage = async (targetTab?: TabType) => {
         const canvas = canvasRef.current;
@@ -1600,6 +1783,73 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
+            } else if (theme === 'MAP') {
+                // 1. Draw Map Tiles
+                drawMap(ctx, mapLatitude, mapLongitude, mapZoom, canvas.width, canvas.height, 0, 0);
+
+                // 2. LIVE FROM Badge Frame
+                const frameX = 80;
+                const frameY = bgVideo ? 160 : 100;
+                const frameW = 440;
+                const frameH = 200;
+
+                ctx.save();
+                ctx.shadowColor = '#ff0033';
+                ctx.shadowBlur = 20;
+
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.9)';
+                ctx.beginPath();
+                ctx.roundRect(frameX, frameY, frameW, frameH, 24);
+                ctx.fill();
+
+                ctx.strokeStyle = '#ff0033';
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.roundRect(frameX, frameY, frameW, frameH, 24);
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+
+                const dotPulse = (Math.sin(Date.now() / 300) + 1) / 2;
+                ctx.beginPath();
+                ctx.arc(frameX + 45, frameY + 50, 8 + (dotPulse * 2.5), 0, Math.PI * 2);
+                ctx.fillStyle = '#ff0033';
+                ctx.fill();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 26px "Montserrat", sans-serif';
+                ctx.letterSpacing = '4px';
+                ctx.textAlign = 'left';
+                ctx.fillText('LIVE FROM', frameX + 75, frameY + 58);
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.fillRect(frameX + 30, frameY + 95, frameW - 60, 2);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                let festFontSize = 36;
+                ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
+                const festName = mapFestivalText.toUpperCase();
+
+                while (ctx.measureText(festName).width > frameW - 60 && festFontSize > 18) {
+                    festFontSize--;
+                    ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
+                }
+                ctx.fillText(festName, frameX + frameW / 2, frameY + 152);
+                ctx.restore();
+
+                if (isMapLoading) {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 italic 30px "Montserrat", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('RECHERCHE EN COURS...', canvas.width / 2, canvas.height / 2);
+                    ctx.restore();
+                }
+
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -1860,7 +2110,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -2252,6 +2502,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const LIGHT_TEXT_THEMES: ThemeType[] = ['MUSIQUE', 'TOP 100 DROPSIDERS', 'EVENT', 'TOP 5 ARTISTE', 'TOP 5 STYLES'];
 
     const handleSetTheme = (newTheme: ThemeType) => {
+        if (newTheme === 'MAP') {
+            setActiveTab('REEL');
+        }
         setTheme(newTheme);
         setTextColor(LIGHT_TEXT_THEMES.includes(newTheme) ? '#000000' : '#ffffff');
     };
@@ -2282,6 +2535,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <button onClick={() => handleSetTheme('INTRO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
                     <button onClick={() => handleSetTheme('TOP 5 ARTISTE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
                     <button onClick={() => handleSetTheme('TOP 5 STYLES')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
+                    <button onClick={() => handleSetTheme('MAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MAP' ? 'bg-neon-red/20 border-neon-red text-neon-red animate-pulse' : 'bg-white/5 border-white/5 text-gray-400'}`}>📍 CARTE (STORY)</button>
                 </>
             )}
 
@@ -2969,6 +3223,249 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
+    const mapEditor = (
+        <div className="space-y-4">
+            {/* 1. Nom du Festival */}
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival</label>
+                <input 
+                    value={mapFestivalText} 
+                    onChange={e => {
+                        setMapFestivalText(e.target.value);
+                        setTimeout(() => generateImage(), 50);
+                    }} 
+                    placeholder="EX: LOLLAPALOOZA" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md" 
+                />
+            </div>
+
+            {/* 2. Recherche Ville & Pays */}
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Ville & Pays (Recherche)</label>
+                <div className="relative">
+                    <input 
+                        value={mapCityCountry} 
+                        onChange={e => setMapCityCountry(e.target.value)}
+                        onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                                handleGeocode();
+                            }
+                        }}
+                        placeholder="EX: Paris, France" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pr-10 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs" 
+                    />
+                    {isMapLoading && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-neon-red/50 border-t-neon-red rounded-full animate-spin" />
+                    )}
+                </div>
+            </div>
+
+            {/* 3. Texte du Badge personnalisé */}
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Texte de l'étiquette (Badge)</label>
+                <input 
+                    value={mapLabelText} 
+                    onChange={e => {
+                        setMapLabelText(e.target.value);
+                        setTimeout(() => generateImage(), 50);
+                    }} 
+                    placeholder="EX: PARIS, FRANCE (Ou nom de scène...)" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs" 
+                />
+            </div>
+
+            {/* 4. Style de la carte */}
+            <div className="space-y-2">
+                <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500 pl-1">
+                    <span>Style de la carte</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                    <button 
+                        onClick={() => { setMapStyle('dark'); setTimeout(() => generateImage(), 50); }}
+                        className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'dark' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                    >
+                        Sombre
+                    </button>
+                    <button 
+                        onClick={() => { setMapStyle('voyager'); setTimeout(() => generateImage(), 50); }}
+                        className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'voyager' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                    >
+                        Couleur
+                    </button>
+                    <button 
+                        onClick={() => { setMapStyle('light'); setTimeout(() => generateImage(), 50); }}
+                        className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'light' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                    >
+                        Clair
+                    </button>
+                </div>
+            </div>
+
+            {/* 5. Zoom de la carte */}
+            <div className="space-y-2">
+                <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500 pl-1">
+                    <span>Zoom de la carte</span>
+                    <span className="text-neon-red font-black">{mapZoom}</span>
+                </div>
+                <input 
+                    type="range" 
+                    min="3" 
+                    max="18" 
+                    value={mapZoom} 
+                    onChange={e => {
+                        setMapZoom(parseInt(e.target.value));
+                        setTimeout(() => generateImage(), 50);
+                    }} 
+                    className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
+                />
+            </div>
+
+            {/* 6. Couleur du Marqueur & Badge */}
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Marqueur (Néon)</label>
+                <div className="flex gap-2.5 p-2 bg-white/5 border border-white/10 rounded-xl justify-around">
+                    {[
+                        { name: 'Red', hex: '#ff0033' },
+                        { name: 'Cyan', hex: '#00f0ff' },
+                        { name: 'Green', hex: '#39ff14' },
+                        { name: 'Orange', hex: '#ff5e00' },
+                        { name: 'Purple', hex: '#b026ff' },
+                        { name: 'Yellow', hex: '#ffe600' },
+                    ].map(col => (
+                        <button
+                            key={col.hex}
+                            onClick={() => {
+                                setMapPinColor(col.hex);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`w-6 h-6 rounded-full border transition-all hover:scale-110 active:scale-95 ${mapPinColor === col.hex ? 'border-white scale-105 shadow-[0_0_10px_currentColor]' : 'border-white/20'}`}
+                            style={{ backgroundColor: col.hex, color: col.hex }}
+                            title={col.name}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* 7. Options d'affichage */}
+            <div className="grid grid-cols-2 gap-2 bg-white/5 border border-white/10 rounded-xl p-2">
+                <button
+                    onClick={() => {
+                        setShowMapPin(!showMapPin);
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${showMapPin ? 'bg-white/10 border-white/30 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
+                >
+                    {showMapPin ? '✅ PIN ACTIVÉ' : '❌ PIN MASQUÉ'}
+                </button>
+                <button
+                    onClick={() => {
+                        setShowMapLabel(!showMapLabel);
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${showMapLabel ? 'bg-white/10 border-white/30 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
+                >
+                    {showMapLabel ? '✅ BADGE ACTIVÉ' : '❌ BADGE MASQUÉ'}
+                </button>
+            </div>
+
+            {/* 8. Ajustement GPS (D-pad & Manuel) */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center">Décalage GPS de la carte</p>
+                
+                {/* D-pad */}
+                <div className="grid grid-cols-3 gap-2 max-w-[120px] mx-auto">
+                    <div></div>
+                    <button
+                        onClick={() => {
+                            const step = 0.01 / Math.pow(2, mapZoom - 11);
+                            setMapLatitude(prev => prev + step);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
+                        title="Nord"
+                    >
+                        ▲
+                    </button>
+                    <div></div>
+                    <button
+                        onClick={() => {
+                            const step = 0.01 / Math.pow(2, mapZoom - 11);
+                            setMapLongitude(prev => prev - step);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
+                        title="Ouest"
+                    >
+                        ◀
+                    </button>
+                    <button
+                        onClick={() => {
+                            handleGeocode();
+                        }}
+                        className="py-1.5 bg-neon-red/10 border border-neon-red/30 rounded-xl hover:bg-neon-red/20 text-neon-red font-black text-[9px] flex items-center justify-center uppercase transition-all"
+                        title="Recenter sur la recherche"
+                    >
+                        ◉
+                    </button>
+                    <button
+                        onClick={() => {
+                            const step = 0.01 / Math.pow(2, mapZoom - 11);
+                            setMapLongitude(prev => prev + step);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
+                        title="Est"
+                    >
+                        ▶
+                    </button>
+                    <div></div>
+                    <button
+                        onClick={() => {
+                            const step = 0.01 / Math.pow(2, mapZoom - 11);
+                            setMapLatitude(prev => prev - step);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
+                        title="Sud"
+                    >
+                        ▼
+                    </button>
+                    <div></div>
+                </div>
+
+                {/* Saisie Manuelle */}
+                <div className="grid grid-cols-2 gap-2 text-[8px]">
+                    <div className="space-y-1">
+                        <label className="text-gray-500 uppercase font-black">Latitude (GPS)</label>
+                        <input
+                            type="number"
+                            step="0.000001"
+                            value={mapLatitude}
+                            onChange={e => {
+                                setMapLatitude(parseFloat(e.target.value) || 0);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-center font-bold outline-none focus:border-white/30"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-gray-500 uppercase font-black">Longitude (GPS)</label>
+                        <input
+                            type="number"
+                            step="0.000001"
+                            value={mapLongitude}
+                            onChange={e => {
+                                setMapLongitude(parseFloat(e.target.value) || 0);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-center font-bold outline-none focus:border-white/30"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
     const citationEditor = (
         <div className="space-y-4">
             {textEditor}
@@ -3527,7 +4024,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'ARTISTE FESTIVAL' ? (
+                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'ARTISTE FESTIVAL' ? (
                             <div className="space-y-3">
                                 <input
                                     value={festivalNameText}
