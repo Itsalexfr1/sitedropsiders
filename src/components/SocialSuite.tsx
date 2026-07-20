@@ -66,7 +66,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -253,6 +253,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'CONSEILS': { label: 'CONSEILS', grad: '255, 0, 51', color: '#ff0033' },
         'EVENT': { label: 'EVENT', grad: '0, 240, 255', color: '#00f0ff' },
         'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À NE PAS LOUPER', grad: '0, 0, 0', color: '#000000' },
+        'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
     };
 
     useEffect(() => {
@@ -440,7 +441,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!showText) return; 
 
             // Shrunk gradient for Top 5 (Request 6), restored for others
-            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'CONSEILS') {
+            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'CONSEILS' && theme !== 'PROMO') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
                     : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
@@ -1005,9 +1006,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
                 ctx.restore();
 
-                // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
-                const lines = [highlightsArtists, highlightsFestival, highlightsLocation];
-
+                // Specialized high-end rendering for Highlights
                 ctx.save();
                 ctx.textAlign = 'center';
                 
@@ -1031,9 +1030,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Positioned at the bottom (aligned with NEWS theme at labelY + 130)
                 let currY = labelY + 130; 
                 const texts = [
-                    { text: (lines[0] || '').toUpperCase(), size: 55, color: '#ffffff', font: 'Montserrat' },
-                    { text: (lines[1] || '').toUpperCase(), size: 55, color: activeData.color, font: 'Montserrat' },
-                    { text: (lines[2] || '').toUpperCase(), size: 55, color: '#ffffff', font: 'Orbitron', isOrbitron: true },
+                    { text: (highlightsFestival || '').toUpperCase(), size: 85, color: '#ffffff', font: 'Montserrat', slideDirection: 'left' },
+                    { text: (highlightsLocation || '').toUpperCase(), size: 36, color: '#ffffff', font: 'Orbitron', isOrbitron: true, slideDirection: 'bottom' },
                 ];
 
                 texts.forEach((item, i) => {
@@ -1048,7 +1046,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (item.isOrbitron) ctx.letterSpacing = '10px';
                     else ctx.letterSpacing = '0px';
                     
-                    let yPos = currY + (i * 70);
+                    let yPos = currY + (i === 0 ? 0 : 100);
 
                     let xOff = 0;
                     let yOff = 0;
@@ -1057,9 +1055,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const t = Math.max(0, Math.min(1, (elapsed - delay) / duration));
                     const ease = 1 - Math.pow(1 - t, 3);
 
-                    if (i === 0) xOff = -600 * (1 - ease); 
-                    else if (i === 1) xOff = 600 * (1 - ease); 
-                    else if (i === 2) yOff = 200 * (1 - ease);
+                    if (item.slideDirection === 'left') xOff = -600 * (1 - ease); 
+                    else if (item.slideDirection === 'bottom') yOff = 200 * (1 - ease);
                     
                     ctx.globalAlpha = t;
                     ctx.fillText(item.text, (canvas.width / 2) + xOff, yPos + yOff);
@@ -1536,6 +1533,73 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(displayTitle, centerX, titleY);
                 ctx.restore();
 
+            } else if (theme === 'PROMO') {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // 1. Dark overlay — 70% opaque black
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.70)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 2. Thin red accent line across the center
+                ctx.save();
+                ctx.fillStyle = activeColor.color;
+                ctx.fillRect(centerX - 60, centerY - 260, 120, 6);
+                ctx.restore();
+
+                // 3. Main promo text — multi-line, centered
+                const promoLines = [
+                    'POUR NE RIEN LOUPER',
+                    'DES NEWS SUR LA MUSIQUE',
+                    'ÉLECTRONIQUE ET LES FESTIVALS',
+                ];
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 20;
+
+                const lineSpacing = 110;
+                const blockStartY = centerY - 170;
+
+                promoLines.forEach((line, i) => {
+                    let fs = 72;
+                    ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                    // Auto-scale if too wide
+                    while (ctx.measureText(line).width > 940 && fs > 28) {
+                        fs--;
+                        ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                    }
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(line, centerX, blockStartY + i * lineSpacing);
+                });
+
+                // 4. "ABONNEZ-VOUS À" line
+                ctx.font = '600 36px "Montserrat", sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.letterSpacing = '6px';
+                ctx.fillText('ABONNEZ-VOUS À', centerX, blockStartY + promoLines.length * lineSpacing + 30);
+
+                // 5. "DROPSIDERS" in accent color, big
+                ctx.font = '900 italic 110px "Orbitron", sans-serif';
+                ctx.letterSpacing = '-2px';
+                ctx.fillStyle = activeColor.color;
+                ctx.shadowColor = `rgba(${activeColor.grad}, 0.6)`;
+                ctx.shadowBlur = 40;
+                ctx.fillText('DROPSIDERS', centerX, blockStartY + promoLines.length * lineSpacing + 160);
+                ctx.restore();
+
+                // 6. Dropsiders logo — bottom center
+                if (logoRef.current) {
+                    const logo = logoRef.current;
+                    const lw = 320;
+                    const lh = (logo.height / logo.width) * lw;
+                    ctx.save();
+                    ctx.filter = 'brightness(0) invert(1)';
+                    ctx.globalAlpha = 0.9;
+                    ctx.drawImage(logo, centerX - lw / 2, canvas.height - lh - 60, lw, lh);
+                    ctx.restore();
+                }
+
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -1676,7 +1740,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // --- FINAL OVERLAYS (Logo & Swipe) ---
-            if (logoRef.current && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT') {
+            if (logoRef.current && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'PROMO') {
                 const logo = logoRef.current;
                 const w = 320;
                 // Move left and down for video backgrounds to avoid cropping and match requested safety margins
@@ -2210,6 +2274,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('CONSEILS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONSEILS</button>
             <button onClick={() => handleSetTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
             <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-2 ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
+            <button onClick={() => handleSetTheme('PROMO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'PROMO' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>📣 PROMO</button>
             
             {activeTab === 'REEL' && (
                 <>
@@ -2551,16 +2616,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const highlightsEditor = (
         <div className="space-y-3">
-            <span className="text-[10px] font-black text-gray-500 uppercase">Artistes</span>
-            <textarea
-                value={highlightsArtists}
-                onChange={e => setHighlightsArtists(e.target.value)}
-                placeholder="ARTISTES..."
-                spellCheck="true"
-                autoCorrect="on"
-                autoCapitalize="sentences"
-                className="w-full h-16 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-cyan-500 outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words mb-2"
-            />
             <span className="text-[10px] font-black text-gray-500 uppercase">Festivals</span>
             <input 
                 value={highlightsFestival} 
