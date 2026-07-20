@@ -3241,23 +3241,41 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             {/* 2. Recherche Ville & Pays */}
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Ville & Pays (Recherche)</label>
-                <div className="relative">
-                    <input 
-                        value={mapCityCountry} 
-                        onChange={e => setMapCityCountry(e.target.value)}
-                        onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                                handleGeocode();
-                            }
-                        }}
-                        placeholder="EX: Paris, France" 
-                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pr-10 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs" 
-                    />
-                    {isMapLoading && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-neon-red/50 border-t-neon-red rounded-full animate-spin" />
-                    )}
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Localisation</label>
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Ville *</label>
+                        <input 
+                            value={mapCityCountry.split(',')[0]?.trim() || ''}
+                            onChange={e => {
+                                const country = mapCityCountry.split(',')[1]?.trim() || '';
+                                setMapCityCountry(country ? `${e.target.value}, ${country}` : e.target.value);
+                            }}
+                            onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
+                            placeholder="EX: Paris"
+                            required
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs placeholder-gray-600"
+                        />
+                    </div>
+                    <div className="space-y-1 relative">
+                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Pays *</label>
+                        <input 
+                            value={mapCityCountry.split(',')[1]?.trim() || ''}
+                            onChange={e => {
+                                const city = mapCityCountry.split(',')[0]?.trim() || '';
+                                setMapCityCountry(city ? `${city}, ${e.target.value}` : e.target.value);
+                            }}
+                            onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
+                            placeholder="EX: France"
+                            required
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pr-10 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs placeholder-gray-600"
+                        />
+                        {isMapLoading && (
+                            <div className="absolute right-3 bottom-3 w-4 h-4 border-2 border-neon-red/50 border-t-neon-red rounded-full animate-spin" />
+                        )}
+                    </div>
                 </div>
+                <p className="text-[8px] text-gray-600 pl-1 italic">Appuie sur Entrée pour centrer la carte</p>
             </div>
 
             {/* 3. Texte du Badge personnalisé */}
