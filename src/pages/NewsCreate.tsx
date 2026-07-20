@@ -356,6 +356,292 @@ export function NewsCreate() {
         socialSuiteData: any;
     } | null>(null);
 
+    const [isGeneratingPromo, setIsGeneratingPromo] = useState<string | null>(null);
+
+    const loadImage = (src: string): Promise<HTMLImageElement> => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = src;
+            img.onload = () => resolve(img);
+            img.onerror = (e) => reject(e);
+        });
+    };
+
+    const handleGeneratePromo = async (format: 'story' | 'post' | 'story_standard' | 'post_standard' | 'story_promo' | 'post_promo') => {
+        const finalTitle = shareModalConfig?.title || title;
+        const finalImageUrl = shareModalConfig?.socialSuiteData?.imageUrl || imageUrl;
+        const finalCategory = shareModalConfig?.socialSuiteData?.category || category;
+
+        if (!finalImageUrl) return;
+        setIsGeneratingPromo(format);
+
+        const isPromo = format.includes('promo') || format === 'story' || format === 'post';
+        const isStory = format.includes('story');
+
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error("Impossible d'obtenir le contexte canvas");
+
+            canvas.width = 1080;
+            canvas.height = isStory ? 1920 : 1350;
+
+            // Load images
+            const [bgImg, logoImg] = await Promise.all([
+                loadImage(finalImageUrl).catch(() => {
+                    // Fallback to non-CORS image if CORS fails
+                    return new Promise<HTMLImageElement>((resolve, reject) => {
+                        const img = new Image();
+                        img.src = finalImageUrl;
+                        img.onload = () => resolve(img);
+                        img.onerror = (e) => reject(e);
+                    });
+                }),
+                loadImage('/Logo.png')
+            ]);
+
+            // Draw Background (Cover style)
+            const scale = Math.max(canvas.width / bgImg.width, canvas.height / bgImg.height);
+            const x = (canvas.width - bgImg.width * scale) / 2;
+            const y = (canvas.height - bgImg.height * scale) / 2;
+            ctx.drawImage(bgImg, x, y, bgImg.width * scale, bgImg.height * scale);
+
+            // Get Category Color Theme
+            const categoryColors: Record<string, { color: string; grad: string }> = {
+                'news': { color: '#ff0033', grad: '255, 0, 51' },
+                'focus': { color: '#ffaa00', grad: '255, 170, 0' },
+                'highlights': { color: '#0070ff', grad: '0, 112, 255' },
+                'musique': { color: '#39ff14', grad: '57, 255, 20' },
+                'recap': { color: '#ff6700', grad: '255, 103, 0' },
+                'interview': { color: '#ffffff', grad: '255, 255, 255' },
+            };
+
+            const catNormalized = (finalCategory || 'news').toLowerCase();
+            let themeData = categoryColors['news'];
+            if (catNormalized.includes('musique')) themeData = categoryColors['musique'];
+            else if (catNormalized.includes('interview')) themeData = categoryColors['interview'];
+            else if (catNormalized.includes('focus')) themeData = categoryColors['focus'];
+            else if (catNormalized.includes('recap') || catNormalized.includes('review') || catNormalized.includes('sets-mixes') || catNormalized.includes('top-festival')) themeData = categoryColors['recap'];
+
+            const labelText = finalCategory ? finalCategory.toUpperCase() : 'NEWS';
+
+            if (isPromo) {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // 1. Dark overlay — 70% opaque black
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.70)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Scan lines
+                ctx.fillStyle = 'rgba(0,0,0,0.08)';
+                for (let i = 0; i < canvas.height; i += 6) {
+                    ctx.fillRect(0, i, canvas.width, 2);
+                }
+
+                // 2. Thin accent line across the center
+                ctx.save();
+                ctx.fillStyle = themeData.color;
+                ctx.fillRect(centerX - 60, centerY - 260, 120, 6);
+                ctx.restore();
+
+                // 3. Main promo text — multi-line, centered
+                const promoLines = [
+                    'POUR NE RIEN LOUPER',
+                    'DES NEWS SUR LA MUSIQUE',
+                    'ÉLECTRONIQUE ET LES FESTIVALS',
+                ];
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 20;
+
+                const lineSpacing = 110;
+                const blockStartY = centerY - 170;
+
+                promoLines.forEach((line, i) => {
+                    let fs = 72;
+                    ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                    // Auto-scale if too wide
+                    while (ctx.measureText(line).width > 940 && fs > 28) {
+                        fs--;
+                        ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                    }
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(line, centerX, blockStartY + i * lineSpacing);
+                });
+
+                // 4. "ABONNEZ-VOUS À" line
+                ctx.font = '600 36px "Montserrat", sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.letterSpacing = '6px';
+                ctx.fillText('ABONNEZ-VOUS À', centerX, blockStartY + promoLines.length * lineSpacing + 30);
+
+                // 5. "DROPSIDERS" in accent color, big
+                ctx.font = '900 italic 110px "Orbitron", sans-serif';
+                ctx.letterSpacing = '-2px';
+                ctx.fillStyle = themeData.color;
+                ctx.shadowColor = `rgba(${themeData.grad}, 0.6)`;
+                ctx.shadowBlur = 40;
+                ctx.fillText('DROPSIDERS', centerX, blockStartY + promoLines.length * lineSpacing + 160);
+                ctx.restore();
+
+                // 6. Dropsiders logo — bottom center
+                const logoW = 320;
+                const logoH = (logoImg.height / logoImg.width) * logoW;
+                ctx.save();
+                ctx.filter = 'brightness(0) invert(1)';
+                ctx.globalAlpha = 0.9;
+                ctx.drawImage(logoImg, centerX - logoW / 2, canvas.height - logoH - 60, logoW, logoH);
+                ctx.restore();
+
+            } else {
+                // Draw Gradient Overlay for Standard Visuals
+                const gradStart = isStory ? canvas.height * 0.4 : canvas.height * 0.3;
+                const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
+                grad.addColorStop(0.8, `rgba(${themeData.grad}, 0.75)`);
+                grad.addColorStop(1, `rgba(${themeData.grad}, 1)`);
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+
+                // Scan lines
+                ctx.fillStyle = 'rgba(0,0,0,0.08)';
+                for (let i = 0; i < canvas.height; i += 6) {
+                    ctx.fillRect(0, i, canvas.width, 2);
+                }
+
+                // Draw Logo (Top Right)
+                const lw = 320;
+                const lh = (logoImg.height / logoImg.width) * lw;
+                ctx.save();
+                ctx.filter = 'brightness(0) invert(1)';
+                ctx.drawImage(logoImg, canvas.width - lw - 40, 40, lw, lh);
+                ctx.restore();
+
+                // Set coordinates identical to SocialSuite
+                const safeBottom = isStory ? 1500 : canvas.height;
+                const labelY = isStory ? safeBottom - 450 : 880;
+                const startY = labelY + 130;
+                
+                // Draw Capsule
+                ctx.save();
+                const labelFontSize = 42;
+                ctx.font = `900 italic ${labelFontSize}px "Montserrat", sans-serif`;
+                ctx.textAlign = 'center';
+                const labelW = ctx.measureText(labelText).width + 80;
+
+                ctx.globalAlpha = 0.9;
+                ctx.fillStyle = themeData.color;
+
+                const rectX = (canvas.width - labelW) / 2;
+                const rectY = labelY - 52;
+                const rectW = labelW;
+                const rectH = 80;
+                const radius = 20;
+
+                ctx.beginPath();
+                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
+                ctx.fill();
+
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = (labelText === 'MUSIQUE' || labelText === 'TOP 100 DROPSIDERS' || labelText === 'EVENT' || themeData.color === '#ffffff') ? '#000' : '#FFF';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
+                ctx.restore();
+
+                // Draw Title Text
+                const cleanTitle = finalTitle.replace(/<\/?[^>]+(>|$)/g, ""); // Strip any HTML tags
+                const paragraphs = cleanTitle.toUpperCase().split('\n');
+                const lines: string[] = [];
+                const fontSize = 55;
+                const lineHeight = fontSize * 1.15;
+                ctx.font = `900 italic ${fontSize}px "Montserrat", sans-serif`;
+
+                for (const para of paragraphs) {
+                    if (para.trim() === '') {
+                        lines.push('');
+                        continue;
+                    }
+                    const words = para.split(' ');
+                    let currentLine = '';
+                    for (const word of words) {
+                        const testLine = currentLine + word + ' ';
+                        if (ctx.measureText(testLine).width < canvas.width - 240) {
+                            currentLine += word + ' ';
+                        } else {
+                            lines.push(currentLine.trim());
+                            currentLine = word + ' ';
+                        }
+                    }
+                    lines.push(currentLine.trim());
+                }
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.fillStyle = (labelText === 'INTERVIEW' || themeData.color === '#ffffff') ? '#000000' : '#ffffff';
+                ctx.font = `900 italic ${fontSize}px "Montserrat", sans-serif`;
+
+                const maxLines = isStory ? 8 : 6;
+                lines.slice(0, maxLines).forEach((line, i) => {
+                    if (line !== '') {
+                        const yPos = startY + (i * lineHeight);
+                        ctx.fillText(line, canvas.width / 2, yPos);
+                    }
+                });
+                ctx.restore();
+
+                // Draw Bottom CTA
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'bottom';
+                ctx.font = '900 italic 24px "Montserrat", sans-serif';
+                ctx.fillStyle = (labelText === 'MUSIQUE' || themeData.color === '#ffffff') ? '#000000' : '#ffffff';
+                ctx.shadowColor = (labelText === 'MUSIQUE' || themeData.color === '#ffffff') ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 10;
+
+                const ctaText = 'ARTICLE COMPLET SUR DROPSIDERS.FR';
+                ctx.fillText(ctaText, 40, canvas.height - 40);
+                ctx.restore();
+
+                // Draw Swipe indicator for stories
+                if (isStory) {
+                    ctx.save();
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'bottom';
+                    ctx.font = '900 italic 45px "Montserrat", sans-serif';
+                    ctx.fillStyle = (labelText === 'MUSIQUE' || themeData.color === '#ffffff') ? '#000000' : '#ffffff';
+                    ctx.shadowColor = (labelText === 'MUSIQUE' || themeData.color === '#ffffff') ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillText('>>', canvas.width - 40, canvas.height - 40);
+                    ctx.restore();
+                }
+            }
+
+            // Download
+            const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const fileName = isPromo 
+                    ? `promo_${isStory ? 'story' : 'post'}_${labelText.toLowerCase()}_${Date.now()}.png`
+                    : `${isStory ? 'story' : 'post'}_${labelText.toLowerCase()}_${Date.now()}.png`;
+                a.download = fileName;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+        } catch (err) {
+            console.error("Failed to generate promo:", err);
+            alert("Erreur lors de la génération de la promo.");
+        } finally {
+            setIsGeneratingPromo(null);
+        }
+    };
+
     // Mapping function for Social Studio themes
     const getInitialSocialTheme = (category: string, isFocus?: boolean): any => {
         if (isFocus) return 'FOCUS';
@@ -2414,15 +2700,46 @@ ${generateSocialsHtml()}
                                 <div className="flex items-center gap-3">
                                     {status === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                                     <p className="font-bold uppercase tracking-wider text-xs">{message}</p>
-                                    {status === 'success' && (
+                                </div>
+                                {status === 'success' && (
+                                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-green-500/10">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">Téléchargements :</span>
+                                        <button
+                                            onClick={() => handleGeneratePromo('story_standard')}
+                                            disabled={!!isGeneratingPromo}
+                                            className="px-3 py-1.5 bg-green-500/20 hover:bg-green-500 hover:text-white border border-green-500/40 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                        >
+                                            {isGeneratingPromo === 'story_standard' ? '...' : 'PNG STORY'}
+                                        </button>
+                                        <button
+                                            onClick={() => handleGeneratePromo('post_standard')}
+                                            disabled={!!isGeneratingPromo}
+                                            className="px-3 py-1.5 bg-green-500/20 hover:bg-green-500 hover:text-white border border-green-500/40 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                        >
+                                            {isGeneratingPromo === 'post_standard' ? '...' : 'PNG POST'}
+                                        </button>
+                                        <button
+                                            onClick={() => handleGeneratePromo('story_promo')}
+                                            disabled={!!isGeneratingPromo}
+                                            className="px-3 py-1.5 bg-neon-red/20 hover:bg-neon-red hover:text-white border border-neon-red/40 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                        >
+                                            {isGeneratingPromo === 'story_promo' ? '...' : 'STORY PROMO'}
+                                        </button>
+                                        <button
+                                            onClick={() => handleGeneratePromo('post_promo')}
+                                            disabled={!!isGeneratingPromo}
+                                            className="px-3 py-1.5 bg-neon-cyan/20 hover:bg-neon-cyan hover:text-black border border-neon-cyan/40 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                        >
+                                            {isGeneratingPromo === 'post_promo' ? '...' : 'POST PROMO'}
+                                        </button>
                                         <button
                                             onClick={() => setShowSocialSuite(true)}
-                                            className="ml-auto px-3 py-1 bg-green-500/20 hover:bg-green-500 hover:text-white border border-green-500/40 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                            className="ml-auto px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white border border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
                                         >
                                             REVOIR SOCIALS
                                         </button>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -5867,6 +6184,37 @@ ${generateSocialsHtml()}
                                 >
                                     Ouvrir Social Studio
                                 </button>
+
+                                <div className="grid grid-cols-2 gap-3 mt-4">
+                                    <button
+                                        onClick={() => handleGeneratePromo('story_standard')}
+                                        disabled={!!isGeneratingPromo}
+                                        className="py-3.5 bg-green-500/10 border border-green-500/20 text-green-500 hover:bg-green-500 hover:text-white rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {isGeneratingPromo === 'story_standard' ? 'Génération...' : 'PNG STORY'}
+                                    </button>
+                                    <button
+                                        onClick={() => handleGeneratePromo('post_standard')}
+                                        disabled={!!isGeneratingPromo}
+                                        className="py-3.5 bg-green-500/10 border border-green-500/20 text-green-500 hover:bg-green-500 hover:text-white rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {isGeneratingPromo === 'post_standard' ? 'Génération...' : 'PNG POST'}
+                                    </button>
+                                    <button
+                                        onClick={() => handleGeneratePromo('story_promo')}
+                                        disabled={!!isGeneratingPromo}
+                                        className="py-3.5 bg-neon-red/10 border border-neon-red/20 text-neon-red hover:bg-neon-red hover:text-white rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {isGeneratingPromo === 'story_promo' ? 'Génération...' : 'STORY PROMO'}
+                                    </button>
+                                    <button
+                                        onClick={() => handleGeneratePromo('post_promo')}
+                                        disabled={!!isGeneratingPromo}
+                                        className="py-3.5 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan hover:bg-neon-cyan hover:text-black rounded-2xl font-black uppercase tracking-widest text-[9px] transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {isGeneratingPromo === 'post_promo' ? 'Génération...' : 'POST PROMO'}
+                                    </button>
+                                </div>
                                 
                                 <button
                                     onClick={() => setShareModalConfig(null)}

@@ -66,7 +66,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -132,6 +132,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [showText, setShowText] = useState(true);
     const [planningItems, setPlanningItems] = useState<{ time: string; artist: string }[]>(Array.from({ length: 8 }, () => ({ time: '00:00', artist: 'ARTISTE' })));
     const [planningDate, setPlanningDate] = useState('21 MARS - 28 MARS');
+    const [calendarMonth, setCalendarMonth] = useState('MARS 2025');
+    const [calendarEvents, setCalendarEvents] = useState<{ date: string; label: string }[]>([
+        { date: '1', label: 'FESTIVAL 1' },
+        { date: '8', label: 'LIVE SET' },
+        { date: '15', label: 'RELEASE' },
+        { date: '22', label: 'SHOWCASE' },
+    ]);
     const [highlightsFestival, setHighlightsFestival] = useState('');
     const [highlightsArtists, setHighlightsArtists] = useState('');
     const [highlightsLocation, setHighlightsLocation] = useState('');
@@ -291,6 +298,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À NE PAS LOUPER', grad: '0, 0, 0', color: '#000000' },
         'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
         'MAP': { label: 'MAP', grad: '255, 0, 51', color: '#ff0033' },
+        'CALENDRIER': { label: 'CALENDRIER', grad: '192, 38, 211', color: '#c026d3' },
     };
 
     useEffect(() => {
@@ -1065,6 +1073,95 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.restore();
                     }
                 }
+
+            } else if (theme === 'CALENDRIER') {
+                const calCenterX = canvas.width / 2;
+                const calTopY = effectiveTab === 'PUBLICATION' ? 280 : 580;
+
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 20;
+
+                // Title
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#c026d3';
+                ctx.font = '900 italic 60px "Montserrat", sans-serif';
+                ctx.letterSpacing = '8px';
+                ctx.fillText('📅  ' + (calendarMonth || 'CALENDRIER').toUpperCase(), calCenterX, calTopY);
+
+                // Divider line
+                ctx.fillStyle = 'rgba(192,38,211,0.4)';
+                ctx.fillRect(calCenterX - 420, calTopY + 30, 840, 2);
+                ctx.restore();
+
+                // Event cards
+                const cardStartY = calTopY + 70;
+                const cardH = effectiveTab === 'PUBLICATION' ? 80 : 100;
+                const cardGap = effectiveTab === 'PUBLICATION' ? 12 : 16;
+                const cardPadX = 80;
+
+                calendarEvents.forEach((evt, i) => {
+                    const cardY = cardStartY + i * (cardH + cardGap);
+                    if (cardY + cardH > canvas.height - 120) return;
+
+                    // Card background
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                    ctx.beginPath();
+                    ctx.roundRect(cardPadX, cardY, canvas.width - cardPadX * 2, cardH, 18);
+                    ctx.fill();
+
+                    // Left magenta accent bar
+                    ctx.fillStyle = '#c026d3';
+                    ctx.beginPath();
+                    ctx.roundRect(cardPadX, cardY, 8, cardH, [18, 0, 0, 18]);
+                    ctx.fill();
+
+                    // Date badge (circle)
+                    const circleX = cardPadX + 55;
+                    const circleY = cardY + cardH / 2;
+                    ctx.fillStyle = 'rgba(192,38,211,0.85)';
+                    ctx.beginPath();
+                    ctx.arc(circleX, circleY, 32, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '900 28px "Montserrat", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.letterSpacing = '0px';
+                    ctx.fillText(evt.date, circleX, circleY + 2);
+
+                    // Event label
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `900 italic ${effectiveTab === 'PUBLICATION' ? 34 : 40}px "Montserrat", sans-serif`;
+                    ctx.letterSpacing = '-1px';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 10;
+
+                    const labelX = circleX + 52;
+                    const maxLabelW = canvas.width - cardPadX * 2 - 120;
+                    let labelText = evt.label.toUpperCase();
+                    let fs = effectiveTab === 'PUBLICATION' ? 34 : 40;
+                    while (ctx.measureText(labelText).width > maxLabelW && fs > 18) {
+                        fs--;
+                        ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                    }
+                    ctx.fillText(labelText, labelX, cardY + cardH / 2 + 2);
+                    ctx.restore();
+                });
+
+                // Footer
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillStyle = 'rgba(192,38,211,0.7)';
+                ctx.font = '900 italic 22px "Montserrat", sans-serif';
+                ctx.letterSpacing = '4px';
+                ctx.fillText('DROPSIDERS.FR', calCenterX, canvas.height - 40);
+                ctx.restore();
 
             } else if (theme === 'TRACKLIST') {
                 // Top black banner with opacity
@@ -2118,7 +2215,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -2536,6 +2633,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
             <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-2 ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
             <button onClick={() => handleSetTheme('PROMO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'PROMO' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>📣 PROMO</button>
+            <button onClick={() => handleSetTheme('CALENDRIER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'CALENDRIER' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/10 text-gray-400'}`}>📅 CALENDRIER</button>
             
             {activeTab === 'REEL' && (
                 <>
@@ -3741,7 +3839,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         {/* Content editor */}
                         <div className="space-y-4">
-                            {theme === 'PLANNING' ? (
+                            {theme === 'CALENDRIER' ? (
+                                <>
+                                    <span className="text-[10px] font-black text-gray-500 uppercase">Calendrier des événements</span>
+                                    <div className="space-y-3">
+                                        <input
+                                            value={calendarMonth}
+                                            onChange={e => setCalendarMonth(e.target.value)}
+                                            placeholder="MARS 2025"
+                                            className="w-full bg-white/10 border border-[#c026d3]/40 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                                        />
+                                        <div className="space-y-2">
+                                            {calendarEvents.map((evt, i) => (
+                                                <div key={i} className="flex gap-2 items-center">
+                                                    <input
+                                                        value={evt.date}
+                                                        onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }}
+                                                        placeholder="JJ"
+                                                        className="w-14 bg-[#c026d3]/20 border border-[#c026d3]/40 rounded-lg p-2 text-[#c026d3] font-black uppercase text-xs text-center"
+                                                    />
+                                                    <input
+                                                        value={evt.label}
+                                                        onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }}
+                                                        placeholder="NOM DE L'ÉVÉNEMENT"
+                                                        className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs"
+                                                    />
+                                                    <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                                                </div>
+                                            ))}
+                                            <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-[#c026d3]/10 border border-dashed border-[#c026d3]/30 rounded-xl text-[9px] font-black uppercase text-[#c026d3] hover:bg-[#c026d3]/20 transition-all">+ Ajouter un événement</button>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : theme === 'PLANNING' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Horaires Planning</span>{planningEditor}</>
                             ) : theme.startsWith('TOP 5') ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
@@ -4079,7 +4209,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'ARTISTE FESTIVAL' ? (
+                                        {theme === 'CALENDRIER' ? (
+                                            <div className="space-y-3">
+                                                <input value={calendarMonth} onChange={e => setCalendarMonth(e.target.value)} placeholder="MARS 2025" className="w-full bg-white/10 border border-[#c026d3]/40 rounded-xl p-3 text-white font-black italic uppercase text-xs" />
+                                                {calendarEvents.map((evt, i) => (
+                                                    <div key={i} className="flex gap-2 items-center">
+                                                        <input value={evt.date} onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }} placeholder="JJ" className="w-14 bg-[#c026d3]/20 border border-[#c026d3]/40 rounded-lg p-2 text-[#c026d3] font-black uppercase text-xs text-center" />
+                                                        <input value={evt.label} onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }} placeholder="ÉVÉNEMENT" className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs" />
+                                                        <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                                                    </div>
+                                                ))}
+                                                <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-[#c026d3]/10 border border-dashed border-[#c026d3]/30 rounded-xl text-[9px] font-black uppercase text-[#c026d3] hover:bg-[#c026d3]/20 transition-all">+ Ajouter</button>
+                                            </div>
+                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'ARTISTE FESTIVAL' ? (
                             <div className="space-y-3">
                                 <input
                                     value={festivalNameText}
