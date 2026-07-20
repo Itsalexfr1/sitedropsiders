@@ -363,9 +363,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const lon = parseFloat(data[0].lon);
                 setMapLatitude(lat);
                 setMapLongitude(lon);
-                // Label = venue name if set, otherwise city+country
-                const labelBase = mapVenue.trim() ? mapVenue.trim() : mapCityCountry;
-                setMapLabelText(labelBase.toUpperCase());
+                // Label always shows city+country regardless of venue
+                setMapLabelText(mapCityCountry.toUpperCase());
             }
         } catch (error) {
             console.error("Geocoding error:", error);
