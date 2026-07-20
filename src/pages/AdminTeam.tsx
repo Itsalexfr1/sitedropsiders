@@ -653,7 +653,7 @@ export function AdminTeam() {
                                                                                         const currentPerms = editingMember.permissions || [];
                                                                                         const updatedPerms = checked
                                                                                             ? [...currentPerms, perm.id]
-                                                                                            : currentPerms.filter(p => p !== perm.id);
+                                                                                            : currentPerms.filter((p: string) => p !== perm.id);
                                                                                         setEditingMember({ ...editingMember, permissions: updatedPerms });
                                                                                     }}
                                                                                     className="sr-only"

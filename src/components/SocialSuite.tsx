@@ -516,16 +516,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return allLoaded;
     };
 
-    const generateImage = async (targetTab?: TabType) => {
+    const generateImage = async (targetTab?: TabType, forceTheme?: ThemeType) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
         const effectiveTab = targetTab || activeTab;
+        const effectiveTheme = forceTheme || theme;
 
         try {
-            let img: HTMLImageElement | null = null;
+            await (async (theme: ThemeType) => {
+                const activeColor = themeColor || baseThemeData[theme];
+                let img: HTMLImageElement | null = null;
             if (bgImage) {
                 if (imageCacheRef.current[bgImage]) {
                     img = imageCacheRef.current[bgImage];
@@ -2146,6 +2149,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
+            })(effectiveTheme);
         } catch (e) { console.error(e); }
     };
 
@@ -2568,6 +2572,49 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         try {
             await generateImage(format);
             const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
+            const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0);
+
+            if (isMobile && navigator.share) {
+                try {
+                    const blob = await new Promise<Blob | null>(resolve => canvasRef.current!.toBlob(resolve, 'image/png'));
+                    if (blob) {
+                        const file = new File([blob], fileName, { type: 'image/png' });
+                        await navigator.share({
+                            files: [file],
+                            title: 'Dropsiders Visual'
+                        });
+                        return; // If Share succeeds, stop here
+                    }
+                } catch (e) {
+                    console.log('Share API denied or failed', e);
+                }
+            }
+
+            // Default fallback for desktop or if Share failed
+            const dataUrl = canvasRef.current!.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            setErrorMessage("Erreur lors de l'exportation PNG.");
+        } finally {
+            setTimeout(() => {
+                setIsDownloading(false);
+                generateImage();
+            }, 500);
+        }
+    };
+
+    const downloadPromoFormat = async (format: TabType) => {
+        if (!canvasRef.current) return;
+        setIsDownloading(true);
+        try {
+            await generateImage(format, 'PROMO');
+            const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-promo-${Date.now()}.png`;
             const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0);
 
             if (isMobile && navigator.share) {
@@ -3656,26 +3703,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <Download className="w-3.5 h-3.5" /> PNG STORY
                 </button>
             </div>
-            {onGeneratePromo && (
-                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
-                    <button
-                        onClick={() => onGeneratePromo('post_promo')}
-                        disabled={!!isGeneratingPromo}
-                        className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
-                    >
-                        <Download className="w-3.5 h-3.5" />
-                        {isGeneratingPromo === 'post_promo' ? 'GÉNÉRATION...' : 'POST PROMO'}
-                    </button>
-                    <button
-                        onClick={() => onGeneratePromo('story_promo')}
-                        disabled={!!isGeneratingPromo}
-                        className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
-                    >
-                        <Download className="w-3.5 h-3.5" />
-                        {isGeneratingPromo === 'story_promo' ? 'GÉNÉRATION...' : 'STORY PROMO'}
-                    </button>
-                </div>
-            )}
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+                <button
+                    onClick={() => downloadPromoFormat('PUBLICATION')}
+                    disabled={isDownloading}
+                    className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
+                >
+                    <Download className="w-3.5 h-3.5" /> PROMO PNG
+                </button>
+                <button
+                    onClick={() => downloadPromoFormat('REEL')}
+                    disabled={isDownloading}
+                    className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
+                >
+                    <Download className="w-3.5 h-3.5" /> PROMO STORY
+                </button>
+            </div>
             <button onClick={startVideoRecording} disabled={isVideoRecording}
                 className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
                 <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo (${theme})`}
