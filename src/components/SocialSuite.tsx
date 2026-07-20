@@ -164,7 +164,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     // MAP Theme States
     const [mapFestivalText, setMapFestivalText] = useState('LOLLAPALOOZA');
-    const [mapCityCountry, setMapCityCountry] = useState('Paris, France');
+    const [mapCity, setMapCity] = useState('Paris');
+    const [mapCountry, setMapCountry] = useState('France');
+    const mapCityCountry = `${mapCity}, ${mapCountry}`;
     const [mapZoom, setMapZoom] = useState(11);
     const [mapLatitude, setMapLatitude] = useState(48.8566);
     const [mapLongitude, setMapLongitude] = useState(2.3522);
@@ -3246,13 +3248,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="space-y-1">
                         <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Ville *</label>
                         <input 
-                            value={mapCityCountry.split(',')[0]?.trim() || ''}
-                            onChange={e => {
-                                const country = mapCityCountry.split(',')[1]?.trim() || '';
-                                setMapCityCountry(country ? `${e.target.value}, ${country}` : e.target.value);
-                            }}
+                            value={mapCity}
+                            onChange={e => setMapCity(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
-                            placeholder="EX: Paris"
+                            placeholder="EX: Las Vegas"
                             required
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs placeholder-gray-600"
                         />
@@ -3260,13 +3259,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <div className="space-y-1 relative">
                         <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Pays *</label>
                         <input 
-                            value={mapCityCountry.split(',')[1]?.trim() || ''}
-                            onChange={e => {
-                                const city = mapCityCountry.split(',')[0]?.trim() || '';
-                                setMapCityCountry(city ? `${city}, ${e.target.value}` : e.target.value);
-                            }}
+                            value={mapCountry}
+                            onChange={e => setMapCountry(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
-                            placeholder="EX: France"
+                            placeholder="EX: USA"
                             required
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pr-10 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs placeholder-gray-600"
                         />
