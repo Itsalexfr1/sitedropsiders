@@ -166,7 +166,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [mapFestivalText, setMapFestivalText] = useState('LOLLAPALOOZA');
     const [mapCity, setMapCity] = useState('Paris');
     const [mapCountry, setMapCountry] = useState('France');
+    const [mapVenue, setMapVenue] = useState('');
     const mapCityCountry = `${mapCity}, ${mapCountry}`;
+    // If a venue is specified, use it as the primary search query (with city/country as context)
+    const mapSearchQuery = mapVenue.trim()
+        ? `${mapVenue.trim()}, ${mapCity}, ${mapCountry}`
+        : mapCityCountry;
     const [mapZoom, setMapZoom] = useState(11);
     const [mapLatitude, setMapLatitude] = useState(48.8566);
     const [mapLongitude, setMapLongitude] = useState(2.3522);
@@ -348,17 +353,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     }, [theme, isVideoRecording]);
 
     const handleGeocode = async () => {
-        if (!mapCityCountry.trim()) return;
+        if (!mapSearchQuery.trim()) return;
         setIsMapLoading(true);
         try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapCityCountry)}&limit=1`);
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery)}&limit=1`);
             const data = await response.json();
             if (data && data.length > 0) {
                 const lat = parseFloat(data[0].lat);
                 const lon = parseFloat(data[0].lon);
                 setMapLatitude(lat);
                 setMapLongitude(lon);
-                setMapLabelText(mapCityCountry.toUpperCase());
+                // Label = venue name if set, otherwise city+country
+                const labelBase = mapVenue.trim() ? mapVenue.trim() : mapCityCountry;
+                setMapLabelText(labelBase.toUpperCase());
             }
         } catch (error) {
             console.error("Geocoding error:", error);
@@ -368,14 +375,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
-    // Auto-geocode when city/country text changes (debounced)
+    // Auto-geocode when city/country/venue text changes (debounced)
     useEffect(() => {
-        if (!mapCityCountry.trim() || mapCityCountry.trim().length < 3) return;
+        if (!mapSearchQuery.trim() || mapSearchQuery.trim().length < 3) return;
         const timer = setTimeout(() => {
             handleGeocode();
         }, 600);
         return () => clearTimeout(timer);
-    }, [mapCityCountry]);
+    }, [mapSearchQuery]);
 
     const drawMap = (
         ctx: CanvasRenderingContext2D,
@@ -3241,9 +3248,44 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 />
             </div>
 
-            {/* 2. Recherche Ville & Pays */}
+            {/* 2. Recherche Lieu, Ville & Pays */}
             <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Localisation</label>
+
+                {/* Lieu spécifique (optionnel) */}
+                <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 pl-1">
+                        <span className="text-[8px] font-black text-neon-cyan/70 uppercase tracking-widest">📍 Lieu</span>
+                        <span className="text-[7px] font-bold text-gray-600 uppercase">(optionnel)</span>
+                    </div>
+                    <div className="relative">
+                        <input 
+                            value={mapVenue}
+                            onChange={e => setMapVenue(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
+                            placeholder="EX: Parc de Schoore, Adidas Arena Paris..."
+                            className={`w-full bg-neon-cyan/5 border rounded-xl p-3 pr-10 text-white font-bold focus:outline-none transition-all shadow-md text-xs placeholder-gray-600 ${
+                                mapVenue.trim()
+                                    ? 'border-neon-cyan/40 focus:border-neon-cyan/70 shadow-[0_0_8px_rgba(0,240,255,0.1)]'
+                                    : 'border-white/10 focus:border-neon-cyan/30'
+                            }`}
+                        />
+                        {mapVenue.trim() && (
+                            <button
+                                onClick={() => setMapVenue('')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500/30 text-gray-400 hover:text-white transition-all text-[10px]"
+                                title="Effacer le lieu"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
+                    {mapVenue.trim() && (
+                        <p className="text-[8px] text-neon-cyan/60 pl-1 italic">🔍 Recherche : «&nbsp;{mapVenue.trim()}, {mapCity}, {mapCountry}&nbsp;»</p>
+                    )}
+                </div>
+
+                {/* Ville & Pays */}
                 <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                         <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Ville *</label>
@@ -3262,7 +3304,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             value={mapCountry}
                             onChange={e => setMapCountry(e.target.value)}
                             onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
-                            placeholder="EX: USA"
+                            placeholder="EX: France"
                             required
                             className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pr-10 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs placeholder-gray-600"
                         />
