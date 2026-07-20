@@ -3709,7 +3709,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     disabled={isDownloading}
                     className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
                 >
-                    <Download className="w-3.5 h-3.5" /> PROMO PNG
+                    <Download className="w-3.5 h-3.5" /> PROMO POST
                 </button>
                 <button
                     onClick={() => downloadPromoFormat('REEL')}
