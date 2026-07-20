@@ -171,7 +171,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [mapLatitude, setMapLatitude] = useState(48.8566);
     const [mapLongitude, setMapLongitude] = useState(2.3522);
     const [isMapLoading, setIsMapLoading] = useState(false);
-    const [mapStyle, setMapStyle] = useState<'dark' | 'voyager' | 'light'>('dark');
+    const [mapStyle, setMapStyle] = useState<'dark' | 'voyager' | 'satellite'>('dark');
     const [mapPinColor, setMapPinColor] = useState('#ff0033');
     const [mapLabelText, setMapLabelText] = useState('PARIS, FRANCE');
     const [showMapPin, setShowMapPin] = useState(true);
@@ -420,8 +420,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 let tileUrl = '';
                 if (mapStyle === 'voyager') {
                     tileUrl = `https://basemaps.cartocdn.com/rastertiles/voyager/${zoom}/${wrappedX}/${mapY}@2x.png`;
-                } else if (mapStyle === 'light') {
-                    tileUrl = `https://basemaps.cartocdn.com/rastertiles/light_all/${zoom}/${wrappedX}/${mapY}@2x.png`;
+                } else if (mapStyle === 'satellite') {
+                    tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
                 } else {
                     tileUrl = `https://basemaps.cartocdn.com/rastertiles/dark_all/${zoom}/${wrappedX}/${mapY}@2x.png`;
                 }
@@ -3307,10 +3307,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         Couleur
                     </button>
                     <button 
-                        onClick={() => { setMapStyle('light'); setTimeout(() => generateImage(), 50); }}
-                        className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'light' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                        onClick={() => { setMapStyle('satellite'); setTimeout(() => generateImage(), 50); }}
+                        className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'satellite' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
                     >
-                        Clair
+                        Satellite
                     </button>
                 </div>
             </div>
