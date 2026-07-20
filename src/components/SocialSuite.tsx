@@ -287,7 +287,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
         'HIGHLIGHTS': { label: 'HIGHLIGHTS', grad: '0, 112, 255', color: '#0070ff' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
-        'RECAP': { label: 'RÉCAP', grad: '255, 103, 0', color: '#ff6700' },
+        'RECAP': { label: 'RÉCAP', grad: '192, 38, 211', color: '#c026d3' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
@@ -300,7 +300,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À NE PAS LOUPER', grad: '0, 0, 0', color: '#000000' },
         'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
         'MAP': { label: 'MAP', grad: '255, 0, 51', color: '#ff0033' },
-        'CALENDRIER': { label: 'CALENDRIER', grad: '192, 38, 211', color: '#c026d3' },
+        'CALENDRIER': { label: 'CALENDRIER', grad: '255, 103, 0', color: '#ff6700' },
     };
 
     useEffect(() => {
@@ -2624,7 +2624,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
             <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
             <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
-            <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
+            <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
             <button onClick={() => handleSetTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
             <button onClick={() => handleSetTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
             <button onClick={() => handleSetTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
@@ -2635,7 +2635,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
             <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-2 ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
             <button onClick={() => handleSetTheme('PROMO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'PROMO' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>📣 PROMO</button>
-            <button onClick={() => handleSetTheme('CALENDRIER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'CALENDRIER' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/10 text-gray-400'}`}>📅 CALENDRIER</button>
+            <button onClick={() => handleSetTheme('CALENDRIER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'CALENDRIER' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/10 text-gray-400'}`}>📅 CALENDRIER</button>
             
             {activeTab === 'REEL' && (
                 <>
@@ -3751,7 +3751,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <img src={recap.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[10px] font-black text-neon-orange uppercase tracking-widest mb-1">{recap.festival || 'FESTIVAL'}</p>
+                                            <p className="text-[10px] font-black text-[#c026d3] uppercase tracking-widest mb-1">{recap.festival || 'FESTIVAL'}</p>
                                             <h3 className="text-white font-black uppercase italic tracking-tighter text-sm line-clamp-1 mb-1">{fixEncoding(recap.title)}</h3>
                                             <p className="text-[9px] text-gray-500 font-medium line-clamp-2 leading-relaxed">{fixEncoding(recap.summary || '')}</p>
                                         </div>
@@ -3819,7 +3819,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                 Télécharger Vidéo/Photo (URL)
                             </button>
-                            <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-neon-orange/10 border border-neon-orange/30 rounded-xl flex items-center justify-center gap-2 text-neon-orange text-[9px] font-black uppercase hover:bg-neon-orange/20 transition-all group">
+                            <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-xl flex items-center justify-center gap-2 text-[#c026d3] text-[9px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
                                 <PlusCircle className="w-3.5 h-3.5" />
                                 Importer un RÉCAP ÉCRIT
                             </button>
@@ -3869,7 +3869,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             value={calendarMonth}
                                             onChange={e => setCalendarMonth(e.target.value)}
                                             placeholder="MARS 2025"
-                                            className="w-full bg-white/10 border border-[#c026d3]/40 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                                            className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs"
                                         />
                                         <div className="space-y-2">
                                             {calendarEvents.map((evt, i) => (
@@ -3878,7 +3878,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                         value={evt.date}
                                                         onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }}
                                                         placeholder="JJ"
-                                                        className="w-14 bg-[#c026d3]/20 border border-[#c026d3]/40 rounded-lg p-2 text-[#c026d3] font-black uppercase text-xs text-center"
+                                                        className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center"
                                                     />
                                                     <input
                                                         value={evt.label}
@@ -3889,7 +3889,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                     <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
                                                 </div>
                                             ))}
-                                            <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-[#c026d3]/10 border border-dashed border-[#c026d3]/30 rounded-xl text-[9px] font-black uppercase text-[#c026d3] hover:bg-[#c026d3]/20 transition-all">+ Ajouter un événement</button>
+                                            <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter un événement</button>
                                         </div>
                                     </div>
                                 </>
@@ -4233,15 +4233,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
                                         {theme === 'CALENDRIER' ? (
                                             <div className="space-y-3">
-                                                <input value={calendarMonth} onChange={e => setCalendarMonth(e.target.value)} placeholder="MARS 2025" className="w-full bg-white/10 border border-[#c026d3]/40 rounded-xl p-3 text-white font-black italic uppercase text-xs" />
+                                                <input value={calendarMonth} onChange={e => setCalendarMonth(e.target.value)} placeholder="MARS 2025" className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs" />
                                                 {calendarEvents.map((evt, i) => (
                                                     <div key={i} className="flex gap-2 items-center">
-                                                        <input value={evt.date} onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }} placeholder="JJ" className="w-14 bg-[#c026d3]/20 border border-[#c026d3]/40 rounded-lg p-2 text-[#c026d3] font-black uppercase text-xs text-center" />
+                                                        <input value={evt.date} onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }} placeholder="JJ" className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center" />
                                                         <input value={evt.label} onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }} placeholder="ÉVÉNEMENT" className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs" />
                                                         <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
                                                     </div>
                                                 ))}
-                                                <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-[#c026d3]/10 border border-dashed border-[#c026d3]/30 rounded-xl text-[9px] font-black uppercase text-[#c026d3] hover:bg-[#c026d3]/20 transition-all">+ Ajouter</button>
+                                                <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
                                         ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'ARTISTE FESTIVAL' ? (
                             <div className="space-y-3">
@@ -4269,7 +4269,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                                 <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
                                             </button>
-                                            <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-4 bg-neon-orange/10 border border-neon-orange/30 rounded-2xl flex items-center justify-center gap-2 text-neon-orange text-[10px] font-black uppercase hover:bg-neon-orange/20 transition-all group">
+                                            <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-4 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-2xl flex items-center justify-center gap-2 text-[#c026d3] text-[10px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
                                                 <PlusCircle className="w-4 h-4" />Importer un RÉCAP ÉCRIT
                                             </button>
                                             <button onClick={() => setShowText(!showText)} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${!showText ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>

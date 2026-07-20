@@ -413,7 +413,7 @@ export function NewsCreate() {
                 'focus': { color: '#ffaa00', grad: '255, 170, 0' },
                 'highlights': { color: '#0070ff', grad: '0, 112, 255' },
                 'musique': { color: '#39ff14', grad: '57, 255, 20' },
-                'recap': { color: '#ff6700', grad: '255, 103, 0' },
+                'recap': { color: '#c026d3', grad: '192, 38, 211' },
                 'interview': { color: '#ffffff', grad: '255, 255, 255' },
             };
 
