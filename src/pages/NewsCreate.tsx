@@ -369,9 +369,9 @@ export function NewsCreate() {
     };
 
     const handleGeneratePromo = async (format: 'story' | 'post' | 'story_standard' | 'post_standard' | 'story_promo' | 'post_promo') => {
-        const finalTitle = shareModalConfig?.title || title;
-        const finalImageUrl = shareModalConfig?.socialSuiteData?.imageUrl || imageUrl;
-        const finalCategory = shareModalConfig?.socialSuiteData?.category || category;
+        const finalTitle = shareModalConfig?.title || socialSuiteData?.title || title;
+        const finalImageUrl = shareModalConfig?.socialSuiteData?.imageUrl || socialSuiteData?.imageUrl || imageUrl;
+        const finalCategory = shareModalConfig?.socialSuiteData?.category || socialSuiteData?.category || category;
 
         if (!finalImageUrl) return;
         setIsGeneratingPromo(format);
@@ -2750,6 +2750,8 @@ ${generateSocialsHtml()}
                                     imageUrl={socialSuiteData.imageUrl}
                                     onClose={() => setShowSocialSuite(false)}
                                     initialTheme={getInitialSocialTheme(socialSuiteData.category, socialSuiteData.isFocus)}
+                                    onGeneratePromo={(format) => handleGeneratePromo(format)}
+                                    isGeneratingPromo={isGeneratingPromo}
                                 />
                             )}
                         </AnimatePresence>

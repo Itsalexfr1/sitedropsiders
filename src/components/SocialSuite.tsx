@@ -63,6 +63,8 @@ interface SocialSuiteProps {
     onClose: () => void;
     initialTheme?: ThemeType;
     initialTab?: TabType;
+    onGeneratePromo?: (format: 'story_promo' | 'post_promo') => void;
+    isGeneratingPromo?: string | null;
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
@@ -105,7 +107,7 @@ const lat2tile = (lat: number, zoom: number) => {
     );
 };
 
-export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab }: SocialSuiteProps) {
+export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab, onGeneratePromo, isGeneratingPromo }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
     const [theme, setTheme] = useState<ThemeType>(initialTheme || 'NEWS');
     const [showSwipe, setShowSwipe] = useState(false);
@@ -3654,6 +3656,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <Download className="w-3.5 h-3.5" /> PNG STORY
                 </button>
             </div>
+            {onGeneratePromo && (
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+                    <button
+                        onClick={() => onGeneratePromo('post_promo')}
+                        disabled={!!isGeneratingPromo}
+                        className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
+                    >
+                        <Download className="w-3.5 h-3.5" />
+                        {isGeneratingPromo === 'post_promo' ? 'GÉNÉRATION...' : 'POST PROMO'}
+                    </button>
+                    <button
+                        onClick={() => onGeneratePromo('story_promo')}
+                        disabled={!!isGeneratingPromo}
+                        className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
+                    >
+                        <Download className="w-3.5 h-3.5" />
+                        {isGeneratingPromo === 'story_promo' ? 'GÉNÉRATION...' : 'STORY PROMO'}
+                    </button>
+                </div>
+            )}
             <button onClick={startVideoRecording} disabled={isVideoRecording}
                 className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
                 <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo (${theme})`}
