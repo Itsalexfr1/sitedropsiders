@@ -159,6 +159,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const festivalLogoRef = useRef<HTMLImageElement | null>(null); // NEW
     const [bgOffsetX, setBgOffsetX] = useState<number>(0);
     const [bgOffsetY, setBgOffsetY] = useState<number>(0);
+    const [menuOpacity, setMenuOpacity] = useState<number>(35); // Menu transparency (35% default so image is visible behind)
+    const [isSlidingPosition, setIsSlidingPosition] = useState<boolean>(false);
     const [imgLayoutMode, setImgLayoutMode] = useState<'1_PAR_LIGNE' | 'PAR_LIGNES' | 'HAUT_LIGNE' | 'BAS_LIGNE'>('1_PAR_LIGNE');
     const [quizColor1, setQuizColor1] = useState<string>('#38bdf8');
     const [quizColor2, setQuizColor2] = useState<string>('#a855f7');
@@ -2967,7 +2969,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
             <div className="flex items-center justify-between">
                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                    🎯 Centrage & Alignement Image
+                    🎯 Centrage Image (X / Y)
                 </span>
                 <button
                     onClick={() => {
@@ -2983,14 +2985,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
             </div>
 
-
-
-
-
             <div className="space-y-2 pt-1">
+                {/* Menu Panel Transparency Control */}
+                <div className="space-y-1 bg-black/40 p-2.5 rounded-xl border border-white/10">
+                    <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
+                        <span>👁️ Opacité du Menu Option</span>
+                        <span className="text-neon-cyan font-mono">{menuOpacity}%</span>
+                    </div>
+                    <input
+                        type="range" min="10" max="100" value={menuOpacity}
+                        onChange={e => setMenuOpacity(parseInt(e.target.value))}
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                    />
+                </div>
+
                 <div className="space-y-1">
                     <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
-                        <span>Position Horizontale (X)</span>
+                        <span>Position Horizontale (Gauche / Droite)</span>
                         <span className="text-white font-mono">{bgOffsetX}px</span>
                     </div>
                     <input
@@ -2999,12 +3010,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setBgOffsetX(parseInt(e.target.value));
                             setTimeout(() => generateImage(), 50);
                         }}
+                        onMouseDown={() => setIsSlidingPosition(true)}
+                        onMouseUp={() => setIsSlidingPosition(false)}
+                        onTouchStart={() => setIsSlidingPosition(true)}
+                        onTouchEnd={() => setIsSlidingPosition(false)}
                         className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
                     />
                 </div>
                 <div className="space-y-1">
                     <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
-                        <span>Position Verticale (Y)</span>
+                        <span>Position Verticale (Haut / Bas)</span>
                         <span className="text-white font-mono">{bgOffsetY}px</span>
                     </div>
                     <input
@@ -3013,6 +3028,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             setBgOffsetY(parseInt(e.target.value));
                             setTimeout(() => generateImage(), 50);
                         }}
+                        onMouseDown={() => setIsSlidingPosition(true)}
+                        onMouseUp={() => setIsSlidingPosition(false)}
+                        onTouchStart={() => setIsSlidingPosition(true)}
+                        onTouchEnd={() => setIsSlidingPosition(false)}
                         className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
                     />
                 </div>
@@ -3745,6 +3764,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <input 
                             type="range" min="-800" max="800" value={bgOffsetX} 
                             onChange={e => setBgOffsetX(parseInt(e.target.value))}
+                            onMouseDown={() => setIsSlidingPosition(true)}
+                            onMouseUp={() => setIsSlidingPosition(false)}
+                            onTouchStart={() => setIsSlidingPosition(true)}
+                            onTouchEnd={() => setIsSlidingPosition(false)}
                             className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
                         />
                     </div>
@@ -3756,6 +3779,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <input 
                             type="range" min="-800" max="800" value={bgOffsetY} 
                             onChange={e => setBgOffsetY(parseInt(e.target.value))}
+                            onMouseDown={() => setIsSlidingPosition(true)}
+                            onMouseUp={() => setIsSlidingPosition(false)}
+                            onTouchStart={() => setIsSlidingPosition(true)}
+                            onTouchEnd={() => setIsSlidingPosition(false)}
                             className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
                         />
                     </div>
@@ -4678,10 +4705,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <AnimatePresence>
                         {activePanel && activePanel !== 'export' && (
                             <motion.div key={activePanel}
-                                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }}
+                                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: isSlidingPosition ? 0.15 : 1 }} exit={{ y: '100%', opacity: 0 }}
                                 transition={{ type: 'spring', damping: 26, stiffness: 300 }}
-                                className="absolute inset-x-0 bottom-[130px] z-30 rounded-t-[28px]"
-                                style={{ background: 'linear-gradient(180deg,#161616 0%,#0d0d0d 100%)', borderTop: '1px solid rgba(255,255,255,0.08)', maxHeight: '60vh', overflowY: 'auto' }}>
+                                className="absolute inset-x-0 bottom-[130px] z-30 rounded-t-[28px] transition-opacity duration-200"
+                                style={{
+                                    background: `rgba(12, 12, 12, ${menuOpacity / 100})`,
+                                    backdropFilter: 'blur(16px)',
+                                    WebkitBackdropFilter: 'blur(16px)',
+                                    borderTop: '1px solid rgba(255,255,255,0.12)',
+                                    maxHeight: '60vh',
+                                    overflowY: 'auto',
+                                    opacity: isSlidingPosition ? 0.15 : 1
+                                }}>
                                 <div className="flex justify-center pt-3 pb-2"><div className="w-8 h-1 rounded-full bg-white/20" /></div>
 
                                 {activePanel === 'format' && (
