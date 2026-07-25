@@ -159,6 +159,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const festivalLogoRef = useRef<HTMLImageElement | null>(null); // NEW
     const [bgOffsetX, setBgOffsetX] = useState<number>(0);
     const [bgOffsetY, setBgOffsetY] = useState<number>(0);
+    const [imgLayoutMode, setImgLayoutMode] = useState<'1_PAR_LIGNE' | 'PAR_LIGNES' | 'HAUT_LIGNE' | 'BAS_LIGNE'>('1_PAR_LIGNE');
+    const [quizColor1, setQuizColor1] = useState<string>('#38bdf8');
+    const [quizColor2, setQuizColor2] = useState<string>('#a855f7');
+    const [showFrame, setShowFrame] = useState<boolean>(false);
     const [artistNameText, setArtistNameText] = useState('');
     const [festivalNameText, setFestivalNameText] = useState('');
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
@@ -553,8 +557,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (bgVideo) {
                 const scale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
-                const x = (canvas.width - bgVideo.videoWidth * scale) / 2;
-                const y = (canvas.height - bgVideo.videoHeight * scale) / 2;
+                let x = ((canvas.width - bgVideo.videoWidth * scale) / 2) + bgOffsetX;
+                let y = ((canvas.height - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                if (imgLayoutMode === 'PAR_LIGNES') {
+                    y = ((canvas.height * 0.62 - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                } else if (imgLayoutMode === 'HAUT_LIGNE') {
+                    y = ((canvas.height * 0.42 - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                } else if (imgLayoutMode === 'BAS_LIGNE') {
+                    y = ((canvas.height * 0.85 - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                }
                 ctx.drawImage(bgVideo, x, y, bgVideo.videoWidth * scale, bgVideo.videoHeight * scale);
             } else if (img) {
                 if (theme === 'SPOTLIGHT') {
@@ -567,8 +578,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.drawImage(img, x, y, iw, ih);
                 } else {
                     const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-                    const x = (canvas.width - img.width * scale) / 2;
-                    const y = (canvas.height - img.height * scale) / 2;
+                    let x = ((canvas.width - img.width * scale) / 2) + bgOffsetX;
+                    let y = ((canvas.height - img.height * scale) / 2) + bgOffsetY;
+                    if (imgLayoutMode === 'PAR_LIGNES') {
+                        y = ((canvas.height * 0.62 - img.height * scale) / 2) + bgOffsetY;
+                    } else if (imgLayoutMode === 'HAUT_LIGNE') {
+                        y = ((canvas.height * 0.42 - img.height * scale) / 2) + bgOffsetY;
+                    } else if (imgLayoutMode === 'BAS_LIGNE') {
+                        y = ((canvas.height * 0.85 - img.height * scale) / 2) + bgOffsetY;
+                    }
                     ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
                 }
             } else {
@@ -1832,55 +1850,56 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
                 const startY = labelY + 130;
 
-                // 1. Dual Color Vibrant Gradient overlay at bottom (Cyan + Pink/Magenta)
-                const gradStart = canvas.height * 0.4;
+                // 1. Discreet Subtle Dark Vignette & Dual Gradient
+                const gradStart = canvas.height * 0.45;
                 const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
                 grad.addColorStop(0, 'rgba(0,0,0,0)');
-                grad.addColorStop(0.35, 'rgba(5,5,15,0.7)');
-                grad.addColorStop(0.75, 'rgba(0, 240, 255, 0.4)');
-                grad.addColorStop(1, 'rgba(255, 0, 127, 0.7)');
+                grad.addColorStop(0.4, 'rgba(8,10,20,0.65)');
+                grad.addColorStop(0.8, quizColor1 + '33');
+                grad.addColorStop(1, quizColor2 + '44');
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
 
-                // 2. Dual Color Badge Capsule "🎮 JEU"
-                const labelText = "🎮 JEU";
+                // 2. Discreet & Stylish Capsule Badge "🎬 DEVINE LE CLIP"
+                const labelText = "🎬 DEVINE LE CLIP";
                 ctx.save();
-                const labelFontSize = 42;
+                const labelFontSize = 38;
                 ctx.font = `900 italic ${labelFontSize}px "Montserrat", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                const labelW = ctx.measureText(labelText).width + 90;
+                const labelW = ctx.measureText(labelText).width + 70;
                 const rectX = (canvas.width - labelW) / 2;
-                const rectY = labelY - 52;
+                const rectY = labelY - 50;
                 const rectW = labelW;
-                const rectH = 80;
-                const radius = 22;
+                const rectH = 72;
+                const radius = 20;
 
-                // Dual Color Gradient for Capsule (Cyan -> Pink/Magenta)
-                const badgeGrad = ctx.createLinearGradient(rectX, 0, rectX + rectW, 0);
-                badgeGrad.addColorStop(0, '#00f0ff');
-                badgeGrad.addColorStop(1, '#ff007f');
-
-                ctx.shadowColor = '#00f0ff';
-                ctx.shadowBlur = 25;
-                ctx.fillStyle = badgeGrad;
+                // Dark elegant glass capsule fill
+                ctx.fillStyle = 'rgba(10, 15, 28, 0.88)';
                 ctx.beginPath();
                 ctx.roundRect(rectX, rectY, rectW, rectH, radius);
                 ctx.fill();
 
-                // Sleek glowing border
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = '#ffffff';
+                // Dynamic bicolore border gradient (Quiz Color 1 -> Quiz Color 2)
+                const borderGrad = ctx.createLinearGradient(rectX, 0, rectX + rectW, 0);
+                borderGrad.addColorStop(0, quizColor1);
+                borderGrad.addColorStop(1, quizColor2);
+
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = borderGrad;
                 ctx.stroke();
 
-                ctx.shadowBlur = 0;
+                // Soft glow shadow
+                ctx.shadowColor = quizColor1;
+                ctx.shadowBlur = 12;
+
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText(labelText, centerX, rectY + (rectH / 2) + 4);
+                ctx.fillText(labelText, centerX, rectY + (rectH / 2) + 3);
                 ctx.restore();
 
-                // 3. Question / Custom Text with Dual-Color Glow
-                const fontSize = 55;
-                const lineHeight = fontSize * 1.2;
+                // 3. Question / Custom Text - Clean, Crisp White with Dark Shadow
+                const fontSize = 54;
+                const lineHeight = fontSize * 1.22;
                 const textToRender = customText || 'DE QUEL CLIP CETTE IMAGE EST TIRÉE ?';
                 const paragraphs = textToRender.toUpperCase().split('\n');
                 const lines: string[] = [];
@@ -1905,9 +1924,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (line !== '') {
                         const yPos = startY + (i * lineHeight);
                         ctx.save();
-                        // Alternate cyan and pink glow for text lines
-                        ctx.shadowColor = i % 2 === 0 ? 'rgba(0, 240, 255, 0.9)' : 'rgba(255, 0, 127, 0.9)';
-                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = 12;
                         drawRichText(ctx, line, canvas.width / 2, yPos, '#ffffff', 'center');
                         ctx.restore();
                     }
@@ -1922,33 +1940,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
                 ctx.restore();
 
-                // 4. Double color interactive CTA banner
+                // 4. Discreet CTA Banner (Soft gradient pill)
                 ctx.save();
                 const ctaY = canvas.height - 60;
                 const ctaText = "💬 DEVINE EN COMMENTAIRE !";
-                ctx.font = '900 italic 26px "Montserrat", sans-serif';
+                ctx.font = '900 italic 25px "Montserrat", sans-serif';
                 ctx.letterSpacing = '3px';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
-                const ctaW = ctx.measureText(ctaText).width + 60;
+                const ctaW = ctx.measureText(ctaText).width + 50;
                 const ctaGrad = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
-                ctaGrad.addColorStop(0, 'rgba(0, 240, 255, 0.25)');
-                ctaGrad.addColorStop(0.5, 'rgba(255, 0, 127, 0.35)');
-                ctaGrad.addColorStop(1, 'rgba(0, 240, 255, 0.25)');
+                ctaGrad.addColorStop(0, 'rgba(10, 15, 28, 0.8)');
+                ctaGrad.addColorStop(0.5, 'rgba(20, 28, 45, 0.9)');
+                ctaGrad.addColorStop(1, 'rgba(10, 15, 28, 0.8)');
 
                 ctx.fillStyle = ctaGrad;
                 ctx.beginPath();
-                ctx.roundRect(centerX - ctaW / 2, ctaY - 24, ctaW, 48, 16);
+                ctx.roundRect(centerX - ctaW / 2, ctaY - 22, ctaW, 44, 14);
                 ctx.fill();
 
-                ctx.strokeStyle = '#00f0ff';
-                ctx.lineWidth = 2;
+                // Discreet gradient border
+                const ctaBorder = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
+                ctaBorder.addColorStop(0, quizColor1);
+                ctaBorder.addColorStop(1, quizColor2);
+                ctx.strokeStyle = ctaBorder;
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
 
                 ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = '#ff007f';
-                ctx.shadowBlur = 12;
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 8;
                 ctx.fillText(ctaText, centerX, ctaY);
                 ctx.restore();
 
@@ -2235,7 +2257,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 20;
-                ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, (logo.height * w) / logo.width);
+                if (isArtistLogoNegative) {
+                    ctx.filter = 'brightness(0) invert(1)';
+                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, (logo.height * w) / logo.width);
+                    ctx.filter = 'none';
+                } else {
+                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, (logo.height * w) / logo.width);
+                }
+                ctx.restore();
+            }
+
+            // Optional discreet frame around the image/canvas
+            if (showFrame) {
+                ctx.save();
+                const pad = 30;
+                const frameW = canvas.width - (pad * 2);
+                const frameH = canvas.height - (pad * 2);
+                if (theme === 'JEU') {
+                    const frameGrad = ctx.createLinearGradient(pad, pad, pad + frameW, pad + frameH);
+                    frameGrad.addColorStop(0, quizColor1);
+                    frameGrad.addColorStop(1, quizColor2);
+                    ctx.strokeStyle = frameGrad;
+                    ctx.lineWidth = 3.5;
+                    ctx.shadowColor = quizColor1;
+                    ctx.shadowBlur = 12;
+                } else {
+                    ctx.strokeStyle = `rgba(${activeData.grad}, 0.7)`;
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = `rgba(${activeData.grad}, 0.4)`;
+                    ctx.shadowBlur = 10;
+                }
+                ctx.beginPath();
+                ctx.roundRect(pad, pad, frameW, frameH, 24);
+                ctx.stroke();
                 ctx.restore();
             }
 
@@ -2347,7 +2401,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -2792,10 +2846,189 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setTextColor(LIGHT_TEXT_THEMES.includes(newTheme) ? '#000000' : '#ffffff');
     };
 
+    const bgPositionControls = (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    🎯 Centrage & Alignement Image
+                </span>
+                <button
+                    onClick={() => {
+                        setBgOffsetX(0);
+                        setBgOffsetY(0);
+                        setImgLayoutMode('1_PAR_LIGNE');
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className="px-2.5 py-1 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1 shadow-sm active:scale-95"
+                    title="Réinitialiser et centrer l'image au milieu"
+                >
+                    <RotateCcw className="w-3 h-3" /> Centrer Image
+                </button>
+            </div>
+
+            {/* Mode selection buttons: 1 par ligne vs par lignes */}
+            <div className="space-y-1 pt-1">
+                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">
+                    Mode d'Alignement Visuel
+                </span>
+                <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                        onClick={() => {
+                            setImgLayoutMode('1_PAR_LIGNE');
+                            setBgOffsetX(0);
+                            setBgOffsetY(0);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`py-1.5 px-2 rounded-xl text-[8px] font-black uppercase border transition-all flex items-center justify-center gap-1 ${imgLayoutMode === '1_PAR_LIGNE' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                    >
+                        <span>🔘 1 par Ligne</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setImgLayoutMode('PAR_LIGNES');
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`py-1.5 px-2 rounded-xl text-[8px] font-black uppercase border transition-all flex items-center justify-center gap-1 ${imgLayoutMode === 'PAR_LIGNES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                    >
+                        <span>📏 Par LIGNES</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setImgLayoutMode('HAUT_LIGNE');
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`py-1.5 px-2 rounded-xl text-[8px] font-black uppercase border transition-all flex items-center justify-center gap-1 ${imgLayoutMode === 'HAUT_LIGNE' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                    >
+                        <span>⬆️ Ligne Sup.</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setImgLayoutMode('BAS_LIGNE');
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className={`py-1.5 px-2 rounded-xl text-[8px] font-black uppercase border transition-all flex items-center justify-center gap-1 ${imgLayoutMode === 'BAS_LIGNE' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                    >
+                        <span>⬇️ Ligne Inf.</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Toggle Frame Option */}
+            <button
+                onClick={() => {
+                    setShowFrame(!showFrame);
+                    setTimeout(() => generateImage(), 50);
+                }}
+                className={`w-full py-2 rounded-xl text-[8px] font-black uppercase border transition-all flex items-center justify-center gap-1.5 ${showFrame ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+            >
+                <span>🖼️ Cadre du Thème : {showFrame ? 'ACTIVÉ (OUI)' : 'DESACTIVÉ (NON)'}</span>
+            </button>
+
+            <div className="space-y-2 pt-1">
+                <div className="space-y-1">
+                    <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
+                        <span>Position Horizontale (X)</span>
+                        <span className="text-white font-mono">{bgOffsetX}px</span>
+                    </div>
+                    <input
+                        type="range" min="-800" max="800" value={bgOffsetX}
+                        onChange={e => {
+                            setBgOffsetX(parseInt(e.target.value));
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                    />
+                </div>
+                <div className="space-y-1">
+                    <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
+                        <span>Position Verticale (Y)</span>
+                        <span className="text-white font-mono">{bgOffsetY}px</span>
+                    </div>
+                    <input
+                        type="range" min="-800" max="800" value={bgOffsetY}
+                        onChange={e => {
+                            setBgOffsetY(parseInt(e.target.value));
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+
+    const quizColorControls = theme === 'JEU' ? (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    🎨 Double Couleurs Quiz
+                </span>
+                <div className="w-5 h-5 rounded-full border border-white/20 shadow-sm" style={{ background: `linear-gradient(135deg, ${quizColor1}, ${quizColor2})` }} />
+            </div>
+
+            {/* Color Presets */}
+            <div className="grid grid-cols-2 gap-1.5">
+                {[
+                    { label: 'Cyan & Violet', c1: '#38bdf8', c2: '#a855f7' },
+                    { label: 'Rouge & Or', c1: '#ff0033', c2: '#ffaa00' },
+                    { label: 'Bleu & Émeraude', c1: '#00f0ff', c2: '#39ff14' },
+                    { label: 'Fuchsia & Rose', c1: '#c026d3', c2: '#f43f5e' },
+                    { label: 'Sunset Red', c1: '#ff6700', c2: '#ff0055' },
+                ].map(p => (
+                    <button
+                        key={p.label}
+                        onClick={() => {
+                            setQuizColor1(p.c1);
+                            setQuizColor2(p.c2);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white flex items-center gap-1.5 transition-all"
+                    >
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: `linear-gradient(135deg, ${p.c1}, ${p.c2})` }} />
+                        <span className="truncate">{p.label}</span>
+                    </button>
+                ))}
+            </div>
+
+            {/* Custom Color Pickers */}
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+                <div className="space-y-1">
+                    <span className="text-[7px] font-black uppercase text-gray-400 block">Couleur 1</span>
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-xl">
+                        <input
+                            type="color"
+                            value={quizColor1}
+                            onChange={e => {
+                                setQuizColor1(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
+                        />
+                        <span className="text-[8px] font-mono text-white uppercase">{quizColor1}</span>
+                    </div>
+                </div>
+                <div className="space-y-1">
+                    <span className="text-[7px] font-black uppercase text-gray-400 block">Couleur 2</span>
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-xl">
+                        <input
+                            type="color"
+                            value={quizColor2}
+                            onChange={e => {
+                                setQuizColor2(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
+                        />
+                        <span className="text-[8px] font-mono text-white uppercase">{quizColor2}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    ) : null;
+
     // Shared content blocks (used in both mobile & desktop)
     const themeButtons = (
         <div className="grid grid-cols-3 gap-1.5">
-            {/* All themes accessible in both modes, except TOP 5 which are Story-specific for now */}
             <button onClick={() => handleSetTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
             <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
             <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
@@ -2809,10 +3042,16 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
             <button onClick={() => handleSetTheme('CONSEILS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONSEILS</button>
             <button onClick={() => handleSetTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
-            <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-2 ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
-            <button onClick={() => handleSetTheme('PROMO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'PROMO' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>📣 PROMO</button>
-            <button onClick={() => handleSetTheme('CALENDRIER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'CALENDRIER' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/10 text-gray-400'}`}>📅 CALENDRIER</button>
-            <button onClick={() => handleSetTheme('JEU')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'JEU' ? 'bg-gradient-to-r from-cyan-500/30 to-pink-500/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(0,240,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎮 JEU (QUIZ)</button>
+            <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
+            <button onClick={() => handleSetTheme('PROMO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PROMO' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>📣 PROMO</button>
+            <button onClick={() => handleSetTheme('CALENDRIER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CALENDRIER' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/10 text-gray-400'}`}>📅 CALENDRIER</button>
+            <button
+                onClick={() => handleSetTheme('JEU')}
+                style={theme === 'JEU' ? { background: `linear-gradient(135deg, ${quizColor1}44, ${quizColor2}44)`, borderColor: quizColor1 } : {}}
+                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'JEU' ? 'text-white shadow-[0_0_15px_rgba(0,240,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
+            >
+                🎬 DEVINE LE CLIP
+            </button>
             
             {activeTab === 'REEL' && (
                 <>
@@ -3976,6 +4215,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
 
                         {themeButtons}
+                        {quizColorControls}
                         {styleMusicButtons}
 
                         {/* Background */}
@@ -3996,6 +4236,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <PlusCircle className="w-3.5 h-3.5" />
                                 Importer un RÉCAP ÉCRIT
                             </button>
+
+                            {bgPositionControls}
                             <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-2 bg-neon-cyan/10 border rounded-xl flex items-center justify-center gap-2 text-neon-cyan text-[9px] font-black uppercase hover:bg-neon-cyan/20 transition-all group ${isRetouchMode ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'border-neon-cyan/20'}`}>
                                 <Wand2 className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA Local)
                             </button>
@@ -4394,9 +4636,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 )}
 
                                 {activePanel === 'theme' && (
-                                    <div className="px-6 pb-8">
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Thème visuel</p>
+                                    <div className="px-6 pb-8 space-y-4">
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Thème visuel</p>
                                         {themeButtons}
+                                        {quizColorControls}
                                         {styleMusicButtons && <div className="mt-4">{styleMusicButtons}</div>}
                                     </div>
                                 )}
@@ -4442,6 +4685,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                                 <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
                                             </button>
+                                            {bgPositionControls}
                                             <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-4 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-2xl flex items-center justify-center gap-2 text-[#c026d3] text-[10px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
                                                 <PlusCircle className="w-4 h-4" />Importer un RÉCAP ÉCRIT
                                             </button>
