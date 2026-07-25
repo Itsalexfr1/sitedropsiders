@@ -68,7 +68,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -306,6 +306,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'MAP': { label: 'MAP', grad: '255, 0, 51', color: '#ff0033' },
         'CALENDRIER': { label: 'CALENDRIER', grad: '255, 103, 0', color: '#ff6700' },
         'JEU': { label: 'JEU', grad: '0, 240, 255', color: '#00f0ff' },
+        'JEU_FESTIVAL': { label: 'JEU_FESTIVAL', grad: '255, 170, 0', color: '#ffaa00' },
     };
 
     useEffect(() => {
@@ -664,7 +665,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!showText) return; 
 
             // Shrunk gradient for Top 5 (Request 6), restored for others
-            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'CONSEILS' && theme !== 'PROMO' && theme !== 'JEU') {
+            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'CONSEILS' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
                     : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
@@ -1974,6 +1975,120 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(ctaText, centerX, ctaY);
                 ctx.restore();
 
+            } else if (theme === 'JEU_FESTIVAL') {
+                const centerX = canvas.width / 2;
+                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
+                const startY = labelY + 130;
+
+                // 1. Dark Vignette & Warm Gradient
+                const gradStart = canvas.height * 0.45;
+                const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(0.4, 'rgba(8,10,20,0.65)');
+                grad.addColorStop(0.8, '#ffaa0033');
+                grad.addColorStop(1, '#ff440044');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+
+                // 2. Badge "🎪 DEVINE LE FESTIVAL"
+                const labelText = "🎪 DEVINE LE FESTIVAL";
+                ctx.save();
+                const labelFontSize = 38;
+                ctx.font = `900 italic ${labelFontSize}px "Montserrat", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const labelW = ctx.measureText(labelText).width + 70;
+                const rectX = (canvas.width - labelW) / 2;
+                const rectY = labelY - 50;
+                const rectW = labelW;
+                const rectH = 72;
+                const radius = 20;
+
+                ctx.fillStyle = 'rgba(10, 15, 28, 0.88)';
+                ctx.beginPath();
+                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
+                ctx.fill();
+
+                const borderGrad = ctx.createLinearGradient(rectX, 0, rectX + rectW, 0);
+                borderGrad.addColorStop(0, '#ffaa00');
+                borderGrad.addColorStop(1, '#ff4400');
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = borderGrad;
+                ctx.stroke();
+
+                ctx.shadowColor = '#ffaa00';
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(labelText, centerX, rectY + (rectH / 2) + 3);
+                ctx.restore();
+
+                // 3. Question text
+                const fontSize = 54;
+                const lineHeight = fontSize * 1.22;
+                const textToRender = customText || 'DANS QUEL FESTIVAL PEUT-ON VOIR CETTE STAGE ?';
+                const paragraphs = textToRender.toUpperCase().split('\n');
+                const lines: string[] = [];
+                ctx.font = `900 italic ${fontSize}px "Montserrat", sans-serif`;
+
+                for (const para of paragraphs) {
+                    if (para.trim() === '') { lines.push(''); continue; }
+                    const words = para.split(' ');
+                    let currentLine = '';
+                    for (const word of words) {
+                        const testLine = currentLine + word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 240) currentLine += word + ' ';
+                        else { lines.push(currentLine.trim()); currentLine = word + ' '; }
+                    }
+                    lines.push(currentLine.trim());
+                }
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                const maxLines = effectiveTab === 'PUBLICATION' ? 8 : 10;
+                lines.slice(0, maxLines).forEach((line, i) => {
+                    if (line !== '') {
+                        const yPos = startY + (i * lineHeight);
+                        ctx.save();
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = 12;
+                        drawRichText(ctx, line, canvas.width / 2, yPos, '#ffffff', 'center');
+                        ctx.restore();
+                    }
+                });
+                ctx.restore();
+
+                // 4. CTA Banner
+                ctx.save();
+                const ctaY = canvas.height - 60;
+                const ctaText = "💬 DEVINE EN COMMENTAIRE !";
+                ctx.font = '900 italic 25px "Montserrat", sans-serif';
+                ctx.letterSpacing = '3px';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const ctaW = ctx.measureText(ctaText).width + 50;
+                const ctaGrad = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
+                ctaGrad.addColorStop(0, 'rgba(10, 15, 28, 0.8)');
+                ctaGrad.addColorStop(0.5, 'rgba(20, 28, 45, 0.9)');
+                ctaGrad.addColorStop(1, 'rgba(10, 15, 28, 0.8)');
+                ctx.fillStyle = ctaGrad;
+                ctx.beginPath();
+                ctx.roundRect(centerX - ctaW / 2, ctaY - 22, ctaW, 44, 14);
+                ctx.fill();
+
+                const ctaBorder = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
+                ctaBorder.addColorStop(0, '#ffaa00');
+                ctaBorder.addColorStop(1, '#ff4400');
+                ctx.strokeStyle = ctaBorder;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 8;
+                ctx.fillText(ctaText, centerX, ctaY);
+                ctx.restore();
+
             } else if (theme === 'PROMO') {
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
@@ -2842,6 +2957,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setTheme(newTheme);
         if (newTheme === 'JEU') {
             setCustomText('DE QUEL CLIP CETTE IMAGE EST TIRÉE ?');
+        } else if (newTheme === 'JEU_FESTIVAL') {
+            setCustomText('DANS QUEL FESTIVAL PEUT-ON VOIR CETTE STAGE ?');
         }
         setTextColor(LIGHT_TEXT_THEMES.includes(newTheme) ? '#000000' : '#ffffff');
     };
@@ -2866,63 +2983,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
             </div>
 
-            {/* Mode selection buttons: 1 par ligne vs par lignes */}
-            <div className="space-y-1 pt-1">
-                <span className="text-[8px] font-black text-gray-400 uppercase tracking-wider block">
-                    Mode d'Alignement Visuel
-                </span>
-                <div className="grid grid-cols-2 gap-1.5">
-                    <button
-                        onClick={() => {
-                            setImgLayoutMode('1_PAR_LIGNE');
-                            setBgOffsetX(0);
-                            setBgOffsetY(0);
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`py-1.5 px-2 rounded-xl text-[8px] font-black uppercase border transition-all flex items-center justify-center gap-1 ${imgLayoutMode === '1_PAR_LIGNE' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
-                    >
-                        <span>🔘 1 par Ligne</span>
-                    </button>
-                    <button
-                        onClick={() => {
-                            setImgLayoutMode('PAR_LIGNES');
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`py-1.5 px-2 rounded-xl text-[8px] font-black uppercase border transition-all flex items-center justify-center gap-1 ${imgLayoutMode === 'PAR_LIGNES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
-                    >
-                        <span>📏 Par LIGNES</span>
-                    </button>
-                    <button
-                        onClick={() => {
-                            setImgLayoutMode('HAUT_LIGNE');
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`py-1.5 px-2 rounded-xl text-[8px] font-black uppercase border transition-all flex items-center justify-center gap-1 ${imgLayoutMode === 'HAUT_LIGNE' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
-                    >
-                        <span>⬆️ Ligne Sup.</span>
-                    </button>
-                    <button
-                        onClick={() => {
-                            setImgLayoutMode('BAS_LIGNE');
-                            setTimeout(() => generateImage(), 50);
-                        }}
-                        className={`py-1.5 px-2 rounded-xl text-[8px] font-black uppercase border transition-all flex items-center justify-center gap-1 ${imgLayoutMode === 'BAS_LIGNE' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
-                    >
-                        <span>⬇️ Ligne Inf.</span>
-                    </button>
-                </div>
-            </div>
 
-            {/* Toggle Frame Option */}
-            <button
-                onClick={() => {
-                    setShowFrame(!showFrame);
-                    setTimeout(() => generateImage(), 50);
-                }}
-                className={`w-full py-2 rounded-xl text-[8px] font-black uppercase border transition-all flex items-center justify-center gap-1.5 ${showFrame ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_12px_rgba(0,240,255,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
-            >
-                <span>🖼️ Cadre du Thème : {showFrame ? 'ACTIVÉ (OUI)' : 'DESACTIVÉ (NON)'}</span>
-            </button>
+
+
 
             <div className="space-y-2 pt-1">
                 <div className="space-y-1">
@@ -3051,6 +3114,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'JEU' ? 'text-white shadow-[0_0_15px_rgba(0,240,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
             >
                 🎬 DEVINE LE CLIP
+            </button>
+            <button
+                onClick={() => handleSetTheme('JEU_FESTIVAL')}
+                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'JEU_FESTIVAL' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_15px_rgba(255,170,0,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
+            >
+                🎪 DEVINE LE FESTIVAL
             </button>
             
             {activeTab === 'REEL' && (
