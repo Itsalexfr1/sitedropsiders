@@ -741,7 +741,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             };
 
             if (theme === 'INTRO') {
-                drawTapeLabel(customText || 'INTRO', canvas.width / 2, canvas.height / 2, 900, 260, activeData.color, activeData.grad);
+                drawTapeLabel(customText || 'INTRO', canvas.width / 2, canvas.height / 2, 966, 260, activeData.color, activeData.grad);
 
             } else if (theme === 'TOP 5 STYLES') {
                 const item = top5Items[currentPreviewIndex];
@@ -801,7 +801,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else if (theme === 'TOP 5 ARTISTE') {
                 const item = top5Items[currentPreviewIndex];
                 const baseY = 1540;
-                const itemX = 100 + slideX;
+                const itemX = 57 + slideX;
 
                 if (item.photo) {
                     let photoImg: HTMLImageElement | null = null;
@@ -838,7 +838,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
                 ctx.fillText(`${item.main.toUpperCase()} - ${item.sub.toUpperCase()}`, itemX, baseY);
-                const barWidth = 880; const barHeight = 90; const barX = 90; const barY = baseY + 45;
+                const barWidth = 966; const barHeight = 90; const barX = 57; const barY = baseY + 45;
                 ctx.fillStyle = `rgba(${activeData.grad}, 0.4)`;
                 ctx.fillRect(barX - 10 + slideX, barY - 10, barWidth + 20, barHeight + 20);
                 ctx.fillStyle = activeData.color;
@@ -1123,7 +1123,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const cardStartY = calTopY + 70;
                 const cardH = effectiveTab === 'PUBLICATION' ? 80 : 100;
                 const cardGap = effectiveTab === 'PUBLICATION' ? 12 : 16;
-                const cardPadX = 80;
+                const cardPadX = 57;
 
                 calendarEvents.forEach((evt, i) => {
                     const cardY = cardStartY + i * (cardH + cardGap);
@@ -1211,7 +1211,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (customText) {
                     const lines = customText.split('\n');
                     
-                    const maxWidth = 960; // Max horizontal width before shrinking
+                    const maxWidth = 966; // Max horizontal width before shrinking
                     
                     const getFontSize = (text: string, base: number) => {
                         ctx.font = `900 ${base}px "Montserrat", sans-serif`;
@@ -1323,7 +1323,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.save();
                 ctx.textAlign = 'center';
                 
-                const maxWidth = 960;
+                const maxWidth = 966;
                 const getFontSize = (text: string, base: number, font: string) => {
                     ctx.font = `900 ${base}px "${font}", sans-serif`;
                     const width = ctx.measureText(text).width;
@@ -1516,7 +1516,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = '#ffffff';
                     let fontSize = 80;
                     ctx.font = `900 italic ${fontSize}px "Orbitron", sans-serif`;
-                    const maxArtistWidth = 650;
+                    const maxArtistWidth = 748;
                     let textWidth = ctx.measureText(artistNameText.toUpperCase()).width;
                     if (textWidth > maxArtistWidth) {
                         fontSize = Math.max(30, Math.floor(fontSize * (maxArtistWidth / textWidth)));
@@ -1573,7 +1573,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let stageFontSize = 85; // Restored base size
                     ctx.font = `900 italic ${stageFontSize}px "Orbitron", sans-serif`;
                     let stageWidth = ctx.measureText(stageName).width;
-                    const maxStageWidth = 650;
+                    const maxStageWidth = 748;
                     if (stageWidth > maxStageWidth) {
                         stageFontSize = Math.max(30, Math.floor(stageFontSize * (maxStageWidth / stageWidth)));
                         ctx.font = `900 italic ${stageFontSize}px "Orbitron", sans-serif`;
@@ -1593,7 +1593,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let dayFontSize = 85; // Restored base size
                     ctx.font = `900 italic ${dayFontSize}px "Orbitron", sans-serif`;
                     let dayWidth = ctx.measureText(dayName).width;
-                    const maxDayWidth = 650;
+                    const maxDayWidth = 748;
                     if (dayWidth > maxDayWidth) {
                         dayFontSize = Math.max(30, Math.floor(dayFontSize * (maxDayWidth / dayWidth)));
                         ctx.font = `900 italic ${dayFontSize}px "Orbitron", sans-serif`;
@@ -1613,7 +1613,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let hourFontSize = 85; // Restored base size
                     ctx.font = `900 italic ${hourFontSize}px "Orbitron", sans-serif`;
                     let hourWidth = ctx.measureText(hourName).width;
-                    const maxHourWidth = 650;
+                    const maxHourWidth = 748;
                     if (hourWidth > maxHourWidth) {
                         hourFontSize = Math.max(30, Math.floor(hourFontSize * (maxHourWidth / hourWidth)));
                         ctx.font = `900 italic ${hourFontSize}px "Orbitron", sans-serif`;
@@ -1639,7 +1639,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.fillStyle = '#ffffff';
                     let festFontSize = 45;
                     ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
-                    const maxFestWidth = 650;
+                    const maxFestWidth = 748;
                     let festWidth = ctx.measureText(festivalNameText.toUpperCase()).width;
                     if (festWidth > maxFestWidth) {
                         festFontSize = Math.max(20, Math.floor(festFontSize * (maxFestWidth / festWidth)));
@@ -1665,7 +1665,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
             } else if (theme === 'CITATION') {
-                const safeW = 880;
+                const safeW = 1012;
                 
                 if (customText) {
                     const lines = customText.split('\n').filter(l => l.trim() !== '');
@@ -1678,7 +1678,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.font = '900 italic 140px "Montserrat", sans-serif';
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
                     ctx.shadowBlur = 10;
-                    ctx.fillText('“', 80, 400);
+                    ctx.fillText('“', 34, 400);
 
                     ctx.font = '700 48px "Montserrat", sans-serif';
                     ctx.letterSpacing = "-1px";
@@ -1690,27 +1690,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     words.forEach(word => {
                         const testLine = line + word + ' ';
                         if (ctx.measureText(stripTags(testLine)).width > safeW) {
-                            drawRichText(ctx, line, 80, y, '#ffffff', 'left');
+                            drawRichText(ctx, line, 34, y, '#ffffff', 'left');
                             line = word + ' ';
                             y += 65;
                         } else {
                             line = testLine;
                         }
                     });
-                    drawRichText(ctx, line, 80, y, '#ffffff', 'left');
+                    drawRichText(ctx, line, 34, y, '#ffffff', 'left');
                     
                     if (citationAuthor) {
                         y += 100;
                         ctx.font = '600 italic 36px "Montserrat", sans-serif';
                         ctx.fillStyle = '#ffffff';
-                        ctx.fillText(citationAuthor.toUpperCase(), 80, y);
+                        ctx.fillText(citationAuthor.toUpperCase(), 34, y);
                     }
                     
                     if (citationMedia) {
                         y += (citationAuthor ? 40 : 100);
                         ctx.font = '400 italic 28px "Montserrat", sans-serif';
                         ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                        ctx.fillText(citationMedia, 80, y);
+                        ctx.fillText(citationMedia, 34, y);
                     }
                     
                     ctx.restore();
@@ -1726,7 +1726,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
                     ctx.shadowBlur = 10;
                     
-                    const safeW = 900;
+                    const safeW = 966;
                     const words = conseilsTitle.split(' ');
                     let currentLine = '';
                     
@@ -1770,21 +1770,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.shadowColor = 'rgba(0,0,0,0.8)';
                         ctx.shadowBlur = 10;
                         
-                        const safeW = 840;
+                        const safeW = 966;
                         const words = line.split(' ');
                         let currentLine = '';
                         
                         words.forEach(word => {
                             const testLine = currentLine + word + ' ';
                             if (ctx.measureText(stripTags(testLine)).width > safeW) {
-                                drawRichText(ctx, currentLine.toUpperCase(), 120, y, '#ffffff', 'left');
+                                drawRichText(ctx, currentLine.toUpperCase(), 57, y, '#ffffff', 'left');
                                 currentLine = word + ' ';
                                 y += 55;
                             } else {
                                 currentLine = testLine;
                             }
                         });
-                        drawRichText(ctx, currentLine.toUpperCase(), 120, y, '#ffffff', 'left');
+                        drawRichText(ctx, currentLine.toUpperCase(), 57, y, '#ffffff', 'left');
 
                         y += 65;
                     });
@@ -1839,7 +1839,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const displayTitle = 'LES 10 ARTISTES À NE PAS LOUPER';
                 
                 // Shrink if too wide
-                while (ctx.measureText(displayTitle).width > canvas.width - 160 && titleFs > 28) {
+                while (ctx.measureText(displayTitle).width > canvas.width - 114 && titleFs > 28) {
                     titleFs--;
                     ctx.font = `900 italic ${titleFs}px "Montserrat", sans-serif`;
                 }
@@ -1912,7 +1912,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let currentLine = '';
                     for (const word of words) {
                         const testLine = currentLine + word + ' ';
-                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 240) currentLine += word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 114) currentLine += word + ' ';
                         else { lines.push(currentLine.trim()); currentLine = word + ' '; }
                     }
                     lines.push(currentLine.trim());
@@ -2036,7 +2036,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let currentLine = '';
                     for (const word of words) {
                         const testLine = currentLine + word + ' ';
-                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 240) currentLine += word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 114) currentLine += word + ' ';
                         else { lines.push(currentLine.trim()); currentLine = word + ' '; }
                     }
                     lines.push(currentLine.trim());
@@ -2121,7 +2121,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let fs = 72;
                     ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
                     // Auto-scale if too wide
-                    while (ctx.measureText(line).width > 940 && fs > 28) {
+                    while (ctx.measureText(line).width > 966 && fs > 28) {
                         fs--;
                         ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
                     }
@@ -2272,7 +2272,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let currentLine = '';
                     for (const word of words) {
                         const testLine = currentLine + word + ' ';
-                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 240) currentLine += word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 114) currentLine += word + ' ';
                         else { lines.push(currentLine.trim()); currentLine = word + ' '; }
                     }
                     lines.push(currentLine.trim());

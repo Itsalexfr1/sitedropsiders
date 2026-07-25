@@ -464,7 +464,7 @@ export function NewsCreate() {
                     let fs = 72;
                     ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
                     // Auto-scale if too wide
-                    while (ctx.measureText(line).width > 940 && fs > 28) {
+                    while (ctx.measureText(line).width > 966 && fs > 28) {
                         fs--;
                         ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
                     }
@@ -569,7 +569,7 @@ export function NewsCreate() {
                     let currentLine = '';
                     for (const word of words) {
                         const testLine = currentLine + word + ' ';
-                        if (ctx.measureText(testLine).width < canvas.width - 240) {
+                        if (ctx.measureText(testLine).width < canvas.width - 114) {
                             currentLine += word + ' ';
                         } else {
                             lines.push(currentLine.trim());
