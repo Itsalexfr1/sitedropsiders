@@ -69,6 +69,7 @@ const AdminInterviewQuestions = lazyRetry(() => import('./pages/AdminInterviewQu
 const PublicProfile = lazyRetry(() => import('./pages/PublicProfile').then(m => m.PublicProfile));
 const About = lazyRetry(() => import('./pages/About').then(m => m.About));
 const ProShop = lazyRetry(() => import('./pages/ProShop').then(m => m.ProShop));
+const BrandingPage = lazyRetry(() => import('./pages/BrandingPage').then(m => m.BrandingPage));
 
 
 function ErrorFallback() {
@@ -253,6 +254,9 @@ const router = createBrowserRouter([
         ]
       },
       { path: "qr", element: <QrCodePage /> },
+      { path: "branding", element: <BrandingPage /> },
+      { path: "connect", element: <BrandingPage /> },
+      { path: "bio", element: <BrandingPage /> },
       { path: "newsletter", element: <Newsletter /> },
       { path: "unsubscribe", element: <Unsubscribe /> },
     ]

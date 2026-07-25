@@ -10,6 +10,7 @@ interface QRCodeGeneratorProps {
 }
 
 const PRESET_URLS = [
+    { label: 'Branding Page (QR)', url: 'https://www.dropsiders.fr/branding', color: '#ff0033' },
     { label: 'Site Principal', url: 'https://www.dropsiders.fr', color: '#00fff3' },
     { label: 'Agenda', url: 'https://www.dropsiders.fr/agenda', color: '#facc15' },
     { label: 'News', url: 'https://www.dropsiders.fr/news', color: '#00fff3' },
