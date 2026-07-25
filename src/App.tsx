@@ -254,9 +254,13 @@ const router = createBrowserRouter([
         ]
       },
       { path: "qr", element: <QrCodePage /> },
-      { path: "branding", element: <BrandingPage /> },
+      { path: "go", element: <BrandingPage /> },
+      { path: "link", element: <BrandingPage /> },
+      { path: "drop", element: <BrandingPage /> },
+      { path: "v", element: <BrandingPage /> },
       { path: "connect", element: <BrandingPage /> },
       { path: "bio", element: <BrandingPage /> },
+      { path: "branding", element: <BrandingPage /> },
       { path: "newsletter", element: <Newsletter /> },
       { path: "unsubscribe", element: <Unsubscribe /> },
     ]

@@ -354,7 +354,7 @@ export function BrandingPage() {
                     </div>
 
                     {/* Site Link */}
-                    <Link to="/" className="block group">
+                    <Link to="/?full=1" onClick={() => sessionStorage.setItem('dropsiders_full_site', 'true')} className="block group">
                         <div className="bg-[#0a0a0a] hover:bg-white/10 border border-white/10 hover:border-neon-red/50 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 shadow-xl group-hover:scale-[1.01]">
                             <div className="flex items-center gap-3.5">
                                 <div className="w-10 h-10 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red group-hover:bg-neon-red group-hover:text-white transition-colors">

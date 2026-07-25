@@ -10,7 +10,7 @@ interface QRCodeGeneratorProps {
 }
 
 const PRESET_URLS = [
-    { label: 'Branding Page (QR)', url: 'https://www.dropsiders.fr/branding', color: '#ff0033' },
+    { label: 'Page Mobile (Discrète)', url: 'https://www.dropsiders.fr/go', color: '#ff0033' },
     { label: 'Site Principal', url: 'https://www.dropsiders.fr', color: '#00fff3' },
     { label: 'Agenda', url: 'https://www.dropsiders.fr/agenda', color: '#facc15' },
     { label: 'News', url: 'https://www.dropsiders.fr/news', color: '#00fff3' },
@@ -26,8 +26,9 @@ const DOT_STYLES: { label: string; value: 'rounded' | 'dots' | 'classy' | 'class
 ];
 
 export function QRCodeGenerator({ isOpen, onClose }: QRCodeGeneratorProps) {
-    const [url, setUrl] = useState('https://www.dropsiders.fr');
-    const [fgColor, setFgColor] = useState('#00fff3');
+    const [url, setUrl] = useState('https://www.dropsiders.fr/go');
+    const [fgColor, setFgColor] = useState('#ff0033');
+
     const [bgColor, setBgColor] = useState('#0a0a0a');
     const [dotStyle, setDotStyle] = useState<typeof DOT_STYLES[0]['value']>('extra-rounded');
     const [withLogo, setWithLogo] = useState(true);
