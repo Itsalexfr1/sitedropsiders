@@ -67,25 +67,8 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
         const featured = all.find(item => item.isFeatured);
         if (featured) return featured;
 
-        // Fallback to latest news/music/focus if none marked as isFeatured
-        const filtered = all.filter((item: any) => {
-            const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || 
-                   cat.includes('musique') || 
-                   cat.includes('music') || 
-                   cat.includes('review') || 
-                   cat.includes('actu') || 
-                   cat.includes('festival') || 
-                   cat.includes('artist') ||
-                   cat.includes('recap') ||
-                   cat.includes('interview') ||
-                   cat.includes('sets') ||
-                   cat.includes('mix') ||
-                   item.isFocus || 
-                   cat.includes('focus');
-        });
-        // If still nothing, take the absolute latest article
-        return filtered[0] || all[0];
+        // Fallback: take the absolute latest article regardless of category
+        return all[0];
     }, [newsData]);
 
     const [translatedTitle, setTranslatedTitle] = useState<string>('');

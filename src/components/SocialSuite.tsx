@@ -68,7 +68,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -301,6 +301,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
         'MAP': { label: 'MAP', grad: '255, 0, 51', color: '#ff0033' },
         'CALENDRIER': { label: 'CALENDRIER', grad: '255, 103, 0', color: '#ff6700' },
+        'JEU': { label: 'JEU', grad: '0, 240, 255', color: '#00f0ff' },
     };
 
     useEffect(() => {
@@ -645,7 +646,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!showText) return; 
 
             // Shrunk gradient for Top 5 (Request 6), restored for others
-            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'CONSEILS' && theme !== 'PROMO') {
+            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'CONSEILS' && theme !== 'PROMO' && theme !== 'JEU') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
                     : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
@@ -1826,6 +1827,131 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(displayTitle, centerX, titleY);
                 ctx.restore();
 
+            } else if (theme === 'JEU') {
+                const centerX = canvas.width / 2;
+                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
+                const startY = labelY + 130;
+
+                // 1. Dual Color Vibrant Gradient overlay at bottom (Cyan + Pink/Magenta)
+                const gradStart = canvas.height * 0.4;
+                const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(0.35, 'rgba(5,5,15,0.7)');
+                grad.addColorStop(0.75, 'rgba(0, 240, 255, 0.4)');
+                grad.addColorStop(1, 'rgba(255, 0, 127, 0.7)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+
+                // 2. Dual Color Badge Capsule "🎮 JEU"
+                const labelText = "🎮 JEU";
+                ctx.save();
+                const labelFontSize = 42;
+                ctx.font = `900 italic ${labelFontSize}px "Montserrat", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const labelW = ctx.measureText(labelText).width + 90;
+                const rectX = (canvas.width - labelW) / 2;
+                const rectY = labelY - 52;
+                const rectW = labelW;
+                const rectH = 80;
+                const radius = 22;
+
+                // Dual Color Gradient for Capsule (Cyan -> Pink/Magenta)
+                const badgeGrad = ctx.createLinearGradient(rectX, 0, rectX + rectW, 0);
+                badgeGrad.addColorStop(0, '#00f0ff');
+                badgeGrad.addColorStop(1, '#ff007f');
+
+                ctx.shadowColor = '#00f0ff';
+                ctx.shadowBlur = 25;
+                ctx.fillStyle = badgeGrad;
+                ctx.beginPath();
+                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
+                ctx.fill();
+
+                // Sleek glowing border
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(labelText, centerX, rectY + (rectH / 2) + 4);
+                ctx.restore();
+
+                // 3. Question / Custom Text with Dual-Color Glow
+                const fontSize = 55;
+                const lineHeight = fontSize * 1.2;
+                const textToRender = customText || 'DE QUEL CLIP CETTE IMAGE EST TIRÉE ?';
+                const paragraphs = textToRender.toUpperCase().split('\n');
+                const lines: string[] = [];
+                ctx.font = `900 italic ${fontSize}px "Montserrat", sans-serif`;
+
+                for (const para of paragraphs) {
+                    if (para.trim() === '') { lines.push(''); continue; }
+                    const words = para.split(' ');
+                    let currentLine = '';
+                    for (const word of words) {
+                        const testLine = currentLine + word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 240) currentLine += word + ' ';
+                        else { lines.push(currentLine.trim()); currentLine = word + ' '; }
+                    }
+                    lines.push(currentLine.trim());
+                }
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                const maxLines = effectiveTab === 'PUBLICATION' ? 8 : 10;
+                lines.slice(0, maxLines).forEach((line, i) => {
+                    if (line !== '') {
+                        const yPos = startY + (i * lineHeight);
+                        ctx.save();
+                        // Alternate cyan and pink glow for text lines
+                        ctx.shadowColor = i % 2 === 0 ? 'rgba(0, 240, 255, 0.9)' : 'rgba(255, 0, 127, 0.9)';
+                        ctx.shadowBlur = 20;
+                        drawRichText(ctx, line, canvas.width / 2, yPos, '#ffffff', 'center');
+                        ctx.restore();
+                    }
+                });
+
+                if (lines.length > maxLines) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.globalAlpha = 0.4;
+                    ctx.font = '900 italic 27px "Montserrat", sans-serif';
+                    ctx.fillText('...', canvas.width / 2, startY + (maxLines * lineHeight) - 20);
+                    ctx.globalAlpha = 1;
+                }
+                ctx.restore();
+
+                // 4. Double color interactive CTA banner
+                ctx.save();
+                const ctaY = canvas.height - 60;
+                const ctaText = "💬 DEVINE EN COMMENTAIRE !";
+                ctx.font = '900 italic 26px "Montserrat", sans-serif';
+                ctx.letterSpacing = '3px';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const ctaW = ctx.measureText(ctaText).width + 60;
+                const ctaGrad = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
+                ctaGrad.addColorStop(0, 'rgba(0, 240, 255, 0.25)');
+                ctaGrad.addColorStop(0.5, 'rgba(255, 0, 127, 0.35)');
+                ctaGrad.addColorStop(1, 'rgba(0, 240, 255, 0.25)');
+
+                ctx.fillStyle = ctaGrad;
+                ctx.beginPath();
+                ctx.roundRect(centerX - ctaW / 2, ctaY - 24, ctaW, 48, 16);
+                ctx.fill();
+
+                ctx.strokeStyle = '#00f0ff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = '#ff007f';
+                ctx.shadowBlur = 12;
+                ctx.fillText(ctaText, centerX, ctaY);
+                ctx.restore();
+
             } else if (theme === 'PROMO') {
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
@@ -2660,6 +2786,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             setActiveTab('REEL');
         }
         setTheme(newTheme);
+        if (newTheme === 'JEU') {
+            setCustomText('DE QUEL CLIP CETTE IMAGE EST TIRÉE ?');
+        }
         setTextColor(LIGHT_TEXT_THEMES.includes(newTheme) ? '#000000' : '#ffffff');
     };
 
@@ -2683,6 +2812,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-2 ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
             <button onClick={() => handleSetTheme('PROMO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'PROMO' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>📣 PROMO</button>
             <button onClick={() => handleSetTheme('CALENDRIER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'CALENDRIER' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/10 text-gray-400'}`}>📅 CALENDRIER</button>
+            <button onClick={() => handleSetTheme('JEU')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all col-span-3 ${theme === 'JEU' ? 'bg-gradient-to-r from-cyan-500/30 to-pink-500/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(0,240,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎮 JEU (QUIZ)</button>
             
             {activeTab === 'REEL' && (
                 <>

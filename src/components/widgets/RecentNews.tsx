@@ -65,19 +65,10 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
         const featured = all.find(item => item.isFeatured);
 
         // Logical fallback to identify which one is in the Hero slot
-        const heroItem = featured || all.filter((item: any) => {
-            const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('review') || cat.includes('focus') || cat.includes('recap') || cat.includes('interview') || cat.includes('sets') || cat.includes('mix');
-        })[0];
+        const heroItem = featured || all[0];
 
         return all
-            .filter((item: any) => {
-                // Skip the hero item
-                if (heroItem && item.id === heroItem.id) return false;
-
-                const cat = (item.category || '').toLowerCase();
-                return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('review') || cat.includes('focus') || cat.includes('recap') || cat.includes('interview') || cat.includes('sets') || cat.includes('mix');
-            })
+            .filter((item: any) => !(heroItem && item.id === heroItem.id))
             .slice(0, 8);
     }, [newsData]);
 
