@@ -96,7 +96,7 @@
     "bic": "TRWIBEB1XXX",
     "id": 1783342138622,
     "sentDate": "2026-07-06T12:48:58.622Z",
-    "paid": false,
+    "paid": true,
     "emailTo": "lola@lesardentes.be",
     "pdfUrl": ""
   },
