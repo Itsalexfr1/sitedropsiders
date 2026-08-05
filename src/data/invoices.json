@@ -69,7 +69,7 @@
     "type": "facture",
     "id": 1783710417252,
     "sentDate": "2026-07-10T19:06:57.252Z",
-    "paid": false,
+    "paid": true,
     "emailTo": "Archive Locale",
     "pdfUrl": ""
   },
