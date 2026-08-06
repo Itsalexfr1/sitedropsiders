@@ -87,10 +87,18 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
 
     const toggleDayWorked = (index: number) => {
         const updated = [...days];
+        const day = updated[index];
+        const nowWorked = !day.worked;
+        const lieu = day.note || globalLocation;
+        const dateFormatted = new Date(day.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
         updated[index] = {
-            ...updated[index],
-            worked: !updated[index].worked,
-            price: updated[index].worked ? updated[index].price : (updated[index].price || defaultPrice),
+            ...day,
+            worked: nowWorked,
+            price: day.worked ? day.price : (day.price || defaultPrice),
+            // Auto-fill description on first toggle to worked, only if empty
+            description: nowWorked && !day.description
+                ? `Prestation Light${lieu ? ` - ${lieu}` : ''} - ${dateFormatted}`
+                : day.description,
         };
         setDays(updated);
         savePlanning(updated);
