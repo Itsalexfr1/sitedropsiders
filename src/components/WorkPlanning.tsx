@@ -29,6 +29,7 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
     const [days, setDays] = useState<WorkDayConfig[]>([]);
     const [savedNotice, setSavedNotice] = useState(false);
     const [globalLocation, setGlobalLocation] = useState('');
+    const [globalDescription, setGlobalDescription] = useState('');
 
     // Generate days for selected month
     useEffect(() => {
@@ -120,6 +121,15 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
         if (!globalLocation.trim()) return;
         const updated = days.map(d =>
             d.worked ? { ...d, note: globalLocation } : d
+        );
+        setDays(updated);
+        savePlanning(updated);
+    };
+
+    const applyGlobalDescriptionToAll = () => {
+        if (!globalDescription.trim()) return;
+        const updated = days.map(d =>
+            d.worked ? { ...d, description: globalDescription } : d
         );
         setDays(updated);
         savePlanning(updated);
@@ -390,28 +400,57 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
                         </div>
                     </div>
 
-                    {/* Global location applicator */}
-                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 space-y-2">
-                        <label className="text-[9px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
-                            <MapPin className="w-3.5 h-3.5" /> Appliquer un Lieu à Tous les Soirs Cochés
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="text"
-                                value={globalLocation}
-                                onChange={e => setGlobalLocation(e.target.value)}
-                                placeholder="Ex: Club X, Festival Y, Bar Z..."
-                                className="flex-1 bg-black/40 border border-emerald-500/30 rounded-xl px-3.5 py-2 text-white font-medium text-sm focus:border-emerald-400 outline-none placeholder:text-white/20 transition-all"
-                            />
-                            <button
-                                onClick={applyGlobalLocationToAll}
-                                disabled={!globalLocation.trim()}
-                                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black uppercase text-[10px] tracking-widest rounded-xl flex items-center gap-1.5 transition-all"
-                            >
-                                <MapPin className="w-3.5 h-3.5" /> Appliquer à tous
-                            </button>
+                    {/* Global location + description applicators */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                        {/* Lieu global */}
+                        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 space-y-2">
+                            <label className="text-[9px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5" /> Lieu — Appliquer à tous
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={globalLocation}
+                                    onChange={e => setGlobalLocation(e.target.value)}
+                                    placeholder="Ex: Club X, Festival Y..."
+                                    className="flex-1 bg-black/40 border border-emerald-500/30 rounded-xl px-3.5 py-2 text-white font-medium text-sm focus:border-emerald-400 outline-none placeholder:text-white/20 transition-all"
+                                />
+                                <button
+                                    onClick={applyGlobalLocationToAll}
+                                    disabled={!globalLocation.trim()}
+                                    className="px-3 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black uppercase text-[10px] tracking-widest rounded-xl flex items-center gap-1.5 transition-all shrink-0"
+                                >
+                                    <MapPin className="w-3.5 h-3.5" /> OK
+                                </button>
+                            </div>
+                            <p className="text-[9px] text-emerald-400/50 font-medium">Utilisé comme référence dans l'export facture groupée.</p>
                         </div>
-                        <p className="text-[9px] text-emerald-400/50 font-medium">Ce lieu sera aussi utilisé comme référence lors de l'export en facture groupée.</p>
+
+                        {/* Description globale */}
+                        <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-4 space-y-2">
+                            <label className="text-[9px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1.5">
+                                <FileText className="w-3.5 h-3.5" /> Description — Appliquer à tous
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={globalDescription}
+                                    onChange={e => setGlobalDescription(e.target.value)}
+                                    placeholder="Ex: Set de 2h, Soirée privée..."
+                                    className="flex-1 bg-black/40 border border-indigo-500/30 rounded-xl px-3.5 py-2 text-white font-medium text-sm focus:border-indigo-400 outline-none placeholder:text-white/20 transition-all"
+                                />
+                                <button
+                                    onClick={applyGlobalDescriptionToAll}
+                                    disabled={!globalDescription.trim()}
+                                    className="px-3 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black uppercase text-[10px] tracking-widest rounded-xl flex items-center gap-1.5 transition-all shrink-0"
+                                >
+                                    <FileText className="w-3.5 h-3.5" /> OK
+                                </button>
+                            </div>
+                            <p className="text-[9px] text-indigo-400/50 font-medium">Applique cette description à tous les soirs cochés.</p>
+                        </div>
+
                     </div>
 
                     {savedNotice && (
