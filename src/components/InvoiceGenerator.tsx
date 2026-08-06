@@ -215,6 +215,94 @@ export function InvoiceGenerator() {
     const [sendStatus, setSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [sendError, setSendError] = useState('');
 
+    const [previewInvoice, setPreviewInvoice] = useState<any | null>(null);
+
+    const reconstructInvoiceData = (inv: any) => {
+        const type = inv.type || (inv.number?.startsWith('DEV') ? 'devis' : 'facture');
+        const invoiceNumber = inv.number || '';
+        const dateVal = inv.date || inv.sentDate?.split('T')[0] || new Date().toISOString().split('T')[0];
+        const dueDateVal = inv.dueDate || '';
+        const clientNameVal = inv.client || '';
+        const clientAddressVal = inv.clientAddress || '';
+        const clientEmailVal = inv.clientEmail || inv.emailTo || '';
+        const clientCityVal = inv.clientCity || '';
+        
+        const totalVal = parseFloat(inv.total) || 0;
+        const linesVal = inv.lines && inv.lines.length > 0 ? inv.lines : [
+            { id: '1', description: 'Prestation de service', quantity: 1, unitPrice: totalVal }
+        ];
+        
+        const ibanVal = inv.iban || iban;
+        const bicVal = inv.bic || bic;
+        const notesVal = inv.notes || '';
+        const senderVal = inv.sender || sender;
+
+        return {
+            invoiceNumber,
+            date: dateVal,
+            dueDate: dueDateVal,
+            clientName: clientNameVal,
+            clientAddress: clientAddressVal,
+            clientEmail: clientEmailVal,
+            clientCity: clientCityVal,
+            lines: linesVal,
+            iban: ibanVal,
+            bic: bicVal,
+            total: totalVal,
+            notes: notesVal,
+            sender: senderVal,
+            type
+        };
+    };
+
+    const downloadInvoicePDF = async (invData: any) => {
+        try {
+            const html = buildInvoiceHTML(invData);
+            const html2pdfModule = await import('html2pdf.js');
+            const html2pdf = (html2pdfModule as any).default || html2pdfModule;
+
+            const element = document.createElement('div');
+            element.style.position = 'fixed';
+            element.style.left = '-9999px';
+            element.style.top = '0';
+            element.style.width = '210mm';
+            element.innerHTML = html;
+            document.body.appendChild(element);
+
+            const prefix = invData.type === 'devis' ? 'Devis' : 'Facture';
+            const opt = { 
+                margin: 0, 
+                filename: `${prefix}_${invData.invoiceNumber}.pdf`, 
+                image: { type: 'jpeg' as const, quality: 0.98 }, 
+                html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
+            };
+            
+            await html2pdf().set(opt).from(element).save();
+            document.body.removeChild(element);
+        } catch (e) {
+            console.error('Error exporting to PDF', e);
+        }
+    };
+
+    const downloadInvoiceHTMLFile = (invData: any) => {
+        const html = buildInvoiceHTML(invData);
+        const blob = new Blob([html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const prefix = invData.type === 'devis' ? 'Devis' : 'Facture';
+        a.href = url; a.download = `${prefix}_${invData.invoiceNumber}.html`; a.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const printInvoice = (invData: any) => {
+        const html = buildInvoiceHTML(invData);
+        const w = window.open('', '_blank', 'width=900,height=700');
+        if (!w) return;
+        w.document.write(html); w.document.close();
+        w.onload = () => { w.focus(); w.print(); };
+    };
+
     const [savedClients, setSavedClients] = useState<SavedClient[]>(() => {
         try { return JSON.parse(localStorage.getItem('inv_clients') || '[]'); } catch { return []; }
     });
@@ -640,6 +728,9 @@ export function InvoiceGenerator() {
                     <button onClick={handleDownload} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-2 transition-all">
                         <Download className="w-4 h-4" /> Télécharger HTML
                     </button>
+                    <button onClick={() => downloadInvoicePDF(getInvoiceData())} className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-white flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20">
+                        <Download className="w-4 h-4" /> Télécharger PDF
+                    </button>
                     <button onClick={handlePrint} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-2 transition-all">
                         <Printer className="w-4 h-4" /> Imprimer / PDF
                     </button>
@@ -669,13 +760,13 @@ export function InvoiceGenerator() {
                         {t.label}
                     </button>
                 ))}
-                <button onClick={handleDownload} className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest text-white/30">
-                    <span className="p-2 rounded-xl"><Download className="w-3 h-3" /></span>
-                    HTML
+                <button onClick={() => downloadInvoicePDF(getInvoiceData())} className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest text-indigo-400">
+                    <span className="p-2 rounded-xl bg-indigo-500/10"><Download className="w-3 h-3" /></span>
+                    PDF
                 </button>
                 <button onClick={handlePrint} className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest text-white/30">
                     <span className="p-2 rounded-xl"><Printer className="w-3 h-3" /></span>
-                    PDF
+                    Imprimer
                 </button>
             </div>
 
@@ -881,6 +972,9 @@ export function InvoiceGenerator() {
                                         </div>
                                     </div>
                                     <div className="p-4 border-t border-white/5 flex flex-col gap-3">
+                                        <button onClick={() => downloadInvoicePDF(getInvoiceData())} className="w-full py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20">
+                                            <Download className="w-4 h-4" /> Télécharger PDF
+                                        </button>
                                         <button onClick={handlePrint} className="w-full py-3 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gray-200 transition-all">
                                             <Printer className="w-4 h-4" /> Imprimer / PDF
                                         </button>
@@ -976,11 +1070,10 @@ export function InvoiceGenerator() {
                                                                     <div className="font-black text-lg text-indigo-400">{parseFloat(inv.total || 0).toFixed(2)} €</div>
                                                                 </div>
                                                                 <div className="flex items-center gap-2 shrink-0">
-                                                                    {inv.pdfUrl && (
-                                                                        <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400 hover:border-indigo-500/50 transition-all">
-                                                                            <BookOpen className="w-3 h-3" /> PDF
-                                                                        </a>
-                                                                    )}
+                                                                    <button onClick={() => setPreviewInvoice(reconstructInvoiceData(inv))}
+                                                                        className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400 hover:border-indigo-500/50 transition-all">
+                                                                        <BookOpen className="w-3 h-3" /> Revoir / PDF
+                                                                    </button>
                                                                     <button onClick={() => togglePaid(inv.id, inv.paid)}
                                                                         className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30 hover:border-indigo-500/50'}`}>
                                                                         {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> En attente</>}
@@ -1057,11 +1150,10 @@ export function InvoiceGenerator() {
                                                                     <div className="font-black text-lg text-amber-400">{parseFloat(dev.total || 0).toFixed(2)} €</div>
                                                                 </div>
                                                                 <div className="flex items-center gap-2 shrink-0">
-                                                                    {dev.pdfUrl && (
-                                                                        <a href={dev.pdfUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400 hover:border-indigo-500/50 transition-all">
-                                                                            <BookOpen className="w-3 h-3" /> PDF
-                                                                        </a>
-                                                                    )}
+                                                                    <button onClick={() => setPreviewInvoice(reconstructInvoiceData(dev))}
+                                                                        className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400 hover:border-indigo-500/50 transition-all">
+                                                                        <BookOpen className="w-3 h-3" /> Revoir / PDF
+                                                                    </button>
                                                                     
                                                                     <select
                                                                         value={status}
@@ -1448,6 +1540,121 @@ export function InvoiceGenerator() {
                                     >
                                         Confirmer
                                     </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* ======= ARCHIVE PREVIEW MODAL ======= */}
+            <AnimatePresence>
+                {previewInvoice && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }}
+                            onClick={() => setPreviewInvoice(null)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-xl" 
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-[#0d0f1a] border border-white/10 rounded-[2.5rem] p-8 max-w-5xl w-full h-[85vh] relative z-10 shadow-[0_30px_100px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden"
+                        >
+                            {/* Decorative background glow */}
+                            <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/20 blur-[80px] rounded-full pointer-events-none" />
+
+                            {/* Header */}
+                            <div className="flex items-center justify-between pb-6 border-b border-white/5 relative z-10">
+                                <div>
+                                    <h3 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
+                                        Aperçu {previewInvoice.type === 'devis' ? 'Devis' : 'Facture'}
+                                    </h3>
+                                    <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest mt-1">
+                                        N° {previewInvoice.invoiceNumber} — {previewInvoice.clientName}
+                                    </p>
+                                </div>
+                                <button onClick={() => setPreviewInvoice(null)} className="p-3 hover:bg-white/5 rounded-2xl transition-all">
+                                    <X className="w-6 h-6 text-white/30" />
+                                </button>
+                            </div>
+
+                            {/* Content split */}
+                            <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-8 py-6 relative z-10">
+                                {/* Left pane: PDF/HTML interactive preview */}
+                                <div className="lg:col-span-8 bg-black/20 rounded-2xl p-4 flex justify-center items-start overflow-y-auto">
+                                    <div className="bg-white shadow-2xl origin-top" style={{ width: '210mm', height: '297mm', transform: 'scale(0.70)', marginBottom: '-89mm' }}>
+                                        <iframe srcDoc={buildInvoiceHTML(previewInvoice)} title="Archive Preview" className="w-full h-full border-0" />
+                                    </div>
+                                </div>
+
+                                {/* Right pane: Details & Actions */}
+                                <div className="lg:col-span-4 flex flex-col justify-between h-full space-y-6">
+                                    <div className="space-y-4 font-sans">
+                                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-3">
+                                            <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Informations</div>
+                                            <div className="text-sm font-bold text-white truncate">{previewInvoice.clientName}</div>
+                                            <div className="text-xs text-white/50">{previewInvoice.clientEmail}</div>
+                                            {previewInvoice.clientAddress && <div className="text-xs text-white/30 whitespace-pre-wrap">{previewInvoice.clientAddress}</div>}
+                                            <div className="h-px bg-white/5 my-2" />
+                                            <div className="flex justify-between items-center text-xs">
+                                                <span className="text-white/40">Date:</span>
+                                                <span className="font-bold text-white">{new Date(previewInvoice.date).toLocaleDateString('fr-FR')}</span>
+                                            </div>
+                                            {previewInvoice.dueDate && (
+                                                <div className="flex justify-between items-center text-xs">
+                                                    <span className="text-white/40">Échéance:</span>
+                                                    <span className="font-bold text-amber-400">{new Date(previewInvoice.dueDate).toLocaleDateString('fr-FR')}</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-5 flex justify-between items-center">
+                                            <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest font-sans">Total</span>
+                                            <span className="text-2xl font-black text-indigo-400 font-sans">{previewInvoice.total.toFixed(2)} €</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action buttons */}
+                                    <div className="space-y-3 font-sans">
+                                        <button 
+                                            onClick={() => downloadInvoicePDF(previewInvoice)}
+                                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-600/10 border border-indigo-500/20"
+                                        >
+                                            <Download className="w-4 h-4" /> Télécharger PDF
+                                        </button>
+                                        <button 
+                                            onClick={() => printInvoice(previewInvoice)}
+                                            className="w-full py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                        >
+                                            <Printer className="w-4 h-4" /> Imprimer / PDF
+                                        </button>
+                                        <button 
+                                            onClick={() => downloadInvoiceHTMLFile(previewInvoice)}
+                                            className="w-full py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black text-white/60 uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                        >
+                                            <BookOpen className="w-4 h-4" /> Télécharger HTML
+                                        </button>
+                                        {previewInvoice.pdfUrl && (
+                                            <a 
+                                                href={previewInvoice.pdfUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-full py-3.5 bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 rounded-2xl text-[10px] font-black text-green-400 uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                            >
+                                                <Download className="w-4 h-4" /> Ouvrir l'original (R2)
+                                            </a>
+                                        )}
+                                        <button 
+                                            onClick={() => setPreviewInvoice(null)}
+                                            className="w-full py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black text-white/40 hover:text-white/60 uppercase tracking-widest transition-all"
+                                        >
+                                            Fermer
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

@@ -313,7 +313,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return () => cancelAnimationFrame(frame);
     }, [theme, isVideoRecording]);
 
-    const generateImage = async (targetTab?: TabType) => {
+    const generateImage = async (targetTab?: TabType, exportMode = false) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -1585,7 +1585,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
-            if (showSwipe) {
+            if (showSwipe && !exportMode) {
                 ctx.save();
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
@@ -1597,7 +1597,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
-            if (showArticleLink) {
+            if (showArticleLink && !exportMode) {
                 ctx.save();
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
@@ -1609,7 +1609,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
-            if (showVoteLink) {
+            if (showVoteLink && !exportMode) {
                 ctx.save();
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
@@ -1961,6 +1961,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const downloadSingle = async () => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
+        // Regenerate canvas without swipe/article overlays for clean export
+        await generateImage(undefined, true);
         try {
             // Use toBlob (more reliable, avoids CORS taint issues)
             canvasRef.current.toBlob(async (blob) => {
@@ -2041,7 +2043,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!canvasRef.current) return;
         setIsDownloading(true);
         try {
-            await generateImage(format);
+            await generateImage(format, true);
             const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
             const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0);
 
@@ -2075,7 +2077,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } finally {
             setTimeout(() => {
                 setIsDownloading(false);
-                generateImage();
+                generateImage(); // Restore preview with overlays
             }, 500);
         }
     };

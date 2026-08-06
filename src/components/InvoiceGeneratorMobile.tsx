@@ -121,6 +121,73 @@ export function InvoiceGeneratorMobile() {
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [showDeleteInvoiceId, setShowDeleteInvoiceId] = useState<number | null>(null);
 
+    const [previewArchiveItem, setPreviewArchiveItem] = useState<any | null>(null);
+
+    const reconstructInvoiceData = (inv: any) => {
+        const type = inv.type || (inv.number?.startsWith('DEV') ? 'devis' : 'facture');
+        const invoiceNumber = inv.number || '';
+        const dateVal = inv.date || inv.sentDate?.split('T')[0] || new Date().toISOString().split('T')[0];
+        const dueDateVal = inv.dueDate || '';
+        const clientNameVal = inv.client || '';
+        const clientAddressVal = inv.clientAddress || '';
+        const clientEmailVal = inv.clientEmail || inv.emailTo || '';
+        const clientCityVal = inv.clientCity || '';
+        
+        const totalVal = parseFloat(inv.total) || 0;
+        const linesVal = inv.lines && inv.lines.length > 0 ? inv.lines : [
+            { id: '1', description: 'Prestation Light', quantity: 1, unitPrice: totalVal }
+        ];
+        
+        const ibanVal = inv.iban || iban;
+        const bicVal = inv.bic || bic;
+        const notesVal = inv.notes || '';
+        const senderVal = inv.sender || sender;
+
+        return {
+            invoiceNumber,
+            date: dateVal,
+            dueDate: dueDateVal,
+            clientName: clientNameVal,
+            clientAddress: clientAddressVal,
+            clientEmail: clientEmailVal,
+            clientCity: clientCityVal,
+            lines: linesVal,
+            iban: ibanVal,
+            bic: bicVal,
+            total: totalVal,
+            notes: notesVal,
+            sender: senderVal,
+            type
+        };
+    };
+
+    const downloadArchivePDF = async (invData: any) => {
+        try {
+            const html = buildHTML(invData);
+            const element = document.createElement('div');
+            element.style.position = 'fixed';
+            element.style.left = '-9999px';
+            element.style.top = '0';
+            element.style.width = '210mm';
+            element.innerHTML = html;
+            document.body.appendChild(element);
+
+            const prefix = invData.type === 'devis' ? 'Devis' : 'Facture';
+            const opt = { 
+                margin: 0, 
+                filename: `${prefix}_${invData.invoiceNumber}.pdf`, 
+                image: { type: 'jpeg' as const, quality: 0.98 }, 
+                html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
+            };
+            
+            await html2pdf().set(opt).from(element).save();
+            document.body.removeChild(element);
+        } catch (e) {
+            console.error('Error exporting PDF', e);
+        }
+    };
+
     useEffect(() => {
         if (view === 'archive') fetchHistory();
     }, [view]);
@@ -312,10 +379,31 @@ export function InvoiceGeneratorMobile() {
         status: docType === 'devis' ? 'pending' : undefined
     });
 
-    const buildHTML = () => {
-        const rows = lines.map(l => `<tr><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;font-style:italic;color:#1a1a1a">${l.description}</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:center">${l.quantity}</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:right">${l.unitPrice.toFixed(2)} €</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;color:#1a1a1a;text-align:right">${(l.quantity * l.unitPrice).toFixed(2)} €</td></tr>`).join('');
-        const isDev = docType === 'devis';
-        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>${isDev ? 'Devis' : 'Facture'} ${formattedNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:210mm;min-height:297mm;padding:20mm;background:#fff;margin:0 auto}@media print{body{margin:0}.page{padding:15mm;width:100%}@page{margin:0;size:A4}}</style></head><body><div class="page"><table style="width:100%;margin-bottom:40px"><tr><td style="vertical-align:top"><div style="font-size:22px;font-weight:900;color:#000;letter-spacing:-1px;text-transform:uppercase">${sender.name}</div><div style="font-size:11px;color:#666;margin-top:4px">SIRET : ${sender.siret}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.address}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.email}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.phone}</div></td><td style="vertical-align:top;text-align:right"><div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">${isDev ? 'DEVIS' : 'FACTURE'}</div><div style="font-size:13px;color:#666;margin-top:6px">N° <strong style="color:#000">${formattedNumber}</strong></div><div style="font-size:13px;color:#666;margin-top:4px">Date : <strong style="color:#000">${new Date(date).toLocaleDateString('fr-FR')}</strong></div>${dueDate ? `<div style="font-size:13px;color:#e00;margin-top:4px">Échéance : <strong>${new Date(dueDate).toLocaleDateString('fr-FR')}</strong></div>` : ''}</td></tr></table><div style="height:2px;background:#000;margin-bottom:32px"></div><table style="width:100%;margin-bottom:40px"><tr><td style="width:50%"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">${isDev ? 'Destinataire' : 'Facturé à'}</div><div style="font-size:15px;font-weight:700;color:#000">${clientName || '—'}</div><div style="font-size:12px;color:#666;margin-top:4px">${clientAddress}${clientCity ? `, ${clientCity}` : ''}</div>${clientEmail ? `<div style="font-size:12px;color:#666;margin-top:4px">${clientEmail}</div>` : ''}</td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:32px"><thead><tr style="background:#3730a3"><th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Description</th><th style="padding:12px 16px;text-align:center;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Qté</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">P.U. HT</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Total HT</th></tr></thead><tbody>${rows}</tbody></table><table style="width:100%;margin-bottom:48px"><tr><td style="width:60%">${notes ? `<div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:6px">Notes</div><div style="font-size:12px;color:#444;line-height:1.6">${notes}</div>` : ''}</td><td style="width:40%;vertical-align:bottom"><table style="width:100%"><tr><td style="padding:8px 0;font-size:12px;color:#666;border-top:1px solid #f0f0f0">Sous-total HT</td><td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${total.toFixed(2)} €</td></tr><tr><td style="padding:8px 0;font-size:11px;color:#999">TVA</td><td style="padding:8px 0;font-size:11px;color:#999;text-align:right">Non applicable</td></tr><tr style="background:#3730a3"><td style="padding:14px 16px;font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">TOTAL TTC</td><td style="padding:14px 16px;font-size:18px;font-weight:900;color:#fff;text-align:right">${total.toFixed(2)} €</td></tr></table></td></tr></table>${iban ? `<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:20px;margin-bottom:32px"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:12px">Coordonnées bancaires</div><table style="width:100%"><tr><td style="font-size:11px;color:#666">IBAN</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${iban}</td><td style="font-size:11px;color:#666;padding-left:32px">BIC</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${bic}</td></tr></table></div>` : ''}<div style="border-top:1px solid #eee;padding-top:16px"><div style="font-size:10px;color:#aaa;line-height:1.6">${sender.legal}</div></div></div></body></html>`;
+    const buildHTML = (data?: any) => {
+        const useData = data || {
+            lines,
+            docType,
+            formattedNumber,
+            sender,
+            clientName,
+            clientAddress,
+            clientCity,
+            clientEmail,
+            notes,
+            iban,
+            bic,
+            total,
+            date,
+            dueDate
+        };
+        const rows = useData.lines.map((l: any) => `<tr><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;font-style:italic;color:#1a1a1a">${l.description}</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:center">${l.quantity}</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:right">${l.unitPrice.toFixed(2)} €</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;color:#1a1a1a;text-align:right">${(l.quantity * l.unitPrice).toFixed(2)} €</td></tr>`).join('');
+        const isDev = useData.docType === 'devis' || useData.type === 'devis';
+        const num = useData.formattedNumber || useData.number || '';
+        const clientNameVal = useData.clientName || useData.client || '—';
+        const clientEmailVal = useData.clientEmail || useData.emailTo || '';
+        const dateVal = useData.date || new Date().toISOString().split('T')[0];
+        
+        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>${isDev ? 'Devis' : 'Facture'} ${num}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:210mm;min-height:297mm;padding:20mm;background:#fff;margin:0 auto}@media print{body{margin:0}.page{padding:15mm;width:100%}@page{margin:0;size:A4}}</style></head><body><div class="page"><table style="width:100%;margin-bottom:40px"><tr><td style="vertical-align:top"><div style="font-size:22px;font-weight:900;color:#000;letter-spacing:-1px;text-transform:uppercase">${useData.sender.name}</div><div style="font-size:11px;color:#666;margin-top:4px">SIRET : ${useData.sender.siret}</div><div style="font-size:11px;color:#666;margin-top:2px">${useData.sender.address}</div><div style="font-size:11px;color:#666;margin-top:2px">${useData.sender.email}</div><div style="font-size:11px;color:#666;margin-top:2px">${useData.sender.phone}</div></td><td style="vertical-align:top;text-align:right"><div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">${isDev ? 'DEVIS' : 'FACTURE'}</div><div style="font-size:13px;color:#666;margin-top:6px">N° <strong style="color:#000">${num}</strong></div><div style="font-size:13px;color:#666;margin-top:4px">Date : <strong style="color:#000">${new Date(dateVal).toLocaleDateString('fr-FR')}</strong></div>${useData.dueDate ? `<div style="font-size:13px;color:#e00;margin-top:4px">Échéance : <strong>${new Date(useData.dueDate).toLocaleDateString('fr-FR')}</strong></div>` : ''}</td></tr></table><div style="height:2px;background:#000;margin-bottom:32px"></div><table style="width:100%;margin-bottom:40px"><tr><td style="width:50%"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">${isDev ? 'Destinataire' : 'Facturé à'}</div><div style="font-size:15px;font-weight:700;color:#000">${clientNameVal}</div><div style="font-size:12px;color:#666;margin-top:4px">${useData.clientAddress || ''}${useData.clientCity ? `, ${useData.clientCity}` : ''}</div>${clientEmailVal ? `<div style="font-size:12px;color:#666;margin-top:4px">${clientEmailVal}</div>` : ''}</td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:32px"><thead><tr style="background:#3730a3"><th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Description</th><th style="padding:12px 16px;text-align:center;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Qté</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">P.U. HT</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Total HT</th></tr></thead><tbody>${rows}</tbody></table><table style="width:100%;margin-bottom:48px"><tr><td style="width:60%">${useData.notes ? `<div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:6px">Notes</div><div style="font-size:12px;color:#444;line-height:1.6">${useData.notes}</div>` : ''}</td><td style="width:40%;vertical-align:bottom"><table style="width:100%"><tr><td style="padding:8px 0;font-size:12px;color:#666;border-top:1px solid #f0f0f0">Sous-total HT</td><td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${useData.total.toFixed(2)} €</td></tr><tr><td style="padding:8px 0;font-size:11px;color:#999">TVA</td><td style="padding:8px 0;font-size:11px;color:#999;text-align:right">Non applicable</td></tr><tr style="background:#3730a3"><td style="padding:14px 16px;font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">TOTAL TTC</td><td style="padding:14px 16px;font-size:18px;font-weight:900;color:#fff;text-align:right">${useData.total.toFixed(2)} €</td></tr></table></td></tr></table>${useData.iban ? `<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:20px;margin-bottom:32px"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:12px">Coordonnées bancaires</div><table style="width:100%"><tr><td style="font-size:11px;color:#666">IBAN</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${useData.iban}</td><td style="font-size:11px;color:#666;padding-left:32px">BIC</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${useData.bic}</td></tr></table></div>` : ''}<div style="border-top:1px solid #eee;padding-top:16px"><div style="font-size:10px;color:#aaa;line-height:1.6">${useData.sender.legal}</div></div></div></body></html>`;
     };
 
     const handlePrint = () => { const w = window.open('', '_blank'); if (!w) return; w.document.write(buildHTML()); w.document.close(); w.onload = () => { w.focus(); w.print(); }; };
@@ -643,13 +731,9 @@ export function InvoiceGeneratorMobile() {
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-2 pt-3 border-t border-white/5">
-                                                                {inv.pdfUrl ? (
-                                                                    <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
-                                                                        <BookOpen className="w-3 h-3" /> PDF
-                                                                    </a>
-                                                                ) : (
-                                                                    <div className="flex-1" />
-                                                                )}
+                                                                <button onClick={() => setPreviewArchiveItem(reconstructInvoiceData(inv))} className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
+                                                                    <BookOpen className="w-3 h-3" /> Revoir & PDF
+                                                                </button>
                                                                 <button onClick={() => deleteInvoice(inv.id)} className="p-3 border border-white/10 rounded-xl text-red-500/50 bg-white/5">
                                                                     <Trash2 className="w-4 h-4" />
                                                                 </button>
@@ -728,11 +812,9 @@ export function InvoiceGeneratorMobile() {
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex items-center gap-2 pt-3 border-t border-white/5">
-                                                                    {dev.pdfUrl && (
-                                                                        <a href={dev.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
-                                                                            <BookOpen className="w-3 h-3" /> PDF
-                                                                        </a>
-                                                                    )}
+                                                                    <button onClick={() => setPreviewArchiveItem(reconstructInvoiceData(dev))} className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
+                                                                        <BookOpen className="w-3 h-3" /> Revoir & PDF
+                                                                    </button>
                                                                     
                                                                     {status !== 'invoiced' && (
                                                                         <button 
@@ -993,6 +1075,39 @@ export function InvoiceGeneratorMobile() {
                         </div>
                     </div>
                 </div>
+            </Sheet>
+
+            {/* ARCHIVE ITEM PREVIEW */}
+            <Sheet open={previewArchiveItem !== null} onClose={() => setPreviewArchiveItem(null)} title="Aperçu Facture / Devis" fullscreen>
+                {previewArchiveItem && (
+                    <div className="flex flex-col h-full bg-[#0d0f1a]">
+                        <div className="flex-1 overflow-auto p-4 flex justify-center bg-gray-100">
+                            <div className="bg-white shadow-2xl origin-top" style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.40)' }}>
+                                <iframe srcDoc={buildHTML(previewArchiveItem)} title="Archive Preview Mobile" className="w-full h-full border-0" style={{ minHeight: '1122px' }} />
+                            </div>
+                        </div>
+                        <div className="p-4 bg-[#0d0f1a] border-t border-white/10 space-y-3 pb-8 safe-bottom shrink-0">
+                            <div className="flex justify-between items-center text-xs px-2 text-white/60">
+                                <span>Client : {previewArchiveItem.clientName}</span>
+                                <span className="font-black text-indigo-400">{previewArchiveItem.total.toFixed(2)} €</span>
+                            </div>
+                            <button onClick={() => downloadArchivePDF(previewArchiveItem)}
+                                className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:bg-indigo-700 transition-colors">
+                                <Download className="w-4 h-4" /> Télécharger le PDF
+                            </button>
+                            {previewArchiveItem.pdfUrl && (
+                                <a href={previewArchiveItem.pdfUrl} target="_blank" rel="noopener noreferrer"
+                                    className="w-full py-3.5 bg-white/5 border border-white/10 text-white text-center rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:bg-white/10 transition-colors">
+                                    <Download className="w-4 h-4 text-indigo-400" /> Ouvrir l'original (R2)
+                                </a>
+                            )}
+                            <button onClick={() => setPreviewArchiveItem(null)}
+                                className="w-full py-3.5 bg-white/5 border border-white/10 text-white/50 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:bg-white/10 transition-colors">
+                                Fermer
+                            </button>
+                        </div>
+                    </div>
+                )}
             </Sheet>
 
             <ConfirmationModal
