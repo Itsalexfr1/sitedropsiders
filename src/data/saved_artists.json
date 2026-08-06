@@ -251,5 +251,19 @@
       "soundcloud": "https://soundcloud.com/hugelmusic",
       "beatport": "https://www.beatport.com/fr/artist/hugel/484708?srsltid=AfmBOoqmisq7JO7yMd9rwk75A3GP2RQdc1CGyH2TTlu718UGERVGvXob"
     }
+  },
+  {
+    "name": "ESCAPE PSYCHO CIRCUS",
+    "socials": {
+      "website": "https://escapehalloween.com",
+      "instagram": "https://www.instagram.com/escapehalloween/",
+      "tiktok": "https://www.tiktok.com/@escapehalloween",
+      "youtube": "",
+      "facebook": "https://www.facebook.com/EscapeHalloween/",
+      "x": "https://x.com/escapehalloween",
+      "spotify": "",
+      "soundcloud": "",
+      "beatport": ""
+    }
   }
 ]

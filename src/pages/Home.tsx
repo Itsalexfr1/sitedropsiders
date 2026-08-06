@@ -17,16 +17,34 @@ import { WikiWidget } from '../components/widgets/WikiWidget';
 import { TopTracksLeaderboard } from '../components/widgets/TopTracksLeaderboard';
 import { CommunityMixesLeaderboard } from '../components/widgets/CommunityMixesLeaderboard';
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
     const [socials, setSocials] = useState<any>(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 1024);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Automatic redirection for mobile visitors to /go (Branding page)
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const hasFullFlag = params.get('full') === '1' || params.get('desktop') === '1';
+        if (hasFullFlag) {
+            sessionStorage.setItem('dropsiders_full_site', 'true');
+        }
+        const preferFullSite = sessionStorage.getItem('dropsiders_full_site') === 'true';
+        
+        if (isMobile && !preferFullSite && !hasFullFlag) {
+            navigate('/go', { replace: true });
+        }
+    }, [isMobile, location.search, navigate]);
 
     useEffect(() => {
         const fetchLayout = async () => {

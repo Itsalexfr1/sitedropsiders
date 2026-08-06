@@ -63,10 +63,12 @@ interface SocialSuiteProps {
     onClose: () => void;
     initialTheme?: ThemeType;
     initialTab?: TabType;
+    onGeneratePromo?: (format: 'story_promo' | 'post_promo') => void;
+    isGeneratingPromo?: string | null;
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -89,7 +91,23 @@ const STYLE_PRESETS = [
     { name: 'DRUM N BASS', grad: '150, 0, 255', color: '#9600ff' }
 ];
 
-export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab }: SocialSuiteProps) {
+const lon2tile = (lon: number, zoom: number) => {
+    return ((lon + 180) / 360) * Math.pow(2, zoom);
+};
+
+const lat2tile = (lat: number, zoom: number) => {
+    return (
+        ((1 -
+            Math.log(
+                Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)
+            ) /
+                Math.PI) /
+            2) *
+        Math.pow(2, zoom)
+    );
+};
+
+export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab, onGeneratePromo, isGeneratingPromo }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
     const [theme, setTheme] = useState<ThemeType>(initialTheme || 'NEWS');
     const [showSwipe, setShowSwipe] = useState(false);
@@ -116,6 +134,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [showText, setShowText] = useState(true);
     const [planningItems, setPlanningItems] = useState<{ time: string; artist: string }[]>(Array.from({ length: 8 }, () => ({ time: '00:00', artist: 'ARTISTE' })));
     const [planningDate, setPlanningDate] = useState('21 MARS - 28 MARS');
+    const [calendarMonth, setCalendarMonth] = useState('MARS 2025');
+    const [calendarEvents, setCalendarEvents] = useState<{ date: string; label: string }[]>([
+        { date: '1', label: 'FESTIVAL 1' },
+        { date: '8', label: 'LIVE SET' },
+        { date: '15', label: 'RELEASE' },
+        { date: '22', label: 'SHOWCASE' },
+    ]);
     const [highlightsFestival, setHighlightsFestival] = useState('');
     const [highlightsArtists, setHighlightsArtists] = useState('');
     const [highlightsLocation, setHighlightsLocation] = useState('');
@@ -134,6 +159,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const festivalLogoRef = useRef<HTMLImageElement | null>(null); // NEW
     const [bgOffsetX, setBgOffsetX] = useState<number>(0);
     const [bgOffsetY, setBgOffsetY] = useState<number>(0);
+    const [menuOpacity, setMenuOpacity] = useState<number>(35); // Menu transparency (35% default so image is visible behind)
+    const [isSlidingPosition, setIsSlidingPosition] = useState<boolean>(false);
+    const [imgLayoutMode, setImgLayoutMode] = useState<'1_PAR_LIGNE' | 'PAR_LIGNES' | 'HAUT_LIGNE' | 'BAS_LIGNE'>('1_PAR_LIGNE');
+    const [quizColor1, setQuizColor1] = useState<string>('#38bdf8');
+    const [quizColor2, setQuizColor2] = useState<string>('#a855f7');
+    const [showFrame, setShowFrame] = useState<boolean>(false);
     const [artistNameText, setArtistNameText] = useState('');
     const [festivalNameText, setFestivalNameText] = useState('');
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
@@ -145,6 +176,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
     const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | null>(null);
+
+    // MAP Theme States
+    const [mapFestivalText, setMapFestivalText] = useState('LOLLAPALOOZA');
+    const [mapCity, setMapCity] = useState('Paris');
+    const [mapCountry, setMapCountry] = useState('France');
+    const [mapVenue, setMapVenue] = useState('');
+    const mapCityCountry = `${mapCity}, ${mapCountry}`;
+    // If a venue is specified, use it as the primary search query (with city/country as context)
+    const mapSearchQuery = mapVenue.trim()
+        ? `${mapVenue.trim()}, ${mapCity}, ${mapCountry}`
+        : mapCityCountry;
+    const [mapZoom, setMapZoom] = useState(11);
+    const [mapLatitude, setMapLatitude] = useState(48.8566);
+    const [mapLongitude, setMapLongitude] = useState(2.3522);
+    const [isMapLoading, setIsMapLoading] = useState(false);
+    const [mapStyle, setMapStyle] = useState<'dark' | 'voyager' | 'satellite'>('dark');
+    const [mapPinColor, setMapPinColor] = useState('#ff0033');
+    const [mapLabelText, setMapLabelText] = useState('PARIS, FRANCE');
+    const [showMapPin, setShowMapPin] = useState(true);
+    const [showMapLabel, setShowMapLabel] = useState(true);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -242,7 +293,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
         'HIGHLIGHTS': { label: 'HIGHLIGHTS', grad: '0, 112, 255', color: '#0070ff' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
-        'RECAP': { label: 'RÉCAP', grad: '255, 103, 0', color: '#ff6700' },
+        'RECAP': { label: 'RÉCAP', grad: '192, 38, 211', color: '#c026d3' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
@@ -252,16 +303,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'CITATION': { label: 'CITATION', grad: '255, 255, 255', color: '#ffffff' },
         'CONSEILS': { label: 'CONSEILS', grad: '255, 0, 51', color: '#ff0033' },
         'EVENT': { label: 'EVENT', grad: '0, 240, 255', color: '#00f0ff' },
+        'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À NE PAS LOUPER', grad: '0, 0, 0', color: '#000000' },
+        'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
+        'MAP': { label: 'MAP', grad: '255, 0, 51', color: '#ff0033' },
+        'CALENDRIER': { label: 'CALENDRIER', grad: '255, 103, 0', color: '#ff6700' },
+        'JEU': { label: 'JEU', grad: '0, 240, 255', color: '#00f0ff' },
+        'JEU_FESTIVAL': { label: 'JEU_FESTIVAL', grad: '255, 170, 0', color: '#ffaa00' },
     };
 
     useEffect(() => {
         if (activeTab === 'REEL') {
             // Only set default if current theme is not a Reel-specific theme
-            if (theme !== 'TRACKLIST' && theme !== 'INTRO' && theme !== 'TOP 100 DROPSIDERS' && !theme.startsWith('TOP ')) {
+            if (theme !== 'TRACKLIST' && theme !== 'INTRO' && theme !== 'TOP 100 DROPSIDERS' && theme !== 'MAP' && !theme.startsWith('TOP ')) {
                 setTheme('TRACKLIST');
             }
         } else {
-            if (theme === 'TRACKLIST' || theme === 'INTRO' || theme.startsWith('TOP ')) {
+            if (theme === 'TRACKLIST' || theme === 'INTRO' || theme === 'MAP' || theme.startsWith('TOP ')) {
                 setTheme('NEWS');
             }
         }
@@ -320,9 +377,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (!ctx) return;
 
         const effectiveTab = targetTab || activeTab;
+        const effectiveTheme = forceTheme || theme;
 
         try {
-            let img: HTMLImageElement | null = null;
+            await (async (theme: ThemeType) => {
+                const activeColor = themeColor || baseThemeData[theme];
+                let img: HTMLImageElement | null = null;
             if (bgImage) {
                 if (imageCacheRef.current[bgImage]) {
                     img = imageCacheRef.current[bgImage];
@@ -346,8 +406,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (bgVideo) {
                 const scale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
-                const x = (canvas.width - bgVideo.videoWidth * scale) / 2;
-                const y = (canvas.height - bgVideo.videoHeight * scale) / 2;
+                let x = ((canvas.width - bgVideo.videoWidth * scale) / 2) + bgOffsetX;
+                let y = ((canvas.height - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                if (imgLayoutMode === 'PAR_LIGNES') {
+                    y = ((canvas.height * 0.62 - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                } else if (imgLayoutMode === 'HAUT_LIGNE') {
+                    y = ((canvas.height * 0.42 - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                } else if (imgLayoutMode === 'BAS_LIGNE') {
+                    y = ((canvas.height * 0.85 - bgVideo.videoHeight * scale) / 2) + bgOffsetY;
+                }
                 ctx.drawImage(bgVideo, x, y, bgVideo.videoWidth * scale, bgVideo.videoHeight * scale);
             } else if (img) {
                 if (theme === 'SPOTLIGHT') {
@@ -360,8 +427,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.drawImage(img, x, y, iw, ih);
                 } else {
                     const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-                    const x = (canvas.width - img.width * scale) / 2;
-                    const y = (canvas.height - img.height * scale) / 2;
+                    let x = ((canvas.width - img.width * scale) / 2) + bgOffsetX;
+                    let y = ((canvas.height - img.height * scale) / 2) + bgOffsetY;
+                    if (imgLayoutMode === 'PAR_LIGNES') {
+                        y = ((canvas.height * 0.62 - img.height * scale) / 2) + bgOffsetY;
+                    } else if (imgLayoutMode === 'HAUT_LIGNE') {
+                        y = ((canvas.height * 0.42 - img.height * scale) / 2) + bgOffsetY;
+                    } else if (imgLayoutMode === 'BAS_LIGNE') {
+                        y = ((canvas.height * 0.85 - img.height * scale) / 2) + bgOffsetY;
+                    }
                     ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
                 }
             } else {
@@ -439,7 +513,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (!showText) return; 
 
             // Shrunk gradient for Top 5 (Request 6), restored for others
-            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'CONSEILS') {
+            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'CONSEILS' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
                     : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
@@ -515,7 +589,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             };
 
             if (theme === 'INTRO') {
-                drawTapeLabel(customText || 'INTRO', canvas.width / 2, canvas.height / 2, 900, 260, activeData.color, activeData.grad);
+                drawTapeLabel(customText || 'INTRO', canvas.width / 2, canvas.height / 2, 966, 260, activeData.color, activeData.grad);
 
             } else if (theme === 'TOP 5 STYLES') {
                 const item = top5Items[currentPreviewIndex];
@@ -575,7 +649,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else if (theme === 'TOP 5 ARTISTE') {
                 const item = top5Items[currentPreviewIndex];
                 const baseY = 1540;
-                const itemX = 100 + slideX;
+                const itemX = 57 + slideX;
 
                 if (item.photo) {
                     let photoImg: HTMLImageElement | null = null;
@@ -612,7 +686,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
                 ctx.fillText(`${item.main.toUpperCase()} - ${item.sub.toUpperCase()}`, itemX, baseY);
-                const barWidth = 880; const barHeight = 90; const barX = 90; const barY = baseY + 45;
+                const barWidth = 966; const barHeight = 90; const barX = 57; const barY = baseY + 45;
                 ctx.fillStyle = `rgba(${activeData.grad}, 0.4)`;
                 ctx.fillRect(barX - 10 + slideX, barY - 10, barWidth + 20, barHeight + 20);
                 ctx.fillStyle = activeData.color;
@@ -873,6 +947,95 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
                 }
 
+            } else if (theme === 'CALENDRIER') {
+                const calCenterX = canvas.width / 2;
+                const calTopY = effectiveTab === 'PUBLICATION' ? 280 : 580;
+
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 20;
+
+                // Title
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#c026d3';
+                ctx.font = '900 italic 60px "Montserrat", sans-serif';
+                ctx.letterSpacing = '8px';
+                ctx.fillText('📅  ' + (calendarMonth || 'CALENDRIER').toUpperCase(), calCenterX, calTopY);
+
+                // Divider line
+                ctx.fillStyle = 'rgba(192,38,211,0.4)';
+                ctx.fillRect(calCenterX - 420, calTopY + 30, 840, 2);
+                ctx.restore();
+
+                // Event cards
+                const cardStartY = calTopY + 70;
+                const cardH = effectiveTab === 'PUBLICATION' ? 80 : 100;
+                const cardGap = effectiveTab === 'PUBLICATION' ? 12 : 16;
+                const cardPadX = 57;
+
+                calendarEvents.forEach((evt, i) => {
+                    const cardY = cardStartY + i * (cardH + cardGap);
+                    if (cardY + cardH > canvas.height - 120) return;
+
+                    // Card background
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                    ctx.beginPath();
+                    ctx.roundRect(cardPadX, cardY, canvas.width - cardPadX * 2, cardH, 18);
+                    ctx.fill();
+
+                    // Left magenta accent bar
+                    ctx.fillStyle = '#c026d3';
+                    ctx.beginPath();
+                    ctx.roundRect(cardPadX, cardY, 8, cardH, [18, 0, 0, 18]);
+                    ctx.fill();
+
+                    // Date badge (circle)
+                    const circleX = cardPadX + 55;
+                    const circleY = cardY + cardH / 2;
+                    ctx.fillStyle = 'rgba(192,38,211,0.85)';
+                    ctx.beginPath();
+                    ctx.arc(circleX, circleY, 32, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '900 28px "Montserrat", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.letterSpacing = '0px';
+                    ctx.fillText(evt.date, circleX, circleY + 2);
+
+                    // Event label
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `900 italic ${effectiveTab === 'PUBLICATION' ? 34 : 40}px "Montserrat", sans-serif`;
+                    ctx.letterSpacing = '-1px';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 10;
+
+                    const labelX = circleX + 52;
+                    const maxLabelW = canvas.width - cardPadX * 2 - 120;
+                    let labelText = evt.label.toUpperCase();
+                    let fs = effectiveTab === 'PUBLICATION' ? 34 : 40;
+                    while (ctx.measureText(labelText).width > maxLabelW && fs > 18) {
+                        fs--;
+                        ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                    }
+                    ctx.fillText(labelText, labelX, cardY + cardH / 2 + 2);
+                    ctx.restore();
+                });
+
+                // Footer
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillStyle = 'rgba(192,38,211,0.7)';
+                ctx.font = '900 italic 22px "Montserrat", sans-serif';
+                ctx.letterSpacing = '4px';
+                ctx.fillText('DROPSIDERS.FR', calCenterX, canvas.height - 40);
+                ctx.restore();
+
             } else if (theme === 'TRACKLIST') {
                 // Top black banner with opacity
                 ctx.save();
@@ -896,7 +1059,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 if (customText) {
                     const lines = customText.split('\n');
                     
-                    const maxWidth = 960; // Max horizontal width before shrinking
+                    const maxWidth = 966; // Max horizontal width before shrinking
                     
                     const getFontSize = (text: string, base: number) => {
                         ctx.font = `900 ${base}px "Montserrat", sans-serif`;
@@ -1004,13 +1167,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
                 ctx.restore();
 
-                // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
-                const lines = [highlightsArtists, highlightsFestival, highlightsLocation];
-
+                // Specialized high-end rendering for Highlights
                 ctx.save();
                 ctx.textAlign = 'center';
                 
-                const maxWidth = 960;
+                const maxWidth = 966;
                 const getFontSize = (text: string, base: number, font: string) => {
                     ctx.font = `900 ${base}px "${font}", sans-serif`;
                     const width = ctx.measureText(text).width;
@@ -1030,9 +1191,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // Positioned at the bottom (aligned with NEWS theme at labelY + 130)
                 let currY = labelY + 130; 
                 const texts = [
-                    { text: (lines[0] || '').toUpperCase(), size: 55, color: '#ffffff', font: 'Montserrat' },
-                    { text: (lines[1] || '').toUpperCase(), size: 55, color: activeData.color, font: 'Montserrat' },
-                    { text: (lines[2] || '').toUpperCase(), size: 55, color: '#ffffff', font: 'Orbitron', isOrbitron: true },
+                    { text: (highlightsFestival || '').toUpperCase(), size: 85, color: '#ffffff', font: 'Montserrat', slideDirection: 'left' },
+                    { text: (highlightsLocation || '').toUpperCase(), size: 36, color: '#ffffff', font: 'Orbitron', isOrbitron: true, slideDirection: 'bottom' },
                 ];
 
                 texts.forEach((item, i) => {
@@ -1047,7 +1207,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     if (item.isOrbitron) ctx.letterSpacing = '10px';
                     else ctx.letterSpacing = '0px';
                     
-                    let yPos = currY + (i * 70);
+                    let yPos = currY + (i === 0 ? 0 : 100);
 
                     let xOff = 0;
                     let yOff = 0;
@@ -1056,9 +1216,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     const t = Math.max(0, Math.min(1, (elapsed - delay) / duration));
                     const ease = 1 - Math.pow(1 - t, 3);
 
-                    if (i === 0) xOff = -600 * (1 - ease); 
-                    else if (i === 1) xOff = 600 * (1 - ease); 
-                    else if (i === 2) yOff = 200 * (1 - ease);
+                    if (item.slideDirection === 'left') xOff = -600 * (1 - ease); 
+                    else if (item.slideDirection === 'bottom') yOff = 200 * (1 - ease);
                     
                     ctx.globalAlpha = t;
                     ctx.fillText(item.text, (canvas.width / 2) + xOff, yPos + yOff);
@@ -1203,7 +1362,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (artistNameText) {
                     ctx.save();
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 italic 80px "Orbitron", sans-serif';
+                    let fontSize = 80;
+                    ctx.font = `900 italic ${fontSize}px "Orbitron", sans-serif`;
+                    const maxArtistWidth = 748;
+                    let textWidth = ctx.measureText(artistNameText.toUpperCase()).width;
+                    if (textWidth > maxArtistWidth) {
+                        fontSize = Math.max(30, Math.floor(fontSize * (maxArtistWidth / textWidth)));
+                        ctx.font = `900 italic ${fontSize}px "Orbitron", sans-serif`;
+                    }
                     ctx.textAlign = 'left';
                     ctx.shadowColor = 'rgba(0,0,0,0.5)';
                     ctx.shadowBlur = 15;
@@ -1245,29 +1411,63 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }
 
                     // Stage Section
-                    let currY = taglineY + 180; // Dynamique selon le nombre de lignes de la tagline
+                    let currY = taglineY + 180; // Restored base layout spacing
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                    ctx.font = '900 32px "Orbitron", sans-serif';
+                    ctx.font = '900 32px "Orbitron", sans-serif'; // Restored base size
                     ctx.letterSpacing = '4px';
                     ctx.fillText('STAGE', 80, currY);
                     
                     ctx.fillStyle = activeColor.color; // Yellow
-                    ctx.font = '900 italic 85px "Orbitron", sans-serif';
+                    let stageFontSize = 85; // Restored base size
+                    ctx.font = `900 italic ${stageFontSize}px "Orbitron", sans-serif`;
+                    let stageWidth = ctx.measureText(stageName).width;
+                    const maxStageWidth = 748;
+                    if (stageWidth > maxStageWidth) {
+                        stageFontSize = Math.max(30, Math.floor(stageFontSize * (maxStageWidth / stageWidth)));
+                        ctx.font = `900 italic ${stageFontSize}px "Orbitron", sans-serif`;
+                    }
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(stageName, 75, currY + 85); // Décalage vers la gauche (75 au lieu de 80)
-
+                    ctx.fillText(stageName, 75, currY + 85); // Restored base offset
+                    
                     // Day Section
-                    currY += 210;
+                    currY += 210; // Restored base layout spacing
                     ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                    ctx.font = '900 32px "Orbitron", sans-serif';
+                    ctx.font = '900 32px "Orbitron", sans-serif'; // Restored base size
                     ctx.letterSpacing = '4px';
                     ctx.fillText('JOUR', 80, currY);
                     
                     const dayName = lines[2] || '';
                     ctx.fillStyle = activeColor.color; // Yellow
-                    ctx.font = '900 italic 85px "Orbitron", sans-serif';
+                    let dayFontSize = 85; // Restored base size
+                    ctx.font = `900 italic ${dayFontSize}px "Orbitron", sans-serif`;
+                    let dayWidth = ctx.measureText(dayName).width;
+                    const maxDayWidth = 748;
+                    if (dayWidth > maxDayWidth) {
+                        dayFontSize = Math.max(30, Math.floor(dayFontSize * (maxDayWidth / dayWidth)));
+                        ctx.font = `900 italic ${dayFontSize}px "Orbitron", sans-serif`;
+                    }
                     ctx.letterSpacing = '-2px';
-                    ctx.fillText(dayName, 75, currY + 85); // Décalage vers la gauche (75 au lieu de 80)
+                    ctx.fillText(dayName, 75, currY + 85); // Restored base offset
+                    
+                    // Hour Section
+                    currY += 210; // Restored base layout spacing
+                    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                    ctx.font = '900 32px "Orbitron", sans-serif'; // Restored base size
+                    ctx.letterSpacing = '4px';
+                    ctx.fillText('HEURE', 80, currY);
+                    
+                    const hourName = lines[4] || '';
+                    ctx.fillStyle = activeColor.color; // Yellow
+                    let hourFontSize = 85; // Restored base size
+                    ctx.font = `900 italic ${hourFontSize}px "Orbitron", sans-serif`;
+                    let hourWidth = ctx.measureText(hourName).width;
+                    const maxHourWidth = 748;
+                    if (hourWidth > maxHourWidth) {
+                        hourFontSize = Math.max(30, Math.floor(hourFontSize * (maxHourWidth / hourWidth)));
+                        ctx.font = `900 italic ${hourFontSize}px "Orbitron", sans-serif`;
+                    }
+                    ctx.letterSpacing = '-2px';
+                    ctx.fillText(hourName, 75, currY + 85); // Restored base offset
                     
                     ctx.restore();
                 }
@@ -1285,7 +1485,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else if (festivalNameText) {
                     ctx.save();
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 italic 45px "Montserrat", sans-serif';
+                    let festFontSize = 45;
+                    ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
+                    const maxFestWidth = 748;
+                    let festWidth = ctx.measureText(festivalNameText.toUpperCase()).width;
+                    if (festWidth > maxFestWidth) {
+                        festFontSize = Math.max(20, Math.floor(festFontSize * (maxFestWidth / festWidth)));
+                        ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
+                    }
                     ctx.textAlign = 'left';
                     ctx.letterSpacing = '2px';
                     ctx.fillText(festivalNameText.toUpperCase(), 80, canvas.height - 120);
@@ -1306,7 +1513,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
             } else if (theme === 'CITATION') {
-                const safeW = 880;
+                const safeW = 1012;
                 
                 if (customText) {
                     const lines = customText.split('\n').filter(l => l.trim() !== '');
@@ -1319,7 +1526,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.font = '900 italic 140px "Montserrat", sans-serif';
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
                     ctx.shadowBlur = 10;
-                    ctx.fillText('“', 80, 400);
+                    ctx.fillText('“', 34, 400);
 
                     ctx.font = '700 48px "Montserrat", sans-serif';
                     ctx.letterSpacing = "-1px";
@@ -1331,27 +1538,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     words.forEach(word => {
                         const testLine = line + word + ' ';
                         if (ctx.measureText(stripTags(testLine)).width > safeW) {
-                            drawRichText(ctx, line, 80, y, '#ffffff', 'left');
+                            drawRichText(ctx, line, 34, y, '#ffffff', 'left');
                             line = word + ' ';
                             y += 65;
                         } else {
                             line = testLine;
                         }
                     });
-                    drawRichText(ctx, line, 80, y, '#ffffff', 'left');
+                    drawRichText(ctx, line, 34, y, '#ffffff', 'left');
                     
                     if (citationAuthor) {
                         y += 100;
                         ctx.font = '600 italic 36px "Montserrat", sans-serif';
                         ctx.fillStyle = '#ffffff';
-                        ctx.fillText(citationAuthor.toUpperCase(), 80, y);
+                        ctx.fillText(citationAuthor.toUpperCase(), 34, y);
                     }
                     
                     if (citationMedia) {
                         y += (citationAuthor ? 40 : 100);
                         ctx.font = '400 italic 28px "Montserrat", sans-serif';
                         ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                        ctx.fillText(citationMedia, 80, y);
+                        ctx.fillText(citationMedia, 34, y);
                     }
                     
                     ctx.restore();
@@ -1367,7 +1574,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
                     ctx.shadowBlur = 10;
                     
-                    const safeW = 900;
+                    const safeW = 966;
                     const words = conseilsTitle.split(' ');
                     let currentLine = '';
                     
@@ -1411,26 +1618,458 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         ctx.shadowColor = 'rgba(0,0,0,0.8)';
                         ctx.shadowBlur = 10;
                         
-                        const safeW = 840;
+                        const safeW = 966;
                         const words = line.split(' ');
                         let currentLine = '';
                         
                         words.forEach(word => {
                             const testLine = currentLine + word + ' ';
                             if (ctx.measureText(stripTags(testLine)).width > safeW) {
-                                drawRichText(ctx, currentLine.toUpperCase(), 120, y, '#ffffff', 'left');
+                                drawRichText(ctx, currentLine.toUpperCase(), 57, y, '#ffffff', 'left');
                                 currentLine = word + ' ';
                                 y += 55;
                             } else {
                                 currentLine = testLine;
                             }
                         });
-                        drawRichText(ctx, currentLine.toUpperCase(), 120, y, '#ffffff', 'left');
+                        drawRichText(ctx, currentLine.toUpperCase(), 57, y, '#ffffff', 'left');
 
                         y += 65;
                     });
                 }
                 ctx.restore();
+
+            } else if (theme === 'ARTISTE FESTIVAL') {
+                const centerX = canvas.width / 2;
+                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
+
+                // Capsule noire contenant uniquement le nom du festival
+                const capsuleLabel = festivalNameText ? festivalNameText.toUpperCase() : 'FESTIVAL';
+                const capsuleFontSize = 36;
+                ctx.save();
+                ctx.font = `900 italic ${capsuleFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                ctx.textAlign = 'center';
+                const capW = ctx.measureText(capsuleLabel).width + 80;
+                ctx.globalAlpha = 0.95;
+                ctx.fillStyle = '#000000';
+                const capX = (canvas.width - capW) / 2;
+                const capY = labelY - 52;
+                ctx.beginPath();
+                ctx.roundRect(capX, capY, capW, 80, 20);
+                ctx.fill();
+                // Thin white border on the capsule
+                ctx.globalAlpha = 0.4;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.roundRect(capX, capY, capW, 80, 20);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#ffffff';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(capsuleLabel, canvas.width / 2, capY + 44);
+                ctx.restore();
+
+                // Title: LES 10 ARTISTES À NE PAS LOUPER (Styled with Montserrat and red glow)
+                const titleY = labelY + 125;
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                
+                // Create a subtle neon shadow/glow in RED to make it look premium
+                ctx.shadowColor = '#ff0033'; // Neon red glow
+                ctx.shadowBlur = 15;
+
+                let titleFs = 56; // Smaller font size (was 80)
+                ctx.font = `900 italic ${titleFs}px "Montserrat", sans-serif`;
+                ctx.letterSpacing = '2px';
+                
+                const displayTitle = 'LES 10 ARTISTES À NE PAS LOUPER';
+                
+                // Shrink if too wide
+                while (ctx.measureText(displayTitle).width > canvas.width - 114 && titleFs > 28) {
+                    titleFs--;
+                    ctx.font = `900 italic ${titleFs}px "Montserrat", sans-serif`;
+                }
+                ctx.fillText(displayTitle, centerX, titleY);
+                ctx.restore();
+
+            } else if (theme === 'JEU') {
+                const centerX = canvas.width / 2;
+                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
+                const startY = labelY + 130;
+
+                // 1. Discreet Subtle Dark Vignette & Dual Gradient
+                const gradStart = canvas.height * 0.45;
+                const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(0.4, 'rgba(8,10,20,0.65)');
+                grad.addColorStop(0.8, quizColor1 + '33');
+                grad.addColorStop(1, quizColor2 + '44');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+
+                // 2. Discreet & Stylish Capsule Badge "🎬 DEVINE LE CLIP"
+                const labelText = "🎬 DEVINE LE CLIP";
+                ctx.save();
+                const labelFontSize = 38;
+                ctx.font = `900 italic ${labelFontSize}px "Montserrat", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const labelW = ctx.measureText(labelText).width + 70;
+                const rectX = (canvas.width - labelW) / 2;
+                const rectY = labelY - 50;
+                const rectW = labelW;
+                const rectH = 72;
+                const radius = 20;
+
+                // Dark elegant glass capsule fill
+                ctx.fillStyle = 'rgba(10, 15, 28, 0.88)';
+                ctx.beginPath();
+                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
+                ctx.fill();
+
+                // Dynamic bicolore border gradient (Quiz Color 1 -> Quiz Color 2)
+                const borderGrad = ctx.createLinearGradient(rectX, 0, rectX + rectW, 0);
+                borderGrad.addColorStop(0, quizColor1);
+                borderGrad.addColorStop(1, quizColor2);
+
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = borderGrad;
+                ctx.stroke();
+
+                // Soft glow shadow
+                ctx.shadowColor = quizColor1;
+                ctx.shadowBlur = 12;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(labelText, centerX, rectY + (rectH / 2) + 3);
+                ctx.restore();
+
+                // 3. Question / Custom Text - Clean, Crisp White with Dark Shadow
+                const fontSize = 54;
+                const lineHeight = fontSize * 1.22;
+                const textToRender = customText || 'DE QUEL CLIP CETTE IMAGE EST TIRÉE ?';
+                const paragraphs = textToRender.toUpperCase().split('\n');
+                const lines: string[] = [];
+                ctx.font = `900 italic ${fontSize}px "Montserrat", sans-serif`;
+
+                for (const para of paragraphs) {
+                    if (para.trim() === '') { lines.push(''); continue; }
+                    const words = para.split(' ');
+                    let currentLine = '';
+                    for (const word of words) {
+                        const testLine = currentLine + word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 114) currentLine += word + ' ';
+                        else { lines.push(currentLine.trim()); currentLine = word + ' '; }
+                    }
+                    lines.push(currentLine.trim());
+                }
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                const maxLines = effectiveTab === 'PUBLICATION' ? 8 : 10;
+                lines.slice(0, maxLines).forEach((line, i) => {
+                    if (line !== '') {
+                        const yPos = startY + (i * lineHeight);
+                        ctx.save();
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = 12;
+                        drawRichText(ctx, line, canvas.width / 2, yPos, '#ffffff', 'center');
+                        ctx.restore();
+                    }
+                });
+
+                if (lines.length > maxLines) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.globalAlpha = 0.4;
+                    ctx.font = '900 italic 27px "Montserrat", sans-serif';
+                    ctx.fillText('...', canvas.width / 2, startY + (maxLines * lineHeight) - 20);
+                    ctx.globalAlpha = 1;
+                }
+                ctx.restore();
+
+                // 4. Discreet CTA Banner (Soft gradient pill)
+                ctx.save();
+                const ctaY = canvas.height - 60;
+                const ctaText = "💬 DEVINE EN COMMENTAIRE !";
+                ctx.font = '900 italic 25px "Montserrat", sans-serif';
+                ctx.letterSpacing = '3px';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const ctaW = ctx.measureText(ctaText).width + 50;
+                const ctaGrad = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
+                ctaGrad.addColorStop(0, 'rgba(10, 15, 28, 0.8)');
+                ctaGrad.addColorStop(0.5, 'rgba(20, 28, 45, 0.9)');
+                ctaGrad.addColorStop(1, 'rgba(10, 15, 28, 0.8)');
+
+                ctx.fillStyle = ctaGrad;
+                ctx.beginPath();
+                ctx.roundRect(centerX - ctaW / 2, ctaY - 22, ctaW, 44, 14);
+                ctx.fill();
+
+                // Discreet gradient border
+                const ctaBorder = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
+                ctaBorder.addColorStop(0, quizColor1);
+                ctaBorder.addColorStop(1, quizColor2);
+                ctx.strokeStyle = ctaBorder;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 8;
+                ctx.fillText(ctaText, centerX, ctaY);
+                ctx.restore();
+
+            } else if (theme === 'JEU_FESTIVAL') {
+                const centerX = canvas.width / 2;
+                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
+                const startY = labelY + 130;
+
+                // 1. Dark Vignette & Warm Gradient
+                const gradStart = canvas.height * 0.45;
+                const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(0.4, 'rgba(8,10,20,0.65)');
+                grad.addColorStop(0.8, '#ffaa0033');
+                grad.addColorStop(1, '#ff440044');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+
+                // 2. Badge "🎪 DEVINE LE FESTIVAL"
+                const labelText = "🎪 DEVINE LE FESTIVAL";
+                ctx.save();
+                const labelFontSize = 38;
+                ctx.font = `900 italic ${labelFontSize}px "Montserrat", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const labelW = ctx.measureText(labelText).width + 70;
+                const rectX = (canvas.width - labelW) / 2;
+                const rectY = labelY - 50;
+                const rectW = labelW;
+                const rectH = 72;
+                const radius = 20;
+
+                ctx.fillStyle = 'rgba(10, 15, 28, 0.88)';
+                ctx.beginPath();
+                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
+                ctx.fill();
+
+                const borderGrad = ctx.createLinearGradient(rectX, 0, rectX + rectW, 0);
+                borderGrad.addColorStop(0, '#ffaa00');
+                borderGrad.addColorStop(1, '#ff4400');
+                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = borderGrad;
+                ctx.stroke();
+
+                ctx.shadowColor = '#ffaa00';
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(labelText, centerX, rectY + (rectH / 2) + 3);
+                ctx.restore();
+
+                // 3. Question text
+                const fontSize = 54;
+                const lineHeight = fontSize * 1.22;
+                const textToRender = customText || 'DANS QUEL FESTIVAL PEUT-ON VOIR CETTE STAGE ?';
+                const paragraphs = textToRender.toUpperCase().split('\n');
+                const lines: string[] = [];
+                ctx.font = `900 italic ${fontSize}px "Montserrat", sans-serif`;
+
+                for (const para of paragraphs) {
+                    if (para.trim() === '') { lines.push(''); continue; }
+                    const words = para.split(' ');
+                    let currentLine = '';
+                    for (const word of words) {
+                        const testLine = currentLine + word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 114) currentLine += word + ' ';
+                        else { lines.push(currentLine.trim()); currentLine = word + ' '; }
+                    }
+                    lines.push(currentLine.trim());
+                }
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                const maxLines = effectiveTab === 'PUBLICATION' ? 8 : 10;
+                lines.slice(0, maxLines).forEach((line, i) => {
+                    if (line !== '') {
+                        const yPos = startY + (i * lineHeight);
+                        ctx.save();
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                        ctx.shadowBlur = 12;
+                        drawRichText(ctx, line, canvas.width / 2, yPos, '#ffffff', 'center');
+                        ctx.restore();
+                    }
+                });
+                ctx.restore();
+
+                // 4. CTA Banner
+                ctx.save();
+                const ctaY = canvas.height - 60;
+                const ctaText = "💬 DEVINE EN COMMENTAIRE !";
+                ctx.font = '900 italic 25px "Montserrat", sans-serif';
+                ctx.letterSpacing = '3px';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const ctaW = ctx.measureText(ctaText).width + 50;
+                const ctaGrad = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
+                ctaGrad.addColorStop(0, 'rgba(10, 15, 28, 0.8)');
+                ctaGrad.addColorStop(0.5, 'rgba(20, 28, 45, 0.9)');
+                ctaGrad.addColorStop(1, 'rgba(10, 15, 28, 0.8)');
+                ctx.fillStyle = ctaGrad;
+                ctx.beginPath();
+                ctx.roundRect(centerX - ctaW / 2, ctaY - 22, ctaW, 44, 14);
+                ctx.fill();
+
+                const ctaBorder = ctx.createLinearGradient(centerX - ctaW / 2, 0, centerX + ctaW / 2, 0);
+                ctaBorder.addColorStop(0, '#ffaa00');
+                ctaBorder.addColorStop(1, '#ff4400');
+                ctx.strokeStyle = ctaBorder;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 8;
+                ctx.fillText(ctaText, centerX, ctaY);
+                ctx.restore();
+
+            } else if (theme === 'PROMO') {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // 1. Dark overlay — 70% opaque black
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.70)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 2. Thin red accent line across the center
+                ctx.save();
+                ctx.fillStyle = activeColor.color;
+                ctx.fillRect(centerX - 60, centerY - 260, 120, 6);
+                ctx.restore();
+
+                // 3. Main promo text — multi-line, centered
+                const promoLines = [
+                    'POUR NE RIEN LOUPER',
+                    'DES NEWS SUR LA MUSIQUE',
+                    'ÉLECTRONIQUE ET LES FESTIVALS',
+                ];
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 20;
+
+                const lineSpacing = 110;
+                const blockStartY = centerY - 170;
+
+                promoLines.forEach((line, i) => {
+                    let fs = 72;
+                    ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                    // Auto-scale if too wide
+                    while (ctx.measureText(line).width > 966 && fs > 28) {
+                        fs--;
+                        ctx.font = `900 italic ${fs}px "Montserrat", sans-serif`;
+                    }
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(line, centerX, blockStartY + i * lineSpacing);
+                });
+
+                // 4. "ABONNEZ-VOUS À" line
+                ctx.font = '600 36px "Montserrat", sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.letterSpacing = '6px';
+                ctx.fillText('ABONNEZ-VOUS À', centerX, blockStartY + promoLines.length * lineSpacing + 30);
+
+                // 5. "DROPSIDERS" in accent color, big
+                ctx.font = '900 italic 110px "Orbitron", sans-serif';
+                ctx.letterSpacing = '-2px';
+                ctx.fillStyle = activeColor.color;
+                ctx.shadowColor = `rgba(${activeColor.grad}, 0.6)`;
+                ctx.shadowBlur = 40;
+                ctx.fillText('DROPSIDERS', centerX, blockStartY + promoLines.length * lineSpacing + 160);
+                ctx.restore();
+
+                // 6. Dropsiders logo — bottom center
+                if (logoRef.current) {
+                    const logo = logoRef.current;
+                    const lw = 320;
+                    const lh = (logo.height / logo.width) * lw;
+                    ctx.save();
+                    ctx.filter = 'brightness(0) invert(1)';
+                    ctx.globalAlpha = 0.9;
+                    ctx.drawImage(logo, centerX - lw / 2, canvas.height - lh - 60, lw, lh);
+                    ctx.restore();
+                }
+
+            } else if (theme === 'MAP') {
+                // 1. Draw Map Tiles
+                drawMap(ctx, mapLatitude, mapLongitude, mapZoom, canvas.width, canvas.height, 0, 0);
+
+                // 2. LIVE FROM Badge Frame
+                const frameX = 80;
+                const frameY = bgVideo ? 160 : 100;
+                const frameW = 440;
+                const frameH = 200;
+
+                ctx.save();
+                ctx.shadowColor = '#ff0033';
+                ctx.shadowBlur = 20;
+
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.9)';
+                ctx.beginPath();
+                ctx.roundRect(frameX, frameY, frameW, frameH, 24);
+                ctx.fill();
+
+                ctx.strokeStyle = '#ff0033';
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.roundRect(frameX, frameY, frameW, frameH, 24);
+                ctx.stroke();
+
+                ctx.shadowBlur = 0;
+
+                const dotPulse = (Math.sin(Date.now() / 300) + 1) / 2;
+                ctx.beginPath();
+                ctx.arc(frameX + 45, frameY + 50, 8 + (dotPulse * 2.5), 0, Math.PI * 2);
+                ctx.fillStyle = '#ff0033';
+                ctx.fill();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 26px "Montserrat", sans-serif';
+                ctx.letterSpacing = '4px';
+                ctx.textAlign = 'left';
+                ctx.fillText('LIVE FROM', frameX + 75, frameY + 58);
+
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.fillRect(frameX + 30, frameY + 95, frameW - 60, 2);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                let festFontSize = 36;
+                ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
+                const festName = mapFestivalText.toUpperCase();
+
+                while (ctx.measureText(festName).width > frameW - 60 && festFontSize > 18) {
+                    festFontSize--;
+                    ctx.font = `900 italic ${festFontSize}px "Orbitron", sans-serif`;
+                }
+                ctx.fillText(festName, frameX + frameW / 2, frameY + 152);
+                ctx.restore();
+
+                if (isMapLoading) {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '900 italic 30px "Montserrat", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('RECHERCHE EN COURS...', canvas.width / 2, canvas.height / 2);
+                    ctx.restore();
+                }
 
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
@@ -1481,7 +2120,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     let currentLine = '';
                     for (const word of words) {
                         const testLine = currentLine + word + ' ';
-                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 240) currentLine += word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 114) currentLine += word + ' ';
                         else { lines.push(currentLine.trim()); currentLine = word + ' '; }
                     }
                     lines.push(currentLine.trim());
@@ -1572,7 +2211,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // --- FINAL OVERLAYS (Logo & Swipe) ---
-            if (logoRef.current && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT') {
+            if (logoRef.current && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'PROMO') {
                 const logo = logoRef.current;
                 const w = 320;
                 // Move left and down for video backgrounds to avoid cropping and match requested safety margins
@@ -1581,7 +2220,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 20;
-                ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, (logo.height * w) / logo.width);
+                if (isArtistLogoNegative) {
+                    ctx.filter = 'brightness(0) invert(1)';
+                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, (logo.height * w) / logo.width);
+                    ctx.filter = 'none';
+                } else {
+                    ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, (logo.height * w) / logo.width);
+                }
+                ctx.restore();
+            }
+
+            // Optional discreet frame around the image/canvas
+            if (showFrame) {
+                ctx.save();
+                const pad = 30;
+                const frameW = canvas.width - (pad * 2);
+                const frameH = canvas.height - (pad * 2);
+                if (theme === 'JEU') {
+                    const frameGrad = ctx.createLinearGradient(pad, pad, pad + frameW, pad + frameH);
+                    frameGrad.addColorStop(0, quizColor1);
+                    frameGrad.addColorStop(1, quizColor2);
+                    ctx.strokeStyle = frameGrad;
+                    ctx.lineWidth = 3.5;
+                    ctx.shadowColor = quizColor1;
+                    ctx.shadowBlur = 12;
+                } else {
+                    ctx.strokeStyle = `rgba(${activeData.grad}, 0.7)`;
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = `rgba(${activeData.grad}, 0.4)`;
+                    ctx.shadowBlur = 10;
+                }
+                ctx.beginPath();
+                ctx.roundRect(pad, pad, frameW, frameH, 24);
+                ctx.stroke();
                 ctx.restore();
             }
 
@@ -1621,6 +2292,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
+            })(effectiveTheme);
         } catch (e) { console.error(e); }
     };
 
@@ -1692,7 +2364,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -2082,30 +2754,248 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
     };
 
+    const downloadPromoFormat = async (format: TabType) => {
+        if (!canvasRef.current) return;
+        setIsDownloading(true);
+        try {
+            await generateImage(format, 'PROMO');
+            const fileName = `${format === 'REEL' ? 'STORY' : 'POST'}-promo-${Date.now()}.png`;
+            const isMobile = /iPad|iPhone|iPod|Android/.test(navigator.userAgent) || ('maxTouchPoints' in navigator && navigator.maxTouchPoints > 0);
+
+            if (isMobile && navigator.share) {
+                try {
+                    const blob = await new Promise<Blob | null>(resolve => canvasRef.current!.toBlob(resolve, 'image/png'));
+                    if (blob) {
+                        const file = new File([blob], fileName, { type: 'image/png' });
+                        await navigator.share({
+                            files: [file],
+                            title: 'Dropsiders Visual'
+                        });
+                        return; // If Share succeeds, stop here
+                    }
+                } catch (e) {
+                    console.log('Share API denied or failed', e);
+                }
+            }
+
+            // Default fallback for desktop or if Share failed
+            const dataUrl = canvasRef.current!.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (e) {
+            console.error(e);
+            setErrorMessage("Erreur lors de l'exportation PNG.");
+        } finally {
+            setTimeout(() => {
+                setIsDownloading(false);
+                generateImage();
+            }, 500);
+        }
+    };
+
+    // Themes that use a bright/light color and need black text on the canvas
+    const LIGHT_TEXT_THEMES: ThemeType[] = ['MUSIQUE', 'TOP 100 DROPSIDERS', 'EVENT', 'TOP 5 ARTISTE', 'TOP 5 STYLES'];
+
+    const handleSetTheme = (newTheme: ThemeType) => {
+        if (newTheme === 'MAP') {
+            setActiveTab('REEL');
+        }
+        setTheme(newTheme);
+        if (newTheme === 'JEU') {
+            setCustomText('DE QUEL CLIP CETTE IMAGE EST TIRÉE ?');
+        } else if (newTheme === 'JEU_FESTIVAL') {
+            setCustomText('DANS QUEL FESTIVAL PEUT-ON VOIR CETTE STAGE ?');
+        }
+        setTextColor(LIGHT_TEXT_THEMES.includes(newTheme) ? '#000000' : '#ffffff');
+    };
+
+    const bgPositionControls = (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    🎯 Centrage Image (X / Y)
+                </span>
+                <button
+                    onClick={() => {
+                        setBgOffsetX(0);
+                        setBgOffsetY(0);
+                        setImgLayoutMode('1_PAR_LIGNE');
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className="px-2.5 py-1 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[8px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center gap-1 shadow-sm active:scale-95"
+                    title="Réinitialiser et centrer l'image au milieu"
+                >
+                    <RotateCcw className="w-3 h-3" /> Centrer Image
+                </button>
+            </div>
+
+            <div className="space-y-2 pt-1">
+                {/* Menu Panel Transparency Control */}
+                <div className="space-y-1 bg-black/40 p-2.5 rounded-xl border border-white/10">
+                    <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
+                        <span>👁️ Opacité du Menu Option</span>
+                        <span className="text-neon-cyan font-mono">{menuOpacity}%</span>
+                    </div>
+                    <input
+                        type="range" min="10" max="100" value={menuOpacity}
+                        onChange={e => setMenuOpacity(parseInt(e.target.value))}
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                    />
+                </div>
+
+                <div className="space-y-1">
+                    <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
+                        <span>Position Horizontale (Gauche / Droite)</span>
+                        <span className="text-white font-mono">{bgOffsetX}px</span>
+                    </div>
+                    <input
+                        type="range" min="-800" max="800" value={bgOffsetX}
+                        onChange={e => {
+                            setBgOffsetX(parseInt(e.target.value));
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        onMouseDown={() => setIsSlidingPosition(true)}
+                        onMouseUp={() => setIsSlidingPosition(false)}
+                        onTouchStart={() => setIsSlidingPosition(true)}
+                        onTouchEnd={() => setIsSlidingPosition(false)}
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                    />
+                </div>
+                <div className="space-y-1">
+                    <div className="flex justify-between text-[8px] font-black uppercase text-gray-400">
+                        <span>Position Verticale (Haut / Bas)</span>
+                        <span className="text-white font-mono">{bgOffsetY}px</span>
+                    </div>
+                    <input
+                        type="range" min="-800" max="800" value={bgOffsetY}
+                        onChange={e => {
+                            setBgOffsetY(parseInt(e.target.value));
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        onMouseDown={() => setIsSlidingPosition(true)}
+                        onMouseUp={() => setIsSlidingPosition(false)}
+                        onTouchStart={() => setIsSlidingPosition(true)}
+                        onTouchEnd={() => setIsSlidingPosition(false)}
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+
+    const quizColorControls = theme === 'JEU' ? (
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
+                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                    🎨 Double Couleurs Quiz
+                </span>
+                <div className="w-5 h-5 rounded-full border border-white/20 shadow-sm" style={{ background: `linear-gradient(135deg, ${quizColor1}, ${quizColor2})` }} />
+            </div>
+
+            {/* Color Presets */}
+            <div className="grid grid-cols-2 gap-1.5">
+                {[
+                    { label: 'Cyan & Violet', c1: '#38bdf8', c2: '#a855f7' },
+                    { label: 'Rouge & Or', c1: '#ff0033', c2: '#ffaa00' },
+                    { label: 'Bleu & Émeraude', c1: '#00f0ff', c2: '#39ff14' },
+                    { label: 'Fuchsia & Rose', c1: '#c026d3', c2: '#f43f5e' },
+                    { label: 'Sunset Red', c1: '#ff6700', c2: '#ff0055' },
+                ].map(p => (
+                    <button
+                        key={p.label}
+                        onClick={() => {
+                            setQuizColor1(p.c1);
+                            setQuizColor2(p.c2);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 px-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white flex items-center gap-1.5 transition-all"
+                    >
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: `linear-gradient(135deg, ${p.c1}, ${p.c2})` }} />
+                        <span className="truncate">{p.label}</span>
+                    </button>
+                ))}
+            </div>
+
+            {/* Custom Color Pickers */}
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+                <div className="space-y-1">
+                    <span className="text-[7px] font-black uppercase text-gray-400 block">Couleur 1</span>
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-xl">
+                        <input
+                            type="color"
+                            value={quizColor1}
+                            onChange={e => {
+                                setQuizColor1(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
+                        />
+                        <span className="text-[8px] font-mono text-white uppercase">{quizColor1}</span>
+                    </div>
+                </div>
+                <div className="space-y-1">
+                    <span className="text-[7px] font-black uppercase text-gray-400 block">Couleur 2</span>
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-xl">
+                        <input
+                            type="color"
+                            value={quizColor2}
+                            onChange={e => {
+                                setQuizColor2(e.target.value);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
+                        />
+                        <span className="text-[8px] font-mono text-white uppercase">{quizColor2}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    ) : null;
+
     // Shared content blocks (used in both mobile & desktop)
     const themeButtons = (
         <div className="grid grid-cols-3 gap-1.5">
-            {/* All themes accessible in both modes, except TOP 5 which are Story-specific for now */}
-            <button onClick={() => setTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
-            <button onClick={() => setTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
-            <button onClick={() => setTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
-            <button onClick={() => setTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
-            <button onClick={() => setTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
-            <button onClick={() => setTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
-            <button onClick={() => setTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
-            <button onClick={() => setTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
-            <button onClick={() => setTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
-            <button onClick={() => setTheme('SPOTLIGHT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
-            <button onClick={() => setTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
-            <button onClick={() => setTheme('CONSEILS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONSEILS</button>
-            <button onClick={() => setTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
+            <button onClick={() => handleSetTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
+            <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
+            <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
+            <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
+            <button onClick={() => handleSetTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-[#c026d3]/20 border-[#c026d3] text-[#c026d3]' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
+            <button onClick={() => handleSetTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
+            <button onClick={() => handleSetTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
+            <button onClick={() => handleSetTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
+            <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
+            <button onClick={() => handleSetTheme('SPOTLIGHT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
+            <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
+            <button onClick={() => handleSetTheme('CONSEILS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONSEILS</button>
+            <button onClick={() => handleSetTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
+            <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
+            <button onClick={() => handleSetTheme('PROMO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PROMO' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>📣 PROMO</button>
+            <button onClick={() => handleSetTheme('CALENDRIER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CALENDRIER' ? 'bg-neon-orange/20 border-neon-orange text-neon-orange' : 'bg-white/5 border-white/10 text-gray-400'}`}>📅 CALENDRIER</button>
+            <button
+                onClick={() => handleSetTheme('JEU')}
+                style={theme === 'JEU' ? { background: `linear-gradient(135deg, ${quizColor1}44, ${quizColor2}44)`, borderColor: quizColor1 } : {}}
+                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'JEU' ? 'text-white shadow-[0_0_15px_rgba(0,240,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
+            >
+                🎬 DEVINE LE CLIP
+            </button>
+            <button
+                onClick={() => handleSetTheme('JEU_FESTIVAL')}
+                className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'JEU_FESTIVAL' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00] shadow-[0_0_15px_rgba(255,170,0,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
+            >
+                🎪 DEVINE LE FESTIVAL
+            </button>
             
             {activeTab === 'REEL' && (
                 <>
-                    <button onClick={() => setTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
-                    <button onClick={() => setTheme('INTRO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
-                    <button onClick={() => setTheme('TOP 5 ARTISTE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
-                    <button onClick={() => setTheme('TOP 5 STYLES')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
+                    <button onClick={() => handleSetTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
+                    <button onClick={() => handleSetTheme('INTRO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
+                    <button onClick={() => handleSetTheme('TOP 5 ARTISTE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
+                    <button onClick={() => handleSetTheme('TOP 5 STYLES')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
+                    <button onClick={() => handleSetTheme('MAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MAP' ? 'bg-neon-red/20 border-neon-red text-neon-red animate-pulse' : 'bg-white/5 border-white/5 text-gray-400'}`}>📍 CARTE (STORY)</button>
                 </>
             )}
 
@@ -2440,16 +3330,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const highlightsEditor = (
         <div className="space-y-3">
-            <span className="text-[10px] font-black text-gray-500 uppercase">Artistes</span>
-            <textarea
-                value={highlightsArtists}
-                onChange={e => setHighlightsArtists(e.target.value)}
-                placeholder="ARTISTES..."
-                spellCheck="true"
-                autoCorrect="on"
-                autoCapitalize="sentences"
-                className="w-full h-16 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-cyan-500 outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words mb-2"
-            />
             <span className="text-[10px] font-black text-gray-500 uppercase">Festivals</span>
             <input 
                 value={highlightsFestival} 
@@ -2675,7 +3555,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Nom Stage</label>
                     <input 
@@ -2704,6 +3584,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs" 
                     />
                 </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Heure</label>
+                    <input 
+                        value={customText.split('\n')[4] || ''} 
+                        onChange={e => {
+                            const lines = customText.split('\n');
+                            while (lines.length < 5) lines.push('');
+                            lines[4] = e.target.value;
+                            setCustomText(lines.join('\n'));
+                        }} 
+                        placeholder="22:00 - 23:00" 
+                        className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-neon-red font-black italic uppercase text-xs" 
+                    />
+                </div>
             </div>
 
             {/* Background Offsets for Spotlight */}
@@ -2718,6 +3612,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <input 
                             type="range" min="-800" max="800" value={bgOffsetX} 
                             onChange={e => setBgOffsetX(parseInt(e.target.value))}
+                            onMouseDown={() => setIsSlidingPosition(true)}
+                            onMouseUp={() => setIsSlidingPosition(false)}
+                            onTouchStart={() => setIsSlidingPosition(true)}
+                            onTouchEnd={() => setIsSlidingPosition(false)}
                             className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
                         />
                     </div>
@@ -2729,6 +3627,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <input 
                             type="range" min="-800" max="800" value={bgOffsetY} 
                             onChange={e => setBgOffsetY(parseInt(e.target.value))}
+                            onMouseDown={() => setIsSlidingPosition(true)}
+                            onMouseUp={() => setIsSlidingPosition(false)}
+                            onTouchStart={() => setIsSlidingPosition(true)}
+                            onTouchEnd={() => setIsSlidingPosition(false)}
                             className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
                         />
                     </div>
@@ -2789,6 +3691,296 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         </div>
     );
 
+    const mapEditor = (
+        <div className="space-y-4">
+            {/* 1. Nom du Festival */}
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival</label>
+                <input 
+                    value={mapFestivalText} 
+                    onChange={e => {
+                        setMapFestivalText(e.target.value);
+                        setTimeout(() => generateImage(), 50);
+                    }} 
+                    placeholder="EX: LOLLAPALOOZA" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md" 
+                />
+            </div>
+
+            {/* 2. Recherche Lieu, Ville & Pays */}
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Localisation</label>
+
+                {/* Lieu spécifique (optionnel) */}
+                <div className="space-y-1">
+                    <div className="flex items-center gap-1.5 pl-1">
+                        <span className="text-[8px] font-black text-neon-cyan/70 uppercase tracking-widest">📍 Lieu</span>
+                        <span className="text-[7px] font-bold text-gray-600 uppercase">(optionnel)</span>
+                    </div>
+                    <div className="relative">
+                        <input 
+                            value={mapVenue}
+                            onChange={e => setMapVenue(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
+                            placeholder="EX: Parc de Schoore, Adidas Arena Paris..."
+                            className={`w-full bg-neon-cyan/5 border rounded-xl p-3 pr-10 text-white font-bold focus:outline-none transition-all shadow-md text-xs placeholder-gray-600 ${
+                                mapVenue.trim()
+                                    ? 'border-neon-cyan/40 focus:border-neon-cyan/70 shadow-[0_0_8px_rgba(0,240,255,0.1)]'
+                                    : 'border-white/10 focus:border-neon-cyan/30'
+                            }`}
+                        />
+                        {mapVenue.trim() && (
+                            <button
+                                onClick={() => setMapVenue('')}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500/30 text-gray-400 hover:text-white transition-all text-[10px]"
+                                title="Effacer le lieu"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
+                    {mapVenue.trim() && (
+                        <p className="text-[8px] text-neon-cyan/60 pl-1 italic">🔍 Recherche : «&nbsp;{mapVenue.trim()}, {mapCity}, {mapCountry}&nbsp;»</p>
+                    )}
+                </div>
+
+                {/* Ville & Pays */}
+                <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Ville *</label>
+                        <input 
+                            value={mapCity}
+                            onChange={e => setMapCity(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
+                            placeholder="EX: Las Vegas"
+                            required
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs placeholder-gray-600"
+                        />
+                    </div>
+                    <div className="space-y-1 relative">
+                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Pays *</label>
+                        <input 
+                            value={mapCountry}
+                            onChange={e => setMapCountry(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') handleGeocode(); }}
+                            placeholder="EX: France"
+                            required
+                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 pr-10 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs placeholder-gray-600"
+                        />
+                        {isMapLoading && (
+                            <div className="absolute right-3 bottom-3 w-4 h-4 border-2 border-neon-red/50 border-t-neon-red rounded-full animate-spin" />
+                        )}
+                    </div>
+                </div>
+                <p className="text-[8px] text-gray-600 pl-1 italic">Appuie sur Entrée pour centrer la carte</p>
+            </div>
+
+            {/* 3. Texte du Badge personnalisé */}
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Texte de l'étiquette (Badge)</label>
+                <input 
+                    value={mapLabelText} 
+                    onChange={e => {
+                        setMapLabelText(e.target.value);
+                        setTimeout(() => generateImage(), 50);
+                    }} 
+                    placeholder="EX: PARIS, FRANCE (Ou nom de scène...)" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold focus:border-white/40 outline-none transition-all shadow-md text-xs" 
+                />
+            </div>
+
+            {/* 4. Style de la carte */}
+            <div className="space-y-2">
+                <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500 pl-1">
+                    <span>Style de la carte</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                    <button 
+                        onClick={() => { setMapStyle('dark'); setTimeout(() => generateImage(), 50); }}
+                        className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'dark' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                    >
+                        Sombre
+                    </button>
+                    <button 
+                        onClick={() => { setMapStyle('voyager'); setTimeout(() => generateImage(), 50); }}
+                        className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'voyager' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                    >
+                        Couleur
+                    </button>
+                    <button 
+                        onClick={() => { setMapStyle('satellite'); setTimeout(() => generateImage(), 50); }}
+                        className={`py-2 text-[9px] font-black uppercase rounded-lg border transition-all ${mapStyle === 'satellite' ? 'bg-white/10 border-white text-white font-black' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                    >
+                        Satellite
+                    </button>
+                </div>
+            </div>
+
+            {/* 5. Zoom de la carte */}
+            <div className="space-y-2">
+                <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500 pl-1">
+                    <span>Zoom de la carte</span>
+                    <span className="text-neon-red font-black">{mapZoom}</span>
+                </div>
+                <input 
+                    type="range" 
+                    min="3" 
+                    max="18" 
+                    value={mapZoom} 
+                    onChange={e => {
+                        setMapZoom(parseInt(e.target.value));
+                        setTimeout(() => generateImage(), 50);
+                    }} 
+                    className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-red" 
+                />
+            </div>
+
+            {/* 6. Couleur du Marqueur & Badge */}
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Marqueur (Néon)</label>
+                <div className="flex gap-2.5 p-2 bg-white/5 border border-white/10 rounded-xl justify-around">
+                    {[
+                        { name: 'Red', hex: '#ff0033' },
+                        { name: 'Cyan', hex: '#00f0ff' },
+                        { name: 'Green', hex: '#39ff14' },
+                        { name: 'Orange', hex: '#ff5e00' },
+                        { name: 'Purple', hex: '#b026ff' },
+                        { name: 'Yellow', hex: '#ffe600' },
+                    ].map(col => (
+                        <button
+                            key={col.hex}
+                            onClick={() => {
+                                setMapPinColor(col.hex);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className={`w-6 h-6 rounded-full border transition-all hover:scale-110 active:scale-95 ${mapPinColor === col.hex ? 'border-white scale-105 shadow-[0_0_10px_currentColor]' : 'border-white/20'}`}
+                            style={{ backgroundColor: col.hex, color: col.hex }}
+                            title={col.name}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* 7. Options d'affichage */}
+            <div className="grid grid-cols-2 gap-2 bg-white/5 border border-white/10 rounded-xl p-2">
+                <button
+                    onClick={() => {
+                        setShowMapPin(!showMapPin);
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${showMapPin ? 'bg-white/10 border-white/30 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
+                >
+                    {showMapPin ? '✅ PIN ACTIVÉ' : '❌ PIN MASQUÉ'}
+                </button>
+                <button
+                    onClick={() => {
+                        setShowMapLabel(!showMapLabel);
+                        setTimeout(() => generateImage(), 50);
+                    }}
+                    className={`py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${showMapLabel ? 'bg-white/10 border-white/30 text-white' : 'bg-transparent border-white/5 text-gray-500'}`}
+                >
+                    {showMapLabel ? '✅ BADGE ACTIVÉ' : '❌ BADGE MASQUÉ'}
+                </button>
+            </div>
+
+            {/* 8. Ajustement GPS (D-pad & Manuel) */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center">Décalage GPS de la carte</p>
+                
+                {/* D-pad */}
+                <div className="grid grid-cols-3 gap-2 max-w-[120px] mx-auto">
+                    <div></div>
+                    <button
+                        onClick={() => {
+                            const step = 0.01 / Math.pow(2, mapZoom - 11);
+                            setMapLatitude(prev => prev + step);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
+                        title="Nord"
+                    >
+                        ▲
+                    </button>
+                    <div></div>
+                    <button
+                        onClick={() => {
+                            const step = 0.01 / Math.pow(2, mapZoom - 11);
+                            setMapLongitude(prev => prev - step);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
+                        title="Ouest"
+                    >
+                        ◀
+                    </button>
+                    <button
+                        onClick={() => {
+                            handleGeocode();
+                        }}
+                        className="py-1.5 bg-neon-red/10 border border-neon-red/30 rounded-xl hover:bg-neon-red/20 text-neon-red font-black text-[9px] flex items-center justify-center uppercase transition-all"
+                        title="Recenter sur la recherche"
+                    >
+                        ◉
+                    </button>
+                    <button
+                        onClick={() => {
+                            const step = 0.01 / Math.pow(2, mapZoom - 11);
+                            setMapLongitude(prev => prev + step);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
+                        title="Est"
+                    >
+                        ▶
+                    </button>
+                    <div></div>
+                    <button
+                        onClick={() => {
+                            const step = 0.01 / Math.pow(2, mapZoom - 11);
+                            setMapLatitude(prev => prev - step);
+                            setTimeout(() => generateImage(), 50);
+                        }}
+                        className="py-1.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/30 text-white font-black text-[12px] flex items-center justify-center transition-all"
+                        title="Sud"
+                    >
+                        ▼
+                    </button>
+                    <div></div>
+                </div>
+
+                {/* Saisie Manuelle */}
+                <div className="grid grid-cols-2 gap-2 text-[8px]">
+                    <div className="space-y-1">
+                        <label className="text-gray-500 uppercase font-black">Latitude (GPS)</label>
+                        <input
+                            type="number"
+                            step="0.000001"
+                            value={mapLatitude}
+                            onChange={e => {
+                                setMapLatitude(parseFloat(e.target.value) || 0);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-center font-bold outline-none focus:border-white/30"
+                        />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-gray-500 uppercase font-black">Longitude (GPS)</label>
+                        <input
+                            type="number"
+                            step="0.000001"
+                            value={mapLongitude}
+                            onChange={e => {
+                                setMapLongitude(parseFloat(e.target.value) || 0);
+                                setTimeout(() => generateImage(), 50);
+                            }}
+                            className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-white text-center font-bold outline-none focus:border-white/30"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
     const citationEditor = (
         <div className="space-y-4">
             {textEditor}
@@ -2822,6 +4014,22 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </button>
                 <button onClick={() => downloadFormat('REEL')} disabled={isDownloading} className="py-2.5 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-purple/20 transition-all">
                     <Download className="w-3.5 h-3.5" /> PNG STORY
+                </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-white/5">
+                <button
+                    onClick={() => downloadPromoFormat('PUBLICATION')}
+                    disabled={isDownloading}
+                    className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
+                >
+                    <Download className="w-3.5 h-3.5" /> PROMO POST
+                </button>
+                <button
+                    onClick={() => downloadPromoFormat('REEL')}
+                    disabled={isDownloading}
+                    className="py-2.5 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-red hover:text-white transition-all disabled:opacity-40"
+                >
+                    <Download className="w-3.5 h-3.5" /> PROMO STORY
                 </button>
             </div>
             <button onClick={startVideoRecording} disabled={isVideoRecording}
@@ -2899,7 +4107,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <img src={recap.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[10px] font-black text-neon-orange uppercase tracking-widest mb-1">{recap.festival || 'FESTIVAL'}</p>
+                                            <p className="text-[10px] font-black text-[#c026d3] uppercase tracking-widest mb-1">{recap.festival || 'FESTIVAL'}</p>
                                             <h3 className="text-white font-black uppercase italic tracking-tighter text-sm line-clamp-1 mb-1">{fixEncoding(recap.title)}</h3>
                                             <p className="text-[9px] text-gray-500 font-medium line-clamp-2 leading-relaxed">{fixEncoding(recap.summary || '')}</p>
                                         </div>
@@ -2951,6 +4159,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         </div>
 
                         {themeButtons}
+                        {quizColorControls}
                         {styleMusicButtons}
 
                         {/* Background */}
@@ -2967,10 +4176,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                 Télécharger Vidéo/Photo (URL)
                             </button>
-                            <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-neon-orange/10 border border-neon-orange/30 rounded-xl flex items-center justify-center gap-2 text-neon-orange text-[9px] font-black uppercase hover:bg-neon-orange/20 transition-all group">
+                            <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-xl flex items-center justify-center gap-2 text-[#c026d3] text-[9px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
                                 <PlusCircle className="w-3.5 h-3.5" />
                                 Importer un RÉCAP ÉCRIT
                             </button>
+
+                            {bgPositionControls}
                             <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-2 bg-neon-cyan/10 border rounded-xl flex items-center justify-center gap-2 text-neon-cyan text-[9px] font-black uppercase hover:bg-neon-cyan/20 transition-all group ${isRetouchMode ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'border-neon-cyan/20'}`}>
                                 <Wand2 className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA Local)
                             </button>
@@ -3009,7 +4220,39 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                         {/* Content editor */}
                         <div className="space-y-4">
-                            {theme === 'PLANNING' ? (
+                            {theme === 'CALENDRIER' ? (
+                                <>
+                                    <span className="text-[10px] font-black text-gray-500 uppercase">Calendrier des événements</span>
+                                    <div className="space-y-3">
+                                        <input
+                                            value={calendarMonth}
+                                            onChange={e => setCalendarMonth(e.target.value)}
+                                            placeholder="MARS 2025"
+                                            className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                                        />
+                                        <div className="space-y-2">
+                                            {calendarEvents.map((evt, i) => (
+                                                <div key={i} className="flex gap-2 items-center">
+                                                    <input
+                                                        value={evt.date}
+                                                        onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }}
+                                                        placeholder="JJ"
+                                                        className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center"
+                                                    />
+                                                    <input
+                                                        value={evt.label}
+                                                        onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }}
+                                                        placeholder="NOM DE L'ÉVÉNEMENT"
+                                                        className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs"
+                                                    />
+                                                    <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                                                </div>
+                                            ))}
+                                            <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter un événement</button>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : theme === 'PLANNING' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Horaires Planning</span>{planningEditor}</>
                             ) : theme.startsWith('TOP 5') ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
@@ -3026,6 +4269,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Conseils & Image</span>{conseilsEditor}</>
                             ) : theme === 'CITATION' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
+                            ) : theme === 'ARTISTE FESTIVAL' ? (
+                                <>
+                                    <span className="text-[10px] font-black text-gray-500 uppercase">Festival</span>
+                                    <div className="space-y-3">
+                                        <input
+                                            value={festivalNameText}
+                                            onChange={e => setFestivalNameText(e.target.value)}
+                                            placeholder="NOM DU FESTIVAL (ex: TOMORROWLAND)"
+                                            spellCheck="true"
+                                            autoCorrect="on"
+                                            autoCapitalize="words"
+                                            className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                                        />
+                                    </div>
+                                </>
                             ) : (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
                             )}
@@ -3295,10 +4553,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     <AnimatePresence>
                         {activePanel && activePanel !== 'export' && (
                             <motion.div key={activePanel}
-                                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }}
+                                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: isSlidingPosition ? 0.15 : 1 }} exit={{ y: '100%', opacity: 0 }}
                                 transition={{ type: 'spring', damping: 26, stiffness: 300 }}
-                                className="absolute inset-x-0 bottom-[130px] z-30 rounded-t-[28px]"
-                                style={{ background: 'linear-gradient(180deg,#161616 0%,#0d0d0d 100%)', borderTop: '1px solid rgba(255,255,255,0.08)', maxHeight: '60vh', overflowY: 'auto' }}>
+                                className="absolute inset-x-0 bottom-[130px] z-30 rounded-t-[28px] transition-opacity duration-200"
+                                style={{
+                                    background: `rgba(12, 12, 12, ${menuOpacity / 100})`,
+                                    backdropFilter: 'blur(16px)',
+                                    WebkitBackdropFilter: 'blur(16px)',
+                                    borderTop: '1px solid rgba(255,255,255,0.12)',
+                                    maxHeight: '60vh',
+                                    overflowY: 'auto',
+                                    opacity: isSlidingPosition ? 0.15 : 1
+                                }}>
                                 <div className="flex justify-center pt-3 pb-2"><div className="w-8 h-1 rounded-full bg-white/20" /></div>
 
                                 {activePanel === 'format' && (
@@ -3322,9 +4588,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 )}
 
                                 {activePanel === 'theme' && (
-                                    <div className="px-6 pb-8">
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Thème visuel</p>
+                                    <div className="px-6 pb-8 space-y-4">
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Thème visuel</p>
                                         {themeButtons}
+                                        {quizColorControls}
                                         {styleMusicButtons && <div className="mt-4">{styleMusicButtons}</div>}
                                     </div>
                                 )}
@@ -3332,7 +4599,31 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : textEditor}
+                                        {theme === 'CALENDRIER' ? (
+                                            <div className="space-y-3">
+                                                <input value={calendarMonth} onChange={e => setCalendarMonth(e.target.value)} placeholder="MARS 2025" className="w-full bg-white/10 border border-neon-orange/40 rounded-xl p-3 text-white font-black italic uppercase text-xs" />
+                                                {calendarEvents.map((evt, i) => (
+                                                    <div key={i} className="flex gap-2 items-center">
+                                                        <input value={evt.date} onChange={e => { const n = [...calendarEvents]; n[i].date = e.target.value; setCalendarEvents(n); }} placeholder="JJ" className="w-14 bg-neon-orange/20 border border-neon-orange/40 rounded-lg p-2 text-neon-orange font-black uppercase text-xs text-center" />
+                                                        <input value={evt.label} onChange={e => { const n = [...calendarEvents]; n[i].label = e.target.value; setCalendarEvents(n); }} placeholder="ÉVÉNEMENT" className="flex-1 bg-white/10 border border-white/20 rounded-lg p-2 text-white font-black italic uppercase text-xs" />
+                                                        <button onClick={() => setCalendarEvents(calendarEvents.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><span className="text-xs">✕</span></button>
+                                                    </div>
+                                                ))}
+                                                <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
+                                            </div>
+                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'ARTISTE FESTIVAL' ? (
+                            <div className="space-y-3">
+                                <input
+                                    value={festivalNameText}
+                                    onChange={e => setFestivalNameText(e.target.value)}
+                                    placeholder="NOM DU FESTIVAL (ex: TOMORROWLAND)"
+                                    spellCheck="true"
+                                    autoCorrect="on"
+                                    autoCapitalize="words"
+                                    className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs"
+                                />
+                            </div>
+                        ) : textEditor}
                                     </div>
                                 )}
 
@@ -3346,7 +4637,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                             <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                                 <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
                                             </button>
-                                            <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-4 bg-neon-orange/10 border border-neon-orange/30 rounded-2xl flex items-center justify-center gap-2 text-neon-orange text-[10px] font-black uppercase hover:bg-neon-orange/20 transition-all group">
+                                            {bgPositionControls}
+                                            <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-4 bg-[#c026d3]/10 border border-[#c026d3]/30 rounded-2xl flex items-center justify-center gap-2 text-[#c026d3] text-[10px] font-black uppercase hover:bg-[#c026d3]/20 transition-all group">
                                                 <PlusCircle className="w-4 h-4" />Importer un RÉCAP ÉCRIT
                                             </button>
                                             <button onClick={() => setShowText(!showText)} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${!showText ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>

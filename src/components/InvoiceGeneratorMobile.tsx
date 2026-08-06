@@ -88,6 +88,7 @@ export function InvoiceGeneratorMobile() {
     const [iban, setIban] = useState(() => localStorage.getItem('inv_iban') || 'BE59 9675 0891 6526');
     const [bic, setBic] = useState(() => localStorage.getItem('inv_bic') || 'TRWIBEB1XXX');
     const [notes] = useState('');
+    const [discount, setDiscount] = useState<number>(0);
     const [eventClub, setEventClub] = useState('');
     const [eventDate, setEventDate] = useState('');
     const [lines, setLines] = useState<InvoiceLine[]>([{ id: '1', description: 'Prestation Light', quantity: 1, unitPrice: 0 }]);
@@ -324,7 +325,8 @@ export function InvoiceGeneratorMobile() {
     const [emailSubject, setEmailSubject] = useState('');
     const [emailMessage, setEmailMessage] = useState('');
 
-    const total = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
+    const subtotal = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
+    const total = Math.max(0, subtotal - discount);
     const formattedNumber = docType === 'facture'
         ? `INV-${new Date(date).getFullYear()}-${invoiceNumber.toString().padStart(3, '0')}`
         : `DEV-${new Date(date).getFullYear()}-${devisNumber.toString().padStart(3, '0')}`;
@@ -368,6 +370,8 @@ export function InvoiceGeneratorMobile() {
         clientAddress,
         clientEmail,
         clientCity,
+        subtotal,
+        discount,
         total, 
         date,
         dueDate,
@@ -988,13 +992,24 @@ export function InvoiceGeneratorMobile() {
             </Sheet>
 
             {/* DETAILS */}
-            <Sheet open={sheet === 'details'} onClose={() => setSheet('none')} title="Coordonnées bancaires">
+            <Sheet open={sheet === 'details'} onClose={() => setSheet('none')} title="Coordonnées & Réduction">
                 <Field label="IBAN">
                     <input value={iban} onChange={e => setIban(e.target.value)} placeholder="FR76 0000 0000 0000…" className={INPUT + " font-mono"} />
                 </Field>
                 <Field label="BIC / SWIFT">
                     <input value={bic} onChange={e => setBic(e.target.value)} placeholder="REVOFR22XXX" className={INPUT + " font-mono"} />
                 </Field>
+                <Field label="Réduction (€)">
+                    <input type="number" min="0" step="0.01" value={discount || ''} placeholder="0.00"
+                        onChange={e => setDiscount(parseFloat(e.target.value) || 0)}
+                        className={INPUT} />
+                </Field>
+                {discount > 0 && (
+                    <div className="flex items-center justify-between p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+                        <span className="text-sm text-red-300 font-bold">Réduction appliquée</span>
+                        <span className="text-xl font-black text-red-300">- {discount.toFixed(2)} €</span>
+                    </div>
+                )}
             </Sheet>
 
             {/* LINE EDIT */}

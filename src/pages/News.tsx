@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Edit2, Loader2, Filter, ArrowRight, Calendar, Film } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit2, Loader2, Filter, ArrowRight, Calendar, Film, Tag, Check } from 'lucide-react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { getArticleLink } from '../utils/slugify';
@@ -105,6 +105,97 @@ export function News() {
 
     const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
+    // ── Quick category change ──
+    const QUICK_CATEGORIES = [
+        { value: 'News', label: 'News', color: 'neon-red' },
+        { value: 'Recap', label: 'Récap', color: 'neon-purple' },
+        { value: 'Musique', label: 'Musique', color: 'neon-green' },
+        { value: 'Review', label: 'Review', color: 'neon-green' },
+        { value: 'Interview', label: 'Interview', color: 'neon-purple' },
+        { value: 'Sets & Mixes', label: 'Sets & Mixes', color: 'neon-purple' },
+        { value: 'Festival', label: 'Festival', color: 'neon-red' },
+        { value: 'Actu', label: 'Actu', color: 'neon-red' },
+    ];
+    const [themePopover, setThemePopover] = useState<number | null>(null);
+    const [savingCategoryId, setSavingCategoryId] = useState<number | null>(null);
+    const popoverRef = useRef<HTMLDivElement>(null);
+
+    // Close popover when clicking outside
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+                setThemePopover(null);
+            }
+        };
+        if (themePopover !== null) {
+            document.addEventListener('mousedown', handler);
+            return () => document.removeEventListener('mousedown', handler);
+        }
+    }, [themePopover]);
+
+    const handleChangeCategory = useCallback(async (item: any, newCategory: string) => {
+        if (savingCategoryId === item.id) return;
+        setSavingCategoryId(item.id);
+        setThemePopover(null);
+        try {
+            const res = await fetch('/api/news/update', {
+                method: 'POST',
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: item.id, category: newCategory }),
+            });
+            if (res.ok) {
+                setNewsData(prev => prev.map((n: any) =>
+                    n.id === item.id ? { ...n, category: newCategory } : n
+                ));
+            }
+        } catch (e) {
+            console.error('Error changing category:', e);
+        } finally {
+            setSavingCategoryId(null);
+        }
+    }, [savingCategoryId]);
+
+    // Renders the quick-theme popover button for a news card
+    const ThemeButton = ({ item, className = '' }: { item: any; className?: string }) => (
+        <div className={`relative ${className}`} ref={themePopover === item.id ? popoverRef : undefined}>
+            <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setThemePopover(themePopover === item.id ? null : item.id); }}
+                disabled={savingCategoryId === item.id}
+                className="p-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-neon-cyan/30 text-neon-cyan/70 hover:text-neon-cyan hover:border-neon-cyan/60 transition-all disabled:opacity-50"
+                title="Changer le thème"
+            >
+                {savingCategoryId === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Tag className="w-3 h-3" />}
+            </button>
+            <AnimatePresence>
+                {themePopover === item.id && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: -4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: -4 }}
+                        transition={{ duration: 0.12 }}
+                        className="absolute right-0 top-full mt-1.5 z-50 bg-[#0d0d0d] border border-white/10 rounded-xl shadow-2xl overflow-hidden min-w-[130px]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="py-1">
+                            {QUICK_CATEGORIES.map((cat) => (
+                                <button
+                                    key={cat.value}
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleChangeCategory(item, cat.value); }}
+                                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase tracking-wide hover:bg-white/5 transition-colors text-left"
+                                >
+                                    {item.category === cat.value
+                                        ? <Check className="w-3 h-3 text-neon-cyan flex-shrink-0" />
+                                        : <span className="w-3 h-3 flex-shrink-0" />}
+                                    <span className={item.category === cat.value ? 'text-neon-cyan' : 'text-white/60'}>{cat.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+
     const handleEdit = async (item: any) => {
         setLoadingEditId(item.id);
         try {
@@ -141,20 +232,7 @@ export function News() {
     const baseNews = useMemo(() => {
         if (!Array.isArray(newsData)) return [];
         return newsData
-            .filter((item: any) => {
-                if (!item) return false;
-                const cat = (item.category || '').toLowerCase();
-                return cat.includes('news') ||
-                    cat.includes('musique') ||
-                    cat.includes('music') ||
-                    cat.includes('review') ||
-                    cat.includes('actu') ||
-                    cat.includes('festival') ||
-                    cat.includes('artist') ||
-                    cat.includes('sets') ||
-                    cat.includes('mix') ||
-                    item.isFocus;
-            })
+            .filter((item: any) => !!item)
             .sort((a, b) => {
                 const dateA = new Date(a.date).getTime();
                 const dateB = new Date(b.date).getTime();
@@ -304,13 +382,16 @@ export function News() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/50 to-transparent" />
                             {isAdmin && (
-                                <button
-                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(heroArticle); }}
-                                    disabled={loadingEditId === heroArticle.id}
-                                    className="absolute top-3 right-3 z-20 p-2 bg-black/60 backdrop-blur-md rounded-xl border border-neon-cyan/50 text-neon-cyan disabled:opacity-50"
-                                >
-                                    {loadingEditId === heroArticle.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit2 className="w-4 h-4" />}
-                                </button>
+                                <div className="absolute top-3 right-3 z-20 flex gap-1.5">
+                                    <ThemeButton item={heroArticle} />
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(heroArticle); }}
+                                        disabled={loadingEditId === heroArticle.id}
+                                        className="p-2 bg-black/60 backdrop-blur-md rounded-xl border border-neon-cyan/50 text-neon-cyan disabled:opacity-50"
+                                    >
+                                        {loadingEditId === heroArticle.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit2 className="w-4 h-4" />}
+                                    </button>
+                                </div>
                             )}
                             <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
                                 <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border backdrop-blur-md mb-2 inline-block ${heroArticle.isFocus 
@@ -371,13 +452,16 @@ export function News() {
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
                                 {isAdmin && (
-                                    <button
-                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(item); }}
-                                        disabled={loadingEditId === item.id}
-                                        className="absolute top-2 right-2 z-20 p-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-neon-cyan/50 text-neon-cyan disabled:opacity-50"
-                                    >
-                                        {loadingEditId === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Edit2 className="w-3 h-3" />}
-                                    </button>
+                                    <div className="absolute top-2 right-2 z-20 flex gap-1">
+                                        <ThemeButton item={item} />
+                                        <button
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(item); }}
+                                            disabled={loadingEditId === item.id}
+                                            className="p-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-neon-cyan/50 text-neon-cyan disabled:opacity-50"
+                                        >
+                                            {loadingEditId === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Edit2 className="w-3 h-3" />}
+                                        </button>
+                                    </div>
                                 )}
                                 <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
                                     <span className={`text-[8px] font-black px-2 py-0.5 rounded-md border backdrop-blur-md mb-1.5 inline-block ${
@@ -586,22 +670,25 @@ export function News() {
                                             className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-red/50 hover:shadow-[0_0_40px_rgba(255,0,51,0.2)] md:flex md:flex-col"
                                         >
                                             {isAdmin && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        handleEdit(item);
-                                                    }}
-                                                    disabled={loadingEditId === item.id}
-                                                    className="absolute top-4 right-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-2xl border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
-                                                    title="Modifier"
-                                                >
-                                                    {loadingEditId === item.id ? (
-                                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                                    ) : (
-                                                        <Edit2 className="w-4 h-4" />
-                                                    )}
-                                                </button>
+                                                <div className="absolute top-4 right-4 z-20 flex gap-2">
+                                                    <ThemeButton item={item} />
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            handleEdit(item);
+                                                        }}
+                                                        disabled={loadingEditId === item.id}
+                                                        className="p-2.5 bg-black/60 backdrop-blur-md rounded-2xl border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
+                                                        title="Modifier"
+                                                    >
+                                                        {loadingEditId === item.id ? (
+                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                        ) : (
+                                                            <Edit2 className="w-4 h-4" />
+                                                        )}
+                                                    </button>
+                                                </div>
                                             )}
                                             <Link
                                                 to={getArticleLink(item)}

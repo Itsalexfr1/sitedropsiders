@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Plus, Save, ArrowLeft, Loader2, Instagram, Trash2 } from 'lucide-react';
+import { Users, Plus, Save, ArrowLeft, Loader2, Instagram, Trash2, CheckCircle2, Mail, Shield } from 'lucide-react';
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders, apiFetch, isSuperAdmin, hasPermission } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -19,7 +19,52 @@ interface TeamMember {
         instagram: string;
         tiktok: string;
     };
+    email?: string;
+    givePermissions?: boolean;
+    permissions?: string[];
 }
+
+const PERMISSION_CATEGORIES = [
+    {
+        id: 'admin',
+        label: 'Rôle & Accès Maître',
+        permissions: [
+            { id: 'all', label: 'Administrateur (Tout)', description: 'Accès illimité à toutes les fonctionnalités et paramètres du site.' }
+        ]
+    },
+    {
+        id: 'editorial',
+        label: 'Rédaction & Contenu',
+        permissions: [
+            { id: 'news_focus', label: 'News & Focus', description: 'Créer, modifier et supprimer les pages News et Focus.' },
+            { id: 'musique_releases', label: 'Musique & Sorties', description: 'Gérer les articles sur les sorties musicales.' },
+            { id: 'interviews_video', label: 'Interviews', description: 'Gérer les interviews écrites et vidéos.' },
+            { id: 'recaps_festivals', label: 'Recaps Festivals', description: 'Gérer les reportages festivals et événements.' },
+            { id: 'agenda_events', label: 'Agenda Événements', description: 'Gérer le calendrier complet des événements.' },
+            { id: 'wiki_dropsiders', label: 'Wiki Dropsiders', description: 'Modifier et mettre à jour la base de données des DJs.' }
+        ]
+    },
+    {
+        id: 'animation',
+        label: 'Communauté & Live',
+        permissions: [
+            { id: 'community_mod', label: 'Communauté & Modération', description: 'Gérer la galerie photos, les quiz, et modérer le contenu utilisateur.' },
+            { id: 'live', label: 'Live Takeover', description: 'Accès complet aux réglages du Live, y compris la modération du chat.' }
+        ]
+    },
+    {
+        id: 'marketing',
+        label: 'Marketing & Business',
+        permissions: [
+            { id: 'social_studio', label: 'Social Studio', description: 'Générer des visuels pour les réseaux sociaux.' },
+            { id: 'push_newsletter', label: 'Push & Newsletter', description: 'Envoyer des notifications push et gérer les campagnes de mails.' },
+            { id: 'shop', label: 'Boutique', description: 'Gérer la section merchandising et les commandes.' },
+            { id: 'messages_contact', label: 'Messagerie & Contact', description: 'Répondre aux messages reçus via le formulaire de contact.' },
+            { id: 'stats_analytics', label: 'Statistiques', description: 'Voir les chiffres d\'audience et d\'analyse du site.' },
+            { id: 'home_layout', label: 'Page d\'Accueil', description: 'Modifier la disposition et les sélections de la page d\'accueil.' }
+        ]
+    }
+];
 
 export function AdminTeam() {
     const navigate = useNavigate();
@@ -37,6 +82,7 @@ export function AdminTeam() {
     }, [canAccess, navigate]);
 
     const [members, setMembers] = useState<TeamMember[]>([]);
+    const [editors, setEditors] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -87,7 +133,22 @@ export function AdminTeam() {
 
     useEffect(() => {
         fetchTeam();
+        fetchEditors();
     }, []);
+
+    const fetchEditors = async () => {
+        try {
+            const response = await apiFetch('/api/editors', {
+                headers: getAuthHeaders()
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setEditors(Array.isArray(data) ? data : []);
+            }
+        } catch (e) {
+            console.error('Failed to fetch editors', e);
+        }
+    };
 
     const fetchTeam = async () => {
         try {
@@ -116,6 +177,39 @@ export function AdminTeam() {
             });
 
             if (response.ok) {
+                // Update or create editor accounts and send invitations
+                for (const member of members) {
+                    if (member.email && member.givePermissions && member.permissions && member.permissions.length > 0) {
+                        // Create or update permissions in editors.json
+                        await apiFetch('/api/editors/update-permissions', {
+                            method: 'POST',
+                            headers: getAuthHeaders(),
+                            body: JSON.stringify({
+                                email: member.email,
+                                pseudo: member.name,
+                                role: member.role,
+                                permissions: member.permissions,
+                                isInvite: true
+                            })
+                        });
+
+                        // Send invitation email if the editor is not verified yet
+                        const matchingEditor = editors.find(e => e.email?.toLowerCase() === member.email?.toLowerCase());
+                        if (!matchingEditor || matchingEditor.verified === false) {
+                            await apiFetch('/api/editors/send-invite', {
+                                method: 'POST',
+                                headers: getAuthHeaders(),
+                                body: JSON.stringify({
+                                    email: member.email,
+                                    pseudo: member.name,
+                                    isInvite: true
+                                })
+                            });
+                        }
+                    }
+                }
+
+                await fetchEditors();
                 setMessage('Mise à jour réussie !');
                 setHasChanges(false);
                 setTimeout(() => setMessage(''), 3000);
@@ -138,13 +232,22 @@ export function AdminTeam() {
             socials: {
                 instagram: '',
                 tiktok: ''
-            }
+            },
+            email: '',
+            givePermissions: false,
+            permissions: []
         });
         setIsModalOpen(true);
     };
 
     const openEditModal = (member: TeamMember) => {
-        setEditingMember({ ...member });
+        const matchingEditor = editors.find(e => e.email?.toLowerCase() === member.email?.toLowerCase());
+        setEditingMember({
+            ...member,
+            email: member.email || '',
+            givePermissions: !!matchingEditor,
+            permissions: matchingEditor?.permissions || []
+        });
         setIsModalOpen(true);
     };
 
@@ -205,6 +308,7 @@ export function AdminTeam() {
     };
 
     const importFromCommunity = (user: any) => {
+        const matchingEditor = editors.find(e => e.email?.toLowerCase() === user.email?.toLowerCase());
         setEditingMember({
             id: Date.now(),
             name: user.username || user.name || user.pseudo || '',
@@ -213,7 +317,10 @@ export function AdminTeam() {
             socials: {
                 instagram: '',
                 tiktok: ''
-            }
+            },
+            email: user.email || '',
+            givePermissions: !!matchingEditor,
+            permissions: matchingEditor?.permissions || []
         });
         setCommunitySearch('');
         setCommunityResults([]);
@@ -306,6 +413,36 @@ export function AdminTeam() {
                                                 />
                                             )}
                                         </div>
+
+                                        {member.email && (
+                                            <div className="text-[9px] text-gray-500 truncate mt-2 font-mono flex items-center gap-1.5">
+                                                <Mail className="w-3 h-3 text-gray-600" />
+                                                {member.email}
+                                            </div>
+                                        )}
+
+                                        {member.email && (() => {
+                                            const matchingEditor = editors.find(e => e.email?.toLowerCase() === member.email?.toLowerCase());
+                                            if (matchingEditor) {
+                                                return (
+                                                    <div className="mt-2 flex flex-wrap gap-1.5">
+                                                        <span className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 text-neon-red text-[7px] font-black rounded uppercase tracking-wider flex items-center gap-1">
+                                                            <Shield className="w-2 h-2" /> Accès back-office
+                                                        </span>
+                                                        {matchingEditor.verified === false ? (
+                                                            <span className="px-2 py-0.5 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan text-[7px] font-black rounded uppercase tracking-wider animate-pulse">
+                                                                Invitation Envoyée
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/30 text-green-500 text-[7px] font-black rounded uppercase tracking-wider">
+                                                                Compte Validé
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
                                     </div>
 
                                     <button
@@ -410,6 +547,16 @@ export function AdminTeam() {
                                                     placeholder="Ex: Photographe / Rédacteur"
                                                 />
                                             </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-2">Adresse E-mail (Requis pour accès)</label>
+                                                <input
+                                                    type="email"
+                                                    value={editingMember.email || ''}
+                                                    onChange={e => setEditingMember({ ...editingMember, email: e.target.value.toLowerCase().trim() })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-neon-red transition-colors"
+                                                    placeholder="Ex: jean.dupont@gmail.com"
+                                                />
+                                            </div>
                                         </div>
                                         <div className="flex flex-col items-center gap-4">
                                             <div className="w-32 h-32 rounded-2xl overflow-hidden border border-white/10 bg-black">
@@ -463,6 +610,72 @@ export function AdminTeam() {
                                             />
                                         </div>
                                     </div>
+
+                                    {editingMember.email && (
+                                        <div className="space-y-4 p-5 bg-white/5 border border-white/10 rounded-2xl text-left">
+                                            <label className="flex items-center gap-3 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!editingMember.givePermissions}
+                                                    onChange={e => {
+                                                        const checked = e.target.checked;
+                                                        setEditingMember({
+                                                            ...editingMember,
+                                                            givePermissions: checked,
+                                                            permissions: checked ? (editingMember.permissions || []) : []
+                                                        });
+                                                    }}
+                                                    className="sr-only"
+                                                />
+                                                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${editingMember.givePermissions ? 'bg-neon-red border-neon-red shadow-[0_0_15px_rgba(255,18,65,0.4)]' : 'border-white/10'}`}>
+                                                    {editingMember.givePermissions && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                                                </div>
+                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Activer les accès d'édition (Back-Office)</span>
+                                            </label>
+
+                                            {editingMember.givePermissions && (
+                                                <div className="pt-4 border-t border-white/5 space-y-6">
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-2">Sélection des Modules Accessibles</label>
+                                                    <div className="max-h-60 overflow-y-auto pr-2 custom-scrollbar space-y-6">
+                                                        {PERMISSION_CATEGORIES.map((category) => (
+                                                            <div key={category.id} className="space-y-2">
+                                                                <span className="text-[8px] font-black text-neon-red uppercase tracking-widest block">{category.label}</span>
+                                                                <div className="grid grid-cols-1 gap-2">
+                                                                    {category.permissions.map((perm) => {
+                                                                        const isChecked = (editingMember.permissions || []).includes(perm.id);
+                                                                        return (
+                                                                            <label key={perm.id} className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer hover:bg-white/10 transition-all border ${isChecked ? 'bg-neon-red/10 border-neon-red/20' : 'bg-black/20 border-white/5'}`}>
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    checked={isChecked}
+                                                                                    onChange={(e) => {
+                                                                                        const checked = e.target.checked;
+                                                                                        const currentPerms = editingMember.permissions || [];
+                                                                                        const updatedPerms = checked
+                                                                                            ? [...currentPerms, perm.id]
+                                                                                            : currentPerms.filter((p: string) => p !== perm.id);
+                                                                                        setEditingMember({ ...editingMember, permissions: updatedPerms });
+                                                                                    }}
+                                                                                    className="sr-only"
+                                                                                />
+                                                                                <div className={`mt-0.5 w-4 h-4 rounded border flex items-center justify-center transition-all ${isChecked ? 'bg-neon-red border-neon-red' : 'border-white/10'}`}>
+                                                                                    {isChecked && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[10px] font-black text-white uppercase italic tracking-tight">{perm.label}</p>
+                                                                                    <p className="text-[8px] text-gray-500 uppercase tracking-wider leading-tight font-medium">{perm.description}</p>
+                                                                                </div>
+                                                                            </label>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     <div className="flex gap-4 pt-4">
                                         <button
