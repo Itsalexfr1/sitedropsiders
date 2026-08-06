@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Send, Loader, X, Mail, Save, History, CheckCircle, Clock, Download, Printer, ChevronRight, Building2, User, Users, Settings, BookOpen, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Send, Loader, X, Mail, Save, History, CheckCircle, Clock, Download, Printer, ChevronRight, Building2, User, Users, Settings, BookOpen, RefreshCw, Calendar as CalendarIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { isSuperAdmin } from '../utils/auth';
+import { WorkPlanning } from './WorkPlanning';
 
 interface InvoiceLine {
     id: string;
@@ -210,7 +212,17 @@ export function InvoiceGenerator() {
     const [eventDate, setEventDate] = useState('');
     const [eventDate2, setEventDate2] = useState(''); // optional end date
 
-    const [view, setView] = useState<'edit' | 'archive' | 'clients' | 'settings'>('edit');
+    const [view, setView] = useState<'edit' | 'planning' | 'archive' | 'clients' | 'settings'>('edit');
+
+    const currentUser = (localStorage.getItem('admin_user') || '').toLowerCase();
+    const isAlex = currentUser === 'alex' || isSuperAdmin(currentUser);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('tab') === 'planning' && isAlex) {
+            setView('planning');
+        }
+    }, [isAlex]);
     const [archiveSubTab, setArchiveSubTab] = useState<'factures' | 'devis'>('factures');
     const [history, setHistory] = useState<any[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -705,12 +717,13 @@ export function InvoiceGenerator() {
         });
     };
 
-    const TABS = [
+    const visibleTabs = [
         { key: 'edit', icon: <Plus className="w-3 h-3" />, label: 'Nouvelle' },
+        ...(isAlex ? [{ key: 'planning' as const, icon: <CalendarIcon className="w-3 h-3 text-emerald-400" />, label: 'Planning Alex' }] : []),
         { key: 'archive', icon: <History className="w-3 h-3" />, label: 'Archives' },
         { key: 'clients', icon: <User className="w-3 h-3" />, label: 'Clients' },
         { key: 'settings', icon: <Settings className="w-3 h-3" />, label: 'Paramètres' },
-    ] as const;
+    ];
 
     return (
         <div className="w-full bg-[#0d0f1a] text-white flex flex-col" style={{ minHeight: '100dvh' }}>
@@ -723,8 +736,8 @@ export function InvoiceGenerator() {
                         <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{sender.name} • {sender.siret}</p>
                     </div>
                     <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/10 rounded-xl ml-4">
-                        {TABS.map(t => (
-                            <button key={t.key} onClick={() => { setView(t.key); if (t.key === 'archive') fetchHistory(); if (t.key === 'settings') setSenderDraft(sender); }}
+                        {visibleTabs.map(t => (
+                            <button key={t.key} onClick={() => { setView(t.key as any); if (t.key === 'archive') fetchHistory(); if (t.key === 'settings') setSenderDraft(sender); }}
                                 className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${view === t.key ? 'bg-indigo-600 text-white shadow-sm' : 'text-white/30 hover:text-white/60'}`}>
                                 {t.icon}{t.label}
                             </button>
@@ -762,9 +775,9 @@ export function InvoiceGenerator() {
             </div>
             {/* MOBILE BOTTOM TAB BAR */}
             <div className="fixed bottom-0 left-0 right-0 z-20 flex md:hidden border-t border-white/10 bg-[#0d0f1a]/95 backdrop-blur-xl">
-                {TABS.map(t => (
+                {visibleTabs.map(t => (
                     <button key={t.key}
-                        onClick={() => { setView(t.key); if (t.key === 'archive') fetchHistory(); if (t.key === 'settings') setSenderDraft(sender); }}
+                        onClick={() => { setView(t.key as any); if (t.key === 'archive') fetchHistory(); if (t.key === 'settings') setSenderDraft(sender); }}
                         className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest transition-all ${view === t.key ? 'text-indigo-400' : 'text-white/30'}`}>
                         <span className={`p-2 rounded-xl transition-all ${view === t.key ? 'bg-indigo-500/20' : ''}`}>{t.icon}</span>
                         {t.label}
@@ -1019,6 +1032,19 @@ export function InvoiceGenerator() {
                                     </div>
                                 </div>
                             </div>
+                        </motion.div>
+                    )}
+
+                    {/* ========== PLANNING TAB ========== */}
+                    {view === 'planning' && isAlex && (
+                        <motion.div key="planning" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            <WorkPlanning
+                                onConvertToInvoice={(planningLines, planningNotes) => {
+                                    setLines(planningLines.map((l, i) => ({ ...l, id: `${Date.now()}-${i}` })));
+                                    setNotes(planningNotes);
+                                    setView('edit');
+                                }}
+                            />
                         </motion.div>
                     )}
 

@@ -4,6 +4,8 @@ import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calenda
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
+import { isSuperAdmin } from '../utils/auth';
+import { WorkPlanning } from './WorkPlanning';
 
 interface InvoiceLine { id: string; description: string; quantity: number; unitPrice: number; }
 interface SavedClient { id: string; name: string; address: string; city: string; email: string; }
@@ -105,7 +107,16 @@ export function InvoiceGeneratorMobile() {
     });
 
     // Sheet states
-    const [view, setView] = useState<'edit' | 'archive' | 'clients' | 'settings'>('edit');
+    const [view, setView] = useState<'edit' | 'planning' | 'archive' | 'clients' | 'settings'>('edit');
+    const currentUser = (localStorage.getItem('admin_user') || '').toLowerCase();
+    const isAlex = currentUser === 'alex' || isSuperAdmin(currentUser);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('tab') === 'planning' && isAlex) {
+            setView('planning');
+        }
+    }, [isAlex]);
     const [sheet, setSheet] = useState<'none' | 'client' | 'date' | 'event' | 'details' | 'line' | 'settings' | 'email' | 'preview'>('none');
     const [previewKey, setPreviewKey] = useState(0);
     const [editingLine, setEditingLine] = useState<InvoiceLine | null>(null);
@@ -519,12 +530,13 @@ export function InvoiceGeneratorMobile() {
     const dueDateLabel = dueDate ? new Date(dueDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Aucune';
     const eventLabel = eventClub || eventDate ? [eventClub, eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : ''].filter(Boolean).join(' – ') : 'Aucun';
 
-    const TABS = [
+    const visibleTabs = [
         { key: 'edit', icon: <Plus className="w-4 h-4" />, label: 'Facture' },
+        ...(isAlex ? [{ key: 'planning' as const, icon: <Calendar className="w-4 h-4 text-emerald-400" />, label: 'Planning' }] : []),
         { key: 'archive', icon: <History className="w-4 h-4" />, label: 'Archives' },
         { key: 'clients', icon: <User className="w-4 h-4" />, label: 'Clients' },
         { key: 'settings', icon: <Settings className="w-4 h-4" />, label: 'Compte' },
-    ] as const;
+    ];
 
     return (
         <div className="flex flex-col h-full bg-[#0d0f1a] text-white overflow-hidden pb-[80px]">
@@ -654,6 +666,18 @@ export function InvoiceGeneratorMobile() {
                                     Archiver ({docType === 'devis' ? 'Devis' : 'sans envoyer'})
                                 </button>
                             </div>
+                        </motion.div>
+                    )}
+
+                    {/* ========== PLANNING TAB ========== */}
+                    {view === 'planning' && isAlex && (
+                        <motion.div key="planning" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                            <WorkPlanning
+                                onConvertToInvoice={(planningLines) => {
+                                    setLines(planningLines.map((l, i) => ({ ...l, id: `${Date.now()}-${i}` })));
+                                    setView('edit');
+                                }}
+                            />
                         </motion.div>
                     )}
 
@@ -919,9 +943,9 @@ export function InvoiceGeneratorMobile() {
 
             {/* ── FIXED BOTTOM TAB BAR ── */}
             <div className="fixed bottom-0 left-0 right-0 z-[100] flex border-t border-white/10 bg-[#0d0f1a]/95 backdrop-blur-xl pb-safe">
-                {TABS.map(t => (
+                {visibleTabs.map(t => (
                     <button key={t.key}
-                        onClick={() => setView(t.key)}
+                        onClick={() => setView(t.key as any)}
                         className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest transition-all ${view === t.key ? 'text-indigo-400' : 'text-white/30'}`}>
                         <span className={`p-2 rounded-xl transition-all ${view === t.key ? 'bg-indigo-500/20' : ''}`}>{t.icon}</span>
                         {t.label}

@@ -6854,7 +6854,7 @@ export function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <Link
                       to="/admin/messages"
                       onClick={() => setIsMessagesModalOpen(false)}
@@ -6919,23 +6919,43 @@ export function AdminDashboard() {
                     </button>
 
                     {isSuperAdmin(username) && (
-                      <Link
-                        to="/admin/factures"
-                        onClick={() => setIsMessagesModalOpen(false)}
-                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
-                      >
-                        <div className="w-16 h-16 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                          <FileText className="w-8 h-8 text-neon-purple" />
-                        </div>
-                        <div className="text-center">
-                          <h3 className="text-xl font-bold text-white uppercase italic">
-                            Facturation
-                          </h3>
-                          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
-                            Générer vos facures
-                          </p>
-                        </div>
-                      </Link>
+                      <>
+                        <Link
+                          to="/admin/factures"
+                          onClick={() => setIsMessagesModalOpen(false)}
+                          className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                        >
+                          <div className="w-16 h-16 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                            <FileText className="w-8 h-8 text-neon-purple" />
+                          </div>
+                          <div className="text-center">
+                            <h3 className="text-xl font-bold text-white uppercase italic">
+                              Facturation
+                            </h3>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
+                              Générer vos factures
+                            </p>
+                          </div>
+                        </Link>
+
+                        <Link
+                          to="/admin/factures?tab=planning"
+                          onClick={() => setIsMessagesModalOpen(false)}
+                          className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-emerald-500/10 hover:border-emerald-500/50 transition-all group"
+                        >
+                          <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 transition-transform">
+                            <Calendar className="w-8 h-8 text-emerald-400" />
+                          </div>
+                          <div className="text-center">
+                            <h3 className="text-xl font-bold text-white uppercase italic">
+                              Planning Travail
+                            </h3>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
+                              Planning mensuel & soirs
+                            </p>
+                          </div>
+                        </Link>
+                      </>
                     )}
                   </div>
                 </motion.div>

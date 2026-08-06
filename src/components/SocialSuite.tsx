@@ -370,13 +370,158 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         return () => cancelAnimationFrame(frame);
     }, [theme, isVideoRecording]);
 
-    const generateImage = async (targetTab?: TabType, exportMode = false) => {
+    const handleGeocode = async () => {
+        if (!mapSearchQuery.trim()) return;
+        setIsMapLoading(true);
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery)}&limit=1`);
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                setMapLatitude(lat);
+                setMapLongitude(lon);
+                const labelBase = mapVenue.trim() ? mapVenue.trim() : mapCityCountry;
+                setMapLabelText(labelBase.toUpperCase());
+            }
+        } catch (error) {
+            console.error("Geocoding error:", error);
+        } finally {
+            setIsMapLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!mapSearchQuery.trim() || mapSearchQuery.trim().length < 3) return;
+        const timer = setTimeout(() => {
+            handleGeocode();
+        }, 600);
+        return () => clearTimeout(timer);
+    }, [mapSearchQuery]);
+
+    const drawMap = (
+        ctx: CanvasRenderingContext2D,
+        lat: number,
+        lon: number,
+        zoom: number,
+        width: number,
+        height: number,
+        dx: number,
+        dy: number
+    ) => {
+        const centerTileX = lon2tile(lon, zoom);
+        const centerTileY = lat2tile(lat, zoom);
+
+        const canvasCenterX = dx + width / 2;
+        const canvasCenterY = dy + height / 2;
+
+        const tilesX = Math.ceil(width / 256) + 1;
+        const tilesY = Math.ceil(height / 256) + 1;
+
+        const startX = Math.floor(centerTileX - tilesX / 2);
+        const endX = Math.ceil(centerTileX + tilesX / 2);
+        const startY = Math.floor(centerTileY - tilesY / 2);
+        const endY = Math.ceil(centerTileY + tilesY / 2);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(dx, dy, width, height);
+        ctx.clip();
+
+        for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+                const mapX = Math.floor(x);
+                const mapY = Math.floor(y);
+                const maxTileVal = Math.pow(2, zoom);
+                
+                if (mapY < 0 || mapY >= maxTileVal) continue;
+                const wrappedX = ((mapX % maxTileVal) + maxTileVal) % maxTileVal;
+
+                let tileUrl = '';
+                if (mapStyle === 'voyager') {
+                    tileUrl = `https://basemaps.cartocdn.com/rastertiles/voyager/${zoom}/${wrappedX}/${mapY}@2x.png`;
+                } else if (mapStyle === 'satellite') {
+                    tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${mapY}/${wrappedX}`;
+                } else {
+                    tileUrl = `https://basemaps.cartocdn.com/rastertiles/dark_all/${zoom}/${wrappedX}/${mapY}@2x.png`;
+                }
+
+                let tileImg = imageCacheRef.current[tileUrl];
+                if (!tileImg) {
+                    const imgObj = new Image();
+                    imgObj.crossOrigin = 'anonymous';
+                    imgObj.src = tileUrl;
+                    imgObj.onload = () => {
+                        imageCacheRef.current[tileUrl] = imgObj;
+                        generateImage();
+                    };
+                    imageCacheRef.current[tileUrl] = imgObj;
+                } else if (tileImg.complete && tileImg.naturalWidth > 0) {
+                    const tileDx = canvasCenterX + (x - centerTileX) * 256;
+                    const tileDy = canvasCenterY + (y - centerTileY) * 256;
+                    ctx.drawImage(tileImg, tileDx, tileDy, 256, 256);
+                }
+            }
+        }
+
+        if (showMapPin) {
+            ctx.shadowColor = mapPinColor;
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = mapPinColor;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+
+            ctx.beginPath();
+            ctx.arc(canvasCenterX, canvasCenterY, 16, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(canvasCenterX, canvasCenterY, 6, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+        }
+
+        if (showMapLabel && mapLabelText) {
+            const locationText = mapLabelText.toUpperCase();
+            ctx.save();
+            ctx.shadowColor = mapPinColor;
+            ctx.shadowBlur = 10;
+            ctx.font = '900 italic 28px "Montserrat", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const tagW = ctx.measureText(locationText).width + 60;
+            const tagH = 56;
+            const tagX = canvasCenterX;
+            const tagY = showMapPin ? canvasCenterY + 70 : canvasCenterY;
+
+            ctx.fillStyle = 'rgba(10, 10, 10, 0.9)';
+            ctx.beginPath();
+            ctx.roundRect(tagX - tagW / 2, tagY - tagH / 2, tagW, tagH, 12);
+            ctx.fill();
+
+            ctx.strokeStyle = mapPinColor;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(tagX - tagW / 2, tagY - tagH / 2, tagW, tagH, 12);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(locationText, tagX, tagY + 2);
+            ctx.restore();
+        }
+
+        ctx.restore();
+    };
+
+    const generateImage = async (targetTab?: TabType, exportMode: boolean | ThemeType = false, forceThemeParam?: ThemeType) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
         const effectiveTab = targetTab || activeTab;
+        const forceTheme = typeof exportMode === 'string' ? (exportMode as ThemeType) : forceThemeParam;
         const effectiveTheme = forceTheme || theme;
 
         try {
