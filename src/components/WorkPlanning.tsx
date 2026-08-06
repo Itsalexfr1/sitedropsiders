@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar as CalendarIcon, Save, Printer, Check, Euro, Sparkles, ChevronLeft, ChevronRight, FileText, CheckCircle2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Save, Printer, Check, Euro, Sparkles, ChevronLeft, ChevronRight, FileText, CheckCircle2, MapPin } from 'lucide-react';
 
 interface WorkDayConfig {
     date: string; // "YYYY-MM-DD"
@@ -9,7 +9,8 @@ interface WorkDayConfig {
     isWeekend: boolean;
     worked: boolean;
     price: number;
-    note: string;
+    note: string;       // Lieu / Événement
+    description: string; // Description détaillée
 }
 
 interface WorkPlanningProps {
@@ -27,6 +28,7 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
     const [defaultPrice, setDefaultPrice] = useState<number>(150);
     const [days, setDays] = useState<WorkDayConfig[]>([]);
     const [savedNotice, setSavedNotice] = useState(false);
+    const [globalLocation, setGlobalLocation] = useState('');
 
     // Generate days for selected month
     useEffect(() => {
@@ -39,7 +41,7 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
         // Load saved state for this month if exists
         const savedKey = `work_planning_${selectedMonth}`;
         const savedDataRaw = localStorage.getItem(savedKey);
-        let savedData: Record<string, { worked: boolean; price: number; note: string }> = {};
+        let savedData: Record<string, { worked: boolean; price: number; note: string; description?: string }> = {};
         if (savedDataRaw) {
             try { savedData = JSON.parse(savedDataRaw); } catch {}
         }
@@ -63,6 +65,7 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
                 worked: savedDay ? savedDay.worked : false,
                 price: savedDay && savedDay.price !== undefined ? savedDay.price : defaultPrice,
                 note: savedDay ? savedDay.note || '' : '',
+                description: savedDay ? savedDay.description || '' : '',
             });
         }
         setDays(newDays);
@@ -70,10 +73,10 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
 
     const savePlanning = (updatedDays: WorkDayConfig[]) => {
         const key = `work_planning_${selectedMonth}`;
-        const dataToSave: Record<string, { worked: boolean; price: number; note: string }> = {};
+        const dataToSave: Record<string, { worked: boolean; price: number; note: string; description: string }> = {};
         updatedDays.forEach(d => {
-            if (d.worked || d.note || d.price !== defaultPrice) {
-                dataToSave[d.date] = { worked: d.worked, price: d.price, note: d.note };
+            if (d.worked || d.note || d.description || d.price !== defaultPrice) {
+                dataToSave[d.date] = { worked: d.worked, price: d.price, note: d.note, description: d.description };
             }
         });
         localStorage.setItem(key, JSON.stringify(dataToSave));
@@ -102,6 +105,22 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
     const updateDayNote = (index: number, note: string) => {
         const updated = [...days];
         updated[index] = { ...updated[index], note };
+        setDays(updated);
+        savePlanning(updated);
+    };
+
+    const updateDayDescription = (index: number, description: string) => {
+        const updated = [...days];
+        updated[index] = { ...updated[index], description };
+        setDays(updated);
+        savePlanning(updated);
+    };
+
+    const applyGlobalLocationToAll = () => {
+        if (!globalLocation.trim()) return;
+        const updated = days.map(d =>
+            d.worked ? { ...d, note: globalLocation } : d
+        );
         setDays(updated);
         savePlanning(updated);
     };
@@ -141,12 +160,13 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
     const totalAmount = workedDays.reduce((sum, d) => sum + (d.price || 0), 0);
 
     const monthFormatted = new Date(selectedMonth + '-01').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).toUpperCase();
+    const monthFormattedCapitalized = new Date(selectedMonth + '-01').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
     const handlePrint = () => {
         const rowsHtml = workedDays.map(d => `
             <tr>
                 <td style="padding:10px 14px;border-bottom:1px solid #eee;font-size:12px;font-weight:700;">${new Date(d.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}</td>
-                <td style="padding:10px 14px;border-bottom:1px solid #eee;font-size:12px;color:#444;">${d.note || 'Soirée / Prestation DJ'}</td>
+                <td style="padding:10px 14px;border-bottom:1px solid #eee;font-size:12px;color:#444;">${d.note || 'Soirée / Prestation DJ'}${d.description ? ` — ${d.description}` : ''}</td>
                 <td style="padding:10px 14px;border-bottom:1px solid #eee;font-size:12px;font-weight:700;text-align:right;">${(d.price || 0).toFixed(2)} €</td>
             </tr>
         `).join('');
@@ -196,21 +216,36 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
 
     const handleCreateInvoice = () => {
         if (!onConvertToInvoice) return;
-        const lines = workedDays.map(d => ({
-            description: `Prestation ${new Date(d.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}${d.note ? ` (${d.note})` : ''}`,
-            quantity: 1,
-            unitPrice: d.price || defaultPrice,
-        }));
 
-        if (lines.length === 0) {
-            lines.push({
-                description: `Prestation Planning ${monthFormatted}`,
-                quantity: 1,
-                unitPrice: 0
-            });
+        // Build a single grouped line for the invoice
+        const firstWorked = workedDays[0];
+        const lastWorked = workedDays[workedDays.length - 1];
+
+        // Get the common location (most used, or globalLocation, or first day's note)
+        const locationNotes = workedDays.map(d => d.note).filter(Boolean);
+        const locationCounts: Record<string, number> = {};
+        locationNotes.forEach(n => { locationCounts[n] = (locationCounts[n] || 0) + 1; });
+        const commonLocation = globalLocation.trim() ||
+            (locationNotes.length > 0
+                ? Object.entries(locationCounts).sort((a, b) => b[1] - a[1])[0][0]
+                : '');
+
+        let groupDescription = `Prestation DJ – ${monthFormattedCapitalized}`;
+        if (commonLocation) groupDescription += ` – ${commonLocation}`;
+        if (firstWorked && lastWorked) {
+            const fmt = (d: WorkDayConfig) => new Date(d.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+            if (firstWorked.date === lastWorked.date) {
+                groupDescription += ` — le ${fmt(firstWorked)}`;
+            } else {
+                groupDescription += ` — du ${fmt(firstWorked)} au ${fmt(lastWorked)}`;
+            }
         }
 
-        const notes = `Planning de travail mensuel ${monthFormatted} — Total ${totalDaysCount} soir(s) de travail (${totalAmount.toFixed(2)} €).`;
+        const lines = workedDays.length > 0
+            ? [{ description: groupDescription, quantity: totalDaysCount, unitPrice: totalDaysCount > 0 ? totalAmount / totalDaysCount : 0 }]
+            : [{ description: `Prestation Planning ${monthFormatted}`, quantity: 1, unitPrice: 0 }];
+
+        const notes = `Planning de travail – ${monthFormattedCapitalized} — ${totalDaysCount} soir(s)${commonLocation ? ` @ ${commonLocation}` : ''} — Total : ${totalAmount.toFixed(2)} € HT.`;
         onConvertToInvoice(lines, notes);
     };
 
@@ -355,6 +390,30 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
                         </div>
                     </div>
 
+                    {/* Global location applicator */}
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-4 space-y-2">
+                        <label className="text-[9px] font-black text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5" /> Appliquer un Lieu à Tous les Soirs Cochés
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="text"
+                                value={globalLocation}
+                                onChange={e => setGlobalLocation(e.target.value)}
+                                placeholder="Ex: Club X, Festival Y, Bar Z..."
+                                className="flex-1 bg-black/40 border border-emerald-500/30 rounded-xl px-3.5 py-2 text-white font-medium text-sm focus:border-emerald-400 outline-none placeholder:text-white/20 transition-all"
+                            />
+                            <button
+                                onClick={applyGlobalLocationToAll}
+                                disabled={!globalLocation.trim()}
+                                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-black font-black uppercase text-[10px] tracking-widest rounded-xl flex items-center gap-1.5 transition-all"
+                            >
+                                <MapPin className="w-3.5 h-3.5" /> Appliquer à tous
+                            </button>
+                        </div>
+                        <p className="text-[9px] text-emerald-400/50 font-medium">Ce lieu sera aussi utilisé comme référence lors de l'export en facture groupée.</p>
+                    </div>
+
                     {savedNotice && (
                         <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold animate-pulse pt-1">
                             <CheckCircle2 className="w-4 h-4" /> Planning sauvegardé automatiquement
@@ -427,12 +486,23 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
                                             />
                                         </div>
                                         <div>
+                                            <label className="text-[8px] font-black text-white/30 uppercase tracking-widest block mb-0.5">Lieu</label>
                                             <input 
                                                 type="text"
                                                 value={day.note}
                                                 onChange={e => updateDayNote(idx, e.target.value)}
                                                 className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-white font-medium text-[10px] focus:border-white/30 outline-none placeholder:text-white/20"
-                                                placeholder="Lieu / Evénement (opt)..."
+                                                placeholder="Lieu / Club..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[8px] font-black text-white/30 uppercase tracking-widest block mb-0.5">Description</label>
+                                            <input 
+                                                type="text"
+                                                value={day.description}
+                                                onChange={e => updateDayDescription(idx, e.target.value)}
+                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-white font-medium text-[10px] focus:border-white/30 outline-none placeholder:text-white/20"
+                                                placeholder="Description (opt)..."
                                             />
                                         </div>
                                     </div>
@@ -469,7 +539,10 @@ export function WorkPlanning({ onConvertToInvoice }: WorkPlanningProps) {
                                     <tr key={d.date} className="hover:bg-white/[0.02] transition-colors">
                                         <td className="py-3 px-4 font-mono font-bold text-emerald-400">{d.date}</td>
                                         <td className="py-3 px-4 font-bold uppercase">{d.dayOfWeek} {d.dayNum}</td>
-                                        <td className="py-3 px-4 text-white/70">{d.note || 'Soirée DJ / Prestation'}</td>
+                                        <td className="py-3 px-4">
+                                            <span className="text-white/70">{d.note || 'Soirée DJ / Prestation'}</span>
+                                            {d.description && <span className="block text-white/40 text-[10px] font-medium italic">{d.description}</span>}
+                                        </td>
                                         <td className="py-3 px-4 font-black text-right">{d.price.toFixed(2)} €</td>
                                     </tr>
                                 ))}
