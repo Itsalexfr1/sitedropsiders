@@ -209,8 +209,13 @@ export function InvoiceGeneratorMobile() {
         try {
             const adminUser = localStorage.getItem('admin_user') || '';
             const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
             const res = await fetch('/api/invoices?t=' + Date.now(), {
-                headers: { 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }
+                headers: { 
+                    'X-Admin-Username': adminUser, 
+                    'X-Admin-Password': adminPass,
+                    'X-Session-ID': sessionId
+                }
             });
             if (res.ok) {
                 const data = await res.json();
@@ -250,9 +255,10 @@ export function InvoiceGeneratorMobile() {
         try {
             const adminPass = localStorage.getItem('admin_password') || '';
             const adminUser = localStorage.getItem('admin_user') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
             await fetch('/api/invoices/update', { 
                 method: 'POST', 
-                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }, 
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, 
                 body: JSON.stringify({ id, paid: !paid }) 
             });
             setHistory(prev => prev.map(inv => inv.id === id ? { ...inv, paid: !paid } : inv));
@@ -263,9 +269,10 @@ export function InvoiceGeneratorMobile() {
         try {
             const adminPass = localStorage.getItem('admin_password') || '';
             const adminUser = localStorage.getItem('admin_user') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
             await fetch('/api/invoices/update', { 
                 method: 'POST', 
-                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }, 
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, 
                 body: JSON.stringify({ id, status }) 
             });
             setHistory(prev => prev.map(dev => dev.id === id ? { ...dev, status } : dev));
@@ -293,9 +300,10 @@ export function InvoiceGeneratorMobile() {
         try {
             const adminPass = localStorage.getItem('admin_password') || '';
             const adminUser = localStorage.getItem('admin_user') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
             await fetch('/api/invoices/update', { 
                 method: 'POST', 
-                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }, 
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, 
                 body: JSON.stringify({ id: dev.id, status: 'invoiced' }) 
             });
             fetchHistory();
@@ -313,7 +321,8 @@ export function InvoiceGeneratorMobile() {
         try {
             const adminUser = localStorage.getItem('admin_user') || '';
             const adminPass = localStorage.getItem('admin_password') || '';
-            const res = await fetch('/api/invoices/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }, body: JSON.stringify({ id }) });
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            const res = await fetch('/api/invoices/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, body: JSON.stringify({ id }) });
             if (res.ok) fetchHistory();
         } catch { }
     };
