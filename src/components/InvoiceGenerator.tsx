@@ -59,6 +59,7 @@ function buildInvoiceHTML(data: {
     notes: string;
     sender: Sender;
     type?: 'devis' | 'facture';
+    paidAmount?: number;
 }) {
     const { sender } = data;
     const rows = data.lines.map(l => `
@@ -148,6 +149,21 @@ function buildInvoiceHTML(data: {
                         <td style="padding:14px 16px;font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">TOTAL TTC</td>
                         <td style="padding:14px 16px;font-size:18px;font-weight:900;color:#fff;text-align:right">${data.total.toFixed(2)} €</td>
                     </tr>
+                    ${(data.paidAmount !== undefined && data.paidAmount > 0) ? (
+                        data.paidAmount >= data.total ? `
+                        <tr style="background:#059669">
+                            <td style="padding:10px 16px;font-size:11px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">RÉGLÉ EN TOTALITÉ</td>
+                            <td style="padding:10px 16px;font-size:14px;font-weight:900;color:#fff;text-align:right">${data.paidAmount.toFixed(2)} €</td>
+                        </tr>` : `
+                        <tr>
+                            <td style="padding:8px 0;font-size:12px;color:#059669;font-weight:700">Montant réglé (Acompte)</td>
+                            <td style="padding:8px 0;font-size:12px;color:#059669;font-weight:700;text-align:right">- ${data.paidAmount.toFixed(2)} €</td>
+                        </tr>
+                        <tr style="background:#d97706">
+                            <td style="padding:12px 16px;font-size:12px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">RESTE À PAYER</td>
+                            <td style="padding:12px 16px;font-size:16px;font-weight:900;color:#fff;text-align:right">${(data.total - data.paidAmount).toFixed(2)} €</td>
+                        </tr>`
+                    ) : ''}
                 </table>
             </td>
         </tr>
@@ -235,6 +251,18 @@ export function InvoiceGenerator() {
     const [sendError, setSendError] = useState('');
 
     const [previewInvoice, setPreviewInvoice] = useState<any | null>(null);
+    const [paymentModalInvoice, setPaymentModalInvoice] = useState<any | null>(null);
+    const [customPaidInput, setCustomPaidInput] = useState<string>('');
+
+    useEffect(() => {
+        if (paymentModalInvoice) {
+            const tot = parseFloat(paymentModalInvoice.total) || 0;
+            const currentPaid = typeof paymentModalInvoice.paidAmount === 'number' && !isNaN(paymentModalInvoice.paidAmount)
+                ? paymentModalInvoice.paidAmount
+                : (paymentModalInvoice.paid ? tot : 0);
+            setCustomPaidInput(currentPaid.toString());
+        }
+    }, [paymentModalInvoice]);
 
     const reconstructInvoiceData = (inv: any) => {
         const type = inv.type || (inv.number?.startsWith('DEV') ? 'devis' : 'facture');
@@ -247,6 +275,9 @@ export function InvoiceGenerator() {
         const clientCityVal = inv.clientCity || '';
         
         const totalVal = parseFloat(inv.total) || 0;
+        const paidAmountVal = typeof inv.paidAmount === 'number' && !isNaN(inv.paidAmount)
+            ? inv.paidAmount
+            : (inv.paid ? totalVal : 0);
         const linesVal = inv.lines && inv.lines.length > 0 ? inv.lines : [
             { id: '1', description: 'Prestation de service', quantity: 1, unitPrice: totalVal }
         ];
@@ -268,6 +299,8 @@ export function InvoiceGenerator() {
             iban: ibanVal,
             bic: bicVal,
             total: totalVal,
+            paidAmount: paidAmountVal,
+            paid: inv.paid,
             notes: notesVal,
             sender: senderVal,
             type
@@ -629,6 +662,27 @@ export function InvoiceGenerator() {
                 body: JSON.stringify({ id, paid: !paid }) 
             });
             setHistory(prev => prev.map(inv => inv.id === id ? { ...inv, paid: !paid } : inv));
+        } catch { }
+    };
+
+    const updateInvoicePaidAmount = async (id: number, amount: number, invoiceTotal: number) => {
+        const validAmount = Math.max(0, Math.min(invoiceTotal, amount));
+        const paid = validAmount >= invoiceTotal;
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            await fetch('/api/invoices/update', { 
+                method: 'POST', 
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'X-Admin-Username': adminUser, 
+                    'X-Admin-Password': adminPass,
+                    'X-Session-ID': sessionId
+                }, 
+                body: JSON.stringify({ id, paidAmount: validAmount, paid }) 
+            });
+            setHistory(prev => prev.map(inv => inv.id === id ? { ...inv, paidAmount: validAmount, paid } : inv));
         } catch { }
     };
 
@@ -1077,30 +1131,49 @@ export function InvoiceGenerator() {
 
                                 if (archiveSubTab === 'factures') {
                                     const stats = invoices.reduce((acc, inv) => {
-                                        const d = new Date(inv.date || inv.created_at || Date.now());
-                                        const t = parseFloat(inv.total) || 0;
-                                        acc.allTime += t;
+                                        const d = new Date(inv.date || inv.sentDate || inv.created_at || Date.now());
+                                        const tot = parseFloat(inv.total) || 0;
+                                        const paidAmt = typeof inv.paidAmount === 'number' && !isNaN(inv.paidAmount)
+                                            ? inv.paidAmount
+                                            : (inv.paid ? tot : 0);
+
+                                        acc.allTimeInvoiced += tot;
+                                        acc.allTimeCollected += paidAmt;
+
                                         if (d.getFullYear() === new Date().getFullYear()) {
-                                            acc.thisYear += t;
-                                            if (d.getMonth() === new Date().getMonth()) acc.thisMonth += t;
+                                            acc.thisYearInvoiced += tot;
+                                            acc.thisYearCollected += paidAmt;
+                                            if (d.getMonth() === new Date().getMonth()) {
+                                                acc.thisMonthInvoiced += tot;
+                                                acc.thisMonthCollected += paidAmt;
+                                            }
                                         }
                                         return acc;
-                                    }, { thisMonth: 0, thisYear: 0, allTime: 0 });
+                                    }, { thisMonthInvoiced: 0, thisMonthCollected: 0, thisYearInvoiced: 0, thisYearCollected: 0, allTimeInvoiced: 0, allTimeCollected: 0 });
 
                                     return (
                                         <>
                                             <div className="grid grid-cols-3 gap-4 mb-6">
                                                 <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 text-center">
-                                                    <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400/70 mb-1">Ce Mois</div>
-                                                    <div className="text-xl font-black text-indigo-400">{stats.thisMonth.toFixed(2)} €</div>
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400/70 mb-1">Ce Mois (Encaissé)</div>
+                                                    <div className="text-xl font-black text-indigo-400">{stats.thisMonthCollected.toFixed(2)} €</div>
+                                                    {stats.thisMonthInvoiced !== stats.thisMonthCollected && (
+                                                        <div className="text-[9px] text-white/40 font-bold mt-0.5">Facturé : {stats.thisMonthInvoiced.toFixed(2)} €</div>
+                                                    )}
                                                 </div>
                                                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Cette Année</div>
-                                                    <div className="text-xl font-black text-white">{stats.thisYear.toFixed(2)} €</div>
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Cette Année (Encaissé)</div>
+                                                    <div className="text-xl font-black text-white">{stats.thisYearCollected.toFixed(2)} €</div>
+                                                    {stats.thisYearInvoiced !== stats.thisYearCollected && (
+                                                        <div className="text-[9px] text-white/40 font-bold mt-0.5">Facturé : {stats.thisYearInvoiced.toFixed(2)} €</div>
+                                                    )}
                                                 </div>
                                                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Total CA</div>
-                                                    <div className="text-xl font-black text-white">{stats.allTime.toFixed(2)} €</div>
+                                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Total Encaissé</div>
+                                                    <div className="text-xl font-black text-white">{stats.allTimeCollected.toFixed(2)} €</div>
+                                                    {stats.allTimeInvoiced !== stats.allTimeCollected && (
+                                                        <div className="text-[9px] text-white/40 font-bold mt-0.5">Total Facturé : {stats.allTimeInvoiced.toFixed(2)} €</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             {invoices.length === 0 ? (
@@ -1112,6 +1185,13 @@ export function InvoiceGenerator() {
                                                 <div className="space-y-3 pb-20">
                                                     {invoices.map((inv: any) => {
                                                         const shortNumber = inv.number ? inv.number.split('-').pop()?.replace(/^0+/, '') : inv.id;
+                                                        const total = parseFloat(inv.total) || 0;
+                                                        const paidAmt = typeof inv.paidAmount === 'number' && !isNaN(inv.paidAmount)
+                                                            ? inv.paidAmount
+                                                            : (inv.paid ? total : 0);
+                                                        const isFull = paidAmt >= total && total > 0;
+                                                        const isPartial = paidAmt > 0 && paidAmt < total;
+
                                                         return (
                                                             <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 lg:p-6 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
                                                                 <div className="hidden lg:flex w-12 h-12 bg-indigo-500/10 rounded-xl items-center justify-center shrink-0 border border-indigo-500/20">
@@ -1123,17 +1203,34 @@ export function InvoiceGenerator() {
                                                                     {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 truncate max-w-[250px]">{inv.emailTo}</div>}
                                                                 </div>
                                                                 <div className="text-left lg:text-right shrink-0">
-                                                                    <div className="font-black text-lg text-indigo-400">{parseFloat(inv.total || 0).toFixed(2)} €</div>
+                                                                    <div className="font-black text-lg text-indigo-400">{total.toFixed(2)} €</div>
+                                                                    {isPartial && (
+                                                                        <div className="text-[10px] text-amber-400 font-bold">Reste : {(total - paidAmt).toFixed(2)} €</div>
+                                                                    )}
                                                                 </div>
                                                                 <div className="flex items-center gap-2 shrink-0">
                                                                     <button onClick={() => setPreviewInvoice(reconstructInvoiceData(inv))}
                                                                         className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400 hover:border-indigo-500/50 transition-all">
                                                                         <BookOpen className="w-3 h-3" /> Revoir / PDF
                                                                     </button>
-                                                                    <button onClick={() => togglePaid(inv.id, inv.paid)}
-                                                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30 hover:border-indigo-500/50'}`}>
-                                                                        {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> En attente</>}
+
+                                                                    <button onClick={() => setPaymentModalInvoice(inv)}
+                                                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer ${
+                                                                            isFull 
+                                                                                ? 'bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20' 
+                                                                                : isPartial 
+                                                                                    ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20' 
+                                                                                    : 'bg-white/5 border border-white/10 text-white/40 hover:border-indigo-500/50 hover:text-white'
+                                                                        }`}>
+                                                                        {isFull ? (
+                                                                            <><CheckCircle className="w-3 h-3 text-green-400" /> Payée ({paidAmt.toFixed(0)} €)</>
+                                                                        ) : isPartial ? (
+                                                                            <><Clock className="w-3 h-3 text-amber-400" /> Réglé : {paidAmt.toFixed(0)} / {total.toFixed(0)} €</>
+                                                                        ) : (
+                                                                            <><Clock className="w-3 h-3" /> En attente (0 €)</>
+                                                                        )}
                                                                     </button>
+
                                                                     <button onClick={() => deleteInvoice(inv.id)} className="p-2 bg-white/5 border border-white/10 rounded-xl text-red-500/50 hover:bg-red-500/10 hover:text-red-400 transition-all">
                                                                         <Trash2 className="w-4 h-4" />
                                                                     </button>
@@ -1715,6 +1812,90 @@ export function InvoiceGenerator() {
                             </div>
                         </motion.div>
                     </div>
+                )}
+            </AnimatePresence>
+            {/* PAYMENT MODAL */}
+            <AnimatePresence>
+                {paymentModalInvoice && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-[#16192c] border border-white/10 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-6">
+                            
+                            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Règlement Facture</p>
+                                    <h3 className="text-lg font-black text-white">{paymentModalInvoice.number || `N° ${paymentModalInvoice.id}`}</h3>
+                                    <p className="text-xs text-white/40 font-medium">{paymentModalInvoice.client || 'Client inconnu'}</p>
+                                </div>
+                                <button onClick={() => setPaymentModalInvoice(null)} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-white/60">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                <span className="text-xs font-bold text-white/50 uppercase tracking-wider">Montant Total Facture</span>
+                                <span className="text-xl font-black text-white">{(parseFloat(paymentModalInvoice.total) || 0).toFixed(2)} €</span>
+                            </div>
+
+                            {/* Quick Preset Buttons */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <button onClick={() => {
+                                        const tot = parseFloat(paymentModalInvoice.total) || 0;
+                                        updateInvoicePaidAmount(paymentModalInvoice.id, tot, tot);
+                                        setPaymentModalInvoice(null);
+                                    }}
+                                    className="py-3 px-4 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-xl text-xs font-black uppercase tracking-widest text-green-400 flex items-center justify-center gap-2 transition-all">
+                                    <CheckCircle className="w-4 h-4" /> Tout régler (100%)
+                                </button>
+                                <button onClick={() => {
+                                        const tot = parseFloat(paymentModalInvoice.total) || 0;
+                                        updateInvoicePaidAmount(paymentModalInvoice.id, 0, tot);
+                                        setPaymentModalInvoice(null);
+                                    }}
+                                    className="py-3 px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/40 hover:text-white flex items-center justify-center gap-2 transition-all">
+                                    <Clock className="w-4 h-4" /> Non réglé (0 €)
+                                </button>
+                            </div>
+
+                            {/* Custom Amount Input */}
+                            <div className="space-y-2 pt-2 border-t border-white/5">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-white/40 block">Ou saisir un montant personnalisé (€)</label>
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <input type="number" min="0" step="0.01" max={parseFloat(paymentModalInvoice.total) || 0}
+                                            value={customPaidInput}
+                                            onChange={e => setCustomPaidInput(e.target.value)}
+                                            placeholder="ex: 250.00"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-base font-black focus:outline-none focus:border-indigo-400"
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 font-bold">€</span>
+                                    </div>
+                                    <button onClick={() => {
+                                            const tot = parseFloat(paymentModalInvoice.total) || 0;
+                                            const val = parseFloat(customPaidInput) || 0;
+                                            updateInvoicePaidAmount(paymentModalInvoice.id, val, tot);
+                                            setPaymentModalInvoice(null);
+                                        }}
+                                        className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-xs font-black uppercase tracking-widest text-white transition-all shadow-lg shadow-indigo-600/20">
+                                        Valider
+                                    </button>
+                                </div>
+                                {(() => {
+                                    const tot = parseFloat(paymentModalInvoice.total) || 0;
+                                    const currentInputVal = parseFloat(customPaidInput) || 0;
+                                    const remain = Math.max(0, tot - currentInputVal);
+                                    return (
+                                        <div className="text-[11px] font-bold text-amber-400/80 pt-1 flex justify-between">
+                                            <span>Solde restant à régler :</span>
+                                            <span>{remain.toFixed(2)} €</span>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+
+                        </motion.div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>

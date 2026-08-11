@@ -134,6 +134,18 @@ export function InvoiceGeneratorMobile() {
     const [showDeleteInvoiceId, setShowDeleteInvoiceId] = useState<number | null>(null);
 
     const [previewArchiveItem, setPreviewArchiveItem] = useState<any | null>(null);
+    const [paymentModalInvoice, setPaymentModalInvoice] = useState<any | null>(null);
+    const [customPaidInput, setCustomPaidInput] = useState<string>('');
+
+    useEffect(() => {
+        if (paymentModalInvoice) {
+            const tot = parseFloat(paymentModalInvoice.total) || 0;
+            const currentPaid = typeof paymentModalInvoice.paidAmount === 'number' && !isNaN(paymentModalInvoice.paidAmount)
+                ? paymentModalInvoice.paidAmount
+                : (paymentModalInvoice.paid ? tot : 0);
+            setCustomPaidInput(currentPaid.toString());
+        }
+    }, [paymentModalInvoice]);
 
     const reconstructInvoiceData = (inv: any) => {
         const type = inv.type || (inv.number?.startsWith('DEV') ? 'devis' : 'facture');
@@ -146,6 +158,9 @@ export function InvoiceGeneratorMobile() {
         const clientCityVal = inv.clientCity || '';
         
         const totalVal = parseFloat(inv.total) || 0;
+        const paidAmountVal = typeof inv.paidAmount === 'number' && !isNaN(inv.paidAmount)
+            ? inv.paidAmount
+            : (inv.paid ? totalVal : 0);
         const linesVal = inv.lines && inv.lines.length > 0 ? inv.lines : [
             { id: '1', description: 'Prestation Light', quantity: 1, unitPrice: totalVal }
         ];
@@ -167,6 +182,8 @@ export function InvoiceGeneratorMobile() {
             iban: ibanVal,
             bic: bicVal,
             total: totalVal,
+            paidAmount: paidAmountVal,
+            paid: inv.paid,
             notes: notesVal,
             sender: senderVal,
             type
@@ -262,6 +279,22 @@ export function InvoiceGeneratorMobile() {
                 body: JSON.stringify({ id, paid: !paid }) 
             });
             setHistory(prev => prev.map(inv => inv.id === id ? { ...inv, paid: !paid } : inv));
+        } catch { }
+    };
+
+    const updateInvoicePaidAmount = async (id: number, amount: number, invoiceTotal: number) => {
+        const validAmount = Math.max(0, Math.min(invoiceTotal, amount));
+        const paid = validAmount >= invoiceTotal;
+        try {
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            await fetch('/api/invoices/update', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, 
+                body: JSON.stringify({ id, paidAmount: validAmount, paid }) 
+            });
+            setHistory(prev => prev.map(inv => inv.id === id ? { ...inv, paidAmount: validAmount, paid } : inv));
         } catch { }
     };
 
@@ -426,8 +459,25 @@ export function InvoiceGeneratorMobile() {
         const clientNameVal = useData.clientName || useData.client || '—';
         const clientEmailVal = useData.clientEmail || useData.emailTo || '';
         const dateVal = useData.date || new Date().toISOString().split('T')[0];
-        
-        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>${isDev ? 'Devis' : 'Facture'} ${num}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:210mm;min-height:297mm;padding:20mm;background:#fff;margin:0 auto}@media print{body{margin:0}.page{padding:15mm;width:100%}@page{margin:0;size:A4}}</style></head><body><div class="page"><table style="width:100%;margin-bottom:40px"><tr><td style="vertical-align:top"><div style="font-size:22px;font-weight:900;color:#000;letter-spacing:-1px;text-transform:uppercase">${useData.sender.name}</div><div style="font-size:11px;color:#666;margin-top:4px">SIRET : ${useData.sender.siret}</div><div style="font-size:11px;color:#666;margin-top:2px">${useData.sender.address}</div><div style="font-size:11px;color:#666;margin-top:2px">${useData.sender.email}</div><div style="font-size:11px;color:#666;margin-top:2px">${useData.sender.phone}</div></td><td style="vertical-align:top;text-align:right"><div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">${isDev ? 'DEVIS' : 'FACTURE'}</div><div style="font-size:13px;color:#666;margin-top:6px">N° <strong style="color:#000">${num}</strong></div><div style="font-size:13px;color:#666;margin-top:4px">Date : <strong style="color:#000">${new Date(dateVal).toLocaleDateString('fr-FR')}</strong></div>${useData.dueDate ? `<div style="font-size:13px;color:#e00;margin-top:4px">Échéance : <strong>${new Date(useData.dueDate).toLocaleDateString('fr-FR')}</strong></div>` : ''}</td></tr></table><div style="height:2px;background:#000;margin-bottom:32px"></div><table style="width:100%;margin-bottom:40px"><tr><td style="width:50%"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">${isDev ? 'Destinataire' : 'Facturé à'}</div><div style="font-size:15px;font-weight:700;color:#000">${clientNameVal}</div><div style="font-size:12px;color:#666;margin-top:4px">${useData.clientAddress || ''}${useData.clientCity ? `, ${useData.clientCity}` : ''}</div>${clientEmailVal ? `<div style="font-size:12px;color:#666;margin-top:4px">${clientEmailVal}</div>` : ''}</td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:32px"><thead><tr style="background:#3730a3"><th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Description</th><th style="padding:12px 16px;text-align:center;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Qté</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">P.U. HT</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Total HT</th></tr></thead><tbody>${rows}</tbody></table><table style="width:100%;margin-bottom:48px"><tr><td style="width:60%">${useData.notes ? `<div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:6px">Notes</div><div style="font-size:12px;color:#444;line-height:1.6">${useData.notes}</div>` : ''}</td><td style="width:40%;vertical-align:bottom"><table style="width:100%"><tr><td style="padding:8px 0;font-size:12px;color:#666;border-top:1px solid #f0f0f0">Sous-total HT</td><td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${useData.total.toFixed(2)} €</td></tr><tr><td style="padding:8px 0;font-size:11px;color:#999">TVA</td><td style="padding:8px 0;font-size:11px;color:#999;text-align:right">Non applicable</td></tr><tr style="background:#3730a3"><td style="padding:14px 16px;font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">TOTAL TTC</td><td style="padding:14px 16px;font-size:18px;font-weight:900;color:#fff;text-align:right">${useData.total.toFixed(2)} €</td></tr></table></td></tr></table>${useData.iban ? `<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:20px;margin-bottom:32px"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:12px">Coordonnées bancaires</div><table style="width:100%"><tr><td style="font-size:11px;color:#666">IBAN</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${useData.iban}</td><td style="font-size:11px;color:#666;padding-left:32px">BIC</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${useData.bic}</td></tr></table></div>` : ''}<div style="border-top:1px solid #eee;padding-top:16px"><div style="font-size:10px;color:#aaa;line-height:1.6">${useData.sender.legal}</div></div></div></body></html>`;
+        const paidAmountVal = useData.paidAmount;
+
+        const paidHtml = (paidAmountVal !== undefined && paidAmountVal > 0) ? (
+            paidAmountVal >= useData.total ? `
+            <tr style="background:#059669">
+                <td style="padding:10px 16px;font-size:11px;font-weight:900;color:#fff;text-transform:uppercase">RÉGLÉ EN TOTALITÉ</td>
+                <td style="padding:10px 16px;font-size:14px;font-weight:900;color:#fff;text-align:right">${paidAmountVal.toFixed(2)} €</td>
+            </tr>` : `
+            <tr>
+                <td style="padding:8px 0;font-size:12px;color:#059669;font-weight:700">Montant réglé (Acompte)</td>
+                <td style="padding:8px 0;font-size:12px;color:#059669;font-weight:700;text-align:right">- ${paidAmountVal.toFixed(2)} €</td>
+            </tr>
+            <tr style="background:#d97706">
+                <td style="padding:12px 16px;font-size:12px;font-weight:900;color:#fff;text-transform:uppercase">RESTE À PAYER</td>
+                <td style="padding:12px 16px;font-size:16px;font-weight:900;color:#fff;text-align:right">${(useData.total - paidAmountVal).toFixed(2)} €</td>
+            </tr>`
+        ) : '';
+
+        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>${isDev ? 'Devis' : 'Facture'} ${num}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:210mm;min-height:297mm;padding:20mm;background:#fff;margin:0 auto}@media print{body{margin:0}.page{padding:15mm;width:100%}@page{margin:0;size:A4}}</style></head><body><div class="page"><table style="width:100%;margin-bottom:40px"><tr><td style="vertical-align:top"><div style="font-size:22px;font-weight:900;color:#000;letter-spacing:-1px;text-transform:uppercase">${useData.sender.name}</div><div style="font-size:11px;color:#666;margin-top:4px">SIRET : ${useData.sender.siret}</div><div style="font-size:11px;color:#666;margin-top:2px">${useData.sender.address}</div><div style="font-size:11px;color:#666;margin-top:2px">${useData.sender.email}</div><div style="font-size:11px;color:#666;margin-top:2px">${useData.sender.phone}</div></td><td style="vertical-align:top;text-align:right"><div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">${isDev ? 'DEVIS' : 'FACTURE'}</div><div style="font-size:13px;color:#666;margin-top:6px">N° <strong style="color:#000">${num}</strong></div><div style="font-size:13px;color:#666;margin-top:4px">Date : <strong style="color:#000">${new Date(dateVal).toLocaleDateString('fr-FR')}</strong></div>${useData.dueDate ? `<div style="font-size:13px;color:#e00;margin-top:4px">Échéance : <strong>${new Date(useData.dueDate).toLocaleDateString('fr-FR')}</strong></div>` : ''}</td></tr></table><div style="height:2px;background:#000;margin-bottom:32px"></div><table style="width:100%;margin-bottom:40px"><tr><td style="width:50%"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">${isDev ? 'Destinataire' : 'Facturé à'}</div><div style="font-size:15px;font-weight:700;color:#000">${clientNameVal}</div><div style="font-size:12px;color:#666;margin-top:4px">${useData.clientAddress || ''}${useData.clientCity ? `, ${useData.clientCity}` : ''}</div>${clientEmailVal ? `<div style="font-size:12px;color:#666;margin-top:4px">${clientEmailVal}</div>` : ''}</td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:32px"><thead><tr style="background:#3730a3"><th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Description</th><th style="padding:12px 16px;text-align:center;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Qté</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">P.U. HT</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Total HT</th></tr></thead><tbody>${rows}</tbody></table><table style="width:100%;margin-bottom:48px"><tr><td style="width:60%">${useData.notes ? `<div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:6px">Notes</div><div style="font-size:12px;color:#444;line-height:1.6">${useData.notes}</div>` : ''}</td><td style="width:40%;vertical-align:bottom"><table style="width:100%"><tr><td style="padding:8px 0;font-size:12px;color:#666;border-top:1px solid #f0f0f0">Sous-total HT</td><td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${useData.total.toFixed(2)} €</td></tr><tr><td style="padding:8px 0;font-size:11px;color:#999">TVA</td><td style="padding:8px 0;font-size:11px;color:#999;text-align:right">Non applicable</td></tr><tr style="background:#3730a3"><td style="padding:14px 16px;font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">TOTAL TTC</td><td style="padding:14px 16px;font-size:18px;font-weight:900;color:#fff;text-align:right">${useData.total.toFixed(2)} €</td></tr>${paidHtml}</table></td></tr></table>${useData.iban ? `<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:20px;margin-bottom:32px"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:12px">Coordonnées bancaires</div><table style="width:100%"><tr><td style="font-size:11px;color:#666">IBAN</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${useData.iban}</td><td style="font-size:11px;color:#666;padding-left:32px">BIC</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${useData.bic}</td></tr></table></div>` : ''}<div style="border-top:1px solid #eee;padding-top:16px"><div style="font-size:10px;color:#aaa;line-height:1.6">${useData.sender.legal}</div></div></div></body></html>`;
     };
 
     const handlePrint = () => { const w = window.open('', '_blank'); if (!w) return; w.document.write(buildHTML()); w.document.close(); w.onload = () => { w.focus(); w.print(); }; };
@@ -719,26 +769,42 @@ export function InvoiceGeneratorMobile() {
 
                                 if (archiveSubTab === 'factures') {
                                     const stats = invoices.reduce((acc, inv) => {
-                                        const d = new Date(inv.date || inv.created_at || Date.now());
-                                        const t = parseFloat(inv.total) || 0;
-                                        acc.allTime += t;
+                                        const d = new Date(inv.date || inv.sentDate || inv.created_at || Date.now());
+                                        const tot = parseFloat(inv.total) || 0;
+                                        const paidAmt = typeof inv.paidAmount === 'number' && !isNaN(inv.paidAmount)
+                                            ? inv.paidAmount
+                                            : (inv.paid ? tot : 0);
+
+                                        acc.allTimeInvoiced += tot;
+                                        acc.allTimeCollected += paidAmt;
+
                                         if (d.getFullYear() === new Date().getFullYear()) {
-                                            acc.thisYear += t;
-                                            if (d.getMonth() === new Date().getMonth()) acc.thisMonth += t;
+                                            acc.thisYearInvoiced += tot;
+                                            acc.thisYearCollected += paidAmt;
+                                            if (d.getMonth() === new Date().getMonth()) {
+                                                acc.thisMonthInvoiced += tot;
+                                                acc.thisMonthCollected += paidAmt;
+                                            }
                                         }
                                         return acc;
-                                    }, { thisMonth: 0, thisYear: 0, allTime: 0 });
+                                    }, { thisMonthInvoiced: 0, thisMonthCollected: 0, thisYearInvoiced: 0, thisYearCollected: 0, allTimeInvoiced: 0, allTimeCollected: 0 });
 
                                     return (
                                         <>
                                             <div className="grid grid-cols-2 gap-3 mb-6">
                                                 <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 text-center">
-                                                    <div className="text-[9px] font-black uppercase tracking-widest text-indigo-400/70 mb-1">Ce Mois</div>
-                                                    <div className="text-xl font-black text-indigo-400">{stats.thisMonth.toFixed(2)} €</div>
+                                                    <div className="text-[9px] font-black uppercase tracking-widest text-indigo-400/70 mb-1">Ce Mois (Encaissé)</div>
+                                                    <div className="text-xl font-black text-indigo-400">{stats.thisMonthCollected.toFixed(2)} €</div>
+                                                    {stats.thisMonthInvoiced !== stats.thisMonthCollected && (
+                                                        <div className="text-[8px] text-white/30 font-bold mt-0.5">Facturé : {stats.thisMonthInvoiced.toFixed(2)} €</div>
+                                                    )}
                                                 </div>
                                                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                                                    <div className="text-[9px] font-black uppercase tracking-widest text-white/40 mb-1">Cette Année</div>
-                                                    <div className="text-xl font-black text-white">{stats.thisYear.toFixed(2)} €</div>
+                                                    <div className="text-[9px] font-black uppercase tracking-widest text-white/40 mb-1">Cette Année (Encaissé)</div>
+                                                    <div className="text-xl font-black text-white">{stats.thisYearCollected.toFixed(2)} €</div>
+                                                    {stats.thisYearInvoiced !== stats.thisYearCollected && (
+                                                        <div className="text-[8px] text-white/30 font-bold mt-0.5">Facturé : {stats.thisYearInvoiced.toFixed(2)} €</div>
+                                                    )}
                                                 </div>
                                             </div>
                                             {invoices.length === 0 ? (
@@ -748,35 +814,59 @@ export function InvoiceGeneratorMobile() {
                                                 </div>
                                             ) : (
                                                 <div className="space-y-4 pb-20">
-                                                    {invoices.map((inv: any) => (
-                                                        <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4">
-                                                            <div className="flex items-start justify-between mb-3">
-                                                                <div className="flex-1 min-w-0 mr-4">
-                                                                    <div className="flex items-center gap-2 mb-1">
-                                                                        <span className="text-[10px] font-black text-indigo-400">#{inv.id}</span>
-                                                                        <span className="text-xs font-bold text-white truncate">{inv.client || 'Client inconnu'}</span>
+                                                    {invoices.map((inv: any) => {
+                                                        const total = parseFloat(inv.total) || 0;
+                                                        const paidAmt = typeof inv.paidAmount === 'number' && !isNaN(inv.paidAmount)
+                                                            ? inv.paidAmount
+                                                            : (inv.paid ? total : 0);
+                                                        const isFull = paidAmt >= total && total > 0;
+                                                        const isPartial = paidAmt > 0 && paidAmt < total;
+
+                                                        return (
+                                                            <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4">
+                                                                <div className="flex items-start justify-between mb-3">
+                                                                    <div className="flex-1 min-w-0 mr-4">
+                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                            <span className="text-[10px] font-black text-indigo-400">#{inv.id}</span>
+                                                                            <span className="text-xs font-bold text-white truncate">{inv.client || 'Client inconnu'}</span>
+                                                                        </div>
+                                                                        <div className="text-[10px] text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
+                                                                        {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 whitespace-nowrap overflow-hidden text-ellipsis truncate">{inv.emailTo}</div>}
+                                                                        <div className="font-black text-sm text-white mt-1">{total.toFixed(2)} €</div>
+                                                                        {isPartial && (
+                                                                            <div className="text-[10px] text-amber-400 font-bold mt-0.5">Reste à payer : {(total - paidAmt).toFixed(2)} €</div>
+                                                                        )}
                                                                     </div>
-                                                                    <div className="text-[10px] text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
-                                                                    {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 whitespace-nowrap overflow-hidden text-ellipsis truncate">{inv.emailTo}</div>}
-                                                                    <div className="font-black text-sm text-white mt-1">{parseFloat(inv.total || 0).toFixed(2)} €</div>
+                                                                    <div className="flex flex-col gap-2 shrink-0">
+                                                                        <button onClick={() => setPaymentModalInvoice(inv)}
+                                                                            className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 transition-all ${
+                                                                                isFull 
+                                                                                    ? 'bg-green-500/10 border border-green-500/20 text-green-400' 
+                                                                                    : isPartial 
+                                                                                        ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' 
+                                                                                        : 'bg-white/5 border border-white/10 text-white/30'
+                                                                            }`}>
+                                                                            {isFull ? (
+                                                                                <><CheckCircle className="w-3 h-3" /> Payée</>
+                                                                            ) : isPartial ? (
+                                                                                <><Clock className="w-3 h-3" /> {paidAmt.toFixed(0)}/{total.toFixed(0)} €</>
+                                                                            ) : (
+                                                                                <><Clock className="w-3 h-3" /> Attente</>
+                                                                            )}
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="flex flex-col gap-2">
-                                                                    <button onClick={() => togglePaid(inv.id, inv.paid)}
-                                                                        className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30'}`}>
-                                                                        {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> Attente</>}
+                                                                <div className="flex items-center gap-2 pt-3 border-t border-white/5">
+                                                                    <button onClick={() => setPreviewArchiveItem(reconstructInvoiceData(inv))} className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
+                                                                        <BookOpen className="w-3 h-3" /> Revoir & PDF
+                                                                    </button>
+                                                                    <button onClick={() => deleteInvoice(inv.id)} className="p-3 border border-white/10 rounded-xl text-red-500/50 bg-white/5">
+                                                                        <Trash2 className="w-4 h-4" />
                                                                     </button>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex items-center gap-2 pt-3 border-t border-white/5">
-                                                                <button onClick={() => setPreviewArchiveItem(reconstructInvoiceData(inv))} className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
-                                                                    <BookOpen className="w-3 h-3" /> Revoir & PDF
-                                                                </button>
-                                                                <button onClick={() => deleteInvoice(inv.id)} className="p-3 border border-white/10 rounded-xl text-red-500/50 bg-white/5">
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                         </>
@@ -1168,6 +1258,78 @@ export function InvoiceGeneratorMobile() {
                 onCancel={() => setShowDeleteInvoiceId(null)}
                 onConfirm={() => { if (showDeleteInvoiceId !== null) doDeleteInvoice(showDeleteInvoiceId); }}
             />
+
+            {/* MOBILE PAYMENT SHEET */}
+            <Sheet open={paymentModalInvoice !== null} onClose={() => setPaymentModalInvoice(null)} title="Règlement Facture">
+                {paymentModalInvoice && (
+                    <div className="space-y-5 pb-6">
+                        <div className="bg-white/5 border border-white/5 rounded-2xl p-4">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Reference</p>
+                            <p className="text-base font-black text-white">{paymentModalInvoice.number || `N° ${paymentModalInvoice.id}`}</p>
+                            <p className="text-xs text-white/50">{paymentModalInvoice.client || 'Client inconnu'}</p>
+                            <div className="h-px bg-white/5 my-3" />
+                            <div className="flex justify-between items-center">
+                                <span className="text-xs font-bold text-white/40">Total Facture :</span>
+                                <span className="text-lg font-black text-white">{(parseFloat(paymentModalInvoice.total) || 0).toFixed(2)} €</span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <button onClick={() => {
+                                    const tot = parseFloat(paymentModalInvoice.total) || 0;
+                                    updateInvoicePaidAmount(paymentModalInvoice.id, tot, tot);
+                                    setPaymentModalInvoice(null);
+                                }}
+                                className="py-3 px-3 bg-green-500/10 border border-green-500/30 rounded-xl text-[10px] font-black uppercase tracking-widest text-green-400 flex items-center justify-center gap-1.5 active:bg-green-500/20 transition-all">
+                                <CheckCircle className="w-3.5 h-3.5" /> Tout (100%)
+                            </button>
+                            <button onClick={() => {
+                                    const tot = parseFloat(paymentModalInvoice.total) || 0;
+                                    updateInvoicePaidAmount(paymentModalInvoice.id, 0, tot);
+                                    setPaymentModalInvoice(null);
+                                }}
+                                className="py-3 px-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/40 active:bg-white/10 transition-all flex items-center justify-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5" /> Non réglé (0 €)
+                            </button>
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t border-white/5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-indigo-400 block">Saisir le montant réglé (€)</label>
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <input type="number" min="0" step="0.01" max={parseFloat(paymentModalInvoice.total) || 0}
+                                        value={customPaidInput}
+                                        onChange={e => setCustomPaidInput(e.target.value)}
+                                        placeholder="ex: 250.00"
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-base font-black focus:outline-none focus:border-indigo-400"
+                                    />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 font-bold">€</span>
+                                </div>
+                                <button onClick={() => {
+                                        const tot = parseFloat(paymentModalInvoice.total) || 0;
+                                        const val = parseFloat(customPaidInput) || 0;
+                                        updateInvoicePaidAmount(paymentModalInvoice.id, val, tot);
+                                        setPaymentModalInvoice(null);
+                                    }}
+                                    className="px-5 py-3 bg-indigo-600 active:bg-indigo-700 rounded-xl text-xs font-black uppercase tracking-widest text-white transition-all">
+                                    Valider
+                                </button>
+                            </div>
+                            {(() => {
+                                const tot = parseFloat(paymentModalInvoice.total) || 0;
+                                const currentInputVal = parseFloat(customPaidInput) || 0;
+                                const remain = Math.max(0, tot - currentInputVal);
+                                return (
+                                    <div className="text-[11px] font-bold text-amber-400/90 pt-1 flex justify-between">
+                                        <span>Reste à payer :</span>
+                                        <span>{remain.toFixed(2)} €</span>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                )}
+            </Sheet>
         </div>
     );
 }
