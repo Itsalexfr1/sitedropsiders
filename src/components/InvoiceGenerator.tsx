@@ -1026,6 +1026,7 @@ export function InvoiceGenerator() {
                                             </div>
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
 
@@ -1151,8 +1152,23 @@ export function InvoiceGenerator() {
                                         return acc;
                                     }, { thisMonthInvoiced: 0, thisMonthCollected: 0, thisYearInvoiced: 0, thisYearCollected: 0, allTimeInvoiced: 0, allTimeCollected: 0 });
 
+                                    const totalUnpaid = stats.allTimeInvoiced - stats.allTimeCollected;
+
                                     return (
                                         <>
+                                            {/* Unpaid banner */}
+                                            {totalUnpaid > 0.01 && (
+                                                <div className="mb-4 bg-gradient-to-r from-red-900/30 to-orange-900/20 border border-red-500/30 rounded-2xl px-6 py-4 flex items-center justify-between gap-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse shrink-0" />
+                                                        <div>
+                                                            <div className="text-[10px] font-black uppercase tracking-widest text-red-400">Montant total non encaissé</div>
+                                                            <div className="text-[9px] text-red-300/60 font-bold mt-0.5">{invoices.filter((inv: any) => { const t = parseFloat(inv.total) || 0; const p = typeof inv.paidAmount === 'number' ? inv.paidAmount : (inv.paid ? t : 0); return p < t; }).length} facture(s) en attente de règlement</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-2xl font-black text-red-400 shrink-0">{totalUnpaid.toFixed(2)} €</div>
+                                                </div>
+                                            )}
                                             <div className="grid grid-cols-3 gap-4 mb-6">
                                                 <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 text-center">
                                                     <div className="text-[10px] font-black uppercase tracking-widest text-indigo-400/70 mb-1">Ce Mois (Encaissé)</div>
