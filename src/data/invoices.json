@@ -32,7 +32,7 @@
     "type": "facture",
     "id": 1785611233586,
     "sentDate": "2026-08-01T19:07:13.586Z",
-    "paid": true,
+    "paid": false,
     "emailTo": "contact@cbg-france.fr",
     "pdfUrl": ""
   },
