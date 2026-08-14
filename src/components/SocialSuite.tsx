@@ -2401,7 +2401,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
-            if (showSwipe && !exportMode) {
+            // Swipe & links: retirés uniquement pour les exports PROMO, conservés pour PNG POST/STORY
+            const isPromoExport = exportMode === 'PROMO';
+
+            if (showSwipe && !isPromoExport) {
                 ctx.save();
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
@@ -2413,7 +2416,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
-            if (showArticleLink && !exportMode) {
+            if (showArticleLink && !isPromoExport) {
                 ctx.save();
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
@@ -2425,7 +2428,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.restore();
             }
 
-            if (showVoteLink && !exportMode) {
+            if (showVoteLink && !isPromoExport) {
                 ctx.save();
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
