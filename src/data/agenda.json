@@ -2442,5 +2442,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1109,
+    "title": "Hardbass The End Game",
+    "date": "2026-10-03",
+    "startDate": "2026-10-03",
+    "endDate": "2026-10-03",
+    "venue": "Auxerrexpo",
+    "location": "AUXERRE",
+    "country": "FRANCE",
+    "type": "Festival",
+    "image": "/uploads/uploads/6fd0bb2e3d85cbb8-ban_page_fb___endgame.jpg",
+    "url": "https://shotgun.live/fr/events/hardbass-v-the-end-game",
+    "genre": "Hardcore",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
