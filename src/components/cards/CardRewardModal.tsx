@@ -91,8 +91,8 @@ export function CardRewardModal({ card, onClaim, onDismiss }: CardRewardModalPro
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
-                    style={{ background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.99) 100%)' }}
+                    className="fixed inset-0 z-[9998] flex items-center justify-center p-4 backdrop-blur-2xl"
+                    style={{ background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.7) 100%)' }}
                 >
                     {/* Radial glow behind card */}
                     <div
