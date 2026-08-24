@@ -32,10 +32,10 @@
     "type": "facture",
     "id": 1785611233586,
     "sentDate": "2026-08-01T19:07:13.586Z",
-    "paid": false,
+    "paid": true,
     "emailTo": "contact@cbg-france.fr",
     "pdfUrl": "",
-    "paidAmount": 2000
+    "paidAmount": 5040
   },
   {
     "invoiceNumber": "INV-2026-073",
