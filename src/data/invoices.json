@@ -99,7 +99,8 @@
     "sentDate": "2026-07-06T12:48:58.622Z",
     "paid": false,
     "emailTo": "lola@lesardentes.be",
-    "pdfUrl": ""
+    "pdfUrl": "",
+    "paidAmount": 0
   },
   {
     "number": "INV-2026-071",
