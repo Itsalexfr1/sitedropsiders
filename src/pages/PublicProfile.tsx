@@ -461,7 +461,7 @@ export function PublicProfile() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setSelectedCardForPreview(null)}
-                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                            className="absolute inset-0 bg-black/60 backdrop-blur-2xl"
                         />
 
                         {/* Modal Container */}

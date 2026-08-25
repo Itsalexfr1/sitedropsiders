@@ -220,7 +220,7 @@ export function CardPrintOrderModal({ isOpen, onClose, card }: CardPrintOrderMod
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
-                    className="absolute inset-0 bg-black/85 backdrop-blur-md"
+                    className="absolute inset-0 bg-black/60 backdrop-blur-2xl"
                 />
 
                 {/* Exporter (Off-screen component) */}
