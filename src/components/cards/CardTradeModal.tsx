@@ -97,7 +97,7 @@ export function CardTradeModal({ isOpen, onClose, initialOfferedCard }: CardTrad
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={handleClose}
-                    className="fixed inset-0 bg-black/60 backdrop-blur-2xl"
+                    className="fixed inset-0 bg-black/20 backdrop-blur-xl"
                 />
 
                 {/* Modal Container */}
