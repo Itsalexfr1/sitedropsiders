@@ -657,20 +657,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (!showText) return; 
 
-            // Gradient overlays for CONSEILS (top header shadow & bottom gradient)
+            // Gradient overlays for CONSEILS (top header shadow & solid black bottom fade)
             if (theme === 'CONSEILS') {
-                const topGrad = ctx.createLinearGradient(0, 0, 0, 320);
+                // Top header shadow
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 300);
                 topGrad.addColorStop(0, 'rgba(0,0,0,0.85)');
                 topGrad.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = topGrad;
-                ctx.fillRect(0, 0, canvas.width, 320);
+                ctx.fillRect(0, 0, canvas.width, 300);
 
-                const bottomGrad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
+                // Smooth fade to pitch black starting from Y = 36% down to 52%
+                const fadeStart = Math.floor(canvas.height * 0.36);
+                const fadeEnd = Math.floor(canvas.height * 0.52);
+                const bottomGrad = ctx.createLinearGradient(0, fadeStart, 0, fadeEnd);
                 bottomGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                bottomGrad.addColorStop(0.5, 'rgba(0,0,0,0.55)');
-                bottomGrad.addColorStop(1, 'rgba(0,0,0,0.95)');
+                bottomGrad.addColorStop(0.5, 'rgba(0,0,0,0.7)');
+                bottomGrad.addColorStop(1, '#000000');
                 ctx.fillStyle = bottomGrad;
-                ctx.fillRect(0, canvas.height * 0.4, canvas.width, canvas.height * 0.6);
+                ctx.fillRect(0, fadeStart, canvas.width, fadeEnd - fadeStart);
+
+                // 100% Solid Pitch Black bottom from Y = 52% to 100%
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, fadeEnd, canvas.width, canvas.height - fadeEnd);
             } else if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
