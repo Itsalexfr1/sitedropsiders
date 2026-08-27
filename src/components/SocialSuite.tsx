@@ -1829,7 +1829,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const bodyText = conseilsSubtext || '';
 
                 const safeW = canvas.width - 120;
-                let curY = dividerY + 80; // More gap below divider line like reference
+                let curY = dividerY + 110; // Titre plus bas par rapport à la ligne blanche
 
                 // --- A) MAIN TITLE IN WHITE (Large Bold Font) ---
                 if (mainTitleText) {
@@ -1862,14 +1862,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += 12; // Tight spacing between title and subtext
+                    curY += 35; // Plus d'espace entre titre et texte
                 }
 
                 // --- B) SUBTEXT UNDERNEATH (Italic, smaller, lighter) ---
                 if (bodyText) {
                     ctx.save();
-                    const bodyFontSize = 32;
-                    const bodyLineHeight = 42;
+                    const bodyFontSize = 36; // Texte plus grand
+                    const bodyLineHeight = 46;
                     ctx.font = `italic 400 ${bodyFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255,255,255,0.88)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
