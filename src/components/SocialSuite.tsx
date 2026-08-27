@@ -574,25 +574,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else {
                     const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
                     let x = ((canvas.width - img.width * scale) / 2) + bgOffsetX;
-                    let y;
-                    if (theme === 'CONSEILS') {
-                        // Centre la photo dans la zone visible (0 → 52% = la ligne blanche)
-                        const visibleH = canvas.height * 0.52;
-                        const scaleC = Math.max(canvas.width / img.width, visibleH / img.height);
-                        x = ((canvas.width - img.width * scaleC) / 2) + bgOffsetX;
-                        y = ((visibleH - img.height * scaleC) / 2) + bgOffsetY;
-                        ctx.drawImage(img, x, y, img.width * scaleC, img.height * scaleC);
-                    } else {
-                        y = ((canvas.height - img.height * scale) / 2) + bgOffsetY;
-                        if (imgLayoutMode === 'PAR_LIGNES') {
-                            y = ((canvas.height * 0.62 - img.height * scale) / 2) + bgOffsetY;
-                        } else if (imgLayoutMode === 'HAUT_LIGNE') {
-                            y = ((canvas.height * 0.42 - img.height * scale) / 2) + bgOffsetY;
-                        } else if (imgLayoutMode === 'BAS_LIGNE') {
-                            y = ((canvas.height * 0.85 - img.height * scale) / 2) + bgOffsetY;
-                        }
-                        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                    let y = ((canvas.height - img.height * scale) / 2) + bgOffsetY;
+                    if (imgLayoutMode === 'PAR_LIGNES') {
+                        y = ((canvas.height * 0.62 - img.height * scale) / 2) + bgOffsetY;
+                    } else if (imgLayoutMode === 'HAUT_LIGNE') {
+                        y = ((canvas.height * 0.42 - img.height * scale) / 2) + bgOffsetY;
+                    } else if (imgLayoutMode === 'BAS_LIGNE') {
+                        y = ((canvas.height * 0.85 - img.height * scale) / 2) + bgOffsetY;
                     }
+                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
                 }
             } else {
                 if (!isTransparent) {
@@ -668,27 +658,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (!showText) return; 
 
-            // Gradient overlays for CONSEILS - like reference image
+            // Gradient overlays for CONSEILS (Smooth continuous gradient without harsh cuts)
             if (theme === 'CONSEILS') {
-                // Top header shadow
+                // Top subtle header shadow
                 const topGrad = ctx.createLinearGradient(0, 0, 0, 220);
                 topGrad.addColorStop(0, 'rgba(0,0,0,0.60)');
                 topGrad.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = topGrad;
                 ctx.fillRect(0, 0, canvas.width, 220);
 
-                // Bottom: smooth gradient starting at 40%, becomes total black only at ~72%
-                // The photo bleeds through just below the divider line (52%)
-                const fadeGrad = ctx.createLinearGradient(0, canvas.height * 0.40, 0, canvas.height * 0.72);
-                fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                fadeGrad.addColorStop(0.45, 'rgba(0,0,0,0.75)');
-                fadeGrad.addColorStop(1, '#000000');
-                ctx.fillStyle = fadeGrad;
-                ctx.fillRect(0, canvas.height * 0.40, canvas.width, canvas.height * 0.35);
-
-                // Pure black from 72% to bottom
-                ctx.fillStyle = '#000000';
-                ctx.fillRect(0, canvas.height * 0.72, canvas.width, canvas.height * 0.28);
+                // Continuous smooth bottom gradient that goes all the way down to the bottom
+                const bottomGrad = ctx.createLinearGradient(0, canvas.height * 0.38, 0, canvas.height);
+                bottomGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                bottomGrad.addColorStop(0.35, 'rgba(0,0,0,0.45)');
+                bottomGrad.addColorStop(0.65, 'rgba(0,0,0,0.80)');
+                bottomGrad.addColorStop(0.9, 'rgba(0,0,0,0.96)');
+                bottomGrad.addColorStop(1, 'rgba(0,0,0,1)');
+                ctx.fillStyle = bottomGrad;
+                ctx.fillRect(0, canvas.height * 0.38, canvas.width, canvas.height * 0.62);
             } else if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
@@ -1834,77 +1821,107 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
                 ctx.restore();
 
-                // 3. MAIN TITLE IN WHITE (BOLD) & SUBTEXT UNDERNEATH (ITALIC, SMALLER)
+                // 3. MAIN TITLE IN WHITE (BOLD & DYNAMIC SIZING) & SUBTEXT UNDERNEATH
                 const mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') ? conseilsTitle : '';
                 const bodyText = conseilsSubtext || '';
 
-                const safeW = canvas.width - 100;
+                const safeW = canvas.width - 160; // 80px safe margin on both sides
                 const isTitleOnly = mainTitleText && !bodyText;
-                let curY = isTitleOnly ? (dividerY + 125) : (dividerY + 95);
+                let curY = isTitleOnly ? (dividerY + 115) : (dividerY + 80);
 
-                // --- A) MAIN TITLE IN WHITE (Large Bold Font) ---
+                // --- A) MAIN TITLE IN WHITE (Large Bold Font with Dynamic Auto-Fitting) ---
                 if (mainTitleText) {
                     ctx.save();
-                    const titleFontSize = isTitleOnly ? 78 : 70; // Gros et percutant
-                    const titleLineHeight = isTitleOnly ? 88 : 80;
-                    ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
+                    let baseFontSize = isTitleOnly ? 72 : 62;
+                    ctx.font = `900 ${baseFontSize}px "Montserrat", sans-serif`;
+
+                    const formatTitleLines = (fSize: number) => {
+                        ctx.font = `900 ${fSize}px "Montserrat", sans-serif`;
+                        const lines: string[] = [];
+                        mainTitleText.split('\n').forEach(line => {
+                            if (!line.trim()) return;
+                            const words = line.split(' ');
+                            let cur = '';
+                            words.forEach(w => {
+                                const test = cur ? `${cur} ${w}` : w;
+                                if (ctx.measureText(test.toUpperCase()).width > safeW) {
+                                    if (cur) lines.push(cur);
+                                    cur = w;
+                                } else {
+                                    cur = test;
+                                }
+                            });
+                            if (cur) lines.push(cur);
+                        });
+                        return lines;
+                    };
+
+                    let titleLines = formatTitleLines(baseFontSize);
+                    while (baseFontSize > 38 && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > safeW)) {
+                        baseFontSize -= 2;
+                        titleLines = formatTitleLines(baseFontSize);
+                    }
+
+                    const titleLineHeight = Math.round(baseFontSize * 1.18);
+                    ctx.font = `900 ${baseFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 16;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'alphabetic';
 
-                    const titleLines: string[] = [];
-                    mainTitleText.split('\n').forEach(line => {
-                        if (!line.trim()) return;
-                        const words = line.split(' ');
-                        let cur = '';
-                        words.forEach(w => {
-                            const test = cur ? `${cur} ${w}` : w;
-                            if (ctx.measureText(test).width > safeW) {
-                                if (cur) titleLines.push(cur);
-                                cur = w;
-                            } else { cur = test; }
-                        });
-                        if (cur) titleLines.push(cur);
-                    });
                     titleLines.forEach(tLine => {
                         ctx.fillText(tLine.toUpperCase(), canvas.width / 2, curY);
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += 30; // Espace entre titre et texte
+                    curY += 28; // Spacing between Title and Subtext
                 }
 
-                // --- B) SUBTEXT UNDERNEATH (Italic, smaller, lighter) ---
+                // --- B) SUBTEXT UNDERNEATH (Italic, Dynamic Auto-Fitting) ---
                 if (bodyText) {
                     ctx.save();
-                    const bodyFontSize = 36; // Texte plus grand
-                    const bodyLineHeight = 46;
-                    ctx.font = `italic 400 ${bodyFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = 'rgba(255,255,255,0.88)';
+                    let subFontSize = 32;
+                    ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
+
+                    const formatSubLines = (fSize: number) => {
+                        ctx.font = `italic 400 ${fSize}px "Montserrat", sans-serif`;
+                        const lines: string[] = [];
+                        bodyText.split('\n').forEach(line => {
+                            if (!line.trim()) return;
+                            const words = line.split(' ');
+                            let cur = '';
+                            words.forEach(w => {
+                                const test = cur ? `${cur} ${w}` : w;
+                                if (ctx.measureText(test).width > safeW) {
+                                    if (cur) lines.push(cur);
+                                    cur = w;
+                                } else {
+                                    cur = test;
+                                }
+                            });
+                            if (cur) lines.push(cur);
+                        });
+                        return lines;
+                    };
+
+                    let subLines = formatSubLines(subFontSize);
+                    while (subFontSize > 22 && subLines.some(l => ctx.measureText(l).width > safeW)) {
+                        subFontSize -= 2;
+                        subLines = formatSubLines(subFontSize);
+                    }
+
+                    const subLineHeight = Math.round(subFontSize * 1.35);
+                    ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                     ctx.shadowBlur = 10;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'alphabetic';
 
-                    const bodyLines: string[] = [];
-                    bodyText.split('\n').forEach(line => {
-                        if (!line.trim()) return;
-                        const words = line.split(' ');
-                        let cur = '';
-                        words.forEach(w => {
-                            const test = cur ? `${cur} ${w}` : w;
-                            if (ctx.measureText(test).width > safeW) {
-                                if (cur) bodyLines.push(cur);
-                                cur = w;
-                            } else { cur = test; }
-                        });
-                        if (cur) bodyLines.push(cur);
-                    });
-                    bodyLines.forEach(bLine => {
+                    subLines.forEach(bLine => {
                         ctx.fillText(bLine, canvas.width / 2, curY);
-                        curY += bodyLineHeight;
+                        curY += subLineHeight;
                     });
                     ctx.restore();
                 }
