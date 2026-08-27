@@ -1822,19 +1822,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
                 ctx.restore();
 
-                // 3. MAIN TITLE IN WHITE (BOLD & DYNAMIC SIZING) & SUBTEXT UNDERNEATH
+                // 3. MAIN TITLE IN WHITE (BOLD) & SUBTEXT UNDERNEATH (ITALIC)
                 const mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') ? conseilsTitle : '';
                 const bodyText = conseilsSubtext || '';
 
-                const safeW = canvas.width - 160; // 80px safe margin on both sides
+                const lineWidth = canvas.width - 120; // Exact distance between the 2 extremities of the white line (60px to 1020px)
                 const isTitleOnly = mainTitleText && !bodyText;
-                let curY = isTitleOnly ? (dividerY + 115) : (dividerY + 75);
+                let curY = isTitleOnly ? (dividerY + 115) : (dividerY + 70);
 
-                // --- A) MAIN TITLE IN WHITE (Aligned to the 2 ends of the white line) ---
+                // --- A) MAIN TITLE IN WHITE (Aligned to both extremities of the white line) ---
                 if (mainTitleText) {
                     ctx.save();
-                    
-                    const lineWidth = canvas.width - 120; // Exact distance between the 2 ends of the white line (60px to 1020px)
                     
                     // 1. Break title into natural lines using normalized reference
                     ctx.font = '900 100px "Montserrat", sans-serif';
@@ -1847,7 +1845,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         let cur = '';
                         words.forEach(w => {
                             const test = cur ? `${cur} ${w}` : w;
-                            if (cur && ctx.measureText(test.toUpperCase()).width > 1220) {
+                            if (cur && ctx.measureText(test.toUpperCase()).width > 1200) {
                                 titleLines.push(cur);
                                 cur = w;
                             } else {
@@ -1869,7 +1867,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         if (w > maxMeasuredW) maxMeasuredW = w;
                     });
 
-                    // Ideal font size to align widest line to the 2 ends of the white line
+                    // Sizing: aligns to both ends of the white line
                     let soloFontSize = Math.round((lineWidth / (maxMeasuredW || 1)) * 100);
                     soloFontSize = Math.min(Math.max(soloFontSize, 52), 115);
 
@@ -1900,13 +1898,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     });
                     ctx.restore();
-                    curY += 40; // Tight gap directly under the title
+                    curY += 28; // Direct tight gap under the title
                 }
 
-                // --- B) SUBTEXT UNDERNEATH (Italic, Dynamic Auto-Fitting) ---
+                // --- B) SUBTEXT UNDERNEATH (Italic, Aligned to both extremities of the white line) ---
                 if (bodyText) {
                     ctx.save();
-                    let subFontSize = 32;
+                    let subFontSize = 35;
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
 
                     const formatSubLines = (fSize: number) => {
@@ -1918,7 +1916,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             let cur = '';
                             words.forEach(w => {
                                 const test = cur ? `${cur} ${w}` : w;
-                                if (ctx.measureText(test).width > safeW) {
+                                if (ctx.measureText(test).width > lineWidth) {
                                     if (cur) lines.push(cur);
                                     cur = w;
                                 } else {
@@ -1931,15 +1929,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let subLines = formatSubLines(subFontSize);
-                    while (subFontSize > 22 && subLines.some(l => ctx.measureText(l).width > safeW)) {
+                    while (subFontSize > 22 && subLines.some(l => ctx.measureText(l).width > lineWidth)) {
                         subFontSize -= 2;
                         subLines = formatSubLines(subFontSize);
                     }
 
                     const subLineHeight = Math.round(subFontSize * 1.35);
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 10;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'alphabetic';
