@@ -1744,9 +1744,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // 2. DIVIDER LINE (No swipe in CONSEILS theme)
+                // 2. DIVIDER LINE & SWIPE
                 const dividerY = Math.floor(canvas.height * 0.52);
-                const lineRightX = canvas.width - 60;
+                let swipeSpaceRight = 0;
+
+                // Swipe indicator on the exact same line as the divider line
+                if (showSwipe) {
+                    ctx.save();
+                    ctx.font = '800 24px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                    ctx.shadowBlur = 8;
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'middle';
+                    const swipeText = 'Swipe ──>';
+                    swipeSpaceRight = ctx.measureText(swipeText).width + 20;
+                    ctx.fillText(swipeText, canvas.width - 60, dividerY);
+                    ctx.restore();
+                }
+
+                const lineRightX = canvas.width - 60 - swipeSpaceRight;
 
                 // Horizontal line (Thicker line: 5px)
                 ctx.save();
@@ -2525,7 +2542,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Swipe & links: retirés uniquement pour les exports PROMO, conservés pour PNG POST/STORY
             const isPromoExport = exportMode === 'PROMO';
 
-            if (showSwipe && !isPromoExport) {
+            if (showSwipe && !isPromoExport && theme !== 'CONSEILS') {
                 ctx.save();
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
