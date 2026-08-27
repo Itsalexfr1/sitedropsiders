@@ -1830,12 +1830,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isTitleOnly = mainTitleText && !bodyText;
                 let curY = isTitleOnly ? (dividerY + 115) : (dividerY + 80);
 
-                // --- A) MAIN TITLE IN WHITE (Large Bold Font with Dynamic Auto-Fitting) ---
+                // --- A) MAIN TITLE IN WHITE (Large Bold Font with Smart Auto-Fitting) ---
                 if (mainTitleText) {
                     ctx.save();
-                    let baseFontSize = isConseilsLargeTitle 
-                        ? (isTitleOnly ? 94 : 84) 
-                        : (isTitleOnly ? 72 : 62);
+                    
+                    // Auto-detection: short titles (covers, 1-8 words) automatically get extra-large full-width sizing!
+                    const wordCount = mainTitleText.trim().split(/\s+/).length;
+                    const autoMaximize = isTitleOnly || isConseilsLargeTitle || wordCount <= 8;
+                    
+                    let baseFontSize = autoMaximize 
+                        ? (isTitleOnly ? 96 : 82) 
+                        : (isTitleOnly ? 76 : 66);
                     ctx.font = `900 ${baseFontSize}px "Montserrat", sans-serif`;
 
                     const formatTitleLines = (fSize: number) => {
@@ -1860,7 +1865,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let titleLines = formatTitleLines(baseFontSize);
-                    const minFontSize = isConseilsLargeTitle ? 48 : 38;
+                    const minFontSize = autoMaximize ? 46 : 38;
                     while (baseFontSize > minFontSize && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > safeW)) {
                         baseFontSize -= 2;
                         titleLines = formatTitleLines(baseFontSize);
@@ -1879,7 +1884,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += (isConseilsLargeTitle ? 34 : 28); // Spacing between Title and Subtext
+                    curY += (autoMaximize ? 32 : 26); // Spacing between Title and Subtext
                 }
 
                 // --- B) SUBTEXT UNDERNEATH (Italic, Dynamic Auto-Fitting) ---
