@@ -1828,7 +1828,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const lineWidth = canvas.width - 120; // 960px between 60px and 1020px
                 const isTitleOnly = mainTitleText && !bodyText;
-                let curY = isTitleOnly ? (dividerY + 95) : (dividerY + 54);
+                let curY = dividerY + 62; // Même espacement exact par rapport à la ligne blanche dans tous les cas
 
                 // --- A) MAIN TITLE IN WHITE ---
                 if (mainTitleText) {
