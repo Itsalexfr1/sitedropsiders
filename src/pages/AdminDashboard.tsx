@@ -6829,52 +6829,52 @@ export function AdminDashboard() {
           {/* Modal Messages & Factures */}
           <AnimatePresence>
             {isMessagesModalOpen && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-xl overflow-y-auto">
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  className="bg-dark-bg border border-white/10 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden my-auto"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-orange via-white to-neon-orange" />
 
-                  <div className="flex justify-between items-start mb-12">
+                  <div className="flex justify-between items-start mb-6 md:mb-8">
                     <div>
-                      <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                      <h2 className="text-2xl md:text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-1 md:mb-2">
                         Gestion{" "}
                         <span className="text-neon-orange">Messages</span>
                       </h2>
-                      <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">
+                      <p className="text-gray-400 font-medium tracking-widest uppercase text-[9px] md:text-[10px]">
                         Messagerie, contact, newsletter et facturation
                       </p>
                     </div>
                     <button
                       onClick={() => setIsMessagesModalOpen(false)}
-                      className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                      className="p-2.5 md:p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
                     >
-                      <X className="w-6 h-6" />
+                      <X className="w-5 h-5 md:w-6 md:h-6" />
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                     <Link
                       to="/admin/messages"
                       onClick={() => setIsMessagesModalOpen(false)}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-orange/10 hover:border-neon-orange/50 transition-all group relative"
+                      className="p-5 md:p-6 bg-white/5 border border-white/10 rounded-2xl md:rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-orange/10 hover:border-neon-orange/50 transition-all group relative text-center"
                     >
-                      <div className="w-16 h-16 bg-neon-orange/20 rounded-2xl flex items-center justify-center border border-neon-orange/30 group-hover:scale-110 transition-transform">
-                        <Mail className="w-8 h-8 text-neon-orange" />
+                      <div className="w-14 h-14 bg-neon-orange/20 rounded-2xl flex items-center justify-center border border-neon-orange/30 group-hover:scale-110 transition-transform">
+                        <Mail className="w-7 h-7 text-neon-orange" />
                       </div>
-                      <div className="text-center">
-                        <h3 className="text-xl font-bold text-white uppercase italic">
+                      <div>
+                        <h3 className="text-base md:text-lg font-bold text-white uppercase italic tracking-tight">
                           Boîte de réception
                         </h3>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
+                        <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">
                           Gérer les contacts
                         </p>
                       </div>
                       {pendingMessagesCount > 0 && (
-                        <div className="absolute top-4 right-4 w-6 h-6 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
+                        <div className="absolute top-3 right-3 w-6 h-6 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
                           <span className="text-[10px] font-black text-white">
                             {pendingMessagesCount}
                           </span>
@@ -6885,16 +6885,16 @@ export function AdminDashboard() {
                     <Link
                       to="/admin/messages?tab=contact-settings"
                       onClick={() => setIsMessagesModalOpen(false)}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-white/10 hover:border-white/50 transition-all group relative"
+                      className="p-5 md:p-6 bg-white/5 border border-white/10 rounded-2xl md:rounded-[2rem] flex flex-col items-center gap-4 hover:bg-white/10 hover:border-white/50 transition-all group relative text-center"
                     >
-                      <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
-                        <Settings2 className="w-8 h-8 text-white" />
+                      <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
+                        <Settings2 className="w-7 h-7 text-white" />
                       </div>
-                      <div className="text-center">
-                        <h3 className="text-xl font-bold text-white uppercase italic">
+                      <div>
+                        <h3 className="text-base md:text-lg font-bold text-white uppercase italic tracking-tight">
                           Paramètres Contact
                         </h3>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
+                        <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">
                           Emails & Destinataires
                         </p>
                       </div>
@@ -6905,16 +6905,16 @@ export function AdminDashboard() {
                         setIsMessagesModalOpen(false);
                         setIsNewsletterModalOpen(true);
                       }}
-                      className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group relative"
+                      className="p-5 md:p-6 bg-white/5 border border-white/10 rounded-2xl md:rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group relative text-center"
                     >
-                      <div className="w-16 h-16 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
-                        <Mail className="w-8 h-8 text-neon-green" />
+                      <div className="w-14 h-14 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
+                        <Mail className="w-7 h-7 text-neon-green" />
                       </div>
-                      <div className="text-center">
-                        <h3 className="text-xl font-bold text-white uppercase italic">
+                      <div>
+                        <h3 className="text-base md:text-lg font-bold text-white uppercase italic tracking-tight">
                           Newsletter
                         </h3>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
+                        <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">
                           Campagnes & Mail
                         </p>
                       </div>
@@ -6925,16 +6925,16 @@ export function AdminDashboard() {
                         <Link
                           to="/admin/factures"
                           onClick={() => setIsMessagesModalOpen(false)}
-                          className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                          className="p-5 md:p-6 bg-white/5 border border-white/10 rounded-2xl md:rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group text-center"
                         >
-                          <div className="w-16 h-16 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                            <FileText className="w-8 h-8 text-neon-purple" />
+                          <div className="w-14 h-14 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                            <FileText className="w-7 h-7 text-neon-purple" />
                           </div>
-                          <div className="text-center">
-                            <h3 className="text-xl font-bold text-white uppercase italic">
+                          <div>
+                            <h3 className="text-base md:text-lg font-bold text-white uppercase italic tracking-tight">
                               Facturation
                             </h3>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
+                            <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">
                               Générer vos factures
                             </p>
                           </div>
@@ -6943,16 +6943,16 @@ export function AdminDashboard() {
                         <Link
                           to="/admin/factures?tab=planning"
                           onClick={() => setIsMessagesModalOpen(false)}
-                          className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-emerald-500/10 hover:border-emerald-500/50 transition-all group"
+                          className="p-5 md:p-6 bg-white/5 border border-white/10 rounded-2xl md:rounded-[2rem] flex flex-col items-center gap-4 hover:bg-emerald-500/10 hover:border-emerald-500/50 transition-all group text-center"
                         >
-                          <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 transition-transform">
-                            <Calendar className="w-8 h-8 text-emerald-400" />
+                          <div className="w-14 h-14 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 transition-transform">
+                            <Calendar className="w-7 h-7 text-emerald-400" />
                           </div>
-                          <div className="text-center">
-                            <h3 className="text-xl font-bold text-white uppercase italic">
+                          <div>
+                            <h3 className="text-base md:text-lg font-bold text-white uppercase italic tracking-tight">
                               Planning Travail
                             </h3>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
+                            <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">
                               Planning mensuel & soirs
                             </p>
                           </div>
@@ -6963,16 +6963,16 @@ export function AdminDashboard() {
                             setIsMessagesModalOpen(false);
                             setIsFacebookModalOpen(true);
                           }}
-                          className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-[#1877F2]/15 hover:border-[#1877F2]/60 transition-all group"
+                          className="p-5 md:p-6 bg-white/5 border border-white/10 rounded-2xl md:rounded-[2rem] flex flex-col items-center gap-4 hover:bg-[#1877F2]/15 hover:border-[#1877F2]/60 transition-all group text-center"
                         >
-                          <div className="w-16 h-16 bg-[#1877F2]/20 rounded-2xl flex items-center justify-center border border-[#1877F2]/30 group-hover:scale-110 transition-transform">
-                            <ShieldCheck className="w-8 h-8 text-[#1877F2]" />
+                          <div className="w-14 h-14 bg-[#1877F2]/20 rounded-2xl flex items-center justify-center border border-[#1877F2]/30 group-hover:scale-110 transition-transform">
+                            <ShieldCheck className="w-7 h-7 text-[#1877F2]" />
                           </div>
-                          <div className="text-center">
-                            <h3 className="text-xl font-bold text-white uppercase italic">
+                          <div>
+                            <h3 className="text-base md:text-lg font-bold text-white uppercase italic tracking-tight">
                               Page Facebook
                             </h3>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
+                            <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">
                               Déclaration signée Meta (Alex)
                             </p>
                           </div>
