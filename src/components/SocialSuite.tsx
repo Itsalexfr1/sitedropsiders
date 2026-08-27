@@ -668,14 +668,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillRect(0, 0, canvas.width, 220);
 
                 // Continuous smooth bottom gradient that goes all the way down to the bottom
-                const bottomGrad = ctx.createLinearGradient(0, canvas.height * 0.38, 0, canvas.height);
+                const bottomGrad = ctx.createLinearGradient(0, canvas.height * 0.48, 0, canvas.height);
                 bottomGrad.addColorStop(0, 'rgba(0,0,0,0)');
                 bottomGrad.addColorStop(0.35, 'rgba(0,0,0,0.45)');
                 bottomGrad.addColorStop(0.65, 'rgba(0,0,0,0.80)');
                 bottomGrad.addColorStop(0.9, 'rgba(0,0,0,0.96)');
                 bottomGrad.addColorStop(1, 'rgba(0,0,0,1)');
                 ctx.fillStyle = bottomGrad;
-                ctx.fillRect(0, canvas.height * 0.38, canvas.width, canvas.height * 0.62);
+                ctx.fillRect(0, canvas.height * 0.48, canvas.width, canvas.height * 0.52);
             } else if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
@@ -1746,8 +1746,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // 2. DIVIDER LINE & SWIPE
-                const dividerY = Math.floor(canvas.height * 0.52);
+                // 2. DIVIDER LINE & SWIPE (Lowered by 25% to 65% height)
+                const dividerY = Math.floor(canvas.height * 0.65);
                 let swipeSpaceRight = 0;
 
                 // Swipe indicator on the exact same line as the divider line
