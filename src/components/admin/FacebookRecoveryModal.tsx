@@ -148,21 +148,31 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
 
     // Download PDF
     const handleDownloadPdf = async () => {
-        if (!previewRef.current) {
+        // Always switch to preview tab first so previewRef mounts
+        if (activeTab !== 'preview') {
             setActiveTab('preview');
-            await new Promise(r => setTimeout(r, 200));
+            // Wait for React to render the preview DOM
+            await new Promise(r => setTimeout(r, 600));
+        } else {
+            await new Promise(r => setTimeout(r, 100));
         }
 
         const el = previewRef.current;
-        if (!el) return;
+        if (!el) {
+            alert('Impossible de générer le PDF : aperçu non chargé. Clique sur "Aperçu Document" puis réessaie.');
+            return;
+        }
 
         setIsGeneratingPdf(true);
         try {
             const canvas = await html2canvas(el, {
                 scale: 2,
                 useCORS: true,
+                allowTaint: true,
                 backgroundColor: '#ffffff',
                 logging: false,
+                windowWidth: el.scrollWidth,
+                windowHeight: el.scrollHeight,
             });
 
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -172,15 +182,41 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
                 format: 'a4',
             });
 
-            const imgProps = pdf.getImageProperties(imgData);
             const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgProps = pdf.getImageProperties(imgData);
+            const imgRatio = imgProps.height / imgProps.width;
+            const contentHeight = pdfWidth * imgRatio;
 
-            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`Declaration_Recuperation_Facebook_Meta_${pageName.replace(/\s+/g, '_')}_${declarationDate.replace(/\//g, '-')}.pdf`);
+            if (contentHeight <= pdfHeight) {
+                // Fits on one page
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, contentHeight);
+            } else {
+                // Multi-page: slice the image across pages
+                let yOffset = 0;
+                const pageCanvas = document.createElement('canvas');
+                const pageCtx = pageCanvas.getContext('2d')!;
+                const scale = 2;
+                const pageHeightPx = Math.floor((pdfHeight / pdfWidth) * canvas.width);
+                pageCanvas.width = canvas.width;
+                pageCanvas.height = pageHeightPx;
+
+                while (yOffset < canvas.height) {
+                    pageCtx.fillStyle = '#ffffff';
+                    pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                    pageCtx.drawImage(canvas, 0, -yOffset);
+                    const pageData = pageCanvas.toDataURL('image/jpeg', 0.95);
+                    if (yOffset > 0) pdf.addPage();
+                    pdf.addImage(pageData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    yOffset += pageHeightPx;
+                    void scale;
+                }
+            }
+
+            pdf.save(`Declaration_Facebook_Meta_Dropsiders_${declarationDate.replace(/\//g, '-')}.pdf`);
         } catch (err) {
             console.error('Error generating PDF:', err);
-            alert('Erreur lors de la génération du PDF.');
+            alert('Erreur lors de la génération du PDF. Vérifie la console pour les détails.');
         } finally {
             setIsGeneratingPdf(false);
         }
