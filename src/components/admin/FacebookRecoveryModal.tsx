@@ -27,7 +27,7 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
     const [pageId, setPageId] = useState('828253520693650');
     const [businessManagerId, setBusinessManagerId] = useState('');
     const [targetAdminEmail, setTargetAdminEmail] = useState('alexlight3034@icloud.com');
-    const [targetAdminProfileUrl, setTargetAdminProfileUrl] = useState('https://www.facebook.com/dropsidersfr');
+    const [targetAdminProfileUrl, setTargetAdminProfileUrl] = useState('https://www.facebook.com/profile.php?id=61591868011007');
 
     // Issue Type & Details
     const [issueType, setIssueType] = useState<'hacked' | 'lost_access' | 'trademark'>('hacked');
@@ -131,9 +131,17 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
     const stopDrawing = () => {
         if (!isDrawing) return;
         setIsDrawing(false);
-        if (canvasRef.current) {
-            setSignatureDataUrl(canvasRef.current.toDataURL('image/png'));
-        }
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        // Composite the signature on a white background so it's visible in the PDF
+        const flat = document.createElement('canvas');
+        flat.width = canvas.width;
+        flat.height = canvas.height;
+        const flatCtx = flat.getContext('2d')!;
+        flatCtx.fillStyle = '#ffffff';
+        flatCtx.fillRect(0, 0, flat.width, flat.height);
+        flatCtx.drawImage(canvas, 0, 0);
+        setSignatureDataUrl(flat.toDataURL('image/jpeg', 0.95));
     };
 
     const clearSignature = () => {
@@ -260,15 +268,29 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
             addLine('#cccccc', 0.3);
             addSpace(3);
             addText(`Fait à ${city}, le ${declarationDate}`, { size: 9, bold: true });
-            addText('Pièces justificatives jointes : Copie CNI/Passeport + Extrait SIRENE', { size: 8, color: '#777777' });
+            addText('Pièces justificatives jointes : Copie CNI/Passeport en cours de validité', { size: 8, color: '#777777' });
             addSpace(10);
             addText('Signature du Représentant Légal :', { size: 8, bold: true });
             addSpace(2);
 
             // Signature image (if drawn)
-            if (signatureDataUrl) {
+            let sigImg = signatureDataUrl;
+            if (canvasRef.current && hasSignature) {
                 try {
-                    pdf.addImage(signatureDataUrl, 'PNG', margin, y, 70, 25);
+                    const flat = document.createElement('canvas');
+                    flat.width = canvasRef.current.width;
+                    flat.height = canvasRef.current.height;
+                    const flatCtx = flat.getContext('2d')!;
+                    flatCtx.fillStyle = '#ffffff';
+                    flatCtx.fillRect(0, 0, flat.width, flat.height);
+                    flatCtx.drawImage(canvasRef.current, 0, 0);
+                    sigImg = flat.toDataURL('image/jpeg', 0.95);
+                } catch (_) { /* fallback to signatureDataUrl */ }
+            }
+
+            if (sigImg) {
+                try {
+                    pdf.addImage(sigImg, 'JPEG', margin, y, 70, 25);
                 } catch (_) { /* skip if error */ }
                 y += 28;
             } else {
@@ -740,10 +762,7 @@ Signature légale: [Document signé numériquement par ${fullName}]`;
                                                 <Check className="w-3.5 h-3.5 text-neon-green flex-shrink-0" /> Copie recto-verso de ta CNI ou Passeport en cours de validité
                                             </li>
                                             <li className="flex items-center gap-2">
-                                                <Check className="w-3.5 h-3.5 text-neon-green flex-shrink-0" /> Avis de situation SIRENE ou Extrait KBIS officiel Dropsiders
-                                            </li>
-                                            <li className="flex items-center gap-2">
-                                                <Check className="w-3.5 h-3.5 text-neon-green flex-shrink-0" /> Cette Déclaration signée (PDF)
+                                                <Check className="w-3.5 h-3.5 text-neon-green flex-shrink-0" /> Cette Déclaration signée (format PDF)
                                             </li>
                                         </ul>
                                     </div>
@@ -923,7 +942,7 @@ Signature légale: [Document signé numériquement par ${fullName}]`;
                                                         Fait à <strong>{city}</strong>, le <strong>{declarationDate}</strong>
                                                     </p>
                                                     <p className="text-[9px] text-gray-500">
-                                                        Pièces justificatives jointes : Copie CNI/Passeport + Extrait SIRENE
+                                                        Pièces justificatives jointes : Copie CNI/Passeport en cours de validité
                                                     </p>
                                                     <p className="text-[9px] text-gray-600">
                                                         <strong>Lien profil Facebook :</strong> {targetAdminProfileUrl}
