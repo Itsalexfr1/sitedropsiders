@@ -1730,8 +1730,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const headerLeftX = 60;
                 const headerRightX = canvas.width - 380; // Left of top-right logo
 
-                // Top Left: Category label (e.g. 'HOUSE MUSIC US' or 'CONSEILS')
-                const categoryLabel = (highlightsFestival || 'HOUSE MUSIC\nUS');
+                // Top Left: Category label (e.g. 'CONSEILS' or custom header)
+                const categoryLabel = (highlightsFestival || 'CONSEILS');
                 ctx.save();
                 ctx.font = '900 34px "Montserrat", sans-serif';
                 ctx.fillStyle = '#ffffff';
@@ -3948,7 +3948,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     rows={2}
                     value={conseilsTitle} 
                     onChange={e => setConseilsTitle(e.target.value)} 
-                    placeholder="EX: HOUSE MUSIC&#10;US" 
+                    placeholder="EX: CONSEILS" 
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md resize-none" 
                 />
             </div>
