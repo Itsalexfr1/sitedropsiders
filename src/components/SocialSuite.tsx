@@ -595,7 +595,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             if (theme === 'PLANNING') {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-            } else if (theme === 'CITATION' || theme === 'CONSEILS') {
+            } else if (theme === 'CITATION') {
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
@@ -657,8 +657,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (!showText) return; 
 
-            // Shrunk gradient for Top 5 (Request 6), restored for others
-            if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'CONSEILS' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
+            // Gradient overlays for CONSEILS (top header shadow & bottom gradient)
+            if (theme === 'CONSEILS') {
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 320);
+                topGrad.addColorStop(0, 'rgba(0,0,0,0.85)');
+                topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = topGrad;
+                ctx.fillRect(0, 0, canvas.width, 320);
+
+                const bottomGrad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
+                bottomGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                bottomGrad.addColorStop(0.5, 'rgba(0,0,0,0.55)');
+                bottomGrad.addColorStop(1, 'rgba(0,0,0,0.95)');
+                ctx.fillStyle = bottomGrad;
+                ctx.fillRect(0, canvas.height * 0.4, canvas.width, canvas.height * 0.6);
+            } else if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
                     : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
@@ -1710,78 +1723,217 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
 
             } else if (theme === 'CONSEILS') {
-                const centerX = canvas.width / 2;
                 ctx.save();
-                let y = 250;
 
-                if (conseilsTitle) {
-                    ctx.font = '900 70px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 10;
-                    
-                    const safeW = 966;
-                    const words = conseilsTitle.split(' ');
-                    let currentLine = '';
-                    
-                    words.forEach(word => {
-                        const testLine = currentLine + word + ' ';
-                        if (ctx.measureText(stripTags(testLine)).width > safeW) {
-                            drawRichText(ctx, currentLine.toUpperCase(), centerX, y, activeData.color, 'center');
-                            currentLine = word + ' ';
-                            y += 85;
-                        } else {
-                            currentLine = testLine;
-                        }
-                    });
-                    drawRichText(ctx, currentLine.toUpperCase(), centerX, y, activeData.color, 'center');
-                    y += 80;
+                // 1. TOP HEADER (Top Left Category & Top Right Photo Credit)
+                const headerY = safeTop + 65;
+                const headerLeftX = 60;
+                const headerRightX = canvas.width - 380; // Left of top-right logo
+
+                // Top Left: Category label (e.g. 'HOUSE MUSIC US' or 'CONSEILS')
+                const categoryLabel = (highlightsFestival || 'HOUSE MUSIC\nUS');
+                ctx.save();
+                ctx.font = '900 34px "Montserrat", sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                ctx.shadowBlur = 10;
+                ctx.textAlign = 'left';
+                
+                const catLines = categoryLabel.split('\n');
+                let curHY = headerY;
+                catLines.forEach(line => {
+                    ctx.fillText(line.toUpperCase(), headerLeftX, curHY);
+                    curHY += 38;
+                });
+                ctx.restore();
+
+                // Top Right: Photo Credit (citationAuthor)
+                if (citationAuthor) {
+                    ctx.save();
+                    ctx.font = '600 22px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                    ctx.shadowBlur = 8;
+                    ctx.textAlign = 'right';
+                    ctx.fillText(citationAuthor, headerRightX, headerY);
+                    ctx.restore();
                 }
+
+                // 2. DIVIDER LINE
+                const dividerY = Math.floor(canvas.height * 0.52);
+
+                // Swipe indicator above divider line on the right if showSwipe is active
+                if (showSwipe) {
+                    ctx.save();
+                    ctx.font = '800 24px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                    ctx.shadowBlur = 8;
+                    ctx.textAlign = 'right';
+                    ctx.fillText('Swipe ──>', canvas.width - 60, dividerY - 18);
+                    ctx.restore();
+                }
+
+                // Horizontal line
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+                ctx.lineWidth = 2.5;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 6;
 
                 if (artistLogoRef.current) {
+                    const badgeW = 60;
+                    const badgeH = 50;
+                    const badgeX = (canvas.width - badgeW) / 2;
+                    const badgeY = dividerY - (badgeH / 2);
+
+                    ctx.beginPath();
+                    ctx.moveTo(60, dividerY);
+                    ctx.lineTo(badgeX - 16, dividerY);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(badgeX + badgeW + 16, dividerY);
+                    ctx.lineTo(canvas.width - 60, dividerY);
+                    ctx.stroke();
+
+                    // Badge Container for custom logo
+                    ctx.save();
+                    ctx.fillStyle = '#000000';
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2.5;
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 10);
+                    ctx.fill();
+                    ctx.stroke();
+
                     const img = artistLogoRef.current;
-                    const maxW = 840;
-                    const maxH = 500;
+                    const padding = 10;
+                    const maxLW = badgeW - padding * 2;
+                    const maxLH = badgeH - padding * 2;
                     let lw = img.width;
                     let lh = img.height;
-                    const ratio = Math.min(maxW / lw, maxH / lh);
-                    lw *= ratio; lh *= ratio;
-                    
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                    ctx.shadowBlur = 20;
-                    ctx.drawImage(img, centerX - (lw / 2), y + 20, lw, lh);
+                    const r = Math.min(maxLW / lw, maxLH / lh);
+                    lw *= r; lh *= r;
+                    ctx.drawImage(img, (canvas.width - lw) / 2, dividerY - (lh / 2), lw, lh);
                     ctx.restore();
-                    
-                    y += lh + 100;
+                } else {
+                    // Continuous line (No H8 badge)
+                    ctx.beginPath();
+                    ctx.moveTo(60, dividerY);
+                    ctx.lineTo(canvas.width - 60, dividerY);
+                    ctx.stroke();
                 }
+                ctx.restore();
 
-                if (customText) {
-                    const lines = customText.split('\n').filter(l => l.trim() !== '');
+                // 3. MAIN TITLE IN WHITE & SUBTEXT UNDERNEATH
+                const mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') ? conseilsTitle : '';
+                const bodyText = customText || '';
 
-                    lines.forEach((line) => {
-                        ctx.font = '800 40px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
-                        ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                        ctx.shadowBlur = 10;
-                        
-                        const safeW = 966;
+                const safeW = canvas.width - 120;
+                let curY = dividerY + 65;
+
+                // --- A) MAIN TITLE IN WHITE (Large Font) ---
+                if (mainTitleText) {
+                    ctx.save();
+                    const titleFontSize = 60;
+                    const titleLineHeight = 70;
+                    ctx.font = `900 ${titleFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.shadowBlur = 16;
+
+                    const titleLines: string[] = [];
+                    const rawTitleLines = mainTitleText.split('\n');
+                    rawTitleLines.forEach(line => {
+                        if (!line.trim()) return;
                         const words = line.split(' ');
-                        let currentLine = '';
-                        
-                        words.forEach(word => {
-                            const testLine = currentLine + word + ' ';
-                            if (ctx.measureText(stripTags(testLine)).width > safeW) {
-                                drawRichText(ctx, currentLine.toUpperCase(), 57, y, '#ffffff', 'left');
-                                currentLine = word + ' ';
-                                y += 55;
+                        let cur = '';
+                        words.forEach(w => {
+                            const test = cur ? `${cur} ${w}` : w;
+                            if (ctx.measureText(stripTags(test)).width > safeW) {
+                                if (cur) titleLines.push(cur);
+                                cur = w;
                             } else {
-                                currentLine = testLine;
+                                cur = test;
                             }
                         });
-                        drawRichText(ctx, currentLine.toUpperCase(), 57, y, '#ffffff', 'left');
-
-                        y += 65;
+                        if (cur) titleLines.push(cur);
                     });
+
+                    titleLines.forEach((tLine) => {
+                        drawRichText(ctx, tLine.toUpperCase(), canvas.width / 2, curY, '#ffffff', 'center');
+                        curY += titleLineHeight;
+                    });
+                    ctx.restore();
+
+                    curY += 25; // Space between Title and Body Text
                 }
+
+                // --- B) SUBTEXT / DESCRIPTION UNDERNEATH (Smaller Font) ---
+                if (bodyText) {
+                    ctx.save();
+                    const bodyFontSize = 32;
+                    const bodyLineHeight = 42;
+                    ctx.font = `800 ${bodyFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                    ctx.shadowBlur = 12;
+
+                    const bodyLines: string[] = [];
+                    const rawBodyLines = bodyText.split('\n');
+                    rawBodyLines.forEach(line => {
+                        if (!line.trim()) return;
+                        const words = line.split(' ');
+                        let cur = '';
+                        words.forEach(w => {
+                            const test = cur ? `${cur} ${w}` : w;
+                            if (ctx.measureText(stripTags(test)).width > safeW) {
+                                if (cur) bodyLines.push(cur);
+                                cur = w;
+                            } else {
+                                cur = test;
+                            }
+                        });
+                        if (cur) bodyLines.push(cur);
+                    });
+
+                    bodyLines.forEach((bLine) => {
+                        drawRichText(ctx, bLine.toUpperCase(), canvas.width / 2, curY, '#ffffff', 'center');
+                        curY += bodyLineHeight;
+                    });
+                    ctx.restore();
+                }
+
+                // 4. DISCREET AUDIO SPEAKER ICON (Bottom Right Corner)
+                ctx.save();
+                const spkX = canvas.width - 65;
+                const spkY = canvas.height - safeBottom - 15;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.moveTo(spkX - 8, spkY - 6);
+                ctx.lineTo(spkX - 3, spkY - 6);
+                ctx.lineTo(spkX + 4, spkY - 12);
+                ctx.lineTo(spkX + 4, spkY + 12);
+                ctx.lineTo(spkX - 3, spkY + 6);
+                ctx.lineTo(spkX - 8, spkY + 6);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(spkX + 4, spkY, 7, -Math.PI / 3, Math.PI / 3);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(spkX + 4, spkY, 13, -Math.PI / 3, Math.PI / 3);
+                ctx.stroke();
+                ctx.restore();
+
                 ctx.restore();
 
             } else if (theme === 'ARTISTE FESTIVAL') {
@@ -3791,7 +3943,26 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const conseilsEditor = (
         <div className="space-y-4">
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Image Centrale (Optionnelle)</label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Catégorie / En-tête (Haut Gauche)</label>
+                <textarea 
+                    rows={2}
+                    value={conseilsTitle} 
+                    onChange={e => setConseilsTitle(e.target.value)} 
+                    placeholder="EX: HOUSE MUSIC&#10;US" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md resize-none" 
+                />
+            </div>
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Crédit Photo / Sous-titre (Haut Droite)</label>
+                <input 
+                    value={citationAuthor} 
+                    onChange={e => setCitationAuthor(e.target.value)} 
+                    placeholder="EX: Photo: Scott London" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md" 
+                />
+            </div>
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo / Icône du Badge Central (Optionnel)</label>
                 <div className="relative group/logo">
                     {artistLogo && (
                         <button 
@@ -3806,13 +3977,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         {artistLogo ? (
                             <img 
                                 src={artistLogo} 
-                                alt="Image Centrale" 
-                                className="w-full h-full object-cover transition-all" 
+                                alt="Logo Badge" 
+                                className="w-full h-full object-contain p-4 transition-all" 
                             />
                         ) : (
                             <>
                                 <ImageIcon className="w-8 h-8 text-white/20 group-hover:text-neon-cyan transition-colors" />
-                                <span className="text-[10px] font-black text-white/50 uppercase group-hover:text-white transition-colors">Ajouter Image Centrale</span>
+                                <span className="text-[10px] font-black text-white/50 uppercase group-hover:text-white transition-colors">Personaliser le Logo du Badge</span>
                             </>
                         )}
                     </button>
@@ -3827,15 +3998,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 </div>
             </div>
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Titre des conseils</label>
-                <input 
-                    value={conseilsTitle} 
-                    onChange={e => setConseilsTitle(e.target.value)} 
-                    placeholder="EX: 3 ASTUCES POUR MIXER" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md" 
-                />
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Message Principal (Grand texte en bas)</label>
+                {textEditor}
             </div>
-            {textEditor}
         </div>
     );
 
