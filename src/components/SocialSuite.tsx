@@ -1738,22 +1738,24 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const headerLeftX = 60;
                 const headerRightX = canvas.width - 380; // Left of top-right logo
 
-                // Top Left: Category label (e.g. 'CONSEILS' or custom header)
-                const categoryLabel = (highlightsFestival || 'CONSEILS');
-                ctx.save();
-                ctx.font = '900 34px "Montserrat", sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                ctx.shadowBlur = 10;
-                ctx.textAlign = 'left';
-                
-                const catLines = categoryLabel.split('\n');
-                let curHY = headerY;
-                catLines.forEach(line => {
-                    ctx.fillText(line.toUpperCase(), headerLeftX, curHY);
-                    curHY += 38;
-                });
-                ctx.restore();
+                // Top Left: Category label (custom header if entered)
+                const categoryLabel = highlightsFestival || '';
+                if (categoryLabel) {
+                    ctx.save();
+                    ctx.font = '900 34px "Montserrat", sans-serif';
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                    ctx.shadowBlur = 10;
+                    ctx.textAlign = 'left';
+                    
+                    const catLines = categoryLabel.split('\n');
+                    let curHY = headerY;
+                    catLines.forEach(line => {
+                        ctx.fillText(line.toUpperCase(), headerLeftX, curHY);
+                        curHY += 38;
+                    });
+                    ctx.restore();
+                }
 
                 // Top Right: Photo Credit (citationAuthor)
                 if (citationAuthor) {
@@ -3977,6 +3979,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 />
             </div>
             <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Message Principal (Grand texte en bas)</label>
+                {textEditor}
+            </div>
+            <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo / Icône du Badge Central (Optionnel)</label>
                 <div className="relative group/logo">
                     {artistLogo && (
@@ -4011,10 +4017,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         <Upload className="w-4 h-4 text-neon-cyan" /> {artistLogo ? 'Modifier Image Cloud' : 'Importer Cloud'}
                     </button>
                 </div>
-            </div>
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Message Principal (Grand texte en bas)</label>
-                {textEditor}
             </div>
         </div>
     );
