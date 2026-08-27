@@ -169,6 +169,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [festivalNameText, setFestivalNameText] = useState('');
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
     const [citationAuthor, setCitationAuthor] = useState('');
+    const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
     const [conseilsTitle, setConseilsTitle] = useState('LE TITRE ICI');
     const [conseilsSubtext, setConseilsSubtext] = useState('');
     const recordingStartTimeRef = useRef<number>(0);
