@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Send, Loader, X, Mail, Save, History, CheckCircle, Clock, Download, Printer, ChevronRight, Building2, User, Users, Settings, BookOpen, RefreshCw, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Trash2, Send, Loader, X, Mail, Save, History, CheckCircle, Clock, Download, Printer, ChevronRight, Building2, User, Users, Settings, BookOpen, RefreshCw, Calendar as CalendarIcon, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { isSuperAdmin } from '../utils/auth';
 import { WorkPlanning } from './WorkPlanning';
+import { FacebookRecoveryModal } from './admin/FacebookRecoveryModal';
 
 interface InvoiceLine {
     id: string;
@@ -232,6 +233,7 @@ export function InvoiceGenerator() {
 
     const currentUser = (localStorage.getItem('admin_user') || '').toLowerCase();
     const isAlex = currentUser === 'alex' || isSuperAdmin(currentUser);
+    const [showFbModal, setShowFbModal] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -799,6 +801,14 @@ export function InvoiceGenerator() {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
+                    {isAlex && (
+                        <button
+                            onClick={() => setShowFbModal(true)}
+                            className="px-4 py-3 bg-[#1877F2]/20 hover:bg-[#1877F2]/30 border border-[#1877F2]/40 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#1877F2] flex items-center gap-2 transition-all shadow-lg shadow-[#1877F2]/10"
+                        >
+                            <ShieldCheck className="w-4 h-4 text-[#1877F2]" /> Déclaration Facebook Meta
+                        </button>
+                    )}
                     <button onClick={handleSaveOnly} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400/80 flex items-center gap-2 transition-all">
                         <Save className="w-4 h-4" /> Enregistrer ({docType === 'devis' ? 'Devis' : 'Archives'})
                     </button>
@@ -1914,6 +1924,11 @@ export function InvoiceGenerator() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <FacebookRecoveryModal
+                isOpen={showFbModal}
+                onClose={() => setShowFbModal(false)}
+            />
         </div>
     );
 }

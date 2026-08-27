@@ -116,6 +116,7 @@ import { StoryGridGenerator } from "./StoryGridGenerator";
 import { QRCodeGenerator } from "./QRCodeGenerator";
 import { IncomingCallGenerator } from "./IncomingCallGenerator";
 import { AdminCardsModal } from "../components/admin/modals/AdminCardsModal";
+import { FacebookRecoveryModal } from "../components/admin/FacebookRecoveryModal";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
 
@@ -143,6 +144,7 @@ export function AdminDashboard() {
   const [isGalerieModalOpen, setIsGalerieModalOpen] = useState(false);
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
   const [isMessagesModalOpen, setIsMessagesModalOpen] = useState(false);
+  const [isFacebookModalOpen, setIsFacebookModalOpen] = useState(false);
   const [isCommunauteModalOpen, setIsCommunauteModalOpen] = useState(false);
   const [isAccueilModalOpen, setIsAccueilModalOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
@@ -6854,7 +6856,7 @@ export function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                     <Link
                       to="/admin/messages"
                       onClick={() => setIsMessagesModalOpen(false)}
@@ -6955,6 +6957,26 @@ export function AdminDashboard() {
                             </p>
                           </div>
                         </Link>
+
+                        <button
+                          onClick={() => {
+                            setIsMessagesModalOpen(false);
+                            setIsFacebookModalOpen(true);
+                          }}
+                          className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-[#1877F2]/15 hover:border-[#1877F2]/60 transition-all group"
+                        >
+                          <div className="w-16 h-16 bg-[#1877F2]/20 rounded-2xl flex items-center justify-center border border-[#1877F2]/30 group-hover:scale-110 transition-transform">
+                            <ShieldCheck className="w-8 h-8 text-[#1877F2]" />
+                          </div>
+                          <div className="text-center">
+                            <h3 className="text-xl font-bold text-white uppercase italic">
+                              Page Facebook
+                            </h3>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">
+                              Déclaration signée Meta (Alex)
+                            </p>
+                          </div>
+                        </button>
                       </>
                     )}
                   </div>
@@ -6962,6 +6984,12 @@ export function AdminDashboard() {
               </div>
             )}
           </AnimatePresence>
+
+          {/* Facebook Recovery Statement Modal */}
+          <FacebookRecoveryModal
+            isOpen={isFacebookModalOpen}
+            onClose={() => setIsFacebookModalOpen(false)}
+          />
 
           {/* Modal Contenu (À‰ditorial) */}
           <AnimatePresence>
