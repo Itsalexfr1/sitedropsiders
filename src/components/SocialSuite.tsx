@@ -1893,12 +1893,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'alphabetic';
 
-                    titleLines.forEach(tLine => {
+                    titleLines.forEach((tLine, i) => {
                         ctx.fillText(tLine.toUpperCase(), canvas.width / 2, curY);
-                        curY += titleLineHeight;
+                        if (i < titleLines.length - 1) {
+                            curY += titleLineHeight;
+                        }
                     });
                     ctx.restore();
-                    curY += isTitleOnly ? 30 : 25; // Spacing between Title and Subtext
+                    curY += 40; // Tight gap directly under the title
                 }
 
                 // --- B) SUBTEXT UNDERNEATH (Italic, Dynamic Auto-Fitting) ---
