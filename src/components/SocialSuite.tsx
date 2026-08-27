@@ -1828,51 +1828,65 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const safeW = canvas.width - 160; // 80px safe margin on both sides
                 const isTitleOnly = mainTitleText && !bodyText;
-                let curY = isTitleOnly ? (dividerY + 115) : (dividerY + 80);
+                let curY = isTitleOnly ? (dividerY + 115) : (dividerY + 75);
 
-                // --- A) MAIN TITLE IN WHITE (Large Bold Font with Smart Auto-Fitting) ---
+                // --- A) MAIN TITLE IN WHITE (Aligned to the 2 ends of the white line) ---
                 if (mainTitleText) {
                     ctx.save();
                     
-                    // Auto-detection: short titles (covers, 1-8 words) automatically get extra-large full-width sizing!
-                    const wordCount = mainTitleText.trim().split(/\s+/).length;
-                    const autoMaximize = isTitleOnly || isConseilsLargeTitle || wordCount <= 8;
+                    const lineWidth = canvas.width - 120; // Exact distance between the 2 ends of the white line (60px to 1020px)
                     
-                    let baseFontSize = autoMaximize 
-                        ? (isTitleOnly ? 96 : 82) 
-                        : (isTitleOnly ? 76 : 66);
-                    ctx.font = `900 ${baseFontSize}px "Montserrat", sans-serif`;
-
-                    const formatTitleLines = (fSize: number) => {
-                        ctx.font = `900 ${fSize}px "Montserrat", sans-serif`;
-                        const lines: string[] = [];
-                        mainTitleText.split('\n').forEach(line => {
-                            if (!line.trim()) return;
-                            const words = line.split(' ');
-                            let cur = '';
-                            words.forEach(w => {
-                                const test = cur ? `${cur} ${w}` : w;
-                                if (ctx.measureText(test.toUpperCase()).width > safeW) {
-                                    if (cur) lines.push(cur);
-                                    cur = w;
-                                } else {
-                                    cur = test;
-                                }
-                            });
-                            if (cur) lines.push(cur);
+                    // 1. Break title into natural lines using normalized reference
+                    ctx.font = '900 100px "Montserrat", sans-serif';
+                    const rawLines = mainTitleText.split('\n');
+                    let titleLines: string[] = [];
+                    
+                    rawLines.forEach(rLine => {
+                        if (!rLine.trim()) return;
+                        const words = rLine.trim().split(/\s+/);
+                        let cur = '';
+                        words.forEach(w => {
+                            const test = cur ? `${cur} ${w}` : w;
+                            if (cur && ctx.measureText(test.toUpperCase()).width > 1220) {
+                                titleLines.push(cur);
+                                cur = w;
+                            } else {
+                                cur = test;
+                            }
                         });
-                        return lines;
-                    };
+                        if (cur) titleLines.push(cur);
+                    });
 
-                    let titleLines = formatTitleLines(baseFontSize);
-                    const minFontSize = autoMaximize ? 46 : 38;
-                    while (baseFontSize > minFontSize && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > safeW)) {
-                        baseFontSize -= 2;
-                        titleLines = formatTitleLines(baseFontSize);
+                    if (titleLines.length === 0) {
+                        titleLines = [mainTitleText.trim()];
                     }
 
-                    const titleLineHeight = Math.round(baseFontSize * 1.15);
-                    ctx.font = `900 ${baseFontSize}px "Montserrat", sans-serif`;
+                    // 2. Measure max line width at reference scale 100px
+                    ctx.font = '900 100px "Montserrat", sans-serif';
+                    let maxMeasuredW = 0;
+                    titleLines.forEach(l => {
+                        const w = ctx.measureText(l.toUpperCase()).width;
+                        if (w > maxMeasuredW) maxMeasuredW = w;
+                    });
+
+                    // Ideal font size to align widest line to the 2 ends of the white line
+                    let soloFontSize = Math.round((lineWidth / (maxMeasuredW || 1)) * 100);
+                    soloFontSize = Math.min(Math.max(soloFontSize, 52), 115);
+
+                    // When subtext is present, title is 30% smaller than solo title
+                    let finalTitleFontSize = isTitleOnly 
+                        ? soloFontSize 
+                        : Math.round(soloFontSize * 0.70);
+
+                    // Ensure no line overflows the white line width
+                    ctx.font = `900 ${finalTitleFontSize}px "Montserrat", sans-serif`;
+                    while (titleLines.some(l => ctx.measureText(l.toUpperCase()).width > lineWidth) && finalTitleFontSize > 34) {
+                        finalTitleFontSize -= 2;
+                        ctx.font = `900 ${finalTitleFontSize}px "Montserrat", sans-serif`;
+                    }
+
+                    const titleLineHeight = Math.round(finalTitleFontSize * 1.14);
+                    ctx.font = `900 ${finalTitleFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 16;
@@ -1884,7 +1898,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += (autoMaximize ? 32 : 26); // Spacing between Title and Subtext
+                    curY += isTitleOnly ? 30 : 25; // Spacing between Title and Subtext
                 }
 
                 // --- B) SUBTEXT UNDERNEATH (Italic, Dynamic Auto-Fitting) ---
