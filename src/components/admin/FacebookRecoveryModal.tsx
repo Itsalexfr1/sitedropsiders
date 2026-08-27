@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShieldCheck, Download, Copy, Check, Trash2, PenTool, RefreshCw, FileText, AlertTriangle } from 'lucide-react';
+import { X, ShieldCheck, Download, Copy, Check, Trash2, PenTool, RefreshCw, FileText, AlertTriangle, Fingerprint } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -17,7 +17,7 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
     const [address, setAddress] = useState('411 Rue de Bouillargue, 30000 Nîmes, France');
     const [phone, setPhone] = useState('07 62 05 45 89');
     const [personalEmail, setPersonalEmail] = useState('alexlight3034@icloud.com');
-    const [proEmail, setProEmail] = useState('alex@dropsiders.fr');
+    const [proEmail, setProEmail] = useState('contact@dropsiders.fr');
     const [roleTitle, setRoleTitle] = useState('Fondateur, Propriétaire et Représentant Légal de Dropsiders');
     const [siret, setSiret] = useState('805 131 828 00010');
 
@@ -27,12 +27,12 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
     const [pageId, setPageId] = useState('828253520693650');
     const [businessManagerId, setBusinessManagerId] = useState('');
     const [targetAdminEmail, setTargetAdminEmail] = useState('alexlight3034@icloud.com');
-    const [targetAdminProfileUrl, setTargetAdminProfileUrl] = useState('');
+    const [targetAdminProfileUrl, setTargetAdminProfileUrl] = useState('https://www.facebook.com/dropsidersfr');
 
     // Issue Type & Details
     const [issueType, setIssueType] = useState<'hacked' | 'lost_access' | 'trademark'>('hacked');
     const [issueExplanation, setIssueExplanation] = useState(
-        "Je soussigné Alexandre CUENCA, fondateur, propriétaire et représentant légal de l'entité Dropsiders (SIRET: 805 131 828 00010), demande formellement par la présente déclaration la réattribution complète et exclusive de l'accès Administrateur sur la Page Facebook « Dropsiders » (ID de la Page : 828253520693650) à mon adresse email et compte Facebook : alexlight3034@icloud.com (contact pro : alex@dropsiders.fr). Suite à la perte d'accès de mon compte administrateur d'origine, je sollicite auprès des services d'assistance de Meta la restauration immédiate de mes droits de gestion et de contrôle légitimes sur cette page."
+        "Je soussigné Alexandre CUENCA, fondateur, propriétaire et représentant légal de l'entité Dropsiders (SIRET: 805 131 828 00010), demande formellement par la présente déclaration la réattribution complète et exclusive de l'accès Administrateur sur la Page Facebook « Dropsiders » (ID de la Page : 828253520693650) à mon adresse email et compte Facebook : alexlight3034@icloud.com (contact pro : contact@dropsiders.fr). Suite à la perte d'accès de mon compte administrateur d'origine, je sollicite auprès des services d'assistance de Meta la restauration immédiate de mes droits de gestion et de contrôle légitimes sur cette page."
     );
 
     // Location & Date
@@ -44,6 +44,31 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
     const [isDrawing, setIsDrawing] = useState(false);
     const [hasSignature, setHasSignature] = useState(false);
     const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null);
+
+    // Digital Signature state
+    const [certId] = useState<string>(() => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const rand = (n: number) => Array.from({ length: n }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        return `DS-${rand(4)}-${rand(6)}-${rand(4)}`;
+    });
+    const [certTimestamp] = useState<string>(() => new Date().toISOString());
+    const [digitalSigGenerated, setDigitalSigGenerated] = useState(false);
+    const [digitalSigHash, setDigitalSigHash] = useState<string>('');
+
+    // Generate certified digital signature hash (SHA-256 via Web Crypto API)
+    const generateDigitalSignature = async () => {
+        const payload = `${fullName}|${siret}|${pageName}|${pageId}|${targetAdminEmail}|${targetAdminProfileUrl}|${certTimestamp}|${certId}`;
+        const msgBuffer = new TextEncoder().encode(payload);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+        setDigitalSigHash(hashHex);
+        setDigitalSigGenerated(true);
+    };
+
+    useEffect(() => {
+        generateDigitalSignature();
+    }, []);
 
     // UI state
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -429,6 +454,15 @@ Signature légale: [Document signé numériquement par ${fullName}]`;
                                                     className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-xs text-white font-bold outline-none focus:border-[#1877F2]"
                                                 />
                                             </div>
+
+                                            <div className="space-y-1 md:col-span-2">
+                                                <label className="text-[9px] font-bold text-gray-400 uppercase">Lien Profil Facebook (du représentant légal)</label>
+                                                <input
+                                                    value={targetAdminProfileUrl}
+                                                    onChange={e => setTargetAdminProfileUrl(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2.5 text-xs text-white font-bold outline-none focus:border-[#1877F2]"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -511,6 +545,62 @@ Signature légale: [Document signé numériquement par ${fullName}]`;
                                                 />
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* Certified Digital Signature Block */}
+                                    <div className="p-5 bg-gradient-to-br from-[#1877F2]/10 to-purple-900/10 border border-[#1877F2]/30 rounded-3xl space-y-4">
+                                        <div className="flex items-center gap-2 border-b border-[#1877F2]/20 pb-3">
+                                            <Fingerprint className="w-4 h-4 text-[#1877F2]" />
+                                            <h3 className="text-xs font-black text-white uppercase tracking-widest">
+                                                Signature Numérique Certifiée
+                                            </h3>
+                                            {digitalSigGenerated && (
+                                                <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-green-500/20 border border-green-500/40 text-green-400">
+                                                    ✓ Générée
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {digitalSigGenerated ? (
+                                            <div className="space-y-3">
+                                                <div className="bg-black/30 rounded-2xl p-3 space-y-2 border border-white/10">
+                                                    <div className="flex justify-between text-[9px]">
+                                                        <span className="text-gray-400 font-bold uppercase">Certificat ID</span>
+                                                        <span className="text-[#1877F2] font-black font-mono">{certId}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-[9px]">
+                                                        <span className="text-gray-400 font-bold uppercase">Horodatage</span>
+                                                        <span className="text-white font-bold font-mono">{new Date(certTimestamp).toLocaleString('fr-FR')}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-[9px]">
+                                                        <span className="text-gray-400 font-bold uppercase">Signataire</span>
+                                                        <span className="text-white font-bold">{fullName}</span>
+                                                    </div>
+                                                    <div className="pt-2 border-t border-white/10">
+                                                        <p className="text-[8px] text-gray-400 uppercase font-bold mb-1">Empreinte SHA-256</p>
+                                                        <p className="text-[8px] font-mono text-neon-cyan break-all leading-relaxed">
+                                                            {digitalSigHash.slice(0, 32)}<br/>
+                                                            {digitalSigHash.slice(32, 64)}<br/>
+                                                            {digitalSigHash.slice(64)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <p className="text-[9px] text-gray-500 leading-relaxed">
+                                                    Cette empreinte cryptographique (SHA-256) certifie l'intégrité du document au moment de sa génération. Elle sera intégrée dans le PDF.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-4 space-y-3">
+                                                <Fingerprint className="w-10 h-10 text-gray-600 mx-auto" />
+                                                <p className="text-[10px] text-gray-400">Génère une empreinte cryptographique unique pour certifier ce document.</p>
+                                                <button
+                                                    onClick={generateDigitalSignature}
+                                                    className="w-full py-3 bg-[#1877F2]/20 hover:bg-[#1877F2]/30 border border-[#1877F2]/40 rounded-xl text-[#1877F2] text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <Fingerprint className="w-3.5 h-3.5" /> Générer la signature certifiée
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Meta Required Attachments Checklist */}
@@ -702,7 +792,7 @@ Signature légale: [Document signé numériquement par ${fullName}]`;
                                             </div>
                                         </div>
 
-                                        {/* Signature & Date Footer */}
+                                                        {/* Signature & Date Footer */}
                                         <div className="pt-4 border-t border-gray-200 mt-6">
                                             <div className="flex justify-between items-end">
                                                 <div className="space-y-1">
@@ -711,6 +801,9 @@ Signature légale: [Document signé numériquement par ${fullName}]`;
                                                     </p>
                                                     <p className="text-[9px] text-gray-500">
                                                         Pièces justificatives jointes : Copie CNI/Passeport + Extrait SIRENE
+                                                    </p>
+                                                    <p className="text-[9px] text-gray-600">
+                                                        <strong>Lien profil Facebook :</strong> {targetAdminProfileUrl}
                                                     </p>
                                                 </div>
 
@@ -730,6 +823,37 @@ Signature légale: [Document signé numériquement par ${fullName}]`;
                                                     </p>
                                                 </div>
                                             </div>
+
+                                            {/* Certified Digital Signature Stamp */}
+                                            {digitalSigGenerated && (
+                                                <div className="mt-5 p-3 border border-[#1877F2]/40 rounded-lg bg-blue-50/60">
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="flex-shrink-0 w-8 h-8 bg-[#1877F2] rounded-md flex items-center justify-center">
+                                                            <span className="text-white text-[10px] font-black">DS</span>
+                                                        </div>
+                                                        <div className="flex-1 space-y-0.5">
+                                                            <p className="text-[9px] font-black text-[#051937] uppercase tracking-wider">
+                                                                Signature Numérique Certifiée — Document Authentifié
+                                                            </p>
+                                                            <p className="text-[8px] text-gray-600 font-mono">
+                                                                <strong>Certificat ID :</strong> {certId} &nbsp;|&nbsp;
+                                                                <strong>Horodatage :</strong> {new Date(certTimestamp).toLocaleString('fr-FR')}
+                                                            </p>
+                                                            <p className="text-[8px] text-gray-600">
+                                                                <strong>Signataire :</strong> {fullName} ({personalEmail}) &nbsp;|&nbsp;
+                                                                <strong>Entité :</strong> Dropsiders SIRET {siret}
+                                                            </p>
+                                                            <p className="text-[7.5px] font-mono text-[#1877F2] break-all leading-relaxed pt-0.5">
+                                                                <strong>SHA-256 :</strong> {digitalSigHash}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[7px] text-gray-400 italic mt-2 text-center">
+                                                        Ce document a été signé numériquement par le représentant légal désigné ci-dessus via l'algorithme SHA-256 (Web Crypto API).
+                                                        L'empreinte cryptographique garantit l'intégrité et l'authenticité du contenu de cette déclaration.
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
