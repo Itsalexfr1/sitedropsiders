@@ -1838,14 +1838,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') ? conseilsTitle : '';
                 const bodyText = conseilsSubtext || '';
 
-                const safeW = canvas.width - 120;
-                let curY = dividerY + 110; // Titre plus bas par rapport à la ligne blanche
+                const safeW = canvas.width - 100;
+                const isTitleOnly = mainTitleText && !bodyText;
+                let curY = isTitleOnly ? (dividerY + 125) : (dividerY + 95);
 
                 // --- A) MAIN TITLE IN WHITE (Large Bold Font) ---
                 if (mainTitleText) {
                     ctx.save();
-                    const titleFontSize = 62;
-                    const titleLineHeight = 68;
+                    const titleFontSize = isTitleOnly ? 78 : 70; // Gros et percutant
+                    const titleLineHeight = isTitleOnly ? 88 : 80;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
@@ -1872,7 +1873,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += 35; // Plus d'espace entre titre et texte
+                    curY += 30; // Espace entre titre et texte
                 }
 
                 // --- B) SUBTEXT UNDERNEATH (Italic, smaller, lighter) ---
