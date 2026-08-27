@@ -1830,53 +1830,42 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const isTitleOnly = mainTitleText && !bodyText;
                 let curY = dividerY + 62;
 
-                // --- A) MAIN TITLE IN WHITE (Calé d'un bout à l'autre de la ligne blanche) ---
+                // --- A) MAIN TITLE IN WHITE ---
                 if (mainTitleText) {
                     ctx.save();
                     
-                    // 1. Découpe naturelle en 2 lignes si possible
-                    ctx.font = '900 100px "Montserrat", sans-serif';
-                    const rawLines = mainTitleText.split('\n');
-                    let titleLines: string[] = [];
-                    
-                    rawLines.forEach(rLine => {
-                        if (!rLine.trim()) return;
-                        const words = rLine.trim().split(/\s+/);
-                        let cur = '';
-                        words.forEach(w => {
-                            const test = cur ? `${cur} ${w}` : w;
-                            if (cur && ctx.measureText(test.toUpperCase()).width > 1250) {
-                                titleLines.push(cur);
-                                cur = w;
-                            } else {
-                                cur = test;
-                            }
-                        });
-                        if (cur) titleLines.push(cur);
-                    });
-
-                    if (titleLines.length === 0) {
-                        titleLines = [mainTitleText.trim()];
-                    }
-
-                    // 2. Calcule la taille exacte pour que la ligne la plus large fasse 960px (pleine largeur de la ligne blanche)
-                    ctx.font = '900 100px "Montserrat", sans-serif';
-                    let maxW = 0;
-                    titleLines.forEach(l => {
-                        const w = ctx.measureText(l.toUpperCase()).width;
-                        if (w > maxW) maxW = w;
-                    });
-
-                    let optimalFontSize = Math.round((lineWidth / (maxW || 1)) * 100);
-                    let titleFontSize = Math.min(Math.max(optimalFontSize, 44), isTitleOnly ? 84 : 64);
-
+                    // Titre réduit et élégant (58px solo, 42px avec texte)
+                    let titleFontSize = isTitleOnly ? 58 : 42;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
-                    while (titleFontSize > 30 && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > lineWidth)) {
+
+                    const formatTitleLines = (fSize: number) => {
+                        ctx.font = `900 ${fSize}px "Montserrat", sans-serif`;
+                        const lines: string[] = [];
+                        mainTitleText.split('\n').forEach(line => {
+                            if (!line.trim()) return;
+                            const words = line.trim().split(/\s+/);
+                            let cur = '';
+                            words.forEach(w => {
+                                const test = cur ? `${cur} ${w}` : w;
+                                if (ctx.measureText(test.toUpperCase()).width > lineWidth) {
+                                    if (cur) lines.push(cur);
+                                    cur = w;
+                                } else {
+                                    cur = test;
+                                }
+                            });
+                            if (cur) lines.push(cur);
+                        });
+                        return lines;
+                    };
+
+                    let titleLines = formatTitleLines(titleFontSize);
+                    while (titleFontSize > 26 && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > lineWidth)) {
                         titleFontSize -= 2;
-                        ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
+                        titleLines = formatTitleLines(titleFontSize);
                     }
 
-                    const titleLineHeight = Math.round(titleFontSize * 1.16);
+                    const titleLineHeight = Math.round(titleFontSize * 1.18);
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
@@ -1889,13 +1878,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += 24; // Espacement propre sans chevauchement
+                    curY += 22; // Espacement propre
                 }
 
                 // --- B) SUBTEXT UNDERNEATH ---
                 if (bodyText) {
                     ctx.save();
-                    let subFontSize = 30;
+                    let subFontSize = 26;
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
 
                     const formatSubLines = (fSize: number) => {
@@ -1920,12 +1909,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let subLines = formatSubLines(subFontSize);
-                    while (subFontSize > 18 && subLines.some(l => ctx.measureText(l).width > lineWidth)) {
+                    while (subFontSize > 16 && subLines.some(l => ctx.measureText(l).width > lineWidth)) {
                         subFontSize -= 1;
                         subLines = formatSubLines(subFontSize);
                     }
 
-                    const subLineHeight = Math.round(subFontSize * 1.35);
+                    const subLineHeight = Math.round(subFontSize * 1.36);
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255,255,255,0.92)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
