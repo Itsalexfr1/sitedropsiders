@@ -24,7 +24,7 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
     // Page Facebook Info
     const [pageName, setPageName] = useState('Dropsiders');
     const [pageUrl, setPageUrl] = useState('https://www.facebook.com/dropsiders');
-    const [pageId, setPageId] = useState('');
+    const [pageId, setPageId] = useState('828253520693650');
     const [businessManagerId, setBusinessManagerId] = useState('');
     const [targetAdminEmail, setTargetAdminEmail] = useState('alexlight3034@icloud.com');
     const [targetAdminProfileUrl, setTargetAdminProfileUrl] = useState('');
@@ -32,7 +32,7 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
     // Issue Type & Details
     const [issueType, setIssueType] = useState<'hacked' | 'lost_access' | 'trademark'>('hacked');
     const [issueExplanation, setIssueExplanation] = useState(
-        "Mon compte personnel administrateur a subi un piratage/détournement frauduleux entraînant la perte de mes accès de contrôle sur la Page Facebook officielle Dropsiders. En tant que créateur originel, propriétaire de la marque et représentant légal officiel de l'entreprise Dropsiders (SIRET: 805 131 828 00010), je sollicite formellement auprès de Meta la réattribution immédiate du rôle d'Administrateur complet sur cette Page."
+        "Je soussigné Alexandre CUENCA, fondateur, propriétaire et représentant légal de l'entité Dropsiders (SIRET: 805 131 828 00010), demande formellement par la présente déclaration la réattribution complète et exclusive de l'accès Administrateur sur la Page Facebook « Dropsiders » (ID de la Page : 828253520693650) à mon adresse email et compte Facebook : alexlight3034@icloud.com (contact pro : alex@dropsiders.fr). Suite à la perte d'accès de mon compte administrateur d'origine, je sollicite auprès des services d'assistance de Meta la restauration immédiate de mes droits de gestion et de contrôle légitimes sur cette page."
     );
 
     // Location & Date
@@ -55,11 +55,11 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
     const handleIssueTypeChange = (type: 'hacked' | 'lost_access' | 'trademark') => {
         setIssueType(type);
         if (type === 'hacked') {
-            setIssueExplanation("Mon compte personnel administrateur a subi un piratage/détournement frauduleux entraînant la perte de mes accès de contrôle sur la Page Facebook officielle Dropsiders. En tant que créateur originel, propriétaire de la marque et représentant légal officiel de l'entreprise Dropsiders (SIRET: 805 131 828 00010), je sollicite formellement auprès de Meta la réattribution immédiate du rôle d'Administrateur complet sur cette Page.");
+            setIssueExplanation("Je soussigné Alexandre CUENCA, fondateur et représentant légal de Dropsiders (SIRET: 805 131 828 00010), demande formellement la réattribution de l'accès Administrateur sur la Page Facebook « Dropsiders » (ID : 828253520693650) à mon adresse email : alexlight3034@icloud.com suite au piratage/détournement de mon compte administrateur.");
         } else if (type === 'lost_access') {
-            setIssueExplanation("Suite à une perte d'accès technique / déconnexion de l'ancien profil administrateur sans gestionnaire alternatif joignable, la Page officielle Dropsiders se trouve actuellement sans administrateur actif habilité. En qualité de propriétaire légal et titulaire des droits Dropsiders (SIRET: 805 131 828 00010), je demande l'attribution de l'accès Administrateur à mon compte actuel.");
+            setIssueExplanation("Je soussigné Alexandre CUENCA, propriétaire légal de Dropsiders (SIRET: 805 131 828 00010), demande la réattribution de l'accès Administrateur sur la Page Facebook « Dropsiders » (ID : 828253520693650) à mon adresse email : alexlight3034@icloud.com suite à une perte d'accès technique.");
         } else {
-            setIssueExplanation("En tant que titulaire exclusif des droits d'exploitation de la marque et de l'entité Dropsiders (SIRET: 805 131 828 00010), je revendique la propriété légale de la Page Facebook Dropsiders et requiers le transfert de l'administration principale vers mes coordonnées vérifiées.");
+            setIssueExplanation("Je soussigné Alexandre CUENCA, titulaire exclusif des droits et marque Dropsiders (SIRET: 805 131 828 00010), revendique la propriété légale et requiers l'accès Administrateur principal sur la Page Facebook « Dropsiders » (ID : 828253520693650) pour le compte : alexlight3034@icloud.com.");
         }
     };
 
