@@ -1733,29 +1733,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else if (theme === 'CONSEILS') {
                 ctx.save();
 
-                // 1. TOP HEADER (Top Left Category & Top Right Photo Credit)
+                // 1. TOP HEADER (Top Right Photo Credit)
                 const headerY = safeTop + 65;
-                const headerLeftX = 60;
                 const headerRightX = canvas.width - 380; // Left of top-right logo
-
-                // Top Left: Category label (custom header if entered)
-                const categoryLabel = highlightsFestival || '';
-                if (categoryLabel) {
-                    ctx.save();
-                    ctx.font = '900 34px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                    ctx.shadowBlur = 10;
-                    ctx.textAlign = 'left';
-                    
-                    const catLines = categoryLabel.split('\n');
-                    let curHY = headerY;
-                    catLines.forEach(line => {
-                        ctx.fillText(line.toUpperCase(), headerLeftX, curHY);
-                        curHY += 38;
-                    });
-                    ctx.restore();
-                }
 
                 // Top Right: Photo Credit (citationAuthor)
                 if (citationAuthor) {
@@ -3960,27 +3940,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const conseilsEditor = (
         <div className="space-y-4">
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Catégorie / En-tête (Haut Gauche)</label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Titre des Conseils (Grand texte blanc)</label>
                 <textarea 
                     rows={2}
                     value={conseilsTitle} 
                     onChange={e => setConseilsTitle(e.target.value)} 
-                    placeholder="EX: CONSEILS" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold italic uppercase focus:border-white/40 outline-none transition-all shadow-md resize-none" 
+                    placeholder="EX: BLACK ROCK CITY CENTERS AROUND &quot;THE MAN&quot;" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md resize-none" 
                 />
             </div>
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Crédit Photo / Sous-titre (Haut Droite)</label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Texte / Description en dessous</label>
+                {textEditor}
+            </div>
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Crédit Photo (Haut Droite)</label>
                 <input 
                     value={citationAuthor} 
                     onChange={e => setCitationAuthor(e.target.value)} 
-                    placeholder="EX: Photo: Scott London" 
+                    placeholder="EX: Photo: The Atlantic" 
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md" 
                 />
-            </div>
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Message Principal (Grand texte en bas)</label>
-                {textEditor}
             </div>
             <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Logo / Icône du Badge Central (Optionnel)</label>
