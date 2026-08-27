@@ -172,6 +172,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
     const [conseilsTitle, setConseilsTitle] = useState('LE TITRE ICI');
     const [conseilsSubtext, setConseilsSubtext] = useState('');
+    const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
@@ -1832,7 +1833,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 // --- A) MAIN TITLE IN WHITE (Large Bold Font with Dynamic Auto-Fitting) ---
                 if (mainTitleText) {
                     ctx.save();
-                    let baseFontSize = isTitleOnly ? 72 : 62;
+                    let baseFontSize = isConseilsLargeTitle 
+                        ? (isTitleOnly ? 94 : 84) 
+                        : (isTitleOnly ? 72 : 62);
                     ctx.font = `900 ${baseFontSize}px "Montserrat", sans-serif`;
 
                     const formatTitleLines = (fSize: number) => {
@@ -1857,12 +1860,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let titleLines = formatTitleLines(baseFontSize);
-                    while (baseFontSize > 38 && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > safeW)) {
+                    const minFontSize = isConseilsLargeTitle ? 48 : 38;
+                    while (baseFontSize > minFontSize && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > safeW)) {
                         baseFontSize -= 2;
                         titleLines = formatTitleLines(baseFontSize);
                     }
 
-                    const titleLineHeight = Math.round(baseFontSize * 1.18);
+                    const titleLineHeight = Math.round(baseFontSize * 1.15);
                     ctx.font = `900 ${baseFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
@@ -1875,7 +1879,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += 28; // Spacing between Title and Subtext
+                    curY += (isConseilsLargeTitle ? 34 : 28); // Spacing between Title and Subtext
                 }
 
                 // --- B) SUBTEXT UNDERNEATH (Italic, Dynamic Auto-Fitting) ---
@@ -2683,7 +2687,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -3961,6 +3965,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     const conseilsEditor = (
         <div className="space-y-4">
+            <div 
+                className="flex items-center justify-between p-3 bg-white/5 border border-white/10 rounded-2xl cursor-pointer group hover:border-white/20 transition-all" 
+                onClick={() => setIsConseilsLargeTitle(!isConseilsLargeTitle)}
+            >
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-neon-cyan transition-colors">Titre Extra Large (Pleine Largeur)</span>
+                    <span className="text-[8px] font-bold text-gray-500">Grossit le titre pour occuper toute la largeur de la ligne</span>
+                </div>
+                <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${isConseilsLargeTitle ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                    {isConseilsLargeTitle && (
+                        <motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-3 h-3 text-black font-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </motion.svg>
+                    )}
+                </div>
+            </div>
+
             <div className="space-y-2">
                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Titre des Conseils (Grand texte blanc)</label>
                 <textarea 
