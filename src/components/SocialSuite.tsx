@@ -169,8 +169,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [festivalNameText, setFestivalNameText] = useState('');
     const [isArtistLogoNegative, setIsArtistLogoNegative] = useState(true);
     const [citationAuthor, setCitationAuthor] = useState('');
-    const [citationMedia, setCitationMedia] = useState('pour Dropsiders');
     const [conseilsTitle, setConseilsTitle] = useState('LE TITRE ICI');
+    const [conseilsSubtext, setConseilsSubtext] = useState('');
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
@@ -657,28 +657,23 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (!showText) return; 
 
-            // Gradient overlays for CONSEILS (top header shadow & solid black bottom fade)
+            // Gradient overlays for CONSEILS (Smooth aesthetic dark gradient)
             if (theme === 'CONSEILS') {
                 // Top header shadow
-                const topGrad = ctx.createLinearGradient(0, 0, 0, 300);
-                topGrad.addColorStop(0, 'rgba(0,0,0,0.85)');
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 260);
+                topGrad.addColorStop(0, 'rgba(0,0,0,0.65)');
                 topGrad.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = topGrad;
-                ctx.fillRect(0, 0, canvas.width, 300);
+                ctx.fillRect(0, 0, canvas.width, 260);
 
-                // Smooth fade to pitch black starting from Y = 36% down to 52%
-                const fadeStart = Math.floor(canvas.height * 0.36);
-                const fadeEnd = Math.floor(canvas.height * 0.52);
-                const bottomGrad = ctx.createLinearGradient(0, fadeStart, 0, fadeEnd);
+                // Smooth aesthetic bottom gradient (rich photo depth + high text contrast)
+                const bottomGrad = ctx.createLinearGradient(0, canvas.height * 0.35, 0, canvas.height);
                 bottomGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                bottomGrad.addColorStop(0.5, 'rgba(0,0,0,0.7)');
-                bottomGrad.addColorStop(1, '#000000');
+                bottomGrad.addColorStop(0.35, 'rgba(0,0,0,0.35)');
+                bottomGrad.addColorStop(0.7, 'rgba(0,0,0,0.8)');
+                bottomGrad.addColorStop(1, 'rgba(0,0,0,0.95)');
                 ctx.fillStyle = bottomGrad;
-                ctx.fillRect(0, fadeStart, canvas.width, fadeEnd - fadeStart);
-
-                // 100% Solid Pitch Black bottom from Y = 52% to 100%
-                ctx.fillStyle = '#000000';
-                ctx.fillRect(0, fadeEnd, canvas.width, canvas.height - fadeEnd);
+                ctx.fillRect(0, canvas.height * 0.35, canvas.width, canvas.height * 0.65);
             } else if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
@@ -1749,27 +1744,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // 2. DIVIDER LINE & SWIPE
+                // 2. DIVIDER LINE (No swipe in CONSEILS theme)
                 const dividerY = Math.floor(canvas.height * 0.52);
-                let swipeSpaceRight = 0;
-
-                // Swipe indicator on the exact same line as the divider line
-                if (showSwipe) {
-                    ctx.save();
-                    ctx.font = '800 24px "Montserrat", sans-serif';
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                    ctx.shadowBlur = 8;
-                    ctx.textAlign = 'right';
-                    ctx.textBaseline = 'middle';
-                    
-                    const swipeText = 'Swipe ──>';
-                    swipeSpaceRight = ctx.measureText(swipeText).width + 20; // Space reserved on the right of the line
-                    ctx.fillText(swipeText, canvas.width - 60, dividerY);
-                    ctx.restore();
-                }
-
-                const lineRightX = canvas.width - 60 - swipeSpaceRight;
+                const lineRightX = canvas.width - 60;
 
                 // Horizontal line (Thicker line: 5px)
                 ctx.save();
@@ -1825,80 +1802,75 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 }
                 ctx.restore();
 
-                // 3. MAIN TITLE IN WHITE & SUBTEXT UNDERNEATH
+                // 3. MAIN TITLE IN WHITE (BOLD) & SUBTEXT UNDERNEATH (ITALIC, SMALLER)
                 const mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') ? conseilsTitle : '';
-                const bodyText = customText || '';
+                const bodyText = conseilsSubtext || '';
 
                 const safeW = canvas.width - 120;
                 let curY = dividerY + 65;
 
-                // --- A) MAIN TITLE IN WHITE (Large Font) ---
+                // --- A) MAIN TITLE IN WHITE (Large Bold Font) ---
                 if (mainTitleText) {
                     ctx.save();
                     const titleFontSize = 60;
                     const titleLineHeight = 70;
-                    ctx.font = `900 ${titleFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                    ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 16;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'alphabetic';
 
                     const titleLines: string[] = [];
-                    const rawTitleLines = mainTitleText.split('\n');
-                    rawTitleLines.forEach(line => {
+                    mainTitleText.split('\n').forEach(line => {
                         if (!line.trim()) return;
                         const words = line.split(' ');
                         let cur = '';
                         words.forEach(w => {
                             const test = cur ? `${cur} ${w}` : w;
-                            if (ctx.measureText(stripTags(test)).width > safeW) {
+                            if (ctx.measureText(test).width > safeW) {
                                 if (cur) titleLines.push(cur);
                                 cur = w;
-                            } else {
-                                cur = test;
-                            }
+                            } else { cur = test; }
                         });
                         if (cur) titleLines.push(cur);
                     });
-
-                    titleLines.forEach((tLine) => {
-                        drawRichText(ctx, tLine.toUpperCase(), canvas.width / 2, curY, '#ffffff', 'center');
+                    titleLines.forEach(tLine => {
+                        ctx.fillText(tLine.toUpperCase(), canvas.width / 2, curY);
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-
-                    curY += 25; // Space between Title and Body Text
+                    curY += 20;
                 }
 
-                // --- B) SUBTEXT / DESCRIPTION UNDERNEATH (Smaller Font) ---
+                // --- B) SUBTEXT UNDERNEATH (Italic, smaller, lighter) ---
                 if (bodyText) {
                     ctx.save();
-                    const bodyFontSize = 32;
-                    const bodyLineHeight = 42;
-                    ctx.font = `800 ${bodyFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                    ctx.shadowBlur = 12;
+                    const bodyFontSize = 34;
+                    const bodyLineHeight = 46;
+                    ctx.font = `italic 400 ${bodyFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = 'rgba(255,255,255,0.88)';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                    ctx.shadowBlur = 10;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'alphabetic';
 
                     const bodyLines: string[] = [];
-                    const rawBodyLines = bodyText.split('\n');
-                    rawBodyLines.forEach(line => {
+                    bodyText.split('\n').forEach(line => {
                         if (!line.trim()) return;
                         const words = line.split(' ');
                         let cur = '';
                         words.forEach(w => {
                             const test = cur ? `${cur} ${w}` : w;
-                            if (ctx.measureText(stripTags(test)).width > safeW) {
+                            if (ctx.measureText(test).width > safeW) {
                                 if (cur) bodyLines.push(cur);
                                 cur = w;
-                            } else {
-                                cur = test;
-                            }
+                            } else { cur = test; }
                         });
                         if (cur) bodyLines.push(cur);
                     });
-
-                    bodyLines.forEach((bLine) => {
-                        drawRichText(ctx, bLine.toUpperCase(), canvas.width / 2, curY, '#ffffff', 'center');
+                    bodyLines.forEach(bLine => {
+                        ctx.fillText(bLine, canvas.width / 2, curY);
                         curY += bodyLineHeight;
                     });
                     ctx.restore();
@@ -2661,7 +2633,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -3950,16 +3922,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 />
             </div>
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Texte / Description en dessous</label>
-                {textEditor}
-            </div>
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Crédit Photo (Haut Droite)</label>
-                <input 
-                    value={citationAuthor} 
-                    onChange={e => setCitationAuthor(e.target.value)} 
-                    placeholder="EX: Photo: The Atlantic" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md" 
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Texte en dessous du titre (italique)</label>
+                <textarea 
+                    rows={3}
+                    value={conseilsSubtext} 
+                    onChange={e => setConseilsSubtext(e.target.value)} 
+                    placeholder="EX: Le département des travaux publics, une équipe de bénévoles, conçoit et construit Black Rock City." 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white italic focus:border-white/40 outline-none transition-all shadow-md resize-none" 
                 />
             </div>
             <div className="space-y-2">
