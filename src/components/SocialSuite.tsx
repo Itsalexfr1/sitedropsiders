@@ -657,23 +657,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (!showText) return; 
 
-            // Gradient overlays for CONSEILS (Smooth aesthetic dark gradient)
+            // Gradient overlays for CONSEILS - matches reference image
             if (theme === 'CONSEILS') {
-                // Top header shadow
-                const topGrad = ctx.createLinearGradient(0, 0, 0, 260);
-                topGrad.addColorStop(0, 'rgba(0,0,0,0.65)');
+                // Top header shadow (light)
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 220);
+                topGrad.addColorStop(0, 'rgba(0,0,0,0.60)');
                 topGrad.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = topGrad;
-                ctx.fillRect(0, 0, canvas.width, 260);
+                ctx.fillRect(0, 0, canvas.width, 220);
 
-                // Smooth aesthetic bottom gradient (rich photo depth + high text contrast)
-                const bottomGrad = ctx.createLinearGradient(0, canvas.height * 0.35, 0, canvas.height);
-                bottomGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                bottomGrad.addColorStop(0.35, 'rgba(0,0,0,0.35)');
-                bottomGrad.addColorStop(0.7, 'rgba(0,0,0,0.8)');
-                bottomGrad.addColorStop(1, 'rgba(0,0,0,0.95)');
-                ctx.fillStyle = bottomGrad;
-                ctx.fillRect(0, canvas.height * 0.35, canvas.width, canvas.height * 0.65);
+                // Bottom: photo stays bright until ~42%, then rapid fade to pure black by 52% (the divider)
+                const divPx = Math.floor(canvas.height * 0.52);
+                const fadeStartPx = Math.floor(canvas.height * 0.42);
+                const fadeGrad = ctx.createLinearGradient(0, fadeStartPx, 0, divPx);
+                fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                fadeGrad.addColorStop(0.5, 'rgba(0,0,0,0.6)');
+                fadeGrad.addColorStop(1, '#000000');
+                ctx.fillStyle = fadeGrad;
+                ctx.fillRect(0, fadeStartPx, canvas.width, divPx - fadeStartPx);
+
+                // 100% solid black from divider to bottom
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, divPx, canvas.width, canvas.height - divPx);
             } else if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
@@ -1824,13 +1829,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const bodyText = conseilsSubtext || '';
 
                 const safeW = canvas.width - 120;
-                let curY = dividerY + 65;
+                let curY = dividerY + 38; // Tighter: colle à la ligne blanche
 
                 // --- A) MAIN TITLE IN WHITE (Large Bold Font) ---
                 if (mainTitleText) {
                     ctx.save();
-                    const titleFontSize = 60;
-                    const titleLineHeight = 70;
+                    const titleFontSize = 62;
+                    const titleLineHeight = 68;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
@@ -1857,14 +1862,14 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += 20;
+                    curY += 12; // Tight spacing between title and subtext
                 }
 
                 // --- B) SUBTEXT UNDERNEATH (Italic, smaller, lighter) ---
                 if (bodyText) {
                     ctx.save();
-                    const bodyFontSize = 34;
-                    const bodyLineHeight = 46;
+                    const bodyFontSize = 32;
+                    const bodyLineHeight = 42;
                     ctx.font = `italic 400 ${bodyFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255,255,255,0.88)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
