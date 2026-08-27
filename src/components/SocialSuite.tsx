@@ -657,28 +657,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (!showText) return; 
 
-            // Gradient overlays for CONSEILS - matches reference image
+            // Gradient overlays for CONSEILS - like reference image
             if (theme === 'CONSEILS') {
-                // Top header shadow (light)
+                // Top header shadow
                 const topGrad = ctx.createLinearGradient(0, 0, 0, 220);
                 topGrad.addColorStop(0, 'rgba(0,0,0,0.60)');
                 topGrad.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = topGrad;
                 ctx.fillRect(0, 0, canvas.width, 220);
 
-                // Bottom: photo stays bright until ~42%, then rapid fade to pure black by 52% (the divider)
-                const divPx = Math.floor(canvas.height * 0.52);
-                const fadeStartPx = Math.floor(canvas.height * 0.42);
-                const fadeGrad = ctx.createLinearGradient(0, fadeStartPx, 0, divPx);
+                // Bottom: smooth gradient starting at 40%, becomes total black only at ~72%
+                // The photo bleeds through just below the divider line (52%)
+                const fadeGrad = ctx.createLinearGradient(0, canvas.height * 0.40, 0, canvas.height * 0.72);
                 fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                fadeGrad.addColorStop(0.5, 'rgba(0,0,0,0.6)');
+                fadeGrad.addColorStop(0.45, 'rgba(0,0,0,0.75)');
                 fadeGrad.addColorStop(1, '#000000');
                 ctx.fillStyle = fadeGrad;
-                ctx.fillRect(0, fadeStartPx, canvas.width, divPx - fadeStartPx);
+                ctx.fillRect(0, canvas.height * 0.40, canvas.width, canvas.height * 0.35);
 
-                // 100% solid black from divider to bottom
+                // Pure black from 72% to bottom
                 ctx.fillStyle = '#000000';
-                ctx.fillRect(0, divPx, canvas.width, canvas.height - divPx);
+                ctx.fillRect(0, canvas.height * 0.72, canvas.width, canvas.height * 0.28);
             } else if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
@@ -1829,7 +1828,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const bodyText = conseilsSubtext || '';
 
                 const safeW = canvas.width - 120;
-                let curY = dividerY + 38; // Tighter: colle à la ligne blanche
+                let curY = dividerY + 80; // More gap below divider line like reference
 
                 // --- A) MAIN TITLE IN WHITE (Large Bold Font) ---
                 if (mainTitleText) {
