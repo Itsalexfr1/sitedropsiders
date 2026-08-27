@@ -1828,13 +1828,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                 const lineWidth = canvas.width - 120; // 960px between 60px and 1020px
                 const isTitleOnly = mainTitleText && !bodyText;
-                let curY = isTitleOnly ? (dividerY + 95) : (dividerY + 48);
+                let curY = isTitleOnly ? (dividerY + 95) : (dividerY + 54);
 
                 // --- A) MAIN TITLE IN WHITE ---
                 if (mainTitleText) {
                     ctx.save();
-                    // Retreci quand il y a du texte en dessous pour que tout tienne confortablement !
-                    let titleFontSize = isTitleOnly ? 72 : 38;
+                    // Taille agrandie de 10% (80px solo, 44px avec texte)
+                    let titleFontSize = isTitleOnly ? 80 : 44;
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
 
                     const formatTitleLines = (fSize: number) => {
@@ -1859,12 +1859,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let titleLines = formatTitleLines(titleFontSize);
-                    while (titleFontSize > 26 && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > lineWidth)) {
+                    while (titleFontSize > 28 && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > lineWidth)) {
                         titleFontSize -= 2;
                         titleLines = formatTitleLines(titleFontSize);
                     }
 
-                    const titleLineHeight = Math.round(titleFontSize * 1.15);
+                    const titleLineHeight = Math.round(titleFontSize * 1.18);
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
@@ -1872,20 +1872,19 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'alphabetic';
 
-                    titleLines.forEach((tLine, i) => {
+                    titleLines.forEach(tLine => {
                         ctx.fillText(tLine.toUpperCase(), canvas.width / 2, curY);
-                        if (i < titleLines.length - 1) {
-                            curY += titleLineHeight;
-                        }
+                        curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += 18; // Direct tight gap under title
+                    curY += 20; // Clean non-overlapping gap between title and first line of subtext
                 }
 
                 // --- B) SUBTEXT UNDERNEATH ---
                 if (bodyText) {
                     ctx.save();
-                    let subFontSize = 24;
+                    // Taille agrandie de 10% (27px au lieu de 24px)
+                    let subFontSize = 27;
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
 
                     const formatSubLines = (fSize: number) => {
@@ -1910,12 +1909,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let subLines = formatSubLines(subFontSize);
-                    while (subFontSize > 16 && subLines.some(l => ctx.measureText(l).width > lineWidth)) {
+                    while (subFontSize > 18 && subLines.some(l => ctx.measureText(l).width > lineWidth)) {
                         subFontSize -= 1;
                         subLines = formatSubLines(subFontSize);
                     }
 
-                    const subLineHeight = Math.round(subFontSize * 1.34);
+                    const subLineHeight = Math.round(subFontSize * 1.36);
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255,255,255,0.92)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
