@@ -1759,20 +1759,27 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // 2. DIVIDER LINE
+                // 2. DIVIDER LINE & SWIPE
                 const dividerY = Math.floor(canvas.height * 0.52);
+                let swipeSpaceRight = 0;
 
-                // Swipe indicator above divider line on the right if showSwipe is active
+                // Swipe indicator on the exact same line as the divider line (50% larger: 36px)
                 if (showSwipe) {
                     ctx.save();
-                    ctx.font = '800 24px "Montserrat", sans-serif';
+                    ctx.font = '900 36px "Montserrat", sans-serif';
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                    ctx.shadowBlur = 8;
+                    ctx.shadowBlur = 10;
                     ctx.textAlign = 'right';
-                    ctx.fillText('Swipe ──>', canvas.width - 60, dividerY - 18);
+                    ctx.textBaseline = 'middle';
+                    
+                    const swipeText = 'Swipe ──>';
+                    swipeSpaceRight = ctx.measureText(swipeText).width + 25; // Space reserved on the right of the line
+                    ctx.fillText(swipeText, canvas.width - 60, dividerY);
                     ctx.restore();
                 }
+
+                const lineRightX = canvas.width - 60 - swipeSpaceRight;
 
                 // Horizontal line
                 ctx.save();
@@ -1794,7 +1801,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
                     ctx.beginPath();
                     ctx.moveTo(badgeX + badgeW + 16, dividerY);
-                    ctx.lineTo(canvas.width - 60, dividerY);
+                    ctx.lineTo(lineRightX, dividerY);
                     ctx.stroke();
 
                     // Badge Container for custom logo
@@ -1820,10 +1827,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.drawImage(img, (canvas.width - lw) / 2, dividerY - (lh / 2), lw, lh);
                     ctx.restore();
                 } else {
-                    // Continuous line (No H8 badge)
+                    // Line shortened on right if swipe is active
                     ctx.beginPath();
                     ctx.moveTo(60, dividerY);
-                    ctx.lineTo(canvas.width - 60, dividerY);
+                    ctx.lineTo(lineRightX, dividerY);
                     ctx.stroke();
                 }
                 ctx.restore();
