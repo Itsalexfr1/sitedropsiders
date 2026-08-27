@@ -146,77 +146,164 @@ export function FacebookRecoveryModal({ isOpen, onClose }: FacebookRecoveryModal
         setSignatureDataUrl(null);
     };
 
-    // Download PDF
-    const handleDownloadPdf = async () => {
-        // Always switch to preview tab first so previewRef mounts
-        if (activeTab !== 'preview') {
-            setActiveTab('preview');
-            // Wait for React to render the preview DOM
-            await new Promise(r => setTimeout(r, 600));
-        } else {
-            await new Promise(r => setTimeout(r, 100));
-        }
-
-        const el = previewRef.current;
-        if (!el) {
-            alert('Impossible de générer le PDF : aperçu non chargé. Clique sur "Aperçu Document" puis réessaie.');
-            return;
-        }
-
+    // Download PDF — génération directe jsPDF (sans html2canvas)
+    const handleDownloadPdf = () => {
         setIsGeneratingPdf(true);
         try {
-            const canvas = await html2canvas(el, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                windowWidth: el.scrollWidth,
-                windowHeight: el.scrollHeight,
-            });
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const W = 210; // A4 width mm
+            const margin = 18;
+            const contentW = W - margin * 2;
+            let y = margin;
 
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4',
-            });
+            const addText = (text: string, opts: { size?: number; bold?: boolean; color?: string; align?: 'left' | 'center' | 'right'; lineH?: number } = {}) => {
+                const { size = 10, bold = false, color = '#1a1a1a', align = 'left', lineH = 5.5 } = opts;
+                pdf.setFontSize(size);
+                pdf.setFont('helvetica', bold ? 'bold' : 'normal');
+                const [r, g, b] = color.startsWith('#') ? [
+                    parseInt(color.slice(1, 3), 16),
+                    parseInt(color.slice(3, 5), 16),
+                    parseInt(color.slice(5, 7), 16),
+                ] : [26, 26, 26];
+                pdf.setTextColor(r, g, b);
+                const lines = pdf.splitTextToSize(text, contentW);
+                const x = align === 'center' ? W / 2 : align === 'right' ? W - margin : margin;
+                pdf.text(lines, x, y, { align });
+                y += lines.length * lineH;
+            };
 
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const imgProps = pdf.getImageProperties(imgData);
-            const imgRatio = imgProps.height / imgProps.width;
-            const contentHeight = pdfWidth * imgRatio;
+            const addLine = (color = '#1877F2', thickness = 0.5) => {
+                const [r, g, b] = [parseInt(color.slice(1, 3), 16), parseInt(color.slice(3, 5), 16), parseInt(color.slice(5, 7), 16)];
+                pdf.setDrawColor(r, g, b);
+                pdf.setLineWidth(thickness);
+                pdf.line(margin, y, W - margin, y);
+                y += 3;
+            };
 
-            if (contentHeight <= pdfHeight) {
-                // Fits on one page
-                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, contentHeight);
+            const addSpace = (mm = 4) => { y += mm; };
+
+            const addBox = (fillColor: string, draw: () => void) => {
+                const startY = y - 2;
+                draw();
+                const endY = y + 1;
+                pdf.setFillColor(...(fillColor.startsWith('#') ? [
+                    parseInt(fillColor.slice(1, 3), 16),
+                    parseInt(fillColor.slice(3, 5), 16),
+                    parseInt(fillColor.slice(5, 7), 16),
+                ] as [number, number, number] : [240, 246, 255] as [number, number, number]));
+                // Draw box behind (we use a simpler approach: just draw text normally)
+                void startY; void endY;
+            };
+            void addBox;
+
+            // ── HEADER ──
+            addText('DROPSIDERS', { size: 18, bold: true, color: '#051937' });
+            addText(`Média & Culture Électronique  •  SIRET: ${siret}`, { size: 8, color: '#666666' });
+            addText(`${address}  •  ${phone}  •  ${proEmail}`, { size: 7, color: '#888888' });
+            addSpace(2);
+            addLine('#1877F2', 0.8);
+            addSpace(4);
+
+            // ── TITLE ──
+            addText("DÉCLARATION SUR L'HONNEUR SOUS PEINE DE PARJURE", { size: 13, bold: true, color: '#051937', align: 'center' });
+            addText('STATEMENT UNDER PENALTY OF PERJURY — FACEBOOK PAGE RECOVERY', { size: 8, bold: true, color: '#1877F2', align: 'center' });
+            addSpace(6);
+
+            // ── SECTION 1 ──
+            addText('1. IDENTIFICATION DU REPRÉSENTANT LÉGAL', { size: 9, bold: true, color: '#051937' });
+            addLine('#dddddd', 0.3);
+            addSpace(1);
+            addText(`Nom complet : ${fullName}`, { size: 9 });
+            addText(`Qualité / Titre : ${roleTitle}`, { size: 9 });
+            addText(`Né(e) le : ${birthDate} à ${birthPlace}`, { size: 9 });
+            addText(`Entité légale : Dropsiders (SIRET: ${siret})`, { size: 9 });
+            addText(`Adresse : ${address}`, { size: 9 });
+            addText(`Téléphone : ${phone}`, { size: 9 });
+            addText(`Email officiel : ${proEmail}`, { size: 9 });
+            addText(`Email personnel / Support : ${personalEmail}`, { size: 9 });
+            addSpace(5);
+
+            // ── SECTION 2 ──
+            addText('2. PAGE FACEBOOK ET COMPTE CIBLE', { size: 9, bold: true, color: '#051937' });
+            addLine('#dddddd', 0.3);
+            addSpace(1);
+            addText(`Nom de la Page : ${pageName}`, { size: 9 });
+            addText(`URL de la Page : ${pageUrl}`, { size: 9 });
+            addText(`ID de la Page : ${pageId}`, { size: 9, bold: true });
+            addText(`Lien Profil Facebook du représentant : ${targetAdminProfileUrl}`, { size: 9 });
+            addText(`Compte Facebook à désigner Administrateur principal : ${targetAdminEmail}`, { size: 9, bold: true, color: '#1877F2' });
+            addSpace(5);
+
+            // ── SECTION 3 ──
+            addText('3. EXPLICATION DES FAITS / STATEMENT OF FACTS', { size: 9, bold: true, color: '#051937' });
+            addLine('#dddddd', 0.3);
+            addSpace(1);
+            addText(issueExplanation, { size: 9, lineH: 5 });
+            addSpace(5);
+
+            // ── SECTION 4 ──
+            addText('4. ENGAGEMENT SOUS SERMENT / STATEMENT UNDER PENALTY OF PERJURY', { size: 9, bold: true, color: '#051937' });
+            addLine('#1877F2', 0.4);
+            addSpace(1);
+            addText(
+                `Je soussigné(e) ${fullName}, atteste sur l'honneur et sous peine de parjure (conforme aux exigences légales et aux directives de Meta Platforms, Inc.) que je suis le propriétaire exclusif, créateur et représentant légal habilité de l'entité et marque Dropsiders. Je certifie que l'ensemble des renseignements fournis sont sincères, véridiques et conformes à la réalité. Je demande expressément à Meta Platforms, Inc. de réassigner l'administration complète de la Page Facebook « ${pageName} » à mon profil/adresse : ${targetAdminEmail}.`,
+                { size: 8.5, lineH: 5 }
+            );
+            addSpace(2);
+            addText(
+                `I, the undersigned ${fullName}, declare under penalty of perjury under the laws and policies of Meta Platforms, Inc. that I am the sole rightful owner, founder and authorized legal representative of Dropsiders. I hereby certify that all information in this declaration is true, complete and accurate, and I formally request Meta to restore full Administrator access for the Facebook Page "${pageName}" to my verified email: ${targetAdminEmail}.`,
+                { size: 8, color: '#555555', lineH: 4.8 }
+            );
+            addSpace(7);
+
+            // ── SIGNATURE & DATE ──
+            addLine('#cccccc', 0.3);
+            addSpace(3);
+            addText(`Fait à ${city}, le ${declarationDate}`, { size: 9, bold: true });
+            addText('Pièces justificatives jointes : Copie CNI/Passeport + Extrait SIRENE', { size: 8, color: '#777777' });
+            addSpace(10);
+            addText('Signature du Représentant Légal :', { size: 8, bold: true });
+            addSpace(2);
+
+            // Signature image (if drawn)
+            if (signatureDataUrl) {
+                try {
+                    pdf.addImage(signatureDataUrl, 'PNG', margin, y, 70, 25);
+                } catch (_) { /* skip if error */ }
+                y += 28;
             } else {
-                // Multi-page: slice the image across pages
-                let yOffset = 0;
-                const pageCanvas = document.createElement('canvas');
-                const pageCtx = pageCanvas.getContext('2d')!;
-                const scale = 2;
-                const pageHeightPx = Math.floor((pdfHeight / pdfWidth) * canvas.width);
-                pageCanvas.width = canvas.width;
-                pageCanvas.height = pageHeightPx;
+                // Signature box placeholder
+                pdf.setDrawColor(180, 180, 180);
+                pdf.setLineWidth(0.3);
+                pdf.rect(margin, y, 70, 22);
+                addText('(Signature manuscrite)', { size: 7, color: '#aaaaaa' });
+                y += 15;
+            }
+            addText(fullName.toUpperCase(), { size: 8, bold: true });
+            addSpace(2);
 
-                while (yOffset < canvas.height) {
-                    pageCtx.fillStyle = '#ffffff';
-                    pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-                    pageCtx.drawImage(canvas, 0, -yOffset);
-                    const pageData = pageCanvas.toDataURL('image/jpeg', 0.95);
-                    if (yOffset > 0) pdf.addPage();
-                    pdf.addImage(pageData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-                    yOffset += pageHeightPx;
-                    void scale;
-                }
+            // ── CERTIFIED DIGITAL SIGNATURE BLOCK ──
+            if (digitalSigGenerated) {
+                // Check if we need a new page
+                if (y > 240) { pdf.addPage(); y = margin; }
+                addSpace(4);
+                pdf.setFillColor(235, 245, 255);
+                pdf.setDrawColor(24, 119, 242);
+                pdf.setLineWidth(0.4);
+                pdf.roundedRect(margin, y - 1, contentW, 32, 2, 2, 'FD');
+                y += 3;
+                addText('SIGNATURE NUMÉRIQUE CERTIFIÉE — DOCUMENT AUTHENTIFIÉ', { size: 8, bold: true, color: '#051937' });
+                addText(`Certificat ID : ${certId}   |   Horodatage : ${new Date(certTimestamp).toLocaleString('fr-FR')}`, { size: 7.5, color: '#333333' });
+                addText(`Signataire : ${fullName} (${personalEmail})   |   Entité : Dropsiders SIRET ${siret}`, { size: 7.5, color: '#333333' });
+                addText(`SHA-256 : ${digitalSigHash}`, { size: 6.5, color: '#1877F2' });
+                addSpace(1);
+                addText("Ce document a été signé numériquement via l'algorithme SHA-256 (Web Crypto API). L'empreinte garantit l'intégrité et l'authenticité de cette déclaration.", { size: 6.5, color: '#888888' });
             }
 
             pdf.save(`Declaration_Facebook_Meta_Dropsiders_${declarationDate.replace(/\//g, '-')}.pdf`);
         } catch (err) {
-            console.error('Error generating PDF:', err);
-            alert('Erreur lors de la génération du PDF. Vérifie la console pour les détails.');
+            console.error('PDF error:', err);
+            alert('Erreur lors de la génération du PDF : ' + String(err));
         } finally {
             setIsGeneratingPdf(false);
         }
