@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { isSuperAdmin } from '../utils/auth';
 import { WorkPlanning } from './WorkPlanning';
 import { FacebookRecoveryModal } from './admin/FacebookRecoveryModal';
+import { downloadInvoicePDFHelper, getInvoicePDFDataUri } from '../utils/invoicePdf';
 
 interface InvoiceLine {
     id: string;
@@ -310,33 +311,7 @@ export function InvoiceGenerator() {
     };
 
     const downloadInvoicePDF = async (invData: any) => {
-        try {
-            const html = buildInvoiceHTML(invData);
-            const html2pdfModule = await import('html2pdf.js');
-            const html2pdf = (html2pdfModule as any).default || html2pdfModule;
-
-            const element = document.createElement('div');
-            element.style.position = 'fixed';
-            element.style.left = '-9999px';
-            element.style.top = '0';
-            element.style.width = '210mm';
-            element.innerHTML = html;
-            document.body.appendChild(element);
-
-            const prefix = invData.type === 'devis' ? 'Devis' : 'Facture';
-            const opt = { 
-                margin: 0, 
-                filename: `${prefix}_${invData.invoiceNumber}.pdf`, 
-                image: { type: 'jpeg' as const, quality: 0.98 }, 
-                html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
-            };
-            
-            await html2pdf().set(opt).from(element).save();
-            document.body.removeChild(element);
-        } catch (e) {
-            console.error('Error exporting to PDF', e);
-        }
+        await downloadInvoicePDFHelper(invData, buildInvoiceHTML);
     };
 
     const downloadInvoiceHTMLFile = (invData: any) => {
@@ -562,31 +537,8 @@ export function InvoiceGenerator() {
         if (!emailTo) { setSendError('Veuillez saisir un email destinataire.'); return; }
         setSendStatus('sending'); setSendError('');
         try {
-            const html = buildInvoiceHTML(getInvoiceData());
-            
-            // Generate PDF on frontend
-            const html2pdfModule = await import('html2pdf.js');
-            const html2pdf = (html2pdfModule as any).default || html2pdfModule;
-
-            const element = document.createElement('div');
-            element.style.position = 'fixed';
-            element.style.left = '-9999px';
-            element.style.top = '0';
-            element.style.width = '210mm'; // Standard A4 width
-            element.innerHTML = html;
-            document.body.appendChild(element);
-
             const prefix = docType === 'devis' ? 'Devis' : 'Facture';
-            const opt = { 
-                margin: 0, 
-                filename: `${prefix}_${formattedNumber}.pdf`, 
-                image: { type: 'jpeg' as const, quality: 0.98 }, 
-                html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
-            };
-            
-            const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
-            document.body.removeChild(element);
+            const pdfDataUri = await getInvoicePDFDataUri(getInvoiceData(), buildInvoiceHTML);
 
             const adminUser = localStorage.getItem('admin_user') || '';
             const adminPass = localStorage.getItem('admin_password') || '';

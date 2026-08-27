@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import html2pdf from 'html2pdf.js';
 import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer, RefreshCw, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ConfirmationModal } from './ConfirmationModal';
 import { isSuperAdmin } from '../utils/auth';
 import { WorkPlanning } from './WorkPlanning';
+import { downloadInvoicePDFHelper, getInvoicePDFDataUri } from '../utils/invoicePdf';
 
 interface InvoiceLine { id: string; description: string; quantity: number; unitPrice: number; }
 interface SavedClient { id: string; name: string; address: string; city: string; email: string; }
@@ -191,30 +191,11 @@ export function InvoiceGeneratorMobile() {
     };
 
     const downloadArchivePDF = async (invData: any) => {
-        try {
-            const html = buildHTML(invData);
-            const element = document.createElement('div');
-            element.style.position = 'fixed';
-            element.style.left = '-9999px';
-            element.style.top = '0';
-            element.style.width = '210mm';
-            element.innerHTML = html;
-            document.body.appendChild(element);
+        await downloadInvoicePDFHelper(invData, (d) => buildHTML(d));
+    };
 
-            const prefix = invData.type === 'devis' ? 'Devis' : 'Facture';
-            const opt = { 
-                margin: 0, 
-                filename: `${prefix}_${invData.invoiceNumber}.pdf`, 
-                image: { type: 'jpeg' as const, quality: 0.98 }, 
-                html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
-            };
-            
-            await html2pdf().set(opt).from(element).save();
-            document.body.removeChild(element);
-        } catch (e) {
-            console.error('Error exporting PDF', e);
-        }
+    const handleDownloadPDF = async () => {
+        await downloadInvoicePDFHelper(getInvoiceData(), (d) => buildHTML(d));
     };
 
     useEffect(() => {
@@ -513,26 +494,8 @@ export function InvoiceGeneratorMobile() {
             const adminPass = localStorage.getItem('admin_password') || '';
             const sessionId = localStorage.getItem('admin_session_id') || '';
             
-            // Generate PDF on frontend
-            const element = document.createElement('div');
-            element.style.position = 'fixed';
-            element.style.left = '-9999px';
-            element.style.top = '0';
-            element.style.width = '210mm'; // Standard A4 width
-            element.innerHTML = buildHTML();
-            document.body.appendChild(element);
-
             const prefix = docType === 'devis' ? 'Devis' : 'Facture';
-            const opt = { 
-                margin: 0, 
-                filename: `${prefix}_${formattedNumber}.pdf`, 
-                image: { type: 'jpeg' as const, quality: 0.98 }, 
-                html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, 
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } 
-            };
-            
-            const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
-            document.body.removeChild(element);
+            const pdfDataUri = await getInvoicePDFDataUri(getInvoiceData(), (d) => buildHTML(d));
 
             const res = await fetch('/api/facture/send', { 
                 method: 'POST', 
@@ -1054,8 +1017,8 @@ export function InvoiceGeneratorMobile() {
                     <span className="p-2 rounded-xl"><Download className="w-4 h-4" /></span>
                     HTML
                 </button>
-                <button onClick={handlePrint} className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest text-white/30">
-                    <span className="p-2 rounded-xl"><Printer className="w-4 h-4" /></span>
+                <button onClick={handleDownloadPDF} className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest text-indigo-400">
+                    <span className="p-2 rounded-xl"><Download className="w-4 h-4" /></span>
                     PDF
                 </button>
             </div>
