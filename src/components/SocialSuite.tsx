@@ -1826,45 +1826,57 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') ? conseilsTitle : '';
                 const bodyText = conseilsSubtext || '';
 
-                const lineWidth = canvas.width - 120; // 960px between 60px and 1020px
+                const lineWidth = canvas.width - 120; // Exactement 960px entre 60px et 1020px
                 const isTitleOnly = mainTitleText && !bodyText;
-                let curY = dividerY + 62; // Même espacement exact par rapport à la ligne blanche dans tous les cas
+                let curY = dividerY + 62;
 
-                // --- A) MAIN TITLE IN WHITE ---
+                // --- A) MAIN TITLE IN WHITE (Calé d'un bout à l'autre de la ligne blanche) ---
                 if (mainTitleText) {
                     ctx.save();
-                    // Taille agrandie de 10% (80px solo, 44px avec texte)
-                    let titleFontSize = isTitleOnly ? 80 : 44;
-                    ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
-
-                    const formatTitleLines = (fSize: number) => {
-                        ctx.font = `900 ${fSize}px "Montserrat", sans-serif`;
-                        const lines: string[] = [];
-                        mainTitleText.split('\n').forEach(line => {
-                            if (!line.trim()) return;
-                            const words = line.trim().split(/\s+/);
-                            let cur = '';
-                            words.forEach(w => {
-                                const test = cur ? `${cur} ${w}` : w;
-                                if (ctx.measureText(test.toUpperCase()).width > lineWidth) {
-                                    if (cur) lines.push(cur);
-                                    cur = w;
-                                } else {
-                                    cur = test;
-                                }
-                            });
-                            if (cur) lines.push(cur);
+                    
+                    // 1. Découpe naturelle en 2 lignes si possible
+                    ctx.font = '900 100px "Montserrat", sans-serif';
+                    const rawLines = mainTitleText.split('\n');
+                    let titleLines: string[] = [];
+                    
+                    rawLines.forEach(rLine => {
+                        if (!rLine.trim()) return;
+                        const words = rLine.trim().split(/\s+/);
+                        let cur = '';
+                        words.forEach(w => {
+                            const test = cur ? `${cur} ${w}` : w;
+                            if (cur && ctx.measureText(test.toUpperCase()).width > 1250) {
+                                titleLines.push(cur);
+                                cur = w;
+                            } else {
+                                cur = test;
+                            }
                         });
-                        return lines;
-                    };
+                        if (cur) titleLines.push(cur);
+                    });
 
-                    let titleLines = formatTitleLines(titleFontSize);
-                    while (titleFontSize > 28 && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > lineWidth)) {
-                        titleFontSize -= 2;
-                        titleLines = formatTitleLines(titleFontSize);
+                    if (titleLines.length === 0) {
+                        titleLines = [mainTitleText.trim()];
                     }
 
-                    const titleLineHeight = Math.round(titleFontSize * 1.18);
+                    // 2. Calcule la taille exacte pour que la ligne la plus large fasse 960px (pleine largeur de la ligne blanche)
+                    ctx.font = '900 100px "Montserrat", sans-serif';
+                    let maxW = 0;
+                    titleLines.forEach(l => {
+                        const w = ctx.measureText(l.toUpperCase()).width;
+                        if (w > maxW) maxW = w;
+                    });
+
+                    let optimalFontSize = Math.round((lineWidth / (maxW || 1)) * 100);
+                    let titleFontSize = Math.min(Math.max(optimalFontSize, 44), isTitleOnly ? 84 : 64);
+
+                    ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
+                    while (titleFontSize > 30 && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > lineWidth)) {
+                        titleFontSize -= 2;
+                        ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
+                    }
+
+                    const titleLineHeight = Math.round(titleFontSize * 1.16);
                     ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
@@ -1877,14 +1889,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         curY += titleLineHeight;
                     });
                     ctx.restore();
-                    curY += 20; // Clean non-overlapping gap between title and first line of subtext
+                    curY += 24; // Espacement propre sans chevauchement
                 }
 
                 // --- B) SUBTEXT UNDERNEATH ---
                 if (bodyText) {
                     ctx.save();
-                    // Taille agrandie de 10% (27px au lieu de 24px)
-                    let subFontSize = 27;
+                    let subFontSize = 30;
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
 
                     const formatSubLines = (fSize: number) => {
@@ -1914,7 +1925,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         subLines = formatSubLines(subFontSize);
                     }
 
-                    const subLineHeight = Math.round(subFontSize * 1.36);
+                    const subLineHeight = Math.round(subFontSize * 1.35);
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255,255,255,0.92)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
