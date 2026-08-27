@@ -659,7 +659,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (!showText) return; 
 
-            // Gradient overlays for CONSEILS (Smooth continuous gradient without harsh cuts)
+            // Gradient overlays for CONSEILS (Smooth dark bottom for maximum text contrast)
             if (theme === 'CONSEILS') {
                 // Top subtle header shadow
                 const topGrad = ctx.createLinearGradient(0, 0, 0, 220);
@@ -668,15 +668,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillStyle = topGrad;
                 ctx.fillRect(0, 0, canvas.width, 220);
 
-                // Continuous smooth bottom gradient that goes all the way down to the bottom
-                const bottomGrad = ctx.createLinearGradient(0, canvas.height * 0.48, 0, canvas.height);
-                bottomGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                bottomGrad.addColorStop(0.35, 'rgba(0,0,0,0.45)');
-                bottomGrad.addColorStop(0.65, 'rgba(0,0,0,0.80)');
-                bottomGrad.addColorStop(0.9, 'rgba(0,0,0,0.96)');
-                bottomGrad.addColorStop(1, 'rgba(0,0,0,1)');
-                ctx.fillStyle = bottomGrad;
-                ctx.fillRect(0, canvas.height * 0.48, canvas.width, canvas.height * 0.52);
+                // Smooth dark gradient transition between 38% and 54%
+                const fadeGrad = ctx.createLinearGradient(0, canvas.height * 0.38, 0, canvas.height * 0.54);
+                fadeGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                fadeGrad.addColorStop(0.5, 'rgba(0,0,0,0.65)');
+                fadeGrad.addColorStop(1, 'rgba(0,0,0,0.94)');
+                ctx.fillStyle = fadeGrad;
+                ctx.fillRect(0, canvas.height * 0.38, canvas.width, canvas.height * 0.16);
+
+                // Deep dark background for the text area from 54% to 100%
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.94)';
+                ctx.fillRect(0, canvas.height * 0.54, canvas.width, canvas.height * 0.46);
             } else if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
@@ -1747,8 +1749,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-                // 2. DIVIDER LINE & SWIPE (Lowered by 25% to 65% height)
-                const dividerY = Math.floor(canvas.height * 0.65);
+                // 2. DIVIDER LINE & SWIPE
+                const dividerY = Math.floor(canvas.height * 0.52);
                 let swipeSpaceRight = 0;
 
                 // Swipe indicator on the exact same line as the divider line
@@ -1826,65 +1828,45 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const mainTitleText = (conseilsTitle && conseilsTitle !== 'LE TITRE ICI') ? conseilsTitle : '';
                 const bodyText = conseilsSubtext || '';
 
-                const lineWidth = canvas.width - 120; // Exact distance between the 2 extremities of the white line (60px to 1020px)
+                const lineWidth = canvas.width - 120; // 960px between 60px and 1020px
                 const isTitleOnly = mainTitleText && !bodyText;
-                let curY = isTitleOnly ? (dividerY + 115) : (dividerY + 70);
+                let curY = isTitleOnly ? (dividerY + 90) : (dividerY + 58);
 
-                // --- A) MAIN TITLE IN WHITE (Aligned to both extremities of the white line) ---
+                // --- A) MAIN TITLE IN WHITE ---
                 if (mainTitleText) {
                     ctx.save();
-                    
-                    // 1. Break title into natural lines using normalized reference
-                    ctx.font = '900 100px "Montserrat", sans-serif';
-                    const rawLines = mainTitleText.split('\n');
-                    let titleLines: string[] = [];
-                    
-                    rawLines.forEach(rLine => {
-                        if (!rLine.trim()) return;
-                        const words = rLine.trim().split(/\s+/);
-                        let cur = '';
-                        words.forEach(w => {
-                            const test = cur ? `${cur} ${w}` : w;
-                            if (cur && ctx.measureText(test.toUpperCase()).width > 1200) {
-                                titleLines.push(cur);
-                                cur = w;
-                            } else {
-                                cur = test;
-                            }
+                    let titleFontSize = isTitleOnly ? 64 : 50;
+                    ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
+
+                    const formatTitleLines = (fSize: number) => {
+                        ctx.font = `900 ${fSize}px "Montserrat", sans-serif`;
+                        const lines: string[] = [];
+                        mainTitleText.split('\n').forEach(line => {
+                            if (!line.trim()) return;
+                            const words = line.trim().split(/\s+/);
+                            let cur = '';
+                            words.forEach(w => {
+                                const test = cur ? `${cur} ${w}` : w;
+                                if (ctx.measureText(test.toUpperCase()).width > lineWidth) {
+                                    if (cur) lines.push(cur);
+                                    cur = w;
+                                } else {
+                                    cur = test;
+                                }
+                            });
+                            if (cur) lines.push(cur);
                         });
-                        if (cur) titleLines.push(cur);
-                    });
+                        return lines;
+                    };
 
-                    if (titleLines.length === 0) {
-                        titleLines = [mainTitleText.trim()];
+                    let titleLines = formatTitleLines(titleFontSize);
+                    while (titleFontSize > 34 && titleLines.some(l => ctx.measureText(l.toUpperCase()).width > lineWidth)) {
+                        titleFontSize -= 2;
+                        titleLines = formatTitleLines(titleFontSize);
                     }
 
-                    // 2. Measure max line width at reference scale 100px
-                    ctx.font = '900 100px "Montserrat", sans-serif';
-                    let maxMeasuredW = 0;
-                    titleLines.forEach(l => {
-                        const w = ctx.measureText(l.toUpperCase()).width;
-                        if (w > maxMeasuredW) maxMeasuredW = w;
-                    });
-
-                    // Sizing: aligns to both ends of the white line
-                    let soloFontSize = Math.round((lineWidth / (maxMeasuredW || 1)) * 100);
-                    soloFontSize = Math.min(Math.max(soloFontSize, 52), 115);
-
-                    // When subtext is present, title is 30% smaller than solo title
-                    let finalTitleFontSize = isTitleOnly 
-                        ? soloFontSize 
-                        : Math.round(soloFontSize * 0.70);
-
-                    // Ensure no line overflows the white line width
-                    ctx.font = `900 ${finalTitleFontSize}px "Montserrat", sans-serif`;
-                    while (titleLines.some(l => ctx.measureText(l.toUpperCase()).width > lineWidth) && finalTitleFontSize > 34) {
-                        finalTitleFontSize -= 2;
-                        ctx.font = `900 ${finalTitleFontSize}px "Montserrat", sans-serif`;
-                    }
-
-                    const titleLineHeight = Math.round(finalTitleFontSize * 1.14);
-                    ctx.font = `900 ${finalTitleFontSize}px "Montserrat", sans-serif`;
+                    const titleLineHeight = Math.round(titleFontSize * 1.16);
+                    ctx.font = `900 ${titleFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                     ctx.shadowBlur = 16;
@@ -1898,13 +1880,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         }
                     });
                     ctx.restore();
-                    curY += 28; // Direct tight gap under the title
+                    curY += 24; // Tight gap directly under title
                 }
 
-                // --- B) SUBTEXT UNDERNEATH (Italic, Aligned to both extremities of the white line) ---
+                // --- B) SUBTEXT UNDERNEATH ---
                 if (bodyText) {
                     ctx.save();
-                    let subFontSize = 35;
+                    let subFontSize = 28;
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
 
                     const formatSubLines = (fSize: number) => {
@@ -1912,7 +1894,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                         const lines: string[] = [];
                         bodyText.split('\n').forEach(line => {
                             if (!line.trim()) return;
-                            const words = line.split(' ');
+                            const words = line.trim().split(/\s+/);
                             let cur = '';
                             words.forEach(w => {
                                 const test = cur ? `${cur} ${w}` : w;
@@ -1929,12 +1911,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     };
 
                     let subLines = formatSubLines(subFontSize);
-                    while (subFontSize > 22 && subLines.some(l => ctx.measureText(l).width > lineWidth)) {
-                        subFontSize -= 2;
+                    while (subFontSize > 18 && subLines.some(l => ctx.measureText(l).width > lineWidth)) {
+                        subFontSize -= 1;
                         subLines = formatSubLines(subFontSize);
                     }
 
-                    const subLineHeight = Math.round(subFontSize * 1.35);
+                    const subLineHeight = Math.round(subFontSize * 1.36);
                     ctx.font = `italic 400 ${subFontSize}px "Montserrat", sans-serif`;
                     ctx.fillStyle = 'rgba(255,255,255,0.92)';
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
