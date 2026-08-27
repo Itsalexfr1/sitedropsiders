@@ -574,15 +574,25 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 } else {
                     const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
                     let x = ((canvas.width - img.width * scale) / 2) + bgOffsetX;
-                    let y = ((canvas.height - img.height * scale) / 2) + bgOffsetY;
-                    if (imgLayoutMode === 'PAR_LIGNES') {
-                        y = ((canvas.height * 0.62 - img.height * scale) / 2) + bgOffsetY;
-                    } else if (imgLayoutMode === 'HAUT_LIGNE') {
-                        y = ((canvas.height * 0.42 - img.height * scale) / 2) + bgOffsetY;
-                    } else if (imgLayoutMode === 'BAS_LIGNE') {
-                        y = ((canvas.height * 0.85 - img.height * scale) / 2) + bgOffsetY;
+                    let y;
+                    if (theme === 'CONSEILS') {
+                        // Centre la photo dans la zone visible (0 → 52% = la ligne blanche)
+                        const visibleH = canvas.height * 0.52;
+                        const scaleC = Math.max(canvas.width / img.width, visibleH / img.height);
+                        x = ((canvas.width - img.width * scaleC) / 2) + bgOffsetX;
+                        y = ((visibleH - img.height * scaleC) / 2) + bgOffsetY;
+                        ctx.drawImage(img, x, y, img.width * scaleC, img.height * scaleC);
+                    } else {
+                        y = ((canvas.height - img.height * scale) / 2) + bgOffsetY;
+                        if (imgLayoutMode === 'PAR_LIGNES') {
+                            y = ((canvas.height * 0.62 - img.height * scale) / 2) + bgOffsetY;
+                        } else if (imgLayoutMode === 'HAUT_LIGNE') {
+                            y = ((canvas.height * 0.42 - img.height * scale) / 2) + bgOffsetY;
+                        } else if (imgLayoutMode === 'BAS_LIGNE') {
+                            y = ((canvas.height * 0.85 - img.height * scale) / 2) + bgOffsetY;
+                        }
+                        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
                     }
-                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
                 }
             } else {
                 if (!isTransparent) {
