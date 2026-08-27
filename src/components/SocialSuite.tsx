@@ -1763,30 +1763,30 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 const dividerY = Math.floor(canvas.height * 0.52);
                 let swipeSpaceRight = 0;
 
-                // Swipe indicator on the exact same line as the divider line (50% larger: 36px)
+                // Swipe indicator on the exact same line as the divider line
                 if (showSwipe) {
                     ctx.save();
-                    ctx.font = '900 36px "Montserrat", sans-serif';
+                    ctx.font = '800 24px "Montserrat", sans-serif';
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                    ctx.shadowBlur = 10;
+                    ctx.shadowBlur = 8;
                     ctx.textAlign = 'right';
                     ctx.textBaseline = 'middle';
                     
                     const swipeText = 'Swipe ──>';
-                    swipeSpaceRight = ctx.measureText(swipeText).width + 25; // Space reserved on the right of the line
+                    swipeSpaceRight = ctx.measureText(swipeText).width + 20; // Space reserved on the right of the line
                     ctx.fillText(swipeText, canvas.width - 60, dividerY);
                     ctx.restore();
                 }
 
                 const lineRightX = canvas.width - 60 - swipeSpaceRight;
 
-                // Horizontal line
+                // Horizontal line (Thicker line: 5px)
                 ctx.save();
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-                ctx.lineWidth = 2.5;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 5;
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                ctx.shadowBlur = 6;
+                ctx.shadowBlur = 8;
 
                 if (artistLogoRef.current) {
                     const badgeW = 60;
