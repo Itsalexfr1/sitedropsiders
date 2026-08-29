@@ -501,7 +501,7 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
 
     const getShareUrl = () => {
         const seconds = selectedSnippet ? selectedSnippet.seconds : 0;
-        return `${window.location.origin}/profil?tab=mixes&play=${track.id}&t=${seconds}`;
+        return `${window.location.origin}/mix/${track.id}${seconds > 0 ? `?t=${seconds}` : ''}`;
     };
 
     const trackShareEvent = () => {

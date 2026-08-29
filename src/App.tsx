@@ -70,6 +70,7 @@ const PublicProfile = lazyRetry(() => import('./pages/PublicProfile').then(m => 
 const About = lazyRetry(() => import('./pages/About').then(m => m.About));
 const ProShop = lazyRetry(() => import('./pages/ProShop').then(m => m.ProShop));
 const BrandingPage = lazyRetry(() => import('./pages/BrandingPage').then(m => m.BrandingPage));
+const MixPage = lazyRetry(() => import('./pages/MixPage').then(m => m.MixPage));
 
 
 function ErrorFallback() {
@@ -134,9 +135,9 @@ function Root() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const play = params.get('play');
-    if (play && location.pathname !== '/profil') {
+    if (play && !location.pathname.startsWith('/mix')) {
       const t = params.get('t');
-      navigate(`/profil?tab=mixes&play=${play}${t ? `&t=${t}` : ''}`, { replace: true });
+      navigate(`/mix/${play}${t ? `?t=${t}` : ''}`, { replace: true });
     }
   }, [location, navigate]);
 
@@ -220,6 +221,8 @@ const router = createBrowserRouter([
       { path: "contact", element: <Contact /> },
       { path: "a-propos", element: <About /> },
       { path: "pro/boutique", element: <ProShop /> },
+      { path: "mix/:id", element: <MixPage /> },
+      { path: "mixes/:id", element: <MixPage /> },
 
       
       // Protected Area Group (Shared Authentication Context)

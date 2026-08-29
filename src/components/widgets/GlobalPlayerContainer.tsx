@@ -35,7 +35,7 @@ export function GlobalPlayerContainer() {
         e.stopPropagation();
         if (!activeTrack) return;
 
-        const shareUrl = `https://dropsiders.fr/profil?tab=mixes&play=${activeTrack.id}`;
+        const shareUrl = `https://dropsiders.fr/mix/${activeTrack.id}`;
 
         if (isGeneratingStory) return;
         setIsGeneratingStory(true);
@@ -320,7 +320,7 @@ export function GlobalPlayerContainer() {
     // Don't render anything if no track is active
     if (!activeTrack) return null;
 
-    const shareUrl = `https://dropsiders.fr/profil?tab=mixes&play=${activeTrack.id}`;
+    const shareUrl = `https://dropsiders.fr/mix/${activeTrack.id}`;
 
     // Parse timestamp to seconds
     const parseTimeToSeconds = (timeStr?: string): number => {

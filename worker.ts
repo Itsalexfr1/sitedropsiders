@@ -4684,6 +4684,65 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path.startsWith('/api/mix/') && request.method === 'GET' && !path.includes('/stats/')) {
+            try {
+                const mixId = path.replace('/api/mix/', '').trim();
+                if (!mixId) return new Response(JSON.stringify({ error: 'Missing mix ID' }), { status: 400, headers });
+                
+                const list = await env.CHAT_KV.list({ prefix: 'user_mixes:' });
+                let foundMix: any = null;
+                let ownerEmail = '';
+                
+                for (const key of list.keys) {
+                    const rawData = await env.CHAT_KV.get(key.name);
+                    if (rawData) {
+                        try {
+                            const userMixes = JSON.parse(rawData);
+                            if (Array.isArray(userMixes)) {
+                                const m = userMixes.find((item: any) => item.id === mixId);
+                                if (m) {
+                                    foundMix = m;
+                                    ownerEmail = key.name.substring('user_mixes:'.length).toLowerCase().trim();
+                                    break;
+                                }
+                            }
+                        } catch {}
+                    }
+                }
+                
+                if (!foundMix) {
+                    return new Response(JSON.stringify({ error: 'Mix introuvable' }), { status: 404, headers });
+                }
+                
+                // Get user info if available
+                let username = 'Dropsider';
+                let handle = '';
+                let avatar = '';
+                if (ownerEmail) {
+                    const rawUser = await env.CHAT_KV.get(`community_user_${ownerEmail}`);
+                    if (rawUser) {
+                        try {
+                            const u = JSON.parse(rawUser);
+                            username = u.username || username;
+                            handle = u.handle || '';
+                            avatar = u.avatar || '';
+                        } catch {}
+                    }
+                }
+                
+                return new Response(JSON.stringify({
+                    ...foundMix,
+                    ownerEmail,
+                    userEmail: ownerEmail,
+                    username: foundMix.username || username,
+                    handle: foundMix.handle || handle,
+                    avatar: foundMix.avatar || avatar
+                }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/community/mixes/like' && request.method === 'POST') {
             try {
                 const { id } = await request.json();
