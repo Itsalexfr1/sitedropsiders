@@ -55,11 +55,11 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
     return response;
 };
 
-export const isSuperAdmin = (user: string | null) => {
+export const isSuperAdmin = (user?: string | null) => {
     if (!user) return false;
-    const normalized = user.toLowerCase();
-    const admins = ['alex', 'alexflex30@gmail.com', 'alex@dropsiders.fr'];
-    return admins.includes(normalized);
+    const normalized = user.toLowerCase().trim();
+    const admins = ['alex', 'alexflex30@gmail.com', 'alex@dropsiders.fr', 'alexlight3034@icloud.com'];
+    return admins.includes(normalized) || normalized === 'alex' || normalized.startsWith('alex_') || normalized.startsWith('alexlight');
 };
 
 export const hasPermission = (storedPermissions: string[], p: string, isAlex: boolean = false) => {

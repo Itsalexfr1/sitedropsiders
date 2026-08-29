@@ -159,17 +159,59 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
     const [genre, setGenre] = useState('');
     const [description, setDescription] = useState('');
     const [allowDownload, setAllowDownload] = useState(false);
+    const [calculatedDuration, setCalculatedDuration] = useState('00:00');
     const [tracklist, setTracklist] = useState<Track[]>([]);
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const style = getCategoryStyle(type);
 
-    // Auto-fill title from filename
+    // Auto-fill title from filename & compute audio duration
     useEffect(() => {
         if (file) {
             setTitle(file.name.replace(/\.[^/.]+$/, "").toUpperCase());
+            try {
+                const objectUrl = URL.createObjectURL(file);
+                const tempAudio = new Audio(objectUrl);
+                tempAudio.addEventListener('loadedmetadata', () => {
+                    if (isFinite(tempAudio.duration) && tempAudio.duration > 0) {
+                        const hrs = Math.floor(tempAudio.duration / 3600);
+                        const mins = Math.floor((tempAudio.duration % 3600) / 60);
+                        const secs = Math.floor(tempAudio.duration % 60);
+                        const formatted = hrs > 0 
+                            ? `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+                            : `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                        setCalculatedDuration(formatted);
+                    }
+                    URL.revokeObjectURL(objectUrl);
+                });
+                tempAudio.addEventListener('error', () => {
+                    URL.revokeObjectURL(objectUrl);
+                });
+            } catch (e) {
+                console.warn("Could not calculate audio duration:", e);
+            }
         }
     }, [file]);
+
+    // Helper to resolve accurate MIME type
+    const getResolvedMime = (targetFile: File) => {
+        if (targetFile.type && targetFile.type !== 'application/octet-stream') {
+            return targetFile.type;
+        }
+        const ext = targetFile.name.split('.').pop()?.toLowerCase();
+        const map: Record<string, string> = {
+            mp3: 'audio/mpeg',
+            wav: 'audio/wav',
+            m4a: 'audio/mp4',
+            aac: 'audio/aac',
+            flac: 'audio/flac',
+            ogg: 'audio/ogg',
+            oga: 'audio/ogg',
+            weba: 'audio/webm',
+            webm: 'audio/webm'
+        };
+        return (ext && map[ext]) ? map[ext] : (targetFile.type || 'audio/mpeg');
+    };
 
     // Track editing state
     const [editingTrackId, setEditingTrackId] = useState<string | null>(null);
@@ -187,7 +229,9 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
 
             const startUpload = async () => {
                 const LARGE_FILE_THRESHOLD = 50 * 1024 * 1024; // 50MB
-                const subFolder = file.type.startsWith('audio/') ? 'SONS' : (file.type.startsWith('video/') ? 'VIDEOS' : 'uploads');
+                const resolvedMime = getResolvedMime(file);
+                const isAudio = resolvedMime.startsWith('audio/') || /\.(mp3|wav|m4a|aac|flac|ogg|oga|weba|webm)$/i.test(file.name);
+                const subFolder = isAudio ? 'SONS' : (resolvedMime.startsWith('video/') ? 'VIDEOS' : 'uploads');
 
                 if (file.size > LARGE_FILE_THRESHOLD) {
                     try {
@@ -204,7 +248,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                             },
                             body: JSON.stringify({
                                 filename: file.name,
-                                type: file.type,
+                                type: resolvedMime,
                                 path: subFolder
                             })
                         });
@@ -309,7 +353,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                 } else {
                     // Regular upload for smaller files
                     xhr = new XMLHttpRequest();
-                    const url = `/api/upload?filename=${encodeURIComponent(file.name)}&type=${encodeURIComponent(file.type)}&path=${subFolder}`;
+                    const url = `/api/upload?filename=${encodeURIComponent(file.name)}&type=${encodeURIComponent(resolvedMime)}&path=${subFolder}`;
                     
                     xhr.open('POST', url, true);
                     
@@ -543,7 +587,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
             audioUrl: (window as any).uploadedMediaUrl,
             audioKey: (window as any).uploadedMediaKey,
             uploadDate: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-            duration: '00:00' // Should be calculated if possible
+            duration: calculatedDuration || '00:00'
         };
 
         try {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, DownloadCloud, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight, BarChart2 } from 'lucide-react';
+import { User, Camera, Shield, Trophy, Music, Calendar, Settings, LogOut, Check, X, Bell, Zap, Edit2, PlayCircle, UploadCloud, Headphones, Download, DownloadCloud, Share2, MessageSquare, Star, Send, Instagram, ArrowLeftRight, BarChart2, Sparkles, CheckCircle2 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { useUser, type DropsidersCard } from '../context/UserContext';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { twMerge } from 'tailwind-merge';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { MixUploadModal } from '../components/profile/MixUploadModal';
 import { MixStatsPanel } from '../components/profile/MixStatsPanel';
+import { isSuperAdmin } from '../utils/auth';
 import wikiFestivals from '../data/wiki_festivals.json';
 import wikiClubs from '../data/wiki_clubs.json';
 import { DropsidersCardComponent } from '../components/cards/DropsidersCard';
@@ -257,6 +258,9 @@ export function Profile() {
         setIsEditingName(false);
     };
 
+    const isAlex = isSuperAdmin(user?.username) || isSuperAdmin(user?.email) || isSuperAdmin(user?.handle) || isSuperAdmin(localStorage.getItem('admin_user')) || (localStorage.getItem('admin_auth_v2') === 'true' && (localStorage.getItem('admin_user')?.toLowerCase() === 'alex' || user?.username?.toLowerCase() === 'alex'));
+    const isAdmin = localStorage.getItem('admin_auth_v2') === 'true' || isAlex;
+
     const handleDownloadMix = (e: React.MouseEvent, mix: any) => {
         e.stopPropagation();
         if (mix.audioUrl && mix.allowDownload && user?.email) {
@@ -268,8 +272,11 @@ export function Profile() {
             
             const a = document.createElement('a');
             a.href = mix.audioUrl;
-            a.download = `${mix.title}.mp3`;
+            const ext = mix.audioUrl.split('.').pop()?.split('?')[0] || 'mp3';
+            a.download = `${mix.title}.${ext}`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
         }
     };
 
@@ -805,12 +812,47 @@ export function Profile() {
                                             )}
                                         </div>
                                         
-                                        {mixStudioTab === 'stats' && (user?.mixStatus === 'approved' || localStorage.getItem('admin_auth_v2') === 'true') ? (
+                                        {mixStudioTab === 'stats' && (user?.mixStatus === 'approved' || isAdmin) ? (
                                             <MixStatsPanel userEmail={user?.email || ''} />
                                         ) : (
                                         <>
-                                        {user?.mixStatus === 'approved' || localStorage.getItem('admin_auth_v2') === 'true' ? (
+                                        {user?.mixStatus === 'approved' || isAdmin ? (
                                             <>
+                                                {/* VIP / Admin Banner for formats and limits */}
+                                                {isAlex ? (
+                                                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-neon-purple/20 via-black/40 to-neon-cyan/20 border border-neon-cyan/40 rounded-2xl mb-6 shadow-[0_0_25px_rgba(0,240,255,0.15)]">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 bg-neon-cyan/20 rounded-xl flex items-center justify-center text-neon-cyan shrink-0">
+                                                                <Sparkles className="w-5 h-5 animate-pulse" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[11px] font-black uppercase text-white tracking-wider flex items-center gap-2">
+                                                                    Profil Admin ALEX <span className="px-2 py-0.5 bg-neon-cyan text-black text-[8px] font-black rounded-md">SUPERADMIN</span>
+                                                                </p>
+                                                                <p className="text-[9px] text-neon-cyan font-bold uppercase tracking-wider mt-0.5">
+                                                                    Upload Illimité (aucune limite de taille) • Tous formats autorisés
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="hidden sm:flex items-center gap-1">
+                                                            {['MP3', 'WAV', 'FLAC', 'M4A', 'AAC', 'OGG'].map(fmt => (
+                                                                <span key={fmt} className="px-2 py-0.5 bg-white/5 border border-white/10 text-[8px] font-black text-gray-300 rounded-md">
+                                                                    {fmt}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ) : isAdmin ? (
+                                                    <div className="flex items-center justify-between p-3 bg-neon-green/10 border border-neon-green/30 rounded-2xl mb-6">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <CheckCircle2 className="w-4 h-4 text-neon-green shrink-0" />
+                                                            <p className="text-[10px] font-black uppercase text-neon-green tracking-wider">
+                                                                Mode Administrateur : Upload multi-formats activé (MP3, WAV, FLAC, M4A, AAC, OGG)
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ) : null}
+
                                                 <div className="flex gap-2 justify-center mb-6">
                                                     {['Track', 'Remix', 'Edit', 'Mix'].map(type => {
                                                         const style = getCategoryStyle(type);
@@ -832,13 +874,15 @@ export function Profile() {
                                                         <div className={`p-8 border-2 border-dashed ${style.borderDashed} ${style.bgBg} rounded-[32px] text-center ${style.hoverBg} ${style.hoverBorder} transition-all cursor-pointer group flex flex-col items-center gap-4 relative overflow-hidden`}>
                                                             <input 
                                                                 type="file" 
-                                                                accept="audio/mpeg" 
+                                                                accept="audio/*,.mp3,.wav,.m4a,.aac,.flac,.ogg,.weba,audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a,audio/aac,audio/flac,audio/ogg,audio/webm" 
                                                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
                                                                 onChange={(e) => {
                                                                     const file = e.target.files?.[0];
                                                                     if (file) {
-                                                                        if (file.size > 150 * 1024 * 1024) {
-                                                                            showNotification("Le fichier est trop volumineux. La limite est de 150 Mo.", 'error');
+                                                                        // Profil ALEX Admin : Aucune limite de taille
+                                                                        // Autres membres standards : limite 150 Mo
+                                                                        if (!isAlex && file.size > 150 * 1024 * 1024) {
+                                                                            showNotification("Le fichier est trop volumineux. La limite est de 150 Mo pour les membres standards.", 'error');
                                                                             return;
                                                                         }
                                                                         setSelectedAudioFile(file);
@@ -849,7 +893,11 @@ export function Profile() {
                                                             <UploadCloud className={`w-12 h-12 ${style.textMuted} ${style.groupHoverText} transition-colors group-hover:-translate-y-1 transform duration-300`} />
                                                             <div>
                                                                 <p className={`text-xs font-black text-white uppercase tracking-widest mb-1 ${style.groupHoverText} transition-colors`}>Uploader un nouveau {uploadType}</p>
-                                                                <p className="text-[10px] text-gray-400 font-bold uppercase italic">Format MP3 uniquement - Max 150 Mo</p>
+                                                                <p className="text-[10px] text-gray-400 font-bold uppercase italic">
+                                                                    {isAlex 
+                                                                        ? 'Tous formats audio (MP3, WAV, FLAC, M4A, AAC, OGG...) • Taille illimitée (Alex)' 
+                                                                        : 'Formats acceptés : MP3, WAV, FLAC, M4A, AAC, OGG • Max 150 Mo'}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     );

@@ -1951,9 +1951,30 @@ ${urls.map(u => `  <url>
                     return new Response(JSON.stringify({ error: 'Données manquantes' }), { status: 400, headers });
                 }
 
+                // Helper to resolve accurate audio/video/image MIME type from filename or header
+                const resolveMime = (fname: string, fallbackType: string) => {
+                    const ext = (fname || '').split('.').pop()?.toLowerCase();
+                    const audioMimes: Record<string, string> = {
+                        mp3: 'audio/mpeg',
+                        wav: 'audio/wav',
+                        m4a: 'audio/mp4',
+                        aac: 'audio/aac',
+                        flac: 'audio/flac',
+                        ogg: 'audio/ogg',
+                        oga: 'audio/ogg',
+                        weba: 'audio/webm',
+                        webm: 'audio/webm'
+                    };
+                    if (ext && audioMimes[ext]) return audioMimes[ext];
+                    return fallbackType || 'application/octet-stream';
+                };
+
+                const resolvedType = resolveMime(filename, type);
+                const isAudio = resolvedType.startsWith('audio/') || /\.(mp3|wav|m4a|aac|flac|ogg|oga|weba|webm)$/i.test(filename);
+
                 // Security: restrict folder access for non-admin users
                 const isAdmin = authenticated;
-                const targetFolder = fPath || (type.startsWith('audio/') ? 'SONS' : (type.startsWith('video/') ? 'VIDEOS' : 'uploads'));
+                const targetFolder = fPath || (isAudio ? 'SONS' : (resolvedType.startsWith('video/') ? 'VIDEOS' : 'uploads'));
                 if (!isAdmin) {
                     const allowedFolders = ['membre', 'SONS', 'VIDEOS', 'uploads'];
                     if (!allowedFolders.includes(targetFolder)) {
@@ -1963,13 +1984,13 @@ ${urls.map(u => `  <url>
 
                 // Generate Unique Key
                 const randomId = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
-                const extension = filename.split('.').pop() || (type.startsWith('audio/') ? 'mp3' : 'jpg');
+                const extension = filename.split('.').pop() || (isAudio ? 'mp3' : 'jpg');
                 const cleanName = filename.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
                 const key = `${targetFolder}/${randomId}-${cleanName}.${extension}`;
 
                 // Create multipart upload
                 const upload = await env.R2.createMultipartUpload(key, {
-                    httpMetadata: { contentType: type }
+                    httpMetadata: { contentType: resolvedType }
                 });
 
                 return new Response(JSON.stringify({
@@ -2071,11 +2092,32 @@ ${urls.map(u => `  <url>
                     }
                 }
 
+                // Helper to resolve accurate audio/video/image MIME type from filename or header
+                const resolveMime = (fname: string, fallbackType: string) => {
+                    const ext = (fname || '').split('.').pop()?.toLowerCase();
+                    const audioMimes: Record<string, string> = {
+                        mp3: 'audio/mpeg',
+                        wav: 'audio/wav',
+                        m4a: 'audio/mp4',
+                        aac: 'audio/aac',
+                        flac: 'audio/flac',
+                        ogg: 'audio/ogg',
+                        oga: 'audio/ogg',
+                        weba: 'audio/webm',
+                        webm: 'audio/webm'
+                    };
+                    if (ext && audioMimes[ext]) return audioMimes[ext];
+                    return fallbackType || 'application/octet-stream';
+                };
+
+                const resolvedType = resolveMime(filename, type);
+                const isAudio = resolvedType.startsWith('audio/') || /\.(mp3|wav|m4a|aac|flac|ogg|oga|weba|webm)$/i.test(filename);
+
                 // Security: restrict folder access for non-admin users
                 const isAdmin = authenticated;
                 if (!isAdmin) {
                     const allowedFolders = ['membre', 'SONS', 'VIDEOS', 'uploads'];
-                    const targetFolder = subFolder || (type && type.startsWith('audio/') ? 'SONS' : (type && type.startsWith('video/') ? 'VIDEOS' : 'uploads'));
+                    const targetFolder = subFolder || (isAudio ? 'SONS' : (resolvedType && resolvedType.startsWith('video/') ? 'VIDEOS' : 'uploads'));
                     if (!allowedFolders.includes(targetFolder)) {
                         return new Response(JSON.stringify({ error: 'Accès non autorisé : dossier de destination restreint aux administrateurs' }), { status: 401, headers });
                     }
@@ -2087,21 +2129,21 @@ ${urls.map(u => `  <url>
                 const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
 
                 // Preserve extension and clean filename
-                const extension = filename.split('.').pop() || (type && type.startsWith('audio/') ? 'mp3' : 'jpg');
+                const extension = filename.split('.').pop() || (isAudio ? 'mp3' : 'jpg');
                 const cleanName = filename.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
 
                 // Final Key in R2
                 let targetFolder = subFolder;
                 if (!targetFolder) {
-                    if (type && type.startsWith('audio/')) targetFolder = 'SONS';
-                    else if (type && type.startsWith('video/')) targetFolder = 'VIDEOS';
+                    if (isAudio) targetFolder = 'SONS';
+                    else if (resolvedType && resolvedType.startsWith('video/')) targetFolder = 'VIDEOS';
                     else targetFolder = 'uploads';
                 }
                 
                 const key = `${targetFolder}/${hashHex}-${cleanName}.${extension}`;
 
                 await env.R2.put(key, bytes, {
-                    httpMetadata: { contentType: type || 'application/octet-stream' }
+                    httpMetadata: { contentType: resolvedType }
                 });
 
                 // URL is the R2 key served via /uploads/ proxy route
@@ -2497,6 +2539,32 @@ ${urls.map(u => `  <url>
 
             const assetHeaders = new Headers();
             object.writeHttpMetadata(assetHeaders);
+            
+            // Ensure audio and media files have the exact Content-Type for HTML5 player support
+            const currentCt = assetHeaders.get('Content-Type') || '';
+            if (!currentCt || currentCt === 'application/octet-stream') {
+                const ext = key.split('.').pop()?.toLowerCase();
+                const mimeMap: Record<string, string> = {
+                    mp3: 'audio/mpeg',
+                    wav: 'audio/wav',
+                    m4a: 'audio/mp4',
+                    aac: 'audio/aac',
+                    flac: 'audio/flac',
+                    ogg: 'audio/ogg',
+                    oga: 'audio/ogg',
+                    weba: 'audio/webm',
+                    webm: 'audio/webm',
+                    jpg: 'image/jpeg',
+                    jpeg: 'image/jpeg',
+                    png: 'image/png',
+                    webp: 'image/webp',
+                    mp4: 'video/mp4'
+                };
+                if (ext && mimeMap[ext]) {
+                    assetHeaders.set('Content-Type', mimeMap[ext]);
+                }
+            }
+
             assetHeaders.set('Access-Control-Allow-Origin', '*');
             assetHeaders.set('Cache-Control', 'public, max-age=31536000'); // 1 year cache
             assetHeaders.set('Accept-Ranges', 'bytes');
