@@ -221,8 +221,6 @@ const router = createBrowserRouter([
       { path: "contact", element: <Contact /> },
       { path: "a-propos", element: <About /> },
       { path: "pro/boutique", element: <ProShop /> },
-      { path: "mix/:id", element: <MixPage /> },
-      { path: "mixes/:id", element: <MixPage /> },
 
       
       // Protected Area Group (Shared Authentication Context)
@@ -267,7 +265,32 @@ const router = createBrowserRouter([
       { path: "newsletter", element: <Newsletter /> },
       { path: "unsubscribe", element: <Unsubscribe /> },
     ]
-  }
+  },
+  // ── Routes standalone SANS Layout (page publique mix partageable) ──
+  {
+    path: "/mix/:id",
+    element: (
+      <UserProvider>
+        <PlayerProvider>
+          <Suspense fallback={<LoadingPage />}>
+            <MixPage />
+          </Suspense>
+        </PlayerProvider>
+      </UserProvider>
+    ),
+  },
+  {
+    path: "/mixes/:id",
+    element: (
+      <UserProvider>
+        <PlayerProvider>
+          <Suspense fallback={<LoadingPage />}>
+            <MixPage />
+          </Suspense>
+        </PlayerProvider>
+      </UserProvider>
+    ),
+  },
 ]);
 
 function App() {
