@@ -1491,11 +1491,20 @@ export function CustomMixPlayer({ track, onClose, onMinimize }: CustomMixPlayerP
                                     isPlaying ? 'border-neon-purple/50 opacity-100' : 'border-transparent opacity-0'
                                 }`} />
 
-                                {/* Vinyl center label */}
-                                <div className="w-[60px] h-[60px] md:w-[70px] md:h-[70px] rounded-full bg-neon-purple flex flex-col items-center justify-center text-center shadow-lg border border-black/20">
-                                    <span className="text-white font-black text-[9px] uppercase tracking-wider italic leading-none">DS</span>
-                                    <span className="text-white/40 text-[5px] font-black uppercase mt-1 leading-none">DECK</span>
-                                </div>
+                                {/* Vinyl center label or Cover Art */}
+                                {track.cover ? (
+                                    <div className="w-[74px] h-[74px] md:w-[86px] md:h-[86px] rounded-full overflow-hidden border-2 border-white/20 shadow-2xl relative flex items-center justify-center bg-black group-hover:scale-105 transition-transform">
+                                        <img src={track.cover} alt={track.title} className="w-full h-full object-cover rounded-full select-none pointer-events-none" />
+                                        {/* Center Spindle Hole */}
+                                        <div className="w-3.5 h-3.5 rounded-full bg-[#08080c] border border-white/40 absolute shadow-inner z-10" />
+                                    </div>
+                                ) : (
+                                    <div className="w-[60px] h-[60px] md:w-[70px] md:h-[70px] rounded-full bg-neon-purple flex flex-col items-center justify-center text-center shadow-lg border border-black/20 relative">
+                                        <span className="text-white font-black text-[9px] uppercase tracking-wider italic leading-none">DS</span>
+                                        <span className="text-white/40 text-[5px] font-black uppercase mt-1 leading-none">DECK</span>
+                                        <div className="w-2.5 h-2.5 rounded-full bg-[#08080c] border border-white/30 absolute" />
+                                    </div>
+                                )}
                             </motion.div>
                         </div>
 

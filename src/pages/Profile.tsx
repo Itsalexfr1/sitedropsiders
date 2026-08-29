@@ -204,6 +204,7 @@ export function Profile() {
                 label: ownMix.genre || ownMix.type,
                 url: ownMix.audioUrl || ownMix.url || '',
                 embedUrl: ownMix.embedUrl && !ownMix.audioUrl ? ownMix.embedUrl : undefined,
+                cover: ownMix.cover || ownMix.coverUrl || ownMix.imageUrl,
                 tracks: ownMix.tracklist || [],
                 ownerEmail: ownMix.ownerEmail || ownMix.userEmail || user?.email
             });
@@ -224,6 +225,7 @@ export function Profile() {
                             label: communityMix.genre || communityMix.type,
                             url: communityMix.audioUrl || communityMix.url || '',
                             embedUrl: communityMix.embedUrl && !communityMix.audioUrl ? communityMix.embedUrl : undefined,
+                            cover: communityMix.cover || communityMix.coverUrl || communityMix.imageUrl,
                             tracks: communityMix.tracklist || [],
                             ownerEmail: communityMix.ownerEmail || communityMix.userEmail
                         });
@@ -961,6 +963,7 @@ export function Profile() {
                                                                             label: mix.genre || mix.type,
                                                                             url: mix.audioUrl || mix.url || '',
                                                                             embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
+                                                                            cover: mix.cover || mix.coverUrl || mix.imageUrl,
                                                                             tracks: mix.tracklist || [],
                                                                             ownerEmail: mix.ownerEmail || mix.userEmail || user?.email
                                                                         });
@@ -971,40 +974,60 @@ export function Profile() {
                                                                 <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${style.bg} transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`} />
 
                                                                 <div className="flex items-center gap-4 p-4 pl-5">
-                                                                    {/* Play button */}
-                                                                    <button
-                                                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
-                                                                            isActive
-                                                                                ? `${style.bg} text-black shadow-[0_0_20px_rgba(0,0,0,0.3)]`
-                                                                                : `${style.bgLight} ${style.text} group-hover:scale-110`
-                                                                        }`}
-                                                                        onClick={(e) => { 
-                                                                            e.stopPropagation(); 
-                                                                            if (isActive) {
-                                                                                closePlayer();
-                                                                            } else {
-                                                                                playTrack({
-                                                                                    id: mix.id,
-                                                                                    title: mix.title,
-                                                                                    artist: mix.username || user?.username || 'Dropsider',
-                                                                                    label: mix.genre || mix.type,
-                                                                                    url: mix.audioUrl || mix.url || '',
-                                                                                    embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
-                                                                                    tracks: mix.tracklist || [],
-                                                                                    ownerEmail: mix.ownerEmail || mix.userEmail || user?.email
-                                                                                });
+                                                                    {/* Play button or Cover Thumbnail */}
+                                                                    {mix.cover ? (
+                                                                        <div className="relative w-12 h-12 rounded-2xl overflow-hidden shrink-0 border border-white/10 group-hover:scale-105 transition-transform bg-black flex items-center justify-center shadow-lg">
+                                                                            <img src={mix.cover} alt={mix.title} className="w-full h-full object-cover" />
+                                                                            <div className={`absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center transition-opacity ${
+                                                                                isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                                                                            }`}>
+                                                                                {isActive ? (
+                                                                                    <span className="flex gap-[3px] items-end h-4">
+                                                                                        {[1,2,3].map(i => (
+                                                                                            <span key={i} className="w-[3px] bg-neon-cyan rounded-full animate-pulse" style={{ height: `${8 + i * 4}px`, animationDelay: `${i * 0.15}s` }} />
+                                                                                        ))}
+                                                                                    </span>
+                                                                                ) : (
+                                                                                    <PlayCircle className="w-6 h-6 text-white" />
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <button
+                                                                            className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
+                                                                                isActive
+                                                                                    ? `${style.bg} text-black shadow-[0_0_20px_rgba(0,0,0,0.3)]`
+                                                                                    : `${style.bgLight} ${style.text} group-hover:scale-110`
+                                                                            }`}
+                                                                            onClick={(e) => { 
+                                                                                e.stopPropagation(); 
+                                                                                if (isActive) {
+                                                                                    closePlayer();
+                                                                                } else {
+                                                                                    playTrack({
+                                                                                        id: mix.id,
+                                                                                        title: mix.title,
+                                                                                        artist: mix.username || user?.username || 'Dropsider',
+                                                                                        label: mix.genre || mix.type,
+                                                                                        url: mix.audioUrl || mix.url || '',
+                                                                                        embedUrl: mix.embedUrl && !mix.audioUrl ? mix.embedUrl : undefined,
+                                                                                        cover: mix.cover || mix.coverUrl || mix.imageUrl,
+                                                                                        tracks: mix.tracklist || [],
+                                                                                        ownerEmail: mix.ownerEmail || mix.userEmail || user?.email
+                                                                                    });
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            {isActive
+                                                                                ? <span className="flex gap-[3px] items-end h-4">
+                                                                                    {[1,2,3].map(i => (
+                                                                                        <span key={i} className="w-[3px] bg-black rounded-full animate-pulse" style={{ height: `${8 + i * 4}px`, animationDelay: `${i * 0.15}s` }} />
+                                                                                    ))}
+                                                                                  </span>
+                                                                                : <PlayCircle className="w-5 h-5" />
                                                                             }
-                                                                        }}
-                                                                    >
-                                                                        {isActive
-                                                                            ? <span className="flex gap-[3px] items-end h-4">
-                                                                                {[1,2,3].map(i => (
-                                                                                    <span key={i} className="w-[3px] bg-black rounded-full animate-pulse" style={{ height: `${8 + i * 4}px`, animationDelay: `${i * 0.15}s` }} />
-                                                                                ))}
-                                                                              </span>
-                                                                            : <PlayCircle className="w-5 h-5" />
-                                                                        }
-                                                                    </button>
+                                                                        </button>
+                                                                    )}
 
                                                                     {/* Metadata */}
                                                                     <div className="flex-1 min-w-0">

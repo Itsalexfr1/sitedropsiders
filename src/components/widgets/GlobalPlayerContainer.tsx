@@ -397,10 +397,17 @@ export function GlobalPlayerContainer() {
                                         className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
                                         onClick={() => setIsMinimized(false)}
                                     >
-                                        <div className="w-10 h-10 flex-shrink-0 bg-neon-purple/20 rounded-xl flex items-center justify-center relative overflow-hidden">
-                                            <div className={`absolute inset-0 bg-neon-purple/30 transition-opacity ${isPlaying ? 'opacity-100 animate-pulse' : 'opacity-0'}`} />
-                                            <Music className="w-5 h-5 text-neon-purple relative z-10" />
-                                        </div>
+                                        {activeTrack.cover ? (
+                                            <div className="w-10 h-10 flex-shrink-0 rounded-xl overflow-hidden border border-white/20 relative shadow-md">
+                                                <img src={activeTrack.cover} alt={activeTrack.title} className="w-full h-full object-cover" />
+                                                <div className={`absolute inset-0 bg-neon-purple/20 transition-opacity ${isPlaying ? 'opacity-100 animate-pulse' : 'opacity-0'}`} />
+                                            </div>
+                                        ) : (
+                                            <div className="w-10 h-10 flex-shrink-0 bg-neon-purple/20 rounded-xl flex items-center justify-center relative overflow-hidden">
+                                                <div className={`absolute inset-0 bg-neon-purple/30 transition-opacity ${isPlaying ? 'opacity-100 animate-pulse' : 'opacity-0'}`} />
+                                                <Music className="w-5 h-5 text-neon-purple relative z-10" />
+                                            </div>
+                                        )}
                                         <div className="min-w-0">
                                             <h4 className="text-xs font-black text-white uppercase italic tracking-tighter truncate leading-none hover:text-neon-cyan transition-colors">
                                                 {activeTrack.title}

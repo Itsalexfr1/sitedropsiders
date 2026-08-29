@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Upload, CheckCircle2, Music2, Headphones, Disc, Activity, AlertCircle, FileAudio, Info, ListMusic, Plus, Trash2, Edit3, Save, DownloadCloud, Timer, PlayCircle, ClipboardList, Send } from 'lucide-react';
+import { X, Upload, CheckCircle2, Music2, Headphones, Disc, Activity, AlertCircle, FileAudio, Info, ListMusic, Plus, Trash2, Edit3, Save, DownloadCloud, Timer, PlayCircle, ClipboardList, Send, Image as ImageIcon, Sparkles, Camera } from 'lucide-react';
 
 interface Track {
     id: string;
@@ -158,11 +158,15 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
     const [title, setTitle] = useState(file?.name.replace(/\.[^/.]+$/, "") || '');
     const [genre, setGenre] = useState('');
     const [description, setDescription] = useState('');
+    const [coverUrl, setCoverUrl] = useState<string>('');
+    const [coverPreview, setCoverPreview] = useState<string>('');
+    const [isUploadingCover, setIsUploadingCover] = useState(false);
     const [allowDownload, setAllowDownload] = useState(false);
     const [calculatedDuration, setCalculatedDuration] = useState('00:00');
     const [tracklist, setTracklist] = useState<Track[]>([]);
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const coverInputRef = useRef<HTMLInputElement>(null);
     const style = getCategoryStyle(type);
 
     // Auto-fill title from filename & compute audio duration
@@ -570,6 +574,47 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
         setTracklist(prev => prev.filter(t => t.id !== id));
     };
 
+    const handleCoverSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const imgFile = e.target.files?.[0];
+        if (!imgFile) return;
+
+        if (imgFile.size > 15 * 1024 * 1024) {
+            setError("L'image de cover est trop volumineuse (max 15 Mo).");
+            return;
+        }
+
+        // Local instant preview
+        const localUrl = URL.createObjectURL(imgFile);
+        setCoverPreview(localUrl);
+        setIsUploadingCover(true);
+
+        try {
+            const xhr = new XMLHttpRequest();
+            const uploadUrl = `/api/upload?filename=${encodeURIComponent(imgFile.name)}&type=${encodeURIComponent(imgFile.type || 'image/jpeg')}&path=uploads`;
+            xhr.open('POST', uploadUrl, true);
+            xhr.setRequestHeader('Content-Type', imgFile.type || 'image/jpeg');
+            xhr.setRequestHeader('X-Admin-Password', localStorage.getItem('dropsiders_admin_password') || '');
+            xhr.setRequestHeader('X-Admin-Username', localStorage.getItem('dropsiders_admin_username') || '');
+
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.success && data.url) {
+                            setCoverUrl(data.url);
+                        }
+                    } catch (_) {}
+                }
+                setIsUploadingCover(false);
+            };
+            xhr.onerror = () => setIsUploadingCover(false);
+            xhr.send(imgFile);
+        } catch (err) {
+            console.error("Cover upload failed", err);
+            setIsUploadingCover(false);
+        }
+    };
+
     const handleFinalize = async () => {
         if (!title.trim()) {
             setError("Le titre est obligatoire");
@@ -581,6 +626,7 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
             title,
             genre,
             description,
+            cover: coverUrl || coverPreview || '',
             allowDownload,
             type,
             tracklist,
@@ -748,6 +794,85 @@ export function MixUploadModal({ isOpen, onClose, file, type, onSuccess }: MixUp
                                                         <DownloadCloud className="w-4 h-4" /> Importer Fichier
                                                     </button>
                                                 </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Cover Image Upload with Vinyl Preview */}
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-1.5">
+                                                    <ImageIcon className="w-3.5 h-3.5 text-neon-purple" /> Cover / Pochette du Vinyle (Optionnel)
+                                                </label>
+                                                {coverPreview && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setCoverPreview(''); setCoverUrl(''); }}
+                                                        className="text-[9px] text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition-colors flex items-center gap-1"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" /> Supprimer cover
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <input 
+                                                type="file" 
+                                                ref={coverInputRef} 
+                                                onChange={handleCoverSelect} 
+                                                accept="image/png,image/jpeg,image/jpg,image/webp" 
+                                                className="hidden" 
+                                            />
+
+                                            <div 
+                                                onClick={() => coverInputRef.current?.click()}
+                                                className={`p-5 rounded-3xl border border-dashed transition-all cursor-pointer group flex items-center justify-between gap-6 ${
+                                                    coverPreview 
+                                                        ? 'bg-white/[0.04] border-neon-purple/40 hover:border-neon-purple' 
+                                                        : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                    {/* Spinning mini vinyl preview with cover */}
+                                                    <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
+                                                        <motion.div 
+                                                            animate={{ rotate: 360 }}
+                                                            transition={{ repeat: Infinity, duration: 6, ease: "linear" }}
+                                                            className="w-16 h-16 rounded-full bg-[#12121b] border border-white/20 flex items-center justify-center shadow-lg relative overflow-hidden"
+                                                        >
+                                                            <div className="absolute inset-2 rounded-full border border-white/5" />
+                                                            {coverPreview ? (
+                                                                <div className="w-8 h-8 rounded-full overflow-hidden border border-white/40 relative z-10 flex items-center justify-center bg-black">
+                                                                    <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-black border border-white/50 absolute" />
+                                                                </div>
+                                                            ) : (
+                                                                <div className="w-6 h-6 rounded-full bg-neon-purple/80 flex items-center justify-center text-[7px] font-black text-white italic relative z-10">
+                                                                    DS
+                                                                </div>
+                                                            )}
+                                                        </motion.div>
+                                                        {isUploadingCover && (
+                                                            <div className="absolute inset-0 rounded-full bg-black/60 backdrop-blur-xs flex items-center justify-center">
+                                                                <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-black text-white uppercase tracking-wider truncate">
+                                                            {coverPreview ? "Cover intégrée au disque vinyle" : "Ajouter une cover au vinyle"}
+                                                        </p>
+                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-wider mt-0.5">
+                                                            {coverPreview ? "L'image tournera au centre du vinyle dans le player" : "PNG, JPG, WEBP • S'affiche au centre du vinyle tournant"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <button 
+                                                    type="button"
+                                                    className="px-4 py-2.5 bg-white/5 hover:bg-white/10 group-hover:border-neon-purple/40 border border-white/10 rounded-xl text-[9px] font-black uppercase text-white tracking-widest transition-all shrink-0"
+                                                >
+                                                    {coverPreview ? "Changer" : "Choisir image"}
+                                                </button>
                                             </div>
                                         </div>
 
