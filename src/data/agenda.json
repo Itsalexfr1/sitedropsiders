@@ -56,19 +56,6 @@
     "country": "Espagne"
   },
   {
-    "id": 244,
-    "title": "Tiësto - Sunrise Set",
-    "date": "2026-08-31",
-    "location": "UNVRS Ibiza",
-    "type": "Residence",
-    "image": "https://www.dropsiders.fr/uploads/migrated/dropsiders/tiesto_unvrs_2026.jpg",
-    "description": "Résidence : Tous les lundis d'août 2026 (03, 10, 17, 24 et 31 août).\nLieu : [UNVRS], Ibiza.\nLine-up : Tià«sto & Guests\nBilletterie : Les pass et réservations VIP sont déjà  ouverts.\n[Site Officiel](https://www.unvrs.com/events/2026/tiesto)",
-    "url": "https://www.unvrs.com/events/2026/tiesto",
-    "genre": "Trance",
-    "isWeekly": true,
-    "country": "Espagne"
-  },
-  {
     "image": "https://unvrs.b-cdn.net/assets/bec777f6-4045-4d4d-a680-f0bcf4385cca--ANYMA-AEDEN-_extra_17_2400%20x%201440.jpg",
     "url": "https://www.unvrs.com/events/2026/anyma",
     "id": 250,
@@ -1142,25 +1129,6 @@
     "month": "OCTOBRE",
     "isWeekly": true,
     "dayOfWeek": 5,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
-  },
-  {
-    "id": 487,
-    "title": "David Guetta présent F*** Me I'm Famous ",
-    "date": "2026-08-31",
-    "startDate": "2026-08-31",
-    "endDate": "2026-08-31",
-    "venue": "Ushuaïa ",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/uploads/2f639945acf13d87-fiesta_david_guetta_fmif_ushua.webp",
-    "url": "https://www.theushuaiaexperience.com/en/club/calendar",
-    "genre": "Big Room",
-    "month": "AOÛT",
-    "isWeekly": true,
-    "dayOfWeek": 1,
     "isSoldOut": false,
     "isLiveDropsiders": false
   },
