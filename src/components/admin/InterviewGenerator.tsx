@@ -68,8 +68,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const loadQuestionsFromData = (
         dataSource: { fr: string[]; en: string[] } = dbQuestions,
         indicesToLoad?: number[],
-        randomCount?: number
+        randomCount?: number,
+        overrideSwap?: boolean
     ) => {
+        const isSwapped = overrideSwap !== undefined ? overrideSwap : swapLanguages;
         const frList = dataSource.fr || [];
         const enList = dataSource.en || [];
 
@@ -90,9 +92,12 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             const frText = frList[idx] || '';
             const enText = enList[idx] || '';
 
-            textLines.push(`${qNum}. ${frText}`);
-            if (enText) {
-                textLines.push(enText);
+            const primaryText = isSwapped ? (enText || frText) : frText;
+            const secondaryText = isSwapped ? frText : enText;
+
+            textLines.push(`${qNum}. ${primaryText}`);
+            if (secondaryText && secondaryText !== primaryText) {
+                textLines.push(secondaryText);
             }
 
             return {
@@ -140,14 +145,30 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         }
     };
 
-    const parseQuestions = () => {
+    const handleLanguageOrderChange = (newSwap: boolean) => {
+        setSwapLanguages(newSwap);
+        if (questions.length > 0) {
+            const newTextLines: string[] = [];
+            questions.forEach((q) => {
+                const primary = newSwap ? (q.en || q.fr) : q.fr;
+                const secondary = newSwap ? q.fr : q.en;
+                newTextLines.push(`${q.number}. ${primary}`);
+                if (secondary && secondary !== primary) {
+                    newTextLines.push(secondary);
+                }
+            });
+            setInputText(newTextLines.join('\n'));
+        }
+    };
+
+    const parseQuestions = (overrideSwap?: boolean) => {
         if (!inputText.trim()) return;
 
-        // More robust line cleaning
+        const isSwapped = overrideSwap !== undefined ? overrideSwap : swapLanguages;
         const lines = inputText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
         const parsed: InterviewQuestion[] = [];
         
-        let current: { number: string; originalNum: string; fr: string; en: string[] } | null = null;
+        let current: { number: string; originalNum: string; line1: string; line2: string[] } | null = null;
 
         for (const line of lines) {
             // Match number at start (01. or 1. or 1 - or 1)
@@ -160,27 +181,26 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                 // If we match the same number as current, it's the translation
                 if (current && current.number === normNum) {
-                    if (content) current.en.push(content);
+                    if (content) current.line2.push(content);
                 } else {
                     // Start new question, push old one
                     if (current) {
                         parsed.push({
                             id: Math.random().toString(36).substring(2, 11),
                             number: current.originalNum,
-                            fr: current.fr,
-                            en: current.en.join(' ')
+                            fr: isSwapped ? (current.line2.join(' ') || current.line1) : current.line1,
+                            en: isSwapped ? current.line1 : current.line2.join(' ')
                         });
                     }
                     current = {
                         number: normNum,
                         originalNum: rawNum,
-                        fr: content,
-                        en: []
+                        line1: content,
+                        line2: []
                     };
                 }
             } else if (current) {
-                // If it's a line without a number, it's definitely an EN translation for the current FR
-                current.en.push(line);
+                current.line2.push(line);
             }
         }
 
@@ -189,8 +209,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             parsed.push({
                 id: Math.random().toString(36).substring(2, 11),
                 number: current.originalNum,
-                fr: current.fr,
-                en: current.en.join(' ')
+                fr: isSwapped ? (current.line2.join(' ') || current.line1) : current.line1,
+                en: isSwapped ? current.line1 : current.line2.join(' ')
             });
         }
 
@@ -699,6 +719,66 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             </div>
                         </div>
 
+                        {/* Ordre des langues */}
+                        <div className="p-5 bg-white/[0.03] border border-white/10 rounded-3xl space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest flex items-center gap-2">
+                                    <Languages className="w-3.5 h-3.5" /> Ordre des questions sur la fiche
+                                </label>
+                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                                    {swapLanguages ? 'EN ➜ FR' : 'FR ➜ EN'}
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={() => handleLanguageOrderChange(false)}
+                                    className={`p-3.5 rounded-2xl border transition-all text-left flex flex-col justify-between gap-2 ${
+                                        !swapLanguages
+                                            ? 'bg-neon-red/15 border-neon-red text-white shadow-lg shadow-neon-red/10'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[11px] font-black uppercase tracking-tight text-white flex items-center gap-1.5">
+                                            🇫🇷 FR ➜ 🇬🇧 EN
+                                        </span>
+                                        {!swapLanguages && (
+                                            <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
+                                        )}
+                                    </div>
+                                    <p className="text-[8.5px] font-bold uppercase tracking-wider text-gray-400 leading-tight">
+                                        Français en 1er (Haut)<br />
+                                        <span className="text-gray-500 font-normal">Anglais en 2nd (Bas)</span>
+                                    </p>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => handleLanguageOrderChange(true)}
+                                    className={`p-3.5 rounded-2xl border transition-all text-left flex flex-col justify-between gap-2 ${
+                                        swapLanguages
+                                            ? 'bg-neon-cyan/15 border-neon-cyan text-white shadow-lg shadow-neon-cyan/10'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[11px] font-black uppercase tracking-tight text-white flex items-center gap-1.5">
+                                            🇬🇧 EN ➜ 🇫🇷 FR
+                                        </span>
+                                        {swapLanguages && (
+                                            <span className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
+                                        )}
+                                    </div>
+                                    <p className="text-[8.5px] font-bold uppercase tracking-wider text-gray-400 leading-tight">
+                                        Anglais en 1er (Haut)<br />
+                                        <span className="text-gray-500 font-normal">Français en 2nd (Bas)</span>
+                                    </p>
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                 <FileText className="w-3.5 h-3.5" /> Coller / Editer les questions ici
@@ -813,16 +893,17 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 {/* Language Order Toggle */}
                                 <div className="pt-4 border-t border-white/5">
                                     <button 
-                                        onClick={() => setSwapLanguages(!swapLanguages)}
-                                        className={`w-full py-3 px-4 rounded-xl flex items-center justify-between transition-all ${swapLanguages ? 'bg-neon-red/20 border border-neon-red/30 text-neon-red shadow-lg shadow-neon-red/5' : 'bg-white/5 border border-white/10 text-gray-400'}`}
+                                        type="button"
+                                        onClick={() => handleLanguageOrderChange(!swapLanguages)}
+                                        className={`w-full py-3 px-4 rounded-xl flex items-center justify-between transition-all ${swapLanguages ? 'bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan shadow-lg shadow-neon-cyan/5' : 'bg-white/5 border border-white/10 text-gray-400'}`}
                                     >
                                         <div className="flex items-center gap-3">
                                             <Columns className="w-4 h-4" />
                                             <span className="text-[10px] font-black uppercase tracking-widest">
-                                                {swapLanguages ? 'Ordre: EN -> FR' : 'Ordre: FR -> EN'}
+                                                {swapLanguages ? 'Ordre: 🇬🇧 EN ➜ 🇫🇷 FR' : 'Ordre: 🇫🇷 FR ➜ 🇬🇧 EN'}
                                             </span>
                                         </div>
-                                        <div className={`w-8 h-4 rounded-full relative transition-colors ${swapLanguages ? 'bg-neon-red' : 'bg-gray-700'}`}>
+                                        <div className={`w-8 h-4 rounded-full relative transition-colors ${swapLanguages ? 'bg-neon-cyan' : 'bg-gray-700'}`}>
                                             <div className={`absolute top-1 w-2 h-2 bg-white rounded-full transition-all ${swapLanguages ? 'right-1' : 'left-1'}`} />
                                         </div>
                                     </button>
