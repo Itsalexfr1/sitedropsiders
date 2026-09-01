@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, 
@@ -18,13 +18,22 @@ import {
     Eye,
     Settings,
     Image as ImageIcon,
-    ChevronLeft
+    ChevronLeft,
+    Sparkles,
+    Shuffle,
+    Database,
+    Search,
+    ListFilter,
+    CheckSquare,
+    Square
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { jsPDF } from 'jspdf';
 import { ConfirmationModal } from '../ConfirmationModal';
+import defaultQuestions from '../../data/interview_questions.json';
+import { getAuthHeaders, apiFetch } from '../../utils/auth';
 
 interface InterviewQuestion {
     id: string;
@@ -48,6 +57,79 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean, message: string } | null>(null);
     const cardsRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Database questions state
+    const [dbQuestions, setDbQuestions] = useState<{ fr: string[]; en: string[] }>(defaultQuestions);
+    const [isDbLoading, setIsDbLoading] = useState(false);
+    const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const [selectedDbIndices, setSelectedDbIndices] = useState<number[]>([]);
+    const [dbSearchTerm, setDbSearchTerm] = useState('');
+
+    const loadQuestionsFromData = (
+        dataSource: { fr: string[]; en: string[] } = dbQuestions,
+        indicesToLoad?: number[],
+        randomCount?: number
+    ) => {
+        const frList = dataSource.fr || [];
+        const enList = dataSource.en || [];
+
+        let targetIndices: number[];
+
+        if (indicesToLoad && indicesToLoad.length > 0) {
+            targetIndices = indicesToLoad;
+        } else if (randomCount && randomCount > 0) {
+            const all = Array.from({ length: frList.length }, (_, i) => i);
+            targetIndices = [...all].sort(() => 0.5 - Math.random()).slice(0, randomCount);
+        } else {
+            targetIndices = Array.from({ length: frList.length }, (_, i) => i);
+        }
+
+        const textLines: string[] = [];
+        const parsedQuestions: InterviewQuestion[] = targetIndices.map((idx, numIdx) => {
+            const qNum = (numIdx + 1).toString();
+            const frText = frList[idx] || '';
+            const enText = enList[idx] || '';
+
+            textLines.push(`${qNum}. ${frText}`);
+            if (enText) {
+                textLines.push(enText);
+            }
+
+            return {
+                id: Math.random().toString(36).substring(2, 11),
+                number: qNum,
+                fr: frText,
+                en: enText
+            };
+        });
+
+        setInputText(textLines.join('\n'));
+        setQuestions(parsedQuestions);
+    };
+
+    useEffect(() => {
+        const fetchDbQuestions = async () => {
+            setIsDbLoading(true);
+            let activeData = defaultQuestions;
+            try {
+                const res = await apiFetch('/api/interview-questions', { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && Array.isArray(data.fr) && data.fr.length > 0) {
+                        activeData = data;
+                        setDbQuestions(data);
+                    }
+                }
+            } catch (e) {
+                console.warn('Using local questions fallback', e);
+            } finally {
+                setIsDbLoading(false);
+            }
+            loadQuestionsFromData(activeData); // Auto-load all questions by default
+        };
+
+        fetchDbQuestions();
+    }, []);
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -550,9 +632,76 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                 <div className="flex-1 flex min-h-0">
                     <div className="w-1/3 p-8 border-r border-white/5 flex flex-col gap-6 overflow-y-auto custom-scrollbar text-white">
+
+                        {/* Importer depuis le générateur de questions */}
+                        <div className="p-5 bg-white/[0.03] border border-white/10 rounded-3xl space-y-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-neon-red uppercase tracking-widest flex items-center gap-2">
+                                    <Database className="w-3.5 h-3.5" /> Base de Questions
+                                </label>
+                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                                    {dbQuestions.fr.length} questions dispo
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={() => loadQuestionsFromData(dbQuestions)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left transition-all group"
+                                    title="Charger toutes les questions"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Sparkles className="w-3.5 h-3.5 text-neon-red group-hover:scale-110 transition-transform" />
+                                        <span className="text-[10px] font-black text-white uppercase tracking-tight">Tout charger</span>
+                                    </div>
+                                    <p className="text-[8px] text-gray-500 font-bold uppercase mt-1">({dbQuestions.fr.length} q.)</p>
+                                </button>
+
+                                <button
+                                    onClick={() => loadQuestionsFromData(dbQuestions, undefined, 16)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left transition-all group"
+                                    title="Tirer 16 questions au hasard (2 pages)"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Shuffle className="w-3.5 h-3.5 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                        <span className="text-[10px] font-black text-white uppercase tracking-tight">Tirage 16</span>
+                                    </div>
+                                    <p className="text-[8px] text-gray-500 font-bold uppercase mt-1">(2 pages)</p>
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={() => loadQuestionsFromData(dbQuestions, undefined, 8)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left transition-all group"
+                                    title="Tirer 8 questions au hasard (1 page)"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Shuffle className="w-3.5 h-3.5 text-neon-purple group-hover:scale-110 transition-transform" />
+                                        <span className="text-[10px] font-black text-white uppercase tracking-tight">Tirage 8</span>
+                                    </div>
+                                    <p className="text-[8px] text-gray-500 font-bold uppercase mt-1">(1 page)</p>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setSelectedDbIndices(Array.from({ length: dbQuestions.fr.length }, (_, i) => i));
+                                        setIsPickerOpen(true);
+                                    }}
+                                    className="p-3 bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/30 rounded-xl text-left transition-all group"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <ListFilter className="w-3.5 h-3.5 text-neon-red group-hover:scale-110 transition-transform" />
+                                        <span className="text-[10px] font-black text-neon-red uppercase tracking-tight">Choisir...</span>
+                                    </div>
+                                    <p className="text-[8px] text-gray-400 font-bold uppercase mt-1">Sélection sur mesure</p>
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="space-y-4">
                             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5" /> Coller les questions ici
+                                <FileText className="w-3.5 h-3.5" /> Coller / Editer les questions ici
                             </label>
                             <textarea
                                 value={inputText}
@@ -968,6 +1117,142 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                     </div>
                 </div>
             </motion.div>
+
+            {/* Modal de Sélection des Questions depuis la base */}
+            <AnimatePresence>
+                {isPickerOpen && (
+                    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-[#0f0f11] border border-white/10 rounded-[2.5rem] p-8 max-w-3xl w-full h-[85vh] flex flex-col shadow-2xl relative overflow-hidden text-white"
+                        >
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between pb-6 border-b border-white/10">
+                                <div>
+                                    <div className="flex items-center gap-2 text-neon-red font-black text-[10px] uppercase tracking-widest mb-1">
+                                        <Database className="w-4 h-4" /> Base de Questions
+                                    </div>
+                                    <h3 className="text-2xl font-display font-black text-white uppercase italic">
+                                        Sélectionner les <span className="text-neon-red">Questions</span>
+                                    </h3>
+                                    <p className="text-xs text-gray-400 font-medium">
+                                        {selectedDbIndices.length} question(s) sélectionnée(s) sur {dbQuestions.fr.length}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setIsPickerOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            {/* Search and Filter Controls */}
+                            <div className="py-4 flex flex-col md:flex-row gap-3 border-b border-white/5">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                    <input
+                                        type="text"
+                                        value={dbSearchTerm}
+                                        onChange={(e) => setDbSearchTerm(e.target.value)}
+                                        placeholder="Rechercher une question (FR ou EN)..."
+                                        className="w-full bg-black/50 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-xs font-bold text-white placeholder:text-gray-600 outline-none focus:border-neon-red transition-all"
+                                    />
+                                </div>
+                                <div className="flex gap-2 flex-wrap">
+                                    <button
+                                        onClick={() => setSelectedDbIndices(Array.from({ length: dbQuestions.fr.length }, (_, i) => i))}
+                                        className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-300 hover:text-white"
+                                    >
+                                        Tout cocher
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedDbIndices([])}
+                                        className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-300 hover:text-white"
+                                    >
+                                        Tout décocher
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const all = Array.from({ length: dbQuestions.fr.length }, (_, i) => i);
+                                            setSelectedDbIndices([...all].sort(() => 0.5 - Math.random()).slice(0, 16));
+                                        }}
+                                        className="px-3 py-2 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 rounded-xl text-[9px] font-black uppercase text-neon-cyan"
+                                    >
+                                        16 au hasard
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Questions List */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar py-4 space-y-2">
+                                {dbQuestions.fr
+                                    .map((frText, idx) => ({ idx, frText, enText: dbQuestions.en[idx] || '' }))
+                                    .filter(({ frText, enText }) =>
+                                        frText.toLowerCase().includes(dbSearchTerm.toLowerCase()) ||
+                                        enText.toLowerCase().includes(dbSearchTerm.toLowerCase())
+                                    )
+                                    .map(({ idx, frText, enText }) => {
+                                        const isChecked = selectedDbIndices.includes(idx);
+                                        return (
+                                            <div
+                                                key={idx}
+                                                onClick={() => {
+                                                    setSelectedDbIndices(prev =>
+                                                        prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
+                                                    );
+                                                }}
+                                                className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start gap-4 ${
+                                                    isChecked
+                                                        ? 'bg-neon-red/10 border-neon-red/40 text-white'
+                                                        : 'bg-white/[0.02] border-white/5 text-gray-400 hover:bg-white/[0.05] hover:text-white'
+                                                }`}
+                                            >
+                                                <div className="pt-0.5">
+                                                    {isChecked ? (
+                                                        <CheckSquare className="w-5 h-5 text-neon-red" />
+                                                    ) : (
+                                                        <Square className="w-5 h-5 text-gray-600" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-mono font-bold text-neon-red">
+                                                            #{String(idx + 1).padStart(2, '0')}
+                                                        </span>
+                                                        <p className="text-xs font-bold uppercase tracking-tight text-white">{frText}</p>
+                                                    </div>
+                                                    {enText && (
+                                                        <p className="text-[11px] font-medium text-gray-400 italic">{enText}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+
+                            {/* Footer Submit */}
+                            <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                                <span className="text-xs font-black text-gray-400 uppercase tracking-wider">
+                                    {selectedDbIndices.length} sélectionnée(s)
+                                </span>
+                                <button
+                                    onClick={() => {
+                                        loadQuestionsFromData(dbQuestions, selectedDbIndices);
+                                        setIsPickerOpen(false);
+                                    }}
+                                    disabled={selectedDbIndices.length === 0}
+                                    className="px-8 py-4 bg-neon-red text-white font-black uppercase tracking-widest text-xs rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                    Importer dans la fiche ({selectedDbIndices.length})
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             <ConfirmationModal
                 isOpen={!!alertConfig}
