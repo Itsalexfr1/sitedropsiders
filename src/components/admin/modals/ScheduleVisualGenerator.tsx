@@ -397,7 +397,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
             ctx.font = '900 24px "Orbitron", sans-serif';
             ctx.fillStyle = '#ffffff';
             ctx.letterSpacing = '10px';
-            ctx.fillText('DROPSIDERS.EU', width / 2, height - 100);
+            ctx.fillText('DROPSIDERS.FR', width / 2, height - 100);
         }
 
         const link = document.createElement('a');
@@ -594,7 +594,7 @@ export function ScheduleVisualGenerator({ isOpen, onClose }: { isOpen: boolean; 
                                                 ))}
                                             </div>
                                             <div className="mt-auto pt-8 flex flex-col items-center">
-                                                {showWebsite && <><div className="text-[10px] font-black text-white uppercase tracking-[0.5em]">DROPSIDERS.EU</div><div className="w-16 h-0.5 bg-neon-cyan/40 mt-2" /></>}
+                                                {showWebsite && <><div className="text-[10px] font-black text-white uppercase tracking-[0.5em]">DROPSIDERS.FR</div><div className="w-16 h-0.5 bg-neon-cyan/40 mt-2" /></>}
                                             </div>
                                         </div>
                                     </div>

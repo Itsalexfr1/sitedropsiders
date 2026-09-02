@@ -6438,7 +6438,7 @@ export function AdminDashboard() {
                               })
                             }
                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-neon-red transition-all"
-                            placeholder="dropsiders.eu"
+                            placeholder="dropsiders.fr"
                           />
                         </div>
                         <div>
@@ -6455,7 +6455,7 @@ export function AdminDashboard() {
                               })
                             }
                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-neon-cyan transition-all"
-                            placeholder="@dropsiders.eu"
+                            placeholder="@dropsiders.fr"
                           />
                         </div>
 

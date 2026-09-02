@@ -5,7 +5,7 @@ import { useHoverSound } from '../../hooks/useHoverSound';
 import { useState, useEffect, useRef } from 'react';
 
 export function InstagramWidget({ accentColor = 'pink', resolvedColor, username }: { accentColor?: string, resolvedColor?: string, username?: string }) {
-    const account = (username || 'dropsiders.eu').replace('@', '');
+    const account = (username || 'dropsiders.fr').replace('@', '');
     const instagramUrl = `https://www.instagram.com/${account}/`;
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const playHoverSound = useHoverSound();

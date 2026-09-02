@@ -111,7 +111,7 @@ export function SocialGiveawayModal({ isOpen, onClose }: SocialGiveawayModalProp
         // 4. Footer
         ctx.font = '900 20px "Orbitron", sans-serif';
         ctx.fillStyle = '#ffffff';
-        ctx.fillText('DROPSIDERS.EU', width/2, height - (type === 'post' ? 60 : 100));
+        ctx.fillText('DROPSIDERS.FR', width/2, height - (type === 'post' ? 60 : 100));
 
         // Export
         const link = document.createElement('a');

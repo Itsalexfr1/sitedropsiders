@@ -1012,13 +1012,13 @@ ${urls.map(u => `  <url>
                         const isMod = data.event.chatter_is_broadcaster || data.event.source_broadcaster_user_id === broadcasterId;
                         switch (cmd) {
                             case '!site':
-                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 🌐 Retrouve tout le contenu Dropsiders sur https://dropsiders.eu`);
+                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 🌐 Retrouve tout le contenu Dropsiders sur https://dropsiders.fr`);
                                 break;
                             case '!insta':
                                 await sendTwitchMessage(env, broadcasterLogin, `@${sender} 📸 Suis-nous sur Instagram : https://instagram.com/dropsiders.fr`);
                                 break;
                             case '!drops':
-                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 💰 Connecte-toi sur https://dropsiders.eu pour voir tes Drops !`);
+                                await sendTwitchMessage(env, broadcasterLogin, `@${sender} 💰 Connecte-toi sur https://dropsiders.fr pour voir tes Drops !`);
                                 break;
                             case '!discord':
                                 await sendTwitchMessage(env, broadcasterLogin, `@${sender} 🎮 Rejoins notre Discord : https://discord.gg/dropsiders`);

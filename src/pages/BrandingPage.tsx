@@ -227,7 +227,7 @@ export function BrandingPage() {
                             </div>
                             <div className="truncate">
                                 <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                    Instagram <span className="text-[9px] text-gray-400 font-normal">@dropsiders.eu</span>
+                                    Instagram <span className="text-[9px] text-gray-400 font-normal">@dropsiders.fr</span>
                                 </h4>
                                 <p className="text-[10px] text-gray-400 truncate">Actus, vidéos & backstage exclusifs</p>
                             </div>
@@ -247,7 +247,7 @@ export function BrandingPage() {
                                 <span className="hidden sm:inline">{likeCounts.instagram.toLocaleString()}</span>
                             </button>
                             <a
-                                href="https://instagram.com/dropsiders.eu"
+                                href="https://instagram.com/dropsiders.fr"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="px-3.5 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-1"
@@ -268,7 +268,7 @@ export function BrandingPage() {
                             </div>
                             <div className="truncate">
                                 <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                    TikTok <span className="text-[9px] text-gray-400 font-normal">@dropsiders.eu</span>
+                                    TikTok <span className="text-[9px] text-gray-400 font-normal">@dropsiders.fr</span>
                                 </h4>
                                 <p className="text-[10px] text-gray-400 truncate">Clips, mèmes, festival recaps</p>
                             </div>
@@ -288,7 +288,7 @@ export function BrandingPage() {
                                 <span className="hidden sm:inline">{likeCounts.tiktok.toLocaleString()}</span>
                             </button>
                             <a
-                                href="https://tiktok.com/@dropsiders.eu"
+                                href="https://tiktok.com/@dropsiders.fr"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="px-3.5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black rounded-xl text-[10px] uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-1"

@@ -33,7 +33,7 @@ export function Footer() {
     };
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
-    const [socials, setSocials] = useState(settings.socials || { instagram: 'dropsiders.eu', tiktok: '@dropsiders.eu' });
+    const [socials, setSocials] = useState(settings.socials || { instagram: 'dropsiders.fr', tiktok: '@dropsiders.fr' });
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
 
     useEffect(() => {
@@ -120,7 +120,7 @@ export function Footer() {
                     >
                         <div className="flex flex-col gap-6 items-center lg:items-start w-full">
                             <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="block">
-                                <img src="/Logo.png" alt="DROPSIDERS" className="logo-img h-12 md:h-16 w-auto max-w-[200px] md:max-w-none object-contain logo-footer cursor-pointer hover:opacity-80 transition-opacity" />
+                                <img src="/Logo.png" alt="DROPSIDERS" className="logo-img h-14 md:h-20 w-auto max-w-[350px] object-contain logo-footer cursor-pointer hover:opacity-80 transition-opacity" />
                             </Link>
                             <motion.h2
                                 className="text-2xl md:text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-tight transition-all duration-300 w-full max-w-lg md:max-w-none px-4 md:px-0"

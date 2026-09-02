@@ -470,7 +470,7 @@ export function StoryGridGenerator({ isOpen, onClose, wikiData: rawWikiData, emb
 
                                     <div className="w-full mt-2 pt-2 border-t border-white/10 flex flex-col items-center gap-0.5 relative z-10">
                                         <span className="text-[6px] font-black text-white/50 uppercase tracking-widest">Faites le vôtre sur <span className="text-white">dropsiders.fr</span></span>
-                                        <span className="text-[6px] font-black text-white/50 uppercase tracking-widest">Identifiez-nous <span className="text-neon-cyan">@dropsiders.eu</span> ✅</span>
+                                        <span className="text-[6px] font-black text-white/50 uppercase tracking-widest">Identifiez-nous <span className="text-neon-cyan">@dropsiders.fr</span> ✅</span>
                                     </div>
                                 </div>
                             </div>
