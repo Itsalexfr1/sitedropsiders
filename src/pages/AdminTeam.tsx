@@ -846,7 +846,7 @@ export function AdminTeam() {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-3xl max-h-[90vh] bg-[#0c0c0c] border border-white/10 rounded-[3rem] shadow-2xl flex flex-col overflow-hidden"
+                            className="relative w-full max-w-3xl h-[85vh] max-h-[85vh] bg-[#0c0c0c] border border-white/10 rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
                         >
                             {/* Modal Header */}
                             <div className="px-8 py-6 border-b border-white/5 bg-gradient-to-r from-neon-purple/10 to-transparent flex items-center justify-between shrink-0">
@@ -897,7 +897,7 @@ export function AdminTeam() {
                             </div>
 
                             {/* Modal Body */}
-                            <div className="p-8 overflow-y-auto custom-scrollbar flex-1 space-y-6">
+                            <div className="p-8 overflow-y-auto custom-scrollbar flex-1 min-h-0 space-y-6">
                                 {activeModalTab === 'public' ? (
                                     /* Tab 1: Public Presence */
                                     <div className="space-y-6">
@@ -1084,11 +1084,7 @@ export function AdminTeam() {
                                         </div>
 
                                         {editingPerson.hasAdminAccess && (
-                                            <motion.div 
-                                                initial={{ opacity: 0, height: 0 }}
-                                                animate={{ opacity: 1, height: 'auto' }}
-                                                className="space-y-6"
-                                            >
+                                            <div className="space-y-6">
                                                 {/* Email Input */}
                                                 <div>
                                                     <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-1.5">
@@ -1156,77 +1152,70 @@ export function AdminTeam() {
                                                         {showCustomPerms ? 'Masquer le détail des permissions' : 'Ajuster les permissions individuelles (Mode Avancé)'}
                                                     </button>
 
-                                                    <AnimatePresence>
-                                                        {showCustomPerms && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, height: 0 }}
-                                                                animate={{ opacity: 1, height: 'auto' }}
-                                                                exit={{ opacity: 0, height: 0 }}
-                                                                className="pt-4 space-y-4"
-                                                            >
-                                                                {PERMISSION_CATEGORIES.map((cat) => (
-                                                                    <div key={cat.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-2">
-                                                                        <span className="text-[9px] font-black text-neon-red uppercase tracking-widest block mb-2">
-                                                                            {cat.label}
-                                                                        </span>
-                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                                                            {cat.permissions.map((perm) => {
-                                                                                const isChecked = editingPerson.permissions.includes(perm.id);
-                                                                                return (
-                                                                                    <label
-                                                                                        key={perm.id}
-                                                                                        className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-                                                                                            isChecked
-                                                                                                ? 'bg-neon-red/10 border-neon-red/30'
-                                                                                                : 'bg-black/30 border-white/5 hover:border-white/10'
-                                                                                        }`}
-                                                                                    >
-                                                                                        <input
-                                                                                            type="checkbox"
-                                                                                            checked={isChecked}
-                                                                                            onChange={(e) => {
-                                                                                                const checked = e.target.checked;
-                                                                                                let newPerms = [...editingPerson.permissions];
-                                                                                                if (checked) {
-                                                                                                    newPerms.push(perm.id);
-                                                                                                } else {
-                                                                                                    newPerms = newPerms.filter(p => p !== perm.id);
-                                                                                                }
-                                                                                                setEditingPerson({
-                                                                                                    ...editingPerson,
-                                                                                                    permissions: newPerms,
-                                                                                                    preset: detectPreset(newPerms)
-                                                                                                });
-                                                                                            }}
-                                                                                            className="sr-only"
-                                                                                        />
-                                                                                        <div className={`mt-0.5 w-4 h-4 rounded-md border flex items-center justify-center transition-all ${
-                                                                                            isChecked ? 'bg-neon-red border-neon-red' : 'border-white/20'
-                                                                                        }`}>
-                                                                                            {isChecked && <Check className="w-3 h-3 text-white" />}
-                                                                                        </div>
-                                                                                        <div>
-                                                                                            <p className="text-[11px] font-bold text-white uppercase italic">{perm.label}</p>
-                                                                                            <p className="text-[9px] text-gray-500 font-medium">{perm.description}</p>
-                                                                                        </div>
-                                                                                    </label>
-                                                                                );
-                                                                            })}
-                                                                        </div>
+                                                    {showCustomPerms && (
+                                                        <div className="pt-4 space-y-4">
+                                                            {PERMISSION_CATEGORIES.map((cat) => (
+                                                                <div key={cat.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-2">
+                                                                    <span className="text-[9px] font-black text-neon-red uppercase tracking-widest block mb-2">
+                                                                        {cat.label}
+                                                                    </span>
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                                        {cat.permissions.map((perm) => {
+                                                                            const isChecked = editingPerson.permissions.includes(perm.id);
+                                                                            return (
+                                                                                <label
+                                                                                    key={perm.id}
+                                                                                    className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+                                                                                        isChecked
+                                                                                            ? 'bg-neon-red/10 border-neon-red/30'
+                                                                                            : 'bg-black/30 border-white/5 hover:border-white/10'
+                                                                                    }`}
+                                                                                >
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        checked={isChecked}
+                                                                                        onChange={(e) => {
+                                                                                            const checked = e.target.checked;
+                                                                                            let newPerms = [...editingPerson.permissions];
+                                                                                            if (checked) {
+                                                                                                newPerms.push(perm.id);
+                                                                                            } else {
+                                                                                                newPerms = newPerms.filter(p => p !== perm.id);
+                                                                                            }
+                                                                                            setEditingPerson({
+                                                                                                ...editingPerson,
+                                                                                                permissions: newPerms,
+                                                                                                preset: detectPreset(newPerms)
+                                                                                            });
+                                                                                        }}
+                                                                                        className="sr-only"
+                                                                                    />
+                                                                                    <div className={`mt-0.5 w-4 h-4 rounded-md border flex items-center justify-center transition-all shrink-0 ${
+                                                                                        isChecked ? 'bg-neon-red border-neon-red' : 'border-white/20'
+                                                                                    }`}>
+                                                                                        {isChecked && <Check className="w-3 h-3 text-white" />}
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <p className="text-[11px] font-bold text-white uppercase italic">{perm.label}</p>
+                                                                                        <p className="text-[9px] text-gray-500 font-medium">{perm.description}</p>
+                                                                                    </div>
+                                                                                </label>
+                                                                            );
+                                                                        })}
                                                                     </div>
-                                                                ))}
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            </motion.div>
+                                            </div>
                                         )}
                                     </div>
                                 )}
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="px-8 py-5 border-t border-white/5 bg-black/40 flex items-center justify-between shrink-0">
+                            <div className="px-8 py-5 border-t border-white/10 bg-[#080808] flex items-center justify-between shrink-0">                         <div className="px-8 py-5 border-t border-white/5 bg-black/40 flex items-center justify-between shrink-0">
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
