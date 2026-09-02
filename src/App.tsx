@@ -230,7 +230,7 @@ const router = createBrowserRouter([
           { path: "admin", element: <AdminDashboard /> },
           { path: "admin/manage", element: <AdminManage /> },
           { path: "admin/team", element: <AdminTeam /> },
-          { path: "admin/editors", element: <AdminEditors /> },
+          { path: "admin/editors", element: <AdminTeam /> },
           { path: "admin/stats", element: <AdminStats /> },
           { path: "admin/spotify", element: <AdminSpotify /> },
           { path: "admin/home", element: <AdminHome /> },

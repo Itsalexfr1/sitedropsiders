@@ -994,7 +994,7 @@ export function AdminDashboard() {
     { id: "WIKI", label: "DJs / Clubs / Festivals" },
     { id: "STUDIO", label: "Studio" },
     { id: "SHOP", label: "Boutique" },
-    { id: "TEAM", label: "MEMBRES & TEAM" },
+    { id: "TEAM", label: "TEAM & DROITS" },
     { id: "INTERVIEW", label: "Interviews" },
   ];
   const [confirmModal, setConfirmModal] = useState<ConfirmModalData>({
@@ -3336,34 +3336,44 @@ export function AdminDashboard() {
 
         <div className="space-y-16 relative">
           {dashboardTab === "TEAM" ? (
-            <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-              <div className="w-24 h-24 bg-neon-purple/10 rounded-[2rem] flex items-center justify-center border border-neon-purple/20 mb-8 animate-pulse">
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <div className="w-24 h-24 bg-gradient-to-br from-neon-purple/20 to-neon-red/20 rounded-[2.5rem] flex items-center justify-center border border-neon-purple/30 mb-8 animate-pulse shadow-[0_0_40px_rgba(191,0,255,0.2)]">
                 <ShieldCheck className="w-12 h-12 text-neon-purple" />
               </div>
-              <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter mb-4">
-                Hub de Gestion <span className="text-neon-purple">MEMBRES & TEAM</span>
+              <h2 className="text-4xl md:text-5xl font-display font-black text-white italic uppercase tracking-tighter mb-4">
+                Hub Unifié <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple via-neon-red to-neon-cyan">Team & Droits</span>
               </h2>
-              <p className="text-gray-500 max-w-md mx-auto mb-10 font-medium leading-relaxed">
-                Gérez les membres du site, l'équipe officielle Dropsiders et les accès éditeurs depuis notre nouvelle interface centralisée.
+              <p className="text-gray-400 max-w-lg mx-auto mb-8 font-medium leading-relaxed text-sm">
+                Gérez en toute simplicité l'équipe affichée sur le site public et attribuez les rôles et permissions d'administration en un clic.
               </p>
-              <button
-                onClick={() => setIsTeamManagementModalOpen(true)}
-                className="px-10 py-5 bg-neon-purple text-white font-black uppercase italic tracking-[0.2em] text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_20px_50px_rgba(147,51,234,0.3)] flex items-center gap-4"
-              >
-                <Users className="w-5 h-5" />
-                OUVRIR LA GESTION MEMBRES & TEAM
-              </button>
               
-              <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <button
+                  onClick={() => navigate("/admin/team")}
+                  className="px-8 py-4 bg-gradient-to-r from-neon-red to-neon-purple text-white font-black uppercase italic tracking-[0.15em] text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_15px_35px_rgba(255,18,65,0.3)] flex items-center gap-3"
+                >
+                  <Users className="w-5 h-5" />
+                  OUVRIR LE HUB TEAM & DROITS
+                </button>
+                <button
+                  onClick={() => setIsTeamManagementModalOpen(true)}
+                  className="px-6 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white font-bold uppercase tracking-wider text-xs rounded-2xl transition-all flex items-center gap-2"
+                >
+                  <Shield className="w-4 h-4 text-neon-cyan" />
+                  Membres & Demandes Studio
+                </button>
+              </div>
+              
+              <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
                 {[
-                  { title: "MEMBRES", desc: "Comptes utilisateurs", icon: Users, color: "text-neon-cyan" },
-                  { title: "STAFF", desc: "Équipe publique", icon: ShieldCheck, color: "text-neon-purple" },
-                  { title: "ÉDITEURS", desc: "Accès back-office", icon: Shield, color: "text-neon-red" }
+                  { title: "ÉQUIPE PUBLIQUE", desc: "Présentation sur la page /team", icon: Globe, color: "text-emerald-400" },
+                  { title: "PROFILS 1-CLIC", desc: "Admin, Rédacteur, Modérateur, Studio", icon: Sparkles, color: "text-neon-purple" },
+                  { title: "INVITATIONS PAR MAIL", desc: "Envoi et gestion des accès sécurisés", icon: Mail, color: "text-neon-red" }
                 ].map((item, i) => (
-                  <div key={i} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-4">
-                    <item.icon className={`w-8 h-8 ${item.color}`} />
-                    <h3 className="text-white font-bold uppercase italic">{item.title}</h3>
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.desc}</p>
+                  <div key={i} className="p-6 bg-white/[0.03] border border-white/10 rounded-[2rem] flex flex-col items-center gap-3">
+                    <item.icon className={`w-7 h-7 ${item.color}`} />
+                    <h3 className="text-white font-bold uppercase italic text-sm">{item.title}</h3>
+                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest text-center">{item.desc}</p>
                   </div>
                 ))}
               </div>
@@ -7462,21 +7472,21 @@ export function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
                     <Link
                       to="/admin/team"
                       onClick={() => setIsTeamModalOpen(false)}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group lg:col-span-1"
+                      className="p-6 bg-gradient-to-br from-neon-purple/10 via-neon-red/5 to-transparent border border-neon-purple/30 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/20 hover:border-neon-purple/60 transition-all group shadow-[0_0_30px_rgba(191,0,255,0.15)]"
                     >
-                      <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center border border-neon-blue/30 group-hover:scale-110 transition-transform">
-                        <Users className="w-6 h-6 text-neon-blue" />
+                      <div className="w-14 h-14 bg-gradient-to-br from-neon-purple/30 to-neon-red/30 rounded-2xl flex items-center justify-center border border-neon-purple/40 group-hover:scale-110 transition-transform">
+                        <Users className="w-7 h-7 text-white" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
-                          Équipe
+                        <h3 className="text-xl font-bold text-white uppercase italic tracking-tight">
+                          Team & Droits
                         </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Gérer les membres
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                          Équipe publique & Accès admin
                         </p>
                       </div>
                     </Link>
@@ -7488,35 +7498,18 @@ export function AdminDashboard() {
                       }}
                       className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
                     >
-                      <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                        <Shield className="w-6 h-6 text-neon-cyan" />
+                      <div className="w-14 h-14 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                        <Shield className="w-7 h-7 text-neon-cyan" />
                       </div>
                       <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
+                        <h3 className="text-xl font-bold text-white uppercase italic tracking-tight">
                           Sécurité
                         </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
                           Accès & Clés
                         </p>
                       </div>
                     </button>
-                    <Link
-                      to="/admin/editors"
-                      onClick={() => setIsTeamModalOpen(false)}
-                      className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group lg:col-span-1 shadow-[0_0_20px_rgba(255,18,65,0.1)]"
-                    >
-                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                        <UserPlus className="w-6 h-6 text-neon-red" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-lg font-bold text-white uppercase italic">
-                          COMPTE CRÉER
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Gérer les Permissions
-                        </p>
-                      </div>
-                    </Link>
                   </div>
                 </motion.div>
               </div>
@@ -12605,9 +12598,8 @@ export function AdminDashboard() {
                         >
                           <AdminMembersList
                             authHeaders={getAuthHeaders()}
-                            onEditPermissions={(email) => {
-                              setTeamModalTab("EDITORS");
-                              navigate(`/admin/editors?email=${encodeURIComponent(email)}`);
+                            onEditPermissions={() => {
+                              navigate('/admin/team');
                             }}
                           />
                         </motion.div>
@@ -12770,17 +12762,17 @@ export function AdminDashboard() {
                               </div>
                             </div>
                             <button
-                              onClick={() => navigate("/admin/editors")}
+                              onClick={() => navigate("/admin/team")}
                               className="px-6 py-3 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20"
                             >
-                              Nouvel Éditeur
+                              Gérer dans le Hub Team & Droits
                             </button>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {editors.map((editor) => (
                               <motion.div
-                                key={editor.username}
+                                key={editor.username || editor.email}
                                 className="bg-white/5 border border-white/10 rounded-[2.5rem] p-6 group hover:border-neon-red/30 transition-all relative overflow-hidden"
                               >
                                 <div className="flex items-center gap-4">
@@ -12789,7 +12781,7 @@ export function AdminDashboard() {
                                   </div>
                                   <div>
                                     <h4 className="text-lg font-bold text-white uppercase italic">{editor.name || editor.username}</h4>
-                                    <p className="text-gray-500 text-xs font-mono">@{editor.username}</p>
+                                    <p className="text-gray-500 text-xs font-mono">{editor.email || `@${editor.username}`}</p>
                                   </div>
                                 </div>
                                 <div className="mt-6 flex flex-wrap gap-2">
@@ -12798,19 +12790,19 @@ export function AdminDashboard() {
                                   ))}
                                 </div>
                                 <div className="mt-8 pt-4 border-t border-white/5 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                  <button onClick={() => navigate("/admin/editors")} className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all"><Pencil className="w-4 h-4" /></button>
+                                  <button onClick={() => navigate("/admin/team")} className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all"><Pencil className="w-4 h-4" /></button>
                                   <button
                                     onClick={() => {
                                       setConfirmModal({
                                         isOpen: true,
                                         title: "Supprimer",
-                                        message: `Supprimer l'éditeur ${editor.username} ?`,
+                                        message: `Supprimer l'éditeur ${editor.name || editor.username || editor.email} ?`,
                                         type: "danger",
                                         onConfirm: () => {
                                           apiFetch("/api/editors/delete", {
                                             method: "POST",
                                             headers: getAuthHeaders(),
-                                            body: JSON.stringify({ username: editor.username }),
+                                            body: JSON.stringify({ email: editor.email }),
                                             }).then(r => { if (r.ok) fetchEditors(); });
                                         }
                                       });

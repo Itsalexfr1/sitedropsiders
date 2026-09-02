@@ -126,12 +126,12 @@ export function AdminEditBar({ pageActions = [], pageName = 'cette page' }: Admi
                                     <ChevronRight className="w-3 h-3 text-gray-600 ml-auto" />
                                 </Link>
                                 <Link
-                                    to="/admin/editors"
+                                    to="/admin/team"
                                     onClick={() => setIsOpen(false)}
                                     className="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-transparent transition-all group"
                                 >
                                     <Users className="w-3.5 h-3.5 text-gray-500 group-hover:text-white transition-colors" />
-                                    <span className="text-xs font-bold text-white uppercase tracking-wide">Éditeurs</span>
+                                    <span className="text-xs font-bold text-white uppercase tracking-wide">Team & Droits</span>
                                     <ChevronRight className="w-3 h-3 text-gray-600 ml-auto" />
                                 </Link>
                             </div>
