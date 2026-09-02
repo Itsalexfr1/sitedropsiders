@@ -2491,11 +2491,11 @@ export function AdminDashboard() {
 
     // GESTION TEAM
     {
-      title: "MEMBRES & TEAM",
-      description: "Accès & Membres",
+      title: "TEAM & DROITS",
+      description: "Équipe & Accès Admin",
       icon: "Users",
       category: "TEAM",
-      link: "#",
+      link: "/admin/team",
       color: "border-neon-purple/20 hover:border-neon-purple",
       bg: "bg-neon-purple/5",
       permission: "all",
@@ -4450,13 +4450,15 @@ export function AdminDashboard() {
                               e.preventDefault();
                               setIsScheduleModalOpen(true);
                             } else if (
+                              action.title === "TEAM & DROITS" ||
                               action.title === "L'ÉQUIPE" ||
                               action.link === "#TEAM_MANAGEMENT_MODAL" ||
                               action.title === "MEMBRES & TEAM" ||
+                              action.link === "/admin/team" ||
                               action.title === "Comptes Membres"
                             ) {
                               e.preventDefault();
-                              setIsTeamManagementModalOpen(true);
+                              navigate("/admin/team");
                             } else if (
                               action.title === "Story Grid Generator" ||
                               action.title === "Story Grid" ||

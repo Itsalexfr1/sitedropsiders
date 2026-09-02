@@ -118,11 +118,11 @@
     "columns": 1
   },
   {
-    "title": "MEMBRES & TEAM",
-    "description": "Accès & Membres",
+    "title": "TEAM & DROITS",
+    "description": "Équipe & Accès Admin",
     "icon": "Users",
     "category": "TEAM",
-    "link": "#",
+    "link": "/admin/team",
     "color": "border-neon-purple/20 hover:border-neon-purple",
     "bg": "bg-neon-purple/5",
     "permission": "all",
