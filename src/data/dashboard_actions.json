@@ -60,6 +60,18 @@
     "columns": 1
   },
   {
+    "title": "Signatures Mail",
+    "description": "Créateur iPhone & Webmail",
+    "icon": "PenTool",
+    "category": "SHOP",
+    "link": "/admin/signatures",
+    "color": "border-neon-orange/20 hover:border-neon-orange",
+    "bg": "bg-neon-orange/5",
+    "permission": "messages_contact",
+    "baseColor": "#ff6600",
+    "columns": 1
+  },
+  {
     "title": "Communauté",
     "description": "Modération & Galerie",
     "icon": "MessageSquare",

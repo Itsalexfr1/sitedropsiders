@@ -66,6 +66,7 @@ const TopDropsiders = lazyRetry(() => import('./pages/TopDropsiders').then(m => 
 const Profile = lazyRetry(() => import('./pages/Profile').then(m => m.Profile));
 const AdminPdfs = lazyRetry(() => import('./pages/AdminPdfs').then(m => m.AdminPdfs));
 const AdminInterviewQuestions = lazyRetry(() => import('./pages/AdminInterviewQuestions').then(m => m.AdminInterviewQuestions));
+const AdminSignatures = lazyRetry(() => import('./pages/AdminSignatures').then(m => m.AdminSignatures));
 const PublicProfile = lazyRetry(() => import('./pages/PublicProfile').then(m => m.PublicProfile));
 const About = lazyRetry(() => import('./pages/About').then(m => m.About));
 const ProShop = lazyRetry(() => import('./pages/ProShop').then(m => m.ProShop));
@@ -242,6 +243,7 @@ const router = createBrowserRouter([
           { path: "admin/banner", element: <AdminBanner /> },
           { path: "admin/pdfs", element: <AdminPdfs /> },
           { path: "admin/interview-questions", element: <AdminInterviewQuestions /> },
+          { path: "admin/signatures", element: <AdminSignatures /> },
           { path: "social-studio", element: <SocialStudioPage /> },
           { path: "interview-visuals", element: <InterviewVisualGenerator /> },
           { path: "aftermovie", element: <VideoStudioGenerator /> },

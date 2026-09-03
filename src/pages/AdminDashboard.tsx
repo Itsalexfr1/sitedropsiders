@@ -75,6 +75,7 @@ import {
   LayoutGrid,
   QrCode,
   Phone,
+  PenTool,
 } from "lucide-react";
 
 
@@ -2488,6 +2489,18 @@ export function AdminDashboard() {
       baseColor: "orange",
       columns: 1,
     },
+    {
+      title: "Signatures Mail",
+      description: "Créateur iPhone & Webmail",
+      icon: "PenTool",
+      category: "SHOP",
+      link: "/admin/signatures",
+      color: "border-neon-orange/20 hover:border-neon-orange",
+      bg: "bg-neon-orange/5",
+      permission: "messages_contact",
+      baseColor: "orange",
+      columns: 1,
+    },
 
     // GESTION TEAM
     {
@@ -2663,6 +2676,8 @@ export function AdminDashboard() {
         );
       case "Mail":
         return <Mail className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+      case "PenTool":
+        return <PenTool className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       case "Users":
         return <Users className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
       case "Lock":
@@ -4510,6 +4525,9 @@ export function AdminDashboard() {
                             } else if (action.title === "Messagerie & Newsletter" || action.title === "Messagerie") {
                               e.preventDefault();
                               setIsMessagesModalOpen(true);
+                            } else if (action.title === "Signatures Mail" || action.link === "/admin/signatures") {
+                              e.preventDefault();
+                              navigate("/admin/signatures");
                             } else if (action.title === "Newsletter") {
                               e.preventDefault();
                               setIsNewsletterModalOpen(true);

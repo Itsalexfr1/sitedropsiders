@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { X, Mail, Settings2, FileText, ShieldCheck } from 'lucide-react';
+import { X, Mail, Settings2, FileText, ShieldCheck, PenTool } from 'lucide-react';
 import { isSuperAdmin } from '../../../utils/auth';
 import { FacebookRecoveryModal } from '../FacebookRecoveryModal';
 
@@ -68,6 +68,20 @@ export function MessagesMenuModal({ isOpen, onClose }: MessagesMenuModalProps) {
                                 <div>
                                     <h3 className="text-base font-bold text-white uppercase italic">Paramètres Contact</h3>
                                     <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Emails & Destinataires</p>
+                                </div>
+                            </Link>
+
+                            <Link
+                                to="/admin/signatures"
+                                onClick={onClose}
+                                className="w-full p-4 bg-neon-orange/10 border border-neon-orange/30 rounded-2xl flex items-center gap-4 hover:bg-neon-orange/20 hover:border-neon-orange transition-all group"
+                            >
+                                <div className="w-10 h-10 bg-neon-orange/20 rounded-xl flex items-center justify-center border border-neon-orange/40 group-hover:scale-110 transition-transform flex-shrink-0">
+                                    <PenTool className="w-5 h-5 text-neon-orange" />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-white uppercase italic">Signatures de Mail</h3>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Générateur iPhone & Webmail</p>
                                 </div>
                             </Link>
 
