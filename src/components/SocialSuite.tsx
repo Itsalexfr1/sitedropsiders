@@ -2955,7 +2955,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         setRecordingTimeLeft(0);
         setTransitionProgress(0);
         if (bgVideo) {
-            bgVideo.muted = previousMutedState;
+            bgVideo.muted = true; // remet en silencieux pour le preview
             bgVideo.loop = true;
             bgVideo.play().catch(() => { });
         }
