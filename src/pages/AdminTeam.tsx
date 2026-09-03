@@ -399,13 +399,28 @@ export function AdminTeam() {
                 preset: 'custom'
             });
         } else {
-            setShowCustomPerms(false);
             setEditingPerson({
                 ...editingPerson,
                 preset: presetId,
                 permissions: [...presetObj.permissions]
             });
         }
+    };
+
+    // Toggle single permission smoothly without layout jumps
+    const togglePermission = (permId: string) => {
+        if (!editingPerson) return;
+        let newPerms = [...editingPerson.permissions];
+        if (newPerms.includes(permId)) {
+            newPerms = newPerms.filter(p => p !== permId);
+        } else {
+            newPerms.push(permId);
+        }
+        setEditingPerson({
+            ...editingPerson,
+            permissions: newPerms,
+            preset: detectPreset(newPerms)
+        });
     };
 
     // Resend Invite Email
@@ -1163,43 +1178,25 @@ export function AdminTeam() {
                                                                         {cat.permissions.map((perm) => {
                                                                             const isChecked = editingPerson.permissions.includes(perm.id);
                                                                             return (
-                                                                                <label
+                                                                                <div
                                                                                     key={perm.id}
-                                                                                    className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+                                                                                    onClick={() => togglePermission(perm.id)}
+                                                                                    className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer select-none transition-all ${
                                                                                         isChecked
-                                                                                            ? 'bg-neon-red/10 border-neon-red/30'
+                                                                                            ? 'bg-neon-red/10 border-neon-red/40 shadow-[0_0_15px_rgba(255,18,65,0.15)]'
                                                                                             : 'bg-black/30 border-white/5 hover:border-white/10'
                                                                                     }`}
                                                                                 >
-                                                                                    <input
-                                                                                        type="checkbox"
-                                                                                        checked={isChecked}
-                                                                                        onChange={(e) => {
-                                                                                            const checked = e.target.checked;
-                                                                                            let newPerms = [...editingPerson.permissions];
-                                                                                            if (checked) {
-                                                                                                newPerms.push(perm.id);
-                                                                                            } else {
-                                                                                                newPerms = newPerms.filter(p => p !== perm.id);
-                                                                                            }
-                                                                                            setEditingPerson({
-                                                                                                ...editingPerson,
-                                                                                                permissions: newPerms,
-                                                                                                preset: detectPreset(newPerms)
-                                                                                            });
-                                                                                        }}
-                                                                                        className="sr-only"
-                                                                                    />
                                                                                     <div className={`mt-0.5 w-4 h-4 rounded-md border flex items-center justify-center transition-all shrink-0 ${
                                                                                         isChecked ? 'bg-neon-red border-neon-red' : 'border-white/20'
                                                                                     }`}>
                                                                                         {isChecked && <Check className="w-3 h-3 text-white" />}
                                                                                     </div>
-                                                                                    <div>
+                                                                                    <div className="flex-1 min-w-0">
                                                                                         <p className="text-[11px] font-bold text-white uppercase italic">{perm.label}</p>
-                                                                                        <p className="text-[9px] text-gray-500 font-medium">{perm.description}</p>
+                                                                                        <p className="text-[9px] text-gray-500 font-medium leading-relaxed">{perm.description}</p>
                                                                                     </div>
-                                                                                </label>
+                                                                                </div>
                                                                             );
                                                                         })}
                                                                     </div>
@@ -1215,7 +1212,7 @@ export function AdminTeam() {
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="px-8 py-5 border-t border-white/10 bg-[#080808] flex items-center justify-between shrink-0">                         <div className="px-8 py-5 border-t border-white/5 bg-black/40 flex items-center justify-between shrink-0">
+                            <div className="px-8 py-5 border-t border-white/10 bg-[#080808] flex items-center justify-between shrink-0">
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
