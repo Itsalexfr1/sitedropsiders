@@ -936,10 +936,59 @@ export function AdminManage() {
                                             <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest w-10">Sup.</th>
                                         )}
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Membres' ? 'Avatar' : 'Image'}</th>
-                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Membres' ? 'Utilisateur' : 'Titre'}</th>
+
+                                        {/* Colonne Titre — cliquable */}
+                                        <th
+                                            className="px-6 py-4 text-xs font-black uppercase tracking-widest cursor-pointer select-none group transition-colors hover:text-white"
+                                            onClick={() => {
+                                                if (sortBy === 'title') setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
+                                                else setSortBy('title');
+                                            }}
+                                        >
+                                            <span className={`flex items-center gap-1 ${sortBy === 'title' ? 'text-neon-red' : 'text-gray-500 group-hover:text-white'}`}>
+                                                {activeTab === 'Membres' ? 'Utilisateur' : 'Titre'}
+                                                {sortBy === 'title' ? (
+                                                    sortOrder === 'asc' ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />
+                                                ) : <ChevronUp className="w-3.5 h-3.5 opacity-20" />}
+                                            </span>
+                                        </th>
+
+                                        {/* Colonne Auteur — non triable */}
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Membres' ? 'Email' : 'Auteur'}</th>
-                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Membres' ? 'Statut Studio' : 'Année'}</th>
-                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Membres' ? 'Dernière Connexion' : (activeTab === 'Recaps' || activeTab === 'Agenda' ? 'Date Event' : 'Date')}</th>
+
+                                        {/* Colonne Année — cliquable */}
+                                        <th
+                                            className="px-6 py-4 text-xs font-black uppercase tracking-widest cursor-pointer select-none group transition-colors hover:text-white"
+                                            onClick={() => {
+                                                const field = activeTab === 'Membres' ? 'date' : 'year';
+                                                if (sortBy === field) setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
+                                                else setSortBy(field as any);
+                                            }}
+                                        >
+                                            <span className={`flex items-center gap-1 ${(sortBy === 'year' || (activeTab === 'Membres' && sortBy === 'date')) ? 'text-neon-red' : 'text-gray-500 group-hover:text-white'}`}>
+                                                {activeTab === 'Membres' ? 'Statut Studio' : 'Année'}
+                                                {(sortBy === 'year') ? (
+                                                    sortOrder === 'asc' ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />
+                                                ) : <ChevronUp className="w-3.5 h-3.5 opacity-20" />}
+                                            </span>
+                                        </th>
+
+                                        {/* Colonne Date — cliquable */}
+                                        <th
+                                            className="px-6 py-4 text-xs font-black uppercase tracking-widest cursor-pointer select-none group transition-colors hover:text-white"
+                                            onClick={() => {
+                                                if (sortBy === 'date') setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
+                                                else setSortBy('date');
+                                            }}
+                                        >
+                                            <span className={`flex items-center gap-1 ${sortBy === 'date' ? 'text-neon-red' : 'text-gray-500 group-hover:text-white'}`}>
+                                                {activeTab === 'Membres' ? 'Dernière Connexion' : (activeTab === 'Recaps' || activeTab === 'Agenda' ? 'Date Event' : 'Date')}
+                                                {sortBy === 'date' ? (
+                                                    sortOrder === 'asc' ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />
+                                                ) : <ChevronUp className="w-3.5 h-3.5 opacity-20" />}
+                                            </span>
+                                        </th>
+
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest text-right">Actions</th>
                                     </tr>
                                 </thead>
