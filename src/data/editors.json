@@ -1,8 +1,9 @@
 [
   {
     "email": "guillaume.chery.naumont@gmail.com",
-    "username": "Guillaume",
-    "pseudo": "Guillaume",
+    "username": "GUILLAUME (GUYHOME)",
+    "pseudo": "GUILLAUME (GUYHOME)",
+    "role": "VIDÉASTE",
     "permissions": [
       "news_focus",
       "social_studio",
@@ -12,8 +13,7 @@
       "messages_contact",
       "interviews_video"
     ],
-    "created": "2026-04-21T14:31:24.322Z",
-    "role": ""
+    "created": "2026-04-21T14:31:24.322Z"
   },
   {
     "email": "alexflex30@gmail.com",

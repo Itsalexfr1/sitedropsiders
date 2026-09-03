@@ -241,6 +241,12 @@ export function AdminTeam() {
         fetchData();
     }, []);
 
+    const isMissingPhoto = (img?: string) => {
+        if (!img || !img.trim()) return true;
+        const lower = img.toLowerCase().trim();
+        return lower === '/images/team/default.jpg' || lower.endsWith('/default.jpg') || lower === 'default.jpg';
+    };
+
     // Merge team.json & editors.json into single coherent list
     const mergeData = (team: any[], editors: any[]) => {
         const result: UnifiedPerson[] = [];
@@ -249,12 +255,23 @@ export function AdminTeam() {
         // 1. Process team members
         team.forEach((tm) => {
             const teamEmail = (tm.email || '').toLowerCase().trim();
-            // Find corresponding editor by email or name/pseudo
+            const tmName = (tm.name || '').toLowerCase().trim();
+
+            // Find corresponding editor by email or name/pseudo or alias
             const matchedEditor = editors.find(e => {
                 const edEmail = (e.email || '').toLowerCase().trim();
                 const edPseudo = (e.pseudo || e.username || e.name || '').toLowerCase().trim();
-                const tmName = (tm.name || '').toLowerCase().trim();
-                return (teamEmail && edEmail === teamEmail) || (tmName && edPseudo === tmName);
+
+                // Direct email or pseudo match
+                if (teamEmail && edEmail === teamEmail) return true;
+                if (tmName && edPseudo === tmName) return true;
+
+                // Alias match: Guillaume / Guyhome / Guiyoome
+                const clean = (s: string) => s.replace(/[^a-z]/g, '');
+                const isG = (s: string) => s.includes('guillaume') || s.includes('guyhome') || s.includes('guiyoome');
+                if (isG(clean(tmName)) && (isG(clean(edPseudo)) || isG(clean(edEmail)))) return true;
+
+                return false;
             });
 
             if (matchedEditor) {
@@ -463,6 +480,18 @@ export function AdminTeam() {
             setStatusMessage({ text: 'Le nom du membre est obligatoire.', type: 'error' });
             return;
         }
+
+        // Photo obligatoire si affichage sur le site public activé
+        if (editingPerson.showOnPublicSite && isMissingPhoto(editingPerson.image)) {
+            setActiveModalTab('public');
+            setStatusMessage({ 
+                text: 'Une photo de profil est obligatoire pour afficher ce membre sur la page Équipe (/team).', 
+                type: 'error' 
+            });
+            setIsUploadModalOpen(true);
+            return;
+        }
+
         if (editingPerson.hasAdminAccess && !editingPerson.email.trim()) {
             setStatusMessage({ text: 'Une adresse e-mail est obligatoire pour accorder des droits d\'accès.', type: 'error' });
             return;
@@ -919,15 +948,34 @@ export function AdminTeam() {
                                         {/* Toggle: Show on public /team */}
                                         <div className="p-5 bg-white/[0.03] border border-white/10 rounded-2xl flex items-center justify-between">
                                             <div>
-                                                <h4 className="text-sm font-bold text-white uppercase italic">Afficher sur la page Équipe (/team)</h4>
+                                                <h4 className="text-sm font-bold text-white uppercase italic flex items-center gap-2">
+                                                    Afficher sur la page Équipe (/team)
+                                                    {editingPerson.showOnPublicSite && (
+                                                        <span className="text-[9px] bg-neon-purple/20 text-neon-purple border border-neon-purple/40 px-2 py-0.5 rounded-full font-mono font-normal">
+                                                            Visible
+                                                        </span>
+                                                    )}
+                                                </h4>
                                                 <p className="text-[11px] text-gray-400 mt-0.5">Le profil apparaîtra publiquement dans la grille des membres.</p>
+                                                {editingPerson.showOnPublicSite && isMissingPhoto(editingPerson.image) && (
+                                                    <p className="text-[11px] text-neon-red font-bold mt-1 flex items-center gap-1.5 animate-pulse">
+                                                        <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                                                        Une photo de profil est obligatoire pour afficher ce membre sur le site public.
+                                                    </p>
+                                                )}
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => setEditingPerson({ ...editingPerson, showOnPublicSite: !editingPerson.showOnPublicSite })}
+                                                onClick={() => {
+                                                    const nextVal = !editingPerson.showOnPublicSite;
+                                                    setEditingPerson({ ...editingPerson, showOnPublicSite: nextVal });
+                                                    if (nextVal && isMissingPhoto(editingPerson.image)) {
+                                                        setIsUploadModalOpen(true);
+                                                    }
+                                                }}
                                                 className={`w-14 h-8 rounded-full p-1 transition-all border ${
                                                     editingPerson.showOnPublicSite
-                                                        ? 'bg-neon-purple border-neon-purple'
+                                                        ? 'bg-neon-purple border-neon-purple shadow-[0_0_15px_rgba(191,0,255,0.3)]'
                                                         : 'bg-black/60 border-white/20'
                                                 }`}
                                             >
@@ -1026,16 +1074,40 @@ export function AdminTeam() {
                                             </div>
 
                                             {/* Photo Preview & Upload */}
-                                            <div className="flex flex-col items-center justify-center p-4 bg-white/[0.02] border border-white/5 rounded-2xl gap-3">
-                                                <div className="w-24 h-24 rounded-2xl overflow-hidden border border-white/10 bg-black/60 relative group">
+                                            <div className={`flex flex-col items-center justify-center p-4 rounded-2xl gap-3 border transition-all ${
+                                                editingPerson.showOnPublicSite && isMissingPhoto(editingPerson.image)
+                                                    ? 'bg-neon-red/10 border-neon-red/50 shadow-[0_0_20px_rgba(255,18,65,0.15)]'
+                                                    : 'bg-white/[0.02] border-white/5'
+                                            }`}>
+                                                <div className={`w-24 h-24 rounded-2xl overflow-hidden bg-black/60 relative group border transition-all ${
+                                                    editingPerson.showOnPublicSite && isMissingPhoto(editingPerson.image)
+                                                        ? 'border-neon-red ring-2 ring-neon-red/40'
+                                                        : 'border-white/10'
+                                                }`}>
                                                     <img src={editingPerson.image} alt="Preview" className="w-full h-full object-cover" />
                                                 </div>
+
+                                                {editingPerson.showOnPublicSite && isMissingPhoto(editingPerson.image) ? (
+                                                    <span className="text-[9px] font-black text-neon-red uppercase tracking-wider flex items-center gap-1 animate-pulse">
+                                                        <AlertTriangle className="w-3 h-3" /> Photo requise *
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">
+                                                        {editingPerson.showOnPublicSite ? 'Photo obligatoire *' : 'Photo de profil'}
+                                                    </span>
+                                                )}
+
                                                 <button
                                                     type="button"
                                                     onClick={() => setIsUploadModalOpen(true)}
-                                                    className="w-full py-2 bg-neon-purple/10 hover:bg-neon-purple border border-neon-purple/30 text-neon-purple hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+                                                    className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 border ${
+                                                        editingPerson.showOnPublicSite && isMissingPhoto(editingPerson.image)
+                                                            ? 'bg-neon-red text-white border-neon-red shadow-[0_0_15px_rgba(255,18,65,0.4)] hover:scale-105'
+                                                            : 'bg-neon-purple/10 hover:bg-neon-purple border-neon-purple/30 text-neon-purple hover:text-white'
+                                                    }`}
                                                 >
-                                                    <Upload className="w-3.5 h-3.5" /> Changer Photo
+                                                    <Upload className="w-3.5 h-3.5" /> 
+                                                    {isMissingPhoto(editingPerson.image) ? 'Ajouter une Photo *' : 'Changer Photo'}
                                                 </button>
                                             </div>
                                         </div>
@@ -1220,15 +1292,22 @@ export function AdminTeam() {
                                 >
                                     Annuler
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={handleSavePerson}
-                                    disabled={isSaving}
-                                    className="px-8 py-3.5 bg-gradient-to-r from-neon-red to-neon-purple text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_10px_25px_rgba(255,18,65,0.3)] flex items-center gap-2.5 disabled:opacity-50"
-                                >
-                                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                    Enregistrer la Fiche
-                                </button>
+                                <div className="flex items-center gap-4">
+                                    {editingPerson.showOnPublicSite && isMissingPhoto(editingPerson.image) && (
+                                        <span className="text-[10px] text-neon-red font-bold hidden sm:flex items-center gap-1.5 animate-pulse">
+                                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" /> Photo requise sur le site
+                                        </span>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={handleSavePerson}
+                                        disabled={isSaving}
+                                        className="px-8 py-3.5 bg-gradient-to-r from-neon-red to-neon-purple text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_10px_25px_rgba(255,18,65,0.3)] flex items-center gap-2.5 disabled:opacity-50"
+                                    >
+                                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                        Enregistrer la Fiche
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </div>
