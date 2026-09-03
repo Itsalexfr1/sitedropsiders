@@ -5,10 +5,10 @@ import {
     Globe, Instagram, Sparkles, User, Phone, ShieldCheck,
     Palette, ExternalLink, HelpCircle, AlertCircle, RefreshCw,
     Share2, FileText, CheckCircle2, ChevronRight, PenTool,
-    Eye, Monitor
+    Eye, Monitor, Send, MousePointerClick, MessageSquare, Lock
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { isSuperAdmin, hasPermission } from '../utils/auth';
+import { isSuperAdmin, hasPermission, getAuthHeaders } from '../utils/auth';
 import teamData from '../data/team.json';
 
 interface SignatureConfig {
@@ -52,6 +52,8 @@ const SUGGESTED_ROLES = [
 ];
 
 const LOGO_URL = 'https://dropsiders.fr/Logo.png';
+const OFFICIAL_INSTAGRAM = 'https://instagram.com/dropsiders.fr';
+const OFFICIAL_TIKTOK = 'https://www.tiktok.com/@dropsiders.fr';
 
 export function AdminSignatures() {
     const navigate = useNavigate();
@@ -78,7 +80,7 @@ export function AdminSignatures() {
     const [selectedMemberId, setSelectedMemberId] = useState<number | 'custom'>('custom');
     const [previewDevice, setPreviewDevice] = useState<'desktop' | 'iphone'>('desktop');
     const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
-    const [activeGuideTab, setActiveGuideTab] = useState<'iphone' | 'webmail' | 'gmail'>('iphone');
+    const [activeGuideTab, setActiveGuideTab] = useState<'iphone' | 'email_trick' | 'webmail'>('iphone');
 
     const [config, setConfig] = useState<SignatureConfig>({
         name: 'Alex Frérot',
@@ -86,8 +88,8 @@ export function AdminSignatures() {
         email: 'alex@dropsiders.fr',
         phone: '+33 6 00 00 00 00',
         website: 'https://dropsiders.fr',
-        instagram: 'https://instagram.com/itsalex.fr1',
-        tiktok: 'https://www.tiktok.com/@dropsiders',
+        instagram: OFFICIAL_INSTAGRAM,
+        tiktok: OFFICIAL_TIKTOK,
         spotify: 'https://open.spotify.com/user/dropsiders',
         youtube: 'https://youtube.com/@dropsiders',
         avatarUrl: 'https://www.dropsiders.fr/uploads/migrated/dropsiders/wcyxatveeurgu5s1fi3s.jpg',
@@ -99,8 +101,11 @@ export function AdminSignatures() {
         template: 'neon'
     });
 
-    const [copyStatus, setCopyStatus] = useState<'idle' | 'rich_success' | 'html_success'>('idle');
-    const [showIphoneTipModal, setShowIphoneTipModal] = useState(false);
+    const [copyStatus, setCopyStatus] = useState<'idle' | 'rich_success' | 'html_success' | 'text_success' | 'selected'>('idle');
+    const [showIphoneTroubleshootModal, setShowIphoneTroubleshootModal] = useState(false);
+    const [emailToSend, setEmailToSend] = useState('alex@dropsiders.fr');
+    const [sendingEmail, setSendingEmail] = useState(false);
+    const [emailSentStatus, setEmailSentStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const signatureRef = useRef<HTMLDivElement>(null);
 
     // Apply presets when selecting a member
@@ -115,8 +120,10 @@ export function AdminSignatures() {
                 phone: '',
                 avatarUrl: '',
                 showAvatar: false,
-                instagram: 'https://instagram.com/dropsiders'
+                instagram: OFFICIAL_INSTAGRAM,
+                tiktok: OFFICIAL_TIKTOK,
             }));
+            setEmailToSend('contact@dropsiders.fr');
             return;
         }
 
@@ -130,9 +137,10 @@ export function AdminSignatures() {
                 email: memberEmail,
                 avatarUrl: member.image || '',
                 showAvatar: !!member.image,
-                instagram: member.socials?.instagram && member.socials.instagram !== '#' ? member.socials.instagram : 'https://instagram.com/dropsiders',
-                tiktok: member.socials?.tiktok && member.socials.tiktok !== '#' ? member.socials.tiktok : 'https://www.tiktok.com/@dropsiders',
+                instagram: OFFICIAL_INSTAGRAM,
+                tiktok: OFFICIAL_TIKTOK,
             }));
+            setEmailToSend(memberEmail);
         }
     };
 
@@ -151,17 +159,18 @@ export function AdminSignatures() {
     const rawHtml = useMemo(() => {
         const {
             name, role, email, phone, website,
-            instagram, tiktok, spotify, avatarUrl,
+            spotify, avatarUrl,
             showAvatar, showBadge, showTagline, showLegalDisclaimer,
             accentColor, template
         } = config;
 
         const cleanSite = website.replace(/^https?:\/\//, '');
 
-        // Social pills / links
-        const socialsList: { label: string; url: string }[] = [];
-        if (instagram) socialsList.push({ label: 'Instagram', url: instagram });
-        if (tiktok && tiktok !== '#') socialsList.push({ label: 'TikTok', url: tiktok });
+        // Social pills / links - STRICTEMENT verrouillés sur les comptes officiels Dropsiders (pas d'insta perso)
+        const socialsList: { label: string; url: string }[] = [
+            { label: 'Instagram', url: OFFICIAL_INSTAGRAM },
+            { label: 'TikTok', url: OFFICIAL_TIKTOK }
+        ];
         if (spotify && spotify !== '#') socialsList.push({ label: 'Spotify', url: spotify });
 
         const socialLinksHtml = socialsList.map(s => (
@@ -323,20 +332,60 @@ export function AdminSignatures() {
 </table>`.trim();
     }, [config]);
 
-    // Plaintext version
-    const plainText = useMemo(() => {
-        return `${config.name.toUpperCase()}
-${config.role} | Dropsiders
-Email: ${config.email}${config.phone ? `\nTel: ${config.phone}` : ''}
-Web: ${config.website}
-Instagram: ${config.instagram}`;
+    // Clean text signature (Ultra compatible for iPhone)
+    const cleanTextSignature = useMemo(() => {
+        return `⚡ DROPSIDERS
+━━━━━━━━━━━━━━━━━━━━
+${(config.name || 'DROPSIDERS').toUpperCase()}
+${config.role || 'Média Électronique'}
+
+✉️ ${config.email}
+${config.phone ? `📞 ${config.phone}\n` : ''}🌐 dropsiders.fr
+📸 @dropsiders.fr (Instagram)
+🎵 @dropsiders.fr (TikTok)
+━━━━━━━━━━━━━━━━━━━━
+Le 1er média musiques électroniques`;
     }, [config]);
 
-    // 1. Copy Rich Formatted HTML (The Gold Standard for iPhone & Webmail paste)
+    // 1. SELECT & COPY ON IPHONE (Selects the DOM elements so native iOS copy menu appears)
+    const selectAndCopyForIphone = () => {
+        try {
+            if (signatureRef.current) {
+                const range = document.createRange();
+                range.selectNodeContents(signatureRef.current);
+                const selection = window.getSelection();
+                selection?.removeAllRanges();
+                selection?.addRange(range);
+
+                // Try execCommand copy which works inside user gesture on iOS
+                try {
+                    document.execCommand('copy');
+                } catch (e) {
+                    console.warn('execCommand failed:', e);
+                }
+
+                setCopyStatus('selected');
+                setShowIphoneTroubleshootModal(true);
+            }
+        } catch (err) {
+            console.error('Selection failed:', err);
+        }
+    };
+
+    // 2. Copy Rich Formatted HTML
     const copyRichText = async () => {
         try {
+            if (signatureRef.current) {
+                const range = document.createRange();
+                range.selectNodeContents(signatureRef.current);
+                const selection = window.getSelection();
+                selection?.removeAllRanges();
+                selection?.addRange(range);
+                document.execCommand('copy');
+            }
+
             if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-                const textBlob = new Blob([plainText], { type: 'text/plain' });
+                const textBlob = new Blob([cleanTextSignature], { type: 'text/plain' });
                 const htmlBlob = new Blob([rawHtml], { type: 'text/html' });
                 await navigator.clipboard.write([
                     new ClipboardItem({
@@ -344,37 +393,74 @@ Instagram: ${config.instagram}`;
                         'text/plain': textBlob
                     })
                 ]);
-            } else if (signatureRef.current) {
-                // Fallback using document selection
-                const range = document.createRange();
-                range.selectNode(signatureRef.current);
-                const selection = window.getSelection();
-                selection?.removeAllRanges();
-                selection?.addRange(range);
-                document.execCommand('copy');
-                selection?.removeAllRanges();
             }
 
             setCopyStatus('rich_success');
-            setShowIphoneTipModal(true);
+            setShowIphoneTroubleshootModal(true);
             setTimeout(() => setCopyStatus('idle'), 4000);
         } catch (err) {
             console.error('Failed to copy rich text:', err);
-            // Fallback to plain copy
-            navigator.clipboard.writeText(rawHtml);
-            setCopyStatus('html_success');
-            setTimeout(() => setCopyStatus('idle'), 3000);
+            selectAndCopyForIphone();
         }
     };
 
-    // 2. Copy Raw HTML Code
+    // 3. Copy Clean Text Signature (100% Paste Guarantee on iOS)
+    const copyCleanText = () => {
+        navigator.clipboard.writeText(cleanTextSignature);
+        setCopyStatus('text_success');
+        setTimeout(() => setCopyStatus('idle'), 3000);
+    };
+
+    // 4. Copy Raw HTML Code
     const copyRawHtml = () => {
         navigator.clipboard.writeText(rawHtml);
         setCopyStatus('html_success');
         setTimeout(() => setCopyStatus('idle'), 3000);
     };
 
-    // 3. Download HTML file
+    // 5. Send Signature to Email (The 100% Infallible Apple Mail Technique)
+    const handleSendEmail = async () => {
+        if (!emailToSend || !emailToSend.includes('@')) {
+            alert('Veuillez entrer une adresse email valide.');
+            return;
+        }
+
+        setSendingEmail(true);
+        setEmailSentStatus('idle');
+
+        try {
+            const res = await fetch('/api/contacts/reply', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify({
+                    to: emailToSend.trim(),
+                    from: 'contact@dropsiders.fr',
+                    name: `Signature Dropsiders (${config.name})`,
+                    subject: `Votre signature officielle Dropsiders (${config.name})`,
+                    message: `Bonjour ${config.name},\n\nVoici votre signature officielle Dropsiders prête pour votre iPhone et votre webmail !\n\n👇 COMMENT L'INSTALLER SUR IPHONE EN 30 SECONDES :\n1. Sur votre iPhone, ouvrez cet email dans l'application Mail.\n2. Posez votre doigt sur le texte de la signature ci-dessous pour TOUT sélectionner et appuyez sur « Copier ».\n3. Allez dans Réglages > Mail > Signature sur votre iPhone.\n4. Effacez l'ancien texte (« Envoyé de mon iPhone »), faites un appui long dans la case blanche et appuyez sur « Coller ».\n5. Secouez votre iPhone (Shake to Undo) et choisissez « Annuler la modification d'attribut » !\n\nVOICI VOTRE SIGNATURE :\n\n${cleanTextSignature}\n\nLien web : https://dropsiders.fr`
+                })
+            });
+
+            if (res.ok) {
+                setEmailSentStatus('success');
+            } else {
+                // Fallback: Open mailto directly
+                window.location.href = `mailto:${emailToSend}?subject=Signature Dropsiders - ${encodeURIComponent(config.name)}&body=${encodeURIComponent(cleanTextSignature)}`;
+                setEmailSentStatus('success');
+            }
+        } catch (err) {
+            console.error('Email send failed, opening mailto', err);
+            window.location.href = `mailto:${emailToSend}?subject=Signature Dropsiders - ${encodeURIComponent(config.name)}&body=${encodeURIComponent(cleanTextSignature)}`;
+            setEmailSentStatus('success');
+        } finally {
+            setSendingEmail(false);
+        }
+    };
+
+    // 6. Download HTML file
     const downloadHtmlFile = () => {
         const fullHtmlDoc = `<!DOCTYPE html>
 <html>
@@ -417,42 +503,48 @@ ${rawHtml}
                         </p>
                     </div>
 
-                    {/* ACTIONS EN TÊTE */}
+                    {/* TOP ACTION BUTTONS */}
                     <div className="flex items-center gap-3 flex-wrap">
                         <button
-                            onClick={copyRichText}
+                            onClick={selectAndCopyForIphone}
                             className="px-5 py-3 bg-neon-orange hover:bg-orange-500 text-black font-black uppercase text-xs tracking-wider rounded-2xl flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(255,102,0,0.4)] active:scale-95"
                         >
-                            {copyStatus === 'rich_success' ? (
-                                <>
-                                    <Check className="w-4 h-4 text-black" />
-                                    Copiée !
-                                </>
-                            ) : (
-                                <>
-                                    <Smartphone className="w-4 h-4 text-black" />
-                                    Copier pour iPhone & Webmail
-                                </>
-                            )}
+                            <Smartphone className="w-4 h-4 text-black" />
+                            📱 Copier pour iPhone (Spécial iOS)
                         </button>
 
                         <button
-                            onClick={copyRawHtml}
-                            className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold uppercase text-xs tracking-wider rounded-2xl flex items-center gap-2 transition-all"
+                            onClick={() => setShowIphoneTroubleshootModal(true)}
+                            className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-neon-orange/40 text-neon-orange font-bold uppercase text-xs tracking-wider rounded-2xl flex items-center gap-2 transition-all"
                         >
-                            {copyStatus === 'html_success' ? (
-                                <>
-                                    <Check className="w-4 h-4 text-neon-cyan" />
-                                    Code HTML copié
-                                </>
-                            ) : (
-                                <>
-                                    <Copy className="w-4 h-4 text-gray-400" />
-                                    Code HTML brut
-                                </>
-                            )}
+                            <HelpCircle className="w-4 h-4" />
+                            Vous ne pouvez pas coller ?
                         </button>
                     </div>
+                </div>
+
+                {/* ALERT BANNER: IPHONE TROUBLESHOOTING PROMPT */}
+                <div className="bg-gradient-to-r from-neon-orange/20 via-black to-neon-orange/10 border border-neon-orange/40 rounded-3xl p-5 backdrop-blur-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 rounded-2xl bg-neon-orange/20 border border-neon-orange/40 flex items-center justify-center shrink-0">
+                            <Smartphone className="w-5 h-5 text-neon-orange" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-sm text-white flex items-center gap-2">
+                                Impossible de coller dans Réglages &gt; Mail &gt; Signature sur iPhone ?
+                            </h3>
+                            <p className="text-xs text-gray-300 mt-0.5">
+                                Apple bloque parfois le presse-papier des navigateurs. La solution 100% garantie est de <strong>recevoir la signature par email</strong> et de la copier depuis l'application Mail !
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => setShowIphoneTroubleshootModal(true)}
+                        className="px-4 py-2.5 bg-white text-black hover:bg-neon-orange hover:text-black font-black uppercase text-xs tracking-wider rounded-xl transition-all shrink-0"
+                    >
+                        Voir les 3 solutions &rarr;
+                    </button>
                 </div>
 
                 {/* TEAM MEMBERS QUICK PRESET BAR */}
@@ -623,7 +715,10 @@ ${rawHtml}
                                 <input
                                     type="email"
                                     value={config.email}
-                                    onChange={e => setConfig(prev => ({ ...prev, email: e.target.value }))}
+                                    onChange={e => {
+                                        setConfig(prev => ({ ...prev, email: e.target.value }));
+                                        setEmailToSend(e.target.value);
+                                    }}
                                     placeholder="ex: alex@dropsiders.fr ou contact@dropsiders.fr"
                                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-neon-orange transition-colors font-medium"
                                 />
@@ -678,32 +773,34 @@ ${rawHtml}
                                 Liens & Badges
                             </h3>
 
-                            {/* Instagram */}
+                            {/* Instagram — VERROUILLÉ sur le compte officiel */}
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
-                                    Lien Instagram
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 flex items-center gap-1.5">
+                                    <Lock className="w-3 h-3 text-neon-orange" />
+                                    Instagram (compte officiel — verrouillé)
                                 </label>
-                                <input
-                                    type="text"
-                                    value={config.instagram}
-                                    onChange={e => setConfig(prev => ({ ...prev, instagram: e.target.value }))}
-                                    placeholder="https://instagram.com/dropsiders"
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2 text-xs text-white focus:outline-none focus:border-neon-purple transition-colors font-medium"
-                                />
+                                <div className="flex items-center gap-2 w-full bg-white/5 border border-neon-orange/30 rounded-2xl px-4 py-2 cursor-not-allowed">
+                                    <Instagram className="w-3.5 h-3.5 text-neon-orange shrink-0" />
+                                    <span className="text-xs text-neon-orange font-bold truncate">@dropsiders.fr</span>
+                                    <span className="text-xs text-gray-500 truncate flex-1">{OFFICIAL_INSTAGRAM}</span>
+                                    <Lock className="w-3 h-3 text-neon-orange/50 shrink-0" />
+                                </div>
+                                <p className="text-[10px] text-gray-600 mt-1">Les signatures pointent toujours vers le compte officiel Dropsiders.</p>
                             </div>
 
-                            {/* TikTok */}
+                            {/* TikTok — VERROUILLÉ sur le compte officiel */}
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">
-                                    Lien TikTok
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1 flex items-center gap-1.5">
+                                    <Lock className="w-3 h-3 text-neon-orange" />
+                                    TikTok (compte officiel — verrouillé)
                                 </label>
-                                <input
-                                    type="text"
-                                    value={config.tiktok}
-                                    onChange={e => setConfig(prev => ({ ...prev, tiktok: e.target.value }))}
-                                    placeholder="https://tiktok.com/@dropsiders"
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2 text-xs text-white focus:outline-none focus:border-neon-purple transition-colors font-medium"
-                                />
+                                <div className="flex items-center gap-2 w-full bg-white/5 border border-neon-orange/30 rounded-2xl px-4 py-2 cursor-not-allowed">
+                                    <span className="text-neon-orange font-black text-xs shrink-0">TK</span>
+                                    <span className="text-xs text-neon-orange font-bold truncate">@dropsiders.fr</span>
+                                    <span className="text-xs text-gray-500 truncate flex-1">{OFFICIAL_TIKTOK}</span>
+                                    <Lock className="w-3 h-3 text-neon-orange/50 shrink-0" />
+                                </div>
+                                <p className="text-[10px] text-gray-600 mt-1">Les signatures pointent toujours vers le compte officiel Dropsiders.</p>
                             </div>
 
                             {/* Toggles */}
@@ -743,7 +840,65 @@ ${rawHtml}
 
                     {/* RIGHT COLUMN: LIVE PREVIEW & EXPORT (7 cols) */}
                     <div className="lg:col-span-7 space-y-6">
-                        {/* PREVIEW CONTROLS */}
+                        {/* 1. DIRECT EMAIL SENDER CARD (The 100% Guaranteed iPhone Technique) */}
+                        <div className="bg-gradient-to-br from-[#121217] via-dark-bg to-[#181210] border-2 border-neon-orange/40 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+                            <div className="flex items-center justify-between gap-4 mb-3 flex-wrap">
+                                <div className="flex items-center gap-2">
+                                    <Mail className="w-5 h-5 text-neon-orange" />
+                                    <h3 className="text-base font-display font-black uppercase italic tracking-wider text-white">
+                                        Méthode 100% Infaillible pour iPhone
+                                    </h3>
+                                </div>
+                                <span className="text-[10px] bg-neon-orange/20 text-neon-orange px-2.5 py-1 rounded-full font-black uppercase tracking-wider border border-neon-orange/30">
+                                    Recommandé Apple
+                                </span>
+                            </div>
+
+                            <p className="text-xs text-gray-300 mb-4 leading-relaxed">
+                                Envoyez cette signature directement sur votre iPhone. En l'ouvrant dans l'app <strong>Mail</strong> d'Apple, vous pourrez la <strong>sélectionner et la coller dans Réglages</strong> en 10 secondes sans aucun blocage !
+                            </p>
+
+                            <div className="flex flex-col sm:flex-row items-center gap-3">
+                                <input
+                                    type="email"
+                                    value={emailToSend}
+                                    onChange={e => setEmailToSend(e.target.value)}
+                                    placeholder="Votre adresse email (ex: alex@dropsiders.fr)"
+                                    className="w-full sm:flex-1 bg-black/50 border border-white/20 rounded-2xl px-4 py-3 text-xs text-white focus:outline-none focus:border-neon-orange font-medium"
+                                />
+                                <button
+                                    onClick={handleSendEmail}
+                                    disabled={sendingEmail}
+                                    className="w-full sm:w-auto px-6 py-3 bg-neon-orange hover:bg-orange-500 text-black font-black uppercase text-xs tracking-wider rounded-2xl flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(255,102,0,0.4)] active:scale-95 shrink-0 disabled:opacity-50"
+                                >
+                                    {sendingEmail ? (
+                                        <>
+                                            <RefreshCw className="w-4 h-4 animate-spin text-black" />
+                                            Envoi en cours...
+                                        </>
+                                    ) : emailSentStatus === 'success' ? (
+                                        <>
+                                            <Check className="w-4 h-4 text-black" />
+                                            Email envoyé !
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className="w-4 h-4 text-black" />
+                                            M'envoyer la signature
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            {emailSentStatus === 'success' && (
+                                <p className="text-[11px] text-neon-cyan mt-2 font-bold flex items-center gap-1.5">
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    Email expédié ! Ouvrez l'application Mail sur votre iPhone pour copier la signature.
+                                </p>
+                            )}
+                        </div>
+
+                        {/* 2. PREVIEW CONTROLS */}
                         <div className="bg-dark-bg/60 border border-white/10 rounded-3xl p-4 sm:p-6 backdrop-blur-xl">
                             <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
                                 <div className="flex items-center gap-2">
@@ -887,18 +1042,27 @@ ${rawHtml}
                             <div className="mt-6 flex flex-wrap gap-3 items-center justify-between border-t border-white/10 pt-4">
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <button
-                                        onClick={copyRichText}
+                                        onClick={selectAndCopyForIphone}
                                         className="px-5 py-3 bg-neon-orange hover:bg-orange-500 text-black font-black uppercase text-xs tracking-wider rounded-2xl flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(255,102,0,0.3)] active:scale-95"
                                     >
-                                        {copyStatus === 'rich_success' ? (
+                                        <Smartphone className="w-4 h-4 text-black" />
+                                        1. Sélectionner & Copier (iPhone)
+                                    </button>
+
+                                    <button
+                                        onClick={copyCleanText}
+                                        className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold uppercase text-xs tracking-wider rounded-2xl flex items-center gap-2 transition-all"
+                                        title="Format texte garanti à 100% sur tous les modèles d'iPhone"
+                                    >
+                                        {copyStatus === 'text_success' ? (
                                             <>
-                                                <Check className="w-4 h-4 text-black" />
-                                                Copiée dans le presse-papier !
+                                                <Check className="w-4 h-4 text-neon-cyan" />
+                                                Texte épuré copié !
                                             </>
                                         ) : (
                                             <>
-                                                <Smartphone className="w-4 h-4 text-black" />
-                                                1. Copier la Signature Enrichie
+                                                <FileText className="w-4 h-4 text-neon-cyan" />
+                                                2. Format Texte Épuré (Sans bug)
                                             </>
                                         )}
                                     </button>
@@ -906,7 +1070,7 @@ ${rawHtml}
                                     <button
                                         onClick={copyRawHtml}
                                         className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold uppercase text-xs tracking-wider rounded-2xl flex items-center gap-2 transition-all"
-                                        title="Copier le code source HTML brut pour Webmail source"
+                                        title="Copier le code source HTML brut pour Webmail"
                                     >
                                         {copyStatus === 'html_success' ? (
                                             <>
@@ -916,7 +1080,7 @@ ${rawHtml}
                                         ) : (
                                             <>
                                                 <Copy className="w-4 h-4 text-gray-400" />
-                                                Copier Code HTML
+                                                Code HTML
                                             </>
                                         )}
                                     </button>
@@ -924,20 +1088,11 @@ ${rawHtml}
                                     <button
                                         onClick={downloadHtmlFile}
                                         className="px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold uppercase text-xs tracking-wider rounded-2xl flex items-center gap-2 transition-all"
-                                        title="Télécharger un fichier .html autonome"
                                     >
                                         <Download className="w-4 h-4 text-gray-400" />
-                                        Fichier .html
+                                        .html
                                     </button>
                                 </div>
-
-                                <button
-                                    onClick={() => setShowIphoneTipModal(true)}
-                                    className="text-xs text-neon-orange hover:underline font-bold flex items-center gap-1.5"
-                                >
-                                    <HelpCircle className="w-4 h-4" />
-                                    Comment l'installer sur iPhone ?
-                                </button>
                             </div>
                         </div>
 
@@ -946,7 +1101,7 @@ ${rawHtml}
                             <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4 flex-wrap gap-2">
                                 <h3 className="text-base font-display font-black uppercase italic tracking-wider text-white flex items-center gap-2">
                                     <HelpCircle className="w-4 h-4 text-neon-cyan" />
-                                    Guide d'installation pas à pas
+                                    Guides & Dépannage iPhone
                                 </h3>
 
                                 <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-xl p-1">
@@ -958,7 +1113,17 @@ ${rawHtml}
                                                 : 'text-gray-400 hover:text-white'
                                         }`}
                                     >
-                                        📱 iPhone (iOS)
+                                        📱 Comment Coller sur iPhone
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveGuideTab('email_trick')}
+                                        className={`px-3 py-1 rounded-lg text-xs font-bold uppercase transition-all ${
+                                            activeGuideTab === 'email_trick'
+                                                ? 'bg-neon-orange text-black'
+                                                : 'text-gray-400 hover:text-white'
+                                        }`}
+                                    >
+                                        ✉️ L'Astuce de l'Email
                                     </button>
                                     <button
                                         onClick={() => setActiveGuideTab('webmail')}
@@ -968,50 +1133,62 @@ ${rawHtml}
                                                 : 'text-gray-400 hover:text-white'
                                         }`}
                                     >
-                                        🌐 Webmail (LWS)
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveGuideTab('gmail')}
-                                        className={`px-3 py-1 rounded-lg text-xs font-bold uppercase transition-all ${
-                                            activeGuideTab === 'gmail'
-                                                ? 'bg-neon-orange text-black'
-                                                : 'text-gray-400 hover:text-white'
-                                        }`}
-                                    >
-                                        📧 Gmail / Outlook
+                                        🌐 Webmail LWS
                                     </button>
                                 </div>
                             </div>
 
-                            {/* TAB: IPHONE */}
+                            {/* TAB: IPHONE TROUBLESHOOTING */}
                             {activeGuideTab === 'iphone' && (
                                 <div className="space-y-4 text-xs text-gray-300">
-                                    <div className="bg-neon-orange/10 border border-neon-orange/30 rounded-2xl p-4 flex items-start gap-3">
-                                        <Sparkles className="w-5 h-5 text-neon-orange shrink-0 mt-0.5" />
+                                    <div className="bg-neon-red/10 border border-neon-red/30 rounded-2xl p-4 flex items-start gap-3">
+                                        <AlertCircle className="w-5 h-5 text-neon-red shrink-0 mt-0.5" />
                                         <div>
                                             <strong className="text-white block font-bold text-sm mb-1 uppercase tracking-wide">
-                                                L'Astuce Magique iPhone : « Shake to Undo »
+                                                Pourquoi « Coller » n'apparaît pas sur iPhone ?
                                             </strong>
-                                            Quand vous collez une signature sur iOS, Apple change parfois la mise en page. Pour l'empêcher, il suffit de <strong>secouer votre iPhone</strong> juste après avoir collé et d'appuyer sur <em>« Annuler la modification d'attribut »</em> !
+                                            Sur iOS, si la case contient encore le texte <em>« Envoyé de mon iPhone »</em>, un simple appui ne fait rien. Il faut d'abord <strong>tout effacer</strong>, puis faire un <strong>double-tap rapide</strong> ou un <strong>appui long de 2 secondes</strong> dans le rectangle vide !
                                         </div>
                                     </div>
 
                                     <ol className="space-y-3 list-decimal list-inside pl-1">
                                         <li className="leading-relaxed">
-                                            Cliquez sur le bouton orange <strong>« Copier la Signature Enrichie »</strong> ci-dessus (ou envoyez-vous cet écran sur votre iPhone).
+                                            Sur cette page, cliquez sur <strong>« 📱 1. Sélectionner & Copier »</strong> ou sur <strong>« 2. Format Texte Épuré »</strong>.
                                         </li>
                                         <li className="leading-relaxed">
-                                            Sur votre iPhone, ouvrez l'application <strong>Réglages</strong> &gt; faites défiler jusqu'à <strong>Mail</strong> &gt; descendez tout en bas et appuyez sur <strong>Signature</strong>.
+                                            Sur votre iPhone, ouvrez <strong>Réglages &gt; Mail &gt; Signature</strong>.
                                         </li>
                                         <li className="leading-relaxed">
-                                            Sélectionnez <em>« Par compte »</em> (choisissez votre compte Dropsiders) ou <em>« Tous les comptes »</em>.
-                                        </li>
-                                        <li className="leading-relaxed">
-                                            Effacez le texte actuel (ex: « Envoyé de mon iPhone »), faites un appui long dans le champ et choisissez <strong>Coller</strong>.
+                                            <strong>Effacez complètement</strong> le texte déjà présent avec la touche retour arrière de votre clavier.
                                         </li>
                                         <li className="leading-relaxed bg-white/5 border border-white/10 p-3 rounded-xl">
-                                            <span className="text-neon-orange font-black uppercase">Étape clé :</span> Immédiatement après avoir collé, <strong>secouez physiquement votre iPhone</strong> d'un geste sec. Une boîte de dialogue Apple apparaît avec le message <em>« Annuler la modification d'attribut »</em>. Appuyez sur <strong>Annuler</strong> ! Votre signature retrouve ses couleurs exactes et son logo sans déformation.
+                                            <span className="text-neon-orange font-black uppercase">Le geste pour coller :</span> Posez votre doigt <strong>2 secondes</strong> dans la case blanche vide et relâchez : la bulle noire Apple avec <strong>« Coller »</strong> apparaît. Touchez <strong>Coller</strong> !
                                         </li>
+                                        <li className="leading-relaxed">
+                                            <strong>Secouez votre iPhone</strong> d'un geste sec et appuyez sur <em>« Annuler la modification d'attribut »</em> pour garder les couleurs d'origine.
+                                        </li>
+                                    </ol>
+                                </div>
+                            )}
+
+                            {/* TAB: EMAIL TRICK */}
+                            {activeGuideTab === 'email_trick' && (
+                                <div className="space-y-3 text-xs text-gray-300">
+                                    <div className="bg-neon-cyan/10 border border-neon-cyan/30 rounded-2xl p-4 flex items-start gap-3">
+                                        <Sparkles className="w-5 h-5 text-neon-cyan shrink-0 mt-0.5" />
+                                        <div>
+                                            <strong className="text-white block font-bold text-sm mb-1 uppercase tracking-wide">
+                                                La Méthode par Email (100% Fiable)
+                                            </strong>
+                                            Apple Mail sur iPhone reconnaît parfaitement les signatures quand elles sont copiées depuis un email reçu plutôt que depuis Safari.
+                                        </div>
+                                    </div>
+
+                                    <ol className="space-y-2 list-decimal list-inside pl-1">
+                                        <li>Utilisez le champ orange ci-dessus <strong>« M'envoyer la signature »</strong>.</li>
+                                        <li>Ouvrez l'email reçu directement dans l'application <strong>Mail</strong> de votre iPhone.</li>
+                                        <li>Posez votre doigt sur la signature dans l'email &gt; <strong>Tout sélectionner &gt; Copier</strong>.</li>
+                                        <li>Allez dans <strong>Réglages &gt; Mail &gt; Signature</strong> &gt; faites un appui long &gt; <strong>Coller</strong>. Le bouton Coller fonctionnera instantanément !</li>
                                     </ol>
                                 </div>
                             )}
@@ -1020,42 +1197,14 @@ ${rawHtml}
                             {activeGuideTab === 'webmail' && (
                                 <div className="space-y-3 text-xs text-gray-300">
                                     <p className="leading-relaxed">
-                                        Pour configurer votre signature sur le webmail de votre hébergeur (Roundcube / LWS) :
+                                        Pour configurer votre signature sur le webmail LWS / Roundcube :
                                     </p>
                                     <ol className="space-y-2 list-decimal list-inside pl-1">
-                                        <li>Connectez-vous à votre webmail (ex: <code>webmail.dropsiders.fr</code> ou LWS).</li>
-                                        <li>Allez dans <strong>Paramètres</strong> (roue crantée) &gt; <strong>Identités</strong>.</li>
-                                        <li>Cliquez sur votre adresse email dans la liste.</li>
+                                        <li>Connectez-vous à votre webmail (ex: <code>webmail.dropsiders.fr</code>).</li>
+                                        <li>Allez dans <strong>Paramètres</strong> &gt; <strong>Identités</strong> &gt; cliquez sur votre adresse.</li>
                                         <li>Cochez la case <strong>« Signature en HTML »</strong>.</li>
-                                        <li>
-                                            Dans le champ de signature :
-                                            <ul className="list-disc list-inside pl-4 mt-1 space-y-1 text-gray-400">
-                                                <li><strong>Méthode 1 (Simple) :</strong> Collez directement avec Ctrl+V (après avoir cliqué sur « Copier la signature enrichie »).</li>
-                                                <li><strong>Méthode 2 (Code HTML pur) :</strong> Cliquez sur l'icône <code>&lt;&gt;</code> (Code source HTML) de l'éditeur de signature et collez le contenu du bouton « Copier Code HTML ».</li>
-                                            </ul>
-                                        </li>
-                                        <li>Cliquez sur <strong>Enregistrer</strong>. Vos prochains emails contiendront automatiquement cette signature.</li>
-                                    </ol>
-                                </div>
-                            )}
-
-                            {/* TAB: GMAIL / OUTLOOK */}
-                            {activeGuideTab === 'gmail' && (
-                                <div className="space-y-3 text-xs text-gray-300">
-                                    <p className="leading-relaxed">
-                                        Pour Gmail, Outlook Web ou Apple Mail Mac :
-                                    </p>
-                                    <ol className="space-y-2 list-decimal list-inside pl-1">
-                                        <li>Cliquez sur le bouton orange <strong>« Copier la Signature Enrichie »</strong>.</li>
-                                        <li>
-                                            <strong>Dans Gmail :</strong> Roue crantée &gt; <em>Voir tous les paramètres</em> &gt; onglet <em>Général</em> &gt; section <em>Signature</em> &gt; Créez une nouvelle signature &gt; Collez directement (Ctrl+V ou Cmd+V) &gt; Enregistrer les modifications.
-                                        </li>
-                                        <li>
-                                            <strong>Dans Outlook (Web ou App) :</strong> Paramètres &gt; <em>Courrier</em> &gt; <em>Composer et répondre</em> &gt; Nouvelle signature &gt; Coller &gt; Enregistrer.
-                                        </li>
-                                        <li>
-                                            <strong>Dans Apple Mail sur Mac :</strong> Mail &gt; <em>Réglages</em> &gt; <em>Signatures</em> &gt; Décochez « Toujours utiliser ma police par défaut » &gt; Collez la signature.
-                                        </li>
+                                        <li>Cliquez sur l'icône <code>&lt;&gt;</code> (Code source) et collez le contenu du bouton <strong>« Code HTML »</strong>.</li>
+                                        <li>Cliquez sur <strong>Enregistrer</strong>.</li>
                                     </ol>
                                 </div>
                             )}
@@ -1064,46 +1213,79 @@ ${rawHtml}
                 </div>
             </div>
 
-            {/* IPHONE TIP POPUP MODAL */}
+            {/* IPHONE TROUBLESHOOT MODAL */}
             <AnimatePresence>
-                {showIphoneTipModal && (
-                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+                {showIphoneTroubleshootModal && (
+                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-dark-bg border border-neon-orange/40 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative overflow-hidden"
+                            className="bg-dark-bg border border-neon-orange/50 rounded-[32px] p-6 sm:p-8 max-w-lg w-full shadow-2xl relative overflow-hidden"
                         >
                             <div className="w-12 h-12 rounded-2xl bg-neon-orange/20 border border-neon-orange/40 flex items-center justify-center mb-4">
-                                <CheckCircle2 className="w-6 h-6 text-neon-orange" />
+                                <Smartphone className="w-6 h-6 text-neon-orange" />
                             </div>
 
-                            <h3 className="text-xl font-display font-black uppercase italic tracking-tight text-white mb-2">
-                                Signature copiée avec succès !
+                            <h3 className="text-2xl font-display font-black uppercase italic tracking-tight text-white mb-2">
+                                Guide : Coller sur iPhone
                             </h3>
 
-                            <p className="text-xs text-gray-300 mb-4 leading-relaxed">
-                                Le format enrichi (avec images, logo et liens) est dans votre presse-papier.
+                            <p className="text-xs text-gray-300 mb-5 leading-relaxed">
+                                Si l'option « Coller » n'apparaît pas dans <strong>Réglages &gt; Mail &gt; Signature</strong>, voici les 3 solutions pour réussir à coup sûr :
                             </p>
 
-                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-xs space-y-2 mb-6">
-                                <div className="text-neon-orange font-bold uppercase tracking-wider flex items-center gap-1.5">
-                                    <Smartphone className="w-4 h-4" />
-                                    Pour iPhone (Rappel) :
+                            <div className="space-y-3 mb-6">
+                                {/* SOLUTION 1 */}
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                                    <div className="text-xs font-black uppercase tracking-wider text-neon-orange mb-1 flex items-center gap-1.5">
+                                        <MousePointerClick className="w-4 h-4" />
+                                        Solution 1 : Le bon geste dans les Réglages
+                                    </div>
+                                    <p className="text-xs text-gray-300 leading-relaxed">
+                                        1. <strong>Effacez tout</strong> le texte existant dans la case.<br />
+                                        2. <strong>Touchez 2 fois de suite</strong> le curseur bleu clignotant, ou <strong>maintenez votre doigt 2 secondes</strong> puis relâchez.<br />
+                                        3. La bulle noire Apple apparaît avec <strong>« Coller »</strong> !
+                                    </p>
                                 </div>
-                                <p className="text-gray-300">
-                                    1. Collez dans <strong>Réglages &gt; Mail &gt; Signature</strong>.<br />
-                                    2. <strong>Secouez votre iPhone</strong> d'un geste sec.<br />
-                                    3. Touchez <strong>« Annuler la modification d'attribut »</strong> pour garder la mise en forme exacte !
-                                </p>
+
+                                {/* SOLUTION 2 */}
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                                    <div className="text-xs font-black uppercase tracking-wider text-neon-cyan mb-1 flex items-center gap-1.5">
+                                        <Mail className="w-4 h-4" />
+                                        Solution 2 : L'envoi par Email (Infaillible)
+                                    </div>
+                                    <p className="text-xs text-gray-300 leading-relaxed">
+                                        Envoyez-vous la signature via le champ orange sur cette page. Ouvrez l'email dans l'application <strong>Mail</strong> de votre iPhone, sélectionnez et copiez la signature : elle se collera ensuite à 100% dans vos Réglages !
+                                    </p>
+                                </div>
+
+                                {/* SOLUTION 3 */}
+                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                                    <div className="text-xs font-black uppercase tracking-wider text-white mb-1 flex items-center gap-1.5">
+                                        <FileText className="w-4 h-4 text-white" />
+                                        Solution 3 : Le Format Texte Épuré
+                                    </div>
+                                    <p className="text-xs text-gray-300 leading-relaxed">
+                                        Cliquez sur <strong>« Format Texte Épuré »</strong> ci-dessous. C'est une signature ultra-pro avec emojis Dropsiders qui se colle instantanément sans aucun blocage iOS.
+                                    </p>
+                                </div>
                             </div>
 
-                            <button
-                                onClick={() => setShowIphoneTipModal(false)}
-                                className="w-full py-3 bg-neon-orange hover:bg-orange-500 text-black font-black uppercase text-xs tracking-wider rounded-xl transition-all"
-                            >
-                                J'ai compris
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button
+                                    onClick={copyCleanText}
+                                    className="flex-1 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold uppercase text-xs tracking-wider rounded-xl transition-all text-center"
+                                >
+                                    Copier le Format Texte Épuré
+                                </button>
+                                <button
+                                    onClick={() => setShowIphoneTroubleshootModal(false)}
+                                    className="flex-1 py-3 bg-neon-orange hover:bg-orange-500 text-black font-black uppercase text-xs tracking-wider rounded-xl transition-all text-center"
+                                >
+                                    J'ai compris
+                                </button>
+                            </div>
                         </motion.div>
                     </div>
                 )}
