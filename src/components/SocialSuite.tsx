@@ -2710,7 +2710,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         if (file.type.startsWith('video/')) {
             const video = document.createElement('video');
             video.src = url;
-            video.muted = true;
             video.loop = true;
             video.playsInline = true; // Important for mobile preview
             video.crossOrigin = "anonymous";
