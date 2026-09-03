@@ -2,6 +2,7 @@ import { Mail, Lock, Globe, Instagram, Youtube, Facebook } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
 import { NewsletterForm } from '../widgets/NewsletterForm';
@@ -26,6 +27,7 @@ const XIcon = (props: any) => (
 
 export function Footer() {
     const { t, language } = useLanguage();
+    const { isDarkMode } = useTheme();
     const getCopyrightDate = () => {
         const locale = language === 'en' ? 'en-US' : 'fr-FR';
         const dateStr = new Date().toLocaleDateString(locale, { month: 'long', year: 'numeric' });
@@ -120,7 +122,7 @@ export function Footer() {
                     >
                         <div className="flex flex-col gap-6 items-center lg:items-start w-full">
                             <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="block">
-                                <img src="/Logo.png" alt="DROPSIDERS" className="logo-img h-14 md:h-20 w-auto max-w-[350px] object-contain logo-footer cursor-pointer hover:opacity-80 transition-opacity" />
+                                <img src="/Logo.png" alt="DROPSIDERS" className={`logo-img h-14 md:h-20 w-auto max-w-[350px] object-contain logo-footer cursor-pointer hover:opacity-80 transition-all duration-500 ${!isDarkMode ? 'invert brightness-0' : ''}`} />
                             </Link>
                             <motion.h2
                                 className="text-2xl md:text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-tight transition-all duration-300 w-full max-w-lg md:max-w-none px-4 md:px-0"

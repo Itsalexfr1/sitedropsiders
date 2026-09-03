@@ -193,7 +193,7 @@ export function Navbar() {
                             <img
                                 src="/Logo.png"
                                 alt="DROPSIDERS"
-                                className="logo-img h-8 md:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                                className={`logo-img h-8 md:h-11 w-auto object-contain transition-all duration-500 group-hover:scale-105 ${!isDarkMode ? 'invert brightness-0' : ''}`}
                             />
                         </Link>
 
