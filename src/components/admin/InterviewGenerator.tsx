@@ -304,7 +304,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
             // Logo
             if (logo) {
-                const lh = 40, lw = (logo.naturalWidth / logo.naturalHeight) * lh;
+                const lh = 70, lw = (logo.naturalWidth / logo.naturalHeight) * lh;
                 drawLogoWhite(logo, (W - lw) / 2, y, lh);
                 y += lh + 24;
             }
@@ -1028,7 +1028,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             </div>
 
                                             <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '32px' }}>
-                                                <img src="/Logo.png" alt="Dropsiders" style={{ height: '40px', filter: 'brightness(0) invert(1)' }} />
+                                                <img src="/Logo.png" alt="Dropsiders" style={{ height: '70px', filter: 'brightness(0) invert(1)' }} />
                                                 
                                                 <div style={{ width: '64px', height: '4px', backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: '999px' }} />
                                                 
