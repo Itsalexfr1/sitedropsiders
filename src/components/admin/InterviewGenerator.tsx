@@ -53,7 +53,6 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const [watermarkScale, setWatermarkScale] = useState(150);
     const [watermarkOpacity, setWatermarkOpacity] = useState(3);
     const [headerLogoSize, setHeaderLogoSize] = useState(6);
-    const [questionsPerPage, setQuestionsPerPage] = useState(7);
     const [swapLanguages, setSwapLanguages] = useState(false);
     const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean, message: string } | null>(null);
     const cardsRef = useRef<HTMLDivElement>(null);
@@ -220,6 +219,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
 
     // Compute question chunks early so capture functions can use them
+    const questionsPerPage = 8;
     const chunkQuestions = (arr: InterviewQuestion[], size: number) => {
         const chunks = [];
         for (let i = 0; i < arr.length; i += size) {
@@ -428,41 +428,41 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                 // Number
                 ctx.fillStyle = accent;
-                ctx.font = 'italic 900 13px Orbitron, sans-serif';
+                ctx.font = 'italic 900 12px Orbitron, sans-serif';
                 ctx.textAlign = 'left'; ctx.textBaseline = 'top';
                 ctx.fillText(q.number.padStart(2, '0'), PAD_L, qY + 1);
 
                 // T1 (Top line)
                 if (t1) {
                     ctx.fillStyle = isT1Main ? '#111111' : enCol;
-                    ctx.font = isT1Main ? '800 12px Montserrat, sans-serif' : '600 11.5px Montserrat, sans-serif';
+                    ctx.font = isT1Main ? '800 10.5px Montserrat, sans-serif' : '600 10px Montserrat, sans-serif';
                     const lines = wrapText(ctx, t1, TEXT_W);
                     for (const line of lines) {
                         ctx.fillText(line, TEXT_X, qY);
-                        qY += isT1Main ? 14.5 : 13.5;
+                        qY += isT1Main ? LINE_FR : LINE_EN;
                     }
                 }
 
                 // T2 (Bottom line)
                 if (t2) {
                     ctx.fillStyle = !isT1Main ? '#111111' : enCol;
-                    ctx.font = !isT1Main ? '800 12px Montserrat, sans-serif' : '600 11.5px Montserrat, sans-serif';
+                    ctx.font = !isT1Main ? '800 10.5px Montserrat, sans-serif' : '600 10px Montserrat, sans-serif';
                     const lines = wrapText(ctx, t2, TEXT_W);
                     for (const line of lines) {
                         ctx.fillText(line, TEXT_X, qY);
-                        qY += !isT1Main ? 14.5 : 13.5;
+                        qY += !isT1Main ? LINE_FR : LINE_EN;
                     }
                 }
                 
-                qY += 3;
+                qY += 4;
                 ctx.strokeStyle = 'rgba(0,0,0,0.08)';
                 ctx.lineWidth = 0.75;
                 ctx.beginPath();
                 ctx.moveTo(PAD_L, qY); ctx.lineTo(W - PAD_L, qY);
                 ctx.stroke();
-                qY += 5;
+                qY += 7;
 
-                if (qY > H - 35) break;
+                if (qY > H - 44) break;
             }
 
             // Footer
@@ -890,20 +890,6 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     />
                                 </div>
 
-                                {/* Questions Per Page */}
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
-                                        <span>Questions par Page</span>
-                                        <span className="text-white font-bold text-neon-red">{questionsPerPage} questions</span>
-                                    </div>
-                                    <input 
-                                        type="range" min="5" max="9" step="1"
-                                        value={questionsPerPage}
-                                        onChange={(e) => setQuestionsPerPage(parseInt(e.target.value))}
-                                        className="w-full accent-neon-red"
-                                    />
-                                </div>
-
                                 {/* Language Order Toggle */}
                                 <div className="pt-4 border-t border-white/5">
                                     <button 
@@ -1177,19 +1163,19 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             </div>
 
                                             {/* Content */}
-                                            <div style={{ position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column', padding: '18px 36px 12px 36px', overflow: 'hidden' }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            <div style={{ position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column', padding: '24px 40px', overflow: 'hidden' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                                     {chunk.map((q) => (
-                                                        <div key={q.id} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '12px' }}>
-                                                            <span style={{ fontSize: '13px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '24px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe', marginTop: '1px' }}>
+                                                        <div key={q.id} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px' }}>
+                                                            <span style={{ fontSize: '11px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '22px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe', marginTop: '1px' }}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
                                                             <div style={{ flex: 1 }}>
-                                                                <div style={{ fontSize: '12.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '3px', fontFamily: 'Montserrat, sans-serif' }}>
+                                                                <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '2px', fontFamily: 'Montserrat, sans-serif' }}>
                                                                     {swapLanguages ? q.en : q.fr}
                                                                 </div>
                                                                 {(swapLanguages ? q.fr : q.en) && (
-                                                                    <div style={{ fontSize: '11px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif' }}>
+                                                                    <div style={{ fontSize: '10px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif' }}>
                                                                         {swapLanguages ? q.fr : q.en}
                                                                     </div>
                                                                 )}
