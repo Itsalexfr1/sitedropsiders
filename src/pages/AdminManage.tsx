@@ -197,6 +197,14 @@ export function AdminManage() {
         setCurrentPage(1);
         setSelectedIds([]);
         setIsOrderDirty(false);
+        // Default sort per tab
+        if (activeTab === 'Agenda' || activeTab === 'Recaps') {
+            setSortBy('date');
+        } else if (activeTab === 'Membres') {
+            setSortBy('title');
+        } else {
+            setSortBy('date');
+        }
         fetchData();
     }, [activeTab]);
 
@@ -714,16 +722,69 @@ export function AdminManage() {
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
                         <div className="flex flex-wrap items-center gap-4">
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Trier par :</span>
-                            <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-transparent border-none text-xs font-bold text-white focus:ring-0 cursor-pointer uppercase tracking-widest">
-                                <option className="bg-dark-bg" value="date">{activeTab === 'Recaps' || activeTab === 'Agenda' ? 'Date de l\'event' : 'Plus récents'}</option>
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as any)}
+                                className="bg-transparent border-none text-xs font-bold text-white focus:ring-0 cursor-pointer uppercase tracking-widest"
+                            >
+                                {/* Options communes à tous les onglets */}
                                 <option className="bg-dark-bg" value="manual">Ordre Manuel</option>
-                                <option className="bg-dark-bg" value="title">Nom</option>
-                                <option className="bg-dark-bg" value="pubDate">Date de publication</option>
-                                <option className="bg-dark-bg" value="location">Lieu</option>
-                                <option className="bg-dark-bg" value="country">Pays</option>
-                                <option className="bg-dark-bg" value="year">Année</option>
+                                <option className="bg-dark-bg" value="title">Nom / Titre</option>
+
+                                {/* News, Musique, Interviews, Focus, Brouillons */}
+                                {(activeTab === 'News' || activeTab === 'Musique' || activeTab === 'Interviews' || activeTab === 'Focus' || activeTab === 'Brouillons') && (
+                                    <>
+                                        <option className="bg-dark-bg" value="date">Date de publication</option>
+                                        <option className="bg-dark-bg" value="pubDate">ID / Plus récent</option>
+                                    </>
+                                )}
+
+                                {/* Recaps */}
+                                {activeTab === 'Recaps' && (
+                                    <>
+                                        <option className="bg-dark-bg" value="date">Date de l&apos;événement</option>
+                                        <option className="bg-dark-bg" value="year">Année</option>
+                                        <option className="bg-dark-bg" value="location">Lieu</option>
+                                        <option className="bg-dark-bg" value="country">Pays</option>
+                                        <option className="bg-dark-bg" value="pubDate">Date de publication</option>
+                                    </>
+                                )}
+
+                                {/* Agenda */}
+                                {activeTab === 'Agenda' && (
+                                    <>
+                                        <option className="bg-dark-bg" value="date">Date de l&apos;événement</option>
+                                        <option className="bg-dark-bg" value="year">Année</option>
+                                        <option className="bg-dark-bg" value="location">Lieu</option>
+                                        <option className="bg-dark-bg" value="country">Pays</option>
+                                    </>
+                                )}
+
+                                {/* Communauté (Galerie) */}
+                                {activeTab === 'Communauté' && (
+                                    <>
+                                        <option className="bg-dark-bg" value="date">Date</option>
+                                        <option className="bg-dark-bg" value="pubDate">Plus récent (ID)</option>
+                                    </>
+                                )}
+
+                                {/* Membres */}
+                                {activeTab === 'Membres' && (
+                                    <>
+                                        <option className="bg-dark-bg" value="date">Dernière connexion</option>
+                                    </>
+                                )}
                             </select>
-                            <button onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="text-[10px] font-black text-neon-red uppercase tracking-widest hover:underline">{sortOrder === 'asc' ? 'Croissant' : 'Récent first'}</button>
+                            <button
+                                onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                                className="flex items-center gap-1.5 text-[10px] font-black text-neon-red uppercase tracking-widest hover:underline"
+                            >
+                                {sortOrder === 'asc' ? (
+                                    <><ChevronUp className="w-3.5 h-3.5" /> Croissant</>
+                                ) : (
+                                    <><ChevronDown className="w-3.5 h-3.5" /> Décroissant</>
+                                )}
+                            </button>
                             
                             <div className="h-4 w-px bg-white/10 mx-2" />
                             
