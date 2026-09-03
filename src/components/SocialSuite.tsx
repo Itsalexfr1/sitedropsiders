@@ -176,6 +176,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
+    // On stocke la source et la dest pour ne pas rappeler createMediaElementSource
+    // sur le même élément vidéo (lance un InvalidStateError si rappelé)
+    const audioSourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+    const audioDestNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+    const audioSourceVideoRef = useRef<HTMLVideoElement | null>(null); // pour détecter si bgVideo a changé
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
     const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | null>(null);
@@ -2757,27 +2762,38 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 bgVideo.loop = false;
                 await bgVideo.play().catch(e => console.warn("Audio capture play failed", e));
 
-                // ✅ Utilise AudioContext pour capturer l'audio indépendamment du muted.
-                // captureStream() ne renvoie pas de piste audio sur les vidéos initialisées
-                // avec muted=true (limitation Chromium), donc on passe par AudioContext.
+                // Crée l'AudioContext une seule fois (ou si fermé)
                 if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
                     audioCtxRef.current = new AudioContext();
+                    // L'AudioContext a changé, on invalide la source
+                    audioSourceNodeRef.current = null;
+                    audioDestNodeRef.current = null;
+                    audioSourceVideoRef.current = null;
                 }
                 const audioCtx = audioCtxRef.current;
                 if (audioCtx.state === 'suspended') {
                     await audioCtx.resume();
                 }
 
-                const source = audioCtx.createMediaElementSource(bgVideo);
-                const dest = audioCtx.createMediaStreamDestination();
-                source.connect(dest);
-                // Ne pas connecter au audioCtx.destination pour éviter le retour audio pendant l'enregistrement
+                // Ne recrée la source que si bgVideo a changé
+                // (createMediaElementSource ne peut être appelé qu'une fois par élément)
+                if (audioSourceVideoRef.current !== bgVideo) {
+                    audioSourceVideoRef.current = bgVideo;
+                    const source = audioCtx.createMediaElementSource(bgVideo);
+                    const dest = audioCtx.createMediaStreamDestination();
+                    source.connect(dest);
+                    audioSourceNodeRef.current = source;
+                    audioDestNodeRef.current = dest;
+                }
 
-                if (dest.stream.getAudioTracks().length > 0) {
+                const audioTracks = audioDestNodeRef.current?.stream.getAudioTracks() ?? [];
+                if (audioTracks.length > 0) {
                     combinedStream = new MediaStream([
                         ...canvasStream.getTracks(),
-                        ...dest.stream.getAudioTracks()
+                        ...audioTracks
                     ]);
+                } else {
+                    console.warn('Aucune piste audio disponible pour cet élément vidéo.');
                 }
             } catch (e) {
                 console.error("Audio capture error:", e);
