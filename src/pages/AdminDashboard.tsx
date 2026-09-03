@@ -7035,144 +7035,148 @@ export function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
-                    <button
-                      onClick={() => {
-                        setIsNewsModalOpen(true);
-                        setIsContenuModalOpen(false);
-                      }}
-                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center border border-neon-blue/30 group-hover:scale-110 transition-transform">
-                        <FileText className="w-6 h-6 text-neon-blue" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
-                          News
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Articles & Actus
-                        </p>
-                      </div>
-                    </button>
+                  <div className="space-y-4 overflow-y-auto max-h-[65vh] pr-2 custom-scrollbar">
+                    {/* Ligne 1 : 4 Cartes Principales */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <button
+                        onClick={() => {
+                          setIsNewsModalOpen(true);
+                          setIsContenuModalOpen(false);
+                        }}
+                        className="p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-neon-blue/10 hover:border-neon-blue/50 hover:scale-[1.02] transition-all group shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center border border-neon-blue/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(0,210,255,0.2)]">
+                          <FileText className="w-6 h-6 text-neon-blue" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                            News
+                          </h3>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                            Articles & Actus
+                          </p>
+                        </div>
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setIsMusiqueModalOpen(true);
-                        setIsContenuModalOpen(false);
-                      }}
-                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
-                        <Music className="w-6 h-6 text-neon-green" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
-                          Musique
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Focus & Releases
-                        </p>
-                      </div>
-                    </button>
+                      <button
+                        onClick={() => {
+                          setIsMusiqueModalOpen(true);
+                          setIsContenuModalOpen(false);
+                        }}
+                        className="p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-neon-green/10 hover:border-neon-green/50 hover:scale-[1.02] transition-all group shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(57,255,20,0.2)]">
+                          <Music className="w-6 h-6 text-neon-green" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                            Musique
+                          </h3>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                            Focus & Releases
+                          </p>
+                        </div>
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setIsInterviewModalOpen(true);
-                        setIsContenuModalOpen(false);
-                      }}
-                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                        <Mic className="w-6 h-6 text-neon-purple" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
-                          Interviews
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Gestion Artistes
-                        </p>
-                      </div>
-                    </button>
+                      <button
+                        onClick={() => {
+                          setIsInterviewModalOpen(true);
+                          setIsContenuModalOpen(false);
+                        }}
+                        className="p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-neon-purple/10 hover:border-neon-purple/50 hover:scale-[1.02] transition-all group shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(191,0,255,0.2)]">
+                          <Mic className="w-6 h-6 text-neon-purple" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                            Interviews
+                          </h3>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                            Gestion Artistes
+                          </p>
+                        </div>
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setIsRecapModalOpen(true);
-                        setIsContenuModalOpen(false);
-                      }}
-                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                        <Video className="w-6 h-6 text-neon-red" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
-                          Récaps
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Reportages
-                        </p>
-                      </div>
-                    </button>
+                      <button
+                        onClick={() => {
+                          setIsRecapModalOpen(true);
+                          setIsContenuModalOpen(false);
+                        }}
+                        className="p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-neon-red/10 hover:border-neon-red/50 hover:scale-[1.02] transition-all group shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(255,18,65,0.2)]">
+                          <Video className="w-6 h-6 text-neon-red" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                            Récaps
+                          </h3>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                            Reportages
+                          </p>
+                        </div>
+                      </button>
+                    </div>
 
-                    <Link
-                      to="/galerie/create"
-                      onClick={() => setIsContenuModalOpen(false)}
-                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                        <Camera className="w-6 h-6 text-neon-red" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
-                          Albums
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Récaps Photos
-                        </p>
-                      </div>
-                    </Link>
+                    {/* Ligne 2 : 3 Cartes Centrées */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                      <Link
+                        to="/galerie/create"
+                        onClick={() => setIsContenuModalOpen(false)}
+                        className="p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 hover:scale-[1.02] transition-all group shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(0,255,255,0.2)]">
+                          <Camera className="w-6 h-6 text-neon-cyan" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                            Albums
+                          </h3>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                            Récaps Photos
+                          </p>
+                        </div>
+                      </Link>
 
-                    <Link
-                      to="/news/create?tab=Focus"
-                      onClick={() => setIsContenuModalOpen(false)}
-                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                        <Zap className="w-6 h-6 text-neon-purple" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
-                          News Focus
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Focus Semaine
-                        </p>
-                      </div>
-                    </Link>
+                      <Link
+                        to="/news/create?tab=Focus"
+                        onClick={() => setIsContenuModalOpen(false)}
+                        className="p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-neon-yellow/10 hover:border-neon-yellow/50 hover:scale-[1.02] transition-all group shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-neon-yellow/20 rounded-2xl flex items-center justify-center border border-neon-yellow/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(255,240,31,0.2)]">
+                          <Zap className="w-6 h-6 text-neon-yellow" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                            News Focus
+                          </h3>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                            Focus Semaine
+                          </p>
+                        </div>
+                      </Link>
 
-                    <button
-                      onClick={() => {
-                        setIsExtensionNotifModalOpen(true);
-                        setIsContenuModalOpen(false);
-                      }}
-                      className="px-2 py-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
-                    >
-                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                        <Bell className="w-6 h-6 text-neon-red" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
-                          Notifications
-                        </h3>
-                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">
-                          Extension Push
-                        </p>
-                      </div>
-                    </button>
-
-
+                      <button
+                        onClick={() => {
+                          setIsExtensionNotifModalOpen(true);
+                          setIsContenuModalOpen(false);
+                        }}
+                        className="p-5 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-neon-red/10 hover:border-neon-red/50 hover:scale-[1.02] transition-all group shadow-lg"
+                      >
+                        <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(255,18,65,0.2)]">
+                          <Bell className="w-6 h-6 text-neon-red" />
+                        </div>
+                        <div className="text-center">
+                          <h3 className="text-sm font-bold text-white uppercase italic tracking-tighter">
+                            Notifications
+                          </h3>
+                          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest leading-none mt-1">
+                            Extension Push
+                          </p>
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               </div>
