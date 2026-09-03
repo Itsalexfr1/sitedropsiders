@@ -2758,35 +2758,36 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
         if (bgVideo) {
             try {
+                // ⚠️ IMPORTANT : démuter AVANT play() pour que le navigateur initialise
+                // le décodeur audio. Avec muted=true, certains navigateurs (Chrome notamment)
+                // ne décodent pas l'audio → la piste AudioContext est silencieuse.
+                bgVideo.muted = false;
                 bgVideo.currentTime = 0;
                 bgVideo.loop = false;
                 await bgVideo.play().catch(e => console.warn("Audio capture play failed", e));
 
-                // Crée l'AudioContext une seule fois (ou si fermé)
-                if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-                    audioCtxRef.current = new AudioContext();
-                    // L'AudioContext a changé, on invalide la source
-                    audioSourceNodeRef.current = null;
-                    audioDestNodeRef.current = null;
-                    audioSourceVideoRef.current = null;
+                // Ferme l'ancien AudioContext s'il existe, puis en crée un nouveau propre.
+                // On doit recréer à chaque export car createMediaElementSource sur un même
+                // élément dans un même AudioContext lance InvalidStateError.
+                if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+                    await audioCtxRef.current.close();
                 }
+                audioCtxRef.current = new AudioContext();
+                audioSourceNodeRef.current = null;
+                audioDestNodeRef.current = null;
+                audioSourceVideoRef.current = null;
+
                 const audioCtx = audioCtxRef.current;
-                if (audioCtx.state === 'suspended') {
-                    await audioCtx.resume();
-                }
+                await audioCtx.resume();
 
-                // Ne recrée la source que si bgVideo a changé
-                // (createMediaElementSource ne peut être appelé qu'une fois par élément)
-                if (audioSourceVideoRef.current !== bgVideo) {
-                    audioSourceVideoRef.current = bgVideo;
-                    const source = audioCtx.createMediaElementSource(bgVideo);
-                    const dest = audioCtx.createMediaStreamDestination();
-                    source.connect(dest);
-                    audioSourceNodeRef.current = source;
-                    audioDestNodeRef.current = dest;
-                }
+                const source = audioCtx.createMediaElementSource(bgVideo);
+                const dest = audioCtx.createMediaStreamDestination();
+                source.connect(dest);
+                audioSourceNodeRef.current = source;
+                audioDestNodeRef.current = dest;
+                audioSourceVideoRef.current = bgVideo;
 
-                const audioTracks = audioDestNodeRef.current?.stream.getAudioTracks() ?? [];
+                const audioTracks = dest.stream.getAudioTracks();
                 if (audioTracks.length > 0) {
                     combinedStream = new MediaStream([
                         ...canvasStream.getTracks(),
