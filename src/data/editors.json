@@ -68,7 +68,7 @@
       "messages_contact"
     ],
     "created": "2026-05-03T21:49:24.941Z",
-    "verified": false
+    "verified": true
   },
   {
     "email": "tiffany.tournier@hotmail.com",
@@ -100,6 +100,6 @@
       "social_studio"
     ],
     "created": "2026-07-20T18:40:54.345Z",
-    "verified": false
+    "verified": true
   }
 ]
