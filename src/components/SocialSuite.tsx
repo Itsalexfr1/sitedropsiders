@@ -175,6 +175,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
+    const audioCtxRef = useRef<AudioContext | null>(null);
     const [isR2ModalOpen, setIsR2ModalOpen] = useState(false);
     const [r2TargetIdx, setR2TargetIdx] = useState<number | null>(null);
     const [r2TargetType, setR2TargetType] = useState<'top5' | 'top10' | 'background' | 'logo' | null>(null);
@@ -2749,22 +2750,34 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         }
 
         let combinedStream = canvasStream;
-        const previousMutedState = bgVideo ? bgVideo.muted : true;
 
         if (bgVideo) {
             try {
-                // IMPORTANT: Unmute to capture sound
-                bgVideo.muted = false;
-                bgVideo.volume = 1.0;
                 bgVideo.currentTime = 0;
                 bgVideo.loop = false;
                 await bgVideo.play().catch(e => console.warn("Audio capture play failed", e));
 
-                // Get audio tracks from video
-                const videoStream = (bgVideo as any).captureStream ? (bgVideo as any).captureStream() : (bgVideo as any).mozCaptureStream ? (bgVideo as any).mozCaptureStream() : null;
-                if (videoStream && videoStream.getAudioTracks().length > 0) {
-                    const audioTrack = videoStream.getAudioTracks()[0];
-                    combinedStream = new MediaStream([...canvasStream.getTracks(), audioTrack]);
+                // ✅ Utilise AudioContext pour capturer l'audio indépendamment du muted.
+                // captureStream() ne renvoie pas de piste audio sur les vidéos initialisées
+                // avec muted=true (limitation Chromium), donc on passe par AudioContext.
+                if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+                    audioCtxRef.current = new AudioContext();
+                }
+                const audioCtx = audioCtxRef.current;
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+
+                const source = audioCtx.createMediaElementSource(bgVideo);
+                const dest = audioCtx.createMediaStreamDestination();
+                source.connect(dest);
+                // Ne pas connecter au audioCtx.destination pour éviter le retour audio pendant l'enregistrement
+
+                if (dest.stream.getAudioTracks().length > 0) {
+                    combinedStream = new MediaStream([
+                        ...canvasStream.getTracks(),
+                        ...dest.stream.getAudioTracks()
+                    ]);
                 }
             } catch (e) {
                 console.error("Audio capture error:", e);
@@ -2874,8 +2887,11 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         } else if (theme === 'TOP 10 FESTIVAL') {
             totalDuration = 4 * (16800 + 1200); // 4 slides (Cover + 3 Grid pages)
         } else {
-            totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 15000;
-            if (totalDuration > 180000) totalDuration = 180000; // Limit to 3 minutes
+            // Utilise la durée exacte de la vidéo uploadée.
+            // Fallback à 60s si aucune vidéo n'est présente.
+            // Plafond à 10 minutes pour éviter les exports trop lourds.
+            totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 60000;
+            if (totalDuration > 600000) totalDuration = 600000; // Limit to 10 minutes
         }
 
         const startTime = Date.now();
