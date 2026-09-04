@@ -184,11 +184,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     // CONCOURS Theme States
     const [concoursFestivalName, setConcoursFestivalName] = useState('');
+    const [concoursFestivalHandle, setConcoursFestivalHandle] = useState('');
     const [concoursHeadline, setConcoursHeadline] = useState('GAGNE TES INVITATIONS POUR');
     const [concoursSubtitle, setConcoursSubtitle] = useState("POUR PARTICIPER C'EST TRÈS SIMPLE :");
-    const [concoursRules, setConcoursRules] = useState(
-        "Follow la page @dropsiders.frv + page du festival\nIdentifie la personne qui t'accompagnera\nPartage en story en nous identifiant + festival\nRepost ce post"
-    );
     const [concoursBottomColor, setConcoursBottomColor] = useState('#7000ff');
     const [concoursLateralText, setConcoursLateralText] = useState('JEUX CONCOURS');
     const [concoursLateralOpacity, setConcoursLateralOpacity] = useState(0.40);
@@ -2066,20 +2064,37 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowBlur = 10;
                 ctx.fillText(subtitleText, canvas.width / 2, curY);
 
-                // D) CONDITIONS DE PARTICIPATION (Lignes centrées flottant sur le fondu comme NEWS)
+                // D) CONDITIONS DE PARTICIPATION FIXES (Flottant sur le fondu comme NEWS)
                 curY += 46;
-                const rulesLines = (concoursRules || '').split('\n').filter(l => l.trim() !== '');
-                const ruleFontSize = effectiveTab === 'PUBLICATION' ? 24 : 26;
+                const rawHandle = concoursFestivalHandle.trim();
+                const festHandle = rawHandle
+                    ? (rawHandle.startsWith('@') ? rawHandle : `@${rawHandle}`)
+                    : (festivalNameText ? `@${festivalNameText.toLowerCase().replace(/\s+/g, '')}` : '@FESTIVAL');
+
+                const fixedSteps = [
+                    `1. FOLLOW LA PAGE @DROPSIDERS.FRV + ${festHandle.toUpperCase()}`,
+                    `2. IDENTIFIE LA PERSONNE QUI T'ACCOMPAGNERA`,
+                    `3. PARTAGE EN STORY (PUBLIC) EN NOUS IDENTIFIANT + ${festHandle.toUpperCase()}`,
+                    `4. REPOST CE POST`
+                ];
+
+                let ruleFontSize = effectiveTab === 'PUBLICATION' ? 24 : 26;
                 const ruleLineHeight = effectiveTab === 'PUBLICATION' ? 44 : 50;
 
                 ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
+                fixedSteps.forEach(step => {
+                    while (ctx.measureText(step).width > (canvas.width - 100) && ruleFontSize > 18) {
+                        ruleFontSize -= 1;
+                        ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
+                    }
+                });
+
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                 ctx.shadowBlur = 12;
 
-                rulesLines.forEach((rule) => {
-                    const cleaned = rule.trim().toUpperCase();
-                    ctx.fillText(cleaned, canvas.width / 2, curY);
+                fixedSteps.forEach((step) => {
+                    ctx.fillText(step, canvas.width / 2, curY);
                     curY += ruleLineHeight;
                 });
 
@@ -2813,7 +2828,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursHeadline, concoursSubtitle, concoursRules, concoursBottomColor, concoursLateralText, concoursLateralOpacity]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursHeadline, concoursSubtitle, concoursBottomColor, concoursLateralText, concoursLateralOpacity]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -4207,34 +4222,35 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Accroche Principale</label>
+                <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest pl-1">@ du Festival (Instagram)</label>
                 <input 
-                    value={concoursHeadline} 
-                    onChange={e => setConcoursHeadline(e.target.value)} 
-                    placeholder="GAGNE TES INVITATIONS POUR" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md text-xs" 
+                    value={concoursFestivalHandle} 
+                    onChange={e => setConcoursFestivalHandle(e.target.value)} 
+                    placeholder="ex: @tomorrowland" 
+                    className="w-full bg-white/5 border border-neon-cyan/40 focus:border-neon-cyan rounded-xl p-3 text-white font-bold focus:shadow-[0_0_15px_rgba(0,255,255,0.2)] outline-none transition-all text-xs font-mono" 
                 />
             </div>
 
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Sous-Titre / Appel à l'action</label>
-                <input 
-                    value={concoursSubtitle} 
-                    onChange={e => setConcoursSubtitle(e.target.value)} 
-                    placeholder="POUR PARTICIPER C'EST TRÈS SIMPLE :" 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md text-xs" 
-                />
-            </div>
-
-            <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Conditions de participation (1 par ligne)</label>
-                <textarea 
-                    rows={4}
-                    value={concoursRules} 
-                    onChange={e => setConcoursRules(e.target.value)} 
-                    placeholder="Follow la page @dropsiders.frv + page du festival..." 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-medium focus:border-white/40 outline-none transition-all shadow-md text-xs resize-none" 
-                />
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Étapes de participation fixes</label>
+                <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-1.5 text-[10px] text-gray-300 font-medium">
+                    <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">1</span>
+                        <span>Follow la page <strong>@dropsiders.frv</strong> + <strong>{concoursFestivalHandle || '@festival'}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">2</span>
+                        <span>Identifie la personne qui t'accompagnera</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">3</span>
+                        <span>Partage en story <strong>(public)</strong> en nous identifiant + <strong>{concoursFestivalHandle || '@festival'}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">4</span>
+                        <span>Repost ce post</span>
+                    </div>
+                </div>
             </div>
 
             <div className="space-y-2">
