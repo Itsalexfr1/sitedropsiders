@@ -2030,7 +2030,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowBlur = 12;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 6);
+                ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 12);
 
                 // 2. TEXTE EN BAS SUR LE FONDU (Style identique à NEWS, sans boîte opaque)
                 const festName = (concoursFestivalName || festivalNameText || 'NOM DU FESTIVAL').toUpperCase();
