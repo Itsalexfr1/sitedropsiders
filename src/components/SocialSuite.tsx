@@ -2053,7 +2053,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowBlur = 14;
                 ctx.fillText(headlineText, canvas.width / 2, curY);
 
-                // B) NOM DU FESTIVAL (En grand avec détection de largeur, sans guillemets)
+                // B) NOM DU FESTIVAL (En grand avec détection de largeur, sans guillemets, en Cyan Flashy #00ffff)
                 curY += 58;
                 let festFontSize = 52;
                 ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
@@ -2061,9 +2061,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     festFontSize -= 2;
                     ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
                 }
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                ctx.shadowBlur = 16;
+                ctx.fillStyle = '#00ffff';
+                ctx.shadowColor = 'rgba(0, 255, 255, 0.45)';
+                ctx.shadowBlur = 18;
                 ctx.fillText(festName, canvas.width / 2, curY);
 
                 // C) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
@@ -3484,7 +3484,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const themeButtons = (
         <div className="grid grid-cols-3 gap-1.5">
             <button onClick={() => handleSetTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
-            <button onClick={() => handleSetTheme('REELS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'REELS' || theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>REELS</button>
+            <button onClick={() => handleSetTheme('REELS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all leading-tight ${theme === 'REELS' || theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>REELS<br/><span className="text-[7px] font-bold normal-case opacity-70">Conseils</span></button>
             <button onClick={() => handleSetTheme('CONCOURS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONCOURS' ? 'bg-[#7000ff]/25 border-[#7000ff] text-[#c084fc] shadow-[0_0_15px_rgba(112,0,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎁 JEUX CONCOURS</button>
             <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
             <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
