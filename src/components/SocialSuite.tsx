@@ -185,11 +185,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     // CONCOURS Theme States
     const [concoursFestivalName, setConcoursFestivalName] = useState('');
     const [concoursFestivalHandle, setConcoursFestivalHandle] = useState('');
-    const [concoursHeadline, setConcoursHeadline] = useState('GAGNE TES INVITATIONS POUR');
-    const [concoursSubtitle, setConcoursSubtitle] = useState("POUR PARTICIPER C'EST TRÈS SIMPLE :");
     const [concoursBottomColor, setConcoursBottomColor] = useState('#7000ff');
     const [concoursLateralText, setConcoursLateralText] = useState('JEUX CONCOURS');
     const [concoursLateralOpacity, setConcoursLateralOpacity] = useState(0.40);
+    const [concoursBadgeTextColor, setConcoursBadgeTextColor] = useState('#ffe600');
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
@@ -1998,37 +1997,45 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else if (theme === 'CONCOURS') {
                 ctx.save();
 
-                // 1. BANDEAU HAUT GAUCHE (Attaché au bord gauche x=0, parfaitement centré verticalement avec le logo Dropsiders à droite)
+                // 1. BANDEAU HAUT GAUCHE (Attaché au bord gauche x=0, parfaitement aligné verticalement avec le logo Dropsiders à droite)
                 const wLogo = 320;
                 const logoH = logoRef.current ? (logoRef.current.height * wLogo) / logoRef.current.width : 65.5;
                 const yOffset = bgVideo ? 70 : 20;
-                const bandeauH = Math.round(logoH);
-                const bandeauY = yOffset;
-                const bandeauCenterY = bandeauY + (bandeauH / 2);
+                const bandeauH = Math.max(76, Math.round(logoH + 10));
+                // Centré verticalement sur la ligne médiane du logo Dropsiders
+                const logoCenterY = yOffset + (logoH / 2);
+                const bandeauY = logoCenterY - (bandeauH / 2);
+                const bandeauCenterY = logoCenterY;
 
                 const lateralLabel = (concoursLateralText || 'JEUX CONCOURS').toUpperCase();
-                ctx.font = '900 italic 28px "Montserrat", sans-serif';
+                ctx.font = '900 italic 34px "Montserrat", sans-serif';
                 const textMetrics = ctx.measureText(lateralLabel);
-                const bandeauW = Math.max(340, Math.round(textMetrics.width + 80));
+                const bandeauW = Math.max(370, Math.round(textMetrics.width + 80));
 
-                // Bandeau qui part du bord gauche (x = 0) avec opacité demandée à 40%
-                ctx.fillStyle = `rgba(0, 0, 0, ${concoursLateralOpacity || 0.40})`;
+                // Bandeau qui part du bord gauche (x = 0) - fond violet avec cadre/bordure violette
+                const opacity = concoursLateralOpacity !== undefined ? concoursLateralOpacity : 0.40;
+                ctx.fillStyle = `rgba(112, 0, 255, ${opacity})`;
                 ctx.beginPath();
                 ctx.roundRect(0, bandeauY, bandeauW, bandeauH, [0, 14, 14, 0]);
                 ctx.fill();
 
-                // Texte centré exactement sur l'axe du logo
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-                ctx.shadowBlur = 10;
+                // Cadre / liseré violet lumineux autour du bandeau
+                ctx.strokeStyle = 'rgba(168, 85, 247, 0.85)';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                // Texte centré optiquement (décalé légèrement vers le bas car Montserrat tout en majuscules sans jambages inférieurs)
+                ctx.fillStyle = concoursBadgeTextColor || '#ffe600';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 12;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 2);
+                ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 6);
 
                 // 2. TEXTE EN BAS SUR LE FONDU (Style identique à NEWS, sans boîte opaque)
                 const festName = (concoursFestivalName || festivalNameText || 'NOM DU FESTIVAL').toUpperCase();
-                const headlineText = (concoursHeadline || 'GAGNE TES INVITATIONS POUR').toUpperCase();
-                const subtitleText = (concoursSubtitle || "POUR PARTICIPER C'EST TRÈS SIMPLE :").toUpperCase();
+                const headlineText = 'GAGNE TES INVITATIONS POUR';
+                const subtitleText = "POUR PARTICIPER C'EST TRÈS SIMPLE :";
 
                 // Positionnement vertical sur le fondu comme NEWS
                 const baseStartY = effectiveTab === 'PUBLICATION' ? 840 : 1260;
@@ -2043,18 +2050,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.shadowBlur = 14;
                 ctx.fillText(headlineText, canvas.width / 2, curY);
 
-                // B) NOM DU FESTIVAL (En grand avec détection de largeur)
+                // B) NOM DU FESTIVAL (En grand avec détection de largeur, sans guillemets)
                 curY += 58;
                 let festFontSize = 52;
                 ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
-                while (ctx.measureText(`"${festName}"`).width > (canvas.width - 120) && festFontSize > 26) {
+                while (ctx.measureText(festName).width > (canvas.width - 120) && festFontSize > 26) {
                     festFontSize -= 2;
                     ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
                 }
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                 ctx.shadowBlur = 16;
-                ctx.fillText(`"${festName}"`, canvas.width / 2, curY);
+                ctx.fillText(festName, canvas.width / 2, curY);
 
                 // C) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
                 curY += 56;
@@ -2072,7 +2079,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     : (festivalNameText ? `@${festivalNameText.toLowerCase().replace(/\s+/g, '')}` : '@FESTIVAL');
 
                 const fixedSteps = [
-                    `1. FOLLOW LA PAGE @DROPSIDERS.FRV + ${festHandle.toUpperCase()}`,
+                    `1. FOLLOW LA PAGE @DROPSIDERS.FR + ${festHandle.toUpperCase()}`,
                     `2. IDENTIFIE LA PERSONNE QUI T'ACCOMPAGNERA`,
                     `3. PARTAGE EN STORY (PUBLIC) EN NOUS IDENTIFIANT + ${festHandle.toUpperCase()}`,
                     `4. REPOST CE POST`
@@ -2828,7 +2835,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursHeadline, concoursSubtitle, concoursBottomColor, concoursLateralText, concoursLateralOpacity]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursFestivalHandle, concoursBottomColor, concoursLateralText, concoursLateralOpacity, concoursBadgeTextColor]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -4212,7 +4219,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const concoursEditor = (
         <div className="space-y-4">
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival (Affiché entre guillemets)</label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival</label>
                 <input 
                     value={concoursFestivalName} 
                     onChange={e => setConcoursFestivalName(e.target.value)} 
@@ -4236,7 +4243,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 <div className="p-3 bg-white/5 border border-white/10 rounded-xl space-y-1.5 text-[10px] text-gray-300 font-medium">
                     <div className="flex items-center gap-2">
                         <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">1</span>
-                        <span>Follow la page <strong>@dropsiders.frv</strong> + <strong>{concoursFestivalHandle || '@festival'}</strong></span>
+                        <span>Follow la page <strong>@dropsiders.fr</strong> + <strong>{concoursFestivalHandle || '@festival'}</strong></span>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="w-4 h-4 rounded-full bg-neon-cyan/20 text-neon-cyan font-black text-[9px] flex items-center justify-center flex-shrink-0">2</span>
@@ -4285,7 +4292,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             <div className="space-y-2">
                 <div className="flex justify-between items-center pl-1">
-                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Bandeau Haut Gauche (Opacité 40%)</label>
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Bandeau Haut Gauche (Cadre Violet • Opacité 40%)</label>
                     <span className="text-[9px] font-mono font-bold text-neon-cyan">{Math.round(concoursLateralOpacity * 100)}%</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -4305,6 +4312,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                             onChange={e => setConcoursLateralOpacity(parseFloat(e.target.value))} 
                             className="w-full accent-white cursor-pointer" 
                         />
+                    </div>
+                </div>
+                <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-2.5">
+                    <input 
+                        type="color" 
+                        value={concoursBadgeTextColor} 
+                        onChange={e => setConcoursBadgeTextColor(e.target.value)} 
+                        className="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0" 
+                        title="Couleur du texte du bandeau"
+                    />
+                    <span className="text-[11px] font-mono font-bold text-white uppercase">{concoursBadgeTextColor} (Texte Bandeau)</span>
+                    <div className="flex gap-1.5 ml-auto">
+                        {[
+                            { color: '#ffe600', name: 'Jaune Néon / Or' },
+                            { color: '#ffffff', name: 'Blanc Pur' },
+                            { color: '#00ffff', name: 'Cyan Néon' },
+                            { color: '#ff007f', name: 'Rose Vif' },
+                            { color: '#00ff88', name: 'Vert Néon' }
+                        ].map(c => (
+                            <button
+                                key={c.color}
+                                onClick={() => setConcoursBadgeTextColor(c.color)}
+                                className="w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-110"
+                                style={{ backgroundColor: c.color }}
+                                title={c.name}
+                            />
+                        ))}
                     </div>
                 </div>
             </div>
