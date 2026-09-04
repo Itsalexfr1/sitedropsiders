@@ -68,7 +68,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'TOP 10 FESTIVAL' | 'TOP 100 DROPSIDERS' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'SPOTLIGHT' | 'CITATION' | 'CONSEILS' | 'REELS' | 'CONCOURS' | 'EVENT' | 'ARTISTE FESTIVAL' | 'PROMO' | 'MAP' | 'CALENDRIER' | 'JEU' | 'JEU_FESTIVAL';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -173,6 +173,17 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [conseilsTitle, setConseilsTitle] = useState('LE TITRE ICI');
     const [conseilsSubtext, setConseilsSubtext] = useState('');
     const [isConseilsLargeTitle, setIsConseilsLargeTitle] = useState(false);
+
+    // CONCOURS Theme States
+    const [concoursFestivalName, setConcoursFestivalName] = useState('');
+    const [concoursHeadline, setConcoursHeadline] = useState('GAGNE TES INVITATIONS POUR');
+    const [concoursSubtitle, setConcoursSubtitle] = useState("POUR PARTICIPER C'EST TRÈS SIMPLE :");
+    const [concoursRules, setConcoursRules] = useState(
+        "Follow la page @dropsiders.frv + page du festival\nIdentifie la personne qui t'accompagnera\nPartage en story en nous identifiant + festival\nRepost ce post"
+    );
+    const [concoursBottomColor, setConcoursBottomColor] = useState('#7000ff');
+    const [concoursLateralText, setConcoursLateralText] = useState('JEUX CONCOURS');
+    const [concoursLateralOpacity, setConcoursLateralOpacity] = useState(0.40);
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
@@ -309,7 +320,9 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'INTERVIEW': { label: 'INTERVIEW', grad: '255, 255, 255', color: '#ffffff' },
         'SPOTLIGHT': { label: 'SPOTLIGHT', grad: '255, 0, 51', color: '#ff0033' },
         'CITATION': { label: 'CITATION', grad: '255, 255, 255', color: '#ffffff' },
-        'CONSEILS': { label: 'CONSEILS', grad: '255, 0, 51', color: '#ff0033' },
+        'CONSEILS': { label: 'REELS', grad: '255, 0, 51', color: '#ff0033' },
+        'REELS': { label: 'REELS', grad: '255, 0, 51', color: '#ff0033' },
+        'CONCOURS': { label: 'JEUX CONCOURS', grad: '112, 0, 255', color: '#7000ff' },
         'EVENT': { label: 'EVENT', grad: '0, 240, 255', color: '#00f0ff' },
         'ARTISTE FESTIVAL': { label: 'LES 10 ARTISTES À NE PAS LOUPER', grad: '0, 0, 0', color: '#000000' },
         'PROMO': { label: 'PROMO', grad: '255, 0, 51', color: '#ff0033' },
@@ -665,8 +678,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             if (!showText) return; 
 
-            // Gradient overlays for CONSEILS (Smooth continuous gradient without harsh cuts)
-            if (theme === 'CONSEILS') {
+            // Gradient overlays for CONSEILS / REELS (Smooth continuous gradient without harsh cuts)
+            if (theme === 'CONSEILS' || theme === 'REELS') {
                 // Top subtle header shadow
                 const topGrad = ctx.createLinearGradient(0, 0, 0, 220);
                 topGrad.addColorStop(0, 'rgba(0,0,0,0.60)');
@@ -683,6 +696,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 bottomGrad.addColorStop(1, 'rgba(0,0,0,1)');
                 ctx.fillStyle = bottomGrad;
                 ctx.fillRect(0, canvas.height * 0.48, canvas.width, canvas.height * 0.52);
+            } else if (theme === 'CONCOURS') {
+                // Top subtle header shadow for CONCOURS
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 200);
+                topGrad.addColorStop(0, 'rgba(0,0,0,0.60)');
+                topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = topGrad;
+                ctx.fillRect(0, 0, canvas.width, 200);
             } else if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
@@ -1734,7 +1754,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.restore();
                 }
 
-            } else if (theme === 'CONSEILS') {
+            } else if (theme === 'CONSEILS' || theme === 'REELS') {
                 ctx.save();
 
                 // 1. TOP HEADER (Top Right Photo Credit)
@@ -1961,6 +1981,156 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.arc(spkX + 4, spkY, 13, -Math.PI / 3, Math.PI / 3);
                 ctx.stroke();
                 ctx.restore();
+
+                ctx.restore();
+
+            } else if (theme === 'CONCOURS') {
+                ctx.save();
+
+                // 1. TOP HEADER BAR (En haut à gauche, symétrique et cohérent avec le logo Dropsiders en haut à droite)
+                const barX = bgVideo ? 140 : 40;
+                const barY = bgVideo ? 70 : 20;
+                const barH = 68; // Même hauteur/alignement que le logo Dropsiders (w: 320, h ≈ 65)
+                
+                ctx.save();
+                ctx.font = '900 italic 28px "Montserrat", sans-serif';
+                const lateralLabel = (concoursLateralText || 'JEUX CONCOURS').toUpperCase();
+                const textMetrics = ctx.measureText(lateralLabel);
+                const barW = Math.max(260, textMetrics.width + 60);
+
+                // Fond avec opacité demandée à 40%
+                ctx.fillStyle = `rgba(0, 0, 0, ${concoursLateralOpacity})`;
+                ctx.beginPath();
+                ctx.roundRect(barX, barY, barW, barH, 18);
+                ctx.fill();
+
+                // Fine bordure stylée
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.roundRect(barX, barY, barW, barH, 18);
+                ctx.stroke();
+
+                // Texte JEUX CONCOURS centré dans la barre
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                ctx.shadowBlur = 10;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(lateralLabel, barX + (barW / 2), barY + (barH / 2) + 2);
+                ctx.restore();
+
+                // 2. BANDEAU INFÉRIEUR (Couleur inédite #7000ff personnalisable)
+                const festName = (concoursFestivalName || festivalNameText || 'NOM DU FESTIVAL').toUpperCase();
+                const blockHeight = effectiveTab === 'PUBLICATION' ? 560 : 680;
+                const blockY = canvas.height - blockHeight;
+
+                // Fond du bloc inférieur avec la couleur demandée
+                ctx.save();
+                ctx.fillStyle = concoursBottomColor || '#7000ff';
+                ctx.fillRect(0, blockY, canvas.width, blockHeight);
+
+                // Ligne lumineuse au sommet du bandeau inférieur
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, blockY);
+                ctx.lineTo(canvas.width, blockY);
+                ctx.stroke();
+
+                // Contenu textuel dans le bandeau inférieur
+                let curY = blockY + (effectiveTab === 'PUBLICATION' ? 65 : 80);
+
+                // A) GRAND TITRE : GAGNE TES INVITATIONS POUR "FESTIVAL"
+                const headlineText = (concoursHeadline || 'GAGNE TES INVITATIONS POUR').toUpperCase();
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Ligne 1 : GAGNE TES INVITATIONS POUR
+                ctx.font = '900 italic 42px "Montserrat", sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                ctx.shadowBlur = 12;
+                ctx.fillText(headlineText, canvas.width / 2, curY);
+
+                // Ligne 2 : NOM DU FESTIVAL (En exergue)
+                curY += 56;
+                let festFontSize = 52;
+                ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
+                while (ctx.measureText(`"${festName}"`).width > (canvas.width - 120) && festFontSize > 26) {
+                    festFontSize -= 2;
+                    ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
+                }
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+                ctx.shadowBlur = 14;
+                ctx.fillText(`"${festName}"`, canvas.width / 2, curY);
+                ctx.restore();
+
+                // Séparateur fin
+                curY += 45;
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2 - 240, curY);
+                ctx.lineTo(canvas.width / 2 + 240, curY);
+                ctx.stroke();
+                ctx.restore();
+
+                // B) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
+                curY += 35;
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = '800 italic 25px "Montserrat", sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                ctx.shadowBlur = 8;
+                ctx.fillText((concoursSubtitle || "POUR PARTICIPER C'EST TRÈS SIMPLE :").toUpperCase(), canvas.width / 2, curY);
+                ctx.restore();
+
+                // C) LES CONDITIONS / ÉTAPES DE PARTICIPATION
+                curY += 46;
+                const rulesLines = (concoursRules || '').split('\n').filter(l => l.trim() !== '');
+                const ruleFontSize = effectiveTab === 'PUBLICATION' ? 24 : 26;
+                const ruleLineSpacing = effectiveTab === 'PUBLICATION' ? 44 : 52;
+                const contentLeftX = 130;
+
+                rulesLines.forEach((rule, idx) => {
+                    ctx.save();
+                    const lineY = curY + (idx * ruleLineSpacing);
+
+                    // Badge de numéro stylé (cercle blanc avec numéro)
+                    const circleRadius = 14;
+                    const circleX = contentLeftX + circleRadius;
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(circleX, lineY, circleRadius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Numéro dans le cercle avec la couleur du bandeau
+                    ctx.fillStyle = concoursBottomColor || '#7000ff';
+                    ctx.font = '900 17px "Montserrat", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText((idx + 1).toString(), circleX, lineY);
+
+                    // Texte de la condition
+                    ctx.font = `700 ${ruleFontSize}px "Montserrat", sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                    ctx.shadowBlur = 6;
+                    
+                    const cleanedRule = rule.replace(/^\d+[\.\)\-]\s*/, '');
+                    ctx.fillText(cleanedRule, circleX + circleRadius + 18, lineY);
+                    
+                    ctx.restore();
+                });
 
                 ctx.restore();
 
@@ -2584,7 +2754,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Swipe & links: retirés uniquement pour les exports PROMO, conservés pour PNG POST/STORY
             const isPromoExport = exportMode === 'PROMO';
 
-            if (showSwipe && !isPromoExport && theme !== 'CONSEILS') {
+            if (showSwipe && !isPromoExport && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS') {
                 ctx.save();
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
@@ -2692,7 +2862,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, showVoteLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, calendarMonth, calendarEvents, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo, artistLogo, festivalLogo, bgOffsetX, bgOffsetY, artistNameText, festivalNameText, isArtistLogoNegative, mapFestivalText, mapCityCountry, mapZoom, mapLatitude, mapLongitude, mapStyle, isMapLoading, mapPinColor, mapLabelText, showMapPin, showMapLabel, imgLayoutMode, quizColor1, quizColor2, showFrame, conseilsTitle, conseilsSubtext, isConseilsLargeTitle, concoursFestivalName, concoursHeadline, concoursSubtitle, concoursRules, concoursBottomColor, concoursLateralText, concoursLateralOpacity]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -3314,6 +3484,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const themeButtons = (
         <div className="grid grid-cols-3 gap-1.5">
             <button onClick={() => handleSetTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
+            <button onClick={() => handleSetTheme('REELS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'REELS' || theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>REELS</button>
+            <button onClick={() => handleSetTheme('CONCOURS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONCOURS' ? 'bg-[#7000ff]/25 border-[#7000ff] text-[#c084fc] shadow-[0_0_15px_rgba(112,0,255,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎁 JEUX CONCOURS</button>
             <button onClick={() => handleSetTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
             <button onClick={() => handleSetTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
             <button onClick={() => handleSetTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
@@ -3324,7 +3496,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             <button onClick={() => handleSetTheme('TOP 100 DROPSIDERS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 100 DROPSIDERS' ? 'bg-[#ffe600]/20 border-[#ffe600] text-[#ffe600]' : 'bg-white/5 border-white/10 text-gray-400'}`}>TOP 100 DROPSIDERS</button>
             <button onClick={() => handleSetTheme('SPOTLIGHT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'SPOTLIGHT' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>SPOTLIGHT</button>
             <button onClick={() => handleSetTheme('CITATION')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CITATION' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>CITATION</button>
-            <button onClick={() => handleSetTheme('CONSEILS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'CONSEILS' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>CONSEILS</button>
             <button onClick={() => handleSetTheme('EVENT')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'EVENT' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>EVENT</button>
             <button onClick={() => handleSetTheme('ARTISTE FESTIVAL')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'ARTISTE FESTIVAL' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400'}`}>🎪 ARTISTE FESTIVAL</button>
             <button onClick={() => handleSetTheme('PROMO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PROMO' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>📣 PROMO</button>
@@ -4014,7 +4185,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Titre des Conseils (Grand texte blanc)</label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Titre des Reels (Grand texte blanc)</label>
                 <textarea 
                     rows={2}
                     value={conseilsTitle} 
@@ -4067,6 +4238,107 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     }} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2">
                         <Upload className="w-4 h-4 text-neon-cyan" /> {artistLogo ? 'Modifier Image Cloud' : 'Importer Cloud'}
                     </button>
+                </div>
+            </div>
+        </div>
+    );
+
+    const concoursEditor = (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du Festival (Affiché entre guillemets)</label>
+                <input 
+                    value={concoursFestivalName} 
+                    onChange={e => setConcoursFestivalName(e.target.value)} 
+                    placeholder="EX: TOMORROWLAND / DELTA FESTIVAL" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md text-xs" 
+                />
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Accroche Principale</label>
+                <input 
+                    value={concoursHeadline} 
+                    onChange={e => setConcoursHeadline(e.target.value)} 
+                    placeholder="GAGNE TES INVITATIONS POUR" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md text-xs" 
+                />
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Sous-Titre / Appel à l'action</label>
+                <input 
+                    value={concoursSubtitle} 
+                    onChange={e => setConcoursSubtitle(e.target.value)} 
+                    placeholder="POUR PARTICIPER C'EST TRÈS SIMPLE :" 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase focus:border-white/40 outline-none transition-all shadow-md text-xs" 
+                />
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Conditions de participation (1 par ligne)</label>
+                <textarea 
+                    rows={4}
+                    value={concoursRules} 
+                    onChange={e => setConcoursRules(e.target.value)} 
+                    placeholder="Follow la page @dropsiders.frv + page du festival..." 
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-medium focus:border-white/40 outline-none transition-all shadow-md text-xs resize-none" 
+                />
+            </div>
+
+            <div className="space-y-2">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Bandeau Inférieur</label>
+                <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-2.5">
+                    <input 
+                        type="color" 
+                        value={concoursBottomColor} 
+                        onChange={e => setConcoursBottomColor(e.target.value)} 
+                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0" 
+                    />
+                    <span className="text-xs font-mono font-bold text-white uppercase">{concoursBottomColor}</span>
+                    <div className="flex gap-1.5 ml-auto">
+                        {[
+                            { color: '#7000ff', name: 'Violet Royal Électrique' },
+                            { color: '#00d26a', name: 'Émeraude' },
+                            { color: '#ff4757', name: 'Corail' },
+                            { color: '#00c8ff', name: 'Cyan' },
+                            { color: '#f59e0b', name: 'Ambre Or' }
+                        ].map(c => (
+                            <button
+                                key={c.color}
+                                onClick={() => setConcoursBottomColor(c.color)}
+                                className="w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-110"
+                                style={{ backgroundColor: c.color }}
+                                title={c.name}
+                            />
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex justify-between items-center pl-1">
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Barre Haut Gauche (Opacité 40%)</label>
+                    <span className="text-[9px] font-mono font-bold text-neon-cyan">{Math.round(concoursLateralOpacity * 100)}%</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <input 
+                        value={concoursLateralText} 
+                        onChange={e => setConcoursLateralText(e.target.value)} 
+                        placeholder="JEUX CONCOURS" 
+                        className="bg-white/5 border border-white/10 rounded-xl p-2.5 text-white font-bold uppercase focus:border-white/40 outline-none text-xs" 
+                    />
+                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3">
+                        <input 
+                            type="range" 
+                            min="0.1" 
+                            max="0.9" 
+                            step="0.05"
+                            value={concoursLateralOpacity} 
+                            onChange={e => setConcoursLateralOpacity(parseFloat(e.target.value))} 
+                            className="w-full accent-white cursor-pointer" 
+                        />
+                    </div>
                 </div>
             </div>
         </div>
@@ -4646,8 +4918,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Interview & Logo</span>{interviewEditor}</>
                             ) : theme === 'SPOTLIGHT' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Spotlight & Logos</span>{spotlightEditor}</>
-                            ) : theme === 'CONSEILS' ? (
-                                <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Conseils & Image</span>{conseilsEditor}</>
+                            ) : theme === 'CONSEILS' || theme === 'REELS' ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Reels & Image</span>{conseilsEditor}</>
+                            ) : theme === 'CONCOURS' ? (
+                                <><span className="text-[10px] font-black text-[#c084fc] uppercase">Paramètres Jeu Concours</span>{concoursEditor}</>
                             ) : theme === 'CITATION' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Citation & Auteur</span>{citationEditor}</>
                             ) : theme === 'ARTISTE FESTIVAL' ? (
@@ -4992,7 +5266,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                                                 ))}
                                                 <button onClick={() => setCalendarEvents([...calendarEvents, { date: '??', label: 'NOUVEL ÉVÉNEMENT' }])} className="w-full py-3 bg-neon-orange/10 border border-dashed border-neon-orange/30 rounded-xl text-[9px] font-black uppercase text-neon-orange hover:bg-neon-orange/20 transition-all">+ Ajouter</button>
                                             </div>
-                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' ? conseilsEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'ARTISTE FESTIVAL' ? (
+                                        ) : theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : theme === 'SPOTLIGHT' ? spotlightEditor : theme === 'CONSEILS' || theme === 'REELS' ? conseilsEditor : theme === 'CONCOURS' ? concoursEditor : theme === 'CITATION' ? citationEditor : theme === 'MAP' ? mapEditor : theme === 'ARTISTE FESTIVAL' ? (
                             <div className="space-y-3">
                                 <input
                                     value={festivalNameText}
