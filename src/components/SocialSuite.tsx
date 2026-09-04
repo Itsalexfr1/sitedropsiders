@@ -2067,7 +2067,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(festName, canvas.width / 2, curY);
 
                 // C) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
-                curY += 56;
+                // Descendu d'environ 10% de plus par rapport au festival (+62px au lieu de 56px)
+                curY += 62;
                 ctx.font = '900 italic 28px "Montserrat", sans-serif';
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
@@ -2075,38 +2076,59 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(subtitleText, canvas.width / 2, curY);
 
                 // D) CONDITIONS DE PARTICIPATION FIXES (Flottant sur le fondu comme NEWS)
-                // Espacement augmenté de 10% (de 46px à 52px) pour bien décoller du titre
-                curY += 52;
+                // Descendu de 10% de plus par rapport au sous-titre (58px au lieu de 52px)
+                curY += 58;
                 const rawHandle = concoursFestivalHandle.trim();
                 const festHandle = rawHandle
                     ? (rawHandle.startsWith('@') ? rawHandle : `@${rawHandle}`)
                     : (festivalNameText ? `@${festivalNameText.toLowerCase().replace(/\s+/g, '')}` : '@FESTIVAL');
 
-                const fixedSteps = [
-                    `1. FOLLOW LA PAGE @DROPSIDERS.FR + ${festHandle.toUpperCase()}`,
-                    `2. IDENTIFIE LA PERSONNE QUI T'ACCOMPAGNERA`,
-                    `3. PARTAGE EN STORY (PUBLIC) EN NOUS IDENTIFIANT + ${festHandle.toUpperCase()}`,
-                    `4. REPOST CE POST`
+                // Segments avec mise en couleur flashy pour les @ (Neon Cyan #00ffff / #ffe600)
+                const flashyColor = '#00ffff';
+                const stepSegments: Array<Array<{ text: string; color: string }>> = [
+                    [
+                        { text: '1. FOLLOW LA PAGE ', color: '#ffffff' },
+                        { text: '@DROPSIDERS.FR', color: flashyColor },
+                        { text: ' + ', color: '#ffffff' },
+                        { text: festHandle.toUpperCase(), color: flashyColor }
+                    ],
+                    [
+                        { text: "2. IDENTIFIE LA PERSONNE QUI T'ACCOMPAGNERA", color: '#ffffff' }
+                    ],
+                    [
+                        { text: '3. PARTAGE EN STORY (PUBLIC) EN NOUS IDENTIFIANT + ', color: '#ffffff' },
+                        { text: festHandle.toUpperCase(), color: flashyColor }
+                    ],
+                    [
+                        { text: '4. REPOST CE POST', color: '#ffffff' }
+                    ]
                 ];
 
                 let ruleFontSize = effectiveTab === 'PUBLICATION' ? 24 : 26;
-                // Interligne augmenté de ~10% également pour aérer les étapes
-                const ruleLineHeight = effectiveTab === 'PUBLICATION' ? 48 : 55;
+                const ruleLineHeight = effectiveTab === 'PUBLICATION' ? 52 : 60; // Interligne encore plus aéré
 
                 ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
-                fixedSteps.forEach(step => {
-                    while (ctx.measureText(step).width > (canvas.width - 100) && ruleFontSize > 18) {
+                stepSegments.forEach(segments => {
+                    const fullText = segments.map(s => s.text).join('');
+                    while (ctx.measureText(fullText).width > (canvas.width - 100) && ruleFontSize > 18) {
                         ruleFontSize -= 1;
                         ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
                     }
                 });
 
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                ctx.shadowBlur = 12;
+                stepSegments.forEach((segments) => {
+                    const fullWidth = segments.reduce((acc, s) => acc + ctx.measureText(s.text).width, 0);
+                    let startX = (canvas.width / 2) - (fullWidth / 2);
 
-                fixedSteps.forEach((step) => {
-                    ctx.fillText(step, canvas.width / 2, curY);
+                    ctx.textAlign = 'left';
+                    segments.forEach(seg => {
+                        ctx.fillStyle = seg.color;
+                        ctx.shadowColor = seg.color === flashyColor ? 'rgba(0, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.95)';
+                        ctx.shadowBlur = seg.color === flashyColor ? 14 : 12;
+                        ctx.fillText(seg.text, startX, curY);
+                        startX += ctx.measureText(seg.text).width;
+                    });
+
                     curY += ruleLineHeight;
                 });
 
@@ -2732,7 +2754,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             // Swipe & links: retirés uniquement pour les exports PROMO, conservés pour PNG POST/STORY
             const isPromoExport = exportMode === 'PROMO';
 
-            if (showSwipe && !isPromoExport && theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'CONCOURS') {
+            if (showSwipe && !isPromoExport && theme !== 'CONSEILS' && theme !== 'REELS') {
                 ctx.save();
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
