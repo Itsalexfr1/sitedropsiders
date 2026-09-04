@@ -2024,21 +2024,21 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
 
-                // Texte centré optiquement (décalé légèrement vers le bas car Montserrat tout en majuscules sans jambages inférieurs)
+                // Texte centré optiquement
                 ctx.fillStyle = concoursBadgeTextColor || '#ffe600';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
                 ctx.shadowBlur = 12;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 12);
+                ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 5);
 
                 // 2. TEXTE EN BAS SUR LE FONDU (Style identique à NEWS, sans boîte opaque)
                 const festName = (concoursFestivalName || festivalNameText || 'NOM DU FESTIVAL').toUpperCase();
                 const headlineText = 'GAGNE TES INVITATIONS POUR';
                 const subtitleText = "POUR PARTICIPER C'EST TRÈS SIMPLE :";
 
-                // Positionnement vertical sur le fondu comme NEWS
-                const baseStartY = effectiveTab === 'PUBLICATION' ? 840 : 1260;
+                // Positionnement vertical sur le fondu (plus bas pour bien respirer)
+                const baseStartY = effectiveTab === 'PUBLICATION' ? 950 : 1380;
                 let curY = baseStartY;
 
                 // A) GRAND TITRE : GAGNE TES INVITATIONS POUR
