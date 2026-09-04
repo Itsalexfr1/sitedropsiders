@@ -91,6 +91,14 @@ const STYLE_PRESETS = [
     { name: 'DRUM N BASS', grad: '150, 0, 255', color: '#9600ff' }
 ];
 
+const hexToRgb = (hex: string) => {
+    const clean = hex.replace('#', '');
+    const r = parseInt(clean.substring(0, 2), 16) || 112;
+    const g = parseInt(clean.substring(2, 4), 16) || 0;
+    const b = parseInt(clean.substring(4, 6), 16) || 255;
+    return `${r}, ${g}, ${b}`;
+};
+
 const lon2tile = (lon: number, zoom: number) => {
     return ((lon + 180) / 360) * Math.pow(2, zoom);
 };
@@ -696,14 +704,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 bottomGrad.addColorStop(1, 'rgba(0,0,0,1)');
                 ctx.fillStyle = bottomGrad;
                 ctx.fillRect(0, canvas.height * 0.48, canvas.width, canvas.height * 0.52);
-            } else if (theme === 'CONCOURS') {
-                // Top subtle header shadow for CONCOURS
-                const topGrad = ctx.createLinearGradient(0, 0, 0, 200);
-                topGrad.addColorStop(0, 'rgba(0,0,0,0.60)');
+            }
+
+            // Top subtle header shadow for CONCOURS
+            if (theme === 'CONCOURS') {
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 160);
+                topGrad.addColorStop(0, 'rgba(0,0,0,0.50)');
                 topGrad.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = topGrad;
-                ctx.fillRect(0, 0, canvas.width, 200);
-            } else if (theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
+                ctx.fillRect(0, 0, canvas.width, 160);
+            }
+
+            if (theme !== 'CONSEILS' && theme !== 'REELS' && theme !== 'TRACKLIST' && theme !== 'SPOTLIGHT' && theme !== 'CITATION' && theme !== 'PROMO' && theme !== 'JEU' && theme !== 'JEU_FESTIVAL') {
                 const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                     ? canvas.height * 0.8
                     : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
@@ -715,9 +727,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     grad.addColorStop(0.8, 'rgba(255,255,255,0.8)');
                     grad.addColorStop(1, '#ffffff');
                 } else {
+                    const rgbGrad = (theme === 'CONCOURS' && concoursBottomColor) ? hexToRgb(concoursBottomColor) : activeData.grad;
                     grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
-                    grad.addColorStop(0.8, `rgba(${activeData.grad}, 0.7)`);
-                    grad.addColorStop(1, `rgba(${activeData.grad}, 1)`);
+                    grad.addColorStop(0.8, `rgba(${rgbGrad}, 0.7)`);
+                    grad.addColorStop(1, `rgba(${rgbGrad}, 1)`);
                 }
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
@@ -1987,75 +2000,53 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else if (theme === 'CONCOURS') {
                 ctx.save();
 
-                // 1. TOP HEADER BAR (En haut à gauche, symétrique et cohérent avec le logo Dropsiders en haut à droite)
-                const barX = bgVideo ? 140 : 40;
-                const barY = bgVideo ? 70 : 20;
-                const barH = 68; // Même hauteur/alignement que le logo Dropsiders (w: 320, h ≈ 65)
-                
-                ctx.save();
-                ctx.font = '900 italic 28px "Montserrat", sans-serif';
-                const lateralLabel = (concoursLateralText || 'JEUX CONCOURS').toUpperCase();
-                const textMetrics = ctx.measureText(lateralLabel);
-                const barW = Math.max(260, textMetrics.width + 60);
+                // 1. BANDEAU HAUT GAUCHE (Attaché au bord gauche x=0, parfaitement centré verticalement avec le logo Dropsiders à droite)
+                const wLogo = 320;
+                const logoH = logoRef.current ? (logoRef.current.height * wLogo) / logoRef.current.width : 65.5;
+                const yOffset = bgVideo ? 70 : 20;
+                const bandeauH = Math.round(logoH);
+                const bandeauY = yOffset;
+                const bandeauCenterY = bandeauY + (bandeauH / 2);
 
-                // Fond avec opacité demandée à 40%
-                ctx.fillStyle = `rgba(0, 0, 0, ${concoursLateralOpacity})`;
+                const lateralLabel = (concoursLateralText || 'JEUX CONCOURS').toUpperCase();
+                ctx.font = '900 italic 28px "Montserrat", sans-serif';
+                const textMetrics = ctx.measureText(lateralLabel);
+                const bandeauW = Math.max(340, Math.round(textMetrics.width + 80));
+
+                // Bandeau qui part du bord gauche (x = 0) avec opacité demandée à 40%
+                ctx.fillStyle = `rgba(0, 0, 0, ${concoursLateralOpacity || 0.40})`;
                 ctx.beginPath();
-                ctx.roundRect(barX, barY, barW, barH, 18);
+                ctx.roundRect(0, bandeauY, bandeauW, bandeauH, [0, 14, 14, 0]);
                 ctx.fill();
 
-                // Fine bordure stylée
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.roundRect(barX, barY, barW, barH, 18);
-                ctx.stroke();
-
-                // Texte JEUX CONCOURS centré dans la barre
+                // Texte centré exactement sur l'axe du logo
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
                 ctx.shadowBlur = 10;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(lateralLabel, barX + (barW / 2), barY + (barH / 2) + 2);
-                ctx.restore();
+                ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 2);
 
-                // 2. BANDEAU INFÉRIEUR (Couleur inédite #7000ff personnalisable)
+                // 2. TEXTE EN BAS SUR LE FONDU (Style identique à NEWS, sans boîte opaque)
                 const festName = (concoursFestivalName || festivalNameText || 'NOM DU FESTIVAL').toUpperCase();
-                const blockHeight = effectiveTab === 'PUBLICATION' ? 560 : 680;
-                const blockY = canvas.height - blockHeight;
-
-                // Fond du bloc inférieur avec la couleur demandée
-                ctx.save();
-                ctx.fillStyle = concoursBottomColor || '#7000ff';
-                ctx.fillRect(0, blockY, canvas.width, blockHeight);
-
-                // Ligne lumineuse au sommet du bandeau inférieur
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(0, blockY);
-                ctx.lineTo(canvas.width, blockY);
-                ctx.stroke();
-
-                // Contenu textuel dans le bandeau inférieur
-                let curY = blockY + (effectiveTab === 'PUBLICATION' ? 65 : 80);
-
-                // A) GRAND TITRE : GAGNE TES INVITATIONS POUR "FESTIVAL"
                 const headlineText = (concoursHeadline || 'GAGNE TES INVITATIONS POUR').toUpperCase();
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                const subtitleText = (concoursSubtitle || "POUR PARTICIPER C'EST TRÈS SIMPLE :").toUpperCase();
 
-                // Ligne 1 : GAGNE TES INVITATIONS POUR
-                ctx.font = '900 italic 42px "Montserrat", sans-serif';
+                // Positionnement vertical sur le fondu comme NEWS
+                const baseStartY = effectiveTab === 'PUBLICATION' ? 840 : 1260;
+                let curY = baseStartY;
+
+                // A) GRAND TITRE : GAGNE TES INVITATIONS POUR
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'alphabetic';
+                ctx.font = '900 italic 44px "Montserrat", sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-                ctx.shadowBlur = 12;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 14;
                 ctx.fillText(headlineText, canvas.width / 2, curY);
 
-                // Ligne 2 : NOM DU FESTIVAL (En exergue)
-                curY += 56;
+                // B) NOM DU FESTIVAL (En grand avec détection de largeur)
+                curY += 58;
                 let festFontSize = 52;
                 ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
                 while (ctx.measureText(`"${festName}"`).width > (canvas.width - 120) && festFontSize > 26) {
@@ -2063,73 +2054,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     ctx.font = `900 italic ${festFontSize}px "Montserrat", sans-serif`;
                 }
                 ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-                ctx.shadowBlur = 14;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 16;
                 ctx.fillText(`"${festName}"`, canvas.width / 2, curY);
-                ctx.restore();
 
-                // Séparateur fin
-                curY += 45;
-                ctx.save();
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo(canvas.width / 2 - 240, curY);
-                ctx.lineTo(canvas.width / 2 + 240, curY);
-                ctx.stroke();
-                ctx.restore();
-
-                // B) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
-                curY += 35;
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.font = '800 italic 25px "Montserrat", sans-serif';
+                // C) SOUS-TITRE : POUR PARTICIPER C'EST TRÈS SIMPLE :
+                curY += 56;
+                ctx.font = '900 italic 28px "Montserrat", sans-serif';
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-                ctx.shadowBlur = 8;
-                ctx.fillText((concoursSubtitle || "POUR PARTICIPER C'EST TRÈS SIMPLE :").toUpperCase(), canvas.width / 2, curY);
-                ctx.restore();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+                ctx.shadowBlur = 10;
+                ctx.fillText(subtitleText, canvas.width / 2, curY);
 
-                // C) LES CONDITIONS / ÉTAPES DE PARTICIPATION
+                // D) CONDITIONS DE PARTICIPATION (Lignes centrées flottant sur le fondu comme NEWS)
                 curY += 46;
                 const rulesLines = (concoursRules || '').split('\n').filter(l => l.trim() !== '');
                 const ruleFontSize = effectiveTab === 'PUBLICATION' ? 24 : 26;
-                const ruleLineSpacing = effectiveTab === 'PUBLICATION' ? 44 : 52;
-                const contentLeftX = 130;
+                const ruleLineHeight = effectiveTab === 'PUBLICATION' ? 44 : 50;
 
-                rulesLines.forEach((rule, idx) => {
-                    ctx.save();
-                    const lineY = curY + (idx * ruleLineSpacing);
+                ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+                ctx.shadowBlur = 12;
 
-                    // Badge de numéro stylé (cercle blanc avec numéro)
-                    const circleRadius = 14;
-                    const circleX = contentLeftX + circleRadius;
-                    
-                    ctx.fillStyle = '#ffffff';
-                    ctx.beginPath();
-                    ctx.arc(circleX, lineY, circleRadius, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Numéro dans le cercle avec la couleur du bandeau
-                    ctx.fillStyle = concoursBottomColor || '#7000ff';
-                    ctx.font = '900 17px "Montserrat", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText((idx + 1).toString(), circleX, lineY);
-
-                    // Texte de la condition
-                    ctx.font = `700 ${ruleFontSize}px "Montserrat", sans-serif`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'middle';
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-                    ctx.shadowBlur = 6;
-                    
-                    const cleanedRule = rule.replace(/^\d+[\.\)\-]\s*/, '');
-                    ctx.fillText(cleanedRule, circleX + circleRadius + 18, lineY);
-                    
-                    ctx.restore();
+                rulesLines.forEach((rule) => {
+                    const cleaned = rule.trim().toUpperCase();
+                    ctx.fillText(cleaned, canvas.width / 2, curY);
+                    curY += ruleLineHeight;
                 });
 
                 ctx.restore();
@@ -4287,7 +4238,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             </div>
 
             <div className="space-y-2">
-                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Bandeau Inférieur</label>
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Couleur du Fondu Inférieur (Dégradé Style NEWS)</label>
                 <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl p-2.5">
                     <input 
                         type="color" 
@@ -4318,7 +4269,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
             <div className="space-y-2">
                 <div className="flex justify-between items-center pl-1">
-                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Barre Haut Gauche (Opacité 40%)</label>
+                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Bandeau Haut Gauche (Opacité 40%)</label>
                     <span className="text-[9px] font-mono font-bold text-neon-cyan">{Math.round(concoursLateralOpacity * 100)}%</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
