@@ -188,7 +188,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
     const [concoursBottomColor, setConcoursBottomColor] = useState('#7000ff');
     const [concoursLateralText, setConcoursLateralText] = useState('JEUX CONCOURS');
     const [concoursLateralOpacity, setConcoursLateralOpacity] = useState(0.40);
-    const [concoursBadgeTextColor, setConcoursBadgeTextColor] = useState('#ffe600');
+    const [concoursBadgeTextColor, setConcoursBadgeTextColor] = useState('#ffffff');
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
     const audioCtxRef = useRef<AudioContext | null>(null);
@@ -1997,47 +1997,50 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             } else if (theme === 'CONCOURS') {
                 ctx.save();
 
-                // 1. BANDEAU HAUT GAUCHE (Attaché au bord gauche x=0, parfaitement aligné verticalement avec le logo Dropsiders à droite)
+                // 1. BANDEAU HAUT GAUCHE (Attaché au bord gauche x=0, ajusté finement au texte avec ~5-8% de marge, centré sur le logo à droite)
                 const wLogo = 320;
                 const logoH = logoRef.current ? (logoRef.current.height * wLogo) / logoRef.current.width : 65.5;
                 const yOffset = bgVideo ? 70 : 20;
-                const bandeauH = Math.max(76, Math.round(logoH + 10));
-                // Centré verticalement sur la ligne médiane du logo Dropsiders
+                // Centre vertical exact du logo Dropsiders
                 const logoCenterY = yOffset + (logoH / 2);
-                const bandeauY = logoCenterY - (bandeauH / 2);
-                const bandeauCenterY = logoCenterY;
 
                 const lateralLabel = (concoursLateralText || 'JEUX CONCOURS').toUpperCase();
-                ctx.font = '900 italic 34px "Montserrat", sans-serif';
+                const textFontSize = 32;
+                ctx.font = `900 italic ${textFontSize}px "Montserrat", sans-serif`;
                 const textMetrics = ctx.measureText(lateralLabel);
-                const bandeauW = Math.max(370, Math.round(textMetrics.width + 80));
+
+                // Épaisseur bandeau adaptée au texte : hauteur proportionnée (texte ~32px + ~5-8% de padding haut/bas)
+                const bandeauH = 48; // Fin et élégant, parfaitement proportionné au texte
+                const bandeauY = Math.round(logoCenterY - (bandeauH / 2));
+                const bandeauCenterY = logoCenterY;
+                const bandeauW = Math.max(340, Math.round(textMetrics.width + 60));
 
                 // Bandeau qui part du bord gauche (x = 0) - fond violet avec cadre/bordure violette
                 const opacity = concoursLateralOpacity !== undefined ? concoursLateralOpacity : 0.40;
                 ctx.fillStyle = `rgba(112, 0, 255, ${opacity})`;
                 ctx.beginPath();
-                ctx.roundRect(0, bandeauY, bandeauW, bandeauH, [0, 14, 14, 0]);
+                ctx.roundRect(0, bandeauY, bandeauW, bandeauH, [0, 12, 12, 0]);
                 ctx.fill();
 
                 // Cadre / liseré violet lumineux autour du bandeau
                 ctx.strokeStyle = 'rgba(168, 85, 247, 0.85)';
-                ctx.lineWidth = 2.5;
+                ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Texte centré optiquement
-                ctx.fillStyle = concoursBadgeTextColor || '#ffe600';
+                // Texte blanc, centré optiquement par rapport au logo et au cadre
+                ctx.fillStyle = concoursBadgeTextColor || '#ffffff';
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-                ctx.shadowBlur = 12;
+                ctx.shadowBlur = 10;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 5);
+                ctx.fillText(lateralLabel, bandeauW / 2, bandeauCenterY + 2);
 
                 // 2. TEXTE EN BAS SUR LE FONDU (Style identique à NEWS, sans boîte opaque)
                 const festName = (concoursFestivalName || festivalNameText || 'NOM DU FESTIVAL').toUpperCase();
                 const headlineText = 'GAGNE TES INVITATIONS POUR';
                 const subtitleText = "POUR PARTICIPER C'EST TRÈS SIMPLE :";
 
-                // Positionnement vertical sur le fondu (plus bas pour bien respirer)
+                // Positionnement vertical sur le fondu
                 const baseStartY = effectiveTab === 'PUBLICATION' ? 950 : 1380;
                 let curY = baseStartY;
 
@@ -2072,7 +2075,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ctx.fillText(subtitleText, canvas.width / 2, curY);
 
                 // D) CONDITIONS DE PARTICIPATION FIXES (Flottant sur le fondu comme NEWS)
-                curY += 46;
+                // Espacement augmenté de 10% (de 46px à 52px) pour bien décoller du titre
+                curY += 52;
                 const rawHandle = concoursFestivalHandle.trim();
                 const festHandle = rawHandle
                     ? (rawHandle.startsWith('@') ? rawHandle : `@${rawHandle}`)
@@ -2086,7 +2090,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                 ];
 
                 let ruleFontSize = effectiveTab === 'PUBLICATION' ? 24 : 26;
-                const ruleLineHeight = effectiveTab === 'PUBLICATION' ? 44 : 50;
+                // Interligne augmenté de ~10% également pour aérer les étapes
+                const ruleLineHeight = effectiveTab === 'PUBLICATION' ? 48 : 55;
 
                 ctx.font = `800 italic ${ruleFontSize}px "Montserrat", sans-serif`;
                 fixedSteps.forEach(step => {
