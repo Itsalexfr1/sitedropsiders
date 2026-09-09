@@ -46,23 +46,6 @@
     "country": "Espagne"
   },
   {
-    "id": 263,
-    "title": "Anyma presents AEden",
-    "date": "2026-09-08",
-    "startDate": "2026-09-08",
-    "endDate": "2026-09-08",
-    "location": "UNVRS IBIZA",
-    "type": "Résidence",
-    "image": "https://images.squarespace-cdn.com/content/v1/668f83b1434d1b695f80dde1/4e0a768e-19ab-4449-ae8b-052bfbe0edf2/ANYMA-AEDEN-GLOBAL-FINAL-_05.jpg",
-    "url": "https://www.unvrs.com/events/2026/anyma",
-    "genre": "Melodic Techno",
-    "month": "SEPTEMBRE",
-    "isWeekly": true,
-    "isSoldOut": false,
-    "country": "ESPAGNE",
-    "isLiveDropsiders": false
-  },
-  {
     "id": 269,
     "title": "Adriatique présent X",
     "date": "2026-09-17",
