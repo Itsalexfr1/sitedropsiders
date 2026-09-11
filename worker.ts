@@ -338,6 +338,12 @@ export default {
             return new Response(null, { headers });
         }
 
+        // Geolocation endpoint (Cloudflare IP Country)
+        if (path === '/api/geo') {
+            const country = request.cf?.country || request.headers.get('cf-ipcountry') || null;
+            return new Response(JSON.stringify({ country }), { headers });
+        }
+
         // --- AUTH CHECK ---
         const decodePass = (p: string) => p && p.startsWith('b64:') ? atob(p.slice(4)) : p;
         const adminPassword = (env.ADMIN_PASSWORD || '').trim();

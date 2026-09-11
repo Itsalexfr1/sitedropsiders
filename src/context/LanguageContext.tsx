@@ -1,35 +1,88 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { translations } from '../data/translations';
+import {
+    getInitialGuessedLanguage,
+    detectUserCountryAndLanguage,
+    isFrancophoneCountry,
+    type SupportedLanguage
+} from '../utils/geoLanguage';
 
-type Language = 'fr' | 'en';
+type Language = SupportedLanguage;
 
 interface LanguageContextType {
     language: Language;
     setLanguage: (lang: Language) => void;
     t: (key: string) => string;
+    country: string | null;
+    isFrancophone: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-import { translations } from '../data/translations';
-
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [language, setLanguageState] = useState<Language>('fr');
+    // Initial state: respect manual choice if set, otherwise use fast synchronous heuristic
+    const [language, setLanguageState] = useState<Language>(() => {
+        try {
+            const isManual = localStorage.getItem('dropsiders_manual_lang') === 'true';
+            const storedLang = localStorage.getItem('language') as Language;
+            if (isManual && (storedLang === 'fr' || storedLang === 'en')) {
+                return storedLang;
+            }
+        } catch {
+            // ignore localStorage errors (e.g. private mode)
+        }
+        return getInitialGuessedLanguage();
+    });
+
+    const [country, setCountry] = useState<string | null>(() => {
+        try {
+            return localStorage.getItem('dropsiders_geo_country') || null;
+        } catch {
+            return null;
+        }
+    });
 
     useEffect(() => {
-        const storedLang = localStorage.getItem('language') as Language;
-        if (storedLang && (storedLang === 'fr' || storedLang === 'en')) {
-            setLanguageState(storedLang);
-        } else {
-            // Detect browser language
-            const browserLang = navigator.language.startsWith('fr') ? 'fr' : 'en';
-            setLanguageState(browserLang);
+        let hasManualPreference = false;
+        try {
+            hasManualPreference = localStorage.getItem('dropsiders_manual_lang') === 'true';
+        } catch {
+            // ignore
         }
+
+        let isMounted = true;
+        detectUserCountryAndLanguage().then(({ country: detectedCountry, language: detectedLang }) => {
+            if (!isMounted) return;
+
+            if (detectedCountry) {
+                setCountry(detectedCountry);
+            }
+
+            // If user has not explicitly set a manual preference, apply the detected country language
+            if (!hasManualPreference) {
+                setLanguageState(detectedLang);
+                try {
+                    localStorage.setItem('language', detectedLang);
+                } catch {
+                    // ignore
+                }
+            }
+        });
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
-        localStorage.setItem('language', lang);
+        try {
+            localStorage.setItem('language', lang);
+            localStorage.setItem('dropsiders_manual_lang', 'true');
+        } catch {
+            // ignore
+        }
     };
 
     const t = (key: string): string => {
@@ -41,8 +94,10 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return translation[language];
     };
 
+    const isFrancophone = country ? isFrancophoneCountry(country) : language === 'fr';
+
     return (
-        <LanguageContext.Provider value={{ language, setLanguage, t }}>
+        <LanguageContext.Provider value={{ language, setLanguage, t, country, isFrancophone }}>
             {children}
         </LanguageContext.Provider>
     );
@@ -55,3 +110,4 @@ export const useLanguage = () => {
     }
     return context;
 };
+
