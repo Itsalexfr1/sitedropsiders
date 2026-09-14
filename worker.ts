@@ -9400,7 +9400,7 @@ const contentType = response.headers.get("content-type");
             await saveGitHubFile(CONTACTS_PATH, contacts, `[EMAIL] Reçu sur ${toAddress} de ${fromAddress} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
             console.log(`[EMAIL WORKER] Successfully saved email ${newMsg.id} to contacts.json`);
 
-            // 2. Notify contact@dropsiders.fr via Brevo
+            // 2. Notify alexflex30@gmail.com via Brevo
             const BREVO_KEY = env.BREVO_API_KEY;
             if (BREVO_KEY) {
                 const previewText = textContent.length > 300 ? textContent.slice(0, 300) + '...' : textContent;
@@ -9413,7 +9413,7 @@ const contentType = response.headers.get("content-type");
                     },
                     body: JSON.stringify({
                         sender: { name: 'Dropsiders Mailer', email: 'bot@dropsiders.fr' },
-                        to: [{ email: 'contact@dropsiders.fr', name: 'Alex' }],
+                        to: [{ email: 'alexflex30@gmail.com', name: 'Alex' }],
                         subject: `[NOUVEAU MAIL SUR ${toAddress}] ${fromName} : ${subject}`,
                         htmlContent: `
                             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; background: #0c0d10; color: #ffffff;">
