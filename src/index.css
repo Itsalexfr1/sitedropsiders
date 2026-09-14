@@ -994,3 +994,40 @@ body {
 .pt-safe {
   padding-top: env(safe-area-inset-top) !important;
 }
+
+/* Email HTML content responsive formatting for mobile */
+.email-html-content {
+  max-width: 100% !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  box-sizing: border-box !important;
+}
+
+.email-html-content table {
+  width: 100% !important;
+  max-width: 100% !important;
+  table-layout: auto !important;
+}
+
+.email-html-content td,
+.email-html-content th {
+  max-width: 100% !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  box-sizing: border-box !important;
+}
+
+.email-html-content img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.email-html-content pre,
+.email-html-content code {
+  white-space: pre-wrap !important;
+  word-break: break-all !important;
+}
+
+.email-html-content a {
+  word-break: break-all !important;
+}

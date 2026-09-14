@@ -152,14 +152,14 @@ export function AdminMessages() {
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [notification, setNotification] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
     const [mailboxTab, setMailboxTab] = useState<'inbox' | 'sent' | 'archived'>('inbox');
-    const [sentMessages, setSentMessages] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string }[]>(() => {
+    const [sentMessages, setSentMessages] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string; attachments?: { name: string; url?: string; size: number }[] }[]>(() => {
         try { return JSON.parse(localStorage.getItem('dropsiders_sent_messages') || '[]'); } catch { return []; }
     });
     const [archivedMessages, setArchivedMessages] = useState<ContactMessage[]>(() => {
         try { return JSON.parse(localStorage.getItem('dropsiders_archived_messages') || '[]'); } catch { return []; }
     });
 
-    const [selectedSent, setSelectedSent] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string } | null>(null);
+    const [selectedSent, setSelectedSent] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string; attachments?: { name: string; url?: string; size: number }[] } | null>(null);
     const [selectedArchived, setSelectedArchived] = useState<ContactMessage | null>(null);
 
     // Bulk selection state
@@ -456,6 +456,21 @@ export function AdminMessages() {
 
             if (res.ok) {
                 setReplyStatus('success');
+                // Archive in sent box
+                const sent = {
+                    id: Date.now().toString(),
+                    to: to,
+                    subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
+                    body: replyBody,
+                    date: new Date().toISOString(),
+                    signer: signatureName || 'Dropsiders',
+                    attachments: attachments.map(a => ({ name: a.name, size: a.size }))
+                };
+                setSentMessages(prev => {
+                    const next = [sent, ...prev];
+                    localStorage.setItem('dropsiders_sent_messages', JSON.stringify(next));
+                    return next;
+                });
                 setReplyBody('');
                 setAttachments([]);
                 // On vide les cadres de saisie
@@ -469,20 +484,6 @@ export function AdminMessages() {
                 setDjName('');
                 setInterviewDate('');
                 setInterviewFestival('');
-                // Archive in sent box
-                const sent = {
-                    id: Date.now().toString(),
-                    to: to,
-                    subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
-                    body: replyBody,
-                    date: new Date().toISOString(),
-                    signer: signatureName || 'Dropsiders'
-                };
-                setSentMessages(prev => {
-                    const next = [sent, ...prev];
-                    localStorage.setItem('dropsiders_sent_messages', JSON.stringify(next));
-                    return next;
-                });
                 if (selected && !isNewMail) {
                     setMessages(prev => prev.map(m => m.id === selected.id ? { ...m, replied: true } : m));
                     setSelected(prev => prev ? { ...prev, replied: true } : prev);
@@ -784,35 +785,35 @@ Alex (Dropsiders)`;
     };
 
     return (
-        <div className="min-h-screen text-white" style={{ background: 'linear-gradient(135deg, #0d0d0f 0%, #111318 50%, #0d0f14 100%)' }}>
+        <div className="min-h-screen text-white overflow-x-hidden" style={{ background: 'linear-gradient(135deg, #0d0d0f 0%, #111318 50%, #0d0f14 100%)' }}>
             {/* Header */}
             <div className="sticky top-0 z-30 backdrop-blur-2xl" style={{ background: 'rgba(13,13,15,0.85)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="max-w-full mx-auto px-4 md:px-10 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                        <Link to="/admin" className="p-2 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-white/8 group" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="max-w-full mx-auto px-3 sm:px-6 md:px-10 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        <Link to="/admin" className="p-2 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-white/8 group shrink-0" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                         </Link>
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, rgba(255,18,65,0.2), rgba(255,18,65,0.05))', border: '1px solid rgba(255,18,65,0.25)' }}>
-                                <Inbox className="w-4.5 h-4.5 text-neon-red" />
+                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, rgba(255,18,65,0.2), rgba(255,18,65,0.05))', border: '1px solid rgba(255,18,65,0.25)' }}>
+                                <Inbox className="w-4 h-4 text-neon-red" />
                             </div>
-                            <div>
-                                <h1 className="text-base md:text-lg font-display font-black uppercase italic tracking-tight text-white leading-tight">
+                            <div className="min-w-0">
+                                <h1 className="text-sm sm:text-base md:text-lg font-display font-black uppercase italic tracking-tight text-white leading-tight truncate">
                                     Messagerie <span className="text-neon-red">& Contacts</span>
                                 </h1>
-                                <p className="text-gray-500 text-[10px] font-medium">{filteredMessages.length} messages&nbsp;·&nbsp;<span className={unreadCount > 0 ? 'text-neon-red font-bold' : ''}>{unreadCount} non lu{unreadCount > 1 ? 's' : ''}</span></p>
+                                <p className="text-gray-500 text-[10px] font-medium truncate">{filteredMessages.length} messages&nbsp;·&nbsp;<span className={unreadCount > 0 ? 'text-neon-red font-bold' : ''}>{unreadCount} non lu{unreadCount > 1 ? 's' : ''}</span></p>
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
                         {bulkSelectMode && bulkSelected.size > 0 && (
                             <button
                                 onClick={() => setBulkDeleteConfirm(true)}
-                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all animate-pulse"
+                                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all animate-pulse"
                                 style={{ background: 'linear-gradient(135deg, #cc0030, #880020)', boxShadow: '0 4px 20px rgba(255,18,65,0.4)' }}
                             >
-                                <Trash2 className="w-3 h-3" />
-                                Supprimer ({bulkSelected.size})
+                                <Trash2 className="w-3 h-3 shrink-0" />
+                                <span>Supprimer ({bulkSelected.size})</span>
                             </button>
                         )}
                         <button
@@ -822,11 +823,11 @@ Alex (Dropsiders)`;
                                     return !prev;
                                 });
                             }}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all"
                             style={{ background: bulkSelectMode ? 'rgba(255,18,65,0.15)' : 'rgba(255,255,255,0.06)', border: bulkSelectMode ? '1px solid rgba(255,18,65,0.4)' : '1px solid rgba(255,255,255,0.1)', color: bulkSelectMode ? '#ff1241' : 'rgba(255,255,255,0.6)' }}
                         >
-                            <CheckCircle2 className="w-3 h-3" />
-                            <span className="hidden sm:inline">{bulkSelectMode ? 'Annuler sélection' : 'Sélectionner'}</span>
+                            <CheckCircle2 className="w-3 h-3 shrink-0" />
+                            <span>{bulkSelectMode ? 'Annuler' : 'Sélectionner'}</span>
                         </button>
                         <button
                             onClick={() => {
@@ -846,15 +847,16 @@ Alex (Dropsiders)`;
                                 setDjName('');
                                 setInterviewDate('');
                                 setInterviewFestival('');
+                                setAttachments([]);
                                 setReplyBody(getPressReleaseTemplate('FR', ''));
                                 setReplyModal(true);
                             }}
-                            className="flex-1 md:flex-none justify-center px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg"
+                            className="flex-1 sm:flex-none justify-center px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 sm:gap-2 shadow-lg"
                             style={{ background: 'linear-gradient(135deg, #ff1241, #cc0030)', boxShadow: '0 4px 20px rgba(255,18,65,0.25)' }}
                         >
-                            <Send className="w-3 h-3" />
-                            <span className="hidden sm:inline">Nouveau Message</span>
-                            <span className="sm:hidden">Nouveau</span>
+                            <Send className="w-3 h-3 shrink-0" />
+                            <span className="hidden xs:inline">Nouveau Message</span>
+                            <span className="xs:hidden">Nouveau</span>
                         </button>
                         {unreadCount > 0 && (
                             <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-[9px] font-black uppercase tracking-widest" style={{ background: 'rgba(255,18,65,0.15)', border: '1px solid rgba(255,18,65,0.3)' }}>
@@ -884,32 +886,32 @@ Alex (Dropsiders)`;
                 )}
             </AnimatePresence>
 
-            <div className={`max-w-full mx-auto flex h-[calc(100vh-60px)] px-0 md:px-8`}>
+            <div className={`max-w-full mx-auto flex h-[calc(100dvh-60px)] px-0 md:px-8`}>
                 {/* LEFT: Message List */}
-                <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-[650px] flex-shrink-0 flex-col`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className={`${(selected || selectedSent || selectedArchived) ? 'hidden md:flex' : 'flex'} w-full md:w-[500px] lg:w-[550px] xl:w-[600px] flex-shrink-0 flex-col`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                     {/* Inbox / Sent tabs */}
-                    <div className="flex shrink-0 overflow-x-auto no-scrollbar px-3 pt-3 gap-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="flex shrink-0 px-2 pt-2 gap-1 overflow-x-auto no-scrollbar" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                         {[
-                            { id: 'inbox', label: 'Reçus', icon: <Inbox className="w-3 h-3" />, count: filteredMessages.length, color: '#ff1241', active: mailboxTab === 'inbox', onClick: () => { setMailboxTab('inbox'); setSelectedSent(null); setSelectedArchived(null); } },
-                            { id: 'sent', label: 'Envoyés', icon: <Send className="w-3 h-3" />, count: sentMessages.length, color: '#00FFFF', active: mailboxTab === 'sent', onClick: () => { setMailboxTab('sent'); setSelected(null); setSelectedArchived(null); } },
-                            { id: 'archived', label: 'Archivés', icon: <Archive className="w-3 h-3" />, count: archivedMessages.length, color: '#BF00FF', active: mailboxTab === 'archived', onClick: () => { setMailboxTab('archived'); setSelected(null); setSelectedSent(null); } }
+                            { id: 'inbox', label: 'Reçus', icon: <Inbox className="w-3 h-3 shrink-0" />, count: filteredMessages.length, color: '#ff1241', active: mailboxTab === 'inbox', onClick: () => { setMailboxTab('inbox'); setSelectedSent(null); setSelectedArchived(null); } },
+                            { id: 'sent', label: 'Envoyés', icon: <Send className="w-3 h-3 shrink-0" />, count: sentMessages.length, color: '#00FFFF', active: mailboxTab === 'sent', onClick: () => { setMailboxTab('sent'); setSelected(null); setSelectedArchived(null); } },
+                            { id: 'archived', label: 'Archivés', icon: <Archive className="w-3 h-3 shrink-0" />, count: archivedMessages.length, color: '#BF00FF', active: mailboxTab === 'archived', onClick: () => { setMailboxTab('archived'); setSelected(null); setSelectedSent(null); } }
                         ].map(tab => (
                             <button
                                 key={tab.id}
                                 onClick={tab.onClick}
-                                className={`flex-1 min-w-[90px] pb-2.5 pt-1 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all relative`}
+                                className={`flex-1 min-w-0 pb-2.5 pt-1.5 text-[9px] sm:text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 sm:gap-1.5 transition-all relative`}
                                 style={{ borderBottom: tab.active ? `2px solid ${tab.color}` : '2px solid transparent', color: tab.active ? 'white' : 'rgba(255,255,255,0.35)' }}
                             >
                                 {tab.icon}
-                                {tab.label}
-                                <span className="px-1.5 py-0.5 rounded-full text-[8px]" style={{ background: tab.active && tab.id === 'inbox' && unreadCount > 0 ? tab.color : 'rgba(255,255,255,0.08)', color: tab.active && tab.id === 'inbox' && unreadCount > 0 ? 'white' : 'rgba(255,255,255,0.4)' }}>
+                                <span className="truncate">{tab.label}</span>
+                                <span className="px-1.5 py-0.5 rounded-full text-[8px] shrink-0" style={{ background: tab.active && tab.id === 'inbox' && unreadCount > 0 ? tab.color : 'rgba(255,255,255,0.08)', color: tab.active && tab.id === 'inbox' && unreadCount > 0 ? 'white' : 'rgba(255,255,255,0.4)' }}>
                                     {tab.count}
                                 </span>
                             </button>
                         ))}
                     </div>
                     {isAlex && (
-                        <div className="flex flex-wrap gap-1.5 p-2.5 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <div className="flex items-center gap-1.5 p-2 overflow-x-auto no-scrollbar shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                             {[
                                 { id: 'all', label: 'Tous', emoji: '📥' },
                                 { id: 'general', label: 'Général', emoji: '📬' },
@@ -921,7 +923,7 @@ Alex (Dropsiders)`;
                                 const msgCount = filter.id === 'all'
                                     ? messages.length
                                     : filter.id === 'general'
-                                        ? messages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'general').length
+                                        ? messages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general').length
                                         : messages.filter(m => {
                                             const recip = (m.recipient || '').toLowerCase();
                                             return recip === `${filter.id}@dropsiders.fr` || recip === filter.id;
@@ -935,7 +937,7 @@ Alex (Dropsiders)`;
                                     <button
                                         key={filter.id}
                                         onClick={() => { setSelectedEditorFilter(filter.id); setSelected(null); setSelectedArchived(null); }}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap"
+                                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap shrink-0"
                                         style={tabStyle}
                                     >
                                         {filter.label}
@@ -1141,49 +1143,56 @@ Alex (Dropsiders)`;
                 </div>
 
                 {/* RIGHT: Message Detail */}
-                <div className={`${(selected || selectedSent || selectedArchived) ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto flex-col`} style={{ background: 'rgba(255,255,255,0.015)' }}>
+                <div className={`${(selected || selectedSent || selectedArchived) ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto flex-col max-w-full`} style={{ background: 'rgba(255,255,255,0.015)' }}>
                     {(selected || selectedSent || selectedArchived) ? (
                         <motion.div
                             key={selected?.id || selectedSent?.id || selectedArchived?.id}
                             initial={{ opacity: 0, x: 16 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="p-4 md:p-8 max-w-full"
+                            className="p-3.5 sm:p-6 md:p-8 max-w-full overflow-hidden"
                         >
                             {/* Mobile Back Button */}
                             <button
                                 onClick={() => { setSelected(null); setSelectedSent(null); setSelectedArchived(null); }}
-                                className="md:hidden flex items-center gap-2 text-neon-cyan hover:text-white mb-6 p-2 bg-neon-cyan/5 border border-neon-cyan/10 rounded-xl uppercase text-[10px] font-black tracking-widest transition-all active:scale-95 w-fit"
+                                className="md:hidden flex items-center gap-2 text-neon-cyan hover:text-white mb-4 px-3 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl uppercase text-[10px] font-black tracking-wider transition-all active:scale-95 w-fit"
                             >
-                                <ArrowLeft className="w-4 h-4" /> Retour à la liste
+                                <ArrowLeft className="w-4 h-4 shrink-0" /> Retour aux messages
                             </button>
                             {/* Message Header */}
-                            <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-8 gap-6">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${(selected || selectedArchived) ? getSubjectColor((selected || selectedArchived)!.subject) : 'text-neon-cyan border-neon-cyan/20 bg-neon-cyan/5'}`}>
+                            <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-6 gap-4">
+                                <div className="min-w-0 max-w-full">
+                                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                        <span className={`px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-wider border max-w-full truncate inline-block ${(selected || selectedArchived) ? getSubjectColor((selected || selectedArchived)!.subject) : 'text-neon-cyan border-neon-cyan/20 bg-neon-cyan/5'}`}>
                                             {(selected || selectedArchived)?.subject || 'MESSAGE ENVOYÉ'}
                                         </span>
+                                        {(selected || selectedArchived)?.replied && (
+                                            <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan inline-flex items-center gap-1">
+                                                <Check className="w-2.5 h-2.5" /> Répondu
+                                            </span>
+                                        )}
                                     </div>
-                                    <h2 className="text-xl md:text-2xl font-display font-black text-white italic uppercase tracking-tight mb-1">{(selected || selectedArchived)?.name || selectedSent?.to}</h2>
-                                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
-                                        <div className="flex items-center gap-1.5">
-                                            <User className="w-3.5 h-3.5" />
-                                            <span className="font-bold text-white">{(selected || selectedArchived)?.name || `De : ${selectedSent?.signer}`}</span>
+                                    <h2 className="text-lg sm:text-xl md:text-2xl font-display font-black text-white italic uppercase tracking-tight mb-2 break-words">
+                                        {(selected || selectedArchived)?.name || selectedSent?.to}
+                                    </h2>
+                                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-400 break-words">
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                            <User className="w-3.5 h-3.5 shrink-0 text-gray-500" />
+                                            <span className="font-bold text-white truncate">{(selected || selectedArchived)?.name || `De : ${selectedSent?.signer}`}</span>
                                         </div>
                                         <span className="text-gray-700">·</span>
-                                        <div className="flex items-center gap-1.5">
-                                            <Mail className="w-3.5 h-3.5" />
-                                            <a href={`mailto:${(selected || selectedArchived)?.email || selectedSent?.to}`} className="text-neon-cyan hover:underline">{(selected || selectedArchived)?.email || selectedSent?.to}</a>
+                                        <div className="flex items-center gap-1.5 min-w-0 max-w-full">
+                                            <Mail className="w-3.5 h-3.5 shrink-0 text-neon-cyan" />
+                                            <a href={`mailto:${(selected || selectedArchived)?.email || selectedSent?.to}`} className="text-neon-cyan hover:underline break-all">{(selected || selectedArchived)?.email || selectedSent?.to}</a>
                                         </div>
                                         <span className="text-gray-700">·</span>
-                                        <div className="flex items-center gap-1.5 text-gray-600">
+                                        <div className="flex items-center gap-1.5 text-gray-500 shrink-0">
                                             <Clock className="w-3.5 h-3.5" />
                                             <span>{new Date((selected || selectedArchived || selectedSent)!.date).toLocaleString('fr-FR')}</span>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2 flex-shrink-0 w-full lg:w-auto">
+                                <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto shrink-0">
                                     {(selected || selectedArchived) && (
                                         <button
                                             onClick={() => {
@@ -1200,6 +1209,7 @@ Alex (Dropsiders)`;
                                                 }
                                                 const sig = `\n\n\n`;
                                                 setReplyBody(sig);
+                                                setAttachments([]);
                                                 setReplyModal(true);
                                                 // Set cursor at beginning
                                                 setTimeout(() => {
@@ -1210,55 +1220,59 @@ Alex (Dropsiders)`;
                                                     }
                                                 }, 100);
                                             }}
-                                            className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl hover:bg-neon-cyan/20 transition-all text-xs font-black uppercase"
+                                            className="flex-1 sm:flex-none justify-center flex items-center gap-1.5 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl hover:bg-neon-cyan/20 transition-all text-[11px] font-black uppercase active:scale-95"
                                         >
-                                            <Reply className="w-4 h-4" />
-                                            Répondre
+                                            <Reply className="w-4 h-4 shrink-0" />
+                                            <span>Répondre</span>
                                         </button>
                                     )}
 
                                     {selected && (
                                         <button
                                             onClick={() => handleArchive(selected)}
-                                            className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-xl hover:bg-neon-purple/20 transition-all text-xs font-black uppercase"
+                                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-xl hover:bg-neon-purple/20 transition-all text-xs font-black uppercase active:scale-95"
                                             title="Archiver"
                                         >
-                                            <Archive className="w-4 h-4" />
+                                            <Archive className="w-4 h-4 shrink-0" />
+                                            <span className="sm:hidden text-[10px]">Archiver</span>
                                         </button>
                                     )}
 
                                     {selectedArchived && (
                                         <button
                                             onClick={() => handleUnarchive(selectedArchived)}
-                                            className="flex items-center gap-2 px-4 py-2 bg-neon-green/10 border border-neon-green/30 text-neon-green rounded-xl hover:bg-neon-green/20 transition-all text-xs font-black uppercase"
+                                            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-neon-green/10 border border-neon-green/30 text-neon-green rounded-xl hover:bg-neon-green/20 transition-all text-xs font-black uppercase active:scale-95"
                                             title="Désarchiver"
                                         >
-                                            <Inbox className="w-4 h-4" />
+                                            <Inbox className="w-4 h-4 shrink-0" />
+                                            <span className="sm:hidden text-[10px]">Restaurer</span>
                                         </button>
                                     )}
 
                                     <button
                                         onClick={() => setDeleteConfirm((selected || selectedSent || selectedArchived)!.id)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl hover:bg-neon-red/20 transition-all text-xs font-black uppercase"
+                                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl hover:bg-neon-red/20 transition-all text-xs font-black uppercase active:scale-95"
+                                        title="Supprimer"
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <Trash2 className="w-4 h-4 shrink-0" />
+                                        <span className="sm:hidden text-[10px]">Supprimer</span>
                                     </button>
                                 </div>
                             </div>
 
                             {/* Message Body */}
-                            <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                            <div className="rounded-2xl p-4 sm:p-6 max-w-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                                 {(selected || selectedArchived)?.html ? (
                                     <div 
-                                        className="leading-relaxed text-sm text-gray-200 overflow-x-auto"
+                                        className="email-html-content leading-relaxed text-sm text-gray-200 overflow-x-auto max-w-full break-words"
                                         dangerouslySetInnerHTML={{ 
                                             __html: (selected || selectedArchived)!.html! 
                                         }}
                                     />
                                 ) : (
                                     <div 
-                                        className="leading-relaxed text-sm"
-                                        style={{ color: 'rgba(255,255,255,0.75)' }}
+                                        className="leading-relaxed text-sm break-words whitespace-pre-wrap max-w-full"
+                                        style={{ color: 'rgba(255,255,255,0.75)', wordBreak: 'break-word', overflowWrap: 'anywhere' }}
                                         dangerouslySetInnerHTML={{ 
                                             __html: linkify((selected || selectedArchived)?.message || selectedSent?.body || '') 
                                         }}
@@ -1267,30 +1281,30 @@ Alex (Dropsiders)`;
                             </div>
 
                             {/* Attachments */}
-                            {((selected || selectedArchived)?.attachments?.length || 0) > 0 && (
+                            {((selected || selectedArchived || selectedSent)?.attachments?.length || 0) > 0 && (
                                 <div className="mt-6 space-y-3">
-                                    <h3 className="text-[10px] font-black uppercase text-gray-500 tracking-widest flex items-center gap-2">
-                                        <Paperclip className="w-3.5 h-3.5" /> Pièces Jointes
+                                    <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-wider flex items-center gap-2">
+                                        <Paperclip className="w-3.5 h-3.5 text-neon-orange" /> Pièces Jointes ({(selected || selectedArchived || selectedSent)?.attachments?.length})
                                     </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        {(selected || selectedArchived)?.attachments?.map((file, idx) => (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                                        {(selected || selectedArchived || selectedSent)?.attachments?.map((file, idx) => (
                                             <a
                                                 key={idx}
-                                                href={file.url}
-                                                target="_blank"
+                                                href={file.url || '#'}
+                                                target={file.url ? "_blank" : undefined}
                                                 rel="noopener noreferrer"
-                                                className="bg-white/5 border border-white/5 rounded-xl p-3 flex items-center justify-between group hover:bg-white/10 hover:border-neon-red/30 transition-all"
+                                                className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center justify-between group hover:bg-white/10 hover:border-neon-orange/30 transition-all max-w-full min-w-0"
                                             >
-                                                <div className="flex items-center gap-3 overflow-hidden">
-                                                    <div className="p-2 bg-white/5 rounded-lg group-hover:bg-neon-red/10 transition-all">
-                                                        <FileText className="w-4 h-4 text-neon-red" />
+                                                <div className="flex items-center gap-2.5 overflow-hidden min-w-0">
+                                                    <div className="p-2 bg-neon-orange/10 rounded-lg group-hover:bg-neon-orange/20 transition-all shrink-0">
+                                                        <FileText className="w-4 h-4 text-neon-orange" />
                                                     </div>
-                                                    <div className="overflow-hidden text-left">
+                                                    <div className="overflow-hidden min-w-0 text-left">
                                                         <p className="text-[11px] font-bold text-white truncate">{file.name}</p>
                                                         <p className="text-[9px] text-gray-500 font-medium">{(file.size / 1024).toFixed(0)} KB</p>
                                                     </div>
                                                 </div>
-                                                {file.url ? <ExternalLink className="w-3.5 h-3.5 text-gray-600 group-hover:text-neon-cyan" /> : null}
+                                                {file.url ? <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-neon-cyan shrink-0 ml-2" /> : null}
                                             </a>
                                         ))}
                                     </div>
@@ -1327,40 +1341,40 @@ Alex (Dropsiders)`;
                         exit={{ opacity: 0 }}
                         // Retiré : ne plus fermer au clic extérieur
                         // onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
-                        className="fixed inset-0 z-[9999] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/95 backdrop-blur-xl"
+                        className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-xl"
                     >
                         <motion.div
                             initial={{ y: 50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 50, opacity: 0 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-[#111] border-t md:border border-white/10 rounded-t-[2rem] md:rounded-[2rem] w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col h-[95vh] md:max-h-[85vh]"
+                            className="bg-[#111] border-t sm:border border-white/10 rounded-t-[1.75rem] sm:rounded-[2rem] w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col h-[94dvh] sm:h-auto sm:max-h-[88vh]"
                         >
                             {/* Sticky Header */}
-                            <div className="p-4 md:p-6 border-b border-white/10 flex items-center justify-between bg-[#111] shrink-0">
-                                <div className="min-w-0">
-                                    <h3 className="text-base md:text-lg font-black uppercase italic tracking-tight text-white line-clamp-1">
+                            <div className="p-3.5 sm:p-5 border-b border-white/10 flex items-center justify-between bg-[#111] shrink-0">
+                                <div className="min-w-0 flex-1 mr-2">
+                                    <h3 className="text-sm sm:text-base md:text-lg font-black uppercase italic tracking-tight text-white truncate">
                                         {isNewMail ? 'NOUVEAU MESSAGE' : `Répondre à ${selected?.name}`}
                                     </h3>
                                     {!isNewMail && selected && (
                                         <p className="text-[10px] text-neon-cyan/70 font-bold mt-0.5 truncate">
-                                            ✉ À : <span className="text-neon-cyan">{selected.email}</span>
+                                            ✉ À : <span className="text-neon-cyan font-mono">{selected.email}</span>
                                         </p>
                                     )}
                                 </div>
-                                <button onClick={() => { setReplyModal(false); setReplyStatus('idle'); }} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors flex-shrink-0 ml-2">
+                                <button onClick={() => { setReplyModal(false); setReplyStatus('idle'); }} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors flex-shrink-0">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
 
                             {/* Scrollable Content */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 relative">
-                                <div className="space-y-6">
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-3.5 sm:p-6 relative">
+                                <div className="space-y-4 sm:space-y-6">
                                     <div className="space-y-3">
                                         {isNewMail && (
-                                            <div className="flex flex-col gap-3">
-                                                <div className="flex items-start gap-3 w-full">
-                                                    <span className="text-[10px] font-black uppercase text-gray-500 w-24 mt-2 flex-shrink-0">Destinataires :</span>
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex flex-col sm:flex-row sm:items-start gap-1.5 sm:gap-3 w-full">
+                                                    <span className="text-[10px] font-black uppercase text-gray-400 sm:w-24 shrink-0 sm:mt-2">Destinataires :</span>
                                                     <div className="flex-1 flex flex-col gap-2">
                                                         {destinationEmails.map((email, i) => (
                                                             <div key={i} className="flex items-center gap-2">
@@ -1373,12 +1387,12 @@ Alex (Dropsiders)`;
                                                                         setDestinationEmails(newEmails);
                                                                     }}
                                                                     placeholder="email@partenaire.com"
-                                                                    className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 flex-1"
+                                                                    className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 flex-1 min-w-0"
                                                                 />
                                                                 {destinationEmails.length > 1 && (
                                                                     <button
                                                                         onClick={() => setDestinationEmails(destinationEmails.filter((_, index) => index !== i))}
-                                                                        className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:border-neon-red hover:text-neon-red text-gray-400 transition-all flex-shrink-0"
+                                                                        className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:border-neon-red hover:text-neon-red text-gray-400 transition-all shrink-0"
                                                                     >
                                                                         <X className="w-4 h-4" />
                                                                     </button>
@@ -1387,7 +1401,7 @@ Alex (Dropsiders)`;
                                                         ))}
                                                         <button
                                                             onClick={() => setDestinationEmails([...destinationEmails, ''])}
-                                                            className="self-start mt-1 px-3 py-1 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 hover:border-white/20 transition-all text-[9px] font-black uppercase flex items-center gap-1"
+                                                            className="self-start mt-0.5 px-3 py-1 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 hover:border-white/20 transition-all text-[9px] font-black uppercase flex items-center gap-1"
                                                         >
                                                             <Plus className="w-3 h-3" /> Ajouter un mail
                                                         </button>
@@ -1395,12 +1409,12 @@ Alex (Dropsiders)`;
                                                 </div>
                                             </div>
                                         )}
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-black uppercase text-gray-500 w-24 flex-shrink-0">Expéditeur :</span>
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                                            <span className="text-[10px] font-black uppercase text-gray-400 sm:w-24 shrink-0">Expéditeur :</span>
                                             <select
                                                 value={senderEmail}
                                                 onChange={(e) => setSenderEmail(e.target.value)}
-                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 flex-1 font-bold cursor-pointer transition-colors hover:border-white/20"
+                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 w-full sm:flex-1 font-bold cursor-pointer transition-colors hover:border-white/20"
                                             >
                                                 <option value="contact@dropsiders.fr">contact@dropsiders.fr (Principal)</option>
                                                 <option value="info@dropsiders.fr">info@dropsiders.fr (Informations)</option>
@@ -1410,8 +1424,8 @@ Alex (Dropsiders)`;
                                             </select>
                                         </div>
                                         {isNewMail && (
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-black uppercase text-gray-500 w-24">Objet :</span>
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                                                <span className="text-[10px] font-black uppercase text-gray-400 sm:w-24 shrink-0">Objet :</span>
                                                 <input
                                                     type="text"
                                                     value={mailSubject}
@@ -1422,15 +1436,15 @@ Alex (Dropsiders)`;
                                                     autoCorrect="on"
                                                     autoComplete="on"
                                                     placeholder="Sujet du mail"
-                                                    className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-white/20 flex-1 font-bold"
+                                                    className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 w-full sm:flex-1 font-bold"
                                                 />
                                             </div>
                                         )}
                                         <div className="flex flex-col gap-2">
-                                            <span className="text-[10px] font-black uppercase text-gray-500 flex items-center gap-2">
+                                            <span className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2">
                                                 <User className="w-3 h-3" /> Signé par : <span className="text-neon-red">*</span>
                                             </span>
-                                            <div className="flex flex-wrap gap-2">
+                                            <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                                 {editors.filter((e: any) => e && (e.username || e.name)).map((editor: any) => {
                                                     const uname = editor.username || editor.name || 'Admin';
                                                     const displayName = editor.name || editor.username || 'Admin';
@@ -1441,7 +1455,7 @@ Alex (Dropsiders)`;
                                                             key={uname}
                                                             type="button"
                                                             onClick={() => setSignatureName(displayName)}
-                                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${isSelected
+                                                            className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border flex items-center gap-1.5 sm:gap-2 shrink-0 ${isSelected
                                                                 ? 'text-black shadow-lg'
                                                                 : 'bg-black/40 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
                                                                 }`}
@@ -1452,7 +1466,7 @@ Alex (Dropsiders)`;
                                                             } : {}}
                                                         >
                                                             <div
-                                                                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black"
+                                                                className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[8px] font-black shrink-0"
                                                                 style={{
                                                                     backgroundColor: isSelected ? 'rgba(0,0,0,0.3)' : `${editorColor}20`,
                                                                     color: isSelected ? 'black' : editorColor
@@ -1460,7 +1474,7 @@ Alex (Dropsiders)`;
                                                             >
                                                                 {displayName.charAt(0)}
                                                             </div>
-                                                            {displayName}
+                                                            <span>{displayName}</span>
                                                         </button>
                                                     );
                                                 })}
@@ -1474,7 +1488,7 @@ Alex (Dropsiders)`;
                                     </div>
 
                                     {isNewMail && (
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
                                             <button
                                                 onClick={() => {
                                                     setIsAccreditationMode(false);
@@ -1483,9 +1497,9 @@ Alex (Dropsiders)`;
                                                     setReplyBody('');
                                                     setMailSubject('');
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-1.5 ${(!isAccreditationMode && !isPhotoAccreditationMode && !isInterviewMode && !replyBody) ? 'bg-white/20 border-white/40 text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border flex items-center gap-1.5 ${(!isAccreditationMode && !isPhotoAccreditationMode && !isInterviewMode && !replyBody) ? 'bg-white/20 border-white/40 text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
-                                                <FileText className="w-3 h-3" /> Mail Vide
+                                                <FileText className="w-3 h-3 shrink-0" /> Mail Vide
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -1499,7 +1513,7 @@ Alex (Dropsiders)`;
                                                         setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
                                                     }
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${(!isAccreditationMode && !isPhotoAccreditationMode && !isInterviewMode && replyBody) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${(!isAccreditationMode && !isPhotoAccreditationMode && !isInterviewMode && replyBody) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
                                                 Communiqué Standard
                                             </button>
@@ -1509,7 +1523,7 @@ Alex (Dropsiders)`;
                                                     setIsPhotoAccreditationMode(false);
                                                     setIsInterviewMode(false);
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isAccreditationMode ? 'bg-neon-purple border-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${isAccreditationMode ? 'bg-neon-purple border-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
                                                 Demande Accréditation
                                             </button>
@@ -1519,7 +1533,7 @@ Alex (Dropsiders)`;
                                                     setIsAccreditationMode(false);
                                                     setIsInterviewMode(false);
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isPhotoAccreditationMode ? 'bg-neon-blue border-neon-blue text-white shadow-[0_0_15px_rgba(0,191,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-wider transition-all border ${isPhotoAccreditationMode ? 'bg-neon-blue border-neon-blue text-white shadow-[0_0_15px_rgba(0,191,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
                                                 Accréditation Photo
                                             </button>
@@ -1736,36 +1750,54 @@ Alex (Dropsiders)`;
                                         </div>
                                     </div>
                                     
-                                    <div className="space-y-2 mt-4 bg-[#111] border border-white/5 p-4 rounded-xl">
-                                        <div className="flex items-center justify-between px-1 mb-2">
-                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                                <Paperclip className="w-3 h-3 text-neon-orange" /> Fichiers joints au message (Max 20Mo)
+                                    {/* Attachment Section */}
+                                    <div className="space-y-3 bg-[#161618] border border-white/10 p-3.5 sm:p-4 rounded-2xl">
+                                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                                            <div className="flex items-center gap-2">
+                                                <Paperclip className="w-4 h-4 text-neon-orange shrink-0" />
+                                                <span className="text-[10px] font-black text-gray-200 uppercase tracking-wider">
+                                                    Pièces jointes {attachments.length > 0 && `(${attachments.length})`}
+                                                </span>
+                                                <span className="text-[9px] text-gray-500 font-medium">
+                                                    (Max 20 Mo)
+                                                </span>
+                                            </div>
+                                            <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-neon-orange/15 border border-neon-orange/40 hover:bg-neon-orange/25 text-neon-orange rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95">
+                                                <Plus className="w-3.5 h-3.5" />
+                                                <span>Ajouter un fichier</span>
+                                                <input type="file" multiple onChange={handleFileChange} className="hidden" accept="*/*" />
                                             </label>
                                         </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                                            {attachments.map((file, idx) => (
-                                                <div key={idx} className="bg-white/5 border border-white/5 rounded-xl p-2.5 flex items-center justify-between group">
-                                                    <div className="flex items-center gap-2 overflow-hidden">
-                                                        <FileIcon className="w-3.5 h-3.5 text-neon-orange shrink-0" />
-                                                        <span className="text-[10px] font-bold text-white truncate">{file.name}</span>
+
+                                        {attachments.length > 0 ? (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
+                                                {attachments.map((file, idx) => (
+                                                    <div key={idx} className="bg-white/5 border border-white/10 rounded-xl p-2.5 flex items-center justify-between gap-2 group">
+                                                        <div className="flex items-center gap-2 overflow-hidden min-w-0">
+                                                            <FileIcon className="w-4 h-4 text-neon-orange shrink-0" />
+                                                            <div className="min-w-0">
+                                                                <p className="text-[10px] font-bold text-white truncate">{file.name}</p>
+                                                                <p className="text-[8px] text-gray-400">{(file.size / 1024).toFixed(0)} KB</p>
+                                                            </div>
+                                                        </div>
+                                                        <button type="button" onClick={() => removeAttachment(idx)} className="p-1 hover:text-neon-red text-gray-400 hover:bg-white/10 rounded-lg transition-colors shrink-0" title="Supprimer">
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
                                                     </div>
-                                                    <button type="button" onClick={() => removeAttachment(idx)} className="p-1 hover:text-neon-red transition-colors shrink-0">
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            <label className="block w-full">
-                                                <input type="file" multiple onChange={handleFileChange} className="hidden" />
-                                                <div className="border border-dashed border-white/10 hover:border-neon-orange/50 hover:bg-neon-orange/5 rounded-xl p-2.5 flex items-center justify-center gap-2 cursor-pointer transition-all group h-full h-10">
-                                                    <Plus className="w-3.5 h-3.5 text-gray-500 group-hover:text-neon-orange" />
-                                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-gray-300">Ajouter</span>
-                                                </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <label className="border border-dashed border-white/10 hover:border-neon-orange/50 hover:bg-neon-orange/5 rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer transition-all group">
+                                                <Plus className="w-4 h-4 text-gray-500 group-hover:text-neon-orange" />
+                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider group-hover:text-gray-300">Cliquez pour joindre un fichier (PDF, photo, document...)</span>
+                                                <input type="file" multiple onChange={handleFileChange} className="hidden" accept="*/*" />
                                             </label>
-                                        </div>
+                                        )}
+
                                         {replyStatus === 'error' && (
-                                            <div className="flex items-center justify-center gap-3 p-4 bg-neon-red/10 border border-neon-red/30 rounded-2xl mt-4">
-                                                <AlertCircle className="w-5 h-5 text-neon-red" />
-                                                <p className="text-neon-red text-[11px] font-black uppercase italic tracking-widest">⚠ {replyError}</p>
+                                            <div className="flex items-center justify-center gap-3 p-3.5 bg-neon-red/10 border border-neon-red/30 rounded-2xl mt-2">
+                                                <AlertCircle className="w-4 h-4 text-neon-red shrink-0" />
+                                                <p className="text-neon-red text-[11px] font-black uppercase italic tracking-wider break-words">⚠ {replyError}</p>
                                             </div>
                                         )}
                                     </div>
@@ -1804,20 +1836,32 @@ Alex (Dropsiders)`;
                             </div>
 
                             {/* Sticky Footer */}
-                            <div className="p-6 border-t border-white/10 flex justify-end gap-3 bg-[#111] shrink-0">
-                                <button
-                                    onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
-                                    className="px-6 py-2.5 bg-white/5 text-gray-400 font-bold uppercase rounded-xl hover:bg-white/10 text-[10px]"
-                                >
-                                    Annuler
-                                </button>
+                            <div className="p-3.5 sm:p-5 border-t border-white/10 flex items-center justify-between gap-2 sm:gap-3 bg-[#111] shrink-0">
+                                <div className="flex items-center gap-2">
+                                    <label className="cursor-pointer flex items-center gap-1.5 px-3 py-2 bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95">
+                                        <Paperclip className="w-3.5 h-3.5 text-neon-orange shrink-0" />
+                                        <span className="hidden xs:inline">Joindre</span>
+                                        {attachments.length > 0 && (
+                                            <span className="w-4 h-4 rounded-full bg-neon-orange text-black text-[9px] font-black flex items-center justify-center">
+                                                {attachments.length}
+                                            </span>
+                                        )}
+                                        <input type="file" multiple onChange={handleFileChange} className="hidden" accept="*/*" />
+                                    </label>
+                                    <button
+                                        onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
+                                        className="px-3 sm:px-4 py-2 bg-white/5 text-gray-400 font-bold uppercase rounded-xl hover:bg-white/10 text-[10px] transition-colors"
+                                    >
+                                        Annuler
+                                    </button>
+                                </div>
                                 <button
                                     onClick={handleReply}
                                     disabled={replyStatus === 'sending' || replyStatus === 'success'}
-                                    className="flex-1 md:flex-none px-8 py-3 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2 text-[11px] md:text-[10px] disabled:opacity-50 shadow-xl shadow-neon-cyan/20 active:scale-95"
+                                    className="px-5 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-xl sm:rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-2 text-[10px] sm:text-xs disabled:opacity-50 shadow-lg shadow-neon-cyan/20 active:scale-95 shrink-0"
                                 >
-                                    <Send className="w-4 h-4 md:w-3.5 md:h-3.5" />
-                                    {replyStatus === 'sending' ? 'Envoi...' : 'Envoyer via Brevo'}
+                                    <Send className="w-3.5 h-3.5 shrink-0" />
+                                    <span>{replyStatus === 'sending' ? 'Envoi...' : 'Envoyer via Brevo'}</span>
                                 </button>
                             </div>
                         </motion.div>

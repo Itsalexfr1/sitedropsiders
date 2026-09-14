@@ -6068,7 +6068,7 @@ ${urls.map(u => `  <url>
 
                 let brevoAttachments: any[] = [];
                 if (Array.isArray(attachments)) {
-                    attachments.slice(0, 5).forEach((f: any) => {
+                    attachments.slice(0, 10).forEach((f: any) => {
                         if (f.content && f.name) {
                             brevoAttachments.push({ content: f.content, name: f.name });
                         }
