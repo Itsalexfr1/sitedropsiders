@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, Tv, Plus, Trash2, ChevronUp, ChevronDown, Save, ExternalLink, 
@@ -519,7 +520,22 @@ export function AdminTVModal({
         input.click();
     };
 
-    const isOnTvPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/tv');
+    const location = useLocation();
+    const isOnTvPage = typeof window !== 'undefined' && (location.pathname.startsWith('/tv') || window.location.pathname.startsWith('/tv'));
+
+    // Handle Escape key to close modal
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
+
     const bgVideoId = playlist?.[0]?.youtubeId || 'H5QLyGiDr_0';
 
     return (

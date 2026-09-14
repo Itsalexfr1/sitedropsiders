@@ -1,9 +1,23 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 import { apiFetch } from '../utils/auth';
 import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
+
+const checkAdminAuth = () => {
+    try {
+        if (localStorage.getItem('admin_auth_v2') === 'true') return true;
+        if (localStorage.getItem('admin_auth') === 'true') return true;
+        if (localStorage.getItem('modo_auth') === 'true') return true;
+        if (localStorage.getItem('editeur_auth') === 'true') return true;
+        if (localStorage.getItem('admin_user')) return true;
+        if (localStorage.getItem('admin_password')) return true;
+        if (localStorage.getItem('admin_session_id')) return true;
+    } catch {}
+    return false;
+};
 
 const disableCaptions = (player: any) => {
     if (!player) return;
@@ -285,27 +299,31 @@ export function DropsidersTVPage() {
     const [liveSettings, setLiveSettings] = useState<any>(null);
     const [, setLoadingLive] = useState(true);
 
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [isAdminTVModalOpen, setIsAdminTVModalOpen] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const hasAdminParam = searchParams.get('admin') === 'true';
+
+    const [isAdmin, setIsAdmin] = useState(() => checkAdminAuth() || hasAdminParam);
+    const [isAdminTVModalOpen, setIsAdminTVModalOpen] = useState(() => hasAdminParam);
     const [showSchedule, setShowSchedule] = useState(false);
     const prevMuteStateRef = useRef<boolean | null>(null);
 
     const allSegments = useMemo(() => buildTVSegments(playlist, promos, durationsMap), [playlist, promos, durationsMap]);
 
     useEffect(() => {
-        try {
-            const adminAuth = localStorage.getItem('admin_auth_v2') === 'true';
-            const modoAuth = localStorage.getItem('modo_auth') === 'true';
-            const isAdm = adminAuth || modoAuth;
-            setIsAdmin(isAdm);
-
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('admin') === 'true' && isAdm) {
-                openAdminModal();
-                window.history.replaceState({}, document.title, window.location.pathname);
+        const isAdm = checkAdminAuth();
+        const adminFromUrl = searchParams.get('admin') === 'true';
+        if (isAdm || adminFromUrl) {
+            setIsAdmin(true);
+        }
+        if (adminFromUrl) {
+            setIsAdminTVModalOpen(true);
+            prevMuteStateRef.current = isMuted;
+            if (playerRef.current && typeof playerRef.current.mute === 'function') {
+                playerRef.current.mute();
             }
-        } catch {}
-    }, []);
+            setIsMuted(true);
+        }
+    }, [searchParams]);
 
     const openAdminModal = () => {
         prevMuteStateRef.current = isMuted;
@@ -318,6 +336,15 @@ export function DropsidersTVPage() {
 
     const closeAdminModal = () => {
         setIsAdminTVModalOpen(false);
+        try {
+            if (searchParams.has('admin')) {
+                const next = new URLSearchParams(searchParams);
+                next.delete('admin');
+                setSearchParams(next, { replace: true });
+            }
+        } catch {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
         if (prevMuteStateRef.current === false) {
             if (playerRef.current && typeof playerRef.current.unMute === 'function') {
                 playerRef.current.unMute();

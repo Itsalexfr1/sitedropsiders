@@ -3470,6 +3470,10 @@ export function AdminDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => {
+                    if (tab.id === "DROPSIDERS_TV") {
+                      navigate("/tv?admin=true");
+                      return;
+                    }
                     if (tab.id === "SOCIAL_STUDIO") {
                       setIsSocialModalOpen(true);
                     }
