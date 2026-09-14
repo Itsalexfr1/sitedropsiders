@@ -60,19 +60,6 @@
     "replied": false
   },
   {
-    "id": "1789407086268",
-    "name": "Alex",
-    "email": "alexflex30@gmail.com",
-    "subject": "Test",
-    "message": "\nEnvoyé de mon iPhone",
-    "html": null,
-    "recipient": "alex@dropsiders.fr",
-    "attachments": [],
-    "date": "2026-09-14T17:31:26.268Z",
-    "read": true,
-    "replied": false
-  },
-  {
     "id": "1789415533470",
     "name": "contact@dropsiders.fr",
     "email": "contact@dropsiders.fr",
