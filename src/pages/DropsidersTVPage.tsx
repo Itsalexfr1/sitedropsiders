@@ -889,16 +889,16 @@ export function DropsidersTVPage() {
                     )}
                 </AnimatePresence>
 
-                {/* Video Player Area with Zoom of 12% to crop out YouTube top header/title */}
+                {/* Video Player Area */}
                 <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black">
-                    {/* YouTube API target div with 12% zoom (increases when admin modal is open with blur) */}
+                    {/* YouTube API target div with slightly reduced zoom to keep bottom controls fully visible */}
                     <div
                         id="tv-yt-player"
                         className="w-full h-full pointer-events-none"
                         style={{
                             transform: isAdminTVModalOpen
-                                ? 'scale(1.35) translateY(-4.5%)'
-                                : 'scale(1.2) translateY(-4.5%)',
+                                ? 'scale(1.3) translateY(-4%)'
+                                : 'scale(1.12) translateY(-3.5%)',
                             transformOrigin: 'center center',
                             filter: isAdminTVModalOpen ? 'blur(20px) brightness(0.35)' : 'none',
                             transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease'
@@ -914,7 +914,7 @@ export function DropsidersTVPage() {
                     />
 
                     {/* TV Logo Watermark */}
-                    <div className="absolute bottom-6 right-6 z-20 pointer-events-none opacity-40 flex items-center gap-2">
+                    <div className="absolute bottom-20 md:bottom-24 right-6 z-20 pointer-events-none opacity-40 flex items-center gap-2">
                         <Tv className="w-5 h-5 text-neon-red" />
                         <span className="text-white font-display font-black text-xs uppercase tracking-widest">
                             DROPSIDERS <span className="text-neon-red">TV</span>
@@ -929,11 +929,11 @@ export function DropsidersTVPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute bottom-0 left-0 w-full z-30 p-4 md:p-6 bg-gradient-to-t from-black/95 via-black/60 to-transparent pointer-events-auto"
+                                className="absolute bottom-0 left-0 w-full z-30 px-4 md:px-6 pb-4 md:pb-6 pt-10 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-auto"
                             >
                                 {/* Video Info */}
-                                <div className="mb-4">
-                                    <h2 className="text-white font-display font-black text-lg md:text-2xl uppercase italic tracking-tight truncate drop-shadow-lg">
+                                <div className="mb-3">
+                                    <h2 className="text-white font-display font-black text-base md:text-xl uppercase italic tracking-tight truncate drop-shadow-lg">
                                         {currentDisplayTitle}
                                     </h2>
                                 </div>

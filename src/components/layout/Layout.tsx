@@ -45,7 +45,7 @@ export function Layout({ children }: LayoutProps) {
 
     const isHome = location.pathname === '/';
     const isMini = new URLSearchParams(location.search).get('mini') === 'true';
-    const isLivePage = location.pathname === '/live';
+    const isLivePage = location.pathname === '/live' || location.pathname === '/tv';
     const isHideLayout = location.pathname.startsWith('/admin') ||
         location.pathname.startsWith('/newsletter/admin') ||
         location.pathname.startsWith('/newsletter/studio') ||
