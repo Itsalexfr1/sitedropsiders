@@ -28,6 +28,7 @@ const AlbumDetail = lazyRetry(() => import('./pages/AlbumDetail').then(m => m.Al
 const ArticleDetail = lazyRetry(() => import('./pages/ArticleDetail').then(m => m.ArticleDetail));
 const RecapDetail = lazyRetry(() => import('./pages/RecapDetail').then(m => m.RecapDetail));
 const LivePage = lazyRetry(() => import('./pages/LivePage').then(m => m.LivePage));
+const DropsidersTVPage = lazyRetry(() => import('./pages/DropsidersTVPage').then(m => m.DropsidersTVPage));
 const PrivacyPolicy = lazyRetry(() => import('./pages/PrivacyPolicy').then(m => m.PrivacyPolicy));
 const TermsOfService = lazyRetry(() => import('./pages/TermsOfService').then(m => m.TermsOfService));
 const CookiesPolicy = lazyRetry(() => import('./pages/CookiesPolicy').then(m => m.CookiesPolicy));
@@ -196,6 +197,7 @@ const router = createBrowserRouter([
       { path: "voyage", element: <Voyage /> },
       { path: "voyage/:type", element: <Voyage /> },
       { path: "live", element: <LivePage /> },
+      { path: "tv", element: <DropsidersTVPage /> },
       { path: "news", element: <News /> },
       { path: "agenda", element: <Agenda /> },
       { path: "recaps", element: <Recap /> },
