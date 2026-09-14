@@ -525,7 +525,10 @@ export function AdminTVModal({
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md overflow-hidden">
+                <div
+                    className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md overflow-hidden"
+                    onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+                >
                     {/* Live TV Background (blurred, muted, ambient backdrop when opened from Admin) */}
                     {!isOnTvPage && (
                         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tv, Volume2, VolumeX, Volume1, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home } from 'lucide-react';
+import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 import { apiFetch } from '../utils/auth';
 import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
@@ -327,6 +327,15 @@ export function DropsidersTVPage() {
         }
         prevMuteStateRef.current = null;
     };
+
+    // Close admin modal on Escape key
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isAdminTVModalOpen) closeAdminModal();
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [isAdminTVModalOpen]);
 
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -839,16 +848,10 @@ export function DropsidersTVPage() {
                                         DROPSIDERS <span className="text-neon-red">TV</span>
                                     </span>
                                 </div>
-                                {/* Promo / Main badge */}
-                                {isPlayingPromo && currentPromoIndex !== null ? (
+                                {isPlayingPromo && currentPromoIndex !== null && (
                                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-neon-purple bg-neon-purple/10 border border-neon-purple/30">
                                         <Film className="w-3 h-3 animate-pulse" />
                                         PROMO {currentPromoIndex + 1}/{promos.length}
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-neon-red bg-neon-red/10 border border-neon-red/20">
-                                        <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
-                                        DIFFUSION CONTINUE
                                     </div>
                                 )}
 
@@ -904,6 +907,16 @@ export function DropsidersTVPage() {
                     )}
                 </AnimatePresence>
 
+                {/* Home button — always visible, top-right corner */}
+                <a
+                    href="/"
+                    className="absolute top-4 right-4 z-50 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 hover:border-white/40 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 shadow-lg"
+                    title="Retour sur le site Dropsiders"
+                >
+                    <Home className="w-3.5 h-3.5 text-neon-cyan" />
+                    <span className="hidden sm:inline">Site</span>
+                </a>
+
                 {/* Video Player Area */}
                 <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black">
                     {/* YouTube API target div with slightly reduced zoom to keep bottom controls fully visible */}
@@ -955,16 +968,7 @@ export function DropsidersTVPage() {
 
                                 {/* Controls Row */}
                                 <div className="flex items-center justify-between gap-4">
-                                    <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-                                        {/* Prev */}
-                                        <button
-                                            onClick={goPrev}
-                                            title="Vidéo précédente"
-                                            className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white"
-                                        >
-                                            <SkipBack className="w-4 h-4" />
-                                        </button>
-
+                                    <div className="flex items-center gap-2 md:gap-4">
                                         {/* Play/Pause (only from button) */}
                                         <button
                                             onClick={togglePlay}
@@ -980,15 +984,6 @@ export function DropsidersTVPage() {
                                             }}
                                         >
                                             {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
-                                        </button>
-
-                                        {/* Skip Forward */}
-                                        <button
-                                            onClick={goNext}
-                                            title="Vidéo suivante (passe directement au set suivant)"
-                                            className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white"
-                                        >
-                                            <SkipForward className="w-4 h-4" />
                                         </button>
 
                                         {/* Volume Control Group */}
