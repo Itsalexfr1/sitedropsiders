@@ -78,6 +78,11 @@
       "id": "promo_1789420138099",
       "title": "Tomorrowland Winter 2027 Promo",
       "youtubeId": "pQdsHoG2yhw"
+    },
+    {
+      "id": "promo_1789421449603",
+      "title": "EDC Orlando 2026 Official Trailer",
+      "youtubeId": "61tiIdIrjUQ"
     }
   ],
   "tv_playlist": [
@@ -87,6 +92,42 @@
       "description": "Diffusé sur DropsidersTV",
       "youtubeId": "8YbWq5urfww",
       "promos": []
+    },
+    {
+      "id": "tv_1789421420308",
+      "title": "Fisher WE2 | Tomorrowland 2026",
+      "description": "Diffusé sur DropsidersTV",
+      "youtubeId": "DuXXMZLfAkQ"
+    },
+    {
+      "id": "tv_1789421482764",
+      "title": "The Chainsmokers Live at EDC Las Vegas 2026 (Official Full Set)",
+      "description": "Diffusé sur DropsidersTV",
+      "youtubeId": "3AQ_Srbe1lQ"
+    },
+    {
+      "id": "tv_1789421504931",
+      "title": "RÜFÜS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024",
+      "description": "Diffusé sur DropsidersTV",
+      "youtubeId": "eQ-OVsdK-hM"
+    },
+    {
+      "id": "tv_1789421516069",
+      "title": "D-Block & S-te-Fan | Defqon.1 2026",
+      "description": "Diffusé sur DropsidersTV",
+      "youtubeId": "IEJUg98lIHs"
+    },
+    {
+      "id": "tv_1789421527830",
+      "title": "TOMAN | Awakenings Festival 2026",
+      "description": "Diffusé sur DropsidersTV",
+      "youtubeId": "5hj5UTZR_Ss"
+    },
+    {
+      "id": "tv_1789421557683",
+      "title": "JOHN SUMMIT LIVE @ ULTRA MIAMI MAIN STAGE 2026",
+      "description": "Diffusé sur DropsidersTV",
+      "youtubeId": "aloPGSlq31Y"
     }
   ]
 }
