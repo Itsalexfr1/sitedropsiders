@@ -296,7 +296,14 @@ export function DropsidersTVPage() {
         try {
             const adminAuth = localStorage.getItem('admin_auth_v2') === 'true';
             const modoAuth = localStorage.getItem('modo_auth') === 'true';
-            setIsAdmin(adminAuth || modoAuth);
+            const isAdm = adminAuth || modoAuth;
+            setIsAdmin(isAdm);
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('admin') === 'true' && isAdm) {
+                openAdminModal();
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         } catch {}
     }, []);
 

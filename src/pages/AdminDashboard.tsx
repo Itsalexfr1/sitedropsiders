@@ -3503,7 +3503,7 @@ export function AdminDashboard() {
               
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <button
-                  onClick={() => setIsTVModalOpen(true)}
+                  onClick={() => navigate('/tv?admin=true')}
                   className="px-8 py-4 bg-gradient-to-r from-neon-red to-neon-purple text-white font-black uppercase italic tracking-[0.15em] text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_15px_35px_rgba(255,18,65,0.3)] flex items-center gap-3"
                 >
                   <Tv className="w-5 h-5" />
@@ -4606,7 +4606,7 @@ export function AdminDashboard() {
                               action.icon === "Tv"
                             ) {
                               e.preventDefault();
-                              setIsTVModalOpen(true);
+                              navigate('/tv?admin=true');
                             } else if (action.title === "Agenda") {
                               e.preventDefault();
                               setIsAgendaModalOpen(true);
@@ -6538,7 +6538,10 @@ export function AdminDashboard() {
           {/* Modal DropsidersTV */}
           <AdminTVModal
             isOpen={isTVModalOpen}
-            onClose={() => setIsTVModalOpen(false)}
+            onClose={() => {
+              setIsTVModalOpen(false);
+              navigate('/tv');
+            }}
             takeoverState={takeoverState}
             onUpdateLiveStatus={updateLiveStatus}
             onSaveTakeover={saveTakeoverSettings}
