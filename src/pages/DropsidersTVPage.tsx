@@ -855,15 +855,17 @@ export function DropsidersTVPage() {
                                     </div>
                                 )}
 
-                                {/* Programmation Button: displays complete sequence of videos + promos */}
-                                <button
-                                    onClick={() => setShowSchedule(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-lg"
-                                    title="Voir toute la programmation continue (vidéos + promos)"
-                                >
-                                    <ListMusic className="w-3 h-3 text-neon-red" />
-                                    <span>Programmation ({allSegments.length})</span>
-                                </button>
+                                {/* Programmation Button: only displayed for admins, hidden for regular visitors */}
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => setShowSchedule(true)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-lg"
+                                        title="Voir toute la programmation continue (vidéos + promos)"
+                                    >
+                                        <ListMusic className="w-3 h-3 text-neon-red" />
+                                        <span>Programmation ({allSegments.length})</span>
+                                    </button>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-3">
@@ -906,16 +908,6 @@ export function DropsidersTVPage() {
                         </motion.div>
                     )}
                 </AnimatePresence>
-
-                {/* Home button — always visible, top-right corner */}
-                <a
-                    href="/"
-                    className="absolute top-4 right-4 z-50 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 hover:border-white/40 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 shadow-lg"
-                    title="Retour sur le site Dropsiders"
-                >
-                    <Home className="w-3.5 h-3.5 text-neon-cyan" />
-                    <span className="hidden sm:inline">Site</span>
-                </a>
 
                 {/* Video Player Area */}
                 <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black">
