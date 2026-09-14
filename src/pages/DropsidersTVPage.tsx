@@ -1,8 +1,25 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tv, Volume2, VolumeX, Volume1, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Radio, Film } from 'lucide-react';
+import { Tv, Volume2, VolumeX, Volume1, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 import { apiFetch } from '../utils/auth';
+import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
+
+const disableCaptions = (player: any) => {
+    if (!player) return;
+    try {
+        if (typeof player.unloadModule === 'function') {
+            player.unloadModule("captions");
+            player.unloadModule("cc");
+        }
+        if (typeof player.setOption === 'function') {
+            player.setOption("captions", "track", {});
+            player.setOption("cc", "track", {});
+            player.setOption("captions", "reload", false);
+            player.setOption("captions", "fontSize", 0);
+        }
+    } catch {}
+};
 
 declare global {
     interface Window {
@@ -262,6 +279,39 @@ export function DropsidersTVPage() {
     const [liveSettings, setLiveSettings] = useState<any>(null);
     const [, setLoadingLive] = useState(true);
 
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isAdminTVModalOpen, setIsAdminTVModalOpen] = useState(false);
+    const prevMuteStateRef = useRef<boolean | null>(null);
+
+    useEffect(() => {
+        try {
+            const adminAuth = localStorage.getItem('admin_auth_v2') === 'true';
+            const modoAuth = localStorage.getItem('modo_auth') === 'true';
+            setIsAdmin(adminAuth || modoAuth);
+        } catch {}
+    }, []);
+
+    const openAdminModal = () => {
+        prevMuteStateRef.current = isMuted;
+        if (playerRef.current && typeof playerRef.current.mute === 'function') {
+            playerRef.current.mute();
+        }
+        setIsMuted(true);
+        setIsAdminTVModalOpen(true);
+    };
+
+    const closeAdminModal = () => {
+        setIsAdminTVModalOpen(false);
+        if (prevMuteStateRef.current === false) {
+            if (playerRef.current && typeof playerRef.current.unMute === 'function') {
+                playerRef.current.unMute();
+                playerRef.current.setVolume(volume);
+            }
+            setIsMuted(false);
+        }
+        prevMuteStateRef.current = null;
+    };
+
     const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<any>(null);
@@ -344,6 +394,7 @@ export function DropsidersTVPage() {
                         videoId: data.playlist[0].youtubeId,
                         startSeconds: 0
                     });
+                    disableCaptions(playerRef.current);
                     playerRef.current.playVideo();
                     setIsPlaying(true);
                 } catch {}
@@ -515,6 +566,7 @@ export function DropsidersTVPage() {
                         videoId: currentVideoId,
                         startSeconds: startSec
                     });
+                    disableCaptions(playerRef.current);
                     if (isMuted) {
                         playerRef.current.mute();
                     } else {
@@ -540,6 +592,8 @@ export function DropsidersTVPage() {
                         modestbranding: 1,
                         rel: 0,
                         iv_load_policy: 3,
+                        cc_load_policy: 0,
+                        hl: 'fr',
                         playsinline: 1,
                         enablejsapi: 1,
                         start: startSec,
@@ -547,6 +601,7 @@ export function DropsidersTVPage() {
                     },
                     events: {
                         onReady: (event: any) => {
+                            disableCaptions(event.target);
                             if (startSec > 0) {
                                 try {
                                     event.target.seekTo(startSec, true);
@@ -569,7 +624,11 @@ export function DropsidersTVPage() {
                                 }
                             } catch {}
                         },
+                        onApiChange: (event: any) => {
+                            disableCaptions(event.target);
+                        },
                         onStateChange: (event: any) => {
+                            disableCaptions(event.target);
                             // YT.PlayerState.ENDED === 0
                             if (event.data === 0) {
                                 handleVideoEnded();
@@ -792,32 +851,50 @@ export function DropsidersTVPage() {
                                 )}
                             </div>
 
-                            {/* Unmute alert button when muted (ensures user discovers sound easily) */}
-                            {isMuted && (
-                                <motion.button
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    onClick={toggleMute}
-                                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neon-red hover:bg-neon-red/90 text-white text-[11px] font-black uppercase tracking-wider shadow-lg shadow-neon-red/40 transition-all active:scale-95 animate-pulse cursor-pointer pointer-events-auto"
-                                >
-                                    <VolumeX className="w-3.5 h-3.5" />
-                                    <span>Activer le son</span>
-                                </motion.button>
-                            )}
+                            <div className="flex items-center gap-3">
+                                {/* Admin TV Settings Button */}
+                                {isAdmin && (
+                                    <button
+                                        onClick={openAdminModal}
+                                        className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto"
+                                        title="Gérer la programmation Dropsiders TV & Live"
+                                    >
+                                        <Settings className="w-3.5 h-3.5 text-neon-red" />
+                                        <span className="hidden sm:inline">Gestion TV</span>
+                                    </button>
+                                )}
+
+                                {/* Unmute alert button when muted (ensures user discovers sound easily) */}
+                                {isMuted && (
+                                    <motion.button
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        onClick={toggleMute}
+                                        className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neon-red hover:bg-neon-red/90 text-white text-[11px] font-black uppercase tracking-wider shadow-lg shadow-neon-red/40 transition-all active:scale-95 animate-pulse cursor-pointer pointer-events-auto"
+                                    >
+                                        <VolumeX className="w-3.5 h-3.5" />
+                                        <span>Activer le son</span>
+                                    </motion.button>
+                                )}
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
                 {/* Video Player Area with Zoom of 12% to crop out YouTube top header/title */}
                 <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black">
-                    {/* YouTube API target div with 12% zoom and slight upward shift to crop the top title bar */}
+                    {/* YouTube API target div with 12% zoom (increases when admin modal is open with blur) */}
                     <div
                         id="tv-yt-player"
                         className="w-full h-full pointer-events-none"
                         style={{
-                            transform: 'scale(1.2) translateY(-4.5%)',
-                            transformOrigin: 'center center'
+                            transform: isAdminTVModalOpen
+                                ? 'scale(1.35) translateY(-4.5%)'
+                                : 'scale(1.2) translateY(-4.5%)',
+                            transformOrigin: 'center center',
+                            filter: isAdminTVModalOpen ? 'blur(20px) brightness(0.35)' : 'none',
+                            transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease'
                         }}
                     />
 
@@ -937,6 +1014,14 @@ export function DropsidersTVPage() {
                         )}
                     </AnimatePresence>
                 </div>
+
+                {/* Modal Dropsiders TV & Live */}
+                <AdminTVModal
+                    isOpen={isAdminTVModalOpen}
+                    onClose={closeAdminModal}
+                    takeoverState={liveSettings}
+                    onTakeoverChange={(updated) => setLiveSettings(updated)}
+                />
             </div>
         </>
     );

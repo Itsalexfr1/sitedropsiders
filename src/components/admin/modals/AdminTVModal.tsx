@@ -493,15 +493,37 @@ export function AdminTVModal({
         input.click();
     };
 
+    const isOnTvPage = typeof window !== 'undefined' && window.location.pathname.startsWith('/tv');
+    const bgVideoId = playlist?.[0]?.youtubeId || 'H5QLyGiDr_0';
+
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/95 backdrop-blur-2xl">
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md overflow-hidden">
+                    {/* Live TV Background (blurred, muted, ambient backdrop when opened from Admin) */}
+                    {!isOnTvPage && (
+                        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+                            <div 
+                                className="w-full h-full scale-125 filter blur-2xl opacity-35 transition-transform duration-700"
+                                style={{ transformOrigin: 'center center' }}
+                            >
+                                <iframe
+                                    className="w-full h-full object-cover"
+                                    src={`https://www.youtube-nocookie.com/embed/${bgVideoId}?autoplay=1&mute=1&controls=0&disablekb=1&fs=0&loop=1&playlist=${bgVideoId}&cc_load_policy=0&iv_load_policy=3`}
+                                    allow="autoplay; encrypted-media"
+                                    tabIndex={-1}
+                                    title="Dropsiders TV Background"
+                                />
+                            </div>
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                        </div>
+                    )}
+
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                        initial={{ opacity: 0, scale: 0.96, y: 15 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                        className="bg-[#0a0a0a] border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 max-w-5xl w-full max-h-[92vh] shadow-2xl relative overflow-hidden flex flex-col"
+                        exit={{ opacity: 0, scale: 0.96, y: 15 }}
+                        className="bg-[#0c0c0c]/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 w-[96vw] max-w-[1520px] h-[92vh] max-h-[95vh] shadow-2xl relative overflow-hidden flex flex-col z-10"
                     >
                         {/* Red Accent top line */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan" />
