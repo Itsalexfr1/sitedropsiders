@@ -13,6 +13,17 @@ import type { TVVideo, PromoVideo } from '../../../pages/DropsidersTVPage';
 
 export type { TVVideo, PromoVideo };
 
+// Format seconds to human-readable duration: 2h 34min 12s
+function formatDuration(totalSeconds: number): string {
+    if (!totalSeconds || totalSeconds <= 0) return '?';
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = Math.floor(totalSeconds % 60);
+    if (h > 0) return `${h}h ${m}min`;
+    if (m > 0) return `${m}min ${s}s`;
+    return `${s}s`;
+}
+
 const DEFAULT_MAIN_PLAYLIST: TVVideo[] = [
     {
         id: '1',
@@ -155,6 +166,14 @@ export function AdminTVModal({
     const [playlist, setPlaylist] = useState<TVVideo[]>(DEFAULT_MAIN_PLAYLIST);
     // Promo Videos list
     const [promos, setPromos] = useState<PromoVideo[]>([]);
+    // Known durations from localStorage (populated by TV player as it plays videos)
+    const [durationsMap, setDurationsMap] = useState<Record<string, number>>(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_tv_durations');
+            if (saved) return JSON.parse(saved);
+        } catch {}
+        return {};
+    });
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -207,6 +226,11 @@ export function AdminTVModal({
             }
         };
         fetchSettings();
+        // Refresh durationsMap from localStorage each time modal opens
+        try {
+            const saved = localStorage.getItem('dropsiders_tv_durations');
+            if (saved) setDurationsMap(JSON.parse(saved));
+        } catch {}
     }, [isOpen]);
 
     // Auto-fetch Title on main URL input
@@ -615,6 +639,52 @@ export function AdminTVModal({
                             </button>
                         </div>
 
+                        {/* ── Duration stats bar ── */}
+                        {!loading && (() => {
+                            const mainTotal = playlist.reduce((sum, v) => sum + (durationsMap[v.youtubeId] || 0), 0);
+                            const promoTotal = promos.reduce((sum, v) => sum + (durationsMap[v.youtubeId] || 0), 0);
+                            const mainKnown = playlist.filter(v => durationsMap[v.youtubeId] > 0).length;
+                            const promoKnown = promos.filter(v => durationsMap[v.youtubeId] > 0).length;
+                            // One full cycle = all main videos + one promo after each
+                            const cycleTotal = mainTotal + (playlist.length > 0 && promos.length > 0 ? promoTotal * Math.ceil(playlist.length / Math.max(promos.length, 1)) : 0);
+                            const allUnknown = mainKnown === 0 && promoKnown === 0;
+                            return (
+                                <div className="mb-4 p-3 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0">
+                                    <div className="text-[9px] font-black uppercase tracking-widest text-white/40 mb-2 flex items-center gap-1.5">
+                                        <Clock className="w-3 h-3" />
+                                        Durées de la programmation
+                                        {allUnknown && <span className="text-white/30 normal-case font-normal tracking-normal ml-1">(jouer la TV pour détecter les durées)</span>}
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div className="p-2.5 rounded-xl bg-neon-red/5 border border-neon-red/20 text-center">
+                                            <div className="text-sm font-black text-neon-red">
+                                                {mainTotal > 0 ? formatDuration(mainTotal) : '–'}
+                                            </div>
+                                            <div className="text-[9px] text-white/40 uppercase tracking-widest mt-0.5">
+                                                Sets ({mainKnown}/{playlist.length})
+                                            </div>
+                                        </div>
+                                        <div className="p-2.5 rounded-xl bg-neon-purple/5 border border-neon-purple/20 text-center">
+                                            <div className="text-sm font-black text-neon-purple">
+                                                {promoTotal > 0 ? formatDuration(promoTotal) : '–'}
+                                            </div>
+                                            <div className="text-[9px] text-white/40 uppercase tracking-widest mt-0.5">
+                                                Promos ({promoKnown}/{promos.length})
+                                            </div>
+                                        </div>
+                                        <div className="p-2.5 rounded-xl bg-neon-cyan/5 border border-neon-cyan/20 text-center">
+                                            <div className="text-sm font-black text-neon-cyan">
+                                                {cycleTotal > 0 ? formatDuration(cycleTotal) : '–'}
+                                            </div>
+                                            <div className="text-[9px] text-white/40 uppercase tracking-widest mt-0.5">
+                                                Cycle complet
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
                         {/* ========================================================= */}
                         {/* TAB: PROGRAMMATION TV (SETS PRINCIPAUX) */}
                         {/* ========================================================= */}
@@ -734,6 +804,12 @@ export function AdminTVModal({
                                                                 <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-neon-red/15 text-neon-red border border-neon-red/30">
                                                                     Set Principal
                                                                 </span>
+                                                                {durationsMap[video.youtubeId] > 0 && (
+                                                                    <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold text-white/60 bg-white/5 border border-white/10 flex items-center gap-1">
+                                                                        <Clock className="w-2.5 h-2.5" />
+                                                                        {formatDuration(durationsMap[video.youtubeId])}
+                                                                    </span>
+                                                                )}
                                                                 <h4 className="text-white font-bold text-xs truncate">
                                                                     {video.title}
                                                                 </h4>
