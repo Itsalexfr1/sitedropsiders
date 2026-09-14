@@ -254,6 +254,19 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         fetchDbAndRestore();
     }, []);
 
+    // Auto-parse questions when inputText or swapLanguages changes (live preview update)
+    useEffect(() => {
+        if (!inputText.trim()) {
+            setQuestions([]);
+            return;
+        }
+        const timer = setTimeout(() => {
+            const parsed = parseQuestionsFromText(inputText, swapLanguages);
+            setQuestions(parsed);
+        }, 600);
+        return () => clearTimeout(timer);
+    }, [inputText, swapLanguages]);
+
     // Auto-save draft changes with debounce
     useEffect(() => {
         if (!inputText.trim()) return;
