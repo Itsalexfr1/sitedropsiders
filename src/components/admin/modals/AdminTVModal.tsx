@@ -707,68 +707,114 @@ export function AdminTVModal({
                                             Aucune vidéo dans la programmation TV.
                                         </div>
                                     ) : (
-                                        playlist.map((video, idx) => (
-                                            <div
-                                                key={video.id || idx}
-                                                className="group p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/15 transition-all flex items-center gap-3"
-                                            >
-                                                <div className="w-7 h-7 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xs font-black font-mono text-neon-red shrink-0">
-                                                    {idx + 1}
-                                                </div>
+                                        playlist.map((video, idx) => {
+                                            const nextPromo = promos.length > 0 ? promos[idx % promos.length] : null;
+                                            const nextPromoIdx = promos.length > 0 ? (idx % promos.length) : null;
+                                            return (
+                                                <div key={video.id || idx} className="space-y-1.5">
+                                                    {/* Main Video Item */}
+                                                    <div className="group p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/15 transition-all flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-xl bg-neon-red/10 border border-neon-red/30 flex items-center justify-center text-xs font-black font-mono text-neon-red shrink-0">
+                                                            #{idx + 1}
+                                                        </div>
 
-                                                <div className="w-20 h-12 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
-                                                    <img
-                                                        src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
-                                                        alt={video.title}
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            (e.target as HTMLElement).style.display = 'none';
-                                                        }}
-                                                    />
-                                                </div>
+                                                        <div className="w-20 h-12 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
+                                                            <img
+                                                                src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
+                                                                alt={video.title}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    (e.target as HTMLElement).style.display = 'none';
+                                                                }}
+                                                            />
+                                                        </div>
 
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <h4 className="text-white font-bold text-xs truncate">
-                                                            {video.title}
-                                                        </h4>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-neon-red/15 text-neon-red border border-neon-red/30">
+                                                                    Set Principal
+                                                                </span>
+                                                                <h4 className="text-white font-bold text-xs truncate">
+                                                                    {video.title}
+                                                                </h4>
+                                                            </div>
+                                                            <div className="text-[10px] text-white/40 font-mono mt-0.5">
+                                                                ID: {video.youtubeId}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-1 shrink-0">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleMoveUpMain(idx)}
+                                                                disabled={idx === 0}
+                                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
+                                                                title="Monter"
+                                                            >
+                                                                <ChevronUp className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleMoveDownMain(idx)}
+                                                                disabled={idx === playlist.length - 1}
+                                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
+                                                                title="Descendre"
+                                                            >
+                                                                <ChevronDown className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleDeleteMain(video.id)}
+                                                                disabled={playlist.length <= 1}
+                                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 ml-1 disabled:opacity-20"
+                                                                title="Supprimer"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <div className="text-[10px] text-white/40 font-mono mt-0.5">
-                                                        ID: {video.youtubeId}
-                                                    </div>
-                                                </div>
 
-                                                <div className="flex items-center gap-1 shrink-0">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleMoveUpMain(idx)}
-                                                        disabled={idx === 0}
-                                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
-                                                        title="Monter"
-                                                    >
-                                                        <ChevronUp className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleMoveDownMain(idx)}
-                                                        disabled={idx === playlist.length - 1}
-                                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
-                                                        title="Descendre"
-                                                    >
-                                                        <ChevronDown className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleDeleteMain(video.id)}
-                                                        disabled={playlist.length <= 1}
-                                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 ml-1 disabled:opacity-20"
-                                                        title="Supprimer"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
+                                                    {/* Interleaved Promo video right after this video */}
+                                                    {nextPromo && (
+                                                        <div className="ml-5 md:ml-8 p-2.5 rounded-xl bg-neon-purple/[0.04] border border-neon-purple/20 flex items-center gap-3 relative before:content-[''] before:absolute before:-left-3 before:top-1/2 before:w-2.5 before:h-0.5 before:bg-neon-purple/40">
+                                                            <div className="w-6 h-6 rounded-lg bg-neon-purple/20 border border-neon-purple/30 flex items-center justify-center text-[10px] font-black font-mono text-neon-purple shrink-0">
+                                                                P{nextPromoIdx! + 1}
+                                                            </div>
+                                                            <div className="w-14 h-9 rounded bg-black overflow-hidden relative shrink-0 border border-neon-purple/30">
+                                                                <img
+                                                                    src={`https://img.youtube.com/vi/${nextPromo.youtubeId}/mqdefault.jpg`}
+                                                                    alt={nextPromo.title}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLElement).style.display = 'none';
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-neon-purple/20 text-neon-purple border border-neon-purple/40">
+                                                                        Promo intercalée
+                                                                    </span>
+                                                                    <h5 className="text-white/90 font-bold text-xs truncate">
+                                                                        {nextPromo.title}
+                                                                    </h5>
+                                                                </div>
+                                                                <div className="text-[9px] text-white/40 font-mono mt-0.5">
+                                                                    ID: {nextPromo.youtubeId}
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setActiveTab('promo')}
+                                                                className="text-[9px] text-neon-purple hover:underline px-2 py-1 rounded bg-neon-purple/10 hover:bg-neon-purple/20 font-bold uppercase tracking-wider shrink-0 transition-all"
+                                                            >
+                                                                Gérer promos →
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            </div>
-                                        ))
+                                            );
+                                        })
                                     )}
                                 </div>
                             </>

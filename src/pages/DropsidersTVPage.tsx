@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tv, Volume2, VolumeX, Volume1, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings } from 'lucide-react';
+import { Tv, Volume2, VolumeX, Volume1, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 import { apiFetch } from '../utils/auth';
 import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
@@ -287,7 +287,10 @@ export function DropsidersTVPage() {
 
     const [isAdmin, setIsAdmin] = useState(false);
     const [isAdminTVModalOpen, setIsAdminTVModalOpen] = useState(false);
+    const [showSchedule, setShowSchedule] = useState(false);
     const prevMuteStateRef = useRef<boolean | null>(null);
+
+    const allSegments = useMemo(() => buildTVSegments(playlist, promos, durationsMap), [playlist, promos, durationsMap]);
 
     useEffect(() => {
         try {
@@ -841,6 +844,16 @@ export function DropsidersTVPage() {
                                         DIFFUSION CONTINUE
                                     </div>
                                 )}
+
+                                {/* Programmation Button: displays complete sequence of videos + promos */}
+                                <button
+                                    onClick={() => setShowSchedule(true)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto shadow-lg"
+                                    title="Voir toute la programmation continue (vidéos + promos)"
+                                >
+                                    <ListMusic className="w-3 h-3 text-neon-red" />
+                                    <span>Programmation ({allSegments.length})</span>
+                                </button>
                             </div>
 
                             <div className="flex items-center gap-3">
@@ -1014,6 +1027,122 @@ export function DropsidersTVPage() {
                     takeoverState={liveSettings}
                     onTakeoverChange={(updated) => setLiveSettings(updated)}
                 />
+
+                {/* Modal: Programmation Complète (Vidéos + Promos) */}
+                <AnimatePresence>
+                    {showSchedule && (
+                        <div className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xl">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                                className="bg-[#0e0e0e]/95 border border-white/10 rounded-[2rem] p-5 sm:p-7 max-w-3xl w-full max-h-[85vh] shadow-2xl relative overflow-hidden flex flex-col"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan" />
+
+                                {/* Header */}
+                                <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-4 shrink-0">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-xl bg-neon-red/10 border border-neon-red/30 flex items-center justify-center text-neon-red">
+                                            <ListMusic className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg md:text-xl font-display font-black text-white uppercase italic tracking-tight">
+                                                PROGRAMMATION <span className="text-neon-red">TV</span> ({allSegments.length})
+                                            </h3>
+                                            <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider">
+                                                Grille continue · Sets principaux & Promos intercalées
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowSchedule(false)}
+                                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-all"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                {/* List of segments */}
+                                <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar min-h-0">
+                                    {allSegments.map((seg, i) => {
+                                        const isCurrentlyPlaying = seg.type === (isPlayingPromo ? 'promo' : 'main') && seg.index === (isPlayingPromo ? currentPromoIndex : currentIndex);
+                                        return (
+                                            <div
+                                                key={i}
+                                                onClick={() => {
+                                                    if (seg.type === 'main') {
+                                                        setCurrentIndex(seg.index);
+                                                        setIsPlayingPromo(false);
+                                                    } else {
+                                                        setCurrentIndex(seg.index);
+                                                        setIsPlayingPromo(true);
+                                                    }
+                                                    pendingSeekRef.current = 0;
+                                                    setShowSchedule(false);
+                                                }}
+                                                className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 ${
+                                                    isCurrentlyPlaying
+                                                        ? 'bg-neon-red/10 border-neon-red/50 shadow-lg shadow-neon-red/10 ring-1 ring-neon-red/30'
+                                                        : seg.type === 'promo'
+                                                        ? 'bg-neon-purple/[0.03] border-neon-purple/20 hover:border-neon-purple/40 ml-4 md:ml-6'
+                                                        : 'bg-white/[0.02] border-white/5 hover:border-white/15'
+                                                }`}
+                                            >
+                                                <div className={`w-7 h-7 rounded-xl border flex items-center justify-center text-[10px] font-black font-mono shrink-0 ${
+                                                    isCurrentlyPlaying
+                                                        ? 'bg-neon-red text-white border-neon-red animate-pulse'
+                                                        : seg.type === 'promo'
+                                                        ? 'bg-neon-purple/20 text-neon-purple border-neon-purple/30'
+                                                        : 'bg-white/5 text-white/70 border-white/10'
+                                                }`}>
+                                                    {seg.type === 'promo' ? `P${seg.index + 1}` : `#${seg.index + 1}`}
+                                                </div>
+
+                                                <div className="w-16 h-10 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
+                                                    <img
+                                                        src={`https://img.youtube.com/vi/${seg.video.youtubeId}/mqdefault.jpg`}
+                                                        alt={seg.video.title}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLElement).style.display = 'none';
+                                                        }}
+                                                    />
+                                                </div>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                                                            seg.type === 'promo'
+                                                                ? 'bg-neon-purple/20 text-neon-purple border border-neon-purple/30'
+                                                                : 'bg-neon-red/15 text-neon-red border border-neon-red/30'
+                                                        }`}>
+                                                            {seg.type === 'promo' ? 'Promo' : 'Set Principal'}
+                                                        </span>
+                                                        {isCurrentlyPlaying && (
+                                                            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-white text-black animate-pulse">
+                                                                En Direct
+                                                            </span>
+                                                        )}
+                                                        <h4 className="text-white font-bold text-xs truncate">
+                                                            {seg.video.title}
+                                                        </h4>
+                                                    </div>
+                                                    <div className="text-[10px] text-white/40 font-mono mt-0.5 flex items-center gap-3">
+                                                        <span>ID: {seg.video.youtubeId}</span>
+                                                        {seg.duration > 0 && (
+                                                            <span>Durée : {Math.floor(seg.duration / 60)}m {seg.duration % 60}s</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </div>
         </>
     );
