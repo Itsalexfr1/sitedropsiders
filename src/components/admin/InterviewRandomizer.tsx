@@ -5,6 +5,8 @@ import { Play, RotateCcw, Languages, MessageSquare, ChevronRight, Sparkles, X, S
 import { Link } from 'react-router-dom';
 import { ConfirmationModal } from '../ConfirmationModal';
 
+import defaultQuestions from '../../data/interview_questions.json';
+
 interface HistoryEntry {
     artist: string;
     question: string;
@@ -15,7 +17,7 @@ export function InterviewRandomizer() {
     const [lang, setLang] = useState<'FR' | 'EN'>(() => {
         return (localStorage.getItem('interview_lang') as 'FR' | 'EN') || 'FR';
     });
-    const [questionsData, setQuestionsData] = useState<{fr: string[], en: string[]}>({ fr: [], en: [] });
+    const [questionsData, setQuestionsData] = useState<{fr: string[], en: string[]}>(defaultQuestions);
     const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
     const [isShuffling, setIsShuffling] = useState(false);
     const [artist, setArtist] = useState('');
@@ -35,7 +37,9 @@ export function InterviewRandomizer() {
                 const res = await apiFetch('/api/interview-questions', { headers: getAuthHeaders() });
                 if (res.ok) {
                     const data = await res.json();
-                    setQuestionsData(data);
+                    if (data && Array.isArray(data.fr) && data.fr.length > 0) {
+                        setQuestionsData(data);
+                    }
                 }
             } catch (e) {
                 console.error('Failed to fetch questions:', e);

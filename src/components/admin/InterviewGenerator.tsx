@@ -42,6 +42,19 @@ interface InterviewQuestion {
     en: string;
 }
 
+const DRAFT_STORAGE_KEY = 'interview_generator_draft';
+
+interface InterviewDraft {
+    inputText: string;
+    swapLanguages: boolean;
+    theme: 'red' | 'cyan' | 'purple';
+    festivalLogo: string | null;
+    watermarkScale: number;
+    watermarkOpacity: number;
+    headerLogoSize: number;
+    updatedAt: string;
+}
+
 export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const [inputText, setInputText] = useState('');
     const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
@@ -58,12 +71,88 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
     const cardsRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Draft & Save states
+    const [hasSavedDraft, setHasSavedDraft] = useState(false);
+    const [lastSavedTime, setLastSavedTime] = useState<string>('');
+    const [isSavingDb, setIsSavingDb] = useState(false);
+    const [isDbSaveModalOpen, setIsDbSaveModalOpen] = useState(false);
+    const [confirmResetModal, setConfirmResetModal] = useState(false);
+    const [confirmLoadAction, setConfirmLoadAction] = useState<(() => void) | null>(null);
+    const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' | 'info' }>({
+        show: false,
+        message: '',
+        type: 'success'
+    });
+
+    const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
+    };
+
     // Database questions state
     const [dbQuestions, setDbQuestions] = useState<{ fr: string[]; en: string[] }>(defaultQuestions);
     const [isDbLoading, setIsDbLoading] = useState(false);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const [selectedDbIndices, setSelectedDbIndices] = useState<number[]>([]);
     const [dbSearchTerm, setDbSearchTerm] = useState('');
+
+    const parseQuestionsFromText = (text: string, overrideSwap?: boolean): InterviewQuestion[] => {
+        if (!text.trim()) return [];
+
+        const isSwapped = overrideSwap !== undefined ? overrideSwap : swapLanguages;
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        const parsed: InterviewQuestion[] = [];
+        
+        let current: { number: string; originalNum: string; line1: string; line2: string[] } | null = null;
+
+        for (const line of lines) {
+            const numMatch = line.match(/^(\d+)[^a-zA-Z0-9]*(.*)$/);
+            
+            if (numMatch) {
+                const rawNum = numMatch[1];
+                const normNum = parseInt(rawNum, 10).toString();
+                const content = numMatch[2].trim();
+
+                if (current && current.number === normNum) {
+                    if (content) current.line2.push(content);
+                } else {
+                    if (current) {
+                        parsed.push({
+                            id: Math.random().toString(36).substring(2, 11),
+                            number: current.originalNum,
+                            fr: isSwapped ? (current.line2.join(' ') || current.line1) : current.line1,
+                            en: isSwapped ? current.line1 : current.line2.join(' ')
+                        });
+                    }
+                    current = {
+                        number: normNum,
+                        originalNum: rawNum,
+                        line1: content,
+                        line2: []
+                    };
+                }
+            } else if (current) {
+                current.line2.push(line);
+            }
+        }
+
+        if (current) {
+            parsed.push({
+                id: Math.random().toString(36).substring(2, 11),
+                number: current.originalNum,
+                fr: isSwapped ? (current.line2.join(' ') || current.line1) : current.line1,
+                en: isSwapped ? current.line1 : current.line2.join(' ')
+            });
+        }
+
+        return parsed;
+    };
+
+    const parseQuestions = (overrideSwap?: boolean) => {
+        const parsed = parseQuestionsFromText(inputText, overrideSwap);
+        setQuestions(parsed);
+        return parsed;
+    };
 
     const loadQuestionsFromData = (
         dataSource: { fr: string[]; en: string[] } = dbQuestions,
@@ -108,12 +197,14 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             };
         });
 
-        setInputText(textLines.join('\n'));
+        const newText = textLines.join('\n');
+        setInputText(newText);
         setQuestions(parsedQuestions);
     };
 
+    // Initial Load: check for saved draft first
     useEffect(() => {
-        const fetchDbQuestions = async () => {
+        const fetchDbAndRestore = async () => {
             setIsDbLoading(true);
             let activeData = defaultQuestions;
             try {
@@ -130,91 +221,166 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             } finally {
                 setIsDbLoading(false);
             }
-            loadQuestionsFromData(activeData); // Auto-load all questions by default
+
+            // Check if user has a saved draft in localStorage
+            const savedDraftRaw = localStorage.getItem(DRAFT_STORAGE_KEY);
+            if (savedDraftRaw) {
+                try {
+                    const draft: InterviewDraft = JSON.parse(savedDraftRaw);
+                    if (draft.inputText && draft.inputText.trim().length > 0) {
+                        setInputText(draft.inputText);
+                        if (draft.swapLanguages !== undefined) setSwapLanguages(draft.swapLanguages);
+                        if (draft.theme) setTheme(draft.theme);
+                        if (draft.festivalLogo !== undefined) setFestivalLogo(draft.festivalLogo);
+                        if (draft.watermarkScale) setWatermarkScale(draft.watermarkScale);
+                        if (draft.watermarkOpacity) setWatermarkOpacity(draft.watermarkOpacity);
+                        if (draft.headerLogoSize) setHeaderLogoSize(draft.headerLogoSize);
+                        setHasSavedDraft(true);
+                        setLastSavedTime(draft.updatedAt ? new Date(draft.updatedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'récemment');
+                        
+                        const restoredParsed = parseQuestionsFromText(draft.inputText, draft.swapLanguages);
+                        setQuestions(restoredParsed);
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Failed to parse interview draft:', err);
+                }
+            }
+
+            // Default fallback if no draft exists
+            loadQuestionsFromData(activeData);
         };
 
-        fetchDbQuestions();
+        fetchDbAndRestore();
     }, []);
 
-    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => setFestivalLogo(reader.result as string);
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleLanguageOrderChange = (newSwap: boolean) => {
-        setSwapLanguages(newSwap);
-        if (questions.length > 0) {
-            const newTextLines: string[] = [];
-            questions.forEach((q) => {
-                const primary = newSwap ? (q.en || q.fr) : q.fr;
-                const secondary = newSwap ? q.fr : q.en;
-                newTextLines.push(`${q.number}. ${primary}`);
-                if (secondary && secondary !== primary) {
-                    newTextLines.push(secondary);
-                }
-            });
-            setInputText(newTextLines.join('\n'));
-        }
-    };
-
-    const parseQuestions = (overrideSwap?: boolean) => {
+    // Auto-save draft changes with debounce
+    useEffect(() => {
         if (!inputText.trim()) return;
+        const timer = setTimeout(() => {
+            const now = new Date();
+            const draft: InterviewDraft = {
+                inputText,
+                swapLanguages,
+                theme,
+                festivalLogo,
+                watermarkScale,
+                watermarkOpacity,
+                headerLogoSize,
+                updatedAt: now.toISOString()
+            };
+            localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+            setHasSavedDraft(true);
+            setLastSavedTime(now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+        }, 1500);
 
-        const isSwapped = overrideSwap !== undefined ? overrideSwap : swapLanguages;
-        const lines = inputText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-        const parsed: InterviewQuestion[] = [];
-        
-        let current: { number: string; originalNum: string; line1: string; line2: string[] } | null = null;
+        return () => clearTimeout(timer);
+    }, [inputText, swapLanguages, theme, festivalLogo, watermarkScale, watermarkOpacity, headerLogoSize]);
 
-        for (const line of lines) {
-            // Match number at start (01. or 1. or 1 - or 1)
-            const numMatch = line.match(/^(\d+)[^a-zA-Z0-9]*(.*)$/);
-            
-            if (numMatch) {
-                const rawNum = numMatch[1];
-                const normNum = parseInt(rawNum, 10).toString();
-                const content = numMatch[2].trim();
+    const saveLocalDraft = (notify = true) => {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const draft: InterviewDraft = {
+            inputText,
+            swapLanguages,
+            theme,
+            festivalLogo,
+            watermarkScale,
+            watermarkOpacity,
+            headerLogoSize,
+            updatedAt: now.toISOString()
+        };
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+        setHasSavedDraft(true);
+        setLastSavedTime(timeStr);
+        parseQuestions();
+        if (notify) {
+            showNotification('Fiche sauvegardée avec succès !', 'success');
+        }
+    };
 
-                // If we match the same number as current, it's the translation
-                if (current && current.number === normNum) {
-                    if (content) current.line2.push(content);
-                } else {
-                    // Start new question, push old one
-                    if (current) {
-                        parsed.push({
-                            id: Math.random().toString(36).substring(2, 11),
-                            number: current.originalNum,
-                            fr: isSwapped ? (current.line2.join(' ') || current.line1) : current.line1,
-                            en: isSwapped ? current.line1 : current.line2.join(' ')
-                        });
+    const saveToDatabase = async (mode: 'replace' | 'merge' = 'replace') => {
+        const parsed = parseQuestionsFromText(inputText, swapLanguages);
+        if (parsed.length === 0) {
+            showNotification('Aucune question à enregistrer', 'error');
+            return;
+        }
+
+        setIsSavingDb(true);
+        try {
+            let finalFr: string[] = [];
+            let finalEn: string[] = [];
+
+            if (mode === 'replace') {
+                finalFr = parsed.map(q => q.fr.trim()).filter(Boolean);
+                finalEn = parsed.map(q => q.en.trim());
+            } else {
+                const mergedFr = [...dbQuestions.fr];
+                const mergedEn = [...dbQuestions.en];
+
+                parsed.forEach(q => {
+                    const cleanFr = q.fr.trim();
+                    const cleanEn = q.en.trim();
+                    if (!cleanFr) return;
+
+                    const existingIdx = mergedFr.findIndex(f => f.toLowerCase() === cleanFr.toLowerCase());
+                    if (existingIdx >= 0) {
+                        mergedFr[existingIdx] = cleanFr;
+                        if (cleanEn) mergedEn[existingIdx] = cleanEn;
+                    } else {
+                        mergedFr.push(cleanFr);
+                        mergedEn.push(cleanEn);
                     }
-                    current = {
-                        number: normNum,
-                        originalNum: rawNum,
-                        line1: content,
-                        line2: []
-                    };
-                }
-            } else if (current) {
-                current.line2.push(line);
+                });
+
+                finalFr = mergedFr;
+                finalEn = mergedEn;
             }
-        }
 
-        // Final push
-        if (current) {
-            parsed.push({
-                id: Math.random().toString(36).substring(2, 11),
-                number: current.originalNum,
-                fr: isSwapped ? (current.line2.join(' ') || current.line1) : current.line1,
-                en: isSwapped ? current.line1 : current.line2.join(' ')
+            const payload = { fr: finalFr, en: finalEn };
+            const res = await apiFetch('/api/interview-questions/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
             });
-        }
 
-        setQuestions(parsed);
+            if (res.ok) {
+                setDbQuestions(payload);
+                saveLocalDraft(false);
+                showNotification(
+                    mode === 'replace'
+                        ? `Base de données mise à jour (${finalFr.length} questions) !`
+                        : `Questions fusionnées dans la base (${finalFr.length} questions) !`,
+                    'success'
+                );
+                setIsDbSaveModalOpen(false);
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                showNotification(`Erreur lors de l'enregistrement : ${errData.error || 'Erreur serveur'}`, 'error');
+            }
+        } catch (e) {
+            console.error('Save to DB error:', e);
+            showNotification('Erreur de connexion lors de l\'enregistrement', 'error');
+        } finally {
+            setIsSavingDb(false);
+        }
+    };
+
+    const handleResetToDatabase = () => {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+        setHasSavedDraft(false);
+        setLastSavedTime('');
+        loadQuestionsFromData(dbQuestions);
+        setConfirmResetModal(false);
+        showNotification('Questions réinitialisées depuis la base !', 'info');
+    };
+
+    const safeLoadQuestions = (action: () => void) => {
+        if (hasSavedDraft && inputText.trim().length > 0) {
+            setConfirmLoadAction(() => action);
+        } else {
+            action();
+        }
     };
 
 
@@ -577,9 +743,14 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             }
         }
 
-        setInputText(translatedLines.join('\n'));
+        const newText = translatedLines.join('\n');
+        setInputText(newText);
         setIsGenerating(false);
-        setTimeout(parseQuestions, 50);
+        setTimeout(() => {
+            parseQuestions();
+            saveLocalDraft(false);
+        }, 50);
+        showNotification('Traduction terminée et enregistrée !', 'success');
     };
 
     const getThemeColors = () => {
@@ -630,6 +801,15 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                     </div>
                     
                     <div className="flex items-center gap-4">
+                        <button
+                            type="button"
+                            onClick={() => saveLocalDraft(true)}
+                            className="p-3.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 rounded-2xl transition-all flex items-center gap-2 font-black text-[10px] uppercase tracking-widest active:scale-95 shadow-lg shadow-emerald-500/10 group"
+                            title="Enregistrer les modifications de la fiche"
+                        >
+                            <Save className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                            <span className="hidden sm:inline">Enregistrer</span>
+                        </button>
                         <div className="flex bg-black/40 border border-white/5 rounded-2xl p-1.5">
                             {(['red', 'cyan', 'purple'] as const).map(t => (
                                 <button
@@ -666,7 +846,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                             <div className="grid grid-cols-2 gap-2">
                                 <button
-                                    onClick={() => loadQuestionsFromData(dbQuestions)}
+                                    onClick={() => safeLoadQuestions(() => loadQuestionsFromData(dbQuestions))}
                                     className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left transition-all group"
                                     title="Charger toutes les questions"
                                 >
@@ -678,7 +858,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 </button>
 
                                 <button
-                                    onClick={() => loadQuestionsFromData(dbQuestions, undefined, 16)}
+                                    onClick={() => safeLoadQuestions(() => loadQuestionsFromData(dbQuestions, undefined, 16))}
                                     className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left transition-all group"
                                     title="Tirer 16 questions au hasard (2 pages)"
                                 >
@@ -692,7 +872,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                             <div className="grid grid-cols-2 gap-2">
                                 <button
-                                    onClick={() => loadQuestionsFromData(dbQuestions, undefined, 8)}
+                                    onClick={() => safeLoadQuestions(() => loadQuestionsFromData(dbQuestions, undefined, 8))}
                                     className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-left transition-all group"
                                     title="Tirer 8 questions au hasard (1 page)"
                                 >
@@ -737,7 +917,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                     className={`p-3.5 rounded-2xl border transition-all text-left flex flex-col justify-between gap-2 ${
                                         !swapLanguages
                                             ? 'bg-neon-red/15 border-neon-red text-white shadow-lg shadow-neon-red/10'
-                                            : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+                                             : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
                                     }`}
                                 >
                                     <div className="flex items-center justify-between">
@@ -780,9 +960,26 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         </div>
 
                         <div className="space-y-4">
-                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5" /> Coller / Editer les questions ici
-                            </label>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                    <FileText className="w-3.5 h-3.5 text-neon-red" /> Coller / Editer les questions ici
+                                </label>
+                                {hasSavedDraft && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[9px] font-bold text-emerald-400 flex items-center gap-1">
+                                            <Check className="w-3 h-3" /> Sauvegardé ({lastSavedTime})
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setConfirmResetModal(true)}
+                                            className="text-[8px] font-bold text-gray-500 hover:text-neon-red uppercase tracking-wider underline transition-colors"
+                                            title="Effacer le brouillon et recharger depuis la base"
+                                        >
+                                            Réinitialiser
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                             <textarea
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
@@ -792,6 +989,32 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         </div>
 
                         <div className="flex flex-col gap-3">
+                            {/* Options d'enregistrement des modifications */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => saveLocalDraft(true)}
+                                    className="p-3.5 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-400 hover:text-emerald-300 rounded-2xl font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 group"
+                                    title="Enregistrer les modifications sur cette fiche (Brouillon local)"
+                                >
+                                    <Save className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+                                    <span>Enregistrer Fiche</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        parseQuestions();
+                                        setIsDbSaveModalOpen(true);
+                                    }}
+                                    className="p-3.5 bg-neon-red/15 hover:bg-neon-red/25 border border-neon-red/40 text-neon-red hover:text-white rounded-2xl font-black text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-neon-red/10 active:scale-95 group"
+                                    title="Enregistrer dans la base de questions Dropsiders (BDD)"
+                                >
+                                    <Database className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
+                                    <span>Enregistrer BDD</span>
+                                </button>
+                            </div>
+
                             <button
                                 onClick={translateToEnglish}
                                 disabled={isGenerating}
@@ -803,7 +1026,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                 Traduire en Anglais (IA)
                             </button>
                             <button
-                                onClick={() => parseQuestions()}
+                                onClick={() => {
+                                    parseQuestions();
+                                    showNotification('Aperçu mis à jour !', 'info');
+                                }}
                                 className="w-full py-4 bg-white text-black font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-xl"
                             >
                                 <Eye className="w-5 h-5" /> Générer Aperçu
@@ -1332,6 +1558,176 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                             </div>
                         </motion.div>
                     </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal d'enregistrement dans la base de données */}
+            <AnimatePresence>
+                {isDbSaveModalOpen && (
+                    <div className="fixed inset-0 z-[350] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-[#0f0f11] border border-white/10 rounded-[2.5rem] p-8 max-w-xl w-full flex flex-col shadow-2xl relative overflow-hidden text-white space-y-6"
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-neon-red/20 border border-neon-red/30 rounded-2xl">
+                                        <Database className="w-6 h-6 text-neon-red" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic">
+                                            Enregistrer dans la <span className="text-neon-red">Base de Données</span>
+                                        </h3>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                                            Synchronisation avec le dépôt GitHub Dropsiders
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDbSaveModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Recap questions */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-center">
+                                    <span className="text-2xl font-display font-black text-white">
+                                        {parseQuestionsFromText(inputText, swapLanguages).length}
+                                    </span>
+                                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-1">
+                                        Questions dans cette fiche
+                                    </p>
+                                </div>
+                                <div className="p-4 bg-white/5 border border-white/10 rounded-2xl text-center">
+                                    <span className="text-2xl font-display font-black text-gray-400">
+                                        {dbQuestions.fr.length}
+                                    </span>
+                                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-1">
+                                        Questions actuelles en base
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Choices */}
+                            <div className="space-y-3">
+                                <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                                    Choisissez le mode d'enregistrement :
+                                </p>
+
+                                <button
+                                    type="button"
+                                    onClick={() => saveToDatabase('replace')}
+                                    disabled={isSavingDb}
+                                    className="w-full p-4 rounded-2xl bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/30 text-left transition-all group flex items-start justify-between gap-4"
+                                >
+                                    <div className="space-y-1">
+                                        <span className="text-xs font-black text-white uppercase tracking-tight flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-neon-red" />
+                                            Remplacer toute la base de données
+                                        </span>
+                                        <p className="text-[10px] text-gray-400 font-medium">
+                                            La base Dropsiders contiendra exactement les {parseQuestionsFromText(inputText, swapLanguages).length} questions de votre fiche.
+                                        </p>
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl bg-neon-red/20 text-neon-red shrink-0 group-hover:bg-neon-red group-hover:text-white transition-colors">
+                                        {isSavingDb ? '...' : 'Remplacer'}
+                                    </span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => saveToDatabase('merge')}
+                                    disabled={isSavingDb}
+                                    className="w-full p-4 rounded-2xl bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 text-left transition-all group flex items-start justify-between gap-4"
+                                >
+                                    <div className="space-y-1">
+                                        <span className="text-xs font-black text-white uppercase tracking-tight flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-neon-cyan" />
+                                            Fusionner avec la base existante
+                                        </span>
+                                        <p className="text-[10px] text-gray-400 font-medium">
+                                            Met à jour les questions modifiées et ajoute les nouvelles sans effacer les {dbQuestions.fr.length} questions existantes.
+                                        </p>
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl bg-neon-cyan/20 text-neon-cyan shrink-0 group-hover:bg-neon-cyan group-hover:text-black transition-colors">
+                                        {isSavingDb ? '...' : 'Fusionner'}
+                                    </span>
+                                </button>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="pt-2 flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDbSaveModalOpen(false)}
+                                    className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold uppercase text-gray-400 hover:text-white transition-all"
+                                >
+                                    Annuler
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Confirmation Réinitialisation */}
+            <ConfirmationModal
+                isOpen={confirmResetModal}
+                title="Réinitialiser la fiche ?"
+                message="Voulez-vous effacer vos modifications enregistrées et recharger les questions par défaut de la base de données ?"
+                confirmLabel="Réinitialiser"
+                cancelLabel="Annuler"
+                onConfirm={handleResetToDatabase}
+                onCancel={() => setConfirmResetModal(false)}
+                accentColor="neon-red"
+            />
+
+            {/* Confirmation Nouveau Tirage */}
+            <ConfirmationModal
+                isOpen={!!confirmLoadAction}
+                title="Remplacer les questions en cours ?"
+                message="Vous avez actuellement des modifications sur votre fiche. Charger un nouveau tirage écrasera le texte actuel. Voulez-vous continuer ?"
+                confirmLabel="Remplacer"
+                cancelLabel="Conserver ma fiche"
+                onConfirm={() => {
+                    if (confirmLoadAction) confirmLoadAction();
+                    setConfirmLoadAction(null);
+                }}
+                onCancel={() => setConfirmLoadAction(null)}
+                accentColor="neon-red"
+            />
+
+            {/* Toast Notification */}
+            <AnimatePresence>
+                {toast.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                        className={`fixed bottom-8 right-8 z-[500] px-6 py-4 rounded-2xl shadow-2xl border flex items-center gap-3 font-bold text-xs ${
+                            toast.type === 'success'
+                                ? 'bg-[#0a1811] border-emerald-500/50 text-emerald-300 shadow-emerald-950/50'
+                                : toast.type === 'error'
+                                ? 'bg-[#180a0a] border-red-500/50 text-red-300 shadow-red-950/50'
+                                : 'bg-[#0a1118] border-neon-cyan/50 text-neon-cyan shadow-cyan-950/50'
+                        } backdrop-blur-xl`}
+                    >
+                        {toast.type === 'success' ? (
+                            <Check className="w-4 h-4 text-emerald-400" />
+                        ) : toast.type === 'error' ? (
+                            <X className="w-4 h-4 text-red-400" />
+                        ) : (
+                            <Sparkles className="w-4 h-4 text-neon-cyan" />
+                        )}
+                        <span>{toast.message}</span>
+                    </motion.div>
                 )}
             </AnimatePresence>
 
