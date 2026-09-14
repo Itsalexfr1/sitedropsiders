@@ -1,14 +1,26 @@
 [
   {
-    "title": "Contenu",
-    "description": "News, Musique, Interviews...",
-    "icon": "FileText",
-    "category": "NEWS",
+    "title": "DropsidersTV",
+    "description": "Programmation des liens YouTube & Diffusion TV",
+    "icon": "Tv",
+    "category": "DROPSIDERS_TV",
+    "link": "#DROPSIDERS_TV",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-neon-red/5",
+    "permission": "settings",
+    "baseColor": "red",
+    "columns": 1
+  },
+  {
+    "title": "Accueil",
+    "description": "Spotify, Sections & Vues",
+    "icon": "LayoutDashboard",
+    "category": "ALL",
     "link": "#",
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
-    "permission": "news_focus",
-    "baseColor": "#ff8a8a",
+    "permission": "superadmin",
+    "baseColor": "#ffffff",
     "columns": 1
   },
   {
@@ -24,6 +36,18 @@
     "columns": 1
   },
   {
+    "title": "Contenu",
+    "description": "News, Musique, Interviews...",
+    "icon": "FileText",
+    "category": "NEWS",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "news_focus",
+    "baseColor": "#ff8a8a",
+    "columns": 1
+  },
+  {
     "title": "Agenda",
     "description": "Programmation",
     "icon": "Calendar",
@@ -33,18 +57,6 @@
     "bg": "bg-neon-yellow/5",
     "permission": "agenda_events",
     "baseColor": "#a8a6f7",
-    "columns": 1
-  },
-  {
-    "title": "Accueil",
-    "description": "Spotify, Sections & Vues",
-    "icon": "LayoutDashboard",
-    "category": "ALL",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "superadmin",
-    "baseColor": "#ffffff",
     "columns": 1
   },
   {
