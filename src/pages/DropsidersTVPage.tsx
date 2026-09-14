@@ -7,18 +7,24 @@ import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
 
 const disableCaptions = (player: any) => {
     if (!player) return;
-    try {
-        if (typeof player.unloadModule === 'function') {
-            player.unloadModule("captions");
-            player.unloadModule("cc");
-        }
-        if (typeof player.setOption === 'function') {
-            player.setOption("captions", "track", {});
-            player.setOption("cc", "track", {});
-            player.setOption("captions", "reload", false);
-            player.setOption("captions", "fontSize", 0);
-        }
-    } catch {}
+    const execute = () => {
+        try {
+            if (typeof player.unloadModule === 'function') {
+                player.unloadModule("captions");
+                player.unloadModule("cc");
+            }
+            if (typeof player.setOption === 'function') {
+                player.setOption("captions", "track", {});
+                player.setOption("cc", "track", {});
+                player.setOption("captions", "reload", false);
+                player.setOption("captions", "fontSize", -1);
+            }
+        } catch {}
+    };
+    execute();
+    setTimeout(execute, 150);
+    setTimeout(execute, 600);
+    setTimeout(execute, 1500);
 };
 
 declare global {
@@ -593,6 +599,7 @@ export function DropsidersTVPage() {
                         rel: 0,
                         iv_load_policy: 3,
                         cc_load_policy: 0,
+                        cc_lang_pref: 'none',
                         hl: 'fr',
                         playsinline: 1,
                         enablejsapi: 1,
