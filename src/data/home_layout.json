@@ -3,7 +3,8 @@
     "id": "hero",
     "enabled": true,
     "accentColor": "red",
-    "videoUrl": "https://www.dropsiders.fr/uploads/migrated/dropsiders/c4ffei18wcyyda4lyhmz.mp4"
+    "videoUrl": "https://dropsiders.fr/uploads/hero/e722a1269f747a7d-Intro_Dropsiders_2026.mp4",
+    "videoId": ""
   },
   {
     "id": "news_grid",
