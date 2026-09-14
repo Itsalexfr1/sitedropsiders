@@ -201,152 +201,32 @@ export function BrandingPage() {
                     )}
                 </AnimatePresence>
 
-                {/* 📱 SECTION: SOCIAL MEDIA FOLLOW & LIKE */}
-                <motion.div 
+                {/* 🔗 LIENS PRINCIPAUX */}
+                <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
                     className="w-full space-y-3"
                 >
-                    <div className="flex items-center justify-between px-1">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] flex items-center gap-1.5">
-                            <Zap className="w-3 h-3 text-neon-red" />
-                            Réseaux Officiels • Suivre & Liker
-                        </span>
-                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                            Commue Dropsiders
-                        </span>
-                    </div>
-
-                    {/* Instagram Card */}
-                    <div className="bg-gradient-to-r from-[#12050b] to-[#0c0816] border border-pink-500/20 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg hover:border-pink-500/40 transition-all">
-                        <div className="flex items-center gap-3.5 min-w-0">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-yellow-500 via-pink-600 to-purple-600 p-0.5 shrink-0 shadow-md">
-                                <div className="w-full h-full bg-[#050505] rounded-[10px] flex items-center justify-center">
-                                    <Instagram className="w-5 h-5 text-pink-500" />
+                    {/* Site Officiel */}
+                    <Link to="/?full=1" onClick={() => sessionStorage.setItem('dropsiders_full_site', 'true')} className="block group">
+                        <div className="bg-[#0a0a0a] hover:bg-white/10 border border-white/10 hover:border-neon-red/50 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 shadow-xl group-hover:scale-[1.01]">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-10 h-10 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red group-hover:bg-neon-red group-hover:text-white transition-colors">
+                                    <Globe className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-neon-red transition-colors">
+                                        Site Officiel DROPSIDERS
+                                    </h3>
+                                    <p className="text-[10px] text-gray-400">dropsiders.fr • Le Portail Electro N°1</p>
                                 </div>
                             </div>
-                            <div className="truncate">
-                                <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                    Instagram <span className="text-[9px] text-gray-400 font-normal">@dropsiders.fr</span>
-                                </h4>
-                                <p className="text-[10px] text-gray-400 truncate">Actus, vidéos & backstage exclusifs</p>
-                            </div>
+                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white group-hover:bg-white/10 transition-all">→</div>
                         </div>
+                    </Link>
 
-                        <div className="flex items-center gap-2 shrink-0">
-                            <button
-                                onClick={() => toggleLike('instagram')}
-                                className={`p-2.5 rounded-xl border transition-all flex items-center gap-1 text-[10px] font-bold ${
-                                    socialLikes.instagram 
-                                        ? 'bg-pink-600/20 border-pink-500/50 text-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.3)]' 
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                }`}
-                                title="Liker la page Instagram"
-                            >
-                                <Heart className={`w-4 h-4 ${socialLikes.instagram ? 'fill-pink-500 text-pink-500' : ''}`} />
-                                <span className="hidden sm:inline">{likeCounts.instagram.toLocaleString()}</span>
-                            </button>
-                            <a
-                                href="https://instagram.com/dropsiders.fr"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3.5 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-1"
-                            >
-                                SUIVRE
-                                <ExternalLink className="w-3 h-3" />
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* TikTok Card */}
-                    <div className="bg-gradient-to-r from-[#031014] to-[#0a0512] border border-cyan-500/20 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg hover:border-cyan-500/40 transition-all">
-                        <div className="flex items-center gap-3.5 min-w-0">
-                            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-400 to-pink-500 p-0.5 shrink-0 shadow-md">
-                                <div className="w-full h-full bg-[#050505] rounded-[10px] flex items-center justify-center">
-                                    <TiktokIcon className="w-5 h-5 text-cyan-400" />
-                                </div>
-                            </div>
-                            <div className="truncate">
-                                <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                    TikTok <span className="text-[9px] text-gray-400 font-normal">@dropsiders.fr</span>
-                                </h4>
-                                <p className="text-[10px] text-gray-400 truncate">Clips, mèmes, festival recaps</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                            <button
-                                onClick={() => toggleLike('tiktok')}
-                                className={`p-2.5 rounded-xl border transition-all flex items-center gap-1 text-[10px] font-bold ${
-                                    socialLikes.tiktok 
-                                        ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.3)]' 
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                }`}
-                                title="Liker la page TikTok"
-                            >
-                                <Heart className={`w-4 h-4 ${socialLikes.tiktok ? 'fill-cyan-400 text-cyan-400' : ''}`} />
-                                <span className="hidden sm:inline">{likeCounts.tiktok.toLocaleString()}</span>
-                            </button>
-                            <a
-                                href="https://tiktok.com/@dropsiders.fr"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3.5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black rounded-xl text-[10px] uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-1"
-                            >
-                                SUIVRE
-                                <ExternalLink className="w-3 h-3" />
-                            </a>
-                        </div>
-                    </div>
-
-                    {/* Facebook Card */}
-                    <div className="bg-gradient-to-r from-[#050b18] to-[#070b14] border border-blue-600/20 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg hover:border-blue-600/40 transition-all">
-                        <div className="flex items-center gap-3.5 min-w-0">
-                            <div className="w-11 h-11 rounded-xl bg-blue-600 p-0.5 shrink-0 shadow-md flex items-center justify-center">
-                                <Facebook className="w-5 h-5 text-white" />
-                            </div>
-                            <div className="truncate">
-                                <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                    Facebook <span className="text-[9px] text-gray-400 font-normal">@dropsidersfr</span>
-                                </h4>
-                                <p className="text-[10px] text-gray-400 truncate">Communauté, évènements & actus</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                            <button
-                                onClick={() => toggleLike('facebook')}
-                                className={`p-2.5 rounded-xl border transition-all flex items-center gap-1 text-[10px] font-bold ${
-                                    socialLikes.facebook 
-                                        ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.3)]' 
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
-                                }`}
-                                title="Liker la page Facebook"
-                            >
-                                <Heart className={`w-4 h-4 ${socialLikes.facebook ? 'fill-blue-500 text-blue-500' : ''}`} />
-                                <span className="hidden sm:inline">{likeCounts.facebook.toLocaleString()}</span>
-                            </button>
-                            <a
-                                href="https://facebook.com/dropsidersfr"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-1"
-                            >
-                                SUIVRE
-                                <ExternalLink className="w-3 h-3" />
-                            </a>
-                        </div>
-                    </div>
-                </motion.div>
-
-                {/* DropsidersTV */}
-                <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.15 }}
-                    className="w-full"
-                >
+                    {/* DropsidersTV */}
                     <Link to="/tv" className="block group">
                         <div className="relative overflow-hidden bg-gradient-to-r from-[#1a0005] via-[#0d0005] to-[#0a0a0a] border border-neon-red/30 hover:border-neon-red/70 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 shadow-xl shadow-neon-red/10 group-hover:scale-[1.01] group-hover:shadow-neon-red/30">
                             <div className="absolute inset-0 bg-gradient-to-r from-neon-red/5 to-transparent pointer-events-none" />
@@ -363,15 +243,119 @@ export function BrandingPage() {
                                     <p className="text-[10px] text-gray-400">Chaîne continue non-stop • Sets &amp; Festivals</p>
                                 </div>
                             </div>
-                            <div className="relative z-10 w-8 h-8 rounded-xl bg-neon-red/10 flex items-center justify-center text-neon-red group-hover:bg-neon-red group-hover:text-white transition-all">
-                                →
-                            </div>
+                            <div className="relative z-10 w-8 h-8 rounded-xl bg-neon-red/10 flex items-center justify-center text-neon-red group-hover:bg-neon-red group-hover:text-white transition-all">→</div>
                         </div>
                     </Link>
                 </motion.div>
 
-                {/* 🔗 SECTION: MAIN PORTAL LINKS */}
-                <motion.div 
+                {/* 📱 RÉSEAUX SOCIAUX */}
+                <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.15 }}
+                    className="w-full space-y-3"
+                >
+                    <div className="flex items-center justify-between px-1">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] flex items-center gap-1.5">
+                            <Zap className="w-3 h-3 text-neon-red" />
+                            Réseaux Officiels • Suivre &amp; Liker
+                        </span>
+                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                            Commue Dropsiders
+                        </span>
+                    </div>
+
+                    {/* Instagram */}
+                    <div className="bg-gradient-to-r from-[#12050b] to-[#0c0816] border border-pink-500/20 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg hover:border-pink-500/40 transition-all">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-yellow-500 via-pink-600 to-purple-600 p-0.5 shrink-0 shadow-md">
+                                <div className="w-full h-full bg-[#050505] rounded-[10px] flex items-center justify-center">
+                                    <Instagram className="w-5 h-5 text-pink-500" />
+                                </div>
+                            </div>
+                            <div className="truncate">
+                                <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                                    Instagram <span className="text-[9px] text-gray-400 font-normal">@dropsiders.fr</span>
+                                </h4>
+                                <p className="text-[10px] text-gray-400 truncate">Actus, vidéos &amp; backstage exclusifs</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <button
+                                onClick={() => toggleLike('instagram')}
+                                className={`p-2.5 rounded-xl border transition-all flex items-center gap-1 text-[10px] font-bold ${socialLikes.instagram ? 'bg-pink-600/20 border-pink-500/50 text-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                title="Liker la page Instagram"
+                            >
+                                <Heart className={`w-4 h-4 ${socialLikes.instagram ? 'fill-pink-500 text-pink-500' : ''}`} />
+                                <span className="hidden sm:inline">{likeCounts.instagram.toLocaleString()}</span>
+                            </button>
+                            <a href="https://instagram.com/dropsiders.fr" target="_blank" rel="noopener noreferrer" className="px-3.5 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-1">
+                                SUIVRE <ExternalLink className="w-3 h-3" />
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* TikTok */}
+                    <div className="bg-gradient-to-r from-[#031014] to-[#0a0512] border border-cyan-500/20 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg hover:border-cyan-500/40 transition-all">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-400 to-pink-500 p-0.5 shrink-0 shadow-md">
+                                <div className="w-full h-full bg-[#050505] rounded-[10px] flex items-center justify-center">
+                                    <TiktokIcon className="w-5 h-5 text-cyan-400" />
+                                </div>
+                            </div>
+                            <div className="truncate">
+                                <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                                    TikTok <span className="text-[9px] text-gray-400 font-normal">@dropsiders.fr</span>
+                                </h4>
+                                <p className="text-[10px] text-gray-400 truncate">Clips, mèmes, festival recaps</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <button
+                                onClick={() => toggleLike('tiktok')}
+                                className={`p-2.5 rounded-xl border transition-all flex items-center gap-1 text-[10px] font-bold ${socialLikes.tiktok ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                title="Liker la page TikTok"
+                            >
+                                <Heart className={`w-4 h-4 ${socialLikes.tiktok ? 'fill-cyan-400 text-cyan-400' : ''}`} />
+                                <span className="hidden sm:inline">{likeCounts.tiktok.toLocaleString()}</span>
+                            </button>
+                            <a href="https://tiktok.com/@dropsiders.fr" target="_blank" rel="noopener noreferrer" className="px-3.5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black rounded-xl text-[10px] uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-1">
+                                SUIVRE <ExternalLink className="w-3 h-3" />
+                            </a>
+                        </div>
+                    </div>
+
+                    {/* Facebook */}
+                    <div className="bg-gradient-to-r from-[#050b18] to-[#070b14] border border-blue-600/20 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-lg hover:border-blue-600/40 transition-all">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="w-11 h-11 rounded-xl bg-blue-600 p-0.5 shrink-0 shadow-md flex items-center justify-center">
+                                <Facebook className="w-5 h-5 text-white" />
+                            </div>
+                            <div className="truncate">
+                                <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                                    Facebook <span className="text-[9px] text-gray-400 font-normal">@dropsidersfr</span>
+                                </h4>
+                                <p className="text-[10px] text-gray-400 truncate">Communauté, évènements &amp; actus</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <button
+                                onClick={() => toggleLike('facebook')}
+                                className={`p-2.5 rounded-xl border transition-all flex items-center gap-1 text-[10px] font-bold ${socialLikes.facebook ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                title="Liker la page Facebook"
+                            >
+                                <Heart className={`w-4 h-4 ${socialLikes.facebook ? 'fill-blue-500 text-blue-500' : ''}`} />
+                                <span className="hidden sm:inline">{likeCounts.facebook.toLocaleString()}</span>
+                            </button>
+                            <a href="https://facebook.com/dropsidersfr" target="_blank" rel="noopener noreferrer" className="px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all active:scale-95 flex items-center gap-1">
+                                SUIVRE <ExternalLink className="w-3 h-3" />
+                            </a>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* 🔗 AUTRES LIENS */}
+                <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
@@ -380,31 +364,11 @@ export function BrandingPage() {
                     <div className="px-1">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] flex items-center gap-1.5">
                             <Globe className="w-3 h-3 text-neon-cyan" />
-                            Accès Directs Web & Shop
+                            Accès Directs Web &amp; Shop
                         </span>
                     </div>
 
-                    {/* Site Link */}
-                    <Link to="/?full=1" onClick={() => sessionStorage.setItem('dropsiders_full_site', 'true')} className="block group">
-                        <div className="bg-[#0a0a0a] hover:bg-white/10 border border-white/10 hover:border-neon-red/50 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 shadow-xl group-hover:scale-[1.01]">
-                            <div className="flex items-center gap-3.5">
-                                <div className="w-10 h-10 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red group-hover:bg-neon-red group-hover:text-white transition-colors">
-                                    <Globe className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-neon-red transition-colors">
-                                        Site Officiel DROPSIDERS
-                                    </h3>
-                                    <p className="text-[10px] text-gray-400">dropsiders.fr • Le Portail Electro N°1</p>
-                                </div>
-                            </div>
-                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white group-hover:bg-white/10 transition-all">
-                                →
-                            </div>
-                        </div>
-                    </Link>
-
-                    {/* Shop Link */}
+                    {/* Shop */}
                     <Link to="/shop" className="block group">
                         <div className="bg-gradient-to-r from-[#0d0914] to-[#0a0a0a] hover:bg-white/10 border border-purple-500/20 hover:border-purple-500/50 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 shadow-xl group-hover:scale-[1.01]">
                             <div className="flex items-center gap-3.5">
@@ -416,16 +380,14 @@ export function BrandingPage() {
                                         Boutique Dropsiders
                                         <span className="text-[8px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1.5 py-0.5 rounded-full">SHOP</span>
                                     </h3>
-                                    <p className="text-[10px] text-gray-400">Merch, vêtements, accessoires & goodies</p>
+                                    <p className="text-[10px] text-gray-400">Merch, vêtements, accessoires &amp; goodies</p>
                                 </div>
                             </div>
-                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white group-hover:bg-white/10 transition-all">
-                                →
-                            </div>
+                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white group-hover:bg-white/10 transition-all">→</div>
                         </div>
                     </Link>
 
-                    {/* News Link */}
+                    {/* News */}
                     <Link to="/news" className="block group">
                         <div className="bg-[#0a0a0a] hover:bg-white/10 border border-white/10 hover:border-neon-cyan/50 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 shadow-xl group-hover:scale-[1.01]">
                             <div className="flex items-center gap-3.5">
@@ -433,19 +395,15 @@ export function BrandingPage() {
                                     <Newspaper className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-neon-cyan transition-colors">
-                                        Dernières Actus & News
-                                    </h3>
-                                    <p className="text-[10px] text-gray-400">Nouveautés musique, releases & festivals</p>
+                                    <h3 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-neon-cyan transition-colors">Dernières Actus &amp; News</h3>
+                                    <p className="text-[10px] text-gray-400">Nouveautés musique, releases &amp; festivals</p>
                                 </div>
                             </div>
-                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white group-hover:bg-white/10 transition-all">
-                                →
-                            </div>
+                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white group-hover:bg-white/10 transition-all">→</div>
                         </div>
                     </Link>
 
-                    {/* Agenda Link */}
+                    {/* Agenda */}
                     <Link to="/agenda" className="block group">
                         <div className="bg-[#0a0a0a] hover:bg-white/10 border border-white/10 hover:border-yellow-500/50 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 shadow-xl group-hover:scale-[1.01]">
                             <div className="flex items-center gap-3.5">
@@ -453,15 +411,11 @@ export function BrandingPage() {
                                     <Calendar className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-yellow-400 transition-colors">
-                                        Agenda Festivals & Soirées
-                                    </h3>
+                                    <h3 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-yellow-400 transition-colors">Agenda Festivals &amp; Soirées</h3>
                                     <p className="text-[10px] text-gray-400">Calendrier des meilleurs événements electro</p>
                                 </div>
                             </div>
-                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white group-hover:bg-white/10 transition-all">
-                                →
-                            </div>
+                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white group-hover:bg-white/10 transition-all">→</div>
                         </div>
                     </Link>
 
@@ -473,41 +427,27 @@ export function BrandingPage() {
                                     <Music className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-green-400 transition-colors">
-                                        Clips & Mixes Dropsiders
-                                    </h3>
+                                    <h3 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-green-400 transition-colors">Clips &amp; Mixes Dropsiders</h3>
                                     <p className="text-[10px] text-gray-400">Écouter les derniers sets et podcasts</p>
                                 </div>
                             </div>
-                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white group-hover:bg-white/10 transition-all">
-                                →
-                            </div>
+                            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-white group-hover:bg-white/10 transition-all">→</div>
                         </div>
                     </Link>
                 </motion.div>
 
-                {/* Spotify & YouTube Additional Buttons */}
-                <motion.div 
+                {/* Spotify & YouTube */}
+                <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
                     className="w-full grid grid-cols-2 gap-3 pt-1"
                 >
-                    <a
-                        href="https://open.spotify.com/user/dropsiders"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3.5 bg-gradient-to-r from-emerald-950/40 to-[#0a0a0a] border border-emerald-500/20 hover:border-emerald-500/50 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:text-white transition-all shadow-lg group"
-                    >
+                    <a href="https://open.spotify.com/user/dropsiders" target="_blank" rel="noopener noreferrer" className="p-3.5 bg-gradient-to-r from-emerald-950/40 to-[#0a0a0a] border border-emerald-500/20 hover:border-emerald-500/50 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-400 hover:text-white transition-all shadow-lg group">
                         <SpotifyIcon className="w-4 h-4 fill-emerald-500 group-hover:scale-110 transition-transform" />
                         Spotify
                     </a>
-                    <a
-                        href="https://www.youtube.com/@dropsiders"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3.5 bg-gradient-to-r from-red-950/40 to-[#0a0a0a] border border-red-500/20 hover:border-red-500/50 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-white transition-all shadow-lg group"
-                    >
+                    <a href="https://www.youtube.com/@dropsiders" target="_blank" rel="noopener noreferrer" className="p-3.5 bg-gradient-to-r from-red-950/40 to-[#0a0a0a] border border-red-500/20 hover:border-red-500/50 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-white transition-all shadow-lg group">
                         <Radio className="w-4 h-4 text-red-500 group-hover:scale-110 transition-transform" />
                         YouTube
                     </a>
