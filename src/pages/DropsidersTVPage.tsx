@@ -377,7 +377,7 @@ export function DropsidersTVPage() {
         return () => clearInterval(interval);
     }, []);
 
-    // Real-time listener: When Admin clicks "Enregistrer", immediately sync & play
+    // Real-time listener: When Admin clicks "Enregistrer", seamlessly update playlist & promos without interrupting or restarting playback
     useEffect(() => {
         const handleTvUpdate = (data: { startTime?: number; playlist?: TVVideo[]; promos?: PromoVideo[] }) => {
             if (Array.isArray(data.playlist) && data.playlist.length > 0) {
@@ -389,22 +389,7 @@ export function DropsidersTVPage() {
             if (data.startTime) {
                 setTvStartTime(data.startTime);
             }
-            // Immediately start from beginning of newly saved broadcast
-            setCurrentIndex(0);
-            setIsPlayingPromo(false);
-            pendingSeekRef.current = 0;
-
-            if (playerRef.current && typeof playerRef.current.loadVideoById === 'function' && data.playlist?.[0]?.youtubeId) {
-                try {
-                    playerRef.current.loadVideoById({
-                        videoId: data.playlist[0].youtubeId,
-                        startSeconds: 0
-                    });
-                    disableCaptions(playerRef.current);
-                    playerRef.current.playVideo();
-                    setIsPlaying(true);
-                } catch {}
-            }
+            // Continuous TV broadcast: keep playing currently active stream without resetting to 0!
         };
 
         let channel: BroadcastChannel | null = null;

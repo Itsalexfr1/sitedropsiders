@@ -402,25 +402,27 @@ export function AdminTVModal({
         setError(null);
         setSaveMessage(null);
 
-        const startTime = Date.now();
+        // Preserve existing TV start time so saving programming never restarts playback at 0
+        let existingStartTime = 0;
+        try {
+            const saved = localStorage.getItem('dropsiders_tv_start_time');
+            if (saved) existingStartTime = parseInt(saved, 10);
+        } catch {}
+        if (!existingStartTime || isNaN(existingStartTime)) {
+            existingStartTime = Date.now();
+        }
+        const startTime = existingStartTime;
 
-        // 1. Immediate LocalStorage save so /tv works immediately & restarts broadcast
+        // 1. Immediate LocalStorage save (updates playlist & promos without resetting position)
         try {
             localStorage.setItem('dropsiders_tv_playlist_v2', JSON.stringify(currentPlaylist));
             localStorage.setItem('dropsiders_tv_promos_v2', JSON.stringify(currentPromos));
             localStorage.setItem('dropsiders_tv_start_time', startTime.toString());
-            localStorage.setItem('dropsiders_tv_state', JSON.stringify({
-                index: 0,
-                isPromo: false,
-                currentTime: 0,
-                updatedAt: startTime
-            }));
 
             try {
                 const bc = new BroadcastChannel('dropsiders_tv_sync');
                 bc.postMessage({
                     type: 'TV_SCHEDULE_UPDATED',
-                    startTime,
                     playlist: currentPlaylist,
                     promos: currentPromos
                 });
