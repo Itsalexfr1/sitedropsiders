@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tv, Volume2, VolumeX, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Wifi, Radio } from 'lucide-react';
+import { Tv, Volume2, VolumeX, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Wifi, Radio, Film } from 'lucide-react';
 import { TakeoverPage } from './TakeoverPage';
 import { apiFetch } from '../utils/auth';
 import { SEO } from '../components/utils/SEO';
@@ -17,6 +17,8 @@ export interface TVVideo {
     title: string;
     description: string;
     youtubeId: string;
+    promoId?: string;       // Optional promo video that plays AFTER this video
+    promoTitle?: string;    // Label for the promo
 }
 
 const DEFAULT_TV_PLAYLIST: TVVideo[] = [
@@ -67,6 +69,8 @@ export function DropsidersTVPage() {
     });
 
     const [currentIndex, setCurrentIndex] = useState(0);
+    // isPlayingPromo: true when the promo video for the current index is playing
+    const [isPlayingPromo, setIsPlayingPromo] = useState(false);
     const [isPlaying, setIsPlaying] = useState(true);
     const [isMuted, setIsMuted] = useState(false);
     const [showControls, setShowControls] = useState(true);
@@ -110,17 +114,43 @@ export function DropsidersTVPage() {
         return () => clearInterval(interval);
     }, []);
 
-    const currentVideo = playlist[currentIndex] || playlist[0];
+    // The current video: if playing promo → use promoId of currentIndex video, else use main video
+    const currentMainVideo = playlist[currentIndex] || playlist[0];
+    const currentVideoId = isPlayingPromo && currentMainVideo?.promoId
+        ? currentMainVideo.promoId
+        : currentMainVideo?.youtubeId;
+    const currentDisplayTitle = isPlayingPromo && currentMainVideo?.promoId
+        ? (currentMainVideo.promoTitle || 'Vidéo Promo')
+        : currentMainVideo?.title;
 
-    const goNext = useCallback(() => {
+    // Advance to next main video
+    const goNextMain = useCallback(() => {
+        setIsPlayingPromo(false);
         setCurrentIndex((prev) => (prev + 1) % (playlist.length || 1));
     }, [playlist.length]);
 
+    // When a video ends: check if there's a promo for the current main video
+    const handleVideoEnded = useCallback(() => {
+        if (!isPlayingPromo && currentMainVideo?.promoId) {
+            // Play the promo
+            setIsPlayingPromo(true);
+        } else {
+            // No promo (or promo just finished) → go to next main video
+            goNextMain();
+        }
+    }, [isPlayingPromo, currentMainVideo, goNextMain]);
+
+    const goNext = useCallback(() => {
+        // Manual skip always goes to next MAIN video (skip promo)
+        goNextMain();
+    }, [goNextMain]);
+
     const goPrev = useCallback(() => {
+        setIsPlayingPromo(false);
         setCurrentIndex((prev) => (prev - 1 + playlist.length) % (playlist.length || 1));
     }, [playlist.length]);
 
-    // YouTube Iframe API setup for automatic video chaining without user seeking
+    // YouTube Iframe API setup
     useEffect(() => {
         let isCancelled = false;
 
@@ -139,12 +169,11 @@ export function DropsidersTVPage() {
                 playerRef.current = null;
             }
 
-            const video = playlist[currentIndex] || playlist[0];
-            if (!video?.youtubeId) return;
+            if (!currentVideoId) return;
 
             try {
                 playerRef.current = new window.YT.Player('dropsiders-tv-yt-iframe', {
-                    videoId: video.youtubeId,
+                    videoId: currentVideoId,
                     playerVars: {
                         autoplay: 1,
                         controls: 0,
@@ -165,10 +194,9 @@ export function DropsidersTVPage() {
                             setIsPlaying(true);
                         },
                         onStateChange: (event: any) => {
-                            // YT.PlayerState.ENDED is 0
+                            // YT.PlayerState.ENDED = 0
                             if (event.data === 0) {
-                                // Chaining: automatically go to next video!
-                                goNext();
+                                handleVideoEnded();
                             } else if (event.data === 1) {
                                 setIsPlaying(true);
                             } else if (event.data === 2) {
@@ -204,7 +232,8 @@ export function DropsidersTVPage() {
         return () => {
             isCancelled = true;
         };
-    }, [currentIndex, playlist, goNext, isMuted]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentIndex, isPlayingPromo, playlist, isMuted]);
 
     // Controls visibility timer
     const resetTimer = useCallback(() => {
@@ -218,7 +247,7 @@ export function DropsidersTVPage() {
         return () => {
             if (hideTimer.current) clearTimeout(hideTimer.current);
         };
-    }, [currentIndex, resetTimer]);
+    }, [currentIndex, isPlayingPromo, resetTimer]);
 
     const handlePlayPause = () => {
         if (!playerRef.current) {
@@ -319,7 +348,7 @@ export function DropsidersTVPage() {
         );
     }
 
-    const fallbackEmbedUrl = `https://www.youtube.com/embed/${currentVideo?.youtubeId}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&disablekb=1&modestbranding=1&rel=0&iv_load_policy=3&fs=0&enablejsapi=1`;
+    const fallbackEmbedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&disablekb=1&modestbranding=1&rel=0&iv_load_policy=3&fs=0&enablejsapi=1`;
 
     return (
         <>
@@ -360,10 +389,18 @@ export function DropsidersTVPage() {
                                         DROPSIDERS <span className="text-neon-red">TV</span>
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-neon-red bg-neon-red/10 border border-neon-red/20">
-                                    <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
-                                    DIFFUSION CONTINUE
-                                </div>
+                                {/* Promo badge */}
+                                {isPlayingPromo ? (
+                                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-neon-purple bg-neon-purple/10 border border-neon-purple/30">
+                                        <Film className="w-3 h-3 animate-pulse" />
+                                        VIDÉO PROMO
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-neon-red bg-neon-red/10 border border-neon-red/20">
+                                        <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
+                                        DIFFUSION CONTINUE
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-3">
@@ -396,7 +433,7 @@ export function DropsidersTVPage() {
                                 src={fallbackEmbedUrl}
                                 className="w-full h-full border-0 pointer-events-none"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                title={currentVideo?.title || 'DropsidersTV'}
+                                title={currentDisplayTitle || 'DropsidersTV'}
                             />
                         </div>
 
@@ -416,7 +453,7 @@ export function DropsidersTVPage() {
                         </span>
                     </div>
 
-                    {/* Bottom Controls Bar (sans sélection de vidéos, enchaînement automatique) */}
+                    {/* Bottom Controls Bar */}
                     <AnimatePresence>
                         {showControls && (
                             <motion.div
@@ -432,19 +469,32 @@ export function DropsidersTVPage() {
                                 {/* Video Info */}
                                 <div className="mb-4">
                                     <div className="flex items-center gap-2 mb-1.5">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-neon-red px-2.5 py-0.5 rounded-full bg-neon-red/15 border border-neon-red/30">
-                                            Vidéo {currentIndex + 1} sur {playlist.length}
-                                        </span>
+                                        {isPlayingPromo ? (
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-neon-purple px-2.5 py-0.5 rounded-full bg-neon-purple/15 border border-neon-purple/30 flex items-center gap-1">
+                                                <Film className="w-2.5 h-2.5" />
+                                                Promo · après vidéo {currentIndex + 1}
+                                            </span>
+                                        ) : (
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-neon-red px-2.5 py-0.5 rounded-full bg-neon-red/15 border border-neon-red/30">
+                                                Vidéo {currentIndex + 1} sur {playlist.length}
+                                            </span>
+                                        )}
                                         <span className="text-white/40 text-[9px] uppercase font-bold tracking-wider">
                                             Enchaînement automatique
                                         </span>
+                                        {!isPlayingPromo && currentMainVideo?.promoId && (
+                                            <span className="text-[9px] font-bold text-neon-purple/50 uppercase tracking-wider flex items-center gap-1">
+                                                <Film className="w-2.5 h-2.5" />
+                                                → promo ensuite
+                                            </span>
+                                        )}
                                     </div>
                                     <h2 className="text-white font-display font-black text-lg md:text-2xl uppercase italic tracking-tight truncate drop-shadow-lg">
-                                        {currentVideo?.title}
+                                        {currentDisplayTitle}
                                     </h2>
-                                    {currentVideo?.description && (
+                                    {!isPlayingPromo && currentMainVideo?.description && (
                                         <p className="text-white/50 text-xs line-clamp-1 mt-0.5">
-                                            {currentVideo.description}
+                                            {currentMainVideo.description}
                                         </p>
                                     )}
                                 </div>
@@ -464,15 +514,19 @@ export function DropsidersTVPage() {
                                             title={isPlaying ? "Pause" : "Lecture"}
                                             className="w-13 h-13 px-4 py-3 rounded-full flex items-center justify-center transition-all active:scale-95 text-white"
                                             style={{
-                                                background: 'linear-gradient(135deg, #ff1241, #c7002d)',
-                                                boxShadow: '0 4px 25px rgba(255, 18, 65, 0.5)'
+                                                background: isPlayingPromo
+                                                    ? 'linear-gradient(135deg, #a855f7, #7c3aed)'
+                                                    : 'linear-gradient(135deg, #ff1241, #c7002d)',
+                                                boxShadow: isPlayingPromo
+                                                    ? '0 4px 25px rgba(168, 85, 247, 0.5)'
+                                                    : '0 4px 25px rgba(255, 18, 65, 0.5)'
                                             }}
                                         >
                                             {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
                                         </button>
                                         <button
                                             onClick={goNext}
-                                            title="Vidéo suivante"
+                                            title="Vidéo suivante (passe la promo)"
                                             className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white"
                                         >
                                             <SkipForward className="w-4 h-4" />

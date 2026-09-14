@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Tv, Plus, Trash2, ChevronUp, ChevronDown, Save, ExternalLink, RotateCcw, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
-import { apiFetch } from '../../../utils/auth';
+import { X, Tv, Plus, Trash2, ChevronUp, ChevronDown, Save, ExternalLink, RotateCcw, CheckCircle2, Loader2, AlertCircle, Film, ChevronRight } from 'lucide-react';
+import { apiFetch, getAuthHeaders } from '../../../utils/auth';
 
 export interface TVVideo {
     id: string;
     title: string;
     description: string;
     youtubeId: string;
+    promoId?: string; // Optional promo video YouTube ID played after this video
+    promoTitle?: string; // Optional label for the promo
 }
 
 const DEFAULT_PLAYLIST: TVVideo[] = [
@@ -66,6 +68,13 @@ export function AdminTVModal({ isOpen, onClose }: AdminTVModalProps) {
     const [newUrl, setNewUrl] = useState('');
     const [newTitle, setNewTitle] = useState('');
     const [newDesc, setNewDesc] = useState('');
+    const [newPromoUrl, setNewPromoUrl] = useState('');
+    const [newPromoTitle, setNewPromoTitle] = useState('');
+
+    // Expanded promo row per video id
+    const [expandedPromo, setExpandedPromo] = useState<string | null>(null);
+    // Temp editing state for promo fields per video
+    const [promoEdits, setPromoEdits] = useState<Record<string, { url: string; title: string }>>({});
 
     useEffect(() => {
         if (!isOpen) return;
@@ -100,17 +109,22 @@ export function AdminTVModal({ isOpen, onClose }: AdminTVModalProps) {
             return;
         }
 
+        const promoYtid = newPromoUrl.trim() ? extractYouTubeId(newPromoUrl) : null;
+
         const newVid: TVVideo = {
             id: `tv_${Date.now()}`,
             title: newTitle.trim() || `Vidéo ${playlist.length + 1}`,
             description: newDesc.trim() || 'Diffusé sur DropsidersTV',
-            youtubeId: ytid
+            youtubeId: ytid,
+            ...(promoYtid ? { promoId: promoYtid, promoTitle: newPromoTitle.trim() || 'Vidéo Promo' } : {})
         };
 
         setPlaylist(prev => [...prev, newVid]);
         setNewUrl('');
         setNewTitle('');
         setNewDesc('');
+        setNewPromoUrl('');
+        setNewPromoTitle('');
     };
 
     const handleDelete = (id: string) => {
@@ -149,18 +163,63 @@ export function AdminTVModal({ isOpen, onClose }: AdminTVModalProps) {
         }
     };
 
+    const handleTogglePromo = (vid: TVVideo) => {
+        if (expandedPromo === vid.id) {
+            setExpandedPromo(null);
+        } else {
+            setExpandedPromo(vid.id);
+            setPromoEdits(prev => ({
+                ...prev,
+                [vid.id]: {
+                    url: vid.promoId || '',
+                    title: vid.promoTitle || ''
+                }
+            }));
+        }
+    };
+
+    const handleSavePromo = (vidId: string) => {
+        const edit = promoEdits[vidId];
+        if (!edit) return;
+
+        const promoYtid = edit.url.trim() ? extractYouTubeId(edit.url) : null;
+        if (edit.url.trim() && !promoYtid) {
+            alert('Lien YouTube de promo invalide.');
+            return;
+        }
+
+        setPlaylist(prev => prev.map(v => {
+            if (v.id !== vidId) return v;
+            if (!promoYtid) {
+                // Remove promo
+                const { promoId, promoTitle, ...rest } = v;
+                return rest;
+            }
+            return { ...v, promoId: promoYtid, promoTitle: edit.title.trim() || 'Vidéo Promo' };
+        }));
+        setExpandedPromo(null);
+    };
+
+    const handleRemovePromo = (vidId: string) => {
+        setPlaylist(prev => prev.map(v => {
+            if (v.id !== vidId) return v;
+            const { promoId, promoTitle, ...rest } = v;
+            return rest;
+        }));
+        setExpandedPromo(null);
+    };
+
     const handleSave = async () => {
         setSaving(true);
         setError(null);
         try {
             const res = await apiFetch('/api/settings/update', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders(null) },
                 body: JSON.stringify({ tv_playlist: playlist })
             });
             if (res.ok) {
                 setSaveSuccess(true);
-                // Also update localStorage cache for instant refresh
                 try {
                     localStorage.setItem('dropsiders_tv_playlist_v2', JSON.stringify(playlist));
                 } catch {}
@@ -201,7 +260,7 @@ export function AdminTVModal({ isOpen, onClose }: AdminTVModalProps) {
                                             DROPSIDERS <span className="text-neon-red">TV</span>
                                         </h2>
                                         <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
-                                            Programmation des liens YouTube enchaînés
+                                            Programmation · Vidéos + Promos liées
                                         </p>
                                     </div>
                                 </div>
@@ -225,16 +284,33 @@ export function AdminTVModal({ isOpen, onClose }: AdminTVModalProps) {
                             </div>
                         </div>
 
+                        {/* Legend */}
+                        <div className="mb-4 shrink-0 flex items-center gap-4 text-[10px] font-bold text-white/30 uppercase tracking-widest px-1">
+                            <div className="flex items-center gap-1.5">
+                                <div className="w-2.5 h-2.5 rounded-full bg-neon-red/60" />
+                                Vidéo principale
+                            </div>
+                            <ChevronRight className="w-3 h-3" />
+                            <div className="flex items-center gap-1.5">
+                                <Film className="w-3 h-3 text-neon-purple/60" />
+                                Vidéo Promo (optionnel)
+                            </div>
+                            <ChevronRight className="w-3 h-3" />
+                            <span>Suivante...</span>
+                        </div>
+
                         {/* Add Video Form */}
                         <form onSubmit={handleAddVideo} className="mb-6 p-4 md:p-5 rounded-2xl bg-white/5 border border-white/10 shrink-0 space-y-3">
                             <div className="text-[10px] font-black uppercase tracking-widest text-neon-red flex items-center gap-2">
                                 <Plus className="w-3.5 h-3.5" />
-                                Ajouter un lien YouTube à la chaîne
+                                Ajouter une vidéo à la chaîne
                             </div>
+
+                            {/* Main video */}
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                                 <input
                                     type="text"
-                                    placeholder="Lien YouTube (ex: https://youtube.com/watch?v=... ou https://youtu.be/...)"
+                                    placeholder="Lien YouTube principal (ex: https://youtu.be/...)"
                                     value={newUrl}
                                     onChange={(e) => setNewUrl(e.target.value)}
                                     className="md:col-span-6 bg-black/60 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
@@ -262,13 +338,37 @@ export function AdminTVModal({ isOpen, onClose }: AdminTVModalProps) {
                                 onChange={(e) => setNewDesc(e.target.value)}
                                 className="w-full bg-black/40 border border-white/5 rounded-xl px-3 py-2 text-[11px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/20"
                             />
+
+                            {/* Promo video (optional) */}
+                            <div className="border-t border-white/5 pt-3 space-y-2">
+                                <div className="text-[9px] font-black uppercase tracking-widest text-neon-purple/70 flex items-center gap-1.5">
+                                    <Film className="w-3 h-3" />
+                                    Vidéo Promo après cette vidéo (optionnel)
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Lien YouTube promo (ex: https://youtu.be/...)"
+                                        value={newPromoUrl}
+                                        onChange={(e) => setNewPromoUrl(e.target.value)}
+                                        className="bg-black/40 border border-neon-purple/20 rounded-xl px-3 py-2 text-[11px] text-white placeholder:text-white/25 focus:outline-none focus:border-neon-purple/50"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Label promo (ex: Pub Dropsiders, Teaser...)"
+                                        value={newPromoTitle}
+                                        onChange={(e) => setNewPromoTitle(e.target.value)}
+                                        className="bg-black/40 border border-neon-purple/20 rounded-xl px-3 py-2 text-[11px] text-white placeholder:text-white/25 focus:outline-none focus:border-neon-purple/50"
+                                    />
+                                </div>
+                            </div>
                         </form>
 
                         {/* List of videos */}
-                        <div className="flex-1 overflow-y-auto space-y-2.5 pr-2 min-h-[220px]">
+                        <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[180px]">
                             <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-white/40 mb-2 px-1">
                                 <span>Ordre de passage ({playlist.length} vidéos)</span>
-                                <span>Action</span>
+                                <span>Actions</span>
                             </div>
 
                             {loading ? (
@@ -284,59 +384,162 @@ export function AdminTVModal({ isOpen, onClose }: AdminTVModalProps) {
                                 </div>
                             ) : (
                                 playlist.map((vid, idx) => (
-                                    <div
-                                        key={vid.id}
-                                        className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-white/5 border border-white/5 hover:border-white/15 transition-all group"
-                                    >
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <span className="text-[11px] font-black text-white/30 w-5 text-center">
-                                                #{idx + 1}
-                                            </span>
-                                            <div className="relative w-16 h-10 rounded-lg overflow-hidden bg-black flex-shrink-0 border border-white/10">
-                                                <img
-                                                    src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`}
-                                                    alt={vid.title}
-                                                    className="w-full h-full object-cover"
-                                                />
+                                    <div key={vid.id} className="rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-all">
+                                        {/* Main row */}
+                                        <div className="flex items-center justify-between gap-3 p-3 bg-white/5 group">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <span className="text-[11px] font-black text-white/30 w-5 text-center shrink-0">
+                                                    #{idx + 1}
+                                                </span>
+                                                <div className="relative w-16 h-10 rounded-lg overflow-hidden bg-black flex-shrink-0 border border-white/10">
+                                                    <img
+                                                        src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`}
+                                                        alt={vid.title}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="text-xs font-bold text-white truncate group-hover:text-neon-red transition-colors">
+                                                        {vid.title}
+                                                    </h4>
+                                                    <p className="text-[10px] text-white/40 truncate">
+                                                        {vid.youtubeId}
+                                                        {vid.promoId && (
+                                                            <span className="ml-2 text-neon-purple/60 font-bold">
+                                                                · 📽️ {vid.promoTitle || 'Promo'}
+                                                            </span>
+                                                        )}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div className="min-w-0">
-                                                <h4 className="text-xs font-bold text-white truncate group-hover:text-neon-red transition-colors">
-                                                    {vid.title}
-                                                </h4>
-                                                <p className="text-[10px] text-white/40 truncate">
-                                                    ID: {vid.youtubeId} {vid.description ? `· ${vid.description}` : ''}
-                                                </p>
+
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                {/* Promo toggle button */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleTogglePromo(vid)}
+                                                    title={vid.promoId ? "Modifier la promo" : "Ajouter une vidéo promo"}
+                                                    className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-[9px] font-black uppercase tracking-wider ${
+                                                        vid.promoId
+                                                            ? 'bg-neon-purple/20 border border-neon-purple/30 text-neon-purple hover:bg-neon-purple/30'
+                                                            : 'bg-white/5 border border-white/10 text-white/40 hover:text-neon-purple hover:bg-neon-purple/10 hover:border-neon-purple/20'
+                                                    }`}
+                                                >
+                                                    <Film className="w-3.5 h-3.5" />
+                                                    {vid.promoId ? 'Promo ✓' : 'Promo'}
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleMoveUp(idx)}
+                                                    disabled={idx === 0}
+                                                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
+                                                    title="Monter"
+                                                >
+                                                    <ChevronUp className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleMoveDown(idx)}
+                                                    disabled={idx === playlist.length - 1}
+                                                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
+                                                    title="Descendre"
+                                                >
+                                                    <ChevronDown className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDelete(vid.id)}
+                                                    className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all ml-1"
+                                                    title="Supprimer"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                            <button
-                                                type="button"
-                                                onClick={() => handleMoveUp(idx)}
-                                                disabled={idx === 0}
-                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
-                                                title="Monter"
-                                            >
-                                                <ChevronUp className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleMoveDown(idx)}
-                                                disabled={idx === playlist.length - 1}
-                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
-                                                title="Descendre"
-                                            >
-                                                <ChevronDown className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleDelete(vid.id)}
-                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all ml-1"
-                                                title="Supprimer"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                        {/* Promo expand panel */}
+                                        <AnimatePresence>
+                                            {expandedPromo === vid.id && (
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.2 }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <div className="p-3 bg-neon-purple/5 border-t border-neon-purple/15 space-y-2.5">
+                                                        <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-neon-purple/70">
+                                                            <Film className="w-3 h-3" />
+                                                            Vidéo Promo liée après « {vid.title} »
+                                                        </div>
+                                                        <div className="flex flex-col sm:flex-row gap-2">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Lien YouTube promo (https://youtu.be/...)"
+                                                                value={promoEdits[vid.id]?.url || ''}
+                                                                onChange={(e) => setPromoEdits(prev => ({
+                                                                    ...prev,
+                                                                    [vid.id]: { ...prev[vid.id], url: e.target.value }
+                                                                }))}
+                                                                className="flex-1 bg-black/60 border border-neon-purple/20 rounded-xl px-3 py-2 text-[11px] text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple/50"
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Label (ex: Pub Dropsiders)"
+                                                                value={promoEdits[vid.id]?.title || ''}
+                                                                onChange={(e) => setPromoEdits(prev => ({
+                                                                    ...prev,
+                                                                    [vid.id]: { ...prev[vid.id], title: e.target.value }
+                                                                }))}
+                                                                className="flex-1 bg-black/60 border border-neon-purple/20 rounded-xl px-3 py-2 text-[11px] text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple/50"
+                                                            />
+                                                        </div>
+                                                        {/* Preview if promoId set */}
+                                                        {promoEdits[vid.id]?.url && extractYouTubeId(promoEdits[vid.id].url) && (
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-16 h-10 rounded-lg overflow-hidden border border-neon-purple/20 shrink-0">
+                                                                    <img
+                                                                        src={`https://img.youtube.com/vi/${extractYouTubeId(promoEdits[vid.id].url)}/mqdefault.jpg`}
+                                                                        alt="Promo preview"
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                </div>
+                                                                <span className="text-[10px] text-neon-purple/60 font-bold">
+                                                                    Aperçu de la promo
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center gap-2 justify-end">
+                                                            {vid.promoId && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleRemovePromo(vid.id)}
+                                                                    className="px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-wider hover:bg-red-500/20 transition-all"
+                                                                >
+                                                                    Supprimer la promo
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setExpandedPromo(null)}
+                                                                className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white/50 text-[10px] font-black uppercase tracking-wider hover:bg-white/10 transition-all"
+                                                            >
+                                                                Annuler
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleSavePromo(vid.id)}
+                                                                className="px-3 py-1.5 rounded-xl bg-neon-purple text-white text-[10px] font-black uppercase tracking-wider hover:bg-neon-purple/90 transition-all flex items-center gap-1"
+                                                            >
+                                                                <Save className="w-3 h-3" />
+                                                                Valider
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
                                 ))
                             )}
