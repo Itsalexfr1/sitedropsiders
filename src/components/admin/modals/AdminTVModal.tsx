@@ -1,7 +1,14 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Tv, Plus, Trash2, ChevronUp, ChevronDown, Save, ExternalLink, RotateCcw, CheckCircle2, Loader2, AlertCircle, Film, ChevronRight, Sparkles, Radio, Zap, Eye, Calendar, Home } from 'lucide-react';
+import { 
+    X, Tv, Plus, Trash2, ChevronUp, ChevronDown, Save, ExternalLink, 
+    RotateCcw, CheckCircle2, Loader2, AlertCircle, Film, ChevronRight, 
+    Sparkles, Radio, Zap, Eye, Calendar, Home, Video, Shield, ShieldAlert, 
+    Pin, PinOff, MessageSquare, Clock, Lock, User, Upload, 
+    Image as ImageIcon, Pencil, LayoutDashboard, Globe, Activity 
+} from 'lucide-react';
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
+import { uploadFile } from '../../../utils/uploadService';
 import type { TVVideo, PromoVideo } from '../../../pages/DropsidersTVPage';
 
 export type { TVVideo, PromoVideo };
@@ -91,7 +98,7 @@ export async function fetchYouTubeTitle(urlOrId: string): Promise<string | null>
     return null;
 }
 
-interface TakeoverStatePartial {
+export interface TakeoverStatePartial {
     enabled: boolean;
     status?: 'off' | 'edit' | 'live';
     youtubeId?: string;
@@ -101,7 +108,22 @@ interface TakeoverStatePartial {
     forceHomepage?: boolean;
     showInNavbar?: boolean;
     showInAgenda?: boolean;
+    showTopBanner?: boolean;
     isSecret?: boolean;
+    password?: string;
+    moderators?: string;
+    lineup?: string;
+    channels?: string;
+    tickerType?: 'news' | 'planning' | 'custom';
+    tickerText?: string;
+    tickerLink?: string;
+    tickerBgColor?: string;
+    tickerTextColor?: string;
+    showTickerBanner?: boolean;
+    autoMessage?: string;
+    autoMessageInterval?: number;
+    customCommands?: string;
+    pinnedMessage?: string;
     [key: string]: any;
 }
 
@@ -115,8 +137,17 @@ interface AdminTVModalProps {
     isUpdatingTakeover?: boolean;
 }
 
-export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatus, onSaveTakeover, onTakeoverChange, isUpdatingTakeover }: AdminTVModalProps) {
+export function AdminTVModal({
+    isOpen,
+    onClose,
+    takeoverState,
+    onUpdateLiveStatus,
+    onSaveTakeover,
+    onTakeoverChange,
+    isUpdatingTakeover
+}: AdminTVModalProps) {
     const [activeTab, setActiveTab] = useState<'main' | 'promo' | 'live'>('main');
+    const [liveSubTab, setLiveSubTab] = useState<'general' | 'planning' | 'moderation' | 'ticker' | 'bot' | 'mods' | 'access'>('general');
     const [liveSaving, setLiveSaving] = useState(false);
     const [liveSaved, setLiveSaved] = useState(false);
 
@@ -141,6 +172,9 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
     const [newPromoUrl, setNewPromoUrl] = useState('');
     const [newPromoTitle, setNewPromoTitle] = useState('');
     const [isFetchingPromoTitle, setIsFetchingPromoTitle] = useState(false);
+
+    // Banned chat users local state
+    const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -330,7 +364,7 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
         }
     };
 
-    // Save All
+    // Save TV Playlist
     const handleSave = async () => {
         let currentPlaylist = [...playlist];
         if (newMainUrl.trim()) {
@@ -439,32 +473,52 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
         }
     };
 
+    // Helper to upload image for Lineup
+    const handleUploadImageForLineup = (onSuccess: (url: string) => void) => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async (e: any) => {
+            const file = e.target.files?.[0];
+            if (file) {
+                try {
+                    const url = await uploadFile(file, 'festivals');
+                    onSuccess(url);
+                } catch (err) {
+                    console.error("Upload failed", err);
+                    alert("Erreur lors de l'upload de l'image.");
+                }
+            }
+        };
+        input.click();
+    };
+
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 md:p-6 bg-black/95 backdrop-blur-2xl">
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/95 backdrop-blur-2xl">
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 30 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 15 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                        className="bg-[#0a0a0a] border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-5 md:p-8 max-w-3xl w-full shadow-[0_0_100px_rgba(255,18,65,0.15)] relative overflow-hidden flex flex-col max-h-[92vh]"
+                        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                        className="bg-[#0a0a0a] border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 max-w-5xl w-full max-h-[92vh] shadow-2xl relative overflow-hidden flex flex-col"
                     >
+                        {/* Red Accent top line */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan" />
-                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 blur-[100px] rounded-full pointer-events-none" />
 
-                        {/* Header */}
-                        <div className="flex justify-between items-start mb-4 relative z-10 shrink-0">
+                        {/* Modal Header */}
+                        <div className="flex justify-between items-start mb-4 shrink-0">
                             <div>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-11 h-11 rounded-2xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red">
+                                    <div className="w-10 h-10 rounded-2xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red">
                                         <Tv className="w-5 h-5" />
                                     </div>
                                     <div>
                                         <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter">
-                                            DROPSIDERS <span className="text-neon-red">TV</span>
+                                            DROPSIDERS <span className="text-neon-red">TV</span> & <span className="text-neon-purple">LIVE</span>
                                         </h2>
                                         <p className="text-gray-400 font-bold uppercase tracking-widest text-[9px] md:text-[10px]">
-                                            Programmation continue · Sets & Vidéos Promo
+                                            Programmation continue TV · Live Takeover · Timetable & Modération
                                         </p>
                                     </div>
                                 </div>
@@ -479,6 +533,15 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
                                     <ExternalLink className="w-3 h-3" />
                                     Voir la TV
                                 </a>
+                                <a
+                                    href="/live"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="px-3 py-2 rounded-xl bg-neon-purple/10 hover:bg-neon-purple/20 border border-neon-purple/30 text-[10px] font-black uppercase tracking-widest text-neon-purple transition-all flex items-center gap-1.5"
+                                >
+                                    <Radio className="w-3 h-3" />
+                                    Voir le Live
+                                </a>
                                 <button
                                     onClick={onClose}
                                     className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
@@ -488,179 +551,166 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
                             </div>
                         </div>
 
-                        {/* Dynamic Alternation Diagram */}
-                        <div className="mb-4 p-2.5 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 flex items-center justify-between gap-2 overflow-x-auto text-[10px] font-bold">
-                            <span className="text-white/40 uppercase tracking-widest text-[9px] shrink-0">
-                                Ordre de diffusion :
-                            </span>
-                            <div className="flex items-center gap-2 shrink-0">
-                                <span className="px-2 py-0.5 rounded bg-neon-red/20 text-neon-red border border-neon-red/30">
-                                    Vidéo 1
-                                </span>
-                                <ChevronRight className="w-3 h-3 text-white/20" />
-                                <span className="px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple border border-neon-purple/30">
-                                    Promo 1
-                                </span>
-                                <ChevronRight className="w-3 h-3 text-white/20" />
-                                <span className="px-2 py-0.5 rounded bg-neon-red/20 text-neon-red border border-neon-red/30">
-                                    Vidéo 2
-                                </span>
-                                <ChevronRight className="w-3 h-3 text-white/20" />
-                                <span className="px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple border border-neon-purple/30">
-                                    Promo 2
-                                </span>
-                                <ChevronRight className="w-3 h-3 text-white/20" />
-                                <span className="px-2 py-0.5 rounded bg-neon-red/20 text-neon-red border border-neon-red/30">
-                                    Vidéo 3
-                                </span>
-                                <ChevronRight className="w-3 h-3 text-white/20" />
-                                <span className="px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple border border-neon-purple/30">
-                                    {promos.length > 2 ? 'Promo 3' : 'Promo 1'}
-                                </span>
-                                <ChevronRight className="w-3 h-3 text-white/20" />
-                                <span className="text-white/30">...</span>
-                            </div>
-                        </div>
-
-                        {/* Tabs Switcher */}
-                        <div className="flex items-center gap-2 mb-4 shrink-0 border-b border-white/10 pb-2 overflow-x-auto">
+                        {/* Top Main Navigation Tabs */}
+                        <div className="flex items-center gap-2 mb-4 p-1 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0 overflow-x-auto">
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('main')}
-                                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
                                     activeTab === 'main'
-                                        ? 'bg-neon-red text-white shadow-lg shadow-neon-red/30'
-                                        : 'bg-white/5 text-white/50 hover:text-white'
+                                        ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20'
+                                        : 'text-white/60 hover:text-white hover:bg-white/5'
                                 }`}
                             >
                                 <Tv className="w-4 h-4" />
-                                1. Vidéos Principales ({playlist.length})
+                                Programmation TV ({playlist.length})
                             </button>
-
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('promo')}
-                                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
                                     activeTab === 'promo'
-                                        ? 'bg-neon-purple text-white shadow-lg shadow-neon-purple/30'
-                                        : 'bg-white/5 text-white/50 hover:text-white'
+                                        ? 'bg-neon-purple text-white shadow-lg shadow-neon-purple/20'
+                                        : 'text-white/60 hover:text-white hover:bg-white/5'
                                 }`}
                             >
                                 <Film className="w-4 h-4" />
-                                2. Vidéos Promo ({promos.length})
+                                Vidéos Promo ({promos.length})
                             </button>
-
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('live')}
-                                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shrink-0 ${
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
                                     activeTab === 'live'
-                                        ? takeoverState?.status === 'live'
-                                            ? 'bg-green-600 text-white shadow-lg shadow-green-600/30 animate-pulse'
-                                            : 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
-                                        : 'bg-white/5 text-white/50 hover:text-white'
+                                        ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg shadow-red-600/30'
+                                        : 'text-white/60 hover:text-white hover:bg-white/5'
                                 }`}
                             >
-                                <Radio className="w-4 h-4" />
-                                3. Live Takeover
-                                {takeoverState?.status === 'live' && (
-                                    <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-                                )}
+                                <Radio className="w-4 h-4 text-white" />
+                                Live Takeover {takeoverState?.status === 'live' ? '🔴' : takeoverState?.status === 'edit' ? '🟠' : ''}
                             </button>
                         </div>
 
-                        {/* Tab Content: MAIN VIDEOS */}
+                        {/* ========================================================= */}
+                        {/* TAB: PROGRAMMATION TV (SETS PRINCIPAUX) */}
+                        {/* ========================================================= */}
                         {activeTab === 'main' && (
                             <>
-                                {/* Add Main Form */}
-                                <form onSubmit={handleAddMainVideo} className="mb-4 p-4 rounded-2xl bg-white/5 border border-white/10 shrink-0 space-y-2.5">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-neon-red flex items-center gap-2">
-                                        <Plus className="w-3.5 h-3.5" />
-                                        Ajouter une vidéo principale (Set, festival...)
+                                {/* Alternation Diagram */}
+                                <div className="mb-4 p-2.5 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 flex items-center justify-between gap-2 overflow-x-auto text-[10px] font-bold">
+                                    <span className="text-white/40 uppercase tracking-widest text-[9px] shrink-0">
+                                        Règle de diffusion continue :
+                                    </span>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="px-2 py-0.5 rounded bg-neon-red/20 text-neon-red border border-neon-red/30">
+                                            Vidéo 1
+                                        </span>
+                                        <ChevronRight className="w-3 h-3 text-white/20" />
+                                        <span className="px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple border border-neon-purple/30">
+                                            Promo 1
+                                        </span>
+                                        <ChevronRight className="w-3 h-3 text-white/20" />
+                                        <span className="px-2 py-0.5 rounded bg-neon-red/20 text-neon-red border border-neon-red/30">
+                                            Vidéo 2
+                                        </span>
+                                        <ChevronRight className="w-3 h-3 text-white/20" />
+                                        <span className="px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple border border-neon-purple/30">
+                                            Promo 2
+                                        </span>
+                                        <ChevronRight className="w-3 h-3 text-white/20" />
+                                        <span className="text-white/40 italic text-[9px]">etc...</span>
+                                    </div>
+                                </div>
+
+                                {/* Form: Add Main Video */}
+                                <form onSubmit={handleAddMainVideo} className="mb-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0 space-y-3">
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/50 flex items-center gap-1.5">
+                                        <Plus className="w-3.5 h-3.5 text-neon-red" />
+                                        Ajouter un set principal à la programmation
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
                                         <div className="md:col-span-6 relative">
                                             <input
                                                 type="text"
-                                                placeholder="Lien YouTube (watch, youtu.be, shorts, live...)"
+                                                placeholder="Lien ou ID YouTube (ex: https://youtube.com/watch?v=...)"
                                                 value={newMainUrl}
                                                 onChange={(e) => handleMainUrlChange(e.target.value)}
-                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
-                                                required
+                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red font-mono"
                                             />
+                                            {isFetchingMainTitle && (
+                                                <div className="absolute right-3 top-2.5 text-neon-cyan">
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="md:col-span-4 relative flex items-center">
+                                        <div className="md:col-span-6 flex gap-2">
                                             <input
                                                 type="text"
-                                                placeholder="Titre du set"
+                                                placeholder="Titre du set (auto-détecté ou personnalisé)"
                                                 value={newMainTitle}
                                                 onChange={(e) => setNewMainTitle(e.target.value)}
-                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red pr-8"
+                                                className="flex-1 bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={handleManualFetchMainTitle}
-                                                disabled={isFetchingMainTitle || !newMainUrl}
-                                                title="Récupérer le titre automatique"
-                                                className="absolute right-2 text-white/40 hover:text-neon-cyan disabled:opacity-30 transition-colors"
+                                                title="Recharger le titre YouTube"
+                                                className="px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/60 hover:text-white transition-all text-xs"
                                             >
-                                                {isFetchingMainTitle ? (
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-neon-cyan" />
-                                                ) : (
-                                                    <Sparkles className="w-3.5 h-3.5" />
-                                                )}
+                                                <Sparkles className="w-3.5 h-3.5 text-neon-cyan" />
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="px-4 py-2 bg-neon-red hover:bg-neon-red/90 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shrink-0 active:scale-95 flex items-center gap-1.5"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                Ajouter
                                             </button>
                                         </div>
-                                        <button
-                                            type="submit"
-                                            className="md:col-span-2 py-2.5 rounded-xl bg-neon-red text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 hover:bg-neon-red/90 transition-all active:scale-95"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            Ajouter
-                                        </button>
                                     </div>
-                                    <input
-                                        type="text"
-                                        placeholder="Description (optionnel)"
-                                        value={newMainDesc}
-                                        onChange={(e) => setNewMainDesc(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/5 rounded-xl px-3 py-1.5 text-[11px] text-white placeholder:text-white/25 focus:outline-none focus:border-white/20"
-                                    />
                                 </form>
 
-                                {/* Main List */}
-                                <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[160px]">
+                                {/* List of Main Videos */}
+                                <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar min-h-0">
                                     {loading ? (
-                                        <div className="py-12 flex justify-center items-center">
-                                            <Loader2 className="w-7 h-7 text-neon-red animate-spin" />
+                                        <div className="py-12 flex flex-col items-center justify-center text-white/40 gap-2">
+                                            <Loader2 className="w-6 h-6 animate-spin text-neon-red" />
+                                            <span className="text-xs uppercase tracking-widest font-bold">Chargement de la programmation...</span>
                                         </div>
                                     ) : playlist.length === 0 ? (
-                                        <div className="py-8 text-center text-white/40 text-xs">
-                                            Aucune vidéo principale configurée.
+                                        <div className="py-12 text-center text-white/40 text-xs uppercase tracking-widest font-bold">
+                                            Aucune vidéo dans la programmation TV.
                                         </div>
                                     ) : (
-                                        playlist.map((vid, idx) => (
+                                        playlist.map((video, idx) => (
                                             <div
-                                                key={vid.id}
-                                                className="flex items-center justify-between gap-3 p-3 bg-white/5 rounded-2xl border border-white/5 hover:border-white/10 transition-all"
+                                                key={video.id || idx}
+                                                className="group p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/15 transition-all flex items-center gap-3"
                                             >
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <span className="w-7 h-7 rounded-xl bg-neon-red/10 border border-neon-red/20 text-neon-red flex items-center justify-center text-xs font-black shrink-0">
-                                                        #{idx + 1}
-                                                    </span>
+                                                <div className="w-7 h-7 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xs font-black font-mono text-neon-red shrink-0">
+                                                    {idx + 1}
+                                                </div>
+
+                                                <div className="w-20 h-12 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
                                                     <img
-                                                        src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`}
-                                                        alt={vid.title}
-                                                        className="w-16 h-10 object-cover rounded-lg bg-black border border-white/10 shrink-0"
+                                                        src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
+                                                        alt={video.title}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLElement).style.display = 'none';
+                                                        }}
                                                     />
-                                                    <div className="min-w-0">
-                                                        <h4 className="text-xs font-black text-white uppercase italic tracking-tight truncate">
-                                                            {vid.title}
+                                                </div>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="text-white font-bold text-xs truncate">
+                                                            {video.title}
                                                         </h4>
-                                                        <span className="text-[10px] text-white/30 font-mono">
-                                                            ID: {vid.youtubeId}
-                                                        </span>
+                                                    </div>
+                                                    <div className="text-[10px] text-white/40 font-mono mt-0.5">
+                                                        ID: {video.youtubeId}
                                                     </div>
                                                 </div>
 
@@ -685,8 +735,9 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleDeleteMain(vid.id)}
-                                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 ml-1"
+                                                        onClick={() => handleDeleteMain(video.id)}
+                                                        disabled={playlist.length <= 1}
+                                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 ml-1 disabled:opacity-20"
                                                         title="Supprimer"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
@@ -699,95 +750,99 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
                             </>
                         )}
 
-                        {/* Tab Content: PROMO VIDEOS */}
+                        {/* ========================================================= */}
+                        {/* TAB: VIDÉOS PROMO */}
+                        {/* ========================================================= */}
                         {activeTab === 'promo' && (
                             <>
-                                {/* Add Promo Form */}
-                                <form onSubmit={handleAddPromoVideo} className="mb-4 p-4 rounded-2xl bg-neon-purple/[0.06] border border-neon-purple/20 shrink-0 space-y-2.5">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-neon-purple flex items-center justify-between">
-                                        <span className="flex items-center gap-2">
-                                            <Plus className="w-3.5 h-3.5" />
-                                            Ajouter une vidéo promo (Pub, Teaser, Événement...)
-                                        </span>
-                                        <span className="text-[9px] text-white/40 normal-case italic">
-                                            Jouée automatiquement entre chaque set
-                                        </span>
+                                <div className="mb-4 p-3 rounded-2xl bg-neon-purple/5 border border-neon-purple/20 text-xs text-white/80 space-y-1">
+                                    <div className="font-black uppercase tracking-wider text-neon-purple flex items-center gap-1.5">
+                                        <Film className="w-4 h-4" />
+                                        Intercalage automatique des promos
+                                    </div>
+                                    <p className="text-[11px] text-white/60">
+                                        Chaque promo est diffusée automatiquement à la fin d'une vidéo principale :
+                                        <strong className="text-white"> Vidéo 1 → Promo 1 → Vidéo 2 → Promo 2 → Vidéo 3 → Promo 3 (ou 1)</strong>.
+                                    </p>
+                                </div>
+
+                                <form onSubmit={handleAddPromoVideo} className="mb-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0 space-y-3">
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-neon-purple flex items-center gap-1.5">
+                                        <Plus className="w-3.5 h-3.5" />
+                                        Ajouter une vidéo promo / teaser
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
                                         <div className="md:col-span-6 relative">
                                             <input
                                                 type="text"
-                                                placeholder="Lien YouTube promo (watch, shorts...)"
+                                                placeholder="Lien ou ID YouTube de la promo"
                                                 value={newPromoUrl}
                                                 onChange={(e) => handlePromoUrlChange(e.target.value)}
-                                                className="w-full bg-black/60 border border-neon-purple/20 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple"
-                                                required
+                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple font-mono"
                                             />
+                                            {isFetchingPromoTitle && (
+                                                <div className="absolute right-3 top-2.5 text-neon-cyan">
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="md:col-span-4 relative flex items-center">
+                                        <div className="md:col-span-6 flex gap-2">
                                             <input
                                                 type="text"
                                                 placeholder="Titre de la promo"
                                                 value={newPromoTitle}
                                                 onChange={(e) => setNewPromoTitle(e.target.value)}
-                                                className="w-full bg-black/60 border border-neon-purple/20 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple pr-8"
+                                                className="flex-1 bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={handleManualFetchPromoTitle}
-                                                disabled={isFetchingPromoTitle || !newPromoUrl}
-                                                title="Récupérer le titre automatique"
-                                                className="absolute right-2 text-white/40 hover:text-neon-purple disabled:opacity-30 transition-colors"
+                                                title="Recharger le titre"
+                                                className="px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/60 hover:text-white transition-all text-xs"
                                             >
-                                                {isFetchingPromoTitle ? (
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-neon-purple" />
-                                                ) : (
-                                                    <Sparkles className="w-3.5 h-3.5" />
-                                                )}
+                                                <Sparkles className="w-3.5 h-3.5 text-neon-cyan" />
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                className="px-4 py-2 bg-neon-purple hover:bg-neon-purple/90 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shrink-0 active:scale-95 flex items-center gap-1.5"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                                Ajouter
                                             </button>
                                         </div>
-                                        <button
-                                            type="submit"
-                                            className="md:col-span-2 py-2.5 rounded-xl bg-neon-purple text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 hover:bg-neon-purple/90 transition-all active:scale-95 shadow-lg shadow-neon-purple/20"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                            Ajouter
-                                        </button>
                                     </div>
                                 </form>
 
-                                {/* Promos List */}
-                                <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-[160px]">
+                                <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar min-h-0">
                                     {promos.length === 0 ? (
-                                        <div className="py-10 text-center text-white/30 text-xs italic bg-white/[0.01] rounded-2xl border border-dashed border-white/10 p-6">
-                                            <Film className="w-8 h-8 text-neon-purple/40 mx-auto mb-2" />
-                                            Aucune vidéo promo active.
-                                            <br />
-                                            Ajoutez une ou plusieurs promos ci-dessus pour qu'elles alternent automatiquement entre les sets !
+                                        <div className="py-12 text-center text-white/40 text-xs uppercase tracking-widest font-bold">
+                                            Aucune vidéo promo configurée. Les sets principaux s'enchaîneront directement sans promo.
                                         </div>
                                     ) : (
                                         promos.map((p, idx) => (
                                             <div
-                                                key={p.id}
-                                                className="flex items-center justify-between gap-3 p-3 bg-neon-purple/[0.04] rounded-2xl border border-neon-purple/20 hover:border-neon-purple/30 transition-all"
+                                                key={p.id || idx}
+                                                className="group p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-neon-purple/30 transition-all flex items-center gap-3"
                                             >
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <span className="w-7 h-7 rounded-xl bg-neon-purple/20 border border-neon-purple/30 text-neon-purple flex items-center justify-center text-xs font-black shrink-0">
-                                                        P{idx + 1}
-                                                    </span>
+                                                <div className="w-7 h-7 rounded-xl bg-neon-purple/10 border border-neon-purple/30 flex items-center justify-center text-xs font-black font-mono text-neon-purple shrink-0">
+                                                    P{idx + 1}
+                                                </div>
+
+                                                <div className="w-20 h-12 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
                                                     <img
                                                         src={`https://img.youtube.com/vi/${p.youtubeId}/mqdefault.jpg`}
                                                         alt={p.title}
-                                                        className="w-16 h-10 object-cover rounded-lg bg-black border border-white/10 shrink-0"
+                                                        className="w-full h-full object-cover"
                                                     />
-                                                    <div className="min-w-0">
-                                                        <h4 className="text-xs font-black text-white uppercase italic tracking-tight truncate">
-                                                            {p.title}
-                                                        </h4>
-                                                        <span className="text-[10px] text-white/30 font-mono">
-                                                            ID: {p.youtubeId}
-                                                        </span>
+                                                </div>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="text-white font-bold text-xs truncate">
+                                                        {p.title}
+                                                    </h4>
+                                                    <div className="text-[10px] text-white/40 font-mono mt-0.5">
+                                                        ID: {p.youtubeId} · Jouée après le set {idx + 1}
                                                     </div>
                                                 </div>
 
@@ -826,11 +881,13 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
                             </>
                         )}
 
-                        {/* Tab Content: LIVE TAKEOVER */}
+                        {/* ========================================================= */}
+                        {/* TAB: LIVE TAKEOVER (FULL INTERFACE AVEC PLANNING, MODS, BOT...) */}
+                        {/* ========================================================= */}
                         {activeTab === 'live' && (
-                            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+                            <div className="flex-1 overflow-y-auto space-y-4 pr-1 min-h-0 flex flex-col">
                                 {/* Status Banner */}
-                                <div className={`p-4 rounded-2xl border flex items-center gap-4 ${
+                                <div className={`p-4 rounded-2xl border flex items-center gap-4 shrink-0 ${
                                     takeoverState?.status === 'live'
                                         ? 'bg-green-950/40 border-green-600/40'
                                         : takeoverState?.status === 'edit'
@@ -847,7 +904,7 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
                                         <Radio className={`w-5 h-5 ${takeoverState?.status === 'live' ? 'animate-pulse' : ''}`} />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-0.5">Statut actuel</div>
+                                        <div className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-0.5">Statut Live Takeover</div>
                                         <div className={`text-sm font-black uppercase tracking-wider ${
                                             takeoverState?.status === 'live' ? 'text-green-400' :
                                             takeoverState?.status === 'edit' ? 'text-orange-400' : 'text-white/40'
@@ -857,241 +914,985 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
                                              '⚫ HORS LIGNE – OFF'}
                                         </div>
                                     </div>
-                                    {/* Quick link */}
-                                    <a
-                                        href="/live"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-all flex items-center gap-1.5 shrink-0"
-                                    >
-                                        <ExternalLink className="w-3 h-3" />
-                                        Voir Live
-                                    </a>
-                                </div>
-
-                                {/* ON AIR Controls */}
-                                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-2">
-                                        <Zap className="w-3.5 h-3.5" />
-                                        Contrôle diffusion
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="flex items-center gap-2">
                                         <button
                                             type="button"
                                             onClick={() => onUpdateLiveStatus?.('off')}
                                             disabled={isUpdatingTakeover}
-                                            className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex flex-col items-center gap-1.5 border ${
-                                                takeoverState?.status === 'off' || !takeoverState?.enabled
-                                                    ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-600/30'
-                                                    : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'
-                                            } disabled:opacity-60`}
+                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${
+                                                takeoverState?.status === 'off' || !takeoverState?.enabled ? 'bg-red-600 text-white' : 'bg-white/5 text-white/50 hover:text-white'
+                                            }`}
                                         >
-                                            <span className="text-base">⚫</span>
                                             OFF
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => onUpdateLiveStatus?.('edit')}
                                             disabled={isUpdatingTakeover}
-                                            className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex flex-col items-center gap-1.5 border ${
-                                                takeoverState?.status === 'edit'
-                                                    ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/30'
-                                                    : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'
-                                            } disabled:opacity-60`}
+                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${
+                                                takeoverState?.status === 'edit' ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/50 hover:text-white'
+                                            }`}
                                         >
-                                            <span className="text-base">🟠</span>
                                             ÉDIT
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => onUpdateLiveStatus?.('live')}
                                             disabled={isUpdatingTakeover}
-                                            className={`py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex flex-col items-center gap-1.5 border ${
-                                                takeoverState?.status === 'live'
-                                                    ? 'bg-green-600 border-green-600 text-white shadow-lg shadow-green-600/30 animate-pulse'
-                                                    : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'
-                                            } disabled:opacity-60`}
+                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${
+                                                takeoverState?.status === 'live' ? 'bg-green-600 text-white animate-pulse' : 'bg-white/5 text-white/50 hover:text-white'
+                                            }`}
                                         >
-                                            <span className="text-base">🔴</span>
                                             ON AIR
                                         </button>
                                     </div>
-                                    {isUpdatingTakeover && (
-                                        <div className="flex items-center gap-2 text-[10px] text-white/40">
-                                            <Loader2 className="w-3 h-3 animate-spin" />
-                                            Mise à jour en cours...
-                                        </div>
-                                    )}
                                 </div>
 
-                                {/* Config Fields */}
-                                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-2">
-                                        <Radio className="w-3.5 h-3.5" />
-                                        Paramètres du live
+                                {/* Sub-navigation Bar for Live Options */}
+                                <div className="flex bg-black/60 border border-white/10 rounded-2xl p-1 shrink-0 overflow-x-auto no-scrollbar">
+                                    <div className="flex min-w-max gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setLiveSubTab('general')}
+                                            className={`px-3.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                                liveSubTab === 'general' ? 'bg-white/15 text-white shadow-lg' : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            🔴 LIVESTREAM
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setLiveSubTab('planning')}
+                                            className={`px-3.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                                liveSubTab === 'planning' ? 'bg-neon-purple/20 text-neon-purple border border-neon-purple/30 shadow-lg' : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            📅 PLANNING & TIMETABLE
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setLiveSubTab('moderation')}
+                                            className={`px-3.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                                liveSubTab === 'moderation' ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 shadow-lg' : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            🛡️ MODÉRATION
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setLiveSubTab('ticker')}
+                                            className={`px-3.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                                liveSubTab === 'ticker' ? 'bg-neon-red/20 text-neon-red border border-neon-red/30 shadow-lg' : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            📢 BANDEAU TICKER
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setLiveSubTab('bot')}
+                                            className={`px-3.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                                liveSubTab === 'bot' ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 shadow-lg' : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            🤖 BOT CHAT
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setLiveSubTab('mods')}
+                                            className={`px-3.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                                liveSubTab === 'mods' ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 shadow-lg' : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            👥 ÉQUIPE MODOS
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setLiveSubTab('access')}
+                                            className={`px-3.5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${
+                                                liveSubTab === 'access' ? 'bg-neon-purple/20 text-neon-purple border border-neon-purple/30 shadow-lg' : 'text-gray-400 hover:text-white'
+                                            }`}
+                                        >
+                                            🔒 ACCÈS SECRET
+                                        </button>
                                     </div>
+                                </div>
 
-                                    {/* Title */}
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">Nom du festival / événement</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Ex: Tomorrowland 2025"
-                                            value={takeoverState?.title || ''}
-                                            onChange={(e) => onTakeoverChange?.({ ...takeoverState!, title: e.target.value })}
-                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
-                                        />
-                                    </div>
-
-                                    {/* YouTube ID */}
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">Lien YouTube Live</label>
-                                        <input
-                                            type="text"
-                                            placeholder="https://youtube.com/watch?v=..."
-                                            value={takeoverState?.youtubeId || ''}
-                                            onChange={(e) => {
-                                                const extracted = extractYouTubeId(e.target.value) || e.target.value;
-                                                onTakeoverChange?.({ ...takeoverState!, youtubeId: extracted });
-                                            }}
-                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red font-mono"
-                                        />
-                                        {takeoverState?.youtubeId && (
-                                            <div className="mt-1.5 flex items-center gap-2">
-                                                <img
-                                                    src={`https://img.youtube.com/vi/${takeoverState.youtubeId}/mqdefault.jpg`}
-                                                    alt="preview"
-                                                    className="w-20 h-12 object-cover rounded-lg border border-white/10"
-                                                />
-                                                <span className="text-[10px] text-white/40 font-mono">ID: {takeoverState.youtubeId}</span>
+                                {/* SUB-TAB 1: LIVESTREAM & CAMERAS */}
+                                {liveSubTab === 'general' && (
+                                    <div className="space-y-4 flex-1">
+                                        {/* Main Stream URL */}
+                                        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+                                                    <Radio className="w-3.5 h-3.5 text-neon-red" />
+                                                    Flux YouTube Live Principal
+                                                </label>
+                                                {takeoverState?.youtubeId && (
+                                                    <a
+                                                        href={`https://youtube.com/watch?v=${takeoverState.youtubeId}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="text-[10px] text-neon-cyan flex items-center gap-1 hover:underline"
+                                                    >
+                                                        Ouvrir sur YouTube <ExternalLink className="w-3 h-3" />
+                                                    </a>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-
-                                    {/* Dates */}
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" /> Début
-                                            </label>
                                             <input
-                                                type="datetime-local"
-                                                value={takeoverState?.startDate || ''}
-                                                onChange={(e) => onTakeoverChange?.({ ...takeoverState!, startDate: e.target.value })}
-                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white focus:outline-none focus:border-neon-red"
+                                                type="text"
+                                                placeholder="Lien ou ID YouTube (ex: https://youtube.com/watch?v=...)"
+                                                value={takeoverState?.youtubeId || ''}
+                                                onChange={(e) => {
+                                                    const extracted = extractYouTubeId(e.target.value) || e.target.value;
+                                                    onTakeoverChange?.({ ...takeoverState!, youtubeId: extracted });
+                                                }}
+                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red font-mono"
                                             />
+                                            {takeoverState?.youtubeId && (
+                                                <div className="flex items-center gap-3">
+                                                    <img
+                                                        src={`https://img.youtube.com/vi/${takeoverState.youtubeId}/mqdefault.jpg`}
+                                                        alt="preview"
+                                                        className="w-24 h-14 object-cover rounded-lg border border-white/10"
+                                                    />
+                                                    <span className="text-[10px] text-white/50 font-mono">ID: {takeoverState.youtubeId}</span>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" /> Fin
-                                            </label>
-                                            <input
-                                                type="datetime-local"
-                                                value={takeoverState?.endDate || ''}
-                                                onChange={(e) => onTakeoverChange?.({ ...takeoverState!, endDate: e.target.value })}
-                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white focus:outline-none focus:border-neon-red"
-                                            />
+
+                                        {/* Multi-Cameras / Channels */}
+                                        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Video className="w-4 h-4 text-neon-red" />
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-wider">
+                                                        Multi-Caméras / Chaînes ({((takeoverState?.channels || '').split('\n').filter(Boolean)).length})
+                                                    </h3>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const current = (takeoverState?.channels || '').split('\n').filter(Boolean);
+                                                        const updated = [...current, ':NOUVELLE CAM'].join('\n');
+                                                        onTakeoverChange?.({ ...takeoverState!, channels: updated });
+                                                    }}
+                                                    className="px-3 py-1.5 bg-neon-red text-white text-[9px] font-black uppercase rounded-lg hover:scale-105 transition-all"
+                                                >
+                                                    + Ajouter une caméra
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                {((takeoverState?.channels || '').split('\n').filter(Boolean)).map((line, idx) => {
+                                                    const parts = line.split(':');
+                                                    const id = parts[0] || '';
+                                                    const camTitle = parts.slice(1).join(':') || '';
+
+                                                    const updateChannel = (newId: string, newTitle: string) => {
+                                                        const rows = (takeoverState?.channels || '').split('\n').map((l, i) => {
+                                                            if (i === idx) return `${newId}:${newTitle}`;
+                                                            return l;
+                                                        });
+                                                        onTakeoverChange?.({ ...takeoverState!, channels: rows.join('\n') });
+                                                    };
+
+                                                    const deleteChannel = () => {
+                                                        const rows = (takeoverState?.channels || '').split('\n').filter((_, i) => i !== idx);
+                                                        onTakeoverChange?.({ ...takeoverState!, channels: rows.join('\n') });
+                                                    };
+
+                                                    return (
+                                                        <div key={idx} className="grid grid-cols-12 gap-2 bg-black/40 p-2.5 rounded-xl border border-white/5 items-center">
+                                                            <div className="col-span-5">
+                                                                <input
+                                                                    type="text"
+                                                                    value={id}
+                                                                    onChange={(e) => updateChannel(e.target.value, camTitle)}
+                                                                    placeholder="ID YouTube..."
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-neon-red outline-none font-mono"
+                                                                />
+                                                            </div>
+                                                            <div className="col-span-6">
+                                                                <input
+                                                                    type="text"
+                                                                    value={camTitle}
+                                                                    onChange={(e) => updateChannel(id, e.target.value.toUpperCase())}
+                                                                    placeholder="TITRE (EX: MAIN STAGE, CAM 2...)"
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-neon-red font-black uppercase focus:border-neon-red outline-none"
+                                                                />
+                                                            </div>
+                                                            <div className="col-span-1 flex justify-center">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={deleteChannel}
+                                                                    className="p-1.5 text-gray-500 hover:text-neon-red transition-all"
+                                                                    title="Supprimer la caméra"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                                {!(takeoverState?.channels && takeoverState.channels.trim()) && (
+                                                    <p className="text-[10px] text-white/30 italic text-center py-2">
+                                                        Aucune caméra additionnelle. Le live utilisera uniquement le flux principal.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Titre & Dates */}
+                                        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1">
+                                                    Nom du festival / événement
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Ex: Tomorrowland 2025"
+                                                    value={takeoverState?.title || ''}
+                                                    onChange={(e) => onTakeoverChange?.({ ...takeoverState!, title: e.target.value })}
+                                                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                        <Calendar className="w-3 h-3" /> Date de Début
+                                                    </label>
+                                                    <input
+                                                        type="datetime-local"
+                                                        value={takeoverState?.startDate || ''}
+                                                        onChange={(e) => onTakeoverChange?.({ ...takeoverState!, startDate: e.target.value })}
+                                                        className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white focus:outline-none focus:border-neon-red"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-white/50 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                        <Calendar className="w-3 h-3" /> Date de Fin
+                                                    </label>
+                                                    <input
+                                                        type="datetime-local"
+                                                        value={takeoverState?.endDate || ''}
+                                                        onChange={(e) => onTakeoverChange?.({ ...takeoverState!, endDate: e.target.value })}
+                                                        className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white focus:outline-none focus:border-neon-red"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Display Toggles */}
+                                        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-white/40">Options d'affichage</div>
+                                            {([
+                                                { key: 'forceHomepage', icon: <Home className="w-3.5 h-3.5" />, label: 'Rediriger la homepage vers le live' },
+                                                { key: 'showInNavbar', icon: <Eye className="w-3.5 h-3.5" />, label: 'Afficher dans la navigation (Menu)' },
+                                                { key: 'showInAgenda', icon: <Calendar className="w-3.5 h-3.5" />, label: 'Afficher dans l\'agenda (Widget Accueil)' },
+                                                { key: 'showTopBanner', icon: <Globe className="w-3.5 h-3.5" />, label: 'Afficher le bandeau haut de page' }
+                                            ] as const).map(({ key, icon, label }) => (
+                                                <div key={key} className="flex items-center justify-between gap-3 p-2 bg-black/30 rounded-xl">
+                                                    <div className="flex items-center gap-2 text-xs text-white/70">
+                                                        {icon}
+                                                        {label}
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onTakeoverChange?.({ ...takeoverState!, [key]: !takeoverState?.[key] })}
+                                                        className={`w-11 h-6 rounded-full relative transition-all ${
+                                                            takeoverState?.[key] ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'
+                                                        }`}
+                                                    >
+                                                        <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${
+                                                            takeoverState?.[key] ? 'right-1' : 'left-1'
+                                                        }`} />
+                                                    </button>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-                                </div>
+                                )}
 
-                                {/* Toggles */}
-                                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/40">Options d'affichage</div>
-
-                                    {([
-                                        { key: 'forceHomepage', icon: <Home className="w-3.5 h-3.5" />, label: 'Rediriger la homepage vers le live', color: 'neon-red' },
-                                        { key: 'showInNavbar', icon: <Eye className="w-3.5 h-3.5" />, label: 'Afficher dans la navigation', color: 'neon-cyan' },
-                                        { key: 'showInAgenda', icon: <Calendar className="w-3.5 h-3.5" />, label: 'Afficher dans l\'agenda', color: 'neon-purple' },
-                                    ] as const).map(({ key, icon, label }) => (
-                                        <div key={key} className="flex items-center justify-between gap-3">
-                                            <div className="flex items-center gap-2 text-xs text-white/70">
-                                                {icon}
-                                                {label}
+                                {/* SUB-TAB 2: PLANNING / TIMETABLE / LINEUP */}
+                                {liveSubTab === 'planning' && (
+                                    <div className="space-y-4 flex-1">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">
+                                                    Éditeur de <span className="text-neon-red">Planning & Timetable</span>
+                                                </h3>
+                                                <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider mt-0.5">
+                                                    Synchronisé avec le widget Timetable du live et la commande !lineup
+                                                </p>
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => onTakeoverChange?.({ ...takeoverState!, [key]: !takeoverState?.[key] })}
-                                                className={`w-11 h-6 rounded-full relative transition-all ${
-                                                    takeoverState?.[key] ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'
-                                                }`}
+                                                onClick={() => {
+                                                    const currentLines = (takeoverState?.lineup || '').split('\n').filter(Boolean);
+                                                    const newRow = `[22:00 - 23:00] NOUVEL ARTISTE - MAINSTAGE - @instagram - `;
+                                                    const updated = [...currentLines, newRow].join('\n');
+                                                    onTakeoverChange?.({ ...takeoverState!, lineup: updated });
+                                                }}
+                                                className="px-4 py-2 bg-neon-red text-white text-[10px] font-black uppercase tracking-wider rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20 flex items-center gap-1.5"
                                             >
-                                                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${
-                                                    takeoverState?.[key] ? 'right-1' : 'left-1'
-                                                }`} />
+                                                <Plus className="w-3.5 h-3.5" />
+                                                + Ajouter un passage
                                             </button>
                                         </div>
-                                    ))}
-                                </div>
 
-                                {/* Save Live Settings Button */}
-                                <button
-                                    type="button"
-                                    onClick={async () => {
-                                        setLiveSaving(true);
-                                        try {
-                                            await onSaveTakeover?.();
-                                            setLiveSaved(true);
-                                            setTimeout(() => setLiveSaved(false), 3000);
-                                        } finally {
-                                            setLiveSaving(false);
-                                        }
-                                    }}
-                                    disabled={liveSaving || !onSaveTakeover}
-                                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-orange-600 to-red-600 text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 active:scale-95"
-                                >
-                                    {liveSaving ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : liveSaved ? (
-                                        <CheckCircle2 className="w-4 h-4 text-green-300" />
-                                    ) : (
-                                        <Save className="w-4 h-4" />
-                                    )}
-                                    {liveSaved ? 'Paramètres sauvegardés !' : 'Sauvegarder les paramètres live'}
-                                </button>
+                                        {/* Lineup Table Headers */}
+                                        {takeoverState?.lineup && takeoverState.lineup.trim() !== '' && (
+                                            <div className="grid grid-cols-12 gap-2 px-2 pb-1 text-[9px] text-gray-500 font-black uppercase tracking-widest">
+                                                <div className="col-span-1 text-center">Début</div>
+                                                <div className="col-span-1 text-center">Fin</div>
+                                                <div className="col-span-3">Artiste</div>
+                                                <div className="col-span-2">Scène</div>
+                                                <div className="col-span-2">Instagram</div>
+                                                <div className="col-span-2">Image Artiste</div>
+                                                <div className="col-span-1 text-right">Actions</div>
+                                            </div>
+                                        )}
+
+                                        {/* Lineup Rows */}
+                                        <div className="space-y-2">
+                                            {(takeoverState?.lineup || '').split('\n').filter(Boolean).map((line, idx, arr) => {
+                                                const timeMatch = line.match(/\[(.*?)\]/);
+                                                const timeRange = timeMatch ? timeMatch[1] : '';
+                                                const [startTime, endTime] = timeRange.includes('-')
+                                                    ? timeRange.split('-').map(s => s.trim())
+                                                    : [timeRange.trim(), ''];
+                                                const rest = line.replace(/\[.*?\]/, '').trim();
+                                                const parts = rest.includes('|')
+                                                    ? rest.split('|').map(p => p.trim())
+                                                    : rest.split('-').map(p => p.trim());
+
+                                                const row = {
+                                                    time: startTime,
+                                                    endTime: endTime,
+                                                    artist: parts[0] || '',
+                                                    stage: parts[1] || '',
+                                                    instagram: parts[2] || '',
+                                                    image: parts[3] || ''
+                                                };
+
+                                                const updateRow = (newData: Partial<typeof row>) => {
+                                                    const updatedRow = { ...row, ...newData };
+                                                    const newFormatted = `[${updatedRow.time || '00:00'}${updatedRow.endTime ? ` - ${updatedRow.endTime}` : ''}] ${updatedRow.artist || 'ARTISTE'} - ${updatedRow.stage || ' '} - ${updatedRow.instagram || ' '} - ${updatedRow.image || ' '}`;
+                                                    const rows = (takeoverState?.lineup || '').split('\n').map((l, i) => i === idx ? newFormatted : l);
+                                                    onTakeoverChange?.({ ...takeoverState!, lineup: rows.join('\n') });
+                                                };
+
+                                                const moveRow = (direction: 'up' | 'down') => {
+                                                    const rows = (takeoverState?.lineup || '').split('\n').filter(Boolean);
+                                                    if (direction === 'up' && idx > 0) {
+                                                        [rows[idx], rows[idx - 1]] = [rows[idx - 1], rows[idx]];
+                                                    } else if (direction === 'down' && idx < rows.length - 1) {
+                                                        [rows[idx], rows[idx + 1]] = [rows[idx + 1], rows[idx]];
+                                                    }
+                                                    onTakeoverChange?.({ ...takeoverState!, lineup: rows.join('\n') });
+                                                };
+
+                                                const deleteRow = () => {
+                                                    const rows = (takeoverState?.lineup || '').split('\n').filter((_, i) => i !== idx);
+                                                    onTakeoverChange?.({ ...takeoverState!, lineup: rows.join('\n') });
+                                                };
+
+                                                return (
+                                                    <div key={idx} className="grid grid-cols-12 gap-2 bg-white/[0.03] border border-white/5 p-2 rounded-xl hover:border-white/15 transition-all items-center">
+                                                        <div className="col-span-1">
+                                                            <input
+                                                                type="text"
+                                                                value={row.time}
+                                                                onChange={(e) => updateRow({ time: e.target.value })}
+                                                                placeholder="22:00"
+                                                                className="w-full bg-black/60 border border-white/10 rounded-lg px-1 py-1.5 text-[10px] text-white font-black text-center focus:border-neon-red outline-none"
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-1">
+                                                            <input
+                                                                type="text"
+                                                                value={row.endTime}
+                                                                onChange={(e) => updateRow({ endTime: e.target.value })}
+                                                                placeholder="23:00"
+                                                                className="w-full bg-black/60 border border-white/10 rounded-lg px-1 py-1.5 text-[10px] text-white font-black text-center focus:border-neon-red outline-none"
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-3">
+                                                            <input
+                                                                type="text"
+                                                                value={row.artist}
+                                                                onChange={(e) => updateRow({ artist: e.target.value })}
+                                                                placeholder="Artiste..."
+                                                                className="w-full bg-black/60 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-black uppercase focus:border-neon-red outline-none"
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-2">
+                                                            <input
+                                                                type="text"
+                                                                value={row.stage}
+                                                                onChange={(e) => updateRow({ stage: e.target.value })}
+                                                                placeholder="Scène..."
+                                                                className="w-full bg-black/60 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold uppercase focus:border-neon-red outline-none"
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-2">
+                                                            <input
+                                                                type="text"
+                                                                value={row.instagram}
+                                                                onChange={(e) => updateRow({ instagram: e.target.value })}
+                                                                placeholder="@insta..."
+                                                                className="w-full bg-black/60 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold uppercase focus:border-neon-red outline-none"
+                                                            />
+                                                        </div>
+                                                        <div className="col-span-2 flex items-center gap-1.5">
+                                                            <div className="w-7 h-7 rounded bg-black/80 flex items-center justify-center overflow-hidden shrink-0 border border-white/10">
+                                                                {row.image ? (
+                                                                    <img src={row.image} alt="" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <ImageIcon className="w-3.5 h-3.5 text-gray-500" />
+                                                                )}
+                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                value={row.image}
+                                                                onChange={(e) => updateRow({ image: e.target.value })}
+                                                                placeholder="URL Image"
+                                                                className="flex-1 min-w-0 bg-black/40 border border-white/10 rounded-lg px-1.5 py-1 text-[9px] text-white outline-none"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleUploadImageForLineup((url) => updateRow({ image: url }))}
+                                                                className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-white/70 hover:text-white transition-all shrink-0"
+                                                                title="Uploader une photo"
+                                                            >
+                                                                <Upload className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                        <div className="col-span-1 flex items-center justify-end gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveRow('up')}
+                                                                disabled={idx === 0}
+                                                                className="p-1 text-gray-500 hover:text-white disabled:opacity-20"
+                                                                title="Monter"
+                                                            >
+                                                                <ChevronUp className="w-3 h-3" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveRow('down')}
+                                                                disabled={idx === arr.length - 1}
+                                                                className="p-1 text-gray-500 hover:text-white disabled:opacity-20"
+                                                                title="Descendre"
+                                                            >
+                                                                <ChevronDown className="w-3 h-3" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={deleteRow}
+                                                                className="p-1 text-gray-500 hover:text-red-400"
+                                                                title="Supprimer"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {!(takeoverState?.lineup && takeoverState.lineup.trim()) && (
+                                                <div className="text-center py-8 bg-white/[0.02] border border-dashed border-white/10 rounded-2xl">
+                                                    <p className="text-gray-500 text-xs font-black uppercase tracking-widest">
+                                                        Aucun passage dans le planning. Cliquez sur "+ Ajouter un passage" pour commencer.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* SUB-TAB 3: MODÉRATION */}
+                                {liveSubTab === 'moderation' && (
+                                    <div className="space-y-4 flex-1">
+                                        {/* Link security */}
+                                        <div className="p-5 bg-red-500/5 border border-red-500/15 rounded-2xl space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-black text-white uppercase italic tracking-wider flex items-center gap-2">
+                                                    <ShieldAlert className="w-4 h-4 text-red-500" />
+                                                    Sécurité anti-spam et liens
+                                                </span>
+                                                <span className="px-2.5 py-1 bg-green-500/20 text-green-400 rounded-lg text-[9px] font-black uppercase border border-green-500/30">
+                                                    Actif en continu
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] text-gray-400">
+                                                Les viewers standard ne peuvent pas poster d'URL. Seuls les administrateurs et membres de l'équipe modération ont l'autorisation d'envoyer des liens.
+                                            </p>
+                                        </div>
+
+                                        {/* Pinned message */}
+                                        <div className="p-5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Pin className="w-4 h-4 text-neon-red" />
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-wider">
+                                                        Message Épinglé dans le Chat
+                                                    </h3>
+                                                </div>
+                                                {takeoverState?.pinnedMessage && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => onTakeoverChange?.({ ...takeoverState!, pinnedMessage: '' })}
+                                                        className="flex items-center gap-1 text-[9px] font-black text-red-400 hover:text-red-300 uppercase tracking-widest"
+                                                    >
+                                                        <PinOff className="w-3 h-3" />
+                                                        Retirer l'épingle
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <textarea
+                                                value={takeoverState?.pinnedMessage || ''}
+                                                onChange={(e) => onTakeoverChange?.({ ...takeoverState!, pinnedMessage: e.target.value })}
+                                                placeholder="Ex: ⚠️ Set de Martin Garrix en cours sur la Main Stage ! Votez dans le chat !"
+                                                className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red min-h-[70px] resize-none"
+                                            />
+                                            <p className="text-[9px] text-gray-500 italic">
+                                                Ce message sera affiché de manière permanente en haut du chat pour tous les spectateurs.
+                                            </p>
+                                        </div>
+
+                                        {/* Banned Users */}
+                                        <div className="p-5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <User className="w-4 h-4 text-yellow-500" />
+                                                <h3 className="text-xs font-black text-white uppercase tracking-wider">
+                                                    Utilisateurs Bloqués / Bannis du Chat
+                                                </h3>
+                                            </div>
+                                            {bannedChatUsers.length === 0 ? (
+                                                <p className="text-[10px] text-white/40 italic py-2">
+                                                    Aucun utilisateur actuellement bloqué dans le chat.
+                                                </p>
+                                            ) : (
+                                                <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                                                    {bannedChatUsers.map((user) => (
+                                                        <div key={user} className="flex items-center justify-between p-2.5 bg-black/40 rounded-xl border border-white/5">
+                                                            <span className="text-xs font-black text-white">{user}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={async () => {
+                                                                    setBannedChatUsers(prev => prev.filter(u => u !== user));
+                                                                    try {
+                                                                        await apiFetch('/api/chat/unban', {
+                                                                            method: 'POST',
+                                                                            headers: getAuthHeaders(),
+                                                                            body: JSON.stringify({ pseudo: user })
+                                                                        });
+                                                                    } catch {}
+                                                                }}
+                                                                className="px-3 py-1 bg-green-500/20 text-green-400 hover:bg-green-500/30 rounded-lg text-[9px] font-black uppercase"
+                                                            >
+                                                                Débloquer
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* SUB-TAB 4: BANDEAU TICKER */}
+                                {liveSubTab === 'ticker' && (
+                                    <div className="space-y-4 flex-1">
+                                        <div className="p-5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-xs font-black text-white uppercase italic tracking-wider flex items-center gap-2">
+                                                        <Activity className="w-4 h-4 text-neon-red" />
+                                                        Bandeau Défilant sous le Player
+                                                    </p>
+                                                    <p className="text-[9px] text-gray-500 uppercase tracking-widest mt-0.5">
+                                                        Affiche des infos en direct sous le stream
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onTakeoverChange?.({ ...takeoverState!, showTickerBanner: !takeoverState?.showTickerBanner })}
+                                                    className={`w-11 h-6 rounded-full relative transition-all ${
+                                                        takeoverState?.showTickerBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'
+                                                    }`}
+                                                >
+                                                    <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${
+                                                        takeoverState?.showTickerBanner ? 'right-1' : 'left-1'
+                                                    }`} />
+                                                </button>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                                                        Type de contenu
+                                                    </label>
+                                                    <select
+                                                        value={takeoverState?.tickerType || 'news'}
+                                                        onChange={(e) => onTakeoverChange?.({ ...takeoverState!, tickerType: e.target.value as any })}
+                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:border-neon-red outline-none"
+                                                    >
+                                                        <option value="news">Actu Automatique du Site</option>
+                                                        <option value="planning">Programme en Cours (Timetable)</option>
+                                                        <option value="custom">Texte Personnalisé</option>
+                                                    </select>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                                                            Couleur Fond
+                                                        </label>
+                                                        <input
+                                                            type="color"
+                                                            value={takeoverState?.tickerBgColor || '#000000'}
+                                                            onChange={(e) => onTakeoverChange?.({ ...takeoverState!, tickerBgColor: e.target.value })}
+                                                            className="w-full h-[38px] bg-black/60 border border-white/10 rounded-xl p-1 cursor-pointer"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                                                            Couleur Texte
+                                                        </label>
+                                                        <input
+                                                            type="color"
+                                                            value={takeoverState?.tickerTextColor || '#ffffff'}
+                                                            onChange={(e) => onTakeoverChange?.({ ...takeoverState!, tickerTextColor: e.target.value })}
+                                                            className="w-full h-[38px] bg-black/60 border border-white/10 rounded-xl p-1 cursor-pointer"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {takeoverState?.tickerType === 'custom' && (
+                                                <div className="space-y-3 pt-2 border-t border-white/5">
+                                                    <div>
+                                                        <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                                                            Texte à faire défiler
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={takeoverState?.tickerText || ''}
+                                                            onChange={(e) => onTakeoverChange?.({ ...takeoverState!, tickerText: e.target.value })}
+                                                            placeholder="Ex: Suivez-nous sur Instagram @dropsiders pour les coulisses !"
+                                                            className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:border-neon-red outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                                                            Lien au clic (Optionnel)
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={takeoverState?.tickerLink || ''}
+                                                            onChange={(e) => onTakeoverChange?.({ ...takeoverState!, tickerLink: e.target.value })}
+                                                            placeholder="https://..."
+                                                            className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:border-neon-red outline-none"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* SUB-TAB 5: BOT CHAT */}
+                                {liveSubTab === 'bot' && (
+                                    <div className="space-y-4 flex-1">
+                                        {/* Auto message */}
+                                        <div className="p-5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <MessageSquare className="w-4 h-4 text-neon-cyan" />
+                                                <h3 className="text-xs font-black text-white uppercase tracking-wider">
+                                                    Message Automatique Programmé
+                                                </h3>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                                <div className="md:col-span-8">
+                                                    <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                                                        Contenu du message
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={takeoverState?.autoMessage || ''}
+                                                        onChange={(e) => onTakeoverChange?.({ ...takeoverState!, autoMessage: e.target.value })}
+                                                        placeholder="Ex: Bienvenue sur le Live Dropsiders ! Partagez vos moments forts."
+                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-xs text-white focus:border-neon-cyan outline-none"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-4">
+                                                    <label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                                                        Intervalle (Secondes)
+                                                    </label>
+                                                    <div className="relative">
+                                                        <Clock className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+                                                        <input
+                                                            type="number"
+                                                            value={takeoverState?.autoMessageInterval || 60}
+                                                            onChange={(e) => onTakeoverChange?.({ ...takeoverState!, autoMessageInterval: parseInt(e.target.value) || 60 })}
+                                                            className="w-full bg-black/60 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white font-black focus:border-neon-cyan outline-none"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p className="text-[9px] text-gray-500 italic">
+                                                * Laissez le champ message vide pour désactiver la diffusion automatique du bot.
+                                            </p>
+                                        </div>
+
+                                        {/* Custom commands */}
+                                        <div className="p-5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Zap className="w-4 h-4 text-neon-cyan" />
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-wider">
+                                                        Commandes Personnalisées du Chat ({((takeoverState?.customCommands || '').split('\n').filter(Boolean)).length})
+                                                    </h3>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const current = (takeoverState?.customCommands || '').split('\n').filter(Boolean);
+                                                        const updated = [...current, '!commande:Votre réponse ici'].join('\n');
+                                                        onTakeoverChange?.({ ...takeoverState!, customCommands: updated });
+                                                    }}
+                                                    className="px-3 py-1.5 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-lg hover:scale-105 transition-all"
+                                                >
+                                                    + Créer une commande
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                {((takeoverState?.customCommands || '').split('\n').filter(Boolean)).map((line, idx) => {
+                                                    const parts = line.split(':');
+                                                    const cmd = parts[0] || '';
+                                                    const res = parts.slice(1).join(':') || '';
+
+                                                    const updateCmd = (newCmd: string, newRes: string) => {
+                                                        const rows = (takeoverState?.customCommands || '').split('\n').map((l, i) => i === idx ? `${newCmd}:${newRes}` : l);
+                                                        onTakeoverChange?.({ ...takeoverState!, customCommands: rows.join('\n') });
+                                                    };
+
+                                                    const deleteCmd = () => {
+                                                        const rows = (takeoverState?.customCommands || '').split('\n').filter((_, i) => i !== idx);
+                                                        onTakeoverChange?.({ ...takeoverState!, customCommands: rows.join('\n') });
+                                                    };
+
+                                                    return (
+                                                        <div key={idx} className="grid grid-cols-12 gap-2 bg-black/40 p-2.5 rounded-xl border border-white/5 items-center">
+                                                            <div className="col-span-4">
+                                                                <input
+                                                                    type="text"
+                                                                    value={cmd}
+                                                                    onChange={(e) => updateCmd(e.target.value, res)}
+                                                                    placeholder="!cmd"
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-neon-cyan font-black focus:border-neon-cyan outline-none"
+                                                                />
+                                                            </div>
+                                                            <div className="col-span-7">
+                                                                <input
+                                                                    type="text"
+                                                                    value={res}
+                                                                    onChange={(e) => updateCmd(cmd, e.target.value)}
+                                                                    placeholder="Réponse du bot..."
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-neon-cyan outline-none"
+                                                                />
+                                                            </div>
+                                                            <div className="col-span-1 flex justify-center">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={deleteCmd}
+                                                                    className="p-1.5 text-gray-500 hover:text-red-400"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* SUB-TAB 6: ÉQUIPE MODOS */}
+                                {liveSubTab === 'mods' && (
+                                    <div className="space-y-4 flex-1">
+                                        <div className="p-5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <Shield className="w-4 h-4 text-neon-red" />
+                                                <h3 className="text-xs font-black text-white uppercase tracking-wider">
+                                                    Membres de l'Équipe & Modérateurs
+                                                </h3>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={takeoverState?.moderators || ''}
+                                                onChange={(e) => onTakeoverChange?.({ ...takeoverState!, moderators: e.target.value.toUpperCase() })}
+                                                placeholder="Séparez les pseudos par des virgules (EX: ALEX, TANGUY, EMMA)"
+                                                className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs text-white font-bold focus:border-neon-red outline-none"
+                                            />
+                                            <div className="p-4 bg-white/5 border border-white/5 rounded-xl space-y-1">
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase leading-relaxed tracking-wider">
+                                                    LES UTILISATEURS LISTÉS ICI AURONT AUTOMATIQUEMENT LE DROIT DE :
+                                                </p>
+                                                <ul className="text-[10px] text-white/80 font-bold list-disc list-inside space-y-0.5">
+                                                    <li>Supprimer des messages du chat</li>
+                                                    <li>Partager des liens externes sans restriction</li>
+                                                    <li>Bannir / débloquer des utilisateurs indésirables</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* SUB-TAB 7: ACCÈS / MODE SECRET */}
+                                {liveSubTab === 'access' && (
+                                    <div className="space-y-4 flex-1">
+                                        <div className="p-5 bg-white/[0.03] border border-white/10 rounded-2xl space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-xs font-black text-white uppercase italic tracking-wider flex items-center gap-2">
+                                                        <Lock className="w-4 h-4 text-neon-purple" />
+                                                        Mode Secret & Protection par Code
+                                                    </p>
+                                                    <p className="text-[9px] text-gray-500 uppercase tracking-widest mt-0.5">
+                                                        Exige un mot de passe pour accéder à la page Live
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onTakeoverChange?.({ ...takeoverState!, isSecret: !takeoverState?.isSecret })}
+                                                    className={`w-11 h-6 rounded-full relative transition-all ${
+                                                        takeoverState?.isSecret ? 'bg-neon-purple shadow-[0_0_15px_#bc13fe44]' : 'bg-gray-800'
+                                                    }`}
+                                                >
+                                                    <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${
+                                                        takeoverState?.isSecret ? 'right-1' : 'left-1'
+                                                    }`} />
+                                                </button>
+                                            </div>
+
+                                            {takeoverState?.isSecret && (
+                                                <div className="space-y-2 pt-2 border-t border-white/5">
+                                                    <label className="block text-[9px] font-black text-neon-purple uppercase tracking-widest">
+                                                        Code secret d'accès
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={takeoverState?.password || ''}
+                                                        onChange={(e) => onTakeoverChange?.({ ...takeoverState!, password: e.target.value })}
+                                                        placeholder="EX: 2026"
+                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-sm text-white font-black tracking-[0.3em] text-center focus:border-neon-purple outline-none"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            <p className="text-[9px] text-gray-500 italic">
+                                                * Idéal pour tester votre installation avec votre équipe technique avant l'ouverture publique du live.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Save Button for Live Takeover */}
+                                <div className="pt-2 shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            setLiveSaving(true);
+                                            try {
+                                                if (onSaveTakeover) {
+                                                    await onSaveTakeover();
+                                                } else {
+                                                    const resSets = await apiFetch('/api/settings');
+                                                    const current = resSets.ok ? await resSets.json() : {};
+                                                    await apiFetch('/api/settings/update', {
+                                                        method: 'POST',
+                                                        headers: getAuthHeaders(),
+                                                        body: JSON.stringify({ ...current, takeover: takeoverState })
+                                                    });
+                                                }
+                                                setLiveSaved(true);
+                                                setTimeout(() => setLiveSaved(false), 3000);
+                                            } catch (e) {
+                                                console.error("Erreur sauvegarde live takeover:", e);
+                                            } finally {
+                                                setLiveSaving(false);
+                                            }
+                                        }}
+                                        disabled={liveSaving}
+                                        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-orange-600 via-neon-red to-neon-purple text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-xl shadow-red-600/25 disabled:opacity-50 active:scale-95"
+                                    >
+                                        {liveSaving ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : liveSaved ? (
+                                            <CheckCircle2 className="w-4 h-4 text-green-300" />
+                                        ) : (
+                                            <Save className="w-4 h-4" />
+                                        )}
+                                        {liveSaved ? 'Paramètres Live Takeover sauvegardés avec succès !' : 'Enregistrer tous les réglages Live Takeover'}
+                                    </button>
+                                </div>
                             </div>
                         )}
 
-                        {/* Footer Controls */}
-                        <div className="mt-4 pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-                            <button
-                                type="button"
-                                onClick={handleReset}
-                                className="text-[10px] font-bold text-white/40 hover:text-white flex items-center gap-1.5 transition-colors"
-                            >
-                                <RotateCcw className="w-3.5 h-3.5" />
-                                Réinitialiser par défaut
-                            </button>
-
-                            <div className="flex items-center gap-3 w-full sm:w-auto">
-                                {saveSuccess && (
-                                    <div className="flex items-center gap-1.5 text-xs text-neon-green font-bold animate-fade-in">
-                                        <CheckCircle2 className="w-4 h-4" />
-                                        {saveMessage || 'Enregistré !'}
-                                    </div>
-                                )}
-                                {error && (
-                                    <div className="flex items-center gap-1.5 text-xs text-red-400 font-bold max-w-xs truncate" title={error}>
-                                        <AlertCircle className="w-4 h-4 shrink-0" />
-                                        {error}
-                                    </div>
-                                )}
-
+                        {/* Modal Footer Controls for TV Tab */}
+                        {activeTab !== 'live' && (
+                            <div className="mt-4 pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
                                 <button
                                     type="button"
-                                    onClick={handleSave}
-                                    disabled={saving}
-                                    className="w-full sm:w-auto px-6 py-2.5 rounded-2xl bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan text-white text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-95 transition-all shadow-lg shadow-neon-red/20 disabled:opacity-50 active:scale-95"
+                                    onClick={handleReset}
+                                    className="text-[10px] font-bold text-white/40 hover:text-white flex items-center gap-1.5 transition-colors"
                                 >
-                                    {saving ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        <Save className="w-4 h-4" />
-                                    )}
-                                    Enregistrer la programmation
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    Restaurer la liste par défaut
                                 </button>
+
+                                <div className="flex items-center gap-3 w-full sm:w-auto">
+                                    {saveSuccess && (
+                                        <div className="flex items-center gap-1.5 text-xs text-neon-green font-bold animate-fade-in">
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            {saveMessage || 'Enregistré !'}
+                                        </div>
+                                    )}
+                                    {error && (
+                                        <div className="flex items-center gap-1.5 text-xs text-red-400 font-bold max-w-xs truncate" title={error}>
+                                            <AlertCircle className="w-4 h-4 shrink-0" />
+                                            {error}
+                                        </div>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        onClick={handleSave}
+                                        disabled={saving}
+                                        className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-neon-red to-neon-purple text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-neon-red/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {saving ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Enregistrement...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-4 h-4" />
+                                                Enregistrer la programmation
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </motion.div>
                 </div>
             )}
