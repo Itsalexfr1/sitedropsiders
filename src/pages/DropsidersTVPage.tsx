@@ -63,40 +63,190 @@ export interface TVVideo {
     duration?: number;
 }
 
+const TV_GLOBAL_ANCHOR = 1789420139214;
+
 const DEFAULT_MAIN_PLAYLIST: TVVideo[] = [
     {
-        id: '1',
-        title: 'Tomorrowland 2024 – Best of Mainstage Sets',
-        description: 'Les sets légendaires et les moments les plus intenses de Tomorrowland',
-        youtubeId: 'H5QLyGiDr_0'
+        id: 'tv_1789417248675',
+        title: 'Wiley Live @ Lost Lands 2025 - Full Set',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: '8YbWq5urfww',
+        duration: 3600
     },
     {
-        id: '2',
-        title: 'Martin Garrix Live @ Amsterdam Music Festival',
-        description: 'Set exclusif de Martin Garrix avec tous ses hymnes',
-        youtubeId: 'iyIBWoFr7DY'
+        id: 'tv_1789421420308',
+        title: 'Fisher WE2 | Tomorrowland 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'DuXXMZLfAkQ',
+        duration: 4500
     },
     {
-        id: '3',
-        title: 'Ultra Music Festival Miami 2024 – Main Stage Highlights',
-        description: 'L\'énergie brute d\'Ultra Miami en haute définition',
-        youtubeId: 'tBQsniJdWi8'
+        id: 'tv_1789421482764',
+        title: 'The Chainsmokers Live at EDC Las Vegas 2026 (Official Full Set)',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: '3AQ_Srbe1lQ',
+        duration: 4200
     },
     {
-        id: '4',
-        title: 'EDC Las Vegas 2024 – Kineticfield Stage Recap',
-        description: 'Le plus grand spectacle sous le ciel électrique de Las Vegas',
-        youtubeId: 'y4fR1VbCqhI'
+        id: 'tv_1789421504931',
+        title: 'RÜFÜS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'eQ-OVsdK-hM',
+        duration: 5400
     },
     {
-        id: '5',
-        title: 'HARD Summer 2024 – Official Highlights',
-        description: 'Basses lourdes et ambiance estivale sur la scène de HARD Summer',
-        youtubeId: 'rFQJDcNzXw0'
+        id: 'tv_1789421516069',
+        title: 'D-Block & S-te-Fan | Defqon.1 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'IEJUg98lIHs',
+        duration: 3600
+    },
+    {
+        id: 'tv_1789421527830',
+        title: 'TOMAN | Awakenings Festival 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: '5hj5UTZR_Ss',
+        duration: 5400
+    },
+    {
+        id: 'tv_1789421557683',
+        title: 'JOHN SUMMIT LIVE @ ULTRA MIAMI MAIN STAGE 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'aloPGSlq31Y',
+        duration: 4500
+    },
+    {
+        id: 'tv_1789422346501',
+        title: 'Ray Volpe Live @ Lost Lands 2025 - Full Set',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'nyaGV-jeST8',
+        duration: 3600
+    },
+    {
+        id: 'tv_1789422358781',
+        title: 'Dimitri Vegas B2B Nico Moreno WE2 | Tomorrowland 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'OTKgBZS8if0',
+        duration: 3600
+    },
+    {
+        id: 'tv_1789422374723',
+        title: 'Kaskade Live at EDC Las Vegas 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'l5wro3bMZWc',
+        duration: 4500
+    },
+    {
+        id: 'tv_1789422388915',
+        title: 'ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026 |',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'hU-z3iV0LOg',
+        duration: 4500
+    },
+    {
+        id: 'tv_1789422401109',
+        title: 'Joris Voorn x Kevin de Vries | Awakenings Festival 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: '_MqFasX6Fas',
+        duration: 5400
+    },
+    {
+        id: 'tv_1789422409939',
+        title: 'Ran-D & Adaro | Defqon.1 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'w4QJvock5Rk',
+        duration: 3600
+    },
+    {
+        id: 'tv_1789422422115',
+        title: 'Mita Gami & Meir Briskman Orchestra Set - Mayan Warrior - Burning Man 2024',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'm8EAmSvzgAQ',
+        duration: 5400
+    },
+    {
+        id: 'tv_1789422704818',
+        title: 'Tomorrowland Belgium 2026 | Official Aftermovie',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'k5yQBhDnrvM',
+        duration: 1200
+    },
+    {
+        id: 'tv_1789422726963',
+        title: 'Laidback Luke B2B Chuckie Live at EDC Las Vegas 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'IzsShRhd5cw',
+        duration: 4500
+    },
+    {
+        id: 'tv_1789422747707',
+        title: 'WORSHIP @ ULTRA MUSIC FESTIVAL MIAMI 2026 | UMF',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'V2lD_pq5c3M',
+        duration: 3600
+    },
+    {
+        id: 'tv_1789422759691',
+        title: 'Mau P | Awakenings Festival 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'CNGB66x4ygk',
+        duration: 5400
+    },
+    {
+        id: 'tv_1789422770591',
+        title: 'Coone | Defqon.1 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'fsHgYLT_FCc',
+        duration: 3600
+    },
+    {
+        id: 'tv_1789422784155',
+        title: 'Keinemusik (&ME, Rampa, Adam Port) - Mayan Warrior - Burning Man 2022',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: '2ECWX8GdDvA',
+        duration: 6300
     }
 ];
 
-const DEFAULT_PROMO_PLAYLIST: PromoVideo[] = [];
+const DEFAULT_PROMO_PLAYLIST: PromoVideo[] = [
+    {
+        id: 'promo_1789420138099',
+        title: 'Tomorrowland Winter 2027 Promo',
+        youtubeId: 'pQdsHoG2yhw',
+        duration: 60
+    },
+    {
+        id: 'promo_1789421449603',
+        title: 'EDC Orlando 2026 Official Trailer',
+        youtubeId: '61tiIdIrjUQ',
+        duration: 60
+    }
+];
+
+const DEFAULT_DURATIONS: Record<string, number> = {
+    '8YbWq5urfww': 3600,
+    'DuXXMZLfAkQ': 4500,
+    '3AQ_Srbe1lQ': 4200,
+    'eQ-OVsdK-hM': 5400,
+    'IEJUg98lIHs': 3600,
+    '5hj5UTZR_Ss': 5400,
+    'aloPGSlq31Y': 4500,
+    'nyaGV-jeST8': 3600,
+    'OTKgBZS8if0': 3600,
+    'l5wro3bMZWc': 4500,
+    'hU-z3iV0LOg': 4500,
+    '_MqFasX6Fas': 5400,
+    'w4QJvock5Rk': 3600,
+    'm8EAmSvzgAQ': 5400,
+    'k5yQBhDnrvM': 1200,
+    'IzsShRhd5cw': 4500,
+    'V2lD_pq5c3M': 3600,
+    'CNGB66x4ygk': 5400,
+    'fsHgYLT_FCc': 3600,
+    '2ECWX8GdDvA': 6300,
+    'pQdsHoG2yhw': 60,
+    '61tiIdIrjUQ': 60
+};
 
 const STORAGE_PLAYLIST_KEY = 'dropsiders_tv_playlist_v2';
 const STORAGE_PROMOS_KEY = 'dropsiders_tv_promos_v2';
@@ -126,7 +276,7 @@ export function buildTVSegments(
     for (let i = 0; i < playlist.length; i++) {
         const mainVid = playlist[i];
         if (!mainVid) continue;
-        const mainDur = (durationsMap && durationsMap[mainVid.youtubeId]) || mainVid.duration || 300;
+        const mainDur = (durationsMap && durationsMap[mainVid.youtubeId]) || DEFAULT_DURATIONS[mainVid.youtubeId] || mainVid.duration || 3600;
         segments.push({
             type: 'main',
             index: i,
@@ -138,7 +288,7 @@ export function buildTVSegments(
             const promoIdx = i % promos.length;
             const promoVid = promos[promoIdx];
             if (promoVid) {
-                const promoDur = (durationsMap && durationsMap[promoVid.youtubeId]) || promoVid.duration || 30;
+                const promoDur = (durationsMap && durationsMap[promoVid.youtubeId]) || DEFAULT_DURATIONS[promoVid.youtubeId] || promoVid.duration || 60;
                 segments.push({
                     type: 'promo',
                     index: promoIdx,
@@ -152,48 +302,24 @@ export function buildTVSegments(
     return segments;
 }
 
-// Calculate the exact live continuous position so the TV never starts from 0 on page visit
+// Pure deterministic live continuous broadcast calculation:
+// Every single device in the world opens the TV at the exact same segment and exact same second!
 export function calculateLivePosition(
     segments: TVScheduleSegment[],
-    startTime: number,
-    savedState?: { index: number; isPromo: boolean; currentTime: number; updatedAt: number } | null
+    startTime: number
 ): { index: number; isPromo: boolean; startSeconds: number } {
     if (!segments || segments.length === 0) {
         return { index: 0, isPromo: false, startSeconds: 0 };
     }
 
-    const now = Date.now();
-
-    // Priority 1: If there is a state saved recently (within the last 4 hours)
-    if (savedState && savedState.updatedAt && now >= savedState.updatedAt && (now - savedState.updatedAt) < 4 * 3600 * 1000) {
-        const elapsedSec = (now - savedState.updatedAt) / 1000;
-        let segIdx = segments.findIndex(s =>
-            (s.type === (savedState.isPromo ? 'promo' : 'main')) && s.index === savedState.index
-        );
-        if (segIdx === -1) segIdx = 0;
-
-        let curTime = (savedState.currentTime || 0) + elapsedSec;
-        while (curTime >= segments[segIdx].duration) {
-            curTime -= segments[segIdx].duration;
-            segIdx = (segIdx + 1) % segments.length;
-        }
-
-        const targetSeg = segments[segIdx];
-        return {
-            index: targetSeg.index,
-            isPromo: targetSeg.type === 'promo',
-            startSeconds: Math.floor(curTime)
-        };
-    }
-
-    // Priority 2: Synchronized global timeline from broadcast start time
     const totalCycle = segments.reduce((sum, s) => sum + s.duration, 0);
     if (totalCycle <= 0) {
         return { index: 0, isPromo: false, startSeconds: 0 };
     }
 
-    const effectiveStart = startTime > 0 ? startTime : now;
-    const elapsedTotal = Math.max(0, (now - effectiveStart) / 1000);
+    const now = Date.now();
+    const effectiveStart = startTime > 0 ? startTime : TV_GLOBAL_ANCHOR;
+    const elapsedTotal = Math.floor(Math.abs(now - effectiveStart) / 1000);
     let cyclePos = elapsedTotal % totalCycle;
 
     for (let i = 0; i < segments.length; i++) {
@@ -233,7 +359,7 @@ export function DropsidersTVPage() {
             const saved = localStorage.getItem(STORAGE_PROMOS_KEY);
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed)) return parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
             }
         } catch {}
         return DEFAULT_PROMO_PLAYLIST;
@@ -242,9 +368,9 @@ export function DropsidersTVPage() {
     const [durationsMap, setDurationsMap] = useState<Record<string, number>>(() => {
         try {
             const saved = localStorage.getItem(STORAGE_DURATIONS_KEY);
-            if (saved) return JSON.parse(saved);
+            if (saved) return { ...DEFAULT_DURATIONS, ...JSON.parse(saved) };
         } catch {}
-        return {};
+        return DEFAULT_DURATIONS;
     });
 
     const [, setTvStartTime] = useState<number>(() => {
@@ -255,10 +381,10 @@ export function DropsidersTVPage() {
                 if (!isNaN(parsed) && parsed > 0) return parsed;
             }
         } catch {}
-        return Date.now();
+        return TV_GLOBAL_ANCHOR;
     });
 
-    // Compute initial live position on initial render (Never restarts at 0 on page visit!)
+    // Compute initial live position on initial render (Guaranteed synchronized world clock, never restarts at 0!)
     const [initialLive] = useState(() => {
         try {
             const savedPl = localStorage.getItem(STORAGE_PLAYLIST_KEY);
@@ -266,14 +392,12 @@ export function DropsidersTVPage() {
             const savedPr = localStorage.getItem(STORAGE_PROMOS_KEY);
             const pr = savedPr ? JSON.parse(savedPr) : DEFAULT_PROMO_PLAYLIST;
             const savedDur = localStorage.getItem(STORAGE_DURATIONS_KEY);
-            const dur = savedDur ? JSON.parse(savedDur) : {};
+            const dur = savedDur ? { ...DEFAULT_DURATIONS, ...JSON.parse(savedDur) } : DEFAULT_DURATIONS;
             const savedSt = localStorage.getItem(STORAGE_START_TIME_KEY);
-            const st = savedSt ? parseInt(savedSt, 10) : Date.now();
-            const savedStateStr = localStorage.getItem(STORAGE_STATE_KEY);
-            const savedState = savedStateStr ? JSON.parse(savedStateStr) : null;
+            const st = savedSt ? parseInt(savedSt, 10) : TV_GLOBAL_ANCHOR;
 
             const segments = buildTVSegments(pl, pr, dur);
-            return calculateLivePosition(segments, st, savedState);
+            return calculateLivePosition(segments, st);
         } catch {
             return { index: 0, isPromo: false, startSeconds: 0 };
         }
@@ -782,22 +906,67 @@ export function DropsidersTVPage() {
     };
 
     const toggleFullscreen = () => {
-        if (!containerRef.current) return;
-        if (!document.fullscreenElement) {
-            containerRef.current.requestFullscreen().catch(() => {});
+        const el = containerRef.current as any;
+        const doc = document as any;
+
+        const isCurrentlyFullscreen = !!(
+            doc.fullscreenElement ||
+            doc.webkitFullscreenElement ||
+            doc.mozFullScreenElement ||
+            doc.msFullscreenElement ||
+            isFullscreen
+        );
+
+        if (!isCurrentlyFullscreen) {
+            try {
+                if (el?.requestFullscreen) {
+                    el.requestFullscreen().catch(() => {});
+                } else if (el?.webkitRequestFullscreen) {
+                    el.webkitRequestFullscreen();
+                } else if (el?.mozRequestFullScreen) {
+                    el.mozRequestFullScreen();
+                } else if (el?.msRequestFullscreen) {
+                    el.msRequestFullscreen();
+                }
+            } catch {}
             setIsFullscreen(true);
         } else {
-            document.exitFullscreen().catch(() => {});
+            try {
+                if (doc.exitFullscreen) {
+                    doc.exitFullscreen().catch(() => {});
+                } else if (doc.webkitExitFullscreen) {
+                    doc.webkitExitFullscreen();
+                } else if (doc.mozCancelFullScreen) {
+                    doc.mozCancelFullScreen();
+                } else if (doc.msExitFullscreen) {
+                    doc.msExitFullscreen();
+                }
+            } catch {}
             setIsFullscreen(false);
         }
     };
 
     useEffect(() => {
         const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
+            const doc = document as any;
+            const isFull = !!(
+                doc.fullscreenElement ||
+                doc.webkitFullscreenElement ||
+                doc.mozFullScreenElement ||
+                doc.msFullscreenElement
+            );
+            setIsFullscreen(isFull);
         };
         document.addEventListener('fullscreenchange', handleFullscreenChange);
-        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+            document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+        };
     }, []);
 
     // Keyboard shortcuts
@@ -830,7 +999,7 @@ export function DropsidersTVPage() {
             <div
                 ref={containerRef}
                 onMouseMove={handleMouseMove}
-                className="relative w-full h-[100dvh] bg-black overflow-hidden select-none flex flex-col justify-between"
+                className={`${isFullscreen ? 'fixed inset-0 z-[9999] w-screen h-[100dvh]' : 'relative w-full h-[100dvh]'} bg-black overflow-hidden select-none flex flex-col justify-between`}
             >
                 {/* Live Takeover Banner Override */}
                 {liveSettings?.enabled && (
@@ -860,7 +1029,7 @@ export function DropsidersTVPage() {
 
                 {/* Top Channel Header Bar */}
                 <AnimatePresence>
-                    {showControls && (
+                    {showControls && !isAdminTVModalOpen && (
                         <motion.div
                             initial={{ opacity: 0, y: -20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -1101,18 +1270,7 @@ export function DropsidersTVPage() {
                                         return (
                                             <div
                                                 key={i}
-                                                onClick={() => {
-                                                    if (seg.type === 'main') {
-                                                        setCurrentIndex(seg.index);
-                                                        setIsPlayingPromo(false);
-                                                    } else {
-                                                        setCurrentIndex(seg.index);
-                                                        setIsPlayingPromo(true);
-                                                    }
-                                                    pendingSeekRef.current = 0;
-                                                    setShowSchedule(false);
-                                                }}
-                                                className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 ${
+                                                className={`p-3 rounded-2xl border transition-all cursor-default flex items-center gap-3 ${
                                                     isCurrentlyPlaying
                                                         ? 'bg-neon-red/10 border-neon-red/50 shadow-lg shadow-neon-red/10 ring-1 ring-neon-red/30'
                                                         : seg.type === 'promo'

@@ -27,34 +27,144 @@ function formatDuration(totalSeconds: number): string {
 
 const DEFAULT_MAIN_PLAYLIST: TVVideo[] = [
     {
-        id: '1',
-        title: 'Tomorrowland 2024 – Best of Mainstage Sets',
-        description: 'Les sets légendaires et les moments les plus intenses de Tomorrowland',
-        youtubeId: 'H5QLyGiDr_0'
+        id: 'tv_1',
+        title: 'Wiley Live @ Lost Lands 2025 - Full Set',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: '8YbWq5urfww',
+        duration: 3600
     },
     {
-        id: '2',
-        title: 'Martin Garrix Live @ Amsterdam Music Festival',
-        description: 'Set exclusif de Martin Garrix avec tous ses hymnes',
-        youtubeId: 'iyIBWoFr7DY'
+        id: 'tv_2',
+        title: 'Fisher WE2 | Tomorrowland 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'DuXXMZLfAkQ',
+        duration: 3600
     },
     {
-        id: '3',
-        title: 'Ultra Music Festival Miami 2024 – Main Stage Highlights',
-        description: 'L\'énergie brute d\'Ultra Miami en haute définition',
-        youtubeId: 'tBQsniJdWi8'
+        id: 'tv_3',
+        title: 'The Chainsmokers Live at EDC Las Vegas 2026 (Official Full Set)',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: '3AQ_Srbe1lQ',
+        duration: 4500
     },
     {
-        id: '4',
-        title: 'EDC Las Vegas 2024 – Kineticfield Stage Recap',
-        description: 'Le plus grand spectacle sous le ciel électrique de Las Vegas',
-        youtubeId: 'y4fR1VbCqhI'
+        id: 'tv_4',
+        title: 'RÜFÜS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'eQ-OVsdK-hM',
+        duration: 5400
     },
     {
-        id: '5',
-        title: 'HARD Summer 2024 – Official Highlights',
-        description: 'Basses lourdes et ambiance estivale sur la scène de HARD Summer',
-        youtubeId: 'rFQJDcNzXw0'
+        id: 'tv_5',
+        title: 'D-Block & S-te-Fan | Defqon.1 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'IEJUg98lIHs',
+        duration: 3600
+    },
+    {
+        id: 'tv_6',
+        title: 'TOMAN | Awakenings Festival 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: '5hj5UTZR_Ss',
+        duration: 5400
+    },
+    {
+        id: 'tv_7',
+        title: 'JOHN SUMMIT LIVE @ ULTRA MIAMI MAIN STAGE 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'aloPGSlq31Y',
+        duration: 4500
+    },
+    {
+        id: 'tv_8',
+        title: 'Ray Volpe Live @ Lost Lands 2025 - Full Set',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'nyaGV-jeST8',
+        duration: 3600
+    },
+    {
+        id: 'tv_9',
+        title: 'Dimitri Vegas B2B Nico Moreno WE2 | Tomorrowland 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'OTKgBZS8if0',
+        duration: 3600
+    },
+    {
+        id: 'tv_10',
+        title: 'Kaskade Live at EDC Las Vegas 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'l5wro3bMZWc',
+        duration: 4500
+    },
+    {
+        id: 'tv_11',
+        title: 'ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026 |',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'hU-z3iV0LOg',
+        duration: 3600
+    },
+    {
+        id: 'tv_12',
+        title: 'Joris Voorn x Kevin de Vries | Awakenings Festival 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: '_MqFasX6Fas',
+        duration: 5400
+    },
+    {
+        id: 'tv_13',
+        title: 'Ran-D & Adaro | Defqon.1 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'w4QJvock5Rk',
+        duration: 3600
+    },
+    {
+        id: 'tv_14',
+        title: 'Mita Gami & Meir Briskman Orchestra Set - Mayan Warrior - Burning Man 2024',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'm8EAmSvzgAQ',
+        duration: 5400
+    },
+    {
+        id: 'tv_15',
+        title: 'Tomorrowland Belgium 2026 | Official Aftermovie',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'k5yQBhDnrvM',
+        duration: 900
+    },
+    {
+        id: 'tv_16',
+        title: 'Laidback Luke B2B Chuckie Live at EDC Las Vegas 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'IzsShRhd5cw',
+        duration: 4500
+    },
+    {
+        id: 'tv_17',
+        title: 'WORSHIP @ ULTRA MUSIC FESTIVAL MIAMI 2026 | UMF',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'V2lD_pq5c3M',
+        duration: 3600
+    },
+    {
+        id: 'tv_18',
+        title: 'Mau P | Awakenings Festival 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'CNGB66x4ygk',
+        duration: 5400
+    },
+    {
+        id: 'tv_19',
+        title: 'Coone | Defqon.1 2026',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: 'fsHgYLT_FCc',
+        duration: 3600
+    },
+    {
+        id: 'tv_20',
+        title: 'Keinemusik (&ME, Rampa, Adam Port) - Mayan Warrior - Burning Man 2022',
+        description: 'Diffusé sur DropsidersTV',
+        youtubeId: '2ECWX8GdDvA',
+        duration: 7200
     }
 ];
 
@@ -591,15 +701,17 @@ export function AdminTVModal({
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <a
-                                    href="/tv"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all flex items-center gap-1.5"
-                                >
-                                    <ExternalLink className="w-3 h-3" />
-                                    Voir la TV
-                                </a>
+                                {!isOnTvPage && (
+                                    <a
+                                        href="/tv"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all flex items-center gap-1.5"
+                                    >
+                                        <ExternalLink className="w-3 h-3" />
+                                        Voir la TV
+                                    </a>
+                                )}
                                 <a
                                     href="/live"
                                     target="_blank"
