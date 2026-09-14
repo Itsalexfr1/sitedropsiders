@@ -5839,8 +5839,8 @@ ${urls.map(u => `  <url>
                                 headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
                                 body: JSON.stringify({
                                     sender: { name: 'Dropsiders System', email: 'bot@dropsiders.fr' },
-                                    to: [{ email: 'contact@dropsiders.fr', name: 'Alex' }],
-                                    subject: `[NOUVEAU MESSAGE] ${name} : ${subject}`,
+                                    to: [{ email: 'alexflex30@gmail.com', name: 'Alex' }],
+                                    subject: `[NOUVEAU MESSAGE SITE] ${name} : ${subject}`,
                                     htmlContent: `
                                         <div style="font-family: sans-serif; padding: 20px; background: #f9f9f9; color: #333;">
                                             <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; border: 1px solid #eee;">
@@ -9331,6 +9331,85 @@ const contentType = response.headers.get("content-type");
                     console.error('[SCHEDULED] Smart auto-reset failed:', e);
                 }
             }
+        }
+        // --- RECAP MESSAGES NON LUS (toutes les 12h) ---
+        try {
+            const BREVO_KEY = env.BREVO_API_KEY;
+            const now = new Date();
+            const hour = now.getUTCHours();
+            // Envoyer à 8h UTC (10h Paris) et 20h UTC (22h Paris)
+            const shouldSendRecap = (hour === 8 || hour === 20);
+            if (shouldSendRecap && BREVO_KEY) {
+                const contactsFile = await fetchGitHubFile('src/data/contacts.json', scheduledGitConfig);
+                const allContacts = Array.isArray(contactsFile?.content) ? contactsFile.content : [];
+                const unread = allContacts.filter(c => !c.read);
+                if (unread.length > 0) {
+                    const period = hour === 8 ? 'Matinée' : 'Soirée';
+                    const listHtml = unread.slice(0, 20).map(m => `
+                        <tr>
+                            <td style="padding: 8px 12px; border-bottom: 1px solid #1e2028; vertical-align: top;">
+                                <strong style="color: #fff; font-size: 13px;">${m.name || '?'}</strong>
+                                <br><span style="color: #71717a; font-size: 11px;">${m.email || ''}</span>
+                            </td>
+                            <td style="padding: 8px 12px; border-bottom: 1px solid #1e2028; vertical-align: top;">
+                                <span style="color: #e4e4e7; font-size: 13px; font-weight: bold;">${m.subject || '(Sans objet)'}</span>
+                                <br><span style="color: #a1a1aa; font-size: 11px;">${new Date(m.date).toLocaleString('fr-FR')}</span>
+                            </td>
+                            <td style="padding: 8px 12px; border-bottom: 1px solid #1e2028; color: #00ffd5; font-size: 10px; font-weight: bold; text-transform: uppercase; white-space: nowrap;">
+                                ${(m.recipient || 'contact@dropsiders.fr').replace('@dropsiders.fr', '')}
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    await fetch('https://api.brevo.com/v3/smtp/email', {
+                        method: 'POST',
+                        headers: {
+                            'accept': 'application/json',
+                            'api-key': BREVO_KEY,
+                            'content-type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            sender: { name: 'Dropsiders Recap', email: 'bot@dropsiders.fr' },
+                            to: [{ email: 'alexflex30@gmail.com', name: 'Alex' }],
+                            subject: `📬 Récap ${period} — ${unread.length} message${unread.length > 1 ? 's' : ''} non lu${unread.length > 1 ? 's' : ''} · Dropsiders`,
+                            htmlContent: `
+                                <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: #0c0d10; color: #fff; padding: 30px 10px;">
+                                    <div style="max-width: 640px; margin: 0 auto; background: #16181f; border: 1px solid #282b35; border-radius: 16px; overflow: hidden;">
+                                        <div style="background: linear-gradient(135deg, #ff1241, #990022); padding: 22px; text-align: center;">
+                                            <h2 style="margin: 0; font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #fff;">📬 Récap ${period}</h2>
+                                            <p style="margin: 6px 0 0; color: rgba(255,255,255,0.7); font-size: 13px;">${unread.length} message${unread.length > 1 ? 's' : ''} non lu${unread.length > 1 ? 's' : ''} sur Dropsiders</p>
+                                        </div>
+                                        <div style="padding: 20px;">
+                                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="text-align: left; padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: #71717a; letter-spacing: 0.1em; border-bottom: 1px solid #282b35;">Expéditeur</th>
+                                                        <th style="text-align: left; padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: #71717a; letter-spacing: 0.1em; border-bottom: 1px solid #282b35;">Sujet</th>
+                                                        <th style="text-align: left; padding: 8px 12px; font-size: 10px; text-transform: uppercase; color: #71717a; letter-spacing: 0.1em; border-bottom: 1px solid #282b35;">Boîte</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>${listHtml}</tbody>
+                                            </table>
+                                            ${unread.length > 20 ? `<p style="color: #71717a; font-size: 12px; text-align: center; margin-top: 12px;">… et ${unread.length - 20} autres messages</p>` : ''}
+                                        </div>
+                                        <div style="padding: 20px; text-align: center; border-top: 1px solid #1e2028;">
+                                            <a href="https://dropsiders.fr/admin" style="display: inline-block; background: #ff1241; color: #fff; text-decoration: none; padding: 12px 30px; border-radius: 10px; font-weight: 800; font-size: 14px; text-transform: uppercase;">Ouvrir la Messagerie</a>
+                                        </div>
+                                        <div style="padding: 12px; text-align: center; border-top: 1px solid #1e2028;">
+                                            <p style="margin: 0; font-size: 10px; color: #3f3f46;">Récap automatique toutes les 12h · Dropsiders V2</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `
+                        })
+                    });
+                    console.log(`[SCHEDULED] Sent ${period} unread recap (${unread.length} msgs) to alexflex30@gmail.com`);
+                } else {
+                    console.log(`[SCHEDULED] No unread messages, skipping ${period} recap.`);
+                }
+            }
+        } catch (recapErr) {
+            console.error('[SCHEDULED] Recap email error:', recapErr);
         }
     },
 

@@ -162,6 +162,11 @@ export function AdminMessages() {
     const [selectedSent, setSelectedSent] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string } | null>(null);
     const [selectedArchived, setSelectedArchived] = useState<ContactMessage | null>(null);
 
+    // Bulk selection state
+    const [bulkSelectMode, setBulkSelectMode] = useState(false);
+    const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
+    const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+
     // New States for Custom Emails
     const [isNewMail, setIsNewMail] = useState(false);
     const [destinationEmails, setDestinationEmails] = useState(['']);
@@ -276,6 +281,53 @@ export function AdminMessages() {
 
         setDeleteConfirm(null);
         showNotif('success', 'Message supprimé.');
+    };
+
+    const handleBulkDelete = async () => {
+        const ids = Array.from(bulkSelected);
+        if (mailboxTab === 'inbox') {
+            await Promise.all(ids.map(id => fetch('/api/contacts/delete', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id })
+            })));
+            setMessages(prev => prev.filter(m => !bulkSelected.has(m.id)));
+            if (selected && bulkSelected.has(selected.id)) setSelected(null);
+        } else if (mailboxTab === 'sent') {
+            const next = sentMessages.filter(m => !bulkSelected.has(m.id));
+            setSentMessages(next);
+            localStorage.setItem('dropsiders_sent_messages', JSON.stringify(next));
+            if (selectedSent && bulkSelected.has(selectedSent.id)) setSelectedSent(null);
+        } else if (mailboxTab === 'archived') {
+            const next = archivedMessages.filter(m => !bulkSelected.has(m.id));
+            setArchivedMessages(next);
+            localStorage.setItem('dropsiders_archived_messages', JSON.stringify(next));
+            if (selectedArchived && bulkSelected.has(selectedArchived.id)) setSelectedArchived(null);
+        }
+        setBulkSelected(new Set());
+        setBulkSelectMode(false);
+        setBulkDeleteConfirm(false);
+        showNotif('success', `${ids.length} message${ids.length > 1 ? 's' : ''} supprimé${ids.length > 1 ? 's' : ''}.`);
+    };
+
+    const toggleBulkSelect = (id: string) => {
+        setBulkSelected(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        const currentList = mailboxTab === 'inbox' ? filteredMessages
+            : mailboxTab === 'sent' ? sentMessages
+            : filteredArchivedMessages;
+        if (bulkSelected.size === currentList.length) {
+            setBulkSelected(new Set());
+        } else {
+            setBulkSelected(new Set(currentList.map(m => m.id)));
+        }
     };
 
     const handleArchive = (msg: ContactMessage) => {
@@ -753,6 +805,29 @@ Alex (Dropsiders)`;
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        {bulkSelectMode && bulkSelected.size > 0 && (
+                            <button
+                                onClick={() => setBulkDeleteConfirm(true)}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all animate-pulse"
+                                style={{ background: 'linear-gradient(135deg, #cc0030, #880020)', boxShadow: '0 4px 20px rgba(255,18,65,0.4)' }}
+                            >
+                                <Trash2 className="w-3 h-3" />
+                                Supprimer ({bulkSelected.size})
+                            </button>
+                        )}
+                        <button
+                            onClick={() => {
+                                setBulkSelectMode(prev => {
+                                    if (prev) setBulkSelected(new Set());
+                                    return !prev;
+                                });
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                            style={{ background: bulkSelectMode ? 'rgba(255,18,65,0.15)' : 'rgba(255,255,255,0.06)', border: bulkSelectMode ? '1px solid rgba(255,18,65,0.4)' : '1px solid rgba(255,255,255,0.1)', color: bulkSelectMode ? '#ff1241' : 'rgba(255,255,255,0.6)' }}
+                        >
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span className="hidden sm:inline">{bulkSelectMode ? 'Annuler sélection' : 'Sélectionner'}</span>
+                        </button>
                         <button
                             onClick={() => {
                                 setIsNewMail(true);
@@ -781,17 +856,6 @@ Alex (Dropsiders)`;
                             <span className="hidden sm:inline">Nouveau Message</span>
                             <span className="sm:hidden">Nouveau</span>
                         </button>
-                        <a
-                            href="https://mail.dropsiders.fr"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-1 md:flex-none justify-center px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
-                            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-                        >
-                            <Mail className="w-3 h-3 text-neon-red" />
-                            <span className="hidden sm:inline text-gray-300">Messagerie Pro</span>
-                            <span className="sm:hidden text-gray-300">Pro</span>
-                        </a>
                         {unreadCount > 0 && (
                             <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-[9px] font-black uppercase tracking-widest" style={{ background: 'rgba(255,18,65,0.15)', border: '1px solid rgba(255,18,65,0.3)' }}>
                                 <div className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse" />
@@ -996,32 +1060,60 @@ Alex (Dropsiders)`;
                             </div>
                         ) : (
                             <div>
+                                {bulkSelectMode && (
+                                    <div className="flex items-center justify-between px-4 py-2" style={{ background: 'rgba(255,18,65,0.05)', borderBottom: '1px solid rgba(255,18,65,0.1)' }}>
+                                        <button
+                                            onClick={toggleSelectAll}
+                                            className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            <div className="w-4 h-4 rounded border flex items-center justify-center transition-all"
+                                                style={{ borderColor: bulkSelected.size === filteredMessages.length && filteredMessages.length > 0 ? '#ff1241' : 'rgba(255,255,255,0.2)', background: bulkSelected.size === filteredMessages.length && filteredMessages.length > 0 ? '#ff1241' : 'transparent' }}>
+                                                {bulkSelected.size === filteredMessages.length && filteredMessages.length > 0 && <Check className="w-2.5 h-2.5 text-white" />}
+                                            </div>
+                                            Tout sélectionner
+                                        </button>
+                                        <span className="text-[9px] text-gray-500 font-bold">{bulkSelected.size} sélectionné{bulkSelected.size > 1 ? 's' : ''}</span>
+                                    </div>
+                                )}
                                 {filteredMessages.map(msg => (
                                     <motion.div
                                         key={msg.id}
                                         initial={{ opacity: 0, y: 4 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        onClick={() => openMessage(msg)}
+                                        onClick={() => bulkSelectMode ? toggleBulkSelect(msg.id) : openMessage(msg)}
                                         className="px-4 py-3.5 cursor-pointer transition-all relative"
                                         style={{
-                                            background: selected?.id === msg.id ? 'rgba(255,18,65,0.05)' : 'transparent',
-                                            borderLeft: selected?.id === msg.id ? '3px solid #ff1241' : '3px solid transparent',
+                                            background: bulkSelectMode
+                                                ? (bulkSelected.has(msg.id) ? 'rgba(255,18,65,0.08)' : 'transparent')
+                                                : (selected?.id === msg.id ? 'rgba(255,18,65,0.05)' : 'transparent'),
+                                            borderLeft: bulkSelectMode
+                                                ? (bulkSelected.has(msg.id) ? '3px solid #ff1241' : '3px solid transparent')
+                                                : (selected?.id === msg.id ? '3px solid #ff1241' : '3px solid transparent'),
                                             borderBottom: '1px solid rgba(255,255,255,0.04)'
                                         }}
                                     >
-                                        {!msg.read && (
+                                        {!msg.read && !bulkSelectMode && (
                                             <div className="absolute top-4 right-4 w-2 h-2 rounded-full animate-pulse" style={{ background: '#ff1241', boxShadow: '0 0 6px rgba(255,18,65,0.6)' }} />
                                         )}
                                         <div className="flex items-start gap-3">
-                                            <div
-                                                className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black flex-shrink-0"
-                                                style={msg.read
-                                                    ? { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.08)' }
-                                                    : { background: 'rgba(255,18,65,0.15)', color: '#ff1241', border: '1px solid rgba(255,18,65,0.25)' }
-                                                }
-                                            >
-                                                {msg.name.charAt(0).toUpperCase()}
-                                            </div>
+                                            {bulkSelectMode ? (
+                                                <div className="w-9 h-9 flex items-center justify-center flex-shrink-0">
+                                                    <div className="w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
+                                                        style={{ borderColor: bulkSelected.has(msg.id) ? '#ff1241' : 'rgba(255,255,255,0.3)', background: bulkSelected.has(msg.id) ? '#ff1241' : 'transparent' }}>
+                                                        {bulkSelected.has(msg.id) && <Check className="w-3 h-3 text-white" />}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div
+                                                    className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black flex-shrink-0"
+                                                    style={msg.read
+                                                        ? { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.08)' }
+                                                        : { background: 'rgba(255,18,65,0.15)', color: '#ff1241', border: '1px solid rgba(255,18,65,0.25)' }
+                                                    }
+                                                >
+                                                    {msg.name.charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between gap-1 mb-0.5">
                                                     <span className={`text-sm truncate ${msg.read ? 'font-medium' : 'font-black'}`} style={{ color: msg.read ? 'rgba(255,255,255,0.55)' : 'white' }}>{msg.name}</span>
@@ -1246,9 +1338,16 @@ Alex (Dropsiders)`;
                         >
                             {/* Sticky Header */}
                             <div className="p-4 md:p-6 border-b border-white/10 flex items-center justify-between bg-[#111] shrink-0">
-                                <h3 className="text-base md:text-lg font-black uppercase italic tracking-tight text-white line-clamp-1">
-                                    {isNewMail ? 'NOUVEAU MESSAGE' : `Répondre à ${selected?.name}`}
-                                </h3>
+                                <div className="min-w-0">
+                                    <h3 className="text-base md:text-lg font-black uppercase italic tracking-tight text-white line-clamp-1">
+                                        {isNewMail ? 'NOUVEAU MESSAGE' : `Répondre à ${selected?.name}`}
+                                    </h3>
+                                    {!isNewMail && selected && (
+                                        <p className="text-[10px] text-neon-cyan/70 font-bold mt-0.5 truncate">
+                                            ✉ À : <span className="text-neon-cyan">{selected.email}</span>
+                                        </p>
+                                    )}
+                                </div>
                                 <button onClick={() => { setReplyModal(false); setReplyStatus('idle'); }} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors flex-shrink-0 ml-2">
                                     <X className="w-5 h-5" />
                                 </button>
@@ -1590,49 +1689,47 @@ Alex (Dropsiders)`;
                                             <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden shadow-2xl scale-[0.85] origin-top">
                                                 <div className="p-6">
                                                     <div 
-                                                        className="text-white/80 text-[11px] leading-relaxed min-h-[100px]"
-                                                        dangerouslySetInnerHTML={{ 
-                                                            __html: linkify(replyBody || "[Votre message apparaîtra ici]") 
-                                                        }}
-                                                    />
-                                                    <div className="mt-8 bg-black/90 border border-white/10 rounded-xl p-4 text-left">
-                                                        <table cellPadding="0" cellSpacing="0" border={0} style={{ width: '100%' }}>
+                                                        className="text-white/80 text-[11px] leading-relaxed min-h-[100px] whitespace-pre-wrap"
+                                                        style={{ whiteSpace: 'pre-wrap' }}
+                                                    >
+                                                        {replyBody || '[Votre message apparaîtra ici]'}
+                                                    </div>
+                                                    {/* Signature preview - rendered exactly as the email will look */}
+                                                    <div className="mt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
+                                                        <table cellPadding="0" cellSpacing="0" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                                             <tbody>
                                                                 <tr>
                                                                     <td style={{ verticalAlign: 'middle', textAlign: 'center', paddingRight: '12px', width: '65px' }}>
-                                                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" width="60" style={{ display: 'block', width: '60px', height: 'auto' }} />
+                                                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" width="55" style={{ display: 'block' }} />
                                                                     </td>
-                                                                    <td style={{ width: '3px', backgroundColor: '#ff0033', borderRadius: '2px' }}></td>
+                                                                    <td style={{ width: '3px', background: '#ff0033', borderRadius: '2px' }}>&nbsp;</td>
                                                                     <td style={{ verticalAlign: 'top', paddingLeft: '14px' }}>
-                                                                        <div className="text-[13px] font-black text-white uppercase tracking-tight">
+                                                                        <div style={{ fontSize: '12px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>
                                                                             {signatureName || 'ALEX'}
                                                                         </div>
-                                                                        <div className="text-[10px] font-extrabold text-neon-red uppercase tracking-wider mb-1">
+                                                                        <div style={{ fontSize: '9px', fontWeight: 800, color: '#ff0033', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>
                                                                             {(signatureName && signatureName.toLowerCase() === 'alex') ? 'FONDATEUR & RÉDACTEUR' : 'RÉDACTEUR MÉDIA'}
                                                                         </div>
-                                                                        <div className="mb-1.5">
-                                                                            <span className="bg-black border border-white/10 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">
-                                                                                🎙️ Médias & Presse Accréditée
+                                                                        <div style={{ marginBottom: '6px' }}>
+                                                                            <span style={{ background: '#111', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '8px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>
+                                                                                🎙️ Médias &amp; Presse Accréditée
                                                                             </span>
                                                                         </div>
-                                                                        <div className="text-[10px] text-gray-400 space-y-0.5 font-medium">
-                                                                            <div><span className="text-neon-red font-bold">Email:</span> {senderEmail}</div>
-                                                                            <div><span className="text-neon-red font-bold">Web:</span> <span className="text-neon-red font-bold">dropsiders.fr</span></div>
+                                                                        <div style={{ fontSize: '10px', color: '#aaa', lineHeight: '1.6' }}>
+                                                                            <span style={{ color: '#ff0033', fontWeight: 700 }}>✉</span>&nbsp;{senderEmail}&nbsp;&nbsp;
+                                                                            <span style={{ color: '#ff0033', fontWeight: 700 }}>📞</span>&nbsp;+33 7 62 05 45 89&nbsp;&nbsp;
+                                                                            <span style={{ color: '#ff0033', fontWeight: 700 }}>🌐</span>&nbsp;dropsiders.fr
                                                                         </div>
-                                                                        <div className="mt-2 pt-1.5 border-t border-dashed border-white/10 text-[9px] text-neon-red font-bold flex gap-2">
-                                                                            <span>Instagram →</span>
-                                                                            <span>TikTok →</span>
-                                                                            <span>Spotify →</span>
+                                                                        <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed rgba(255,255,255,0.1)', fontSize: '9px', color: '#ff0033', fontWeight: 700 }}>
+                                                                            Instagram → TikTok → Spotify → DROPSIDERS • LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS & CULTURE CLUBBING
                                                                         </div>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td colSpan={3} className="border-t border-white/10 pt-2 mt-2 text-[8px] text-gray-500 uppercase font-bold tracking-wider">
-                                                                        DROPSIDERS • Le média 100% musiques électroniques, festivals & culture clubbing
                                                                     </td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
+                                                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.07)', fontSize: '8px', color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                                                            Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire.
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1751,6 +1848,37 @@ Alex (Dropsiders)`;
                             <div className="flex gap-3">
                                 <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-2.5 bg-white/5 rounded-xl text-sm font-bold hover:bg-white/10">Annuler</button>
                                 <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 py-2.5 bg-neon-red rounded-xl text-white text-sm font-black hover:bg-neon-red/80">Supprimer</button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Bulk Delete Confirm Modal */}
+            <AnimatePresence>
+                {bulkDeleteConfirm && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.9 }}
+                            className="bg-[#111] border border-white/10 rounded-2xl p-8 w-full max-w-sm text-center shadow-2xl"
+                        >
+                            <div className="p-4 bg-neon-red/10 rounded-full border border-neon-red/20 inline-flex mb-4">
+                                <Trash2 className="w-8 h-8 text-neon-red" />
+                            </div>
+                            <h3 className="text-lg font-black uppercase italic mb-2">Supprimer {bulkSelected.size} message{bulkSelected.size > 1 ? 's' : ''} ?</h3>
+                            <p className="text-gray-500 text-sm mb-6">Cette action est irréversible. Les messages sélectionnés seront définitivement supprimés.</p>
+                            <div className="flex gap-3">
+                                <button onClick={() => setBulkDeleteConfirm(false)} className="flex-1 py-2.5 bg-white/5 rounded-xl text-sm font-bold hover:bg-white/10">Annuler</button>
+                                <button onClick={handleBulkDelete} className="flex-1 py-2.5 bg-neon-red rounded-xl text-white text-sm font-black hover:bg-neon-red/80">
+                                    Supprimer {bulkSelected.size}
+                                </button>
                             </div>
                         </motion.div>
                     </motion.div>
