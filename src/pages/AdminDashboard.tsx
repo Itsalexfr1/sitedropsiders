@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {
@@ -148,6 +148,15 @@ export function AdminDashboard() {
   const [isFacebookModalOpen, setIsFacebookModalOpen] = useState(false);
   const [isCommunauteModalOpen, setIsCommunauteModalOpen] = useState(false);
   const [isAccueilModalOpen, setIsAccueilModalOpen] = useState(false);
+  const [isHeroVideoModalOpen, setIsHeroVideoModalOpen] = useState(false);
+  const [heroVideoType, setHeroVideoType] = useState<"youtube" | "direct" | "image">("youtube");
+  const [heroVideoId, setHeroVideoId] = useState("");
+  const [heroVideoUrl, setHeroVideoUrl] = useState("");
+  const [isLoadingHeroVideo, setIsLoadingHeroVideo] = useState(false);
+  const [isSavingHeroVideo, setIsSavingHeroVideo] = useState(false);
+  const [isUploadingHeroVideo, setIsUploadingHeroVideo] = useState(false);
+  const [heroVideoUploadProgress, setHeroVideoUploadProgress] = useState(0);
+  const heroFileInputRef = useRef<HTMLInputElement>(null);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
@@ -481,6 +490,135 @@ export function AdminDashboard() {
       setGlobalAlert({ message: "Network error.", type: "danger" });
     } finally {
       setIsSavingSocials(false);
+    }
+  };
+
+  const extractYouTubeId = (url: string): string => {
+    if (!url) return "";
+    const trimmed = url.trim();
+    const regExp = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/;
+    const match = trimmed.match(regExp);
+    if (match && match[1]) {
+      return match[1];
+    }
+    if (/^[\w-]{11}$/.test(trimmed)) {
+      return trimmed;
+    }
+    return trimmed;
+  };
+
+  const fetchHeroVideo = async () => {
+    setIsLoadingHeroVideo(true);
+    try {
+      const res = await fetch("/api/home-layout");
+      if (res.ok) {
+        const data = await res.json();
+        const hero = Array.isArray(data) ? data.find((i: any) => i.id === "hero") : null;
+        if (hero) {
+          if (hero.videoUrl) {
+            setHeroVideoUrl(hero.videoUrl);
+            const isImg = /\.(jpg|jpeg|png|webp|gif|avif|svg)(\?.*)?$/i.test(hero.videoUrl);
+            setHeroVideoType(isImg ? "image" : "direct");
+            setHeroVideoId("");
+          } else if (hero.videoId) {
+            setHeroVideoId(hero.videoId);
+            setHeroVideoType("youtube");
+            setHeroVideoUrl("");
+          } else {
+            setHeroVideoType("youtube");
+            setHeroVideoId("xoB5fdoOMV8");
+            setHeroVideoUrl("");
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch home layout for hero video", err);
+    } finally {
+      setIsLoadingHeroVideo(false);
+    }
+  };
+
+  const handleSaveHeroVideo = async () => {
+    setIsSavingHeroVideo(true);
+    try {
+      const res = await fetch("/api/home-layout");
+      let layout: any[] = [];
+      if (res.ok) {
+        layout = await res.json();
+      }
+      if (!Array.isArray(layout)) layout = [];
+
+      const heroIndex = layout.findIndex((i: any) => i.id === "hero");
+      const currentHero = heroIndex !== -1 ? layout[heroIndex] : { id: "hero", enabled: true, accentColor: "red" };
+
+      const cleanYtId = heroVideoType === "youtube" ? extractYouTubeId(heroVideoId) : "";
+      const cleanDirectUrl = (heroVideoType === "direct" || heroVideoType === "image") ? heroVideoUrl.trim() : "";
+
+      const updatedHero = {
+        ...currentHero,
+        id: "hero",
+        enabled: true,
+        videoId: cleanYtId,
+        videoUrl: cleanDirectUrl,
+      };
+
+      if (heroIndex !== -1) {
+        layout[heroIndex] = updatedHero;
+      } else {
+        layout.unshift(updatedHero);
+      }
+
+      const saveRes = await apiFetch("/api/home-layout/update", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ layout }),
+      });
+
+      if (saveRes.ok) {
+        setGlobalAlert({
+          message: "Vidéo d'accueil enregistrée avec succès !",
+          type: "info",
+        });
+      } else {
+        const err = await saveRes.json().catch(() => ({}));
+        setGlobalAlert({
+          message: err.error || "Erreur lors de l'enregistrement de la vidéo d'accueil.",
+          type: "danger",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setGlobalAlert({ message: "Erreur réseau lors de l'enregistrement.", type: "danger" });
+    } finally {
+      setIsSavingHeroVideo(false);
+    }
+  };
+
+  const handleUploadHeroVideo = async (file: File) => {
+    if (!file) return;
+    setIsUploadingHeroVideo(true);
+    setHeroVideoUploadProgress(0);
+    try {
+      const url = await uploadFile(file, "hero", (progress) => {
+        setHeroVideoUploadProgress(progress);
+      });
+      setHeroVideoUrl(url);
+      const isImg = file.type.startsWith("image/");
+      setHeroVideoType(isImg ? "image" : "direct");
+      setHeroVideoId("");
+      setGlobalAlert({
+        message: "Média téléversé avec succès ! Pensez à enregistrer les modifications.",
+        type: "info",
+      });
+    } catch (err: any) {
+      console.error("Upload hero video failed", err);
+      setGlobalAlert({
+        message: err?.message || "Erreur lors du téléversement du média.",
+        type: "danger",
+      });
+    } finally {
+      setIsUploadingHeroVideo(false);
+      setHeroVideoUploadProgress(0);
     }
   };
 
@@ -6387,6 +6525,33 @@ export function AdminDashboard() {
                   </div>
 
                   <div className="space-y-4">
+                    <button
+                      onClick={() => {
+                        fetchHeroVideo();
+                        setIsHeroVideoModalOpen(true);
+                        setIsAccueilModalOpen(false);
+                      }}
+                      className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group text-left"
+                    >
+                      <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                        <Youtube className="w-6 h-6 text-neon-red" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-xl font-bold text-white uppercase italic">
+                            Vidéo Accueil
+                          </h3>
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-neon-red/20 text-neon-red border border-neon-red/30">
+                            Hero Banner
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+                          Modifier la vidéo ou le média hero en haut du site
+                        </p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                    </button>
+
                     <Link
                       to="/admin/home"
                       onClick={() => setIsAccueilModalOpen(false)}
@@ -6503,6 +6668,373 @@ export function AdminDashboard() {
                         </button>
                       </div>
                     </div>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* Modal Vidéo Accueil */}
+          <AnimatePresence>
+            {isHeroVideoModalOpen && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-xl">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                  className="bg-dark-bg border border-white/10 rounded-[2.5rem] sm:rounded-[3rem] p-6 sm:p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden max-h-[90vh] flex flex-col"
+                >
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-red" />
+
+                  {/* Header */}
+                  <div className="flex justify-between items-start mb-6 shrink-0">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => {
+                          setIsHeroVideoModalOpen(false);
+                          setIsAccueilModalOpen(true);
+                        }}
+                        className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider"
+                        title="Retour au menu Accueil"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span className="hidden sm:inline">Accueil</span>
+                      </button>
+                      <div>
+                        <h2 className="text-3xl sm:text-4xl font-display font-black text-white uppercase italic tracking-tighter">
+                          Vidéo <span className="text-neon-red">Accueil</span>
+                        </h2>
+                        <p className="text-gray-400 text-xs sm:text-sm font-medium">
+                          Bannière hero en haut de la page principale
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsHeroVideoModalOpen(false)}
+                      className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  {/* Scrollable Body */}
+                  <div className="overflow-y-auto pr-1 space-y-6 flex-1 custom-scrollbar">
+                    {/* Format Selector Tabs */}
+                    <div>
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">
+                        Type de média
+                      </label>
+                      <div className="grid grid-cols-3 gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/10">
+                        <button
+                          type="button"
+                          onClick={() => setHeroVideoType("youtube")}
+                          className={`py-3 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                            heroVideoType === "youtube"
+                              ? "bg-neon-red text-white shadow-lg shadow-neon-red/30"
+                              : "text-gray-400 hover:text-white hover:bg-white/5"
+                          }`}
+                        >
+                          <Youtube className="w-4 h-4 shrink-0" />
+                          <span>YouTube</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHeroVideoType("direct")}
+                          className={`py-3 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                            heroVideoType === "direct"
+                              ? "bg-neon-cyan text-black shadow-lg shadow-neon-cyan/30"
+                              : "text-gray-400 hover:text-white hover:bg-white/5"
+                          }`}
+                        >
+                          <Video className="w-4 h-4 shrink-0" />
+                          <span>Vidéo MP4</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHeroVideoType("image")}
+                          className={`py-3 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                            heroVideoType === "image"
+                              ? "bg-neon-purple text-white shadow-lg shadow-neon-purple/30"
+                              : "text-gray-400 hover:text-white hover:bg-white/5"
+                          }`}
+                        >
+                          <ImageIcon className="w-4 h-4 shrink-0" />
+                          <span>Photo</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Inputs based on type */}
+                    {heroVideoType === "youtube" && (
+                      <div className="space-y-3 bg-white/5 border border-white/10 rounded-3xl p-5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            Lien ou ID de la vidéo YouTube
+                          </label>
+                          {extractYouTubeId(heroVideoId) && (
+                            <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-neon-green/10 text-neon-green border border-neon-green/30">
+                              ID: {extractYouTubeId(heroVideoId)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <Youtube className="w-5 h-5 text-neon-red" />
+                          </div>
+                          <input
+                            type="text"
+                            value={heroVideoId}
+                            onChange={(e) => setHeroVideoId(e.target.value)}
+                            placeholder="https://www.youtube.com/watch?v=... ou ID"
+                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-10 py-3.5 text-white text-sm font-bold focus:border-neon-red transition-all"
+                          />
+                          {heroVideoId && (
+                            <button
+                              type="button"
+                              onClick={() => setHeroVideoId("")}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-400 transition-colors p-1"
+                              title="Effacer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-gray-500">
+                          Collez l'URL complète YouTube (Standard, Shorts, Partage) ou l'identifiant à 11 caractères (ex: <span className="text-gray-300 font-mono">xoB5fdoOMV8</span>).
+                        </p>
+                      </div>
+                    )}
+
+                    {(heroVideoType === "direct" || heroVideoType === "image") && (
+                      <div className="space-y-4 bg-white/5 border border-white/10 rounded-3xl p-5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                            {heroVideoType === "direct" ? "Fichier vidéo (MP4, WebM)" : "Fichier image (JPG, PNG, WEBP)"}
+                          </label>
+                          {heroVideoUrl && (
+                            <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30">
+                              {heroVideoType === "direct" ? "Vidéo directe" : "Image fixe"}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* File Upload Button */}
+                        <div>
+                          <input
+                            ref={heroFileInputRef}
+                            type="file"
+                            accept={
+                              heroVideoType === "direct"
+                                ? "video/mp4,video/webm,video/quicktime,video/ogg"
+                                : "image/jpeg,image/png,image/webp,image/avif,image/gif"
+                            }
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                await handleUploadHeroVideo(file);
+                                e.target.value = "";
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            disabled={isUploadingHeroVideo}
+                            onClick={() => heroFileInputRef.current?.click()}
+                            className="w-full py-4 px-4 border-2 border-dashed border-white/20 hover:border-neon-cyan/60 rounded-2xl bg-black/20 hover:bg-neon-cyan/5 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer disabled:opacity-50"
+                          >
+                            {isUploadingHeroVideo ? (
+                              <div className="flex flex-col items-center gap-2 py-2">
+                                <Loader2 className="w-7 h-7 text-neon-cyan animate-spin" />
+                                <span className="text-xs font-bold text-neon-cyan uppercase tracking-widest">
+                                  Téléversement en cours... {heroVideoUploadProgress}%
+                                </span>
+                                <div className="w-48 h-1.5 bg-white/10 rounded-full overflow-hidden mt-1">
+                                  <div
+                                    className="h-full bg-neon-cyan transition-all duration-200"
+                                    style={{ width: `${heroVideoUploadProgress}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="w-10 h-10 rounded-xl bg-neon-cyan/10 flex items-center justify-center border border-neon-cyan/30 text-neon-cyan group-hover:scale-110 transition-transform">
+                                  <Upload className="w-5 h-5" />
+                                </div>
+                                <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                  {heroVideoType === "direct"
+                                    ? "Téléverser une vidéo (MP4, WebM... jusqu'à 600 Mo)"
+                                    : "Téléverser une photo d'en-tête"}
+                                </span>
+                                <span className="text-[10px] text-gray-500">
+                                  Cliquez pour sélectionner un fichier sur votre appareil
+                                </span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="flex items-center gap-3 text-gray-600">
+                          <div className="flex-1 h-px bg-white/10" />
+                          <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">
+                            ou lien direct
+                          </span>
+                          <div className="flex-1 h-px bg-white/10" />
+                        </div>
+
+                        {/* URL input */}
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={heroVideoUrl}
+                            onChange={(e) => setHeroVideoUrl(e.target.value)}
+                            placeholder={
+                              heroVideoType === "direct"
+                                ? "https://.../video.mp4"
+                                : "https://.../banner.jpg"
+                            }
+                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-4 pr-10 py-3.5 text-white text-sm font-bold focus:border-neon-cyan transition-all"
+                          />
+                          {heroVideoUrl && (
+                            <button
+                              type="button"
+                              onClick={() => setHeroVideoUrl("")}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-400 transition-colors p-1"
+                              title="Effacer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Live Preview Box */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between px-1">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                          <Eye className="w-3.5 h-3.5 text-neon-cyan" />
+                          Aperçu en direct
+                        </label>
+                        <span className="text-[10px] text-gray-500 italic">
+                          Format adapté au haut de page
+                        </span>
+                      </div>
+
+                      <div className="relative aspect-video w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-black border border-white/10 shadow-2xl">
+                        {isLoadingHeroVideo ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+                            <Loader2 className="w-8 h-8 text-neon-red animate-spin" />
+                            <span className="text-xs text-gray-400 uppercase font-bold tracking-widest">
+                              Chargement de la configuration...
+                            </span>
+                          </div>
+                        ) : heroVideoType === "youtube" ? (
+                          extractYouTubeId(heroVideoId) ? (
+                            <iframe
+                              className="w-full h-full border-none"
+                              src={`https://www.youtube.com/embed/${extractYouTubeId(
+                                heroVideoId
+                              )}?autoplay=1&mute=1&controls=1&loop=1&playlist=${extractYouTubeId(
+                                heroVideoId
+                              )}&playsinline=1`}
+                              title="Aperçu YouTube"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-6 text-center">
+                              <Youtube className="w-10 h-10 text-gray-600" />
+                              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                Vidéo par défaut du site Dropsiders
+                              </span>
+                              <span className="text-[11px] text-gray-600">
+                                Saisissez un lien ou identifiant YouTube pour prévisualiser
+                              </span>
+                            </div>
+                          )
+                        ) : heroVideoType === "direct" && heroVideoUrl ? (
+                          <video
+                            key={heroVideoUrl}
+                            src={resolveImageUrl(heroVideoUrl)}
+                            controls
+                            muted
+                            autoPlay
+                            loop
+                            playsInline
+                            className="w-full h-full object-cover"
+                          />
+                        ) : heroVideoType === "image" && heroVideoUrl ? (
+                          <img
+                            key={heroVideoUrl}
+                            src={resolveImageUrl(heroVideoUrl)}
+                            alt="Aperçu Bannière"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-6 text-center">
+                            <ImageIcon className="w-10 h-10 text-gray-600" />
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                              Aucun fichier sélectionné
+                            </span>
+                            <span className="text-[11px] text-gray-600">
+                              Téléversez un fichier ou collez une URL directe
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Bottom neon glow indicator */}
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-75" />
+                      </div>
+                    </div>
+
+                    {/* Reset button */}
+                    <div className="flex justify-between items-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHeroVideoType("youtube");
+                          setHeroVideoId("xoB5fdoOMV8");
+                          setHeroVideoUrl("");
+                        }}
+                        className="text-[11px] font-bold text-gray-500 hover:text-white uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        Rétablir vidéo par défaut
+                      </button>
+
+                      <a
+                        href="/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] font-bold text-neon-cyan hover:underline uppercase tracking-wider flex items-center gap-1.5"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Ouvrir le site
+                      </a>
+                    </div>
+                  </div>
+
+                  {/* Save Button */}
+                  <div className="pt-6 mt-4 border-t border-white/10 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleSaveHeroVideo}
+                      disabled={isSavingHeroVideo || isUploadingHeroVideo}
+                      className="w-full py-4 bg-gradient-to-r from-neon-red via-red-600 to-neon-red bg-[length:200%_auto] hover:bg-right text-white font-black uppercase italic tracking-[0.2em] text-xs rounded-2xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-[0_0_30px_rgba(255,0,51,0.3)]"
+                    >
+                      {isSavingHeroVideo ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>ENREGISTREMENT EN COURS...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-5 h-5" />
+                          <span>ENREGISTRER LA VIDÉO D'ACCUEIL</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </motion.div>
               </div>
