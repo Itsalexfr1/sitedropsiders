@@ -102,50 +102,98 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         const isSwapped = overrideSwap !== undefined ? overrideSwap : swapLanguages;
         const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
         const parsed: InterviewQuestion[] = [];
-        
-        let current: { number: string; originalNum: string; line1: string; line2: string[] } | null = null;
 
-        for (const line of lines) {
-            const numMatch = line.match(/^(\d+)[^a-zA-Z0-9]*(.*)$/);
-            
-            if (numMatch) {
-                const rawNum = numMatch[1];
-                const normNum = parseInt(rawNum, 10).toString();
-                const content = numMatch[2].trim();
+        // Detect if text has numbered lines
+        const hasNumbers = lines.some(l => /^\d+[^a-zA-Z0-9]/.test(l));
 
-                if (current && current.number === normNum) {
-                    if (content) current.line2.push(content);
-                } else {
-                    if (current) {
-                        parsed.push({
-                            id: Math.random().toString(36).substring(2, 11),
-                            number: current.originalNum,
-                            fr: isSwapped ? (current.line2.join(' ') || current.line1) : current.line1,
-                            en: isSwapped ? current.line1 : current.line2.join(' ')
-                        });
+        if (hasNumbers) {
+            // Numbered mode: existing parser logic
+            let current: { number: string; originalNum: string; line1: string; line2: string[] } | null = null;
+
+            for (const line of lines) {
+                const numMatch = line.match(/^(\d+)[^a-zA-Z0-9]*(.*)$/);
+                
+                if (numMatch) {
+                    const rawNum = numMatch[1];
+                    const normNum = parseInt(rawNum, 10).toString();
+                    const content = numMatch[2].trim();
+
+                    if (current && current.number === normNum) {
+                        if (content) current.line2.push(content);
+                    } else {
+                        if (current) {
+                            parsed.push({
+                                id: Math.random().toString(36).substring(2, 11),
+                                number: current.originalNum,
+                                fr: isSwapped ? (current.line2.join(' ') || current.line1) : current.line1,
+                                en: isSwapped ? current.line1 : current.line2.join(' ')
+                            });
+                        }
+                        current = { number: normNum, originalNum: rawNum, line1: content, line2: [] };
                     }
-                    current = {
-                        number: normNum,
-                        originalNum: rawNum,
-                        line1: content,
-                        line2: []
-                    };
+                } else if (current) {
+                    current.line2.push(line);
                 }
-            } else if (current) {
-                current.line2.push(line);
+            }
+
+            if (current) {
+                parsed.push({
+                    id: Math.random().toString(36).substring(2, 11),
+                    number: current.originalNum,
+                    fr: isSwapped ? (current.line2.join(' ') || current.line1) : current.line1,
+                    en: isSwapped ? current.line1 : current.line2.join(' ')
+                });
+            }
+        } else {
+            // Unnumbered mode: treat consecutive line pairs as FR / EN
+            // Group non-empty lines into blocks separated by blank lines (already filtered above)
+            // We treat pairs of consecutive lines as (line1=primary, line2=secondary)
+            // Single lines become questions with only primary text
+            let i = 0;
+            let qNum = 1;
+            while (i < lines.length) {
+                const line1 = lines[i];
+                // Check if next line looks like a translation (different language)
+                const line2 = (i + 1 < lines.length) ? lines[i + 1] : '';
+                const nextIsNewQ = !line2 || /^\d+[^a-zA-Z0-9]/.test(line2);
+
+                parsed.push({
+                    id: Math.random().toString(36).substring(2, 11),
+                    number: String(qNum),
+                    fr: isSwapped ? line2 : line1,
+                    en: isSwapped ? line1 : line2
+                });
+                qNum++;
+                i += line2 && !nextIsNewQ ? 2 : 1;
             }
         }
 
-        if (current) {
-            parsed.push({
-                id: Math.random().toString(36).substring(2, 11),
-                number: current.originalNum,
-                fr: isSwapped ? (current.line2.join(' ') || current.line1) : current.line1,
-                en: isSwapped ? current.line1 : current.line2.join(' ')
-            });
-        }
-
         return parsed;
+    };
+
+    // Auto-number the current inputText (adds "1.\n2.\n..." to each question)
+    const autoNumberText = () => {
+        if (!inputText.trim()) return;
+        const lines = inputText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        const numbered: string[] = [];
+        let qNum = 1;
+        let i = 0;
+        while (i < lines.length) {
+            const line1 = lines[i];
+            // Remove existing number prefix if present
+            const cleanLine1 = line1.replace(/^\d+[^a-zA-Z0-9]*/, '').trim();
+            const line2 = (i + 1 < lines.length) ? lines[i + 1] : '';
+            const nextHasNum = line2 && /^\d+[^a-zA-Z0-9]/.test(line2);
+            const cleanLine2 = line2 && !nextHasNum ? line2.replace(/^\d+[^a-zA-Z0-9]*/, '').trim() : '';
+
+            numbered.push(`${qNum}. ${cleanLine1}`);
+            if (cleanLine2) numbered.push(cleanLine2);
+            qNum++;
+            i += cleanLine2 ? 2 : 1;
+        }
+        const newText = numbered.join('\n');
+        setInputText(newText);
+        showNotification(`${qNum - 1} questions numérotées automatiquement !`, 'success');
     };
 
     const parseQuestions = (overrideSwap?: boolean) => {
@@ -998,30 +1046,47 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                         </div>
 
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                     <FileText className="w-3.5 h-3.5 text-neon-red" /> Coller / Editer les questions ici
                                 </label>
-                                {hasSavedDraft && (
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[9px] font-bold text-emerald-400 flex items-center gap-1">
-                                            <Check className="w-3 h-3" /> Sauvegardé ({lastSavedTime})
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setConfirmResetModal(true)}
-                                            className="text-[8px] font-bold text-gray-500 hover:text-neon-red uppercase tracking-wider underline transition-colors"
-                                            title="Effacer le brouillon et recharger depuis la base"
-                                        >
-                                            Réinitialiser
-                                        </button>
-                                    </div>
-                                )}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {inputText.trim() && !inputText.split(/\r?\n/).some(l => /^\d+[^a-zA-Z0-9]/.test(l.trim())) && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[9px] font-bold text-amber-400 flex items-center gap-1">
+                                                ⚠ Texte sans numéros
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={autoNumberText}
+                                                className="text-[9px] font-black text-amber-400 hover:text-amber-300 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 px-2 py-1 rounded-lg uppercase tracking-wider transition-all"
+                                                title="Numéroter automatiquement les questions"
+                                            >
+                                                Numéroter
+                                            </button>
+                                        </div>
+                                    )}
+                                    {hasSavedDraft && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[9px] font-bold text-emerald-400 flex items-center gap-1">
+                                                <Check className="w-3 h-3" /> Sauvegardé ({lastSavedTime})
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setConfirmResetModal(true)}
+                                                className="text-[8px] font-bold text-gray-500 hover:text-neon-red uppercase tracking-wider underline transition-colors"
+                                                title="Effacer le brouillon et recharger depuis la base"
+                                            >
+                                                Réinitialiser
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <textarea
                                 value={inputText}
                                 onChange={(e) => setInputText(e.target.value)}
-                                placeholder="1. Présente-toi...\nIntroduce yourself...\n2. Si tu devais..."
+                                placeholder={"Format numéroté :\n1. Présente-toi...\nIntroduce yourself...\n2. Si tu devais...\nIf you had to...\n\nOu colle directement sans numéros → cliquer 'Numéroter'"}
                                 className="w-full h-96 bg-black/40 border border-white/10 rounded-[2rem] p-6 text-sm text-white focus:border-neon-red outline-none transition-all resize-none custom-scrollbar font-medium leading-relaxed"
                             />
                         </div>
