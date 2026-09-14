@@ -1041,5 +1041,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1111,
+    "title": "The Chainsmokers",
+    "date": "2026-11-06",
+    "startDate": "2026-11-06",
+    "endDate": "2026-11-06",
+    "venue": "Xs NightClub",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Opening",
+    "image": "/uploads/uploads/9a269ba31d7a4c61-c6d121c5_e423_49dd_a74e_6d052d.jpg",
+    "url": "https://www.tixr.com/groups/xs/events/wynn-las-vegas--the-chainsmokers-203531",
+    "genre": "Big Room",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
