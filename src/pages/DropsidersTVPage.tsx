@@ -1542,7 +1542,7 @@ export function DropsidersTVPage() {
                                 {/* Accent top bar */}
                                 <div
                                     className="absolute top-0 left-0 w-full h-0.5 rounded-t-[2rem]"
-                                    style={{ background: `linear-gradient(90deg, ${activeBlock.hex}, #8b5cf6, #06b6d4)` }}
+                                    style={{ background: `linear-gradient(90deg, ${activeScheduleBlock.color}, #8b5cf6, #06b6d4)` }}
                                 />
 
                                 {/* Header */}
@@ -1627,7 +1627,7 @@ export function DropsidersTVPage() {
                                             <div className="flex flex-col items-center w-10 shrink-0">
                                                 <span className="text-[9px] font-black text-white/30 font-mono">{toHHMM(startAt)}</span>
                                                 {i === 0 && (
-                                                    <ChevronRight className="w-3 h-3 mt-0.5" style={{ color: activeBlock.hex }} />
+                                                    <ChevronRight className="w-3 h-3 mt-0.5" style={{ color: activeScheduleBlock.color }} />
                                                 )}
                                             </div>
                                             <div className="w-12 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
