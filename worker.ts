@@ -6088,44 +6088,54 @@ ${urls.map(u => `  <url>
                                     </div>
                                     
                                     <!-- SIGNATURE BLOCK : ULTRA STYLE DROPSIDERS -->
-                                    <div style="margin-top:40px; background:#000000; border:1px solid #333333; border-top:4px solid #ff0033; border-radius:18px; overflow:hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
-                                        <div style="padding:25px 10px; text-align:center;">
-                                            <div style="color:#ffffff; font-size:15px; font-weight:900; font-family:'Arial Black', sans-serif; text-transform:uppercase; font-style:italic; margin-bottom:8px; letter-spacing:-0.5px;">
-                                                ${lang === 'EN' ? 'Best regards,' : 'Cordialement,'}<br>
-                                                ${lang === 'EN' ? 'The <span style="color:#ff0033;">Dropsiders</span> Team' : "L'équipe <span style=\"color:#ff0033;\">Dropsiders</span>"}
-                                            </div>
-                                            
-                                            <!-- CATEGORIES BAR -->
-                                            <div style="color:#ff0033; font-size:7.5px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:12px; line-height:1.4; white-space: nowrap;">
-                                                ${lang === 'EN' ? 'NEWS&nbsp;·&nbsp;RECAPS&nbsp;·&nbsp;INTERVIEWS&nbsp;·&nbsp;CONTESTS' : 'NEWS&nbsp;·&nbsp;RÉCAPS&nbsp;·&nbsp;INTERVIEWS&nbsp;·&nbsp;CONCOURS'}
-                                            </div>
-                                            
-                                            <!-- ACTIONS GRID -->
-                                            <table width="100%" cellpadding="0" cellspacing="4" border="0" style="table-layout: fixed;">
-                                                <tr>
-                                                    <td align="center">
-                                                        <a href="https://dropsiders.fr" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:8px 0; border-radius:8px; font-size:8.5px; font-weight:800; text-transform:uppercase; border-bottom:2px solid #ff0033; white-space: nowrap;">
-                                                            🌐 SITE
-                                                        </a>
-                                                    </td>
-                                                    <td align="center">
-                                                        <a href="https://dropsiders.fr/shop" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:8px 0; border-radius:8px; font-size:8.5px; font-weight:800; text-transform:uppercase; border-bottom:2px solid #00ffd5; white-space: nowrap;">
-                                                            🛍️ SHOP
-                                                        </a>
-                                                    </td>
-                                                    <td align="center">
-                                                        <a href="https://dropsiders.fr/newsletter" style="display:block; background:linear-gradient(90deg, #ff0033 0%, #ff0066 100%); color:#fff; text-decoration:none; padding:8px 0; border-radius:8px; font-size:8.5px; font-weight:900; text-transform:uppercase; box-shadow: 0 4px 10px rgba(255,0,51,0.2); white-space: nowrap;">
-                                                            📩 NEWSLETTER
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                        
-                                        <!-- FOOTER STRIP -->
-                                        <div style="background:#080808; padding:10px; text-align:center;">
-                                            <img src="https://dropsiders.fr/Logo.png" width="60" alt="Logo" style="opacity:0.4; filter:grayscale(1);">
-                                        </div>
+                                    <div style="margin-top:40px; padding-top:25px; border-top:1px solid #222222; text-align:left;">
+                                        <table cellpadding="0" cellspacing="0" border="0" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13px; line-height:1.35; color:#ffffff; max-width:540px;">
+                                            <tr>
+                                                <td valign="middle" align="center" style="padding-right:18px; width:85px;">
+                                                    <a href="https://dropsiders.fr" target="_blank" style="text-decoration:none;">
+                                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" width="80" style="display:block; width:80px; height:auto;" />
+                                                    </a>
+                                                </td>
+                                                <td width="3" style="width:3px; background-color:#ff0033; border-radius:2px;"></td>
+                                                <td valign="top" style="padding-left:18px;">
+                                                    <div style="font-size:16px; font-weight:900; color:#ffffff; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">
+                                                        ${body.signerName || 'ALEX'}
+                                                    </div>
+                                                    <div style="font-size:12px; font-weight:800; color:#ff0033; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+                                                        ${body.signerRole || 'FONDATEUR & RÉDACTEUR'}
+                                                    </div>
+                                                    <div style="margin-bottom:6px;">
+                                                        <span style="background-color:#050505; border:1px solid #222; color:#ffffff; font-size:9px; font-weight:800; padding:2px 7px; border-radius:4px; text-transform:uppercase; letter-spacing:0.5px;">
+                                                            🎙️ Médias & Presse Accréditée
+                                                        </span>
+                                                    </div>
+                                                    <table cellpadding="0" cellspacing="0" border="0" style="font-size:12px; color:#a1a1aa; margin-top:4px;">
+                                                        <tr>
+                                                            <td style="padding:1px 0;">
+                                                                <span style="color:#ff0033; font-weight:700;">Email:</span> 
+                                                                <a href="mailto:${senderEmail}" style="color:#ffffff; text-decoration:none; font-weight:600; margin-left:4px;">${senderEmail}</a>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="padding:1px 0;">
+                                                                <span style="color:#ff0033; font-weight:700;">Web:</span> 
+                                                                <a href="https://dropsiders.fr" target="_blank" style="color:#ff0033; text-decoration:none; font-weight:700; margin-left:4px;">dropsiders.fr</a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                    <div style="margin-top:8px; padding-top:6px; border-top:1px dashed #333333;">
+                                                        <a href="https://instagram.com/dropsiders.fr" target="_blank" style="color:#ff0033; font-weight:700; text-decoration:none; font-size:11px; margin-right:10px; display:inline-block;">Instagram &rarr;</a>
+                                                        <a href="https://www.tiktok.com/@dropsiders.fr" target="_blank" style="color:#ff0033; font-weight:700; text-decoration:none; font-size:11px; margin-right:10px; display:inline-block;">TikTok &rarr;</a>
+                                                        <a href="https://open.spotify.com/user/dropsiders" target="_blank" style="color:#ff0033; font-weight:700; text-decoration:none; font-size:11px; margin-right:10px; display:inline-block;">Spotify &rarr;</a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="3" style="border-top:1px solid #222222; padding-top:8px; margin-top:8px; font-size:9px; color:#71717a; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">
+                                                    DROPSIDERS • Le média 100% musiques électroniques, festivals & culture clubbing
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </div>
                                 </div>
                                 <div style="background:#000000; padding:18px; text-align:center; border-top:1px solid #222;">
@@ -9378,6 +9388,7 @@ const contentType = response.headers.get("content-type");
                 email: fromAddress,
                 subject: subject,
                 message: textContent,
+                html: parsed.html || null,
                 recipient: toAddress,
                 attachments: processedAttachments,
                 date: new Date().toISOString(),

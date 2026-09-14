@@ -56,6 +56,7 @@ interface ContactMessage {
     email: string;
     subject: string;
     message: string;
+    html?: string;
     date: string;
     read: boolean;
     replied: boolean;
@@ -376,6 +377,8 @@ export function AdminMessages() {
                     subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
                     message: replyBody,
                     lang: accreditationLang,
+                    signerName: signatureName || 'ALEX',
+                    signerRole: (signatureName && signatureName.toLowerCase() === 'alex') ? 'FONDATEUR & RÉDACTEUR' : 'RÉDACTEUR MÉDIA',
                     attachments: attachments.map(a => ({
                         name: a.name,
                         type: a.type,
@@ -1153,13 +1156,22 @@ Alex (Dropsiders)`;
 
                             {/* Message Body */}
                             <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                                <div 
-                                    className="leading-relaxed text-sm"
-                                    style={{ color: 'rgba(255,255,255,0.75)' }}
-                                    dangerouslySetInnerHTML={{ 
-                                        __html: linkify((selected || selectedArchived)?.message || selectedSent?.body || '') 
-                                    }}
-                                />
+                                {(selected || selectedArchived)?.html ? (
+                                    <div 
+                                        className="leading-relaxed text-sm text-gray-200 overflow-x-auto"
+                                        dangerouslySetInnerHTML={{ 
+                                            __html: (selected || selectedArchived)!.html! 
+                                        }}
+                                    />
+                                ) : (
+                                    <div 
+                                        className="leading-relaxed text-sm"
+                                        style={{ color: 'rgba(255,255,255,0.75)' }}
+                                        dangerouslySetInnerHTML={{ 
+                                            __html: linkify((selected || selectedArchived)?.message || selectedSent?.body || '') 
+                                        }}
+                                    />
+                                )}
                             </div>
 
                             {/* Attachments */}
@@ -1360,12 +1372,6 @@ Alex (Dropsiders)`;
                                                 </span>
                                             )}
                                         </div>
-                                        {!isNewMail && (
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-black uppercase text-gray-500 w-24">Répondre à :</span>
-                                                <span className="text-neon-cyan text-sm flex-1">{selected?.email}</span>
-                                            </div>
-                                        )}
                                     </div>
 
                                     {isNewMail && (
@@ -1589,12 +1595,44 @@ Alex (Dropsiders)`;
                                                             __html: linkify(replyBody || "[Votre message apparaîtra ici]") 
                                                         }}
                                                     />
-                                                    <div className="mt-8 bg-black border border-white/10 border-t-4 border-t-neon-red rounded-xl overflow-hidden p-4">
-                                                        <div className="text-white text-[10px] font-black italic uppercase text-center">
-                                                            {accreditationLang === 'EN' ? 'Best regards,' : 'Cordialement,'} <br />
-                                                            {signatureName && <span className="text-gray-400 block mb-1 text-[9px] normal-case">{signatureName}</span>}
-                                                            {accreditationLang === 'EN' ? 'The ' : 'L\'équipe '} <span className="text-neon-red">Dropsiders</span>{accreditationLang === 'EN' ? ' Team' : ''}
-                                                        </div>
+                                                    <div className="mt-8 bg-black/90 border border-white/10 rounded-xl p-4 text-left">
+                                                        <table cellPadding="0" cellSpacing="0" border={0} style={{ width: '100%' }}>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td style={{ verticalAlign: 'middle', textAlign: 'center', paddingRight: '12px', width: '65px' }}>
+                                                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" width="60" style={{ display: 'block', width: '60px', height: 'auto' }} />
+                                                                    </td>
+                                                                    <td style={{ width: '3px', backgroundColor: '#ff0033', borderRadius: '2px' }}></td>
+                                                                    <td style={{ verticalAlign: 'top', paddingLeft: '14px' }}>
+                                                                        <div className="text-[13px] font-black text-white uppercase tracking-tight">
+                                                                            {signatureName || 'ALEX'}
+                                                                        </div>
+                                                                        <div className="text-[10px] font-extrabold text-neon-red uppercase tracking-wider mb-1">
+                                                                            {(signatureName && signatureName.toLowerCase() === 'alex') ? 'FONDATEUR & RÉDACTEUR' : 'RÉDACTEUR MÉDIA'}
+                                                                        </div>
+                                                                        <div className="mb-1.5">
+                                                                            <span className="bg-black border border-white/10 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase">
+                                                                                🎙️ Médias & Presse Accréditée
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="text-[10px] text-gray-400 space-y-0.5 font-medium">
+                                                                            <div><span className="text-neon-red font-bold">Email:</span> {senderEmail}</div>
+                                                                            <div><span className="text-neon-red font-bold">Web:</span> <span className="text-neon-red font-bold">dropsiders.fr</span></div>
+                                                                        </div>
+                                                                        <div className="mt-2 pt-1.5 border-t border-dashed border-white/10 text-[9px] text-neon-red font-bold flex gap-2">
+                                                                            <span>Instagram →</span>
+                                                                            <span>TikTok →</span>
+                                                                            <span>Spotify →</span>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td colSpan={3} className="border-t border-white/10 pt-2 mt-2 text-[8px] text-gray-500 uppercase font-bold tracking-wider">
+                                                                        DROPSIDERS • Le média 100% musiques électroniques, festivals & culture clubbing
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
                                                     </div>
                                                 </div>
                                             </div>
