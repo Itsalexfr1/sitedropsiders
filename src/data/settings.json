@@ -71,5 +71,37 @@
   "google_search_key": "AIzaSyDKRlYeUvyf9NRF9-TFFtOob9fvJgO7TgE",
   "google_cx": "72ad7401b2b6f4195",
   "unsplash_access_key": "",
-  "pexels_api_key": ""
+  "pexels_api_key": "",
+  "tv_playlist": [
+    {
+      "id": "1",
+      "title": "Tomorrowland 2024 – Best of Mainstage Sets",
+      "description": "Les sets légendaires et les moments les plus intenses de Tomorrowland",
+      "youtubeId": "H5QLyGiDr_0"
+    },
+    {
+      "id": "2",
+      "title": "Martin Garrix Live @ Amsterdam Music Festival",
+      "description": "Set exclusif de Martin Garrix avec tous ses hymnes",
+      "youtubeId": "iyIBWoFr7DY"
+    },
+    {
+      "id": "3",
+      "title": "Ultra Music Festival Miami 2024 – Main Stage Highlights",
+      "description": "L'énergie brute d'Ultra Miami en haute définition",
+      "youtubeId": "tBQsniJdWi8"
+    },
+    {
+      "id": "4",
+      "title": "EDC Las Vegas 2024 – Kineticfield Stage Recap",
+      "description": "Le plus grand spectacle sous le ciel électrique de Las Vegas",
+      "youtubeId": "y4fR1VbCqhI"
+    },
+    {
+      "id": "5",
+      "title": "HARD Summer 2024 – Official Highlights",
+      "description": "Basses lourdes et ambiance estivale sur la scène de HARD Summer",
+      "youtubeId": "rFQJDcNzXw0"
+    }
+  ]
 }

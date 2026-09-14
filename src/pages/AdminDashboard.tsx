@@ -76,6 +76,7 @@ import {
   QrCode,
   Phone,
   PenTool,
+  Tv,
 } from "lucide-react";
 
 
@@ -97,6 +98,7 @@ import { PromptModal } from "../components/ui/PromptModal";
 import { AgendaModal } from "../components/AgendaModal";
 import { ImageUploadModal } from "../components/ImageUploadModal";
 import { ShopMenuModal } from "../components/admin/modals/ShopMenuModal";
+import { AdminTVModal } from "../components/admin/modals/AdminTVModal";
 import { ScanMenuModal } from "../components/admin/modals/ScanMenuModal";
 import { R2PhotosMenuModal } from "../components/admin/modals/R2PhotosMenuModal";
 import { R2Explorer } from "../components/admin/R2Explorer";
@@ -144,6 +146,7 @@ export function AdminDashboard() {
   const [isAgendaCreateModalOpen, setIsAgendaCreateModalOpen] = useState(false);
   const [isGalerieModalOpen, setIsGalerieModalOpen] = useState(false);
   const [isShopModalOpen, setIsShopModalOpen] = useState(false);
+  const [isTVModalOpen, setIsTVModalOpen] = useState(false);
   const [isMessagesModalOpen, setIsMessagesModalOpen] = useState(false);
   const [isFacebookModalOpen, setIsFacebookModalOpen] = useState(false);
   const [isCommunauteModalOpen, setIsCommunauteModalOpen] = useState(false);
@@ -1103,6 +1106,7 @@ export function AdminDashboard() {
     | "R2"
     | "SOCIAL_STUDIO"
     | "TOP_DROPSIDERS"
+    | "DROPSIDERS_TV"
     | "INTERVIEW"
   >("ALL");
   const [isWikiExpanded, setIsWikiExpanded] = useState(false);
@@ -1129,6 +1133,7 @@ export function AdminDashboard() {
     { id: "TOP_DROPSIDERS", label: "Top Dropsiders" },
     { id: "NEWS", label: "Actualités" },
     { id: "COMMUNAUTÉ", label: "Communauté" },
+    { id: "DROPSIDERS_TV", label: "DropsidersTV" },
     { id: "SOCIAL_STUDIO", label: "Social Studio" },
     { id: "WIKI", label: "DJs / Clubs / Festivals" },
     { id: "STUDIO", label: "Studio" },
@@ -2553,6 +2558,20 @@ export function AdminDashboard() {
       columns: 2,
     },
 
+    // DROPSIDERS TV
+    {
+      title: "DropsidersTV",
+      description: "Programmation des liens YouTube & Diffusion TV",
+      icon: "Tv",
+      category: "DROPSIDERS_TV",
+      link: "#DROPSIDERS_TV",
+      color: "border-neon-red/20 hover:border-neon-red",
+      bg: "bg-neon-red/5",
+      permission: "settings",
+      baseColor: "red",
+      columns: 1,
+    },
+
     // STUDIO & ANALYTICS
     {
       title: "Statistiques",
@@ -3064,6 +3083,13 @@ export function AdminDashboard() {
         action.title === "Boutique" ||
         action.icon === "ShoppingBag"
       );
+    if (dashboardTab === "DROPSIDERS_TV")
+      return (
+        action.category?.toUpperCase() === "DROPSIDERS_TV" ||
+        action.title === "DropsidersTV" ||
+        action.link === "#DROPSIDERS_TV" ||
+        action.icon === "Tv"
+      );
 
     if (dashboardTab === "COMMUNAUTÉ") {
       // Concours Insta + Quiz & MP3 + Wiki DJ/Festivals/Club + Modération photos + Comptes membres
@@ -3488,7 +3514,38 @@ export function AdminDashboard() {
         </div>
 
         <div className="space-y-16 relative">
-          {dashboardTab === "TEAM" ? (
+          {dashboardTab === "DROPSIDERS_TV" ? (
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <div className="w-24 h-24 bg-gradient-to-br from-neon-red/20 to-neon-purple/20 rounded-[2.5rem] flex items-center justify-center border border-neon-red/30 mb-8 animate-pulse shadow-[0_0_40px_rgba(255,18,65,0.2)]">
+                <Tv className="w-12 h-12 text-neon-red" />
+              </div>
+              <h2 className="text-4xl md:text-5xl font-display font-black text-white italic uppercase tracking-tighter mb-4">
+                Gestion <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan">DropsidersTV</span>
+              </h2>
+              <p className="text-gray-400 max-w-lg mx-auto mb-8 font-medium leading-relaxed text-sm">
+                Ajoutez vos liens YouTube pour alimenter la chaîne TV continue du site. Les vidéos s'enchaînent automatiquement sans barre de progression ni avance manuelle.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <button
+                  onClick={() => setIsTVModalOpen(true)}
+                  className="px-8 py-4 bg-gradient-to-r from-neon-red to-neon-purple text-white font-black uppercase italic tracking-[0.15em] text-xs rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_15px_35px_rgba(255,18,65,0.3)] flex items-center gap-3"
+                >
+                  <Tv className="w-5 h-5" />
+                  GÉRER LES LIENS & LA PROGRAMMATION
+                </button>
+                <a
+                  href="/tv"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-6 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white font-bold uppercase tracking-wider text-xs rounded-2xl transition-all flex items-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4 text-neon-cyan" />
+                  Ouvrir la TV en direct
+                </a>
+              </div>
+            </div>
+          ) : dashboardTab === "TEAM" ? (
             <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
               <div className="w-24 h-24 bg-gradient-to-br from-neon-purple/20 to-neon-red/20 rounded-[2.5rem] flex items-center justify-center border border-neon-purple/30 mb-8 animate-pulse shadow-[0_0_40px_rgba(191,0,255,0.2)]">
                 <ShieldCheck className="w-12 h-12 text-neon-purple" />
@@ -4567,6 +4624,14 @@ export function AdminDashboard() {
                             ) {
                               e.preventDefault();
                               setIsShopModalOpen(true);
+                            } else if (
+                              action.title === "DropsidersTV" ||
+                              action.title === "Dropsiders TV" ||
+                              action.link === "#DROPSIDERS_TV" ||
+                              action.icon === "Tv"
+                            ) {
+                              e.preventDefault();
+                              setIsTVModalOpen(true);
                             } else if (action.title === "Agenda") {
                               e.preventDefault();
                               setIsAgendaModalOpen(true);
@@ -6494,6 +6559,11 @@ export function AdminDashboard() {
           <ShopMenuModal
             isOpen={isShopModalOpen}
             onClose={() => setIsShopModalOpen(false)}
+          />
+          {/* Modal DropsidersTV */}
+          <AdminTVModal
+            isOpen={isTVModalOpen}
+            onClose={() => setIsTVModalOpen(false)}
           />
           {/* Modal Accueil */}
           <AnimatePresence>

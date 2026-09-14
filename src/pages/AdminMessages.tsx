@@ -242,11 +242,16 @@ export function AdminMessages() {
             if (res.ok) {
                 const data = await res.json();
                 setMessages(Array.isArray(data) ? data.reverse() : []);
+            } else {
+                const errText = await res.text().catch(() => '');
+                console.error(`[AdminMessages] fetchMessages failed: HTTP ${res.status}`, errText);
+                setIsLoading(false);
             }
         } catch (e: any) {
-            console.error(e);
+            console.error('[AdminMessages] fetchMessages error:', e);
         } finally {
             setLoading(false);
+            setIsLoading(false);
         }
     };
 

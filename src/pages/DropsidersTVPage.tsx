@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tv, Volume2, VolumeX, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Wifi, Plus, Trash2, RotateCcw, Settings, Radio } from 'lucide-react';
+import { Tv, Volume2, VolumeX, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Wifi, Radio } from 'lucide-react';
 import { TakeoverPage } from './TakeoverPage';
 import { apiFetch } from '../utils/auth';
 import { SEO } from '../components/utils/SEO';
@@ -54,14 +54,6 @@ const DEFAULT_TV_PLAYLIST: TVVideo[] = [
 
 const STORAGE_PLAYLIST_KEY = 'dropsiders_tv_playlist_v2';
 
-function extractYouTubeId(input: string): string | null {
-    if (!input) return null;
-    const trimmed = input.trim();
-    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
-    const match = trimmed.match(/(?:v=|\/embed\/|youtu\.be\/|\/v\/|watch\?v=|\&v=)([^#\&\?]{11})/);
-    return match ? match[1] : null;
-}
-
 export function DropsidersTVPage() {
     const [playlist, setPlaylist] = useState<TVVideo[]>(() => {
         try {
@@ -78,10 +70,6 @@ export function DropsidersTVPage() {
     const [isPlaying, setIsPlaying] = useState(true);
     const [isMuted, setIsMuted] = useState(false);
     const [showControls, setShowControls] = useState(true);
-    const [showConfigModal, setShowConfigModal] = useState(false);
-    const [newVideoUrl, setNewVideoUrl] = useState('');
-    const [newVideoTitle, setNewVideoTitle] = useState('');
-    const [newVideoDesc, setNewVideoDesc] = useState('');
 
     const [liveSettings, setLiveSettings] = useState<any>(null);
     const [loadingLive, setLoadingLive] = useState(true);
@@ -93,9 +81,9 @@ export function DropsidersTVPage() {
     const playerRef = useRef<any>(null);
     const ytReadyRef = useRef(false);
 
-    // Fetch site settings to detect live festival mode
+    // Fetch site settings to detect live festival mode and official TV playlist from backend
     useEffect(() => {
-        const checkLive = async () => {
+        const checkSettings = async () => {
             try {
                 const res = await apiFetch('/api/settings');
                 if (res.ok) {
@@ -103,26 +91,24 @@ export function DropsidersTVPage() {
                     if (d?.takeover) {
                         setLiveSettings(d.takeover);
                     }
+                    if (Array.isArray(d?.tv_playlist) && d.tv_playlist.length > 0) {
+                        setPlaylist(d.tv_playlist);
+                        try {
+                            localStorage.setItem(STORAGE_PLAYLIST_KEY, JSON.stringify(d.tv_playlist));
+                        } catch {}
+                    }
                 }
             } catch (err) {
-                console.error("Erreur vérification live festival:", err);
+                console.error("Erreur vérification live festival / TV settings:", err);
             } finally {
                 setLoadingLive(false);
             }
         };
 
-        checkLive();
-        const interval = setInterval(checkLive, 25000);
+        checkSettings();
+        const interval = setInterval(checkSettings, 25000);
         return () => clearInterval(interval);
     }, []);
-
-    // Save playlist changes
-    const updatePlaylist = (newPl: TVVideo[]) => {
-        setPlaylist(newPl);
-        try {
-            localStorage.setItem(STORAGE_PLAYLIST_KEY, JSON.stringify(newPl));
-        } catch {}
-    };
 
     const currentVideo = playlist[currentIndex] || playlist[0];
 
@@ -134,7 +120,7 @@ export function DropsidersTVPage() {
         setCurrentIndex((prev) => (prev - 1 + playlist.length) % (playlist.length || 1));
     }, [playlist.length]);
 
-    // YouTube Iframe API setup for automatic video chaining
+    // YouTube Iframe API setup for automatic video chaining without user seeking
     useEffect(() => {
         let isCancelled = false;
 
@@ -218,7 +204,7 @@ export function DropsidersTVPage() {
         return () => {
             isCancelled = true;
         };
-    }, [currentIndex, playlist, goNext]);
+    }, [currentIndex, playlist, goNext, isMuted]);
 
     // Controls visibility timer
     const resetTimer = useCallback(() => {
@@ -289,45 +275,6 @@ export function DropsidersTVPage() {
         };
     }, [toggleFullscreen]);
 
-    const handleAddVideo = (e: React.FormEvent) => {
-        e.preventDefault();
-        const ytid = extractYouTubeId(newVideoUrl);
-        if (!ytid) {
-            alert('Lien YouTube invalide. Exemple: https://www.youtube.com/watch?v=VIDEO_ID');
-            return;
-        }
-        const newVid: TVVideo = {
-            id: `tv_${Date.now()}`,
-            title: newVideoTitle.trim() || `Vidéo ${playlist.length + 1}`,
-            description: newVideoDesc.trim() || 'Ajouté à la programmation DropsidersTV',
-            youtubeId: ytid
-        };
-        const updated = [...playlist, newVid];
-        updatePlaylist(updated);
-        setNewVideoUrl('');
-        setNewVideoTitle('');
-        setNewVideoDesc('');
-    };
-
-    const handleDeleteVideo = (id: string) => {
-        if (playlist.length <= 1) {
-            alert('La chaîne doit contenir au moins une vidéo.');
-            return;
-        }
-        const updated = playlist.filter(v => v.id !== id);
-        updatePlaylist(updated);
-        if (currentIndex >= updated.length) {
-            setCurrentIndex(0);
-        }
-    };
-
-    const handleResetPlaylist = () => {
-        if (confirm('Réinitialiser la programmation par défaut ?')) {
-            updatePlaylist(DEFAULT_TV_PLAYLIST);
-            setCurrentIndex(0);
-        }
-    };
-
     // Check if festival live takeover is active
     const isLiveFestivalActive = (!loadingLive && liveSettings?.enabled && liveSettings?.status === 'live') || forceLivePreview;
 
@@ -345,7 +292,6 @@ export function DropsidersTVPage() {
     }
 
     // ─── FESTIVAL LIVE TAKEOVER OVERRIDE ───
-    // If a festival is active, the live site mode takes full control!
     if (isLiveFestivalActive) {
         return (
             <>
@@ -416,7 +362,7 @@ export function DropsidersTVPage() {
                                 </div>
                                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-neon-red bg-neon-red/10 border border-neon-red/20">
                                     <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
-                                    NON-STOP STREAM
+                                    DIFFUSION CONTINUE
                                 </div>
                             </div>
 
@@ -430,13 +376,6 @@ export function DropsidersTVPage() {
                                         Mode Live Festival
                                     </button>
                                 )}
-                                <button
-                                    onClick={() => setShowConfigModal(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
-                                >
-                                    <Settings className="w-3.5 h-3.5" />
-                                    <span className="hidden sm:inline">Playlist</span> ({playlist.length})
-                                </button>
                                 <a
                                     href="/"
                                     className="text-white/50 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors px-3 py-1.5 rounded-xl hover:bg-white/10"
@@ -477,7 +416,7 @@ export function DropsidersTVPage() {
                         </span>
                     </div>
 
-                    {/* Bottom Controls Bar */}
+                    {/* Bottom Controls Bar (sans sélection de vidéos, enchaînement automatique) */}
                     <AnimatePresence>
                         {showControls && (
                             <motion.div
@@ -497,7 +436,7 @@ export function DropsidersTVPage() {
                                             Vidéo {currentIndex + 1} sur {playlist.length}
                                         </span>
                                         <span className="text-white/40 text-[9px] uppercase font-bold tracking-wider">
-                                            Enchaînement automatique actif
+                                            Enchaînement automatique
                                         </span>
                                     </div>
                                     <h2 className="text-white font-display font-black text-lg md:text-2xl uppercase italic tracking-tight truncate drop-shadow-lg">
@@ -508,41 +447,6 @@ export function DropsidersTVPage() {
                                             {currentVideo.description}
                                         </p>
                                     )}
-                                </div>
-
-                                {/* Thumbnails Carousel */}
-                                <div className="flex items-center gap-2.5 mb-5 overflow-x-auto no-scrollbar pb-1">
-                                    {playlist.map((vid, idx) => {
-                                        const isSelected = idx === currentIndex;
-                                        return (
-                                            <button
-                                                key={vid.id}
-                                                onClick={() => setCurrentIndex(idx)}
-                                                className="flex-shrink-0 relative rounded-xl overflow-hidden transition-all text-left group"
-                                                style={{
-                                                    width: isSelected ? '120px' : '82px',
-                                                    height: '56px',
-                                                    border: isSelected ? '2px solid #ff1241' : '1px solid rgba(255,255,255,0.15)',
-                                                    opacity: isSelected ? 1 : 0.55,
-                                                    boxShadow: isSelected ? '0 0 15px rgba(255,18,65,0.5)' : 'none'
-                                                }}
-                                            >
-                                                <img
-                                                    src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`}
-                                                    alt={vid.title}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-1">
-                                                    <span className="text-[8px] font-black text-white truncate drop-shadow">
-                                                        #{idx + 1}
-                                                    </span>
-                                                </div>
-                                                {isSelected && (
-                                                    <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-neon-red animate-pulse" />
-                                                )}
-                                            </button>
-                                        );
-                                    })}
                                 </div>
 
                                 {/* Player Action Buttons */}
@@ -594,126 +498,6 @@ export function DropsidersTVPage() {
                         )}
                     </AnimatePresence>
                 </div>
-
-                {/* Playlist Manager Modal */}
-                <AnimatePresence>
-                    {showConfigModal && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="bg-neutral-900 border border-white/10 rounded-3xl p-6 md:p-8 max-w-xl w-full shadow-2xl max-h-[85vh] flex flex-col"
-                            >
-                                <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                                    <div>
-                                        <h3 className="text-xl font-display font-black text-white uppercase italic">
-                                            Programmation DropsidersTV
-                                        </h3>
-                                        <p className="text-white/40 text-xs mt-1">
-                                            Ajoutez vos liens YouTube pour personnaliser la diffusion enchaînée
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowConfigModal(false)}
-                                        className="text-white/40 hover:text-white px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold"
-                                    >
-                                        Fermer
-                                    </button>
-                                </div>
-
-                                {/* Add video form */}
-                                <form onSubmit={handleAddVideo} className="mt-5 p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-neon-red">
-                                        Ajouter une vidéo YouTube
-                                    </div>
-                                    <input
-                                        type="text"
-                                        placeholder="Lien YouTube (ex: https://youtu.be/... ou https://youtube.com/watch?v=...)"
-                                        value={newVideoUrl}
-                                        onChange={(e) => setNewVideoUrl(e.target.value)}
-                                        className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
-                                        required
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Titre de la vidéo (optionnel)"
-                                        value={newVideoTitle}
-                                        onChange={(e) => setNewVideoTitle(e.target.value)}
-                                        className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
-                                    />
-                                    <button
-                                        type="submit"
-                                        className="w-full py-2.5 rounded-xl bg-neon-red text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-neon-red/90 transition-all"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        Ajouter à la playlist
-                                    </button>
-                                </form>
-
-                                {/* List of current videos */}
-                                <div className="mt-5 flex-1 overflow-y-auto space-y-2 pr-1">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-2">
-                                        Vidéos actuelles ({playlist.length})
-                                    </div>
-                                    {playlist.map((v, i) => (
-                                        <div
-                                            key={v.id}
-                                            className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${
-                                                i === currentIndex ? 'bg-neon-red/10 border-neon-red/30' : 'bg-white/5 border-white/5'
-                                            }`}
-                                        >
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <img
-                                                    src={`https://img.youtube.com/vi/${v.youtubeId}/default.jpg`}
-                                                    alt={v.title}
-                                                    className="w-12 h-8 rounded object-cover flex-shrink-0"
-                                                />
-                                                <div className="min-w-0">
-                                                    <div className="text-xs font-bold text-white truncate">
-                                                        #{i + 1} {v.title}
-                                                    </div>
-                                                    <div className="text-[10px] text-white/40 truncate">
-                                                        ID: {v.youtubeId}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => {
-                                                        setCurrentIndex(i);
-                                                        setShowConfigModal(false);
-                                                    }}
-                                                    className="text-[10px] font-bold text-neon-red hover:underline px-2 py-1"
-                                                >
-                                                    Lire
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteVideo(v.id)}
-                                                    className="text-white/30 hover:text-red-400 p-1.5"
-                                                    title="Supprimer"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between">
-                                    <button
-                                        onClick={handleResetPlaylist}
-                                        className="text-[10px] font-bold text-white/40 hover:text-white flex items-center gap-1.5 transition-colors"
-                                    >
-                                        <RotateCcw className="w-3 h-3" />
-                                        Réinitialiser la playlist par défaut
-                                    </button>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
             </div>
         </>
     );

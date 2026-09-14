@@ -100,10 +100,10 @@ export function Navbar() {
         { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-yellow' },
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-orange' },
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-cyan' },
+        { name: 'DropsidersTV', path: '/tv', color: 'neon-red', icon: Tv },
         { name: 'TOP', path: '/top-dropsiders', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
         { name: navLabels.vols || t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-lime' },
-        { name: 'TV', path: '/tv', color: 'neon-cyan', icon: Tv },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: 'SHOP', path: '/shop', color: 'neon-blue' }] : []),
         ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{
             name: 'LIVE',
@@ -515,13 +515,14 @@ export function Navbar() {
                                             to={item.path}
                                             onClick={() => setIsOpen(false)}
                                             className={twMerge(
-                                                "block px-3 py-4 text-base font-medium border-l-2 transition-colors",
+                                                "block px-3 py-4 text-base font-medium border-l-2 transition-colors flex items-center gap-2.5",
                                                 isActive
                                                     ? "border-neon-red text-neon-red bg-neon-red/5"
                                                     : "border-transparent text-gray-400 hover:text-white hover:bg-white/5"
                                             )}
                                         >
-                                            {item.name}
+                                            {item.icon && <item.icon className="w-4 h-4 shrink-0" />}
+                                            <span>{item.name}</span>
                                         </Link>
                                     </motion.div>
                                 );
@@ -633,18 +634,23 @@ function NavItem({ item, isActive }: NavItemProps) {
                     item.isPremium ? "font-black" : ""
                 )}>
                     {item.icon ? (
-                        <div className={twMerge(
-                            "relative flex items-center justify-center",
-                            item.isIconOnly ? "w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-neon-red/10 hover:border-neon-red/20 transition-all" : ""
-                        )}>
-                            <item.icon className={twMerge(
-                                item.isIconOnly ? "w-5 h-5" : "w-5 h-5",
-                                "transition-transform duration-300",
-                                isHovered ? "scale-110" : "",
-                                item.isLive ? "text-neon-red drop-shadow-[0_0_8px_rgba(255,0,0,0.6)]" : ""
-                            )} />
-                            {item.isLive && (
-                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(255,0,0,0.8)]" />
+                        <div className="flex items-center gap-1.5">
+                            <div className={twMerge(
+                                "relative flex items-center justify-center",
+                                item.isIconOnly ? "w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-neon-red/10 hover:border-neon-red/20 transition-all" : ""
+                            )}>
+                                <item.icon className={twMerge(
+                                    item.isIconOnly ? "w-5 h-5" : "w-4 h-4",
+                                    "transition-transform duration-300",
+                                    isHovered ? "scale-110" : "",
+                                    item.isLive ? "text-neon-red drop-shadow-[0_0_8px_rgba(255,0,0,0.6)]" : ""
+                                )} />
+                                {item.isLive && (
+                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(255,0,0,0.8)]" />
+                                )}
+                            </div>
+                            {!item.isIconOnly && item.name && !item.isLive && (
+                                <span>{item.name}</span>
                             )}
                         </div>
                     ) : (

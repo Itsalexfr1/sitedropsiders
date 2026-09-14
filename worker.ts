@@ -5833,6 +5833,7 @@ ${urls.map(u => `  <url>
                 const newMsg = {
                     id: Date.now().toString(),
                     name, email, subject, message,
+                    recipient: 'contact@dropsiders.fr',
                     attachments: processedAttachments,
                     date: new Date().toISOString(),
                     read: false,
@@ -5955,7 +5956,7 @@ ${urls.map(u => `  <url>
                 const contacts = Array.isArray(file.content) ? file.content : [];
 
                 const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
-                const isAlex = isSuperEmail || requestUsername === 'alex';
+                const isAlex = isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all');
 
                 headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
                 headers.set('Pragma', 'no-cache');
@@ -5989,7 +5990,7 @@ ${urls.map(u => `  <url>
                 const contacts = Array.isArray(file.content) ? file.content : [];
 
                 const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
-                const isAlex = isSuperEmail || requestUsername === 'alex';
+                const isAlex = isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all');
 
                 const msg = contacts.find(c => c.id === id);
                 if (!msg) return new Response(JSON.stringify({ error: 'Message not found' }), { status: 404, headers });
@@ -6051,7 +6052,7 @@ ${urls.map(u => `  <url>
                 const contacts = Array.isArray(file.content) ? file.content : [];
 
                 const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
-                const isAlex = isSuperEmail || requestUsername === 'alex';
+                const isAlex = isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all');
 
                 if (!isAlex) {
                     const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
