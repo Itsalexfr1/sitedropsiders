@@ -279,5 +279,19 @@
       "soundcloud": "",
       "beatport": ""
     }
+  },
+  {
+    "name": "EXPERTS ONLY FESTIVAL",
+    "socials": {
+      "website": "https://www.expertsonlyfest.com",
+      "instagram": "https://www.instagram.com/expertsonlyfest",
+      "tiktok": "",
+      "youtube": "https://www.youtube.com/@expertsonly",
+      "facebook": "https://www.facebook.com/profile.php?id=61578098543856&sk=photos",
+      "x": "https://x.com/expertsonlyfest",
+      "spotify": "https://open.spotify.com/intl-fr/artist/6to8fyS3jmVU5UbHGEPZnv",
+      "soundcloud": "https://soundcloud.com/expertsonly",
+      "beatport": "https://www.beatport.com/fr/label/experts-only/103008?srsltid=AfmBOophaGOuabJppP7sf1GyvOunc5v2wgs03RwFwkMF4pF34IK27-33"
+    }
   }
 ]
