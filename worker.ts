@@ -5955,14 +5955,23 @@ ${urls.map(u => `  <url>
                 const file = await fetchGitHubFile('src/data/contacts.json', { ...gitConfig, bypassCache: true }) || { content: [] };
                 const contacts = Array.isArray(file.content) ? file.content : [];
 
-                const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
-                const isAlex = isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all');
+                const isMasterPass = requestPassword && requestPassword === adminPassword;
+                const isSuperEmail = requestUsername && (
+                    requestUsername.toLowerCase() === 'alexflex30@gmail.com' || 
+                    requestUsername.toLowerCase() === 'contact@dropsiders.fr' || 
+                    requestUsername.toLowerCase() === 'alex@dropsiders.fr' ||
+                    requestUsername.toLowerCase() === 'alex'
+                );
+                const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all') || userPermissions.includes('messages') || userPermissions.includes('messages_contact');
 
-                headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-                headers.set('Pragma', 'no-cache');
+                const responseHeaders = {
+                    ...headers,
+                    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+                    'Pragma': 'no-cache'
+                };
 
                 if (isAlex) {
-                    return new Response(JSON.stringify(contacts), { status: 200, headers });
+                    return new Response(JSON.stringify(contacts), { status: 200, headers: responseHeaders });
                 }
 
                 // Non-admin editors only see their recipient emails
@@ -5971,14 +5980,14 @@ ${urls.map(u => `  <url>
                 const editor = editors.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
 
                 if (!editor) {
-                    return new Response(JSON.stringify([]), { status: 200, headers });
+                    return new Response(JSON.stringify([]), { status: 200, headers: responseHeaders });
                 }
 
                 const proEmail = `${editor.username.toLowerCase()}@dropsiders.fr`;
                 const filtered = contacts.filter(c => c && c.recipient && c.recipient.toLowerCase() === proEmail);
-                return new Response(JSON.stringify(filtered), { status: 200, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+                return new Response(JSON.stringify(filtered), { status: 200, headers: responseHeaders });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
             }
         }
 
@@ -5989,8 +5998,14 @@ ${urls.map(u => `  <url>
                 const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
 
-                const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
-                const isAlex = isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all');
+                const isMasterPass = requestPassword && requestPassword === adminPassword;
+                const isSuperEmail = requestUsername && (
+                    requestUsername.toLowerCase() === 'alexflex30@gmail.com' || 
+                    requestUsername.toLowerCase() === 'contact@dropsiders.fr' || 
+                    requestUsername.toLowerCase() === 'alex@dropsiders.fr' ||
+                    requestUsername.toLowerCase() === 'alex'
+                );
+                const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all') || userPermissions.includes('messages') || userPermissions.includes('messages_contact');
 
                 const msg = contacts.find(c => c.id === id);
                 if (!msg) return new Response(JSON.stringify({ error: 'Message not found' }), { status: 404, headers });
@@ -6007,8 +6022,8 @@ ${urls.map(u => `  <url>
                 const updated = contacts.map(c => c.id === id ? { ...c, read: true } : c);
                 await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${id} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
             }
         }
 
@@ -6031,8 +6046,8 @@ ${urls.map(u => `  <url>
                 const updated = contacts.map(c => targetIds.includes(String(c.id)) ? { ...c, archived: isArchived } : c);
                 await saveGitHubFile(CONTACTS_PATH, updated, `${isArchived ? 'Archive' : 'Unarchive'} ${targetIds.length} contact(s) [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true, count: targetIds.length }), { status: 200, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
             }
         }
 
@@ -6051,8 +6066,14 @@ ${urls.map(u => `  <url>
                 const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
 
-                const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
-                const isAlex = isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all');
+                const isMasterPass = requestPassword && requestPassword === adminPassword;
+                const isSuperEmail = requestUsername && (
+                    requestUsername.toLowerCase() === 'alexflex30@gmail.com' || 
+                    requestUsername.toLowerCase() === 'contact@dropsiders.fr' || 
+                    requestUsername.toLowerCase() === 'alex@dropsiders.fr' ||
+                    requestUsername.toLowerCase() === 'alex'
+                );
+                const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all') || userPermissions.includes('messages') || userPermissions.includes('messages_contact');
 
                 if (!isAlex) {
                     const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
@@ -6068,8 +6089,8 @@ ${urls.map(u => `  <url>
                 const updated = contacts.filter(c => !targetIds.includes(String(c.id)));
                 await saveGitHubFile(CONTACTS_PATH, updated, `Delete ${targetIds.length} contact(s): ${targetIds.slice(0, 5).join(', ')} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true, count: targetIds.length }), { status: 200, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
             }
         }
 

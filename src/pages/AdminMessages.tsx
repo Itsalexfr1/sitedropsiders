@@ -235,7 +235,7 @@ export function AdminMessages() {
     const fetchMessages = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/contacts?t=${Date.now()}`, {
+            const res = await apiFetch(`/api/contacts?t=${Date.now()}`, {
                 headers: getAuthHeaders(),
                 cache: 'no-store'
             });
@@ -245,10 +245,12 @@ export function AdminMessages() {
             } else {
                 const errText = await res.text().catch(() => '');
                 console.error(`[AdminMessages] fetchMessages failed: HTTP ${res.status}`, errText);
+                showNotif('error', `Erreur ${res.status} lors de la récupération des messages`);
                 setIsLoading(false);
             }
         } catch (e: any) {
             console.error('[AdminMessages] fetchMessages error:', e);
+            showNotif('error', 'Erreur réseau lors de la récupération des messages');
         } finally {
             setLoading(false);
             setIsLoading(false);
