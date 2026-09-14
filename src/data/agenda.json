@@ -1022,5 +1022,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1110,
+    "title": "RÜFÜS DU SOL [DJ SET]",
+    "date": "2026-11-05",
+    "startDate": "2026-11-05",
+    "endDate": "2026-11-05",
+    "venue": "XS Nightclub",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Opening",
+    "image": "/uploads/uploads/cc3b47743e5e5337-0e5773f1_cd67_40ef_96a6_4c7dc5.jpg",
+    "url": "https://www.tixr.com/groups/xs/events/wynn-las-vegas--r-f-s-du-sol-dj-set--203530",
+    "genre": "House",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
