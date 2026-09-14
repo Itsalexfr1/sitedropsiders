@@ -383,6 +383,31 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         }
     };
 
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => setFestivalLogo(reader.result as string);
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleLanguageOrderChange = (newSwap: boolean) => {
+        setSwapLanguages(newSwap);
+        if (questions.length > 0) {
+            const newTextLines: string[] = [];
+            questions.forEach((q) => {
+                const primary = newSwap ? (q.en || q.fr) : q.fr;
+                const secondary = newSwap ? q.fr : q.en;
+                newTextLines.push(`${q.number}. ${primary}`);
+                if (secondary && secondary !== primary) {
+                    newTextLines.push(secondary);
+                }
+            });
+            setInputText(newTextLines.join('\n'));
+        }
+    };
+
 
     // Compute question chunks early so capture functions can use them
     const questionsPerPage = 8;
