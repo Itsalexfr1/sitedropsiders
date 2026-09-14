@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin, apiFetch, hasPermission } from '../utils/auth';
 
 const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
@@ -60,6 +60,7 @@ interface ContactMessage {
     date: string;
     read: boolean;
     replied: boolean;
+    archived?: boolean;
     recipient?: string;
     attachments?: { name: string; url?: string; size: number }[];
 }
@@ -155,12 +156,17 @@ export function AdminMessages() {
     const [sentMessages, setSentMessages] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string; attachments?: { name: string; url?: string; size: number }[] }[]>(() => {
         try { return JSON.parse(localStorage.getItem('dropsiders_sent_messages') || '[]'); } catch { return []; }
     });
-    const [archivedMessages, setArchivedMessages] = useState<ContactMessage[]>(() => {
-        try { return JSON.parse(localStorage.getItem('dropsiders_archived_messages') || '[]'); } catch { return []; }
-    });
+    
+    // Archived messages are derived from messages loaded from server
+    const archivedMessages = useMemo(() => {
+        return messages.filter(m => m.archived);
+    }, [messages]);
 
     const [selectedSent, setSelectedSent] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string; attachments?: { name: string; url?: string; size: number }[] } | null>(null);
     const [selectedArchived, setSelectedArchived] = useState<ContactMessage | null>(null);
+
+    // Mobile composer view tab ('editor' or 'preview')
+    const [mobileComposeTab, setMobileComposeTab] = useState<'editor' | 'preview'>('editor');
 
     // Bulk selection state
     const [bulkSelectMode, setBulkSelectMode] = useState(false);
@@ -229,7 +235,10 @@ export function AdminMessages() {
     const fetchMessages = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/contacts', { headers: getAuthHeaders() });
+            const res = await fetch(`/api/contacts?t=${Date.now()}`, {
+                headers: getAuthHeaders(),
+                cache: 'no-store'
+            });
             if (res.ok) {
                 const data = await res.json();
                 setMessages(Array.isArray(data) ? data.reverse() : []);
@@ -259,55 +268,77 @@ export function AdminMessages() {
     };
 
     const handleDelete = async (id: string) => {
-        if (mailboxTab === 'inbox') {
-            await fetch('/api/contacts/delete', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ id })
-            });
+        if (mailboxTab === 'inbox' || mailboxTab === 'archived') {
+            // Optimistic update
             setMessages(prev => prev.filter(m => m.id !== id));
             if (selected?.id === id) setSelected(null);
+            if (selectedArchived?.id === id) setSelectedArchived(null);
+            setDeleteConfirm(null);
+            showNotif('success', 'Message supprimé définitivement.');
+
+            try {
+                const res = await fetch('/api/contacts/delete', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ id })
+                });
+                if (!res.ok) {
+                    console.error('Failed to delete contact on server');
+                    fetchMessages();
+                }
+            } catch (err) {
+                console.error(err);
+                fetchMessages();
+            }
         } else if (mailboxTab === 'sent') {
             const next = sentMessages.filter(m => m.id !== id);
             setSentMessages(next);
             localStorage.setItem('dropsiders_sent_messages', JSON.stringify(next));
             if (selectedSent?.id === id) setSelectedSent(null);
-        } else if (mailboxTab === 'archived') {
-            const next = archivedMessages.filter(m => m.id !== id);
-            setArchivedMessages(next);
-            localStorage.setItem('dropsiders_archived_messages', JSON.stringify(next));
-            if (selectedArchived?.id === id) setSelectedArchived(null);
+            setDeleteConfirm(null);
+            showNotif('success', 'Message envoyé supprimé.');
         }
-
-        setDeleteConfirm(null);
-        showNotif('success', 'Message supprimé.');
     };
 
     const handleBulkDelete = async () => {
         const ids = Array.from(bulkSelected);
-        if (mailboxTab === 'inbox') {
-            await Promise.all(ids.map(id => fetch('/api/contacts/delete', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ id })
-            })));
-            setMessages(prev => prev.filter(m => !bulkSelected.has(m.id)));
-            if (selected && bulkSelected.has(selected.id)) setSelected(null);
+        if (ids.length === 0) return;
+
+        if (mailboxTab === 'inbox' || mailboxTab === 'archived') {
+            const idSet = new Set(ids);
+            setMessages(prev => prev.filter(m => !idSet.has(m.id)));
+            if (selected && idSet.has(selected.id)) setSelected(null);
+            if (selectedArchived && idSet.has(selectedArchived.id)) setSelectedArchived(null);
+            setBulkSelected(new Set());
+            setBulkSelectMode(false);
+            setBulkDeleteConfirm(false);
+            showNotif('success', `${ids.length} message${ids.length > 1 ? 's' : ''} supprimé${ids.length > 1 ? 's' : ''} définitivement.`);
+
+            try {
+                const res = await fetch('/api/contacts/delete', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ ids })
+                });
+                if (!res.ok) {
+                    console.error('Failed to bulk delete contacts on server');
+                    fetchMessages();
+                }
+            } catch (err) {
+                console.error(err);
+                fetchMessages();
+            }
         } else if (mailboxTab === 'sent') {
-            const next = sentMessages.filter(m => !bulkSelected.has(m.id));
+            const idSet = new Set(ids);
+            const next = sentMessages.filter(m => !idSet.has(m.id));
             setSentMessages(next);
             localStorage.setItem('dropsiders_sent_messages', JSON.stringify(next));
-            if (selectedSent && bulkSelected.has(selectedSent.id)) setSelectedSent(null);
-        } else if (mailboxTab === 'archived') {
-            const next = archivedMessages.filter(m => !bulkSelected.has(m.id));
-            setArchivedMessages(next);
-            localStorage.setItem('dropsiders_archived_messages', JSON.stringify(next));
-            if (selectedArchived && bulkSelected.has(selectedArchived.id)) setSelectedArchived(null);
+            if (selectedSent && idSet.has(selectedSent.id)) setSelectedSent(null);
+            setBulkSelected(new Set());
+            setBulkSelectMode(false);
+            setBulkDeleteConfirm(false);
+            showNotif('success', `${ids.length} message${ids.length > 1 ? 's' : ''} envoyé${ids.length > 1 ? 's' : ''} supprimé${ids.length > 1 ? 's' : ''}.`);
         }
-        setBulkSelected(new Set());
-        setBulkSelectMode(false);
-        setBulkDeleteConfirm(false);
-        showNotif('success', `${ids.length} message${ids.length > 1 ? 's' : ''} supprimé${ids.length > 1 ? 's' : ''}.`);
     };
 
     const toggleBulkSelect = (id: string) => {
@@ -330,30 +361,36 @@ export function AdminMessages() {
         }
     };
 
-    const handleArchive = (msg: ContactMessage) => {
-        // Remove from inbox
-        setMessages(prev => prev.filter(m => m.id !== msg.id));
-        // Add to archives
-        setArchivedMessages(prev => {
-            const next = [msg, ...prev];
-            localStorage.setItem('dropsiders_archived_messages', JSON.stringify(next));
-            return next;
-        });
+    const handleArchive = async (msg: ContactMessage) => {
+        // Optimistic update
+        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, archived: true } : m));
         setSelected(null);
         showNotif('success', 'Message archivé.');
+        try {
+            await fetch('/api/contacts/archive', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id: msg.id, archived: true })
+            });
+        } catch (e) {
+            console.error(e);
+        }
     };
 
-    const handleUnarchive = (msg: ContactMessage) => {
-        // Remove from archives
-        setArchivedMessages(prev => {
-            const next = prev.filter(m => m.id !== msg.id);
-            localStorage.setItem('dropsiders_archived_messages', JSON.stringify(next));
-            return next;
-        });
-        // Add back to inbox (at current position, or just at top)
-        setMessages(prev => [msg, ...prev]);
+    const handleUnarchive = async (msg: ContactMessage) => {
+        // Optimistic update
+        setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, archived: false } : m));
         setSelectedArchived(null);
         showNotif('success', 'Message restauré dans la boîte de réception.');
+        try {
+            await fetch('/api/contacts/archive', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id: msg.id, archived: false })
+            });
+        } catch (e) {
+            console.error(e);
+        }
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -744,14 +781,15 @@ Alex (Dropsiders)`;
     }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, interviewDate, interviewFestival, accreditationLang, isNewMail, signatureName]);
 
     const filteredMessages = useMemo(() => {
-        if (!isAlex) return messages;
-        if (selectedEditorFilter === 'all') return messages;
+        const inbox = messages.filter(m => !m.archived);
+        if (!isAlex) return inbox;
+        if (selectedEditorFilter === 'all') return inbox;
         if (selectedEditorFilter === 'general') {
-            return messages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
+            return inbox.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
         // Dynamic: match by username or email
         const filterLower = selectedEditorFilter.toLowerCase();
-        return messages.filter(m => {
+        return inbox.filter(m => {
             if (!m.recipient) return false;
             const recip = m.recipient.toLowerCase();
             return recip === `${filterLower}@dropsiders.fr` || recip === filterLower;
@@ -759,18 +797,19 @@ Alex (Dropsiders)`;
     }, [messages, isAlex, selectedEditorFilter]);
 
     const filteredArchivedMessages = useMemo(() => {
-        if (!isAlex) return archivedMessages;
-        if (selectedEditorFilter === 'all') return archivedMessages;
+        const archived = messages.filter(m => m.archived);
+        if (!isAlex) return archived;
+        if (selectedEditorFilter === 'all') return archived;
         if (selectedEditorFilter === 'general') {
-            return archivedMessages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
+            return archived.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
         const filterLower = selectedEditorFilter.toLowerCase();
-        return archivedMessages.filter(m => {
+        return archived.filter(m => {
             if (!m.recipient) return false;
             const recip = m.recipient.toLowerCase();
             return recip === `${filterLower}@dropsiders.fr` || recip === filterLower;
         });
-    }, [archivedMessages, isAlex, selectedEditorFilter]);
+    }, [messages, isAlex, selectedEditorFilter]);
 
     const unreadCount = filteredMessages.filter(m => !m.read).length;
 
@@ -785,9 +824,9 @@ Alex (Dropsiders)`;
     };
 
     return (
-        <div className="min-h-screen text-white overflow-x-hidden" style={{ background: 'linear-gradient(135deg, #0d0d0f 0%, #111318 50%, #0d0f14 100%)' }}>
+        <div className="flex flex-col text-white overflow-hidden" style={{ height: '100dvh', maxHeight: '100dvh', background: 'linear-gradient(135deg, #0d0d0f 0%, #111318 50%, #0d0f14 100%)' }}>
             {/* Header */}
-            <div className="sticky top-0 z-30 backdrop-blur-2xl" style={{ background: 'rgba(13,13,15,0.85)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="shrink-0 z-30 backdrop-blur-2xl" style={{ background: 'rgba(13,13,15,0.85)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <div className="max-w-full mx-auto px-3 sm:px-6 md:px-10 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                         <Link to="/admin" className="p-2 rounded-xl transition-all text-gray-400 hover:text-white hover:bg-white/8 group shrink-0" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
@@ -886,9 +925,9 @@ Alex (Dropsiders)`;
                 )}
             </AnimatePresence>
 
-            <div className={`max-w-full mx-auto flex h-[calc(100dvh-60px)] px-0 md:px-8`}>
+            <div className="max-w-full mx-auto flex flex-1 min-h-0 w-full overflow-hidden px-0 md:px-8">
                 {/* LEFT: Message List */}
-                <div className={`${(selected || selectedSent || selectedArchived) ? 'hidden md:flex' : 'flex'} w-full md:w-[500px] lg:w-[550px] xl:w-[600px] flex-shrink-0 flex-col`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className={`${(selected || selectedSent || selectedArchived) ? 'hidden md:flex' : 'flex'} w-full md:w-[500px] lg:w-[550px] xl:w-[600px] flex-shrink-0 flex-col h-full min-h-0`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
                     {/* Inbox / Sent tabs */}
                     <div className="flex shrink-0 px-2 pt-2 gap-1 overflow-x-auto no-scrollbar" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                         {[
@@ -921,10 +960,11 @@ Alex (Dropsiders)`;
                             ].map(filter => {
                                 const isActive = selectedEditorFilter === filter.id;
                                 const msgCount = filter.id === 'all'
-                                    ? messages.length
+                                    ? messages.filter(m => !m.archived).length
                                     : filter.id === 'general'
-                                        ? messages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general').length
+                                        ? messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length
                                         : messages.filter(m => {
+                                            if (m.archived) return false;
                                             const recip = (m.recipient || '').toLowerCase();
                                             return recip === `${filter.id}@dropsiders.fr` || recip === filter.id;
                                           }).length;
@@ -962,7 +1002,7 @@ Alex (Dropsiders)`;
                         </div>
                     )}
 
-                    <div className="flex-1 overflow-y-auto">
+                    <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
                         {loading ? (
                             <div className="flex items-center justify-center h-48">
                                 <div className="flex flex-col items-center gap-3">
@@ -1143,14 +1183,14 @@ Alex (Dropsiders)`;
                 </div>
 
                 {/* RIGHT: Message Detail */}
-                <div className={`${(selected || selectedSent || selectedArchived) ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto flex-col max-w-full`} style={{ background: 'rgba(255,255,255,0.015)' }}>
+                <div className={`${(selected || selectedSent || selectedArchived) ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto custom-scrollbar flex-col max-w-full min-h-0`} style={{ background: 'rgba(255,255,255,0.015)', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
                     {(selected || selectedSent || selectedArchived) ? (
                         <motion.div
                             key={selected?.id || selectedSent?.id || selectedArchived?.id}
                             initial={{ opacity: 0, x: 16 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="p-3.5 sm:p-6 md:p-8 max-w-full overflow-hidden"
+                            className="p-3.5 sm:p-6 md:p-8 max-w-full"
                         >
                             {/* Mobile Back Button */}
                             <button
@@ -1348,7 +1388,7 @@ Alex (Dropsiders)`;
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 50, opacity: 0 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-[#111] border-t sm:border border-white/10 rounded-t-[1.75rem] sm:rounded-[2rem] w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col h-[94dvh] sm:h-auto sm:max-h-[88vh]"
+                            className="bg-[#111] border-t sm:border border-white/10 rounded-t-[1.75rem] sm:rounded-[2rem] w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col h-[94dvh] sm:h-auto sm:max-h-[88dvh]"
                         >
                             {/* Sticky Header */}
                             <div className="p-3.5 sm:p-5 border-b border-white/10 flex items-center justify-between bg-[#111] shrink-0">
@@ -1680,9 +1720,27 @@ Alex (Dropsiders)`;
                                         </div>
                                     )}
 
+                                    {/* Mobile View Switcher between Editor and Email Preview */}
+                                    <div className="md:hidden flex items-center p-1 bg-black/60 border border-white/10 rounded-xl mb-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setMobileComposeTab('editor')}
+                                            className={`flex-1 py-2 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${mobileComposeTab === 'editor' ? 'bg-white/15 text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                                        >
+                                            <FileText className="w-3.5 h-3.5 text-neon-cyan" /> Rédiger
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setMobileComposeTab('preview')}
+                                            className={`flex-1 py-2 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${mobileComposeTab === 'preview' ? 'bg-neon-cyan/20 border border-neon-cyan/40 text-neon-cyan shadow-[0_0_12px_rgba(0,255,255,0.25)]' : 'text-gray-400 hover:text-white'}`}
+                                        >
+                                            <Eye className="w-3.5 h-3.5 text-neon-cyan" /> Aperçu du mail
+                                        </button>
+                                    </div>
+
                                     <div className="flex flex-col md:flex-row gap-4 md:gap-6">
                                         {/* Editor Side */}
-                                        <div className="flex-1 space-y-2">
+                                        <div className={`flex-1 space-y-2 ${mobileComposeTab === 'editor' ? 'block' : 'hidden md:block'}`}>
                                             <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-2">Message</div>
                                             <textarea
                                                 value={replyBody}
@@ -1698,19 +1756,24 @@ Alex (Dropsiders)`;
                                         </div>
 
                                         {/* Preview Side */}
-                                        <div className="flex-1 bg-black/60 border border-white/10 rounded-2xl p-6 hidden md:block">
-                                            <div className="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em] mb-4 text-center">Aperçu</div>
-                                            <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden shadow-2xl scale-[0.85] origin-top">
-                                                <div className="p-6">
+                                        <div className={`flex-1 bg-black/60 border border-white/10 rounded-2xl p-4 sm:p-6 overflow-hidden ${mobileComposeTab === 'preview' ? 'block' : 'hidden md:block'}`}>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] flex items-center gap-1.5">
+                                                    <Eye className="w-3.5 h-3.5 text-neon-cyan" /> Aperçu de l'email
+                                                </div>
+                                                <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">Format Réception</span>
+                                            </div>
+                                            <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden shadow-2xl scale-[0.92] sm:scale-[0.85] origin-top max-w-full">
+                                                <div className="p-4 sm:p-6">
                                                     <div 
-                                                        className="text-white/80 text-[11px] leading-relaxed min-h-[100px] whitespace-pre-wrap"
+                                                        className="text-white/80 text-[11px] leading-relaxed min-h-[100px] whitespace-pre-wrap break-words"
                                                         style={{ whiteSpace: 'pre-wrap' }}
                                                     >
                                                         {replyBody || '[Votre message apparaîtra ici]'}
                                                     </div>
                                                     {/* Signature preview - rendered exactly as the email will look */}
-                                                    <div className="mt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
-                                                        <table cellPadding="0" cellSpacing="0" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                                    <div className="mt-6 overflow-x-auto max-w-full custom-scrollbar" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
+                                                        <table cellPadding="0" cellSpacing="0" style={{ width: '100%', minWidth: '320px', borderCollapse: 'collapse' }}>
                                                             <tbody>
                                                                 <tr>
                                                                     <td style={{ verticalAlign: 'middle', textAlign: 'center', paddingRight: '12px', width: '65px' }}>

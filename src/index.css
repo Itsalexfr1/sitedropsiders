@@ -209,10 +209,63 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .custom-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #ff0033;
+}
+
+/* --- EMAIL HTML CONTENT --- */
+/* Styles for rendering HTML emails in dark mode */
+.email-html-content {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.email-html-content * {
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.email-html-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+.email-html-content table {
+  border-collapse: collapse;
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+}
+
+.email-html-content a {
+  color: #00f0ff;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.email-html-content p,
+.email-html-content div,
+.email-html-content span {
+  max-width: 100%;
+  overflow-wrap: break-word;
 }
 
 /* --- DYNAMIC HOUR THEMES --- */

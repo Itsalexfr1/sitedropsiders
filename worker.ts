@@ -233,12 +233,14 @@ async function fetchGitHubFile(filePath, config) {
     const { OWNER, REPO, TOKEN } = config;
     if (!TOKEN) return null;
     
-    // Check in-memory cache first
+    // Check in-memory cache first (contacts are dynamic, so bypass cache for them)
     const cacheKey = `${OWNER}/${REPO}/${filePath}`;
-    // If we want a 60s cache:
-    const cached = githubCache.get(cacheKey);
-    if (cached && (Date.now() - cached.time < 60000)) {
-        return cached.data;
+    const shouldBypass = config.bypassCache || filePath.includes('contacts');
+    if (!shouldBypass) {
+        const cached = githubCache.get(cacheKey);
+        if (cached && (Date.now() - cached.time < 60000)) {
+            return cached.data;
+        }
     }
 
     const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}?t=${Date.now()}`;
@@ -273,15 +275,17 @@ async function fetchGitHubFile(filePath, config) {
                 .replace(/Â /g, ' ').replace(/â€™/g, "'");
         }
         const result = { content: JSON.parse(content), sha: fileData.sha, rawData: fileData };
-        // Save to cache
-        githubCache.set(cacheKey, { time: Date.now(), data: result });
+        // Save to cache only if not bypassed
+        if (!shouldBypass) {
+            githubCache.set(cacheKey, { time: Date.now(), data: result });
+        }
         return result;
     } catch (e) {
         return { content: [], sha: fileData.sha, rawData: fileData };
     }
 }
 
-async function saveGitHubFile(filePath, content, message, sha, config) {
+async function saveGitHubFile(filePath, content, message, sha, config, retryCount = 0) {
     const { OWNER, REPO, TOKEN } = config;
     if (!TOKEN) return { ok: false, error: 'GITHUB_TOKEN is missing' };
     
@@ -305,6 +309,15 @@ async function saveGitHubFile(filePath, content, message, sha, config) {
     });
 
     if (!response.ok) {
+        // Automatic retry on 409 SHA conflict
+        if (response.status === 409 && retryCount < 3) {
+            console.warn(`[saveGitHubFile] Conflict 409 on ${filePath}, retrying attempt ${retryCount + 1}...`);
+            await new Promise(r => setTimeout(r, 400 * (retryCount + 1)));
+            const fresh = await fetchGitHubFile(filePath, { ...config, bypassCache: true });
+            if (fresh && fresh.sha) {
+                return saveGitHubFile(filePath, content, message, fresh.sha, config, retryCount + 1);
+            }
+        }
         const errText = await response.text();
         return { ok: false, status: response.status, error: errText };
     }
@@ -5938,11 +5951,14 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/contacts' && request.method === 'GET') {
             try {
-                const file = await fetchGitHubFile('src/data/contacts.json', gitConfig) || { content: [] };
+                const file = await fetchGitHubFile('src/data/contacts.json', { ...gitConfig, bypassCache: true }) || { content: [] };
                 const contacts = Array.isArray(file.content) ? file.content : [];
 
                 const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
                 const isAlex = isSuperEmail || requestUsername === 'alex';
+
+                headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+                headers.set('Pragma', 'no-cache');
 
                 if (isAlex) {
                     return new Response(JSON.stringify(contacts), { status: 200, headers });
@@ -5969,7 +5985,7 @@ ${urls.map(u => `  <url>
             try {
                 const { id } = await request.json();
                 const CONTACTS_PATH = 'src/data/contacts.json';
-                const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
+                const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
 
                 const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
@@ -5988,8 +6004,32 @@ ${urls.map(u => `  <url>
                 }
 
                 const updated = contacts.map(c => c.id === id ? { ...c, read: true } : c);
-                await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${id}`, file.sha, gitConfig);
+                await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${id} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/contacts/archive' && request.method === 'POST') {
+            try {
+                const body = await request.json().catch(() => ({}));
+                const targetIds: string[] = Array.isArray(body.ids)
+                    ? body.ids.map((x: any) => String(x))
+                    : (body.id ? [String(body.id)] : []);
+                const isArchived = body.archived !== false;
+
+                if (targetIds.length === 0) {
+                    return new Response(JSON.stringify({ error: 'Missing id or ids' }), { status: 400, headers });
+                }
+
+                const CONTACTS_PATH = 'src/data/contacts.json';
+                const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
+                const contacts = Array.isArray(file.content) ? file.content : [];
+
+                const updated = contacts.map(c => targetIds.includes(String(c.id)) ? { ...c, archived: isArchived } : c);
+                await saveGitHubFile(CONTACTS_PATH, updated, `${isArchived ? 'Archive' : 'Unarchive'} ${targetIds.length} contact(s) [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+                return new Response(JSON.stringify({ success: true, count: targetIds.length }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
@@ -5997,29 +6037,36 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/contacts/delete' && request.method === 'POST') {
             try {
-                const { id } = await request.json();
+                const body = await request.json().catch(() => ({}));
+                const targetIds: string[] = Array.isArray(body.ids)
+                    ? body.ids.map((x: any) => String(x))
+                    : (body.id ? [String(body.id)] : []);
+
+                if (targetIds.length === 0) {
+                    return new Response(JSON.stringify({ error: 'Missing id or ids' }), { status: 400, headers });
+                }
+
                 const CONTACTS_PATH = 'src/data/contacts.json';
-                const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
+                const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
 
                 const isSuperEmail = requestUsername && (requestUsername.toLowerCase() === 'alexflex30@gmail.com' || requestUsername.toLowerCase() === 'contact@dropsiders.fr' || requestUsername.toLowerCase() === 'alex@dropsiders.fr');
                 const isAlex = isSuperEmail || requestUsername === 'alex';
 
-                const msg = contacts.find(c => c.id === id);
-                if (!msg) return new Response(JSON.stringify({ error: 'Message not found' }), { status: 404, headers });
-
                 if (!isAlex) {
                     const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
                     const editors = editorsFile?.content || [];
                     const editor = editors.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
-                    if (!editor || !msg.recipient || msg.recipient.toLowerCase() !== `${editor.username.toLowerCase()}@dropsiders.fr`) {
+                    const userEmail = editor ? `${editor.username.toLowerCase()}@dropsiders.fr` : null;
+                    const forbidden = contacts.find(c => targetIds.includes(String(c.id)) && (!c.recipient || c.recipient.toLowerCase() !== userEmail));
+                    if (forbidden) {
                         return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
                     }
                 }
 
-                const updated = contacts.filter(c => c.id !== id);
-                await saveGitHubFile(CONTACTS_PATH, updated, `Delete contact: ${id}`, file.sha, gitConfig);
-                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                const updated = contacts.filter(c => !targetIds.includes(String(c.id)));
+                await saveGitHubFile(CONTACTS_PATH, updated, `Delete ${targetIds.length} contact(s): ${targetIds.slice(0, 5).join(', ')} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+                return new Response(JSON.stringify({ success: true, count: targetIds.length }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
