@@ -471,7 +471,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
 
     // Compute question chunks early so capture functions can use them
-    const questionsPerPage = 8;
+    const questionsPerPage = 8; // used only for HTML preview (approximate)
     const chunkQuestions = (arr: InterviewQuestion[], size: number) => {
         const chunks = [];
         for (let i = 0; i < arr.length; i += size) {
@@ -480,6 +480,55 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         return chunks;
     };
     const questionChunks = chunkQuestions(questions, questionsPerPage);
+
+    // Dynamic canvas chunking: measures real text heights so pages never overflow
+    const buildCanvasChunks = (qs: InterviewQuestion[]): InterviewQuestion[][] => {
+        if (qs.length === 0) return [];
+        const W = 420, H = 595;
+        const PAD_L = 28, TEXT_X = 52, TEXT_W = W - TEXT_X - 26;
+        const LINE_FR = 11.5, LINE_EN = 11;
+        const FOOTER_RESERVE = 44; // space for footer
+        const HEADER_H = 80;      // header height
+        const MAX_Y = H - FOOTER_RESERVE;
+
+        // Measure text wrap on a temp canvas (no SCALE needed for measurement)
+        const tmp = document.createElement('canvas');
+        tmp.width = W; tmp.height = H;
+        const ctx = tmp.getContext('2d')!;
+
+        const measureQ = (q: InterviewQuestion): number => {
+            const t1 = swapLanguages ? (q.en || '').toUpperCase() : (q.fr || '').toUpperCase();
+            const t2 = swapLanguages ? q.fr : q.en;
+            let h = 0;
+            if (t1) {
+                ctx.font = '800 9.5px Montserrat, sans-serif';
+                h += wrapText(ctx, t1, TEXT_W).length * LINE_FR;
+            }
+            if (t2) {
+                ctx.font = '600 9px Montserrat, sans-serif';
+                h += wrapText(ctx, t2, TEXT_W).length * LINE_EN;
+            }
+            h += 4 + 7; // separator spacing
+            return h;
+        };
+
+        const pages: InterviewQuestion[][] = [];
+        let page: InterviewQuestion[] = [];
+        let qY = HEADER_H;
+
+        for (const q of qs) {
+            const qH = measureQ(q);
+            if (qY + qH > MAX_Y && page.length > 0) {
+                pages.push(page);
+                page = [];
+                qY = HEADER_H;
+            }
+            page.push(q);
+            qY += qH;
+        }
+        if (page.length > 0) pages.push(page);
+        return pages;
+    };
 
     // ------------------------------------------------------------
     // PURE CANVAS RENDER ENGINE
@@ -733,9 +782,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         setIsGenerating(true);
         setExportType('zip');
         try {
+            const canvasChunks = buildCanvasChunks(questions);
             const allCards = [
                 { type: 'cover' as const },
-                ...questionChunks.map((chunk, i) => ({ type: 'questions' as const, chunk, chunkIdx: i }))
+                ...canvasChunks.map((chunk, i) => ({ type: 'questions' as const, chunk, chunkIdx: i }))
             ];
             setGenProgress({ current: 0, total: allCards.length });
             const zip = new JSZip();
@@ -758,9 +808,10 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
         setIsGenerating(true);
         setExportType('pdf');
         try {
+            const canvasChunks = buildCanvasChunks(questions);
             const allCards = [
                 { type: 'cover' as const },
-                ...questionChunks.map((chunk, i) => ({ type: 'questions' as const, chunk, chunkIdx: i }))
+                ...canvasChunks.map((chunk, i) => ({ type: 'questions' as const, chunk, chunkIdx: i }))
             ];
             setGenProgress({ current: 0, total: allCards.length });
             const pdf = new jsPDF('p', 'mm', 'a5');
