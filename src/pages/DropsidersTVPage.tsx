@@ -618,6 +618,10 @@ export function DropsidersTVPage() {
         ? currentPromo.title
         : currentMainVideo?.title;
 
+    // Next main video (skipping promos entirely) — used for the "À suivre" banner
+    const nextMainIndex = (currentIndex + 1) % (playlist.length || 1);
+    const nextMainVideo = playlist[nextMainIndex] || null;
+
     // Next main video (skipping any active promo)
     const goNextMain = useCallback(() => {
         pendingSeekRef.current = 0; // Natural transition starts from beginning
@@ -1152,6 +1156,31 @@ export function DropsidersTVPage() {
                                     <h2 className="text-white font-display font-black text-base md:text-xl uppercase italic tracking-tight truncate drop-shadow-lg">
                                         {currentDisplayTitle}
                                     </h2>
+
+                                    {/* À suivre — next main set preview (promos skipped) */}
+                                    {nextMainVideo && !isAdminTVModalOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -8 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ duration: 0.4, delay: 0.15 }}
+                                            className="mt-2 flex items-center gap-2.5 group"
+                                        >
+                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/35 shrink-0">À suivre</span>
+                                            <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden max-w-[260px] md:max-w-[400px]">
+                                                <div className="w-9 h-6 rounded-md overflow-hidden shrink-0 border border-white/10">
+                                                    <img
+                                                        src={`https://img.youtube.com/vi/${nextMainVideo.youtubeId}/mqdefault.jpg`}
+                                                        alt={nextMainVideo.title}
+                                                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                                                    />
+                                                </div>
+                                                <span className="text-white/60 text-[10px] font-bold uppercase tracking-wide truncate">
+                                                    {nextMainVideo.title}
+                                                </span>
+                                            </div>
+                                        </motion.div>
+                                    )}
                                 </div>
 
                                 {/* Controls Row */}
