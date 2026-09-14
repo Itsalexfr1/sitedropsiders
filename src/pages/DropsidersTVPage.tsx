@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home } from 'lucide-react';
+import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home, Clock, CalendarDays, ChevronRight } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 import { apiFetch } from '../utils/auth';
 import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
@@ -61,6 +61,45 @@ export interface TVVideo {
     description: string;
     youtubeId: string;
     duration?: number;
+}
+
+// ── EPG / Time Blocks ──────────────────────────────────────────────────────
+interface TVBlock {
+    id: string;
+    label: string;
+    emoji: string;
+    hex: string;
+    startHour: number;
+    endHour: number; // exclusive, 24 = midnight
+}
+
+const TV_BLOCKS: TVBlock[] = [
+    { id: 'night',      label: 'NIGHT SESSIONS',     emoji: '🌙', hex: '#7c3aed', startHour: 0,  endHour: 6  },
+    { id: 'morning',    label: 'MORNING VIBES',       emoji: '🌅', hex: '#f59e0b', startHour: 6,  endHour: 10 },
+    { id: 'interviews', label: 'INTERVIEW BLOCK',     emoji: '🎤', hex: '#06b6d4', startHour: 10, endHour: 14 },
+    { id: 'festivals',  label: 'FESTIVAL HIGHLIGHTS', emoji: '🎪', hex: '#10b981', startHour: 14, endHour: 18 },
+    { id: 'primetime',  label: 'PRIME TIME',          emoji: '⭐', hex: '#ff1241', startHour: 18, endHour: 22 },
+    { id: 'techno',     label: 'LATE NIGHT TECHNO',   emoji: '🔊', hex: '#8b5cf6', startHour: 22, endHour: 24 },
+];
+
+function getActiveBlock(): TVBlock {
+    const h = new Date().getHours();
+    return TV_BLOCKS.find(b => h >= b.startHour && h < b.endHour) ?? TV_BLOCKS[4];
+}
+
+function formatMins(secs: number): string {
+    const m = Math.round(secs / 60);
+    if (m <= 0) return 'maintenant';
+    if (m >= 60) {
+        const h = Math.floor(m / 60);
+        const rem = m % 60;
+        return rem > 0 ? `${h}h${String(rem).padStart(2, '0')}` : `${h}h`;
+    }
+    return `${m}min`;
+}
+
+function toHHMM(date: Date): string {
+    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 const TV_GLOBAL_ANCHOR = 1789420139214;
@@ -493,6 +532,34 @@ export function DropsidersTVPage() {
     const playerRef = useRef<any>(null);
     const ytReadyRef = useRef(false);
 
+    // ── EPG / Time Block State ─────────────────────────────────────────────
+    const [activeBlock, setActiveBlock] = useState<TVBlock>(getActiveBlock);
+    const [showEPG, setShowEPG] = useState(false);
+    const [epgTimeRemaining, setEpgTimeRemaining] = useState<number | null>(null);
+
+    // Update time block label every minute
+    useEffect(() => {
+        const tick = () => setActiveBlock(getActiveBlock());
+        const id = setInterval(tick, 60_000);
+        return () => clearInterval(id);
+    }, []);
+
+    // Poll YT player every 5s to get seconds remaining in current video
+    useEffect(() => {
+        const poll = () => {
+            try {
+                if (playerRef.current && typeof playerRef.current.getDuration === 'function') {
+                    const dur = playerRef.current.getDuration();
+                    const cur = playerRef.current.getCurrentTime();
+                    if (dur > 0 && cur >= 0) setEpgTimeRemaining(Math.max(0, Math.floor(dur - cur)));
+                }
+            } catch {}
+        };
+        poll();
+        const id = setInterval(poll, 5_000);
+        return () => clearInterval(id);
+    }, [currentIndex, isPlayingPromo]);
+
     // Save newly discovered video duration for precise TV clock calculation
     const recordDuration = useCallback((videoId: string, durSec: number) => {
         if (!videoId || durSec <= 5) return;
@@ -621,6 +688,22 @@ export function DropsidersTVPage() {
     // Next main video (skipping promos entirely) — used for the "À suivre" banner
     const nextMainIndex = (currentIndex + 1) % (playlist.length || 1);
     const nextMainVideo = playlist[nextMainIndex] || null;
+
+    // EPG: list of upcoming main sets with projected start times (promos skipped)
+    const upcomingMainSets = useMemo(() => {
+        if (playlist.length === 0 || epgTimeRemaining === null) return [];
+        const result: { video: TVVideo; startAt: Date }[] = [];
+        let offset = epgTimeRemaining; // seconds until current video ends
+        const now = new Date();
+        for (let i = 0; i < Math.min(8, playlist.length); i++) {
+            const idx = (nextMainIndex + i) % playlist.length;
+            const video = playlist[idx];
+            const startAt = new Date(now.getTime() + offset * 1000);
+            result.push({ video, startAt });
+            offset += video.duration ?? 3600;
+        }
+        return result;
+    }, [playlist, nextMainIndex, epgTimeRemaining]);
 
     // Next main video (skipping any active promo)
     const goNextMain = useCallback(() => {
@@ -986,6 +1069,9 @@ export function DropsidersTVPage() {
             } else if (e.code === 'KeyF') {
                 e.preventDefault();
                 toggleFullscreen();
+            } else if (e.code === 'KeyG') {
+                e.preventDefault();
+                setShowEPG(prev => !prev);
             }
         };
         window.addEventListener('keydown', handleKeyDown);
@@ -1055,6 +1141,25 @@ export function DropsidersTVPage() {
                                     </div>
                                 )}
 
+                                {/* Time Block Badge */}
+                                {!isPlayingPromo && (
+                                    <div
+                                        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border backdrop-blur-md transition-all"
+                                        style={{ color: activeBlock.hex, borderColor: `${activeBlock.hex}50`, background: `${activeBlock.hex}18` }}
+                                    >
+                                        <span>{activeBlock.emoji}</span>
+                                        <span>{activeBlock.label}</span>
+                                    </div>
+                                )}
+
+                                {/* EPG Ticker: Dans Xmin → Prochain set */}
+                                {!isPlayingPromo && epgTimeRemaining !== null && nextMainVideo && (
+                                    <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-[9px] font-bold uppercase tracking-wide text-white/45 max-w-xs overflow-hidden">
+                                        <Clock className="w-2.5 h-2.5 shrink-0" style={{ color: activeBlock.hex }} />
+                                        <span className="truncate">Dans {formatMins(epgTimeRemaining)} → {nextMainVideo.title}</span>
+                                    </div>
+                                )}
+
                                 {/* Programmation Button: only displayed for admins, hidden for regular visitors */}
                                 {isAdmin && (
                                     <button
@@ -1069,6 +1174,17 @@ export function DropsidersTVPage() {
                             </div>
 
                             <div className="flex items-center gap-3">
+                                {/* EPG Guide Button */}
+                                <button
+                                    onClick={() => setShowEPG(prev => !prev)}
+                                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto"
+                                    title="Guide des programmes (G)"
+                                    style={{ borderColor: showEPG ? `${activeBlock.hex}80` : undefined, background: showEPG ? `${activeBlock.hex}25` : undefined }}
+                                >
+                                    <CalendarDays className="w-3.5 h-3.5" style={{ color: activeBlock.hex }} />
+                                    <span className="hidden sm:inline">Guide</span>
+                                </button>
+
                                 {/* Admin TV Settings Button */}
                                 {isAdmin && (
                                     <button
@@ -1356,6 +1472,135 @@ export function DropsidersTVPage() {
                                             </div>
                                         );
                                     })}
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+                {/* EPG Guide Modal */}
+                <AnimatePresence>
+                    {showEPG && (
+                        <div
+                            className="fixed inset-0 z-[160] flex items-end sm:items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xl"
+                            onClick={() => setShowEPG(false)}
+                        >
+                            <motion.div
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 30 }}
+                                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+                                onClick={e => e.stopPropagation()}
+                                className="bg-[#0a0a0a]/98 border border-white/10 rounded-[2rem] p-5 sm:p-7 max-w-lg w-full max-h-[82vh] shadow-2xl relative overflow-hidden flex flex-col"
+                            >
+                                {/* Accent top bar */}
+                                <div
+                                    className="absolute top-0 left-0 w-full h-0.5 rounded-t-[2rem]"
+                                    style={{ background: `linear-gradient(90deg, ${activeBlock.hex}, #8b5cf6, #06b6d4)` }}
+                                />
+
+                                {/* Header */}
+                                <div className="flex items-center justify-between mb-5 shrink-0">
+                                    <div>
+                                        <h3 className="text-white font-display font-black text-lg uppercase italic tracking-tight">Guide des Programmes</h3>
+                                        <p className="text-white/35 text-[10px] uppercase tracking-widest mt-0.5">
+                                            DropsidersTV · {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowEPG(false)}
+                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                {/* Blocks timeline strip */}
+                                <div className="flex gap-2 mb-5 overflow-x-auto pb-1 shrink-0">
+                                    {TV_BLOCKS.map(block => {
+                                        const isActive = block.id === activeBlock.id;
+                                        return (
+                                            <div
+                                                key={block.id}
+                                                className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl border shrink-0 transition-all"
+                                                style={{
+                                                    background: isActive ? `${block.hex}20` : 'rgba(255,255,255,0.04)',
+                                                    borderColor: isActive ? `${block.hex}60` : 'rgba(255,255,255,0.08)',
+                                                }}
+                                            >
+                                                <span className="text-base">{block.emoji}</span>
+                                                <span
+                                                    className="text-[7px] font-black uppercase tracking-widest whitespace-nowrap"
+                                                    style={{ color: isActive ? block.hex : 'rgba(255,255,255,0.30)' }}
+                                                >
+                                                    {String(block.startHour).padStart(2, '0')}h–{block.endHour === 24 ? '00' : String(block.endHour).padStart(2, '0')}h
+                                                </span>
+                                                {isActive && (
+                                                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: block.hex }} />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Current block banner */}
+                                <div
+                                    className="mb-4 px-4 py-3 rounded-2xl border shrink-0"
+                                    style={{ background: `${activeBlock.hex}12`, borderColor: `${activeBlock.hex}40` }}
+                                >
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-xs">{activeBlock.emoji}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: activeBlock.hex }}>
+                                            {activeBlock.label}
+                                        </span>
+                                        <span className="ml-auto flex items-center gap-1.5">
+                                            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: activeBlock.hex }} />
+                                            <span className="text-[8px] font-bold text-white/35 uppercase">En cours</span>
+                                        </span>
+                                    </div>
+                                    <p className="text-white font-bold text-sm truncate">{isPlayingPromo ? 'Clip promo' : currentDisplayTitle}</p>
+                                    {epgTimeRemaining !== null && !isPlayingPromo && (
+                                        <p className="text-white/35 text-[10px] mt-0.5">Se termine dans {formatMins(epgTimeRemaining)}</p>
+                                    )}
+                                </div>
+
+                                {/* Upcoming sets list */}
+                                <div className="overflow-y-auto flex-1 space-y-1.5 pr-0.5">
+                                    <p className="text-white/25 text-[9px] font-black uppercase tracking-widest mb-3">À venir</p>
+                                    {upcomingMainSets.length === 0 && (
+                                        <p className="text-white/25 text-xs text-center py-6">Calcul en cours…</p>
+                                    )}
+                                    {upcomingMainSets.map(({ video, startAt }, i) => (
+                                        <div
+                                            key={`epg-${i}-${video.id}`}
+                                            className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-colors group"
+                                        >
+                                            <div className="flex flex-col items-center w-10 shrink-0">
+                                                <span className="text-[9px] font-black text-white/30 font-mono">{toHHMM(startAt)}</span>
+                                                {i === 0 && (
+                                                    <ChevronRight className="w-3 h-3 mt-0.5" style={{ color: activeBlock.hex }} />
+                                                )}
+                                            </div>
+                                            <div className="w-12 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                                                <img
+                                                    src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
+                                                    alt={video.title}
+                                                    className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                                                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                                                />
+                                            </div>
+                                            <span className="text-white/65 text-xs font-semibold truncate group-hover:text-white transition-colors flex-1 min-w-0">
+                                                {video.title}
+                                            </span>
+                                            {video.duration && (
+                                                <span className="text-white/20 text-[9px] font-mono shrink-0">{formatMins(video.duration)}</span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Footer shortcut hint */}
+                                <div className="mt-4 pt-3 border-t border-white/[0.06] text-center shrink-0">
+                                    <span className="text-white/20 text-[9px] uppercase tracking-widest">Touche G pour fermer · Mis à jour toutes les 5s</span>
                                 </div>
                             </motion.div>
                         </div>
