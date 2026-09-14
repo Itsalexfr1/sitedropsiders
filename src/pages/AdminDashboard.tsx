@@ -3456,32 +3456,7 @@ export function AdminDashboard() {
                 </div>
               )}
 
-              {/* Live Status Controls */}
-              {(isAdminAcc || hasPermission("takeover_modo")) && (
-                <div className="flex bg-black/40 border border-white/10 rounded-xl md:rounded-full p-1 w-full md:w-auto md:ml-2 mt-2 md:mt-0 justify-between md:justify-start">
-                  <button
-                    onClick={() => updateLiveStatus("off")}
-                    disabled={isUpdatingTakeover}
-                    className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === "off" || !takeoverState.enabled ? "bg-red-600 text-white shadow-lg shadow-red-600/20" : "text-gray-500 hover:text-white"}`}
-                  >
-                    OFF
-                  </button>
-                  <button
-                    onClick={() => updateLiveStatus("edit")}
-                    disabled={isUpdatingTakeover}
-                    className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === "edit" ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : "text-gray-500 hover:text-white"}`}
-                  >
-                    ÉDIT
-                  </button>
-                  <button
-                    onClick={() => updateLiveStatus("live")}
-                    disabled={isUpdatingTakeover}
-                    className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === "live" ? "bg-green-600 text-white shadow-lg shadow-green-600/20 animate-pulse" : "text-gray-500 hover:text-white"}`}
-                  >
-                    ON AIR
-                  </button>
-                </div>
-              )}
+              {/* Live Status Controls – moved to AdminTVModal > tab Live */}
             </div>
           </div>
         </motion.div>
@@ -6564,6 +6539,11 @@ export function AdminDashboard() {
           <AdminTVModal
             isOpen={isTVModalOpen}
             onClose={() => setIsTVModalOpen(false)}
+            takeoverState={takeoverState}
+            onUpdateLiveStatus={updateLiveStatus}
+            onSaveTakeover={saveTakeoverSettings}
+            onTakeoverChange={(updated) => setTakeoverState(updated as any)}
+            isUpdatingTakeover={isUpdatingTakeover}
           />
           {/* Modal Accueil */}
           <AnimatePresence>
