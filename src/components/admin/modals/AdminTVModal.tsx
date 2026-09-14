@@ -368,10 +368,30 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
         setError(null);
         setSaveMessage(null);
 
-        // 1. Immediate LocalStorage save so /tv works immediately
+        const startTime = Date.now();
+
+        // 1. Immediate LocalStorage save so /tv works immediately & restarts broadcast
         try {
             localStorage.setItem('dropsiders_tv_playlist_v2', JSON.stringify(currentPlaylist));
             localStorage.setItem('dropsiders_tv_promos_v2', JSON.stringify(currentPromos));
+            localStorage.setItem('dropsiders_tv_start_time', startTime.toString());
+            localStorage.setItem('dropsiders_tv_state', JSON.stringify({
+                index: 0,
+                isPromo: false,
+                currentTime: 0,
+                updatedAt: startTime
+            }));
+
+            try {
+                const bc = new BroadcastChannel('dropsiders_tv_sync');
+                bc.postMessage({
+                    type: 'TV_SCHEDULE_UPDATED',
+                    startTime,
+                    playlist: currentPlaylist,
+                    promos: currentPromos
+                });
+                bc.close();
+            } catch {}
         } catch (e) {
             console.warn("LocalStorage save warning:", e);
         }
@@ -384,7 +404,8 @@ export function AdminTVModal({ isOpen, onClose, takeoverState, onUpdateLiveStatu
             const newSettings = {
                 ...currentSettings,
                 tv_playlist: currentPlaylist,
-                tv_promos: currentPromos
+                tv_promos: currentPromos,
+                tv_start_time: startTime
             };
 
             const res = await apiFetch('/api/settings/update', {

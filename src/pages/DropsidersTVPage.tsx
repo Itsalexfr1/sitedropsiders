@@ -15,6 +15,7 @@ export interface PromoVideo {
     id: string;
     youtubeId: string;
     title: string;
+    duration?: number;
 }
 
 export interface TVVideo {
@@ -22,6 +23,7 @@ export interface TVVideo {
     title: string;
     description: string;
     youtubeId: string;
+    duration?: number;
 }
 
 const DEFAULT_MAIN_PLAYLIST: TVVideo[] = [
@@ -61,6 +63,121 @@ const DEFAULT_PROMO_PLAYLIST: PromoVideo[] = [];
 
 const STORAGE_PLAYLIST_KEY = 'dropsiders_tv_playlist_v2';
 const STORAGE_PROMOS_KEY = 'dropsiders_tv_promos_v2';
+const STORAGE_START_TIME_KEY = 'dropsiders_tv_start_time';
+const STORAGE_STATE_KEY = 'dropsiders_tv_state';
+const STORAGE_DURATIONS_KEY = 'dropsiders_tv_durations';
+
+export interface TVScheduleSegment {
+    type: 'main' | 'promo';
+    index: number;
+    video: TVVideo | PromoVideo;
+    duration: number;
+}
+
+// Build the ordered broadcast schedule:
+// Video 1 -> Promo 1 -> Video 2 -> Promo 2 -> Video 3 -> Promo 3 (or 1) etc.
+export function buildTVSegments(
+    playlist: TVVideo[],
+    promos: PromoVideo[],
+    durationsMap: Record<string, number>
+): TVScheduleSegment[] {
+    if (!playlist || playlist.length === 0) return [];
+
+    const segments: TVScheduleSegment[] = [];
+    const hasPromos = Array.isArray(promos) && promos.length > 0;
+
+    for (let i = 0; i < playlist.length; i++) {
+        const mainVid = playlist[i];
+        if (!mainVid) continue;
+        const mainDur = (durationsMap && durationsMap[mainVid.youtubeId]) || mainVid.duration || 300;
+        segments.push({
+            type: 'main',
+            index: i,
+            video: mainVid,
+            duration: Math.max(15, mainDur)
+        });
+
+        if (hasPromos) {
+            const promoIdx = i % promos.length;
+            const promoVid = promos[promoIdx];
+            if (promoVid) {
+                const promoDur = (durationsMap && durationsMap[promoVid.youtubeId]) || promoVid.duration || 30;
+                segments.push({
+                    type: 'promo',
+                    index: promoIdx,
+                    video: promoVid,
+                    duration: Math.max(5, promoDur)
+                });
+            }
+        }
+    }
+
+    return segments;
+}
+
+// Calculate the exact live continuous position so the TV never starts from 0 on page visit
+export function calculateLivePosition(
+    segments: TVScheduleSegment[],
+    startTime: number,
+    savedState?: { index: number; isPromo: boolean; currentTime: number; updatedAt: number } | null
+): { index: number; isPromo: boolean; startSeconds: number } {
+    if (!segments || segments.length === 0) {
+        return { index: 0, isPromo: false, startSeconds: 0 };
+    }
+
+    const now = Date.now();
+
+    // Priority 1: If there is a state saved recently (within the last 4 hours)
+    if (savedState && savedState.updatedAt && now >= savedState.updatedAt && (now - savedState.updatedAt) < 4 * 3600 * 1000) {
+        const elapsedSec = (now - savedState.updatedAt) / 1000;
+        let segIdx = segments.findIndex(s =>
+            (s.type === (savedState.isPromo ? 'promo' : 'main')) && s.index === savedState.index
+        );
+        if (segIdx === -1) segIdx = 0;
+
+        let curTime = (savedState.currentTime || 0) + elapsedSec;
+        while (curTime >= segments[segIdx].duration) {
+            curTime -= segments[segIdx].duration;
+            segIdx = (segIdx + 1) % segments.length;
+        }
+
+        const targetSeg = segments[segIdx];
+        return {
+            index: targetSeg.index,
+            isPromo: targetSeg.type === 'promo',
+            startSeconds: Math.floor(curTime)
+        };
+    }
+
+    // Priority 2: Synchronized global timeline from broadcast start time
+    const totalCycle = segments.reduce((sum, s) => sum + s.duration, 0);
+    if (totalCycle <= 0) {
+        return { index: 0, isPromo: false, startSeconds: 0 };
+    }
+
+    const effectiveStart = startTime > 0 ? startTime : now;
+    const elapsedTotal = Math.max(0, (now - effectiveStart) / 1000);
+    let cyclePos = elapsedTotal % totalCycle;
+
+    for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i];
+        if (cyclePos < seg.duration) {
+            return {
+                index: seg.index,
+                isPromo: seg.type === 'promo',
+                startSeconds: Math.floor(cyclePos)
+            };
+        }
+        cyclePos -= seg.duration;
+    }
+
+    const first = segments[0];
+    return {
+        index: first.index,
+        isPromo: first.type === 'promo',
+        startSeconds: 0
+    };
+}
 
 export function DropsidersTVPage() {
     const [playlist, setPlaylist] = useState<TVVideo[]>(() => {
@@ -85,11 +202,59 @@ export function DropsidersTVPage() {
         return DEFAULT_PROMO_PLAYLIST;
     });
 
-    const [currentIndex, setCurrentIndex] = useState(0);
-    // isPlayingPromo: boolean indicating whether the current video playing is a promo
-    const [isPlayingPromo, setIsPlayingPromo] = useState(false);
+    const [durationsMap, setDurationsMap] = useState<Record<string, number>>(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_DURATIONS_KEY);
+            if (saved) return JSON.parse(saved);
+        } catch {}
+        return {};
+    });
+
+    const [, setTvStartTime] = useState<number>(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_START_TIME_KEY);
+            if (saved) {
+                const parsed = parseInt(saved, 10);
+                if (!isNaN(parsed) && parsed > 0) return parsed;
+            }
+        } catch {}
+        return Date.now();
+    });
+
+    // Compute initial live position on initial render (Never restarts at 0 on page visit!)
+    const [initialLive] = useState(() => {
+        try {
+            const savedPl = localStorage.getItem(STORAGE_PLAYLIST_KEY);
+            const pl = savedPl ? JSON.parse(savedPl) : DEFAULT_MAIN_PLAYLIST;
+            const savedPr = localStorage.getItem(STORAGE_PROMOS_KEY);
+            const pr = savedPr ? JSON.parse(savedPr) : DEFAULT_PROMO_PLAYLIST;
+            const savedDur = localStorage.getItem(STORAGE_DURATIONS_KEY);
+            const dur = savedDur ? JSON.parse(savedDur) : {};
+            const savedSt = localStorage.getItem(STORAGE_START_TIME_KEY);
+            const st = savedSt ? parseInt(savedSt, 10) : Date.now();
+            const savedStateStr = localStorage.getItem(STORAGE_STATE_KEY);
+            const savedState = savedStateStr ? JSON.parse(savedStateStr) : null;
+
+            const segments = buildTVSegments(pl, pr, dur);
+            return calculateLivePosition(segments, st, savedState);
+        } catch {
+            return { index: 0, isPromo: false, startSeconds: 0 };
+        }
+    });
+
+    const [currentIndex, setCurrentIndex] = useState(initialLive.index);
+    const [isPlayingPromo, setIsPlayingPromo] = useState(initialLive.isPromo);
+    const pendingSeekRef = useRef<number | null>(initialLive.startSeconds);
+
     const [isPlaying, setIsPlaying] = useState(true);
-    const [isMuted, setIsMuted] = useState(false);
+    // Start muted by default to guarantee instant browser autoplay without policy restrictions
+    const [isMuted, setIsMuted] = useState(() => {
+        try {
+            const saved = localStorage.getItem('dropsiders_tv_muted');
+            if (saved !== null) return saved === 'true';
+        } catch {}
+        return true;
+    });
     const [volume, setVolume] = useState(80);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showControls, setShowControls] = useState(true);
@@ -102,6 +267,19 @@ export function DropsidersTVPage() {
     const playerRef = useRef<any>(null);
     const ytReadyRef = useRef(false);
 
+    // Save newly discovered video duration for precise TV clock calculation
+    const recordDuration = useCallback((videoId: string, durSec: number) => {
+        if (!videoId || durSec <= 5) return;
+        setDurationsMap(prev => {
+            if (prev[videoId] === durSec) return prev;
+            const updated = { ...prev, [videoId]: durSec };
+            try {
+                localStorage.setItem(STORAGE_DURATIONS_KEY, JSON.stringify(updated));
+            } catch {}
+            return updated;
+        });
+    }, []);
+
     // Fetch site settings from backend
     useEffect(() => {
         const checkSettings = async () => {
@@ -111,6 +289,12 @@ export function DropsidersTVPage() {
                     const d = await res.json();
                     if (d?.takeover) {
                         setLiveSettings(d.takeover);
+                    }
+                    if (d?.tv_start_time && typeof d.tv_start_time === 'number') {
+                        setTvStartTime(d.tv_start_time);
+                        try {
+                            localStorage.setItem(STORAGE_START_TIME_KEY, d.tv_start_time.toString());
+                        } catch {}
                     }
                     if (Array.isArray(d?.tv_playlist) && d.tv_playlist.length > 0) {
                         setPlaylist(d.tv_playlist);
@@ -137,6 +321,72 @@ export function DropsidersTVPage() {
         return () => clearInterval(interval);
     }, []);
 
+    // Real-time listener: When Admin clicks "Enregistrer", immediately sync & play
+    useEffect(() => {
+        const handleTvUpdate = (data: { startTime?: number; playlist?: TVVideo[]; promos?: PromoVideo[] }) => {
+            if (Array.isArray(data.playlist) && data.playlist.length > 0) {
+                setPlaylist(data.playlist);
+            }
+            if (Array.isArray(data.promos)) {
+                setPromos(data.promos);
+            }
+            if (data.startTime) {
+                setTvStartTime(data.startTime);
+            }
+            // Immediately start from beginning of newly saved broadcast
+            setCurrentIndex(0);
+            setIsPlayingPromo(false);
+            pendingSeekRef.current = 0;
+
+            if (playerRef.current && typeof playerRef.current.loadVideoById === 'function' && data.playlist?.[0]?.youtubeId) {
+                try {
+                    playerRef.current.loadVideoById({
+                        videoId: data.playlist[0].youtubeId,
+                        startSeconds: 0
+                    });
+                    playerRef.current.playVideo();
+                    setIsPlaying(true);
+                } catch {}
+            }
+        };
+
+        let channel: BroadcastChannel | null = null;
+        try {
+            channel = new BroadcastChannel('dropsiders_tv_sync');
+            channel.onmessage = (event) => {
+                if (event?.data?.type === 'TV_SCHEDULE_UPDATED') {
+                    handleTvUpdate(event.data);
+                }
+            };
+        } catch {}
+
+        const handleStorage = (e: StorageEvent) => {
+            if (e.key === STORAGE_START_TIME_KEY && e.newValue) {
+                const st = parseInt(e.newValue, 10);
+                if (st) setTvStartTime(st);
+            }
+            if (e.key === STORAGE_PLAYLIST_KEY && e.newValue) {
+                try {
+                    const pl = JSON.parse(e.newValue);
+                    if (Array.isArray(pl) && pl.length > 0) setPlaylist(pl);
+                } catch {}
+            }
+            if (e.key === STORAGE_PROMOS_KEY && e.newValue) {
+                try {
+                    const pr = JSON.parse(e.newValue);
+                    if (Array.isArray(pr)) setPromos(pr);
+                } catch {}
+            }
+        };
+
+        window.addEventListener('storage', handleStorage);
+
+        return () => {
+            if (channel) channel.close();
+            window.removeEventListener('storage', handleStorage);
+        };
+    }, []);
+
     // Current main video
     const currentMainVideo = playlist[currentIndex] || playlist[0];
 
@@ -158,12 +408,14 @@ export function DropsidersTVPage() {
 
     // Next main video (skipping any active promo)
     const goNextMain = useCallback(() => {
+        pendingSeekRef.current = 0; // Natural transition starts from beginning
         setIsPlayingPromo(false);
         setCurrentIndex((prev) => (prev + 1) % (playlist.length || 1));
     }, [playlist.length]);
 
     // Go to previous main video
     const goPrev = () => {
+        pendingSeekRef.current = 0;
         setIsPlayingPromo(false);
         setCurrentIndex((prev) => (prev - 1 + playlist.length) % playlist.length);
     };
@@ -176,6 +428,7 @@ export function DropsidersTVPage() {
     // Automated chaining rule:
     // Video 1 ends -> Promo 1 -> Video 2 -> Promo 2 -> Video 3 -> Promo 3 (or 1)
     const handleVideoEnded = useCallback(() => {
+        pendingSeekRef.current = 0;
         if (isPlayingPromo) {
             // Promo just ended: move to the next main video!
             goNextMain();
@@ -189,7 +442,28 @@ export function DropsidersTVPage() {
         }
     }, [isPlayingPromo, promos.length, goNextMain]);
 
+    // Heartbeat: continuously record the current TV playback position every 2s
+    useEffect(() => {
+        if (!isPlaying) return;
 
+        const interval = setInterval(() => {
+            try {
+                if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+                    const curTime = playerRef.current.getCurrentTime();
+                    if (typeof curTime === 'number' && curTime >= 0) {
+                        localStorage.setItem(STORAGE_STATE_KEY, JSON.stringify({
+                            index: currentIndex,
+                            isPromo: isPlayingPromo,
+                            currentTime: Math.floor(curTime),
+                            updatedAt: Date.now()
+                        }));
+                    }
+                }
+            } catch {}
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, [isPlaying, currentIndex, isPlayingPromo]);
 
     // Auto-hide controls
     const resetControlsTimer = () => {
@@ -220,7 +494,7 @@ export function DropsidersTVPage() {
         };
     }, []);
 
-    // Initialize or load YouTube Player (SINGLE instance, no duplicate background iframes!)
+    // Initialize or load YouTube Player
     useEffect(() => {
         if (!currentVideoId) return;
 
@@ -232,11 +506,14 @@ export function DropsidersTVPage() {
             const targetDiv = document.getElementById('tv-yt-player');
             if (!targetDiv) return false;
 
+            const startSec = pendingSeekRef.current ?? 0;
+            pendingSeekRef.current = null;
+
             if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
                 try {
                     playerRef.current.loadVideoById({
                         videoId: currentVideoId,
-                        startSeconds: 0
+                        startSeconds: startSec
                     });
                     if (isMuted) {
                         playerRef.current.mute();
@@ -265,10 +542,16 @@ export function DropsidersTVPage() {
                         iv_load_policy: 3,
                         playsinline: 1,
                         enablejsapi: 1,
+                        start: startSec,
                         mute: isMuted ? 1 : 0
                     },
                     events: {
                         onReady: (event: any) => {
+                            if (startSec > 0) {
+                                try {
+                                    event.target.seekTo(startSec, true);
+                                } catch {}
+                            }
                             if (isMuted) {
                                 event.target.mute();
                             } else {
@@ -277,6 +560,14 @@ export function DropsidersTVPage() {
                             }
                             event.target.playVideo();
                             setIsPlaying(true);
+
+                            // Capture actual video duration for TV schedule precision
+                            try {
+                                const dur = event.target.getDuration();
+                                if (dur && dur > 5) {
+                                    recordDuration(currentVideoId, Math.round(dur));
+                                }
+                            } catch {}
                         },
                         onStateChange: (event: any) => {
                             // YT.PlayerState.ENDED === 0
@@ -284,6 +575,12 @@ export function DropsidersTVPage() {
                                 handleVideoEnded();
                             } else if (event.data === 1) {
                                 setIsPlaying(true);
+                                try {
+                                    const dur = event.target.getDuration();
+                                    if (dur && dur > 5) {
+                                        recordDuration(currentVideoId, Math.round(dur));
+                                    }
+                                } catch {}
                             } else if (event.data === 2) {
                                 setIsPlaying(false);
                             }
@@ -311,7 +608,6 @@ export function DropsidersTVPage() {
         return () => {
             if (checkInterval) clearInterval(checkInterval);
         };
-        // Only re-init when the actual video ID changes (avoids double-play on playlist/promos state updates)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentVideoId]);
 
@@ -337,9 +633,15 @@ export function DropsidersTVPage() {
                 playerRef.current.unMute();
                 playerRef.current.setVolume(volume > 0 ? volume : 80);
                 setIsMuted(false);
+                try {
+                    localStorage.setItem('dropsiders_tv_muted', 'false');
+                } catch {}
             } else {
                 playerRef.current.mute();
                 setIsMuted(true);
+                try {
+                    localStorage.setItem('dropsiders_tv_muted', 'true');
+                } catch {}
             }
         } else {
             setIsMuted((prev) => !prev);
@@ -354,12 +656,31 @@ export function DropsidersTVPage() {
             if (newVol === 0) {
                 playerRef.current.mute();
                 setIsMuted(true);
+                try {
+                    localStorage.setItem('dropsiders_tv_muted', 'true');
+                } catch {}
             } else {
                 if (isMuted) {
                     playerRef.current.unMute();
                     setIsMuted(false);
+                    try {
+                        localStorage.setItem('dropsiders_tv_muted', 'false');
+                    } catch {}
                 }
             }
+        }
+    };
+
+    // Unmute on first user screen interaction if currently muted
+    const handleShieldClick = () => {
+        resetControlsTimer();
+        if (isMuted && playerRef.current) {
+            playerRef.current.unMute();
+            playerRef.current.setVolume(volume > 0 ? volume : 80);
+            setIsMuted(false);
+            try {
+                localStorage.setItem('dropsiders_tv_muted', 'false');
+            } catch {}
         }
     };
 
@@ -450,7 +771,7 @@ export function DropsidersTVPage() {
                             transition={{ duration: 0.2 }}
                             className={`absolute ${liveSettings?.enabled ? 'top-14' : 'top-0'} left-0 w-full z-40 p-4 md:p-6 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto`}
                         >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-wrap">
                                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
                                     <Tv className="w-4 h-4 text-neon-red animate-pulse" />
                                     <span className="text-white font-display font-black text-sm uppercase tracking-tight">
@@ -471,7 +792,19 @@ export function DropsidersTVPage() {
                                 )}
                             </div>
 
-
+                            {/* Unmute alert button when muted (ensures user discovers sound easily) */}
+                            {isMuted && (
+                                <motion.button
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    onClick={toggleMute}
+                                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neon-red hover:bg-neon-red/90 text-white text-[11px] font-black uppercase tracking-wider shadow-lg shadow-neon-red/40 transition-all active:scale-95 animate-pulse cursor-pointer pointer-events-auto"
+                                >
+                                    <VolumeX className="w-3.5 h-3.5" />
+                                    <span>Activer le son</span>
+                                </motion.button>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -488,12 +821,12 @@ export function DropsidersTVPage() {
                         }}
                     />
 
-                    {/* Transparent Click Shield: DOES NOT trigger Play/Pause on click (user request), double click toggles fullscreen */}
+                    {/* Transparent Click Shield: DOES NOT trigger Play/Pause on click (user request), single click un-mutes, double click toggles fullscreen */}
                     <div
-                        onClick={resetControlsTimer}
+                        onClick={handleShieldClick}
                         onDoubleClick={toggleFullscreen}
                         className="absolute inset-0 z-10 cursor-default"
-                        title="Double-clic pour plein écran"
+                        title={isMuted ? "Cliquer pour activer le son · Double-clic pour plein écran" : "Double-clic pour plein écran"}
                     />
 
                     {/* TV Logo Watermark */}
