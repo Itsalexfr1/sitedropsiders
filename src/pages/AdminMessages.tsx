@@ -1183,7 +1183,7 @@ Alex (Dropsiders)`;
                 </div>
 
                 {/* RIGHT: Message Detail */}
-                <div className={`${(selected || selectedSent || selectedArchived) ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto custom-scrollbar flex-col max-w-full min-h-0`} style={{ background: 'rgba(255,255,255,0.015)', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+                <div className={`${(selected || selectedSent || selectedArchived) ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto custom-scrollbar flex-col max-w-full h-full min-h-0`} style={{ background: 'rgba(255,255,255,0.015)', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
                     {(selected || selectedSent || selectedArchived) ? (
                         <motion.div
                             key={selected?.id || selectedSent?.id || selectedArchived?.id}
