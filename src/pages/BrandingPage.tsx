@@ -14,7 +14,8 @@ import {
     Newspaper, 
     Calendar, 
     Music, 
-    Zap
+    Zap,
+    Tv
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiFetch } from '../utils/auth';
@@ -337,6 +338,36 @@ export function BrandingPage() {
                             </a>
                         </div>
                     </div>
+                </motion.div>
+
+                {/* DropsidersTV */}
+                <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.15 }}
+                    className="w-full"
+                >
+                    <Link to="/tv" className="block group">
+                        <div className="relative overflow-hidden bg-gradient-to-r from-[#1a0005] via-[#0d0005] to-[#0a0a0a] border border-neon-red/30 hover:border-neon-red/70 rounded-2xl p-4 flex items-center justify-between transition-all duration-300 shadow-xl shadow-neon-red/10 group-hover:scale-[1.01] group-hover:shadow-neon-red/30">
+                            <div className="absolute inset-0 bg-gradient-to-r from-neon-red/5 to-transparent pointer-events-none" />
+                            <div className="flex items-center gap-3.5 relative z-10">
+                                <div className="relative w-10 h-10 rounded-xl bg-neon-red/15 border border-neon-red/40 flex items-center justify-center text-neon-red group-hover:bg-neon-red group-hover:text-white transition-colors shrink-0">
+                                    <Tv className="w-5 h-5" />
+                                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-neon-red border-2 border-[#050505] animate-pulse" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xs font-black text-white uppercase tracking-wider group-hover:text-neon-red transition-colors flex items-center gap-2">
+                                        DROPSIDERS TV
+                                        <span className="text-[8px] bg-neon-red/20 text-neon-red border border-neon-red/40 px-1.5 py-0.5 rounded-full font-black uppercase tracking-widest animate-pulse">LIVE</span>
+                                    </h3>
+                                    <p className="text-[10px] text-gray-400">Chaîne continue non-stop • Sets &amp; Festivals</p>
+                                </div>
+                            </div>
+                            <div className="relative z-10 w-8 h-8 rounded-xl bg-neon-red/10 flex items-center justify-center text-neon-red group-hover:bg-neon-red group-hover:text-white transition-all">
+                                →
+                            </div>
+                        </div>
+                    </Link>
                 </motion.div>
 
                 {/* 🔗 SECTION: MAIN PORTAL LINKS */}
