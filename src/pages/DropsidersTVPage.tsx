@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tv, Volume2, VolumeX, Volume1, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic } from 'lucide-react';
+import { Tv, Volume2, VolumeX, Volume1, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 import { apiFetch } from '../utils/auth';
 import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
@@ -875,6 +875,16 @@ export function DropsidersTVPage() {
                                         <span className="hidden sm:inline">Gestion TV</span>
                                     </button>
                                 )}
+
+                                {/* Back to site button */}
+                                <a
+                                    href="/"
+                                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto"
+                                    title="Retour sur le site Dropsiders"
+                                >
+                                    <Home className="w-3.5 h-3.5 text-neon-cyan" />
+                                    <span className="hidden sm:inline">Site</span>
+                                </a>
 
                                 {/* Unmute alert button when muted (ensures user discovers sound easily) */}
                                 {isMuted && (
