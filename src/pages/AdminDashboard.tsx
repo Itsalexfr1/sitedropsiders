@@ -7053,7 +7053,7 @@ export function AdminDashboard() {
                     </button>
                   </div>
 
-                  <div className="space-y-4 overflow-y-auto max-h-[65vh] pr-2 custom-scrollbar">
+                  <div className="space-y-4 overflow-y-auto max-h-[65vh] p-3 -m-3 custom-scrollbar">
                     {/* Ligne 1 : 4 Cartes Principales */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       <button

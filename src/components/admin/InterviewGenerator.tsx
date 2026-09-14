@@ -1311,9 +1311,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             style={{ 
                                                 position: 'relative',
                                                 width: '148mm', 
-                                                height: '210mm',
                                                 minWidth: '420px', 
-                                                minHeight: '595px',
                                                 backgroundColor: '#ffffff',
                                                 boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
                                                 border: '1px solid rgba(0,0,0,0.05)',
@@ -1414,7 +1412,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                             </div>
 
                                             {/* Content */}
-                                            <div style={{ position: 'relative', zIndex: 10, flex: 1, display: 'flex', flexDirection: 'column', padding: '24px 40px', overflow: 'hidden' }}>
+                                            <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', padding: '24px 40px', overflow: 'visible' }}>
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                                     {chunk.map((q) => (
                                                         <div key={q.id} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px' }}>
