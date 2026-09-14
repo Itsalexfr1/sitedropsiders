@@ -1060,5 +1060,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1112,
+    "title": "Calvin Harris",
+    "date": "2026-11-07",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "venue": "XS Nightclub",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Opening",
+    "image": "/uploads/uploads/fe98ef0883d98313-cd2b8f85_c559_4580_afa3_9bedaf.jpg",
+    "url": "https://www.tixr.com/groups/xs/events/wynn-las-vegas--calvin-harris-203607",
+    "genre": "House",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
