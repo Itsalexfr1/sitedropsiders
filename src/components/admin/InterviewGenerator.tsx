@@ -669,8 +669,8 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
             // Questions
             let qY = 80;
             const PAD_L = 28, TEXT_X = 52, TEXT_W = W - TEXT_X - 26;
-            const LINE_FR = 12.5;  // line height for FR text
-            const LINE_EN = 12;    // line height for EN text
+            const LINE_FR = 11.5;  // line height for FR text
+            const LINE_EN = 11;    // line height for EN text
 
             for (const q of (chunk || [])) {
                 // Top (t1) is always primary (Main), Bottom (t2) is always secondary (Sub)
@@ -680,14 +680,14 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
 
                 // Number
                 ctx.fillStyle = accent;
-                ctx.font = 'italic 900 12px Orbitron, sans-serif';
+                ctx.font = 'italic 900 10.8px Orbitron, sans-serif';
                 ctx.textAlign = 'left'; ctx.textBaseline = 'top';
                 ctx.fillText(q.number.padStart(2, '0'), PAD_L, qY + 1);
 
                 // T1 (Top line)
                 if (t1) {
                     ctx.fillStyle = isT1Main ? '#111111' : enCol;
-                    ctx.font = isT1Main ? '800 10.5px Montserrat, sans-serif' : '600 10px Montserrat, sans-serif';
+                    ctx.font = isT1Main ? '800 9.5px Montserrat, sans-serif' : '600 9px Montserrat, sans-serif';
                     const lines = wrapText(ctx, t1, TEXT_W);
                     for (const line of lines) {
                         ctx.fillText(line, TEXT_X, qY);
@@ -698,7 +698,7 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                 // T2 (Bottom line)
                 if (t2) {
                     ctx.fillStyle = !isT1Main ? '#111111' : enCol;
-                    ctx.font = !isT1Main ? '800 10.5px Montserrat, sans-serif' : '600 10px Montserrat, sans-serif';
+                    ctx.font = !isT1Main ? '800 9.5px Montserrat, sans-serif' : '600 9px Montserrat, sans-serif';
                     const lines = wrapText(ctx, t2, TEXT_W);
                     for (const line of lines) {
                         ctx.fillText(line, TEXT_X, qY);
@@ -1494,15 +1494,15 @@ export function InterviewGenerator({ onClose }: { onClose: () => void }) {
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                                     {chunk.map((q) => (
                                                         <div key={q.id} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '16px' }}>
-                                                            <span style={{ fontSize: '11px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '22px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe', marginTop: '1px' }}>
+                                                            <span style={{ fontSize: '10px', fontFamily: 'Orbitron, sans-serif', fontWeight: 900, fontStyle: 'italic', flexShrink: 0, width: '22px', color: theme === 'red' ? '#ff0000' : theme === 'cyan' ? '#000000' : '#bc13fe', marginTop: '1px' }}>
                                                                 {q.number.padStart(2, '0')}
                                                             </span>
                                                             <div style={{ flex: 1 }}>
-                                                                <div style={{ fontSize: '10.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '2px', fontFamily: 'Montserrat, sans-serif' }}>
+                                                                <div style={{ fontSize: '9.5px', fontWeight: 800, color: '#111111', textTransform: 'uppercase', lineHeight: 1.3, marginBottom: '2px', fontFamily: 'Montserrat, sans-serif' }}>
                                                                     {swapLanguages ? q.en : q.fr}
                                                                 </div>
                                                                 {(swapLanguages ? q.fr : q.en) && (
-                                                                    <div style={{ fontSize: '10px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif' }}>
+                                                                    <div style={{ fontSize: '9px', fontWeight: 600, lineHeight: 1.3, color: theme === 'red' ? '#cc0000' : theme === 'cyan' ? '#1d4ed8' : '#7e22ce', fontFamily: 'Montserrat, sans-serif' }}>
                                                                         {swapLanguages ? q.fr : q.en}
                                                                     </div>
                                                                 )}
