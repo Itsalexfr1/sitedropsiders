@@ -1,15 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tv, Volume2, VolumeX, SkipForward, SkipBack, Play, Pause, Maximize2, Minimize2, Wifi, Radio, Film } from 'lucide-react';
-import { TakeoverPage } from './TakeoverPage';
-import { apiFetch } from '../utils/auth';
 import { SEO } from '../components/utils/SEO';
+import { apiFetch } from '../utils/auth';
 
 declare global {
     interface Window {
-        onYouTubeIframeAPIReady?: () => void;
-        YT?: any;
+        YT: any;
+        onYouTubeIframeAPIReady: () => void;
     }
+}
+
+export interface PromoVideo {
+    id: string;
+    youtubeId: string;
+    title: string;
 }
 
 export interface TVVideo {
@@ -17,8 +22,26 @@ export interface TVVideo {
     title: string;
     description: string;
     youtubeId: string;
-    promoId?: string;       // Optional promo video that plays AFTER this video
-    promoTitle?: string;    // Label for the promo
+    // Multiple promos chained sequentially after this main video
+    promos?: PromoVideo[];
+    // Legacy single promo support
+    promoId?: string;
+    promoTitle?: string;
+}
+
+export function getVideoPromos(video?: TVVideo): PromoVideo[] {
+    if (!video) return [];
+    if (Array.isArray(video.promos) && video.promos.length > 0) {
+        return video.promos;
+    }
+    if (video.promoId) {
+        return [{
+            id: `${video.id}_legacy_promo`,
+            youtubeId: video.promoId,
+            title: video.promoTitle || 'Vidéo Promo'
+        }];
+    }
+    return [];
 }
 
 const DEFAULT_TV_PLAYLIST: TVVideo[] = [
@@ -69,18 +92,17 @@ export function DropsidersTVPage() {
     });
 
     const [currentIndex, setCurrentIndex] = useState(0);
-    // isPlayingPromo: true when the promo video for the current index is playing
-    const [isPlayingPromo, setIsPlayingPromo] = useState(false);
+    // currentPromoIndex: null when main video is playing, 0, 1, 2... for promo chain
+    const [currentPromoIndex, setCurrentPromoIndex] = useState<number | null>(null);
     const [isPlaying, setIsPlaying] = useState(true);
     const [isMuted, setIsMuted] = useState(false);
-    const [showControls, setShowControls] = useState(true);
-
-    const [liveSettings, setLiveSettings] = useState<any>(null);
-    const [loadingLive, setLoadingLive] = useState(true);
-    const [forceLivePreview, setForceLivePreview] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [showControls, setShowControls] = useState(true);
+    const [viewerCount, setViewerCount] = useState(128);
+    const [liveSettings, setLiveSettings] = useState<any>(null);
+    const [, setLoadingLive] = useState(true);
 
-    const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const playerRef = useRef<any>(null);
     const ytReadyRef = useRef(false);
@@ -114,77 +136,143 @@ export function DropsidersTVPage() {
         return () => clearInterval(interval);
     }, []);
 
-    // The current video: if playing promo → use promoId of currentIndex video, else use main video
+    // Current main video and its promo list
     const currentMainVideo = playlist[currentIndex] || playlist[0];
-    const currentVideoId = isPlayingPromo && currentMainVideo?.promoId
-        ? currentMainVideo.promoId
+    const activePromos = getVideoPromos(currentMainVideo);
+    const isPlayingPromo = currentPromoIndex !== null && activePromos.length > 0;
+    const currentPromo = isPlayingPromo && currentPromoIndex !== null ? activePromos[currentPromoIndex] : null;
+
+    // Derived current YouTube ID & Title
+    const currentVideoId = isPlayingPromo && currentPromo
+        ? currentPromo.youtubeId
         : currentMainVideo?.youtubeId;
-    const currentDisplayTitle = isPlayingPromo && currentMainVideo?.promoId
-        ? (currentMainVideo.promoTitle || 'Vidéo Promo')
+
+    const currentDisplayTitle = isPlayingPromo && currentPromo
+        ? (currentPromo.title || 'Vidéo Promo')
         : currentMainVideo?.title;
 
-    // Advance to next main video
+    // Advance to next main video (cancelling promo state)
     const goNextMain = useCallback(() => {
-        setIsPlayingPromo(false);
+        setCurrentPromoIndex(null);
         setCurrentIndex((prev) => (prev + 1) % (playlist.length || 1));
     }, [playlist.length]);
 
-    // When a video ends: check if there's a promo for the current main video
-    const handleVideoEnded = useCallback(() => {
-        if (!isPlayingPromo && currentMainVideo?.promoId) {
-            // Play the promo
-            setIsPlayingPromo(true);
-        } else {
-            // No promo (or promo just finished) → go to next main video
-            goNextMain();
-        }
-    }, [isPlayingPromo, currentMainVideo, goNextMain]);
+    // Go to previous main video
+    const goPrev = () => {
+        setCurrentPromoIndex(null);
+        setCurrentIndex((prev) => (prev - 1 + playlist.length) % playlist.length);
+    };
 
-    const goNext = useCallback(() => {
-        // Manual skip always goes to next MAIN video (skip promo)
+    // Manual Skip always skips to next MAIN video (skips promo completely)
+    const goNext = () => {
         goNextMain();
-    }, [goNextMain]);
+    };
 
-    const goPrev = useCallback(() => {
-        setIsPlayingPromo(false);
-        setCurrentIndex((prev) => (prev - 1 + playlist.length) % (playlist.length || 1));
-    }, [playlist.length]);
+    // Callback when a video finishes playing
+    const handleVideoEnded = useCallback(() => {
+        if (!currentMainVideo) return;
+        const promos = getVideoPromos(currentMainVideo);
 
-    // YouTube Iframe API setup
+        if (currentPromoIndex === null) {
+            // Main video ended: start first promo if any
+            if (promos.length > 0) {
+                setCurrentPromoIndex(0);
+            } else {
+                goNextMain();
+            }
+        } else {
+            // Promo video ended: check if there is a next promo in chain
+            if (currentPromoIndex + 1 < promos.length) {
+                setCurrentPromoIndex(currentPromoIndex + 1);
+            } else {
+                // All promos finished: advance to next main video
+                goNextMain();
+            }
+        }
+    }, [currentMainVideo, currentPromoIndex, goNextMain]);
+
+    // Live viewer simulation
     useEffect(() => {
-        let isCancelled = false;
+        const interval = setInterval(() => {
+            setViewerCount((prev) => {
+                const delta = Math.floor(Math.random() * 7) - 3;
+                return Math.max(84, Math.min(320, prev + delta));
+            });
+        }, 6000);
+        return () => clearInterval(interval);
+    }, []);
 
-        const onYouTubeReady = () => {
-            if (isCancelled) return;
+    // Auto-hide controls
+    const resetControlsTimer = () => {
+        setShowControls(true);
+        if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+        controlsTimeoutRef.current = setTimeout(() => {
+            if (isPlaying) setShowControls(false);
+        }, 4500);
+    };
+
+    const handleMouseMove = () => resetControlsTimer();
+
+    // YouTube Iframe API Loader
+    useEffect(() => {
+        if (window.YT && window.YT.Player) {
             ytReadyRef.current = true;
-            initPlayer();
+            return;
+        }
+        if (!document.getElementById('yt-iframe-api')) {
+            const tag = document.createElement('script');
+            tag.id = 'yt-iframe-api';
+            tag.src = 'https://www.youtube.com/iframe_api';
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+        }
+        window.onYouTubeIframeAPIReady = () => {
+            ytReadyRef.current = true;
         };
+    }, []);
+
+    // Initialize or load YouTube Player
+    useEffect(() => {
+        if (!currentVideoId) return;
+
+        let checkInterval: NodeJS.Timeout | null = null;
 
         const initPlayer = () => {
-            if (!window.YT || !window.YT.Player) return;
-            if (playerRef.current) {
+            if (!window.YT || !window.YT.Player) return false;
+
+            const targetDiv = document.getElementById('tv-yt-player');
+            if (!targetDiv) return false;
+
+            if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
                 try {
-                    playerRef.current.destroy();
-                } catch {}
-                playerRef.current = null;
+                    playerRef.current.loadVideoById({
+                        videoId: currentVideoId,
+                        startSeconds: 0
+                    });
+                    if (isMuted) playerRef.current.mute();
+                    else playerRef.current.unMute();
+                    playerRef.current.playVideo();
+                    setIsPlaying(true);
+                    return true;
+                } catch {
+                    // fall through to recreate player
+                }
             }
 
-            if (!currentVideoId) return;
-
             try {
-                playerRef.current = new window.YT.Player('dropsiders-tv-yt-iframe', {
+                playerRef.current = new window.YT.Player('tv-yt-player', {
                     videoId: currentVideoId,
                     playerVars: {
                         autoplay: 1,
                         controls: 0,
                         disablekb: 1,
+                        fs: 0,
                         modestbranding: 1,
                         rel: 0,
+                        iv_load_policy: 3,
                         playsinline: 1,
                         enablejsapi: 1,
-                        iv_load_policy: 3,
-                        fs: 0,
-                        origin: window.location.origin,
+                        mute: isMuted ? 1 : 0
                     },
                     events: {
                         onReady: (event: any) => {
@@ -194,7 +282,7 @@ export function DropsidersTVPage() {
                             setIsPlaying(true);
                         },
                         onStateChange: (event: any) => {
-                            // YT.PlayerState.ENDED = 0
+                            // YT.PlayerState.ENDED === 0
                             if (event.data === 0) {
                                 handleVideoEnded();
                             } else if (event.data === 1) {
@@ -202,176 +290,145 @@ export function DropsidersTVPage() {
                             } else if (event.data === 2) {
                                 setIsPlaying(false);
                             }
+                        },
+                        onError: () => {
+                            setTimeout(() => goNextMain(), 2000);
                         }
                     }
                 });
-            } catch (e) {
-                console.error("YouTube Player init error:", e);
+                return true;
+            } catch (err) {
+                console.error("Erreur init YT player:", err);
+                return false;
             }
         };
 
-        if (window.YT && window.YT.Player) {
-            ytReadyRef.current = true;
-            initPlayer();
-        } else {
-            const existingScript = document.getElementById('youtube-iframe-api');
-            if (!existingScript) {
-                const tag = document.createElement('script');
-                tag.id = 'youtube-iframe-api';
-                tag.src = 'https://www.youtube.com/iframe_api';
-                document.body.appendChild(tag);
-            }
-
-            const prevCallback = window.onYouTubeIframeAPIReady;
-            window.onYouTubeIframeAPIReady = () => {
-                if (prevCallback) prevCallback();
-                onYouTubeReady();
-            };
+        if (!initPlayer()) {
+            checkInterval = setInterval(() => {
+                if (initPlayer() && checkInterval) {
+                    clearInterval(checkInterval);
+                }
+            }, 300);
         }
 
         return () => {
-            isCancelled = true;
+            if (checkInterval) clearInterval(checkInterval);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentIndex, isPlayingPromo, playlist, isMuted]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentIndex, currentPromoIndex, playlist, isMuted]);
 
-    // Controls visibility timer
-    const resetTimer = useCallback(() => {
-        setShowControls(true);
-        if (hideTimer.current) clearTimeout(hideTimer.current);
-        hideTimer.current = setTimeout(() => setShowControls(false), 4000);
-    }, []);
-
-    useEffect(() => {
-        resetTimer();
-        return () => {
-            if (hideTimer.current) clearTimeout(hideTimer.current);
-        };
-    }, [currentIndex, isPlayingPromo, resetTimer]);
-
-    const handlePlayPause = () => {
-        if (!playerRef.current) {
-            setIsPlaying(!isPlaying);
-            return;
-        }
-        try {
-            if (isPlaying) {
+    const togglePlay = () => {
+        if (playerRef.current && typeof playerRef.current.getPlayerState === 'function') {
+            const state = playerRef.current.getPlayerState();
+            if (state === 1) {
                 playerRef.current.pauseVideo();
                 setIsPlaying(false);
             } else {
                 playerRef.current.playVideo();
                 setIsPlaying(true);
             }
-        } catch {
-            setIsPlaying(!isPlaying);
-        }
-    };
-
-    const handleToggleMute = () => {
-        const nextMuted = !isMuted;
-        setIsMuted(nextMuted);
-        if (playerRef.current) {
-            try {
-                if (nextMuted) playerRef.current.mute();
-                else playerRef.current.unMute();
-            } catch {}
-        }
-    };
-
-    const toggleFullscreen = useCallback(() => {
-        if (!document.fullscreenElement) {
-            containerRef.current?.requestFullscreen?.().catch(() => {});
         } else {
-            document.exitFullscreen?.().catch(() => {});
+            setIsPlaying((prev) => !prev);
         }
-    }, []);
+        resetControlsTimer();
+    };
+
+    const toggleMute = () => {
+        if (playerRef.current) {
+            if (isMuted) {
+                playerRef.current.unMute();
+                setIsMuted(false);
+            } else {
+                playerRef.current.mute();
+                setIsMuted(true);
+            }
+        } else {
+            setIsMuted((prev) => !prev);
+        }
+        resetControlsTimer();
+    };
+
+    const toggleFullscreen = () => {
+        if (!containerRef.current) return;
+        if (!document.fullscreenElement) {
+            containerRef.current.requestFullscreen().catch(() => {});
+            setIsFullscreen(true);
+        } else {
+            document.exitFullscreen().catch(() => {});
+            setIsFullscreen(false);
+        }
+    };
 
     useEffect(() => {
         const handleFullscreenChange = () => {
-            setIsFullscreen(Boolean(document.fullscreenElement));
+            setIsFullscreen(!!document.fullscreenElement);
         };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
+    // Keyboard shortcuts
+    useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-            if (e.key === 'f' || e.key === 'F') {
+            if (['input', 'textarea'].includes((e.target as HTMLElement).tagName.toLowerCase())) return;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePlay();
+            } else if (e.code === 'KeyM') {
+                e.preventDefault();
+                toggleMute();
+            } else if (e.code === 'KeyF') {
+                e.preventDefault();
                 toggleFullscreen();
             }
         };
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
         window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            document.removeEventListener('fullscreenchange', handleFullscreenChange);
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [toggleFullscreen]);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    });
 
-    // Check if festival live takeover is active
-    const isLiveFestivalActive = (!loadingLive && liveSettings?.enabled && liveSettings?.status === 'live') || forceLivePreview;
-
-    if (loadingLive) {
-        return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="animate-spin w-10 h-10 rounded-full border-2 border-neon-red/20 border-t-neon-red" />
-                    <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest animate-pulse">
-                        Connexion au signal DropsidersTV…
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    // ─── FESTIVAL LIVE TAKEOVER OVERRIDE ───
-    if (isLiveFestivalActive) {
-        return (
-            <>
-                <SEO
-                    title="DropsidersTV — DIRECT FESTIVAL EN COURS"
-                    description="Festival en direct sur DropsidersTV ! Plusieurs scènes en live, programmation et chat en direct."
-                />
-                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[999] flex items-center gap-3 px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-md shadow-2xl"
-                    style={{ background: 'rgba(255, 18, 65, 0.92)', boxShadow: '0 0 30px rgba(255, 18, 65, 0.6)' }}
-                >
-                    <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
-                    <span className="font-display italic">DROPSIDERS TV · FESTIVAL LIVE OVERRIDE ACTIF</span>
-                    <Wifi className="w-3.5 h-3.5" />
-                    {forceLivePreview && (
-                        <button
-                            onClick={() => setForceLivePreview(false)}
-                            className="ml-2 px-2 py-0.5 rounded bg-black/40 hover:bg-black/60 text-[9px] text-white/90"
-                        >
-                            Quitter preview
-                        </button>
-                    )}
-                </div>
-                <TakeoverPage initialSettings={liveSettings} />
-            </>
-        );
-    }
-
+    // Fallback embed url
     const fallbackEmbedUrl = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&disablekb=1&modestbranding=1&rel=0&iv_load_policy=3&fs=0&enablejsapi=1`;
 
     return (
         <>
             <SEO
-                title="DropsidersTV — La Chaîne Électronique Non-Stop"
-                description="Regardez les plus grands sets et moments de festivals en boucle sur DropsidersTV. Enchaînement automatique et direct festival."
+                title="DropsidersTV – La Chaîne Live Non-Stop des Festivals Électro"
+                description="Diffusion continue des meilleurs sets, recaps et moments forts des plus grands festivals électro du monde."
+                image="https://img.youtube.com/vi/H5QLyGiDr_0/maxresdefault.jpg"
             />
+
             <div
                 ref={containerRef}
-                className="relative w-full bg-black flex flex-col select-none overflow-hidden"
-                style={{ minHeight: '100dvh' }}
-                onMouseMove={resetTimer}
-                onTouchStart={resetTimer}
+                onMouseMove={handleMouseMove}
+                className="relative w-full h-[100dvh] bg-black overflow-hidden select-none flex flex-col justify-between"
             >
-                {/* CRT / Scanlines Effect */}
-                <div
-                    className="fixed inset-0 pointer-events-none z-10 opacity-[0.035]"
-                    style={{
-                        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.9) 2px, rgba(255,255,255,0.9) 3px)'
-                    }}
-                />
+                {/* Live Takeover Banner Override */}
+                {liveSettings?.enabled && (
+                    <motion.div
+                        initial={{ y: -50, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="absolute top-0 left-0 w-full z-50 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan px-4 py-2.5 flex items-center justify-between shadow-2xl backdrop-blur-md"
+                    >
+                        <div className="flex items-center gap-3">
+                            <span className="flex h-3 w-3 relative">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                            </span>
+                            <span className="text-white font-black text-xs uppercase tracking-wider flex items-center gap-2">
+                                <Radio className="w-4 h-4" />
+                                FESTIVAL EN DIRECT : {liveSettings.title || 'FESTIVAL LIVE'}
+                            </span>
+                        </div>
+                        <a
+                            href="/live"
+                            className="px-3.5 py-1 rounded-full bg-white text-black font-black text-[11px] uppercase tracking-wider hover:scale-105 transition-transform"
+                        >
+                            Basculer sur le Live →
+                        </a>
+                    </motion.div>
+                )}
 
-                {/* Top Overlay Bar */}
+                {/* Top Channel Header Bar */}
                 <AnimatePresence>
                     {showControls && (
                         <motion.div
@@ -379,21 +436,20 @@ export function DropsidersTVPage() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                             transition={{ duration: 0.2 }}
-                            className="fixed top-0 left-0 right-0 z-50 px-4 md:px-8 py-5 flex items-center justify-between"
-                            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.5) 70%, transparent 100%)' }}
+                            className={`absolute ${liveSettings?.enabled ? 'top-14' : 'top-0'} left-0 w-full z-40 p-4 md:p-6 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto`}
                         >
                             <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-neon-red/15 border border-neon-red/30 shadow-[0_0_15px_rgba(255,18,65,0.3)]">
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
                                     <Tv className="w-4 h-4 text-neon-red animate-pulse" />
-                                    <span className="text-white font-black text-xs uppercase tracking-widest font-display">
+                                    <span className="text-white font-display font-black text-sm uppercase tracking-tight">
                                         DROPSIDERS <span className="text-neon-red">TV</span>
                                     </span>
                                 </div>
-                                {/* Promo badge */}
+                                {/* Promo / Main badge */}
                                 {isPlayingPromo ? (
                                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-neon-purple bg-neon-purple/10 border border-neon-purple/30">
                                         <Film className="w-3 h-3 animate-pulse" />
-                                        VIDÉO PROMO
+                                        {activePromos.length > 1 ? `PROMO ${currentPromoIndex! + 1}/${activePromos.length}` : 'VIDÉO PROMO'}
                                     </div>
                                 ) : (
                                     <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-neon-red bg-neon-red/10 border border-neon-red/20">
@@ -404,51 +460,45 @@ export function DropsidersTVPage() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                {liveSettings?.enabled && (
-                                    <button
-                                        onClick={() => setForceLivePreview(true)}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-amber-300 bg-amber-400/15 border border-amber-400/30 hover:bg-amber-400/25 transition-all"
-                                    >
-                                        <Radio className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
-                                        Mode Live Festival
-                                    </button>
-                                )}
-                                <a
-                                    href="/"
-                                    className="text-white/50 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors px-3 py-1.5 rounded-xl hover:bg-white/10"
-                                >
-                                    ← Quitter
-                                </a>
+                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold text-white/70 bg-black/60 backdrop-blur-md border border-white/10">
+                                    <Wifi className="w-3 h-3 text-neon-green animate-pulse" />
+                                    <span>{viewerCount} spectateurs</span>
+                                </div>
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* Player Container */}
-                <div className="relative flex-1 w-full" style={{ minHeight: '100dvh' }}>
-                    <div className="absolute inset-0 bg-black flex items-center justify-center overflow-hidden">
-                        <div id="dropsiders-tv-yt-iframe" className="w-full h-full border-0 pointer-events-none">
-                            {/* Fallback iframe if YT api hasn't hydrated */}
-                            <iframe
-                                src={fallbackEmbedUrl}
-                                className="w-full h-full border-0 pointer-events-none"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                title={currentDisplayTitle || 'DropsidersTV'}
-                            />
-                        </div>
+                {/* Video Player Area */}
+                <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black">
+                    {/* YouTube API target div */}
+                    <div
+                        id="tv-yt-player"
+                        className="w-full h-full pointer-events-none scale-105"
+                    />
 
-                        {/* Shield overlay: blocks all clicking/seeking/scrubbing on YouTube progress bar */}
-                        <div
-                            className="absolute inset-0 z-[5] cursor-pointer"
-                            onClick={handlePlayPause}
-                            onDoubleClick={toggleFullscreen}
+                    {/* Fallback iframe in case API failed */}
+                    <div className="absolute inset-0 -z-10 pointer-events-none">
+                        <iframe
+                            src={fallbackEmbedUrl}
+                            className="w-full h-full border-0 pointer-events-none"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            title={currentDisplayTitle || 'DropsidersTV'}
                         />
                     </div>
 
-                    {/* Channel Watermark */}
-                    <div className="absolute bottom-28 md:bottom-28 right-6 z-20 pointer-events-none opacity-40 flex items-center gap-2 drop-shadow-md">
-                        <img src="/Logo.png" alt="Dropsiders" className="w-7 h-7 object-contain" />
-                        <span className="text-white text-[10px] font-black uppercase tracking-widest font-display">
+                    {/* Transparent Click Shield */}
+                    <div
+                        onClick={togglePlay}
+                        onDoubleClick={toggleFullscreen}
+                        className="absolute inset-0 z-10 cursor-pointer"
+                        title="Cliquer pour Play/Pause, Double-cliquer pour Plein Écran"
+                    />
+
+                    {/* TV Logo Watermark */}
+                    <div className="absolute bottom-6 right-6 z-20 pointer-events-none opacity-40 flex items-center gap-2">
+                        <Tv className="w-5 h-5 text-neon-red" />
+                        <span className="text-white font-display font-black text-xs uppercase tracking-widest">
                             DROPSIDERS <span className="text-neon-red">TV</span>
                         </span>
                     </div>
@@ -457,22 +507,19 @@ export function DropsidersTVPage() {
                     <AnimatePresence>
                         {showControls && (
                             <motion.div
-                                initial={{ opacity: 0, y: 25 }}
+                                initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 25 }}
+                                exit={{ opacity: 0, y: 20 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute bottom-0 left-0 right-0 z-50 px-4 md:px-8 pb-6 pt-20"
-                                style={{
-                                    background: 'linear-gradient(0deg, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 60%, transparent 100%)'
-                                }}
+                                className="absolute bottom-0 left-0 w-full z-30 p-4 md:p-6 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-auto"
                             >
                                 {/* Video Info */}
                                 <div className="mb-4">
-                                    <div className="flex items-center gap-2 mb-1.5">
+                                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                                         {isPlayingPromo ? (
                                             <span className="text-[9px] font-black uppercase tracking-widest text-neon-purple px-2.5 py-0.5 rounded-full bg-neon-purple/15 border border-neon-purple/30 flex items-center gap-1">
                                                 <Film className="w-2.5 h-2.5" />
-                                                Promo · après vidéo {currentIndex + 1}
+                                                Promo {currentPromoIndex! + 1}/{activePromos.length} · après vidéo {currentIndex + 1}
                                             </span>
                                         ) : (
                                             <span className="text-[9px] font-black uppercase tracking-widest text-neon-red px-2.5 py-0.5 rounded-full bg-neon-red/15 border border-neon-red/30">
@@ -482,10 +529,10 @@ export function DropsidersTVPage() {
                                         <span className="text-white/40 text-[9px] uppercase font-bold tracking-wider">
                                             Enchaînement automatique
                                         </span>
-                                        {!isPlayingPromo && currentMainVideo?.promoId && (
-                                            <span className="text-[9px] font-bold text-neon-purple/50 uppercase tracking-wider flex items-center gap-1">
+                                        {!isPlayingPromo && activePromos.length > 0 && (
+                                            <span className="text-[9px] font-bold text-neon-purple/70 uppercase tracking-wider flex items-center gap-1">
                                                 <Film className="w-2.5 h-2.5" />
-                                                → promo ensuite
+                                                → {activePromos.length} promo{activePromos.length > 1 ? 's' : ''} ensuite
                                             </span>
                                         )}
                                     </div>
@@ -499,9 +546,9 @@ export function DropsidersTVPage() {
                                     )}
                                 </div>
 
-                                {/* Player Action Buttons */}
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
+                                {/* Controls Row */}
+                                <div className="flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-2 md:gap-3">
                                         <button
                                             onClick={goPrev}
                                             title="Vidéo précédente"
@@ -510,7 +557,7 @@ export function DropsidersTVPage() {
                                             <SkipBack className="w-4 h-4" />
                                         </button>
                                         <button
-                                            onClick={handlePlayPause}
+                                            onClick={togglePlay}
                                             title={isPlaying ? "Pause" : "Lecture"}
                                             className="w-13 h-13 px-4 py-3 rounded-full flex items-center justify-center transition-all active:scale-95 text-white"
                                             style={{
@@ -526,27 +573,29 @@ export function DropsidersTVPage() {
                                         </button>
                                         <button
                                             onClick={goNext}
-                                            title="Vidéo suivante (passe la promo)"
+                                            title="Vidéo suivante (passe directement au set suivant)"
                                             className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white"
                                         >
                                             <SkipForward className="w-4 h-4" />
                                         </button>
                                         <button
-                                            onClick={handleToggleMute}
+                                            onClick={toggleMute}
                                             title={isMuted ? "Activer le son" : "Couper le son"}
-                                            className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white ml-1"
+                                            className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white"
                                         >
                                             {isMuted ? <VolumeX className="w-4 h-4 text-neon-red" /> : <Volume2 className="w-4 h-4" />}
                                         </button>
                                     </div>
 
-                                    <button
-                                        onClick={toggleFullscreen}
-                                        title={isFullscreen ? "Quitter le plein écran (F)" : "Plein écran (F)"}
-                                        className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white"
-                                    >
-                                        {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={toggleFullscreen}
+                                            title="Plein écran (F)"
+                                            className="w-11 h-11 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 text-white"
+                                        >
+                                            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                                        </button>
+                                    </div>
                                 </div>
                             </motion.div>
                         )}
