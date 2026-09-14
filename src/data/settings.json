@@ -72,8 +72,14 @@
   "google_cx": "72ad7401b2b6f4195",
   "unsplash_access_key": "",
   "pexels_api_key": "",
-  "tv_start_time": 1789417248675,
-  "tv_promos": [],
+  "tv_start_time": 1789420139214,
+  "tv_promos": [
+    {
+      "id": "promo_1789420138099",
+      "title": "Tomorrowland Winter 2027 Promo",
+      "youtubeId": "pQdsHoG2yhw"
+    }
+  ],
   "tv_playlist": [
     {
       "id": "tv_1789417248675",
