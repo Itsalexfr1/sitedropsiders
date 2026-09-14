@@ -691,7 +691,7 @@ Alex (Dropsiders)`;
         if (!isAlex) return messages;
         if (selectedEditorFilter === 'all') return messages;
         if (selectedEditorFilter === 'general') {
-            return messages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
+            return messages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
         // Dynamic: match by username or email
         const filterLower = selectedEditorFilter.toLowerCase();
@@ -706,7 +706,7 @@ Alex (Dropsiders)`;
         if (!isAlex) return archivedMessages;
         if (selectedEditorFilter === 'all') return archivedMessages;
         if (selectedEditorFilter === 'general') {
-            return archivedMessages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
+            return archivedMessages.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
         const filterLower = selectedEditorFilter.toLowerCase();
         return archivedMessages.filter(m => {
@@ -1285,13 +1285,18 @@ Alex (Dropsiders)`;
                                             </div>
                                         )}
                                         <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-black uppercase text-gray-500 w-24">Expéditeur :</span>
-                                            <input
-                                                type="text"
+                                            <span className="text-[10px] font-black uppercase text-gray-500 w-24 flex-shrink-0">Expéditeur :</span>
+                                            <select
                                                 value={senderEmail}
-                                                readOnly
-                                                className="bg-black/30 border border-white/5 rounded-lg px-3 py-1.5 text-sm text-gray-500 flex-1 font-bold cursor-not-allowed opacity-70"
-                                            />
+                                                onChange={(e) => setSenderEmail(e.target.value)}
+                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 flex-1 font-bold cursor-pointer transition-colors hover:border-white/20"
+                                            >
+                                                <option value="contact@dropsiders.fr">contact@dropsiders.fr (Principal)</option>
+                                                <option value="info@dropsiders.fr">info@dropsiders.fr (Informations)</option>
+                                                {userProEmail !== 'contact@dropsiders.fr' && userProEmail !== 'info@dropsiders.fr' && (
+                                                    <option value={userProEmail}>{userProEmail}</option>
+                                                )}
+                                            </select>
                                         </div>
                                         {isNewMail && (
                                             <div className="flex items-center gap-3">

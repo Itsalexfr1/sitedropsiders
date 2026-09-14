@@ -9322,5 +9322,145 @@ const contentType = response.headers.get("content-type");
                 }
             }
         }
+    },
+
+    async email(message, env, ctx) {
+        console.log(`[EMAIL WORKER] Incoming email to ${message.to} from ${message.from}`);
+        try {
+            const parser = new PostalMime();
+            const rawEmail = await new Response(message.raw).arrayBuffer();
+            const parsed = await parser.parse(rawEmail);
+
+            const fromAddress = parsed.from?.address || message.from || 'inconnu@inconnu.com';
+            const fromName = parsed.from?.name || fromAddress;
+            const toAddress = message.to || 'info@dropsiders.fr';
+            const subject = parsed.subject || '(Sans objet)';
+            const textContent = parsed.text || (parsed.html ? parsed.html.replace(/<[^>]*>/g, ' ') : '(Message vide)');
+
+            // Handle Attachments (upload to R2 if available)
+            const processedAttachments: any[] = [];
+            if (Array.isArray(parsed.attachments)) {
+                for (const att of parsed.attachments) {
+                    if (att.content && att.filename) {
+                        try {
+                            const cleanName = att.filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+                            const r2Key = `uploads/mail/${Date.now()}_${cleanName}`;
+                            if (env.R2) {
+                                await env.R2.put(r2Key, att.content, {
+                                    httpMetadata: { contentType: att.mimeType || 'application/octet-stream' }
+                                });
+                                processedAttachments.push({
+                                    name: att.filename,
+                                    url: `https://dropsiders.fr/${r2Key}`,
+                                    size: att.content.byteLength || 0
+                                });
+                            }
+                        } catch (attErr) {
+                            console.error('[EMAIL ATTACHMENT ERROR]', attErr);
+                        }
+                    }
+                }
+            }
+
+            // 1. Save message to GitHub contacts.json (Single source of truth for site messaging)
+            const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
+            const REPO = env.GITHUB_REPO || 'sitedropsiders';
+            const TOKEN = env.GITHUB_TOKEN;
+            const gitConfig = { OWNER, REPO, TOKEN };
+            const CONTACTS_PATH = 'src/data/contacts.json';
+
+            const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
+            const contacts = Array.isArray(file.content) ? file.content : [];
+
+            const newMsg = {
+                id: Date.now().toString(),
+                name: fromName,
+                email: fromAddress,
+                subject: subject,
+                message: textContent,
+                recipient: toAddress,
+                attachments: processedAttachments,
+                date: new Date().toISOString(),
+                read: false,
+                replied: false
+            };
+
+            contacts.push(newMsg);
+            await saveGitHubFile(CONTACTS_PATH, contacts, `[EMAIL] Reçu sur ${toAddress} de ${fromAddress} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+            console.log(`[EMAIL WORKER] Successfully saved email ${newMsg.id} to contacts.json`);
+
+            // 2. Notify contact@dropsiders.fr via Brevo
+            const BREVO_KEY = env.BREVO_API_KEY;
+            if (BREVO_KEY) {
+                const previewText = textContent.length > 300 ? textContent.slice(0, 300) + '...' : textContent;
+                await fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: {
+                        'accept': 'application/json',
+                        'api-key': BREVO_KEY,
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sender: { name: 'Dropsiders Mailer', email: 'bot@dropsiders.fr' },
+                        to: [{ email: 'contact@dropsiders.fr', name: 'Alex' }],
+                        subject: `[NOUVEAU MAIL SUR ${toAddress}] ${fromName} : ${subject}`,
+                        htmlContent: `
+                            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 25px; background: #0c0d10; color: #ffffff;">
+                                <div style="max-width: 600px; margin: 0 auto; background: #16181f; border: 1px solid #282b35; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                                    <div style="background: linear-gradient(135deg, #ff1241, #990022); padding: 20px; text-align: center;">
+                                        <h2 style="margin: 0; color: #ffffff; font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">
+                                            Nouveau mail reçu sur ${toAddress}
+                                        </h2>
+                                    </div>
+                                    <div style="padding: 25px;">
+                                        <p style="margin: 0 0 10px 0; font-size: 14px; color: #a1a1aa;">
+                                            <strong>Expéditeur :</strong> <span style="color: #ffffff;">${fromName} (${fromAddress})</span>
+                                        </p>
+                                        <p style="margin: 0 0 10px 0; font-size: 14px; color: #a1a1aa;">
+                                            <strong>Destinataire :</strong> <span style="color: #00ffd5; font-weight: bold;">${toAddress}</span>
+                                        </p>
+                                        <p style="margin: 0 0 20px 0; font-size: 14px; color: #a1a1aa;">
+                                            <strong>Sujet :</strong> <span style="color: #ffffff; font-weight: bold;">${subject}</span>
+                                        </p>
+                                        <div style="background: #0f1015; border: 1px solid #22242c; border-radius: 10px; padding: 15px; color: #e4e4e7; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">
+${previewText}
+                                        </div>
+
+                                        ${processedAttachments.length > 0 ? `
+                                            <div style="margin-top: 20px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                                <p style="margin: 0 0 8px 0; font-weight: bold; font-size: 12px; color: #a1a1aa;">PIÈCES JOINTES (${processedAttachments.length}) :</p>
+                                                <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #00ffd5;">
+                                                    ${processedAttachments.map(a => `<li><a href="${a.url}" target="_blank" style="color: #00ffd5; text-decoration: underline;">${a.name}</a></li>`).join('')}
+                                                </ul>
+                                            </div>
+                                        ` : ''}
+
+                                        <div style="margin-top: 30px; text-align: center;">
+                                            <a href="https://dropsiders.fr/admin" style="display: inline-block; background: #ff1241; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 10px; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                Voir et Répondre sur Dropsiders
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div style="background: #111317; padding: 12px; text-align: center; border-top: 1px solid #22242c;">
+                                        <p style="margin: 0; font-size: 11px; color: #71717a;">Système de messagerie Dropsiders V2 · Cloudflare Email Worker</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                    })
+                });
+                console.log(`[EMAIL WORKER] Sent notification to contact@dropsiders.fr via Brevo`);
+            }
+
+            // 3. Web Push notification to admin device
+            await sendPushNotification(env, {
+                title: `Mail reçu sur ${toAddress}`,
+                body: `${fromName} : ${subject}`,
+                url: '/admin'
+            });
+
+        } catch (err: any) {
+            console.error('[EMAIL WORKER HANDLER FATAL ERROR]', err);
+        }
     }
 };
