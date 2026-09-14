@@ -11,8 +11,14 @@ import {
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
 import { uploadFile } from '../../../utils/uploadService';
 import type { TVVideo, PromoVideo } from '../../../pages/DropsidersTVPage';
+import type { TVScheduleBlock } from '../../../utils/tvSchedule';
+import { 
+    DEFAULT_TV_BLOCKS, 
+    STORAGE_TV_BLOCKS_KEY, 
+    getActiveTVBlock 
+} from '../../../utils/tvSchedule';
 
-export type { TVVideo, PromoVideo };
+export type { TVVideo, PromoVideo, TVScheduleBlock };
 
 // Format seconds to human-readable duration: 2h 34min 12s
 function formatDuration(totalSeconds: number): string {
@@ -268,10 +274,28 @@ export function AdminTVModal({
     onTakeoverChange,
     isUpdatingTakeover
 }: AdminTVModalProps) {
-    const [activeTab, setActiveTab] = useState<'main' | 'promo' | 'live'>('main');
+    const [activeTab, setActiveTab] = useState<'blocks' | 'promo' | 'main' | 'live'>('blocks');
     const [liveSubTab, setLiveSubTab] = useState<'general' | 'planning' | 'moderation' | 'ticker' | 'bot' | 'mods' | 'access'>('general');
     const [liveSaving, setLiveSaving] = useState(false);
     const [liveSaved, setLiveSaved] = useState(false);
+
+    // 5 Time Blocks Schedule
+    const [blocks, setBlocks] = useState<TVScheduleBlock[]>(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch {}
+        return DEFAULT_TV_BLOCKS;
+    });
+    const [selectedBlockId, setSelectedBlockId] = useState<string>('bloc_1');
+
+    // Add video to block form
+    const [blockVideoUrl, setBlockVideoUrl] = useState('');
+    const [blockVideoTitle, setBlockVideoTitle] = useState('');
+    const [isFetchingBlockTitle, setIsFetchingBlockTitle] = useState(false);
 
     // Main Videos list
     const [playlist, setPlaylist] = useState<TVVideo[]>(DEFAULT_MAIN_PLAYLIST);
@@ -315,6 +339,14 @@ export function AdminTVModal({
                 const res = await apiFetch('/api/settings');
                 if (res.ok) {
                     const data = await res.json();
+                    if (Array.isArray(data?.tv_blocks) && data.tv_blocks.length > 0) {
+                        setBlocks(data.tv_blocks);
+                    } else {
+                        try {
+                            const localBlocks = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
+                            if (localBlocks) setBlocks(JSON.parse(localBlocks));
+                        } catch {}
+                    }
                     if (Array.isArray(data?.tv_playlist) && data.tv_playlist.length > 0) {
                         setPlaylist(data.tv_playlist);
                     } else {
@@ -327,6 +359,8 @@ export function AdminTVModal({
             } catch (e: any) {
                 console.error("Erreur chargement TV settings:", e);
                 try {
+                    const localBlocks = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
+                    if (localBlocks) setBlocks(JSON.parse(localBlocks));
                     const localPlay = localStorage.getItem('dropsiders_tv_playlist_v2');
                     if (localPlay) setPlaylist(JSON.parse(localPlay));
                     const localProm = localStorage.getItem('dropsiders_tv_promos_v2');
@@ -354,6 +388,72 @@ export function AdminTVModal({
             setIsFetchingMainTitle(false);
             if (fetched) setNewMainTitle(fetched);
         }
+    };
+
+    // Auto-fetch Title on block video URL input
+    const handleBlockUrlChange = async (val: string) => {
+        setBlockVideoUrl(val);
+        const ytid = extractYouTubeId(val);
+        if (ytid && !blockVideoTitle.trim()) {
+            setIsFetchingBlockTitle(true);
+            const fetched = await fetchYouTubeTitle(ytid);
+            setIsFetchingBlockTitle(false);
+            if (fetched) setBlockVideoTitle(fetched);
+        }
+    };
+
+    const handleAddVideoToBlock = () => {
+        const ytid = extractYouTubeId(blockVideoUrl);
+        if (!ytid) {
+            alert('Veuillez entrer un lien YouTube valide.');
+            return;
+        }
+        const block = blocks.find(b => b.id === selectedBlockId);
+        const newVid: TVVideo = {
+            id: `bv_${Date.now()}`,
+            title: blockVideoTitle.trim() || `Vidéo ${ytid}`,
+            description: `Diffusé sur DropsidersTV · ${block?.title || ''}`,
+            youtubeId: ytid,
+            duration: 3600
+        };
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== selectedBlockId) return b;
+            return {
+                ...b,
+                videos: [...(b.videos || []), newVid]
+            };
+        }));
+        setBlockVideoUrl('');
+        setBlockVideoTitle('');
+    };
+
+    const handleRemoveVideoFromBlock = (blockId: string, index: number) => {
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== blockId) return b;
+            const nextVids = [...(b.videos || [])];
+            nextVids.splice(index, 1);
+            return { ...b, videos: nextVids };
+        }));
+    };
+
+    const handleMoveVideoInBlock = (blockId: string, index: number, direction: -1 | 1) => {
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== blockId) return b;
+            const nextVids = [...(b.videos || [])];
+            const target = index + direction;
+            if (target < 0 || target >= nextVids.length) return b;
+            const tmp = nextVids[target];
+            nextVids[target] = nextVids[index];
+            nextVids[index] = tmp;
+            return { ...b, videos: nextVids };
+        }));
+    };
+
+    const handleToggleBlockRandom = (blockId: string) => {
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== blockId) return b;
+            return { ...b, randomize: !b.randomize };
+        }));
     };
 
     const handleManualFetchMainTitle = async () => {
@@ -493,13 +593,19 @@ export function AdminTVModal({
     };
 
     const handleReset = () => {
-        if (confirm('Restaurer la liste par défaut des sets de festivals ?')) {
-            setPlaylist(DEFAULT_MAIN_PLAYLIST);
-            setPromos([]);
+        if (activeTab === 'blocks') {
+            if (confirm('Restaurer la grille des 5 blocs par défaut avec les sets recommandés ?')) {
+                setBlocks(DEFAULT_TV_BLOCKS);
+            }
+        } else {
+            if (confirm('Restaurer la liste par défaut des sets de festivals ?')) {
+                setPlaylist(DEFAULT_MAIN_PLAYLIST);
+                setPromos([]);
+            }
         }
     };
 
-    // Save TV Playlist
+    // Save TV Playlist & Blocks
     const handleSave = async () => {
         let currentPlaylist = [...playlist];
         if (newMainUrl.trim()) {
@@ -533,6 +639,28 @@ export function AdminTVModal({
             }
         }
 
+        let currentBlocks = [...blocks];
+        if (blockVideoUrl.trim()) {
+            const ytid = extractYouTubeId(blockVideoUrl);
+            if (ytid) {
+                const block = currentBlocks.find(b => b.id === selectedBlockId);
+                const newVid: TVVideo = {
+                    id: `bv_${Date.now()}`,
+                    title: blockVideoTitle.trim() || `Vidéo ${ytid}`,
+                    description: `Diffusé sur DropsidersTV · ${block?.title || ''}`,
+                    youtubeId: ytid,
+                    duration: 3600
+                };
+                currentBlocks = currentBlocks.map(b => {
+                    if (b.id !== selectedBlockId) return b;
+                    return { ...b, videos: [...(b.videos || []), newVid] };
+                });
+                setBlocks(currentBlocks);
+                setBlockVideoUrl('');
+                setBlockVideoTitle('');
+            }
+        }
+
         setSaving(true);
         setError(null);
         setSaveMessage(null);
@@ -548,8 +676,9 @@ export function AdminTVModal({
         }
         const startTime = existingStartTime;
 
-        // 1. Immediate LocalStorage save (updates playlist & promos without resetting position)
+        // 1. Immediate LocalStorage save (updates blocks, playlist & promos without resetting position)
         try {
+            localStorage.setItem(STORAGE_TV_BLOCKS_KEY, JSON.stringify(currentBlocks));
             localStorage.setItem('dropsiders_tv_playlist_v2', JSON.stringify(currentPlaylist));
             localStorage.setItem('dropsiders_tv_promos_v2', JSON.stringify(currentPromos));
             localStorage.setItem('dropsiders_tv_start_time', startTime.toString());
@@ -558,6 +687,7 @@ export function AdminTVModal({
                 const bc = new BroadcastChannel('dropsiders_tv_sync');
                 bc.postMessage({
                     type: 'TV_SCHEDULE_UPDATED',
+                    blocks: currentBlocks,
                     playlist: currentPlaylist,
                     promos: currentPromos
                 });
@@ -574,6 +704,7 @@ export function AdminTVModal({
 
             const newSettings = {
                 ...currentSettings,
+                tv_blocks: currentBlocks,
                 tv_playlist: currentPlaylist,
                 tv_promos: currentPromos,
                 tv_start_time: startTime
@@ -587,7 +718,7 @@ export function AdminTVModal({
 
             if (res.ok) {
                 setSaveSuccess(true);
-                setSaveMessage('Programmation et promos enregistrées avec succès !');
+                setSaveMessage('Grille horaire (5 blocs) et programmation enregistrées avec succès !');
                 setTimeout(() => {
                     setSaveSuccess(false);
                     setSaveMessage(null);
@@ -734,15 +865,15 @@ export function AdminTVModal({
                         <div className="flex items-center gap-2 mb-4 p-1 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0 overflow-x-auto">
                             <button
                                 type="button"
-                                onClick={() => setActiveTab('main')}
+                                onClick={() => setActiveTab('blocks')}
                                 className={`flex-1 py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
-                                    activeTab === 'main'
-                                        ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20'
+                                    activeTab === 'blocks'
+                                        ? 'bg-gradient-to-r from-amber-500 to-neon-red text-white shadow-lg shadow-neon-red/20'
                                         : 'text-white/60 hover:text-white hover:bg-white/5'
                                 }`}
                             >
-                                <Tv className="w-4 h-4" />
-                                Programmation TV ({playlist.length})
+                                <Clock className="w-4 h-4" />
+                                Grille 5 Blocs TV ({blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)})
                             </button>
                             <button
                                 type="button"
@@ -755,6 +886,18 @@ export function AdminTVModal({
                             >
                                 <Film className="w-4 h-4" />
                                 Vidéos Promo ({promos.length})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setActiveTab('main')}
+                                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
+                                    activeTab === 'main'
+                                        ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20'
+                                        : 'text-white/60 hover:text-white hover:bg-white/5'
+                                }`}
+                            >
+                                <Tv className="w-4 h-4" />
+                                Tous les Sets ({playlist.length})
                             </button>
                             <button
                                 type="button"
@@ -815,6 +958,293 @@ export function AdminTVModal({
                                 </div>
                             );
                         })()}
+
+                        {/* ========================================================= */}
+                        {/* TAB: 5 BLOCS HORAIRES (GRILLE TV) */}
+                        {/* ========================================================= */}
+                        {activeTab === 'blocks' && (
+                            <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+                                {/* Info banner */}
+                                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-neon-red/10 to-neon-purple/10 border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg">🕒</span>
+                                            <h3 className="text-sm font-black uppercase text-white tracking-wider">
+                                                Grille TV : 5 Blocs Horaires (24h/24)
+                                            </h3>
+                                        </div>
+                                        <p className="text-xs text-white/60 mt-0.5">
+                                            Ajoutez vos liens YouTube dans chaque bloc. Les vidéos tournent de manière aléatoire et sont synchronisées pour tous les spectateurs.
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/5 border border-white/10 text-white/70">
+                                            {blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)} vidéos réparties
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* 5 Blocks Selector Buttons */}
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 shrink-0">
+                                    {blocks.map(b => {
+                                        const isSelected = b.id === selectedBlockId;
+                                        const isLiveNow = getActiveTVBlock(blocks).id === b.id;
+                                        return (
+                                            <button
+                                                key={b.id}
+                                                type="button"
+                                                onClick={() => setSelectedBlockId(b.id)}
+                                                className={`relative p-3 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 overflow-hidden ${
+                                                    isSelected
+                                                        ? 'bg-white/[0.08] shadow-lg scale-[1.02]'
+                                                        : 'bg-white/[0.02] hover:bg-white/[0.05] border-white/10 opacity-75 hover:opacity-100'
+                                                }`}
+                                                style={{
+                                                    borderColor: isSelected ? b.color : 'rgba(255,255,255,0.1)',
+                                                    boxShadow: isSelected ? `0 0 20px ${b.color}25` : undefined
+                                                }}
+                                            >
+                                                {/* Top accent line */}
+                                                <div 
+                                                    className="absolute top-0 left-0 right-0 h-1 transition-opacity"
+                                                    style={{ background: b.color, opacity: isSelected ? 1 : 0.3 }}
+                                                />
+
+                                                <div className="flex items-center justify-between gap-1 mt-0.5">
+                                                    <span className="text-xl">{b.emoji}</span>
+                                                    {isLiveNow && (
+                                                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/20 text-neon-red text-[8px] font-black uppercase tracking-wider border border-red-500/30 animate-pulse">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-neon-red" />
+                                                            EN DIRECT
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <div>
+                                                    <div className="text-[10px] font-black text-white/50 uppercase tracking-widest truncate">
+                                                        {b.name}
+                                                    </div>
+                                                    <div className="text-xs font-black text-white truncate" style={{ color: isSelected ? b.color : undefined }}>
+                                                        {b.title}
+                                                    </div>
+                                                    <div className="text-[10px] font-bold text-white/40 mt-0.5">
+                                                        {b.timeSlot}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between text-[9px] font-black uppercase text-white/40 pt-1 border-t border-white/5">
+                                                    <span>{b.videos?.length || 0} lien{(b.videos?.length || 0) > 1 ? 's' : ''}</span>
+                                                    <span>{b.randomize ? '🔀 Aléatoire' : '➡️ Ordre'}</span>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Selected Block Details & Link Management */}
+                                {(() => {
+                                    const currentBlock = blocks.find(b => b.id === selectedBlockId) || blocks[0];
+                                    if (!currentBlock) return null;
+                                    const isLiveNow = getActiveTVBlock(blocks).id === currentBlock.id;
+
+                                    return (
+                                        <div 
+                                            className="p-5 rounded-3xl border bg-black/40 backdrop-blur-md space-y-5"
+                                            style={{ borderColor: `${currentBlock.color}40` }}
+                                        >
+                                            {/* Header of selected block */}
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
+                                                <div className="flex items-center gap-3">
+                                                    <div 
+                                                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border shrink-0"
+                                                        style={{ background: `${currentBlock.color}15`, borderColor: `${currentBlock.color}30` }}
+                                                    >
+                                                        {currentBlock.emoji}
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <h4 className="text-lg font-display font-black text-white uppercase italic tracking-tight">
+                                                                {currentBlock.name} : <span style={{ color: currentBlock.color }}>{currentBlock.title}</span>
+                                                            </h4>
+                                                            {isLiveNow && (
+                                                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-red-500/20 text-neon-red border border-red-500/40 animate-pulse">
+                                                                    À l'antenne actuellement
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-xs text-white/50 font-medium">
+                                                            Créneau de diffusion : <strong className="text-white">{currentBlock.timeSlot}</strong> ({currentBlock.startHour}h00 à {currentBlock.endHour === 24 ? '00h00' : `${currentBlock.endHour}h00`})
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Random rotation toggle */}
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleToggleBlockRandom(currentBlock.id)}
+                                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
+                                                            currentBlock.randomize
+                                                                ? 'bg-neon-purple/20 border-neon-purple/40 text-neon-purple'
+                                                                : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
+                                                        }`}
+                                                    >
+                                                        <span>🔀</span>
+                                                        <span>Rotation aléatoire : <strong>{currentBlock.randomize ? 'ACTIVÉE' : 'DÉSACTIVÉE'}</strong></span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Add video form for this block */}
+                                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
+                                                <div className="text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-1.5">
+                                                    <Plus className="w-3.5 h-3.5" style={{ color: currentBlock.color }} />
+                                                    Ajouter un lien YouTube à ce bloc ({currentBlock.title})
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+                                                    <div className="md:col-span-6 relative">
+                                                        <input
+                                                            type="text"
+                                                            value={blockVideoUrl}
+                                                            onChange={(e) => handleBlockUrlChange(e.target.value)}
+                                                            placeholder="Lien YouTube ou ID (ex: https://youtube.com/watch?v=...)"
+                                                            className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
+                                                        />
+                                                        {isFetchingBlockTitle && (
+                                                            <div className="absolute right-3 top-2.5 text-xs text-white/40 flex items-center gap-1">
+                                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="md:col-span-4">
+                                                        <input
+                                                            type="text"
+                                                            value={blockVideoTitle}
+                                                            onChange={(e) => setBlockVideoTitle(e.target.value)}
+                                                            placeholder="Titre de la vidéo (auto-détecté ou personnalisé)"
+                                                            className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
+                                                        />
+                                                    </div>
+
+                                                    <div className="md:col-span-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleAddVideoToBlock}
+                                                            disabled={!blockVideoUrl.trim()}
+                                                            className="w-full h-full py-2.5 px-3 rounded-xl text-white text-xs font-black uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 shadow-lg active:scale-95"
+                                                            style={{ background: currentBlock.color }}
+                                                        >
+                                                            <Plus className="w-4 h-4" />
+                                                            Ajouter
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Video list inside this block */}
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-white/40">
+                                                    <span>Vidéos dans ce bloc ({currentBlock.videos?.length || 0})</span>
+                                                    <span>Tourne aléatoirement chaque jour si l'option est activée</span>
+                                                </div>
+
+                                                {(!currentBlock.videos || currentBlock.videos.length === 0) ? (
+                                                    <div className="p-8 text-center rounded-2xl bg-white/[0.02] border border-white/5">
+                                                        <p className="text-sm font-bold text-white/40">Aucune vidéo dans ce bloc pour l'instant.</p>
+                                                        <p className="text-xs text-white/20 mt-1">Collez un lien YouTube ci-dessus pour alimenter ce créneau horaire.</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                                                        {currentBlock.videos.map((vid, idx) => {
+                                                            const dur = durationsMap[vid.youtubeId] || vid.duration || 0;
+                                                            return (
+                                                                <div
+                                                                    key={vid.id || idx}
+                                                                    className="p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 flex items-center justify-between gap-3 transition-colors group"
+                                                                >
+                                                                    {/* Thumbnail + Index */}
+                                                                    <div className="flex items-center gap-3 min-w-0">
+                                                                        <span className="text-xs font-black text-white/30 w-5 text-center shrink-0">
+                                                                            {idx + 1}
+                                                                        </span>
+                                                                        <div className="relative w-20 h-12 rounded-xl overflow-hidden bg-black/50 shrink-0 border border-white/10">
+                                                                            <img
+                                                                                src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`}
+                                                                                alt={vid.title}
+                                                                                className="w-full h-full object-cover"
+                                                                                onError={(e: any) => {
+                                                                                    e.currentTarget.src = `https://img.youtube.com/vi/${vid.youtubeId}/hqdefault.jpg`;
+                                                                                }}
+                                                                            />
+                                                                            {dur > 0 && (
+                                                                                <span className="absolute bottom-1 right-1 px-1 rounded bg-black/80 text-[8px] font-black text-white">
+                                                                                    {formatDuration(dur)}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+
+                                                                        <div className="min-w-0">
+                                                                            <h5 className="text-xs font-bold text-white truncate" title={vid.title}>
+                                                                                {vid.title}
+                                                                            </h5>
+                                                                            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-white/40">
+                                                                                <span className="font-mono">ID: {vid.youtubeId}</span>
+                                                                                <a
+                                                                                    href={`https://www.youtube.com/watch?v=${vid.youtubeId}`}
+                                                                                    target="_blank"
+                                                                                    rel="noreferrer"
+                                                                                    className="hover:text-white flex items-center gap-0.5 transition-colors"
+                                                                                    title="Ouvrir sur YouTube"
+                                                                                >
+                                                                                    <ExternalLink className="w-2.5 h-2.5" />
+                                                                                    Voir
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Actions */}
+                                                                    <div className="flex items-center gap-1 shrink-0">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleMoveVideoInBlock(currentBlock.id, idx, -1)}
+                                                                            disabled={idx === 0}
+                                                                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
+                                                                            title="Monter"
+                                                                        >
+                                                                            <ChevronUp className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleMoveVideoInBlock(currentBlock.id, idx, 1)}
+                                                                            disabled={idx === currentBlock.videos.length - 1}
+                                                                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
+                                                                            title="Descendre"
+                                                                        >
+                                                                            <ChevronDown className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleRemoveVideoFromBlock(currentBlock.id, idx)}
+                                                                            className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all ml-1"
+                                                                            title="Supprimer ce lien"
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        )}
 
                         {/* ========================================================= */}
                         {/* TAB: PROGRAMMATION TV (SETS PRINCIPAUX) */}

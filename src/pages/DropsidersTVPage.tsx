@@ -1,10 +1,19 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home, Clock, CalendarDays, ChevronRight } from 'lucide-react';
+import { Tv, Volume2, VolumeX, Volume1, Play, Pause, Maximize2, Minimize2, Radio, Film, Settings, X, ListMusic, Home, Clock, CalendarDays, ChevronRight, Shuffle } from 'lucide-react';
 import { SEO } from '../components/utils/SEO';
 import { apiFetch } from '../utils/auth';
 import { AdminTVModal } from '../components/admin/modals/AdminTVModal';
+import type { TVScheduleBlock } from '../utils/tvSchedule';
+import { 
+    DEFAULT_TV_BLOCKS, 
+    STORAGE_TV_BLOCKS_KEY, 
+    getActiveTVBlock, 
+    getSeededShuffle, 
+    buildBlockSegments, 
+    calculateBlockLivePosition 
+} from '../utils/tvSchedule';
 
 const checkAdminAuth = () => {
     try {
@@ -63,29 +72,8 @@ export interface TVVideo {
     duration?: number;
 }
 
-// ── EPG / Time Blocks ──────────────────────────────────────────────────────
-interface TVBlock {
-    id: string;
-    label: string;
-    emoji: string;
-    hex: string;
-    startHour: number;
-    endHour: number; // exclusive, 24 = midnight
-}
-
-const TV_BLOCKS: TVBlock[] = [
-    { id: 'night',      label: 'NIGHT SESSIONS',     emoji: '🌙', hex: '#7c3aed', startHour: 0,  endHour: 6  },
-    { id: 'morning',    label: 'MORNING VIBES',       emoji: '🌅', hex: '#f59e0b', startHour: 6,  endHour: 10 },
-    { id: 'interviews', label: 'INTERVIEW BLOCK',     emoji: '🎤', hex: '#06b6d4', startHour: 10, endHour: 14 },
-    { id: 'festivals',  label: 'FESTIVAL HIGHLIGHTS', emoji: '🎪', hex: '#10b981', startHour: 14, endHour: 18 },
-    { id: 'primetime',  label: 'PRIME TIME',          emoji: '⭐', hex: '#ff1241', startHour: 18, endHour: 22 },
-    { id: 'techno',     label: 'LATE NIGHT TECHNO',   emoji: '🔊', hex: '#8b5cf6', startHour: 22, endHour: 24 },
-];
-
-function getActiveBlock(): TVBlock {
-    const h = new Date().getHours();
-    return TV_BLOCKS.find(b => h >= b.startHour && h < b.endHour) ?? TV_BLOCKS[4];
-}
+// ── EPG / 5 Time Blocks ──────────────────────────────────────────────────
+export type { TVScheduleBlock };
 
 function formatMins(secs: number): string {
     const m = Math.round(secs / 60);
@@ -382,6 +370,18 @@ export function calculateLivePosition(
 }
 
 export function DropsidersTVPage() {
+    // 5 Time Blocks state
+    const [tvBlocks, setTvBlocks] = useState<TVScheduleBlock[]>(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch {}
+        return DEFAULT_TV_BLOCKS;
+    });
+
     const [playlist, setPlaylist] = useState<TVVideo[]>(() => {
         try {
             const saved = localStorage.getItem(STORAGE_PLAYLIST_KEY);
@@ -423,20 +423,43 @@ export function DropsidersTVPage() {
         return TV_GLOBAL_ANCHOR;
     });
 
-    // Compute initial live position on initial render (Guaranteed synchronized world clock, never restarts at 0!)
+    // Compute active block & its shuffled videos for today
+    const [currentHourState, setCurrentHourState] = useState(() => new Date().getHours());
+
+    const activeScheduleBlock = useMemo(() => {
+        return getActiveTVBlock(tvBlocks, currentHourState);
+    }, [tvBlocks, currentHourState]);
+
+    const activeBlockVideos = useMemo(() => {
+        const raw = activeScheduleBlock.videos && activeScheduleBlock.videos.length > 0 
+            ? activeScheduleBlock.videos 
+            : playlist;
+        if (activeScheduleBlock.randomize === false) return raw;
+        const todayStr = new Date().toISOString().slice(0, 10);
+        return getSeededShuffle(raw, `${todayStr}_${activeScheduleBlock.id}`);
+    }, [activeScheduleBlock, playlist]);
+
+    // Compute initial live position in the active block
     const [initialLive] = useState(() => {
         try {
+            const savedBlocks = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
+            const blks = savedBlocks ? JSON.parse(savedBlocks) : DEFAULT_TV_BLOCKS;
+            const now = new Date();
+            const curBlk = getActiveTVBlock(blks, now.getHours());
             const savedPl = localStorage.getItem(STORAGE_PLAYLIST_KEY);
             const pl = savedPl ? JSON.parse(savedPl) : DEFAULT_MAIN_PLAYLIST;
+            const rawVids = curBlk.videos && curBlk.videos.length > 0 ? curBlk.videos : pl;
+            const todayStr = now.toISOString().slice(0, 10);
+            const vids = curBlk.randomize === false ? rawVids : getSeededShuffle(rawVids, `${todayStr}_${curBlk.id}`);
+
             const savedPr = localStorage.getItem(STORAGE_PROMOS_KEY);
             const pr = savedPr ? JSON.parse(savedPr) : DEFAULT_PROMO_PLAYLIST;
             const savedDur = localStorage.getItem(STORAGE_DURATIONS_KEY);
             const dur = savedDur ? { ...DEFAULT_DURATIONS, ...JSON.parse(savedDur) } : DEFAULT_DURATIONS;
-            const savedSt = localStorage.getItem(STORAGE_START_TIME_KEY);
-            const st = savedSt ? parseInt(savedSt, 10) : TV_GLOBAL_ANCHOR;
 
-            const segments = buildTVSegments(pl, pr, dur);
-            return calculateLivePosition(segments, st);
+            const segs = buildBlockSegments(vids, pr, dur);
+            const elapsed = Math.max(0, (now.getHours() - curBlk.startHour) * 3600 + now.getMinutes() * 60 + now.getSeconds());
+            return calculateBlockLivePosition(segs, elapsed);
         } catch {
             return { index: 0, isPromo: false, startSeconds: 0 };
         }
@@ -470,7 +493,7 @@ export function DropsidersTVPage() {
     const [showSchedule, setShowSchedule] = useState(false);
     const prevMuteStateRef = useRef<boolean | null>(null);
 
-    const allSegments = useMemo(() => buildTVSegments(playlist, promos, durationsMap), [playlist, promos, durationsMap]);
+    const allSegments = useMemo(() => buildBlockSegments(activeBlockVideos, promos, durationsMap), [activeBlockVideos, promos, durationsMap]);
 
     useEffect(() => {
         const isAdm = checkAdminAuth();
@@ -533,16 +556,26 @@ export function DropsidersTVPage() {
     const ytReadyRef = useRef(false);
 
     // ── EPG / Time Block State ─────────────────────────────────────────────
-    const [activeBlock, setActiveBlock] = useState<TVBlock>(getActiveBlock);
     const [showEPG, setShowEPG] = useState(false);
     const [epgTimeRemaining, setEpgTimeRemaining] = useState<number | null>(null);
 
-    // Update time block label every minute
+    // Update hour and detect block changes every minute
+    const prevBlockIdRef = useRef(activeScheduleBlock.id);
     useEffect(() => {
-        const tick = () => setActiveBlock(getActiveBlock());
-        const id = setInterval(tick, 60_000);
+        const tick = () => {
+            const h = new Date().getHours();
+            setCurrentHourState(h);
+            const fresh = getActiveTVBlock(tvBlocks, h);
+            if (fresh.id !== prevBlockIdRef.current) {
+                prevBlockIdRef.current = fresh.id;
+                pendingSeekRef.current = 0;
+                setCurrentIndex(0);
+                setIsPlayingPromo(false);
+            }
+        };
+        const id = setInterval(tick, 30_000);
         return () => clearInterval(id);
-    }, []);
+    }, [tvBlocks]);
 
     // Poll YT player every 5s to get seconds remaining in current video
     useEffect(() => {
@@ -583,6 +616,12 @@ export function DropsidersTVPage() {
                     if (d?.takeover) {
                         setLiveSettings(d.takeover);
                     }
+                    if (Array.isArray(d?.tv_blocks) && d.tv_blocks.length > 0) {
+                        setTvBlocks(d.tv_blocks);
+                        try {
+                            localStorage.setItem(STORAGE_TV_BLOCKS_KEY, JSON.stringify(d.tv_blocks));
+                        } catch {}
+                    }
                     if (d?.tv_start_time && typeof d.tv_start_time === 'number') {
                         setTvStartTime(d.tv_start_time);
                         try {
@@ -614,9 +653,12 @@ export function DropsidersTVPage() {
         return () => clearInterval(interval);
     }, []);
 
-    // Real-time listener: When Admin clicks "Enregistrer", seamlessly update playlist & promos without interrupting or restarting playback
+    // Real-time listener: When Admin clicks "Enregistrer", seamlessly update blocks, playlist & promos
     useEffect(() => {
-        const handleTvUpdate = (data: { startTime?: number; playlist?: TVVideo[]; promos?: PromoVideo[] }) => {
+        const handleTvUpdate = (data: { startTime?: number; playlist?: TVVideo[]; promos?: PromoVideo[]; blocks?: TVScheduleBlock[] }) => {
+            if (Array.isArray(data.blocks) && data.blocks.length > 0) {
+                setTvBlocks(data.blocks);
+            }
             if (Array.isArray(data.playlist) && data.playlist.length > 0) {
                 setPlaylist(data.playlist);
             }
@@ -626,7 +668,6 @@ export function DropsidersTVPage() {
             if (data.startTime) {
                 setTvStartTime(data.startTime);
             }
-            // Continuous TV broadcast: keep playing currently active stream without resetting to 0!
         };
 
         let channel: BroadcastChannel | null = null;
@@ -640,6 +681,12 @@ export function DropsidersTVPage() {
         } catch {}
 
         const handleStorage = (e: StorageEvent) => {
+            if (e.key === STORAGE_TV_BLOCKS_KEY && e.newValue) {
+                try {
+                    const blks = JSON.parse(e.newValue);
+                    if (Array.isArray(blks) && blks.length > 0) setTvBlocks(blks);
+                } catch {}
+            }
             if (e.key === STORAGE_START_TIME_KEY && e.newValue) {
                 const st = parseInt(e.newValue, 10);
                 if (st) setTvStartTime(st);
@@ -666,13 +713,10 @@ export function DropsidersTVPage() {
         };
     }, []);
 
-    // Current main video
-    const currentMainVideo = playlist[currentIndex] || playlist[0];
+    // Current main video from active block
+    const currentMainVideo = activeBlockVideos[currentIndex] || activeBlockVideos[0];
 
-    // Current promo derived according to user's rule:
-    // Video 1 (index 0) -> Promo 1 (index 0)
-    // Video 2 (index 1) -> Promo 2 (index 1)
-    // Video 3 (index 2) -> Promo 3 or Promo 1 (index 2 % promos.length)
+    // Current promo derived according to rule:
     const currentPromoIndex = promos.length > 0 ? (currentIndex % promos.length) : null;
     const currentPromo = isPlayingPromo && currentPromoIndex !== null ? promos[currentPromoIndex] : null;
 
@@ -686,37 +730,37 @@ export function DropsidersTVPage() {
         : currentMainVideo?.title;
 
     // Next main video (skipping promos entirely) — used for the "À suivre" banner
-    const nextMainIndex = (currentIndex + 1) % (playlist.length || 1);
-    const nextMainVideo = playlist[nextMainIndex] || null;
+    const nextMainIndex = (currentIndex + 1) % (activeBlockVideos.length || 1);
+    const nextMainVideo = activeBlockVideos[nextMainIndex] || null;
 
     // EPG: list of upcoming main sets with projected start times (promos skipped)
     const upcomingMainSets = useMemo(() => {
-        if (playlist.length === 0 || epgTimeRemaining === null) return [];
+        if (activeBlockVideos.length === 0 || epgTimeRemaining === null) return [];
         const result: { video: TVVideo; startAt: Date }[] = [];
         let offset = epgTimeRemaining; // seconds until current video ends
         const now = new Date();
-        for (let i = 0; i < Math.min(8, playlist.length); i++) {
-            const idx = (nextMainIndex + i) % playlist.length;
-            const video = playlist[idx];
+        for (let i = 0; i < Math.min(8, activeBlockVideos.length); i++) {
+            const idx = (nextMainIndex + i) % activeBlockVideos.length;
+            const video = activeBlockVideos[idx];
             const startAt = new Date(now.getTime() + offset * 1000);
             result.push({ video, startAt });
             offset += video.duration ?? 3600;
         }
         return result;
-    }, [playlist, nextMainIndex, epgTimeRemaining]);
+    }, [activeBlockVideos, nextMainIndex, epgTimeRemaining]);
 
     // Next main video (skipping any active promo)
     const goNextMain = useCallback(() => {
         pendingSeekRef.current = 0; // Natural transition starts from beginning
         setIsPlayingPromo(false);
-        setCurrentIndex((prev) => (prev + 1) % (playlist.length || 1));
-    }, [playlist.length]);
+        setCurrentIndex((prev) => (prev + 1) % (activeBlockVideos.length || 1));
+    }, [activeBlockVideos.length]);
 
     // Go to previous main video
     const goPrev = () => {
         pendingSeekRef.current = 0;
         setIsPlayingPromo(false);
-        setCurrentIndex((prev) => (prev - 1 + playlist.length) % playlist.length);
+        setCurrentIndex((prev) => (prev - 1 + activeBlockVideos.length) % activeBlockVideos.length);
     };
 
     // Manual Skip always skips to next MAIN video directly
@@ -1145,17 +1189,20 @@ export function DropsidersTVPage() {
                                 {!isPlayingPromo && (
                                     <div
                                         className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border backdrop-blur-md transition-all"
-                                        style={{ color: activeBlock.hex, borderColor: `${activeBlock.hex}50`, background: `${activeBlock.hex}18` }}
+                                        style={{ color: activeScheduleBlock.color, borderColor: `${activeScheduleBlock.color}50`, background: `${activeScheduleBlock.color}18` }}
                                     >
-                                        <span>{activeBlock.emoji}</span>
-                                        <span>{activeBlock.label}</span>
+                                        <span>{activeScheduleBlock.emoji}</span>
+                                        <span>{activeScheduleBlock.name} : {activeScheduleBlock.title}</span>
+                                        {activeScheduleBlock.randomize && (
+                                            <span className="opacity-70 text-[8px]" title="Rotation aléatoire activée">🔀</span>
+                                        )}
                                     </div>
                                 )}
 
                                 {/* EPG Ticker: Dans Xmin → Prochain set */}
                                 {!isPlayingPromo && epgTimeRemaining !== null && nextMainVideo && (
                                     <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-[9px] font-bold uppercase tracking-wide text-white/45 max-w-xs overflow-hidden">
-                                        <Clock className="w-2.5 h-2.5 shrink-0" style={{ color: activeBlock.hex }} />
+                                        <Clock className="w-2.5 h-2.5 shrink-0" style={{ color: activeScheduleBlock.color }} />
                                         <span className="truncate">Dans {formatMins(epgTimeRemaining)} → {nextMainVideo.title}</span>
                                     </div>
                                 )}
@@ -1179,9 +1226,9 @@ export function DropsidersTVPage() {
                                     onClick={() => setShowEPG(prev => !prev)}
                                     className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto"
                                     title="Guide des programmes (G)"
-                                    style={{ borderColor: showEPG ? `${activeBlock.hex}80` : undefined, background: showEPG ? `${activeBlock.hex}25` : undefined }}
+                                    style={{ borderColor: showEPG ? `${activeScheduleBlock.color}80` : undefined, background: showEPG ? `${activeScheduleBlock.color}25` : undefined }}
                                 >
-                                    <CalendarDays className="w-3.5 h-3.5" style={{ color: activeBlock.hex }} />
+                                    <CalendarDays className="w-3.5 h-3.5" style={{ color: activeScheduleBlock.color }} />
                                     <span className="hidden sm:inline">Guide</span>
                                 </button>
 
@@ -1516,26 +1563,29 @@ export function DropsidersTVPage() {
 
                                 {/* Blocks timeline strip */}
                                 <div className="flex gap-2 mb-5 overflow-x-auto pb-1 shrink-0">
-                                    {TV_BLOCKS.map(block => {
-                                        const isActive = block.id === activeBlock.id;
+                                    {tvBlocks.map(block => {
+                                        const isActive = block.id === activeScheduleBlock.id;
                                         return (
                                             <div
                                                 key={block.id}
                                                 className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl border shrink-0 transition-all"
                                                 style={{
-                                                    background: isActive ? `${block.hex}20` : 'rgba(255,255,255,0.04)',
-                                                    borderColor: isActive ? `${block.hex}60` : 'rgba(255,255,255,0.08)',
+                                                    background: isActive ? `${block.color}20` : 'rgba(255,255,255,0.04)',
+                                                    borderColor: isActive ? `${block.color}60` : 'rgba(255,255,255,0.08)',
                                                 }}
                                             >
                                                 <span className="text-base">{block.emoji}</span>
                                                 <span
                                                     className="text-[7px] font-black uppercase tracking-widest whitespace-nowrap"
-                                                    style={{ color: isActive ? block.hex : 'rgba(255,255,255,0.30)' }}
+                                                    style={{ color: isActive ? block.color : 'rgba(255,255,255,0.30)' }}
                                                 >
-                                                    {String(block.startHour).padStart(2, '0')}h–{block.endHour === 24 ? '00' : String(block.endHour).padStart(2, '0')}h
+                                                    {block.timeSlot}
+                                                </span>
+                                                <span className="text-[9px] font-bold text-white/70 max-w-[90px] truncate text-center">
+                                                    {block.title}
                                                 </span>
                                                 {isActive && (
-                                                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: block.hex }} />
+                                                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: block.color }} />
                                                 )}
                                             </div>
                                         );
@@ -1545,15 +1595,15 @@ export function DropsidersTVPage() {
                                 {/* Current block banner */}
                                 <div
                                     className="mb-4 px-4 py-3 rounded-2xl border shrink-0"
-                                    style={{ background: `${activeBlock.hex}12`, borderColor: `${activeBlock.hex}40` }}
+                                    style={{ background: `${activeScheduleBlock.color}12`, borderColor: `${activeScheduleBlock.color}40` }}
                                 >
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-xs">{activeBlock.emoji}</span>
-                                        <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: activeBlock.hex }}>
-                                            {activeBlock.label}
+                                        <span className="text-xs">{activeScheduleBlock.emoji}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: activeScheduleBlock.color }}>
+                                            {activeScheduleBlock.name} · {activeScheduleBlock.title} ({activeScheduleBlock.timeSlot})
                                         </span>
                                         <span className="ml-auto flex items-center gap-1.5">
-                                            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: activeBlock.hex }} />
+                                            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: activeScheduleBlock.color }} />
                                             <span className="text-[8px] font-bold text-white/35 uppercase">En cours</span>
                                         </span>
                                     </div>

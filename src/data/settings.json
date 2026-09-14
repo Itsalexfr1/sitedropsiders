@@ -85,6 +85,255 @@
       "youtubeId": "61tiIdIrjUQ"
     }
   ],
+  "tv_blocks": [
+    {
+      "id": "bloc_1",
+      "name": "Bloc 1 · Clips",
+      "title": "Morning Clips",
+      "timeSlot": "06h - 10h",
+      "startHour": 6,
+      "endHour": 10,
+      "color": "#f59e0b",
+      "emoji": "🌅",
+      "randomize": true,
+      "videos": [
+        {
+          "id": "b1_1",
+          "title": "Tomorrowland Belgium 2026 | Official Aftermovie",
+          "description": "Diffusé sur DropsidersTV · Morning Clips",
+          "youtubeId": "k5yQBhDnrvM",
+          "duration": 900
+        },
+        {
+          "id": "b1_2",
+          "title": "Anyma | Live from Atomium - Brussels, Belgium",
+          "description": "Diffusé sur DropsidersTV · Morning Clips",
+          "youtubeId": "oRb_81stwy8",
+          "duration": 2700
+        },
+        {
+          "id": "b1_3",
+          "title": "Porter Robinson Live at EDC Las Vegas 2026 (Official Full Set)",
+          "description": "Diffusé sur DropsidersTV · Morning Clips",
+          "youtubeId": "zkT8FjfBjYI",
+          "duration": 3600
+        },
+        {
+          "id": "b1_4",
+          "title": "Paul Kalkbrenner | Tomorrowland 2023",
+          "description": "Diffusé sur DropsidersTV · Morning Clips",
+          "youtubeId": "NsBiI-LyVm4",
+          "duration": 4200
+        }
+      ]
+    },
+    {
+      "id": "bloc_2",
+      "name": "Bloc 2 · Relive Festivals",
+      "title": "Relive Festivals",
+      "timeSlot": "10h - 14h",
+      "startHour": 10,
+      "endHour": 14,
+      "color": "#06b6d4",
+      "emoji": "🎪",
+      "randomize": true,
+      "videos": [
+        {
+          "id": "b2_1",
+          "title": "Fisher WE2 | Tomorrowland 2026",
+          "description": "Diffusé sur DropsidersTV · Relive Festivals",
+          "youtubeId": "DuXXMZLfAkQ",
+          "duration": 4500
+        },
+        {
+          "id": "b2_2",
+          "title": "The Chainsmokers Live at EDC Las Vegas 2026 (Official Full Set)",
+          "description": "Diffusé sur DropsidersTV · Relive Festivals",
+          "youtubeId": "3AQ_Srbe1lQ",
+          "duration": 4200
+        },
+        {
+          "id": "b2_3",
+          "title": "Nicky Romero WE2 | Tomorrowland 2026",
+          "description": "Diffusé sur DropsidersTV · Relive Festivals",
+          "youtubeId": "TsyGMhx8izw",
+          "duration": 3600
+        },
+        {
+          "id": "b2_4",
+          "title": "Dimitri Vegas B2B Nico Moreno WE2 | Tomorrowland 2026",
+          "description": "Diffusé sur DropsidersTV · Relive Festivals",
+          "youtubeId": "OTKgBZS8if0",
+          "duration": 3600
+        },
+        {
+          "id": "b2_5",
+          "title": "Wiley Live @ Lost Lands 2025 - Full Set",
+          "description": "Diffusé sur DropsidersTV · Relive Festivals",
+          "youtubeId": "8YbWq5urfww",
+          "duration": 3600
+        }
+      ]
+    },
+    {
+      "id": "bloc_3",
+      "name": "Bloc 3 · Day Time",
+      "title": "Day Time",
+      "timeSlot": "14h - 18h",
+      "startHour": 14,
+      "endHour": 18,
+      "color": "#10b981",
+      "emoji": "☀️",
+      "randomize": true,
+      "videos": [
+        {
+          "id": "b3_1",
+          "title": "JOHN SUMMIT LIVE @ ULTRA MIAMI MAIN STAGE 2026",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "aloPGSlq31Y",
+          "duration": 4500
+        },
+        {
+          "id": "b3_2",
+          "title": "Laidback Luke B2B Chuckie Live at EDC Las Vegas 2026",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "IzsShRhd5cw",
+          "duration": 3600
+        },
+        {
+          "id": "b3_3",
+          "title": "Mau P | Awakenings Festival 2026",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "CNGB66x4ygk",
+          "duration": 5400
+        },
+        {
+          "id": "b3_4",
+          "title": "Tinlicker (DJ Set) Live at EDC Las Vegas 2026",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "WyMR1oHCCEo",
+          "duration": 4200
+        },
+        {
+          "id": "b3_5",
+          "title": "HAYLA Live at EDC Las Vegas 2026 (Official Full Set)",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "IIquvML5M4M",
+          "duration": 3600
+        }
+      ]
+    },
+    {
+      "id": "bloc_4",
+      "name": "Bloc 4 · Prime Time",
+      "title": "Prime Time Dropsiders",
+      "timeSlot": "18h - 00h",
+      "startHour": 18,
+      "endHour": 24,
+      "color": "#ff1241",
+      "emoji": "⭐",
+      "randomize": true,
+      "videos": [
+        {
+          "id": "b4_1",
+          "title": "DJ SNAKE LIVE @ ULTRA MIAMI MAIN STAGE 2026",
+          "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
+          "youtubeId": "hSq5aGvBJ04",
+          "duration": 4500
+        },
+        {
+          "id": "b4_2",
+          "title": "Swedish House Mafia Live at Ultra Music Festival (Miami 2026)",
+          "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
+          "youtubeId": "byHTUyYS7bA",
+          "duration": 5400
+        },
+        {
+          "id": "b4_3",
+          "title": "ERIC PRYDZ LIVE @ ULTRA MUSIC FESTIVAL MIAMI 2026",
+          "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
+          "youtubeId": "hU-z3iV0LOg",
+          "duration": 5400
+        },
+        {
+          "id": "b4_4",
+          "title": "Kaskade Live at EDC Las Vegas 2026",
+          "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
+          "youtubeId": "l5wro3bMZWc",
+          "duration": 4500
+        },
+        {
+          "id": "b4_5",
+          "title": "Ray Volpe Live @ Lost Lands 2025 - Full Set",
+          "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
+          "youtubeId": "nyaGV-jeST8",
+          "duration": 3600
+        },
+        {
+          "id": "b4_6",
+          "title": "WORSHIP @ ULTRA MUSIC FESTIVAL MIAMI 2026 | UMF",
+          "description": "Diffusé sur DropsidersTV · Prime Time Dropsiders",
+          "youtubeId": "V2lD_pq5c3M",
+          "duration": 4200
+        }
+      ]
+    },
+    {
+      "id": "bloc_5",
+      "name": "Bloc 5 · La Nuit",
+      "title": "La Nuit Dropsiders",
+      "timeSlot": "00h - 06h",
+      "startHour": 0,
+      "endHour": 6,
+      "color": "#8b5cf6",
+      "emoji": "🌙",
+      "randomize": true,
+      "videos": [
+        {
+          "id": "b5_1",
+          "title": "RÜFÜS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024",
+          "description": "Diffusé sur DropsidersTV · La Nuit Dropsiders",
+          "youtubeId": "eQ-OVsdK-hM",
+          "duration": 5400
+        },
+        {
+          "id": "b5_2",
+          "title": "Keinemusik (&ME, Rampa, Adam Port) - Mayan Warrior - Burning Man 2022",
+          "description": "Diffusé sur DropsidersTV · La Nuit Dropsiders",
+          "youtubeId": "2ECWX8GdDvA",
+          "duration": 7200
+        },
+        {
+          "id": "b5_3",
+          "title": "SVDDEN DEATH Presents: VOYD Live @ Lost Lands 2025 - Full Set",
+          "description": "Diffusé sur DropsidersTV · La Nuit Dropsiders",
+          "youtubeId": "DYlcCkyYDnA",
+          "duration": 4500
+        },
+        {
+          "id": "b5_4",
+          "title": "Carl Cox x Playground - Burning Man 2025",
+          "description": "Diffusé sur DropsidersTV · La Nuit Dropsiders",
+          "youtubeId": "iyCsXPYxa6k",
+          "duration": 5400
+        },
+        {
+          "id": "b5_5",
+          "title": "Joris Voorn Vinyl Only Techno Set | Upclose 2026",
+          "description": "Diffusé sur DropsidersTV · La Nuit Dropsiders",
+          "youtubeId": "4JkIGKt1AHw",
+          "duration": 5400
+        },
+        {
+          "id": "b5_6",
+          "title": "D-Block & S-te-Fan | Defqon.1 2026",
+          "description": "Diffusé sur DropsidersTV · La Nuit Dropsiders",
+          "youtubeId": "IEJUg98lIHs",
+          "duration": 3600
+        }
+      ]
+    }
+  ],
   "tv_playlist": [
     {
       "id": "tv_1789417248675",
