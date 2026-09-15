@@ -716,8 +716,7 @@
     "attachments": [],
     "date": "2026-09-15T11:18:25.187Z",
     "read": false,
-    "replied": false,
-    "archived": true
+    "replied": false
   },
   {
     "id": "1789473103296",
@@ -743,7 +742,8 @@
     "attachments": [],
     "date": "2026-09-15T12:19:55.430Z",
     "read": false,
-    "replied": false
+    "replied": false,
+    "archived": true
   },
   {
     "id": "1789476778488",
