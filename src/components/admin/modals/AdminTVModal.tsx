@@ -962,81 +962,68 @@ export function AdminTVModal({
                         {/* ========================================================= */}
                         {activeTab === 'blocks' && (
                             <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 flex flex-col min-h-0">
-                                {/* Info banner */}
-                                <div className="p-2 px-3 rounded-xl bg-gradient-to-r from-amber-500/10 via-neon-red/10 to-neon-purple/10 border border-white/10 flex items-center justify-between gap-2 shrink-0">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        <span className="text-sm">🕒</span>
-                                        <div className="flex items-center gap-2 min-w-0">
-                                            <h3 className="text-xs font-black uppercase text-white tracking-wider whitespace-nowrap">
-                                                Grille TV : 5 Blocs Horaires (24h/24)
-                                            </h3>
-                                            <span className="hidden md:inline text-[10px] text-white/50 truncate">
-                                                — Les vidéos tournent de manière aléatoire ou ordonnée, synchronisées en continu.
-                                            </span>
-                                        </div>
+                                {/* 5 Blocks Selector Header & Compact Tabs */}
+                                <div className="space-y-1.5 shrink-0">
+                                    <div className="flex items-center justify-between px-1">
+                                        <span className="text-[10px] font-black uppercase tracking-wider text-white/50">
+                                            Grille TV · 5 Blocs 24h
+                                        </span>
+                                        <span className="text-[10px] font-mono text-white/40">
+                                            {blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)} vidéos réparties
+                                        </span>
                                     </div>
-                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/5 border border-white/10 text-white/70 shrink-0">
-                                        {blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)} vidéos réparties
-                                    </span>
-                                </div>
 
-                                {/* 5 Blocks Selector Buttons */}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 md:gap-2 shrink-0">
-                                    {blocks.map(b => {
-                                        const isSelected = b.id === selectedBlockId;
-                                        const isLiveNow = getActiveTVBlock(blocks).id === b.id;
-                                        return (
-                                            <button
-                                                key={b.id}
-                                                type="button"
-                                                onClick={() => setSelectedBlockId(b.id)}
-                                                className={`relative p-2 sm:p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-1 overflow-hidden ${
-                                                    isSelected
-                                                        ? 'bg-white/[0.08] shadow-md scale-[1.01]'
-                                                        : 'bg-white/[0.02] hover:bg-white/[0.05] border-white/10 opacity-80 hover:opacity-100'
-                                                }`}
-                                                style={{
-                                                    borderColor: isSelected ? b.color : 'rgba(255,255,255,0.08)',
-                                                    boxShadow: isSelected ? `0 0 16px ${b.color}20` : undefined
-                                                }}
-                                            >
-                                                {/* Top accent line */}
-                                                <div 
-                                                    className="absolute top-0 left-0 right-0 h-0.5 transition-opacity"
-                                                    style={{ background: b.color, opacity: isSelected ? 1 : 0.3 }}
-                                                />
+                                    {/* 5 Blocks Selector Buttons */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 shrink-0">
+                                        {blocks.map(b => {
+                                            const isSelected = b.id === selectedBlockId;
+                                            const isLiveNow = getActiveTVBlock(blocks).id === b.id;
+                                            return (
+                                                <button
+                                                    key={b.id}
+                                                    type="button"
+                                                    onClick={() => setSelectedBlockId(b.id)}
+                                                    className={`group px-2.5 py-1.5 rounded-xl border text-left transition-all flex items-center justify-between gap-2 overflow-hidden ${
+                                                        isSelected
+                                                            ? 'bg-white/[0.08] shadow-sm'
+                                                            : 'bg-white/[0.02] hover:bg-white/[0.05] border-white/10 opacity-70 hover:opacity-100'
+                                                    }`}
+                                                    style={{
+                                                        borderColor: isSelected ? b.color : undefined,
+                                                        boxShadow: isSelected ? `0 0 12px ${b.color}20` : undefined,
+                                                    }}
+                                                >
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <span className="text-base shrink-0">{b.emoji}</span>
+                                                        <div className="min-w-0">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span 
+                                                                    className="text-xs font-black truncate"
+                                                                    style={{ color: isSelected ? b.color : 'white' }}
+                                                                >
+                                                                    {b.title}
+                                                                </span>
+                                                                {isLiveNow && (
+                                                                    <span className="w-1.5 h-1.5 rounded-full bg-neon-red animate-ping shrink-0" title="En direct" />
+                                                                )}
+                                                            </div>
+                                                            <div className="text-[9px] text-white/40 font-mono">
+                                                                {b.timeSlot}
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                                <div className="flex items-center justify-between gap-1">
-                                                    <div className="flex items-center gap-1.5 min-w-0">
-                                                        <span className="text-sm">{b.emoji}</span>
-                                                        <span className="text-[9px] font-black text-white/50 uppercase tracking-widest truncate">
-                                                            {b.name}
+                                                    <div className="flex items-center gap-1 shrink-0">
+                                                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono font-bold ${
+                                                            isSelected ? 'bg-white/15 text-white' : 'bg-white/5 text-white/40'
+                                                        }`}>
+                                                            {b.videos?.length || 0}
                                                         </span>
                                                     </div>
-                                                    {isLiveNow && (
-                                                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/20 text-neon-red text-[7px] font-black uppercase tracking-wider border border-red-500/30 animate-pulse shrink-0">
-                                                            <span className="w-1 h-1 rounded-full bg-neon-red" />
-                                                            EN DIRECT
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                <div className="min-w-0">
-                                                    <div className="text-[11px] font-black text-white truncate" style={{ color: isSelected ? b.color : undefined }}>
-                                                        {b.title}
-                                                    </div>
-                                                    <div className="text-[9px] font-bold text-white/40">
-                                                        {b.timeSlot}
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center justify-between text-[8px] font-black uppercase text-white/40 pt-1 border-t border-white/5">
-                                                    <span>{b.videos?.length || 0} lien{(b.videos?.length || 0) > 1 ? 's' : ''}</span>
-                                                    <span>{b.randomize ? '🔀 Aléatoire' : '➡️ Ordre'}</span>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
 
                                 {/* Selected Block Details & Link Management */}
@@ -1047,127 +1034,105 @@ export function AdminTVModal({
 
                                     return (
                                         <div 
-                                            className="p-3 sm:p-3.5 rounded-2xl border bg-black/40 backdrop-blur-md space-y-2.5 flex-1 flex flex-col min-h-0"
+                                            className="p-2.5 sm:p-3 rounded-xl border bg-black/40 backdrop-blur-md space-y-2 flex-1 flex flex-col min-h-0"
                                             style={{ borderColor: `${currentBlock.color}35` }}
                                         >
                                             {/* Header of selected block */}
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-white/10 shrink-0">
-                                                <div className="flex items-center gap-2.5">
-                                                    <div 
-                                                        className="w-8 h-8 rounded-xl flex items-center justify-center text-base border shrink-0"
-                                                        style={{ background: `${currentBlock.color}15`, borderColor: `${currentBlock.color}30` }}
-                                                    >
-                                                        {currentBlock.emoji}
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex items-center gap-2 flex-wrap">
-                                                            <h4 className="text-sm font-display font-black text-white uppercase italic tracking-tight">
-                                                                {currentBlock.name} : <span style={{ color: currentBlock.color }}>{currentBlock.title}</span>
-                                                            </h4>
-                                                            {isLiveNow && (
-                                                                <span className="px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase bg-red-500/20 text-neon-red border border-red-500/40 animate-pulse">
-                                                                    À l'antenne actuellement
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-[10px] text-white/50 font-medium">
-                                                            Créneau de diffusion : <strong className="text-white">{currentBlock.timeSlot}</strong> ({currentBlock.startHour}h00 à {currentBlock.endHour === 24 ? '00h00' : `${currentBlock.endHour}h00`})
-                                                        </p>
-                                                    </div>
+                                            <div className="flex items-center justify-between gap-3 pb-1.5 border-b border-white/10 shrink-0">
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <span className="text-base shrink-0">{currentBlock.emoji}</span>
+                                                    <span className="text-xs font-black uppercase tracking-wider" style={{ color: currentBlock.color }}>
+                                                        {currentBlock.title}
+                                                    </span>
+                                                    <span className="text-[10px] text-white/40 font-mono">
+                                                        ({currentBlock.timeSlot})
+                                                    </span>
+                                                    {isLiveNow && (
+                                                        <span className="px-1.5 py-0.2 rounded text-[7px] font-black uppercase bg-red-500/20 text-neon-red border border-red-500/40 animate-pulse">
+                                                            En direct
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 {/* Random rotation toggle */}
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleToggleBlockRandom(currentBlock.id)}
-                                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 border ${
-                                                            currentBlock.randomize
-                                                                ? 'bg-neon-purple/20 border-neon-purple/40 text-neon-purple'
-                                                                : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
-                                                        }`}
-                                                    >
-                                                        <span>🔀</span>
-                                                        <span>Rotation aléatoire : <strong>{currentBlock.randomize ? 'ACTIVÉE' : 'DÉSACTIVÉE'}</strong></span>
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleToggleBlockRandom(currentBlock.id)}
+                                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all flex items-center gap-1.5 border ${
+                                                        currentBlock.randomize
+                                                            ? 'bg-neon-purple/20 border-neon-purple/40 text-neon-purple'
+                                                            : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
+                                                    }`}
+                                                >
+                                                    <span>🔀</span>
+                                                    <span>Rotation aléatoire : <strong className="uppercase">{currentBlock.randomize ? 'Oui' : 'Non'}</strong></span>
+                                                </button>
                                             </div>
 
                                             {/* Add video form for this block */}
-                                            <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-1.5 shrink-0">
-                                                <div className="text-[9px] font-black uppercase tracking-widest text-white/60 flex items-center gap-1.5">
-                                                    <Plus className="w-3 h-3" style={{ color: currentBlock.color }} />
-                                                    Ajouter un lien YouTube à ce bloc ({currentBlock.title})
+                                            <div className="p-1.5 sm:p-2 rounded-lg bg-white/[0.02] border border-white/5 flex items-center gap-2 shrink-0">
+                                                <div className="flex-1 relative">
+                                                    <input
+                                                        type="text"
+                                                        value={blockVideoUrl}
+                                                        onChange={(e) => handleBlockUrlChange(e.target.value)}
+                                                        placeholder="Lien ou ID YouTube (ex: https://youtube.com/watch?v=...)"
+                                                        className="w-full px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30 font-mono"
+                                                    />
+                                                    {isFetchingBlockTitle && (
+                                                        <div className="absolute right-2.5 top-1.5 text-xs text-white/40">
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                        </div>
+                                                    )}
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-12 gap-1.5">
-                                                    <div className="md:col-span-6 relative">
-                                                        <input
-                                                            type="text"
-                                                            value={blockVideoUrl}
-                                                            onChange={(e) => handleBlockUrlChange(e.target.value)}
-                                                            placeholder="Lien YouTube ou ID (ex: https://youtube.com/watch?v=...)"
-                                                            className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
-                                                        />
-                                                        {isFetchingBlockTitle && (
-                                                            <div className="absolute right-3 top-2 text-xs text-white/40 flex items-center gap-1">
-                                                                <Loader2 className="w-3 h-3 animate-spin" />
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                <input
+                                                    type="text"
+                                                    value={blockVideoTitle}
+                                                    onChange={(e) => setBlockVideoTitle(e.target.value)}
+                                                    placeholder="Titre de la vidéo (auto-détecté ou personnalisé)"
+                                                    className="w-72 md:w-96 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
+                                                />
 
-                                                    <div className="md:col-span-4">
-                                                        <input
-                                                            type="text"
-                                                            value={blockVideoTitle}
-                                                            onChange={(e) => setBlockVideoTitle(e.target.value)}
-                                                            placeholder="Titre de la vidéo (auto-détecté ou personnalisé)"
-                                                            className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
-                                                        />
-                                                    </div>
-
-                                                    <div className="md:col-span-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleAddVideoToBlock}
-                                                            disabled={!blockVideoUrl.trim()}
-                                                            className="w-full h-full py-1.5 px-3 rounded-lg text-white text-xs font-black uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 shadow-md active:scale-95"
-                                                            style={{ background: currentBlock.color }}
-                                                        >
-                                                            <Plus className="w-3.5 h-3.5" />
-                                                            Ajouter
-                                                        </button>
-                                                    </div>
-                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddVideoToBlock}
+                                                    disabled={!blockVideoUrl.trim()}
+                                                    className="h-7 px-3 rounded-md text-white text-xs font-black uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 shadow-sm shrink-0 active:scale-95"
+                                                    style={{ background: currentBlock.color }}
+                                                >
+                                                    <Plus className="w-3.5 h-3.5" />
+                                                    Ajouter
+                                                </button>
                                             </div>
 
                                             {/* Video list inside this block */}
-                                            <div className="space-y-1.5 flex-1 min-h-0 flex flex-col">
-                                                <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-white/40 shrink-0">
+                                            <div className="space-y-1 flex-1 min-h-0 flex flex-col">
+                                                <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-white/40 shrink-0">
                                                     <span>Vidéos dans ce bloc ({currentBlock.videos?.length || 0})</span>
                                                     <span>Tourne aléatoirement chaque jour si l'option est activée</span>
                                                 </div>
 
                                                 {(!currentBlock.videos || currentBlock.videos.length === 0) ? (
-                                                    <div className="p-6 text-center rounded-xl bg-white/[0.02] border border-white/5">
+                                                    <div className="p-4 text-center rounded-lg bg-white/[0.02] border border-white/5">
                                                         <p className="text-xs font-bold text-white/40">Aucune vidéo dans ce bloc pour l'instant.</p>
                                                         <p className="text-[10px] text-white/20 mt-0.5">Collez un lien YouTube ci-dessus pour alimenter ce créneau horaire.</p>
                                                     </div>
                                                 ) : (
-                                                    <div className="space-y-1.5 flex-1 max-h-[360px] md:max-h-[460px] overflow-y-auto pr-1 custom-scrollbar">
+                                                    <div className="space-y-1 flex-1 max-h-[460px] overflow-y-auto pr-1 custom-scrollbar">
                                                         {currentBlock.videos.map((vid, idx) => {
                                                             const dur = durationsMap[vid.youtubeId] || vid.duration || 0;
                                                             return (
                                                                 <div
                                                                     key={vid.id || idx}
-                                                                    className="p-1.5 px-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 flex items-center justify-between gap-2.5 transition-colors group"
+                                                                    className="p-1 px-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 flex items-center justify-between gap-2 transition-colors group"
                                                                 >
                                                                     {/* Thumbnail + Index */}
-                                                                    <div className="flex items-center gap-2.5 min-w-0">
-                                                                        <span className="text-[11px] font-black text-white/30 w-4 text-center shrink-0">
+                                                                    <div className="flex items-center gap-2 min-w-0">
+                                                                        <span className="text-[10px] font-black text-white/30 w-4 text-center shrink-0">
                                                                             {idx + 1}
                                                                         </span>
-                                                                        <div className="relative w-16 h-10 rounded-lg overflow-hidden bg-black/50 shrink-0 border border-white/10">
+                                                                        <div className="relative w-14 h-8 rounded-md overflow-hidden bg-black/50 shrink-0 border border-white/10">
                                                                             <img
                                                                                 src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`}
                                                                                 alt={vid.title}
@@ -1177,7 +1142,7 @@ export function AdminTVModal({
                                                                                 }}
                                                                             />
                                                                             {dur > 0 && (
-                                                                                <span className="absolute bottom-0.5 right-0.5 px-1 rounded bg-black/80 text-[7px] font-black text-white">
+                                                                                <span className="absolute bottom-0.5 right-0.5 px-0.5 rounded bg-black/80 text-[7px] font-black text-white">
                                                                                     {formatDuration(dur)}
                                                                                 </span>
                                                                             )}
@@ -1187,7 +1152,7 @@ export function AdminTVModal({
                                                                             <h5 className="text-xs font-bold text-white truncate" title={vid.title}>
                                                                                 {vid.title}
                                                                             </h5>
-                                                                            <div className="flex items-center gap-2 mt-0.5 text-[9px] text-white/40">
+                                                                            <div className="flex items-center gap-2 text-[9px] text-white/40">
                                                                                 <span className="font-mono">ID: {vid.youtubeId}</span>
                                                                                 <a
                                                                                     href={`https://www.youtube.com/watch?v=${vid.youtubeId}`}
@@ -1204,12 +1169,12 @@ export function AdminTVModal({
                                                                     </div>
 
                                                                     {/* Actions */}
-                                                                    <div className="flex items-center gap-1 shrink-0">
+                                                                    <div className="flex items-center gap-0.5 shrink-0">
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => handleMoveVideoInBlock(currentBlock.id, idx, -1)}
                                                                             disabled={idx === 0}
-                                                                            className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
+                                                                            className="p-1 rounded bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
                                                                             title="Monter"
                                                                         >
                                                                             <ChevronUp className="w-3 h-3" />
@@ -1218,7 +1183,7 @@ export function AdminTVModal({
                                                                             type="button"
                                                                             onClick={() => handleMoveVideoInBlock(currentBlock.id, idx, 1)}
                                                                             disabled={idx === currentBlock.videos.length - 1}
-                                                                            className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
+                                                                            className="p-1 rounded bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
                                                                             title="Descendre"
                                                                         >
                                                                             <ChevronDown className="w-3 h-3" />
@@ -1226,7 +1191,7 @@ export function AdminTVModal({
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => handleRemoveVideoFromBlock(currentBlock.id, idx)}
-                                                                            className="p-1 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all ml-0.5"
+                                                                            className="p-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all ml-0.5"
                                                                             title="Supprimer ce lien"
                                                                         >
                                                                             <Trash2 className="w-3 h-3" />
