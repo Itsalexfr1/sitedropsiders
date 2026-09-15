@@ -55,3 +55,7 @@ public/uploads/
 
 # Scratch directory
 scratch/
+
+# Temporary Mail Import
+mails_import/
+*.zip

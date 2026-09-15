@@ -887,6 +887,8 @@ export function DropsidersTVPage() {
 
             try {
                 playerRef.current = new window.YT.Player('tv-yt-player', {
+                    width: '100%',
+                    height: '100%',
                     videoId: currentVideoId,
                     playerVars: {
                         autoplay: 1,
@@ -902,23 +904,30 @@ export function DropsidersTVPage() {
                         playsinline: 1,
                         enablejsapi: 1,
                         start: startSec,
-                        mute: isMuted ? 1 : 0
+                        mute: 1,
+                        origin: typeof window !== 'undefined' ? window.location.origin : undefined
                     },
                     events: {
                         onReady: (event: any) => {
                             disableCaptions(event.target);
+                            try {
+                                event.target.mute();
+                            } catch {}
+
                             if (startSec > 0) {
                                 try {
                                     event.target.seekTo(startSec, true);
                                 } catch {}
                             }
-                            if (isMuted) {
-                                event.target.mute();
-                            } else {
-                                event.target.unMute();
-                                event.target.setVolume(volume);
+                            if (!isMuted) {
+                                try {
+                                    event.target.unMute();
+                                    event.target.setVolume(volume);
+                                } catch {}
                             }
-                            event.target.playVideo();
+                            try {
+                                event.target.playVideo();
+                            } catch {}
                             setIsPlaying(true);
 
                             // Capture actual video duration for TV schedule precision
@@ -1035,16 +1044,31 @@ export function DropsidersTVPage() {
         }
     };
 
-    // Unmute on first user screen interaction if currently muted
+    // Unmute & ensure playback on user screen interaction
     const handleShieldClick = () => {
         resetControlsTimer();
-        if (isMuted && playerRef.current) {
-            playerRef.current.unMute();
-            playerRef.current.setVolume(volume > 0 ? volume : 80);
-            setIsMuted(false);
+        if (playerRef.current) {
             try {
-                localStorage.setItem('dropsiders_tv_muted', 'false');
+                if (typeof playerRef.current.getPlayerState === 'function') {
+                    const state = playerRef.current.getPlayerState();
+                    if (state !== 1) {
+                        playerRef.current.playVideo();
+                        setIsPlaying(true);
+                    }
+                } else if (typeof playerRef.current.playVideo === 'function') {
+                    playerRef.current.playVideo();
+                    setIsPlaying(true);
+                }
             } catch {}
+
+            if (isMuted && typeof playerRef.current.unMute === 'function') {
+                try {
+                    playerRef.current.unMute();
+                    playerRef.current.setVolume(volume > 0 ? volume : 80);
+                    setIsMuted(false);
+                    localStorage.setItem('dropsiders_tv_muted', 'false');
+                } catch {}
+            }
         }
     };
 
@@ -1270,13 +1294,37 @@ export function DropsidersTVPage() {
                         }}
                     />
 
-                    {/* Transparent Click Shield: DOES NOT trigger Play/Pause on click (user request), single click un-mutes, double click toggles fullscreen */}
+                    {/* Transparent Click Shield: on tap or click, ensures playback starts & un-mutes, double click toggles fullscreen */}
                     <div
                         onClick={handleShieldClick}
+                        onTouchEnd={handleShieldClick}
                         onDoubleClick={toggleFullscreen}
-                        className="absolute inset-0 z-10 cursor-default"
+                        className="absolute inset-0 z-10 cursor-pointer"
                         title={isMuted ? "Cliquer pour activer le son · Double-clic pour plein écran" : "Double-clic pour plein écran"}
                     />
+
+                    {/* Prominent Play Overlay when playback is not active (essential for mobile browser autoplay policy) */}
+                    {!isPlaying && !isAdminTVModalOpen && (
+                        <div
+                            onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                            onTouchEnd={(e) => { e.stopPropagation(); togglePlay(); }}
+                            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[2px] cursor-pointer pointer-events-auto"
+                        >
+                            <div className="flex flex-col items-center gap-3 p-6 rounded-3xl bg-black/85 border border-white/20 shadow-2xl active:scale-95 transition-transform">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-neon-red to-neon-purple flex items-center justify-center shadow-lg shadow-neon-red/50 animate-pulse">
+                                    <Play className="w-8 h-8 fill-white text-white ml-1" />
+                                </div>
+                                <div className="text-center">
+                                    <span className="text-white font-display font-black text-sm md:text-base uppercase tracking-wider block">
+                                        Lancer le direct
+                                    </span>
+                                    <span className="text-neon-cyan text-xs font-bold mt-1 block">
+                                        {activeScheduleBlock?.title}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* TV Logo Watermark */}
                     <div className="absolute bottom-20 md:bottom-24 right-6 z-20 pointer-events-none opacity-40 flex items-center gap-2">
