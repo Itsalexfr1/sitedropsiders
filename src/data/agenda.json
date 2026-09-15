@@ -1078,5 +1078,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1115,
+    "title": "EXPERTS ONLY FEST OFFICIAL AFTER PARTY",
+    "date": "2026-09-20",
+    "startDate": "2026-09-20",
+    "endDate": "2026-09-20",
+    "venue": "PACHA New York",
+    "location": "NEW YORK",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/e1924559107b092e-eo_nyc_after_party_20_square_1.webp",
+    "url": "https://www.pacha-nyc.com/event/experts-only-festival-afterparty-20-09-2026",
+    "genre": "Bass Music",
+    "month": "SEPTEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
