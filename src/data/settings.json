@@ -620,7 +620,148 @@
       "color": "#10b981",
       "emoji": "☀️",
       "randomize": true,
-      "videos": []
+      "videos": [
+        {
+          "id": "bv_1789459747370",
+          "title": "Will Sparks live from Berlin | Full Set at Ritter Butzke",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "tJzeG3rymfM",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459766740",
+          "title": "ÊTRE RÉSIDENT DE L'OPIUM ET DU PONEY CLUB, ÇA CHANGE QUOI ? (avec Thomas Pasko)",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "1w8LxYPTwu0",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459782170",
+          "title": "Kölsch - Secret Show l Tomorrowland Winter 2022",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "LJaEtzb64bg",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459830673",
+          "title": "A-Trak : \"J'ai fais découvrir les Daft Punk à Kanye West...\" - Objectif DJ Ep. 12",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "e2MTjWxP_NU",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459849506",
+          "title": "Solomun Live at EDC Las Vegas 2026 (Official Full Set)",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "g1vH9C_o-vo",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459920985",
+          "title": "COMMENT ON PASSE D'UN BAR EN STATION À TOMORROWLAND ? (avec Thomas Moulène)",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "xNVyYYvso6U",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459872842",
+          "title": "Pretty Pink live from Berlin | Full Set at Ritter Butzke",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "qbvk83Au_rE",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459888953",
+          "title": "Aazar : \"Le game des featuring c'est la mafia !\" - Objectif DJ Ep. 5",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "mVi4RgfsqI4",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459906777",
+          "title": "Afrojack B2B Shimza at Coachella 2026",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "hJWNAznIj-I",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459945323",
+          "title": "TRINIX : LES COULISSES DE LEURS SUCCÈS… ET LES GALÈRES",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "RmR74Vj6vlA",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459973511",
+          "title": "Joris Voorn Live at Green Valley - Camboriú, Brasil [2026 Full Set]",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "yQXb-bD8w1c",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459988425",
+          "title": "Upsilone  : « Je voulais pas qu'on me catalogue DJ Peignoir... » - Objectif DJ Ep. 3",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "paPKaGxWHuk",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789460019953",
+          "title": "Nicole Moudaber Rave The Planet Berlin 2026 afterparty @ Ritter Butzke - Live Set",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "NuQk0nx2OQQ",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789460035633",
+          "title": "PHILIPPE B : D.A. DE L'AMNÉSIA ET CO-CRÉATEUR DU WAREHOUSE NANTES !",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "hwY-2ghn9-Q",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789460068219",
+          "title": "RÜFÜS DU SOL (DJ SET) - Mayan Warrior - Burning Man 2024",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "eQ-OVsdK-hM",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789460079390",
+          "title": "Mercer : « Je me dis que c’est fini, faut que je trouve un taf normal » - Objectif DJ Ep. 1",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "4xOY5ga6b9U",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789460137854",
+          "title": "Adam Ten - MAXA x BiPolar Express Link up - Burning Man 2025",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "mBR6FccSbDM",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789460099113",
+          "title": "Immersion au cœur d'une édition exceptionnelle de Burning Man -Documentaire complet",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "OpsQPFpHdx0",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789460172737",
+          "title": "Carl Cox x Playground - Burning Man 2025",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "iyCsXPYxa6k",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789460187618",
+          "title": "TONY ROMERA: DE SES PREMIÈRES PRODS AUX PLUS GRANDES SALLES, LE PARCOURS SANS FILTRE DE TONY ROMERA.",
+          "description": "Diffusé sur DropsidersTV · Day Time",
+          "youtubeId": "w025jWxEvNQ",
+          "duration": 3600
+        }
+      ]
     },
     {
       "id": "bloc_4",
