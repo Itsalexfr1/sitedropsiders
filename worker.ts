@@ -5799,6 +5799,17 @@ ${urls.map(u => `  <url>
                     return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
                 }
 
+                // --- CHECK BLOCKED SENDERS ---
+                try {
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
+                    const blockedSenders = (settingsFile?.content?.blocked_senders || []).map((e: any) => String(e).toLowerCase().trim());
+                    if (blockedSenders.includes(String(email).toLowerCase().trim())) {
+                        return new Response(JSON.stringify({ error: 'Cet expéditeur est bloqué.' }), { status: 403, headers });
+                    }
+                } catch (errBlock) {
+                    console.error('Error checking blocked senders:', errBlock);
+                }
+
                 // --- HANDLE ATTACHMENTS ---
                 const processedAttachments: any[] = [];
                 const brevoAttachments: any[] = [];
@@ -6089,6 +6100,47 @@ ${urls.map(u => `  <url>
                 const updated = contacts.filter(c => !targetIds.includes(String(c.id)));
                 await saveGitHubFile(CONTACTS_PATH, updated, `Delete ${targetIds.length} contact(s): ${targetIds.slice(0, 5).join(', ')} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true, count: targetIds.length }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/contacts/blocked' && request.method === 'GET') {
+            try {
+                const settingsFile = await fetchGitHubFile('src/data/settings.json', { ...gitConfig, bypassCache: true });
+                const blocked = settingsFile?.content?.blocked_senders || [];
+                return new Response(JSON.stringify({ blocked_senders: Array.isArray(blocked) ? blocked : [] }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/contacts/block' && request.method === 'POST') {
+            try {
+                const body = await request.json().catch(() => ({}));
+                const targetEmail = String(body.email || '').toLowerCase().trim();
+                const shouldBlock = body.block !== false;
+
+                if (!targetEmail || !targetEmail.includes('@')) {
+                    return new Response(JSON.stringify({ error: 'Adresse email invalide' }), { status: 400, headers });
+                }
+
+                const SETTINGS_PATH = 'src/data/settings.json';
+                const settingsFile = await fetchGitHubFile(SETTINGS_PATH, { ...gitConfig, bypassCache: true }) || { content: {}, sha: null };
+                const settings = settingsFile.content || {};
+                let currentBlocked: string[] = Array.isArray(settings.blocked_senders) ? settings.blocked_senders : [];
+
+                if (shouldBlock) {
+                    if (!currentBlocked.some(e => String(e).toLowerCase().trim() === targetEmail)) {
+                        currentBlocked = [...currentBlocked, targetEmail];
+                    }
+                } else {
+                    currentBlocked = currentBlocked.filter(e => String(e).toLowerCase().trim() !== targetEmail);
+                }
+
+                settings.blocked_senders = currentBlocked;
+                await saveGitHubFile(SETTINGS_PATH, settings, `${shouldBlock ? 'Block' : 'Unblock'} contact sender: ${targetEmail} [skip ci] [CF-Pages-Skip]`, settingsFile.sha, gitConfig);
+                return new Response(JSON.stringify({ success: true, blocked_senders: currentBlocked }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
             }

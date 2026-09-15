@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck } from 'lucide-react';
 import { getAuthHeaders, isSuperAdmin, apiFetch, hasPermission } from '../utils/auth';
 
 const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
@@ -152,7 +152,33 @@ export function AdminMessages() {
     const [replyError, setReplyError] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [notification, setNotification] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
-    const [mailboxTab, setMailboxTab] = useState<'inbox' | 'sent' | 'archived'>('inbox');
+    const [mailboxTab, setMailboxTab] = useState<'inbox' | 'sent' | 'archived' | 'blocked'>('inbox');
+    
+    // Blocked senders state
+    const [blockedSenders, setBlockedSenders] = useState<string[]>(() => {
+        try {
+            return JSON.parse(localStorage.getItem('dropsiders_blocked_senders') || '[]');
+        } catch {
+            return [];
+        }
+    });
+    const [blockConfirm, setBlockConfirm] = useState<{ email: string; name: string; msgId?: string } | null>(null);
+    const [alsoDeleteMessageOnBlock, setAlsoDeleteMessageOnBlock] = useState(false);
+    const [isBlockingAction, setIsBlockingAction] = useState(false);
+    const [manualBlockEmail, setManualBlockEmail] = useState('');
+    const [blockedSearchQuery, setBlockedSearchQuery] = useState('');
+
+    const filteredBlockedSenders = useMemo(() => {
+        if (!blockedSearchQuery.trim()) return blockedSenders;
+        const q = blockedSearchQuery.toLowerCase().trim();
+        return blockedSenders.filter(e => e.toLowerCase().includes(q));
+    }, [blockedSenders, blockedSearchQuery]);
+
+    const isEmailBlocked = (email?: string) => {
+        if (!email) return false;
+        return blockedSenders.includes(email.toLowerCase().trim());
+    };
+
     const [sentMessages, setSentMessages] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string; attachments?: { name: string; url?: string; size: number }[] }[]>(() => {
         try { return JSON.parse(localStorage.getItem('dropsiders_sent_messages') || '[]'); } catch { return []; }
     });
@@ -257,10 +283,115 @@ export function AdminMessages() {
         }
     };
 
+    const fetchBlockedSenders = async () => {
+        try {
+            const res = await apiFetch(`/api/contacts/blocked?t=${Date.now()}`, {
+                headers: getAuthHeaders(),
+                cache: 'no-store'
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data.blocked_senders)) {
+                    const clean = data.blocked_senders.map((e: any) => String(e).toLowerCase().trim());
+                    setBlockedSenders(clean);
+                    localStorage.setItem('dropsiders_blocked_senders', JSON.stringify(clean));
+                }
+            } else {
+                // Fallback to /api/settings
+                const settingsRes = await apiFetch(`/api/settings?t=${Date.now()}`, {
+                    headers: getAuthHeaders(),
+                    cache: 'no-store'
+                });
+                if (settingsRes.ok) {
+                    const sData = await settingsRes.json();
+                    if (Array.isArray(sData.blocked_senders)) {
+                        const clean = sData.blocked_senders.map((e: any) => String(e).toLowerCase().trim());
+                        setBlockedSenders(clean);
+                        localStorage.setItem('dropsiders_blocked_senders', JSON.stringify(clean));
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error fetching blocked senders:', e);
+        }
+    };
 
     useEffect(() => {
         fetchMessages();
+        fetchBlockedSenders();
     }, []);
+
+    const handleBlockSender = async (email: string, andDeleteMsgId?: string) => {
+        const cleanEmail = email.toLowerCase().trim();
+        if (!cleanEmail || !cleanEmail.includes('@')) {
+            showNotif('error', 'Adresse email invalide');
+            return;
+        }
+
+        setIsBlockingAction(true);
+        // Optimistic update
+        const nextBlocked = Array.from(new Set([...blockedSenders, cleanEmail]));
+        setBlockedSenders(nextBlocked);
+        localStorage.setItem('dropsiders_blocked_senders', JSON.stringify(nextBlocked));
+
+        if (andDeleteMsgId) {
+            handleDelete(andDeleteMsgId);
+        }
+
+        setBlockConfirm(null);
+        showNotif('success', `L'expéditeur ${cleanEmail} a été bloqué.`);
+
+        try {
+            const res = await fetch('/api/contacts/block', {
+                method: 'POST',
+                headers: {
+                    ...getAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: cleanEmail, block: true })
+            });
+            if (!res.ok) {
+                console.error('Failed to block on server');
+                fetchBlockedSenders();
+            }
+        } catch (e) {
+            console.error('Error blocking sender:', e);
+            fetchBlockedSenders();
+        } finally {
+            setIsBlockingAction(false);
+        }
+    };
+
+    const handleUnblockSender = async (email: string) => {
+        const cleanEmail = email.toLowerCase().trim();
+        setIsBlockingAction(true);
+
+        // Optimistic update
+        const nextBlocked = blockedSenders.filter(e => e !== cleanEmail);
+        setBlockedSenders(nextBlocked);
+        localStorage.setItem('dropsiders_blocked_senders', JSON.stringify(nextBlocked));
+        showNotif('success', `L'expéditeur ${cleanEmail} a été débloqué.`);
+
+        try {
+            const res = await fetch('/api/contacts/block', {
+                method: 'POST',
+                headers: {
+                    ...getAuthHeaders(),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: cleanEmail, block: false })
+            });
+            if (!res.ok) {
+                console.error('Failed to unblock on server');
+                fetchBlockedSenders();
+            }
+        } catch (e) {
+            console.error('Error unblocking sender:', e);
+            fetchBlockedSenders();
+        } finally {
+            setIsBlockingAction(false);
+        }
+    };
 
     const openMessage = async (msg: ContactMessage) => {
         setSelected(msg);
@@ -935,12 +1066,13 @@ Alex (Dropsiders)`;
             <div className="max-w-full mx-auto flex flex-1 min-h-0 w-full overflow-hidden px-0 md:px-8">
                 {/* LEFT: Message List */}
                 <div className={`${(selected || selectedSent || selectedArchived) ? 'hidden md:flex' : 'flex'} w-full md:w-[500px] lg:w-[550px] xl:w-[600px] flex-shrink-0 flex-col h-full min-h-0`} style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
-                    {/* Inbox / Sent tabs */}
+                    {/* Inbox / Sent / Archived / Blocked tabs */}
                     <div className="flex shrink-0 px-2 pt-2 gap-1 overflow-x-auto no-scrollbar" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                         {[
                             { id: 'inbox', label: 'Reçus', icon: <Inbox className="w-3 h-3 shrink-0" />, count: filteredMessages.length, color: '#ff1241', active: mailboxTab === 'inbox', onClick: () => { setMailboxTab('inbox'); setSelectedSent(null); setSelectedArchived(null); } },
                             { id: 'sent', label: 'Envoyés', icon: <Send className="w-3 h-3 shrink-0" />, count: sentMessages.length, color: '#00FFFF', active: mailboxTab === 'sent', onClick: () => { setMailboxTab('sent'); setSelected(null); setSelectedArchived(null); } },
-                            { id: 'archived', label: 'Archivés', icon: <Archive className="w-3 h-3 shrink-0" />, count: archivedMessages.length, color: '#BF00FF', active: mailboxTab === 'archived', onClick: () => { setMailboxTab('archived'); setSelected(null); setSelectedSent(null); } }
+                            { id: 'archived', label: 'Archivés', icon: <Archive className="w-3 h-3 shrink-0" />, count: archivedMessages.length, color: '#BF00FF', active: mailboxTab === 'archived', onClick: () => { setMailboxTab('archived'); setSelected(null); setSelectedSent(null); } },
+                            { id: 'blocked', label: 'Bloqués', icon: <Ban className="w-3 h-3 shrink-0" />, count: blockedSenders.length, color: '#ff0033', active: mailboxTab === 'blocked', onClick: () => { setMailboxTab('blocked'); setSelected(null); setSelectedSent(null); setSelectedArchived(null); } }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -1055,6 +1187,88 @@ Alex (Dropsiders)`;
                                     ))}
                                 </div>
                             )
+                        ) : mailboxTab === 'blocked' ? (
+                            <div className="p-3 sm:p-4 space-y-3">
+                                <div className="space-y-2">
+                                    <input
+                                        type="text"
+                                        value={blockedSearchQuery}
+                                        onChange={(e) => setBlockedSearchQuery(e.target.value)}
+                                        placeholder="Rechercher dans les bloqués..."
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500/40 transition-colors"
+                                    />
+                                    <form
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            if (manualBlockEmail.trim() && manualBlockEmail.includes('@')) {
+                                                handleBlockSender(manualBlockEmail.trim());
+                                                setManualBlockEmail('');
+                                            }
+                                        }}
+                                        className="flex items-center gap-1.5"
+                                    >
+                                        <input
+                                            type="email"
+                                            value={manualBlockEmail}
+                                            onChange={(e) => setManualBlockEmail(e.target.value)}
+                                            placeholder="Bloquer un email..."
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500/40 min-w-0"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={!manualBlockEmail.includes('@') || isBlockingAction}
+                                            className="px-3 py-2 bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 disabled:opacity-40 disabled:pointer-events-none rounded-xl text-xs font-black uppercase tracking-wider transition-all shrink-0 flex items-center gap-1"
+                                        >
+                                            <Ban className="w-3 h-3" />
+                                            <span>Bloquer</span>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                {filteredBlockedSenders.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+                                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10">
+                                            <Ban className="w-5 h-5 text-gray-500" />
+                                        </div>
+                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                            {blockedSearchQuery ? 'Aucun résultat trouvé' : 'Aucun expéditeur bloqué'}
+                                        </p>
+                                        <p className="text-[10px] text-gray-600 max-w-xs leading-relaxed">
+                                            {blockedSearchQuery ? 'Vérifiez l\'orthographe de l\'adresse email' : 'Bloquez des spammeurs directement depuis un message ou saisissez une adresse email ci-dessus.'}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-1.5">
+                                        {filteredBlockedSenders.map(email => {
+                                            const historyCount = messages.filter(m => m.email?.toLowerCase().trim() === email).length;
+                                            return (
+                                                <div
+                                                    key={email}
+                                                    className="p-3 rounded-xl bg-white/[0.03] border border-white/8 hover:border-red-500/30 transition-all flex items-center justify-between gap-2 group"
+                                                >
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-[0_0_8px_rgba(255,18,65,0.6)]" />
+                                                            <span className="text-xs font-bold text-white truncate font-mono">{email}</span>
+                                                        </div>
+                                                        <span className="text-[10px] text-gray-500 font-medium mt-0.5 block pl-3.5">
+                                                            {historyCount} message{historyCount > 1 ? 's' : ''} reçu{historyCount > 1 ? 's' : ''}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleUnblockSender(email)}
+                                                        disabled={isBlockingAction}
+                                                        className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all shrink-0 flex items-center gap-1"
+                                                    >
+                                                        <ShieldCheck className="w-3 h-3" />
+                                                        <span>Débloquer</span>
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                         ) : mailboxTab === 'archived' ? (
                             filteredArchivedMessages.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-64 gap-3">
@@ -1091,6 +1305,11 @@ Alex (Dropsiders)`;
                                                         <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>{msg.subject}</span>
                                                         {msg.recipient && msg.recipient.toLowerCase() !== 'contact@dropsiders.fr' && (
                                                             <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,255,255,0.08)', border: '1px solid rgba(0,255,255,0.15)', color: '#00FFFF' }}>→ {msg.recipient.split('@')[0]}</span>
+                                                        )}
+                                                        {isEmailBlocked(msg.email) && (
+                                                            <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-red-500/15 border border-red-500/30 text-red-400 flex items-center gap-0.5">
+                                                                <Ban className="w-2.5 h-2.5 shrink-0" /> Bloqué
+                                                            </span>
                                                         )}
                                                     </div>
                                                     <p className="text-[10px] truncate mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>{msg.message}</p>
@@ -1172,6 +1391,11 @@ Alex (Dropsiders)`;
                                                     <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>{msg.subject}</span>
                                                     {msg.recipient && msg.recipient.toLowerCase() !== 'contact@dropsiders.fr' && (
                                                         <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,255,255,0.08)', border: '1px solid rgba(0,255,255,0.15)', color: '#00FFFF' }}>→ {msg.recipient.split('@')[0]}</span>
+                                                    )}
+                                                    {isEmailBlocked(msg.email) && (
+                                                        <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-red-500/15 border border-red-500/30 text-red-400 flex items-center gap-0.5">
+                                                            <Ban className="w-2.5 h-2.5 shrink-0" /> Bloqué
+                                                        </span>
                                                     )}
                                                 </div>
                                                 <p className={`text-[10px] truncate mt-1 ${msg.read ? '' : 'font-semibold'}`} style={{ color: msg.read ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.65)' }}>{msg.message}</p>
@@ -1274,6 +1498,37 @@ Alex (Dropsiders)`;
                                         </button>
                                     )}
 
+                                    {(selected || selectedArchived) && (
+                                        isEmailBlocked((selected || selectedArchived)?.email) ? (
+                                            <button
+                                                onClick={() => handleUnblockSender((selected || selectedArchived)!.email)}
+                                                disabled={isBlockingAction}
+                                                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 rounded-xl transition-all text-xs font-black uppercase active:scale-95"
+                                                title="Débloquer l'expéditeur"
+                                            >
+                                                <ShieldCheck className="w-4 h-4 shrink-0" />
+                                                <span className="text-[10px]">Débloquer</span>
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => {
+                                                    setAlsoDeleteMessageOnBlock(false);
+                                                    setBlockConfirm({
+                                                        email: (selected || selectedArchived)!.email,
+                                                        name: (selected || selectedArchived)!.name,
+                                                        msgId: (selected || selectedArchived)!.id
+                                                    });
+                                                }}
+                                                disabled={isBlockingAction}
+                                                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-500/10 border border-red-500/30 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-xl transition-all text-xs font-black uppercase active:scale-95"
+                                                title="Bloquer l'expéditeur"
+                                            >
+                                                <Ban className="w-4 h-4 shrink-0" />
+                                                <span className="text-[10px]">Bloquer</span>
+                                            </button>
+                                        )
+                                    )}
+
                                     {selected && (
                                         <button
                                             onClick={() => handleArchive(selected)}
@@ -1306,6 +1561,23 @@ Alex (Dropsiders)`;
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Blocked Sender Warning Banner */}
+                            {isEmailBlocked((selected || selectedArchived)?.email) && (
+                                <div className="mb-4 p-3.5 rounded-2xl bg-red-500/10 border border-red-500/25 flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2.5 text-xs text-red-400 font-bold min-w-0">
+                                        <ShieldAlert className="w-4 h-4 shrink-0 text-red-400" />
+                                        <span className="truncate">Cet expéditeur est bloqué. Ses futurs messages sont rejetés.</span>
+                                    </div>
+                                    <button
+                                        onClick={() => handleUnblockSender((selected || selectedArchived)!.email)}
+                                        disabled={isBlockingAction}
+                                        className="px-3 py-1 text-[10px] font-black uppercase tracking-wider bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-colors shrink-0"
+                                    >
+                                        Débloquer
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Message Body */}
                             <div className="rounded-2xl p-4 sm:p-6 max-w-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
@@ -1365,6 +1637,30 @@ Alex (Dropsiders)`;
                                 </div>
                             )}
                         </motion.div>
+                    ) : mailboxTab === 'blocked' ? (
+                        <div className="flex flex-col items-center justify-center h-full p-8 text-center max-w-md mx-auto">
+                            <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-red-500/10 border border-red-500/25 mb-4 shadow-[0_0_25px_rgba(255,18,65,0.15)]">
+                                <Ban className="w-8 h-8 text-red-500" />
+                            </div>
+                            <h2 className="text-lg font-black uppercase italic tracking-tight text-white mb-2">
+                                Gestion des expéditeurs bloqués
+                            </h2>
+                            <p className="text-xs text-gray-400 leading-relaxed mb-6">
+                                Les adresses email bloquées ne peuvent plus envoyer de formulaire de contact sur le site. Leurs futures soumissions seront automatiquement rejetées.
+                            </p>
+                            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 w-full text-left space-y-2.5">
+                                <div className="flex items-center justify-between text-xs font-bold">
+                                    <span className="text-gray-400">Total expéditeurs bloqués :</span>
+                                    <span className="text-red-400 font-black">{blockedSenders.length}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs font-bold">
+                                    <span className="text-gray-400">Messages dans l'historique :</span>
+                                    <span className="text-white font-black">
+                                        {messages.filter(m => isEmailBlocked(m.email)).length}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center h-full gap-5">
                             <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -1992,6 +2288,63 @@ Alex (Dropsiders)`;
                                 <button onClick={() => setBulkDeleteConfirm(false)} className="flex-1 py-2.5 bg-white/5 rounded-xl text-sm font-bold hover:bg-white/10">Annuler</button>
                                 <button onClick={handleBulkDelete} className="flex-1 py-2.5 bg-neon-red rounded-xl text-white text-sm font-black hover:bg-neon-red/80">
                                     Supprimer {bulkSelected.size}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Block Sender Confirm Modal */}
+            <AnimatePresence>
+                {blockConfirm && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.9 }}
+                            className="bg-[#111] border border-white/10 rounded-2xl p-6 sm:p-8 w-full max-w-md text-center shadow-2xl"
+                        >
+                            <div className="p-4 bg-red-500/10 rounded-full border border-red-500/25 inline-flex mb-4">
+                                <Ban className="w-7 h-7 text-red-500" />
+                            </div>
+                            <h3 className="text-lg font-black uppercase italic mb-2 text-white">Bloquer cet expéditeur ?</h3>
+                            <p className="text-gray-400 text-xs sm:text-sm mb-4 leading-relaxed">
+                                L'adresse <strong className="text-neon-red font-mono">{blockConfirm.email}</strong> sera ajoutée à la liste des expéditeurs bloqués. Ses futurs messages seront rejetés.
+                            </p>
+                            
+                            {blockConfirm.msgId && (
+                                <label className="flex items-center justify-center gap-2.5 p-3 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/8 transition-colors mb-6 text-left">
+                                    <input
+                                        type="checkbox"
+                                        checked={alsoDeleteMessageOnBlock}
+                                        onChange={(e) => setAlsoDeleteMessageOnBlock(e.target.checked)}
+                                        className="rounded border-gray-600 text-neon-red focus:ring-neon-red w-4 h-4 cursor-pointer"
+                                    />
+                                    <span className="text-xs font-bold text-gray-300 select-none">
+                                        Supprimer également ce message maintenant
+                                    </span>
+                                </label>
+                            )}
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setBlockConfirm(null)}
+                                    className="flex-1 py-2.5 bg-white/5 rounded-xl text-xs sm:text-sm font-bold hover:bg-white/10 transition-colors"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    onClick={() => handleBlockSender(blockConfirm.email, alsoDeleteMessageOnBlock ? blockConfirm.msgId : undefined)}
+                                    disabled={isBlockingAction}
+                                    className="flex-1 py-2.5 bg-neon-red rounded-xl text-white text-xs sm:text-sm font-black hover:bg-neon-red/80 transition-all shadow-[0_0_20px_rgba(255,18,65,0.4)] disabled:opacity-50"
+                                >
+                                    {isBlockingAction ? 'Blocage...' : 'Confirmer le blocage'}
                                 </button>
                             </div>
                         </motion.div>
