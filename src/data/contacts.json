@@ -1018,28 +1018,15 @@
     "replied": false
   },
   {
-    "id": "1789498665081",
+    "id": "1789498719645",
     "name": "Mail Delivery System",
     "email": "MAILER-DAEMON@mail48.lwspanel.com",
     "subject": "Undelivered Mail Returned to Sender",
-    "message": "This is the mail system at host mail48.lwspanel.com.\n\nI'm sorry to have to inform you that your message could not\nbe delivered to one or more recipients. It's attached below.\n\nFor further assistance, please send mail to postmaster.\n\nIf you do so, please include this problem report. You can\ndelete your own text from the attached returned message.\n\n                   The mail system\n\n<paulcl66@btinternet.com>: 421 421 Bloquer 20 min pour spam - Essayer plus tard\n    - blocked 20 min for spam. Try again later\n    (https://aide.lws.fr/a/1750#L-SPAM00) [L-SPAM00 alex@dropsiders.fr]\n\n",
+    "message": "This is the mail system at host mail48.lwspanel.com.\n\nI'm sorry to have to inform you that your message could not\nbe delivered to one or more recipients. It's attached below.\n\nFor further assistance, please send mail to postmaster.\n\nIf you do so, please include this problem report. You can\ndelete your own text from the attached returned message.\n\n                   The mail system\n\n<martinbury829@gmail.com>: 421 421 Bloquer 20 min pour spam - Essayer plus tard\n    - blocked 20 min for spam. Try again later\n    (https://aide.lws.fr/a/1750#L-SPAM00) [L-SPAM00 alex@dropsiders.fr]\n\n",
     "html": null,
     "recipient": "alex@dropsiders.fr",
     "attachments": [],
-    "date": "2026-09-15T18:57:45.081Z",
-    "read": false,
-    "replied": false
-  },
-  {
-    "id": "1789498709938",
-    "name": "Mail Delivery System",
-    "email": "MAILER-DAEMON@mail48.lwspanel.com",
-    "subject": "Undelivered Mail Returned to Sender",
-    "message": "This is the mail system at host mail48.lwspanel.com.\n\nI'm sorry to have to inform you that your message could not\nbe delivered to one or more recipients. It's attached below.\n\nFor further assistance, please send mail to postmaster.\n\nIf you do so, please include this problem report. You can\ndelete your own text from the attached returned message.\n\n                   The mail system\n\n<nita_rita_08@hotmail.com>: 421 421 Bloquer 20 min pour spam - Essayer plus\n    tard - blocked 20 min for spam. Try again later\n    (https://aide.lws.fr/a/1750#L-SPAM00) [L-SPAM00 alex@dropsiders.fr]\n\n",
-    "html": null,
-    "recipient": "alex@dropsiders.fr",
-    "attachments": [],
-    "date": "2026-09-15T18:58:29.938Z",
+    "date": "2026-09-15T18:58:39.645Z",
     "read": false,
     "replied": false
   }
