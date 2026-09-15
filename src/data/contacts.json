@@ -1133,5 +1133,18 @@
     "date": "2026-09-15T19:23:59.836Z",
     "read": false,
     "replied": false
+  },
+  {
+    "id": "1789500604194",
+    "name": "Serveur Mail LWS",
+    "email": "noreply@lws.fr",
+    "subject": "Blocage pour spam de l'adresse mail : alex@dropsiders.fr",
+    "message": "\nEnglish version below.\n\nBonjour, \n\nNous vous informons que votre adresse e-mail a été bloquée pour incident de spam.\n\nUn nombre trop important de spams a été détecté en provenance de votre adresse \ne-mail : alex@dropsiders.fr . \n\nC’est pourquoi, vous ne pouvez plus effectuer d’envoi de mail depuis votre \nadresse, toutefois la réception des mails reste fonctionnelle. \n\nLe code d'erreur obtenu est : L-SPAM10\n\nAfin de visualiser les codes d’erreur possible qui peuvent être générés durant \nce blocage, nous vous invitons à consulter ce lien :\nhttps://aide.lws.fr/base/Email/Adresses-mail--Premiers-pas/Email-Erreurs-possibles .\n\nVous pouvez réactiver votre adresse e-mail en suivant ces deux étapes : \n\n  * Modifiez votre mot de passe depuis votre espace client LWS en suivant cette \n    procédure : https://aide.lws.fr/base/Email/Adresses-mail--Premiers-pas/Comment-modifier-le-mot-de-passe-dune-adresse-mail\n\n  * Effectuez une analyse anti-virus sur le poste où est configuré votre compte \n    e-mail.\n    \n--------------------------------------------------------------\n+  LIGNE WEB SERVICES\n+  10, RUE PENTHIEVRE\n+  75008 PARIS - FRANCE\n-------------------------------------------------------------- \n\n----------------------------------------------------------------------------\n                          English version \n----------------------------------------------------------------------------\n\nHello,\n\nWe inform you that your email address is blocked for spam incident.\n\nToo many email have been detected from your email address : alex@dropsiders.fr . \n\nThat’s why you can’t send email from your email address, however, email reception \nis functional.\n\nError code is : L-SPAM10\n\nTo see possible error code which can be generate during this blocking, we invite \nyou to consult this link : \nhttps://aide.lws.fr/base/Email/Adresses-mail--Premiers-pas/Email-Erreurs-possibles.\n\nYou can reactivate your email address by following this two steps :\n\n   1. Change your password from your customer portal LWS by following this \n      procedure : \n      https://aide.lws.fr/base/Email/Adresses-mail--Premiers-pas/Comment-modifier-le-mot-de-passe-dune-adresse-mail\n\n   2. Do an antivirus scan on the computer where your mail address is configured\n\nBest Regards.\n\n--------------------------------------------------------------\n+  LIGNE WEB SERVICES\n+  10, RUE PENTHIEVRE\n+  75008 PARIS - FRANCE\n-------------------------------------------------------------- \n\n\n",
+    "html": null,
+    "recipient": "alex@dropsiders.fr",
+    "attachments": [],
+    "date": "2026-09-15T19:30:04.194Z",
+    "read": false,
+    "replied": false
   }
 ]
