@@ -685,7 +685,7 @@
     "recipient": "alex@dropsiders.fr",
     "attachments": [],
     "date": "2026-09-15T10:32:49.613Z",
-    "read": false,
+    "read": true,
     "replied": false
   },
   {
@@ -714,7 +714,7 @@
       }
     ],
     "date": "2026-09-15T10:39:30.041Z",
-    "read": true,
+    "read": false,
     "replied": false
   }
 ]
