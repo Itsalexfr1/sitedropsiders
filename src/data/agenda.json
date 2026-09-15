@@ -1040,5 +1040,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 1113,
+    "title": "EXPERTS ONLY FEST OFFICIAL PRE-PARTY",
+    "date": "2026-09-18",
+    "startDate": "2026-09-18",
+    "endDate": "2026-09-18",
+    "venue": "Edge at hudson yards",
+    "location": "NEW YORK",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Clubs",
+    "image": "/uploads/uploads/64fe872fca591257-261018_mqsd_expertsonly_1080x1.webp",
+    "url": "https://www.expertsonlyfest.com/afterparties",
+    "genre": "Tech House",
+    "month": "SEPTEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
