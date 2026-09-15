@@ -860,5 +860,18 @@
     "date": "2026-09-15T15:36:43.521Z",
     "read": false,
     "replied": false
+  },
+  {
+    "id": "1789490728074",
+    "name": "Mail Delivery System",
+    "email": "MAILER-DAEMON@mail48.lwspanel.com",
+    "subject": "Undelivered Mail Returned to Sender",
+    "message": "This is the mail system at host mail48.lwspanel.com.\n\nI'm sorry to have to inform you that your message could not\nbe delivered to one or more recipients. It's attached below.\n\nFor further assistance, please send mail to postmaster.\n\nIf you do so, please include this problem report. You can\ndelete your own text from the attached returned message.\n\n                   The mail system\n\n<petevanveen@me.com>: 554 5.7.1 [CS01] Message rejected due to local policy.\n    Please visit https://support.apple.com/en-us/HT204137. Txn ID\n    3eb38f78-639a-4e4d-9f7a-4c5e696a18d3\n\n",
+    "html": null,
+    "recipient": "alex@dropsiders.fr",
+    "attachments": [],
+    "date": "2026-09-15T16:45:28.074Z",
+    "read": false,
+    "replied": false
   }
 ]
