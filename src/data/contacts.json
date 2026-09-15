@@ -1094,5 +1094,18 @@
     "date": "2026-09-15T19:12:28.355Z",
     "read": false,
     "replied": false
+  },
+  {
+    "id": "1789499737184",
+    "name": "Mail Delivery System",
+    "email": "MAILER-DAEMON@mail48.lwspanel.com",
+    "subject": "Undelivered Mail Returned to Sender",
+    "message": "This is the mail system at host mail48.lwspanel.com.\n\nI'm sorry to have to inform you that your message could not\nbe delivered to one or more recipients. It's attached below.\n\nFor further assistance, please send mail to postmaster.\n\nIf you do so, please include this problem report. You can\ndelete your own text from the attached returned message.\n\n                   The mail system\n\n<skibindung@web.de>: 550 Requested action not taken: mailbox unavailable For\n    explanation visit\n    https://postmaster.web.de/en/case?c=r1601&i=ip&v=193.203.239.24&r=1N5ULQ-1wiqqc3CKA-00zGSo\n\n",
+    "html": null,
+    "recipient": "alex@dropsiders.fr",
+    "attachments": [],
+    "date": "2026-09-15T19:15:37.184Z",
+    "read": false,
+    "replied": false
   }
 ]
