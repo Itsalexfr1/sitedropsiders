@@ -83,10 +83,10 @@ export function AdminSignatures() {
     const [activeGuideTab, setActiveGuideTab] = useState<'iphone' | 'email_trick' | 'webmail'>('iphone');
 
     const [config, setConfig] = useState<SignatureConfig>({
-        name: 'Alex Frérot',
-        role: 'Fondateur & Rédacteur',
+        name: 'ALEXANDRE',
+        role: 'FONDATEUR & RÉDACTEUR',
         email: 'alex@dropsiders.fr',
-        phone: '+33 6 00 00 00 00',
+        phone: '+33 7 62 05 45 89',
         website: 'https://dropsiders.fr',
         instagram: OFFICIAL_INSTAGRAM,
         tiktok: OFFICIAL_TIKTOK,
@@ -96,9 +96,9 @@ export function AdminSignatures() {
         showAvatar: true,
         showBadge: true,
         showTagline: true,
-        showLegalDisclaimer: false,
-        accentColor: '#ff5500',
-        template: 'neon'
+        showLegalDisclaimer: true,
+        accentColor: '#ff3b14',
+        template: 'card'
     });
 
     const [copyStatus, setCopyStatus] = useState<'idle' | 'rich_success' | 'html_success' | 'text_success' | 'selected'>('idle');
@@ -129,14 +129,21 @@ export function AdminSignatures() {
 
         const member = teamData.find((m: any) => m.id === memberId);
         if (member) {
-            const memberEmail = (member as any).email || `${member.name.toLowerCase().trim().replace(/[^a-z0-9]/g, '')}@dropsiders.fr`;
+            const isAlexMember = member.id === 1 || member.name.toLowerCase().includes('alex');
+            const memberEmail = isAlexMember ? 'alex@dropsiders.fr' : ((member as any).email || `${member.name.toLowerCase().trim().replace(/[^a-z0-9]/g, '')}@dropsiders.fr`);
             setConfig(prev => ({
                 ...prev,
-                name: member.name.trim(),
-                role: member.role || 'Membre Dropsiders',
+                name: isAlexMember ? 'ALEXANDRE' : member.name.trim(),
+                role: isAlexMember ? 'FONDATEUR & RÉDACTEUR' : (member.role || 'Membre Dropsiders'),
                 email: memberEmail,
+                phone: isAlexMember ? '+33 7 62 05 45 89' : (prev.phone || ''),
                 avatarUrl: member.image || '',
                 showAvatar: !!member.image,
+                showBadge: true,
+                showTagline: true,
+                showLegalDisclaimer: true,
+                accentColor: '#ff3b14',
+                template: 'card',
                 instagram: OFFICIAL_INSTAGRAM,
                 tiktok: OFFICIAL_TIKTOK,
             }));
@@ -205,51 +212,65 @@ export function AdminSignatures() {
 
         if (template === 'card') {
             return `
-<table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.35; color: #1a1a1a; max-width: 550px; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px 16px;">
+<table cellpadding="0" cellspacing="0" border="0" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.35; color: #ffffff; max-width: 600px; width: 100%; background-color: #0d0e12; border: 1px solid #23262f; border-radius: 12px; padding: 14px 18px;">
     <tr>
-        ${showAvatar && avatarUrl ? `
-        <td valign="top" style="padding-right: 14px; width: 70px;">
-            <img src="${avatarUrl}" alt="${name}" width="68" height="68" style="display: block; width: 68px; height: 68px; border-radius: 50%; object-fit: cover; border: 2px solid ${accentColor};" />
-        </td>` : ''}
-        <td valign="top">
-            <table cellpadding="0" cellspacing="0" border="0">
+        <td style="padding-bottom: 10px;">
+            <table cellpadding="0" cellspacing="0" border="0" style="width: 100%;">
                 <tr>
-                    <td>
-                        <div style="font-size: 16px; font-weight: 900; color: #000000; text-transform: uppercase; letter-spacing: 0.5px;">${name || 'Dropsiders'}</div>
-                        <div style="font-size: 12px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; margin-top: 2px; letter-spacing: 0.3px;">${role}</div>
-                        ${showBadge ? `<div style="display: inline-block; background-color: #111827; color: #ffffff; font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;">🎙️ Médias & Presse Accréditée</div>` : ''}
+                    ${showAvatar && avatarUrl ? `
+                    <td valign="top" style="padding-right: 14px; width: 56px;">
+                        <img src="${avatarUrl}" alt="${name}" width="52" height="52" style="display: block; width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid ${accentColor};" />
+                    </td>` : ''}
+                    <td valign="top">
+                        <table cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td>
+                                    <div style="font-size: 14px; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: 0.6px; line-height: 1.2;">${name || 'ALEXANDRE'}</div>
+                                    <div style="font-size: 11px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px;">${role}</div>
+                                    ${showBadge ? `
+                                    <div style="margin-top: 5px;">
+                                        <span style="display: inline-block; background-color: #080d16; border: 1px solid rgba(59, 130, 246, 0.4); color: #ffffff; font-size: 8.5px; font-weight: 800; padding: 2px 8px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.4px;">
+                                            🛡️ MÉDIAS &amp; PRESSE ACCRÉDITÉE
+                                        </span>
+                                    </div>` : ''}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-top: 6px; font-size: 11px; line-height: 1.5;">
+                                    <div><span style="color: #ffffff; margin-right: 6px;">✉</span><a href="mailto:${email}" style="color: #00f0ff; text-decoration: none; font-weight: 600;">${email}</a></div>
+                                    ${phone ? `<div style="margin-top: 2px;"><span style="color: ${accentColor}; margin-right: 6px;">📞</span><span style="color: #ffffff; font-weight: 600;">${phone}</span></div>` : ''}
+                                    <div style="margin-top: 2px;"><span style="color: #00f0ff; margin-right: 6px;">🌐</span><a href="${website}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 700;">${cleanSite}</a></div>
+                                </td>
+                            </tr>
+                            ${socialsList.length > 0 ? `
+                            <tr>
+                                <td style="padding-top: 8px;">
+                                    ${socialLinksHtml}
+                                </td>
+                            </tr>` : ''}
+                        </table>
                     </td>
-                </tr>
-                <tr>
-                    <td style="padding-top: 8px; font-size: 12px; color: #4b5563;">
-                        <div>✉️ <a href="mailto:${email}" style="color: #111827; text-decoration: none; font-weight: 600;">${email}</a></div>
-                        ${phone ? `<div style="margin-top: 2px;">📞 <span style="color: #4b5563;">${phone}</span></div>` : ''}
-                        <div style="margin-top: 2px;">🌐 <a href="${website}" target="_blank" style="color: ${accentColor}; text-decoration: none; font-weight: 700;">${cleanSite}</a></div>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="padding-top: 8px;">
-                        ${socialLinksHtml}
+                    <td valign="top" align="right" style="padding-left: 12px; width: 105px;">
+                        <a href="${website}" target="_blank" style="text-decoration: none; display: inline-block; text-align: center;">
+                            <img src="https://dropsiders.fr/logo_presentation.png" alt="DROPSIDERS.FR" width="95" style="display: block; width: 95px; height: auto;" />
+                            <div style="font-size: 8px; font-weight: 800; color: #ffffff; text-align: center; letter-spacing: 0.5px; margin-top: 3px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">WWW.DROPSIDERS.FR</div>
+                        </a>
                     </td>
                 </tr>
             </table>
         </td>
-        <td valign="top" align="right" style="padding-left: 12px; width: 85px;">
-            <a href="${website}" target="_blank">
-                <img src="${LOGO_URL}" alt="Dropsiders" width="80" style="display: block; width: 80px; height: auto;" />
-            </a>
-        </td>
     </tr>
-    ${showTagline ? `
+    ${showTagline || showLegalDisclaimer ? `
     <tr>
-        <td colspan="${showAvatar && avatarUrl ? 3 : 2}" style="border-top: 1px solid #f3f4f6; padding-top: 8px; margin-top: 8px; font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
-            DROPSIDERS • Le média 100% musiques électroniques, festivals & culture clubbing
-        </td>
-    </tr>` : ''}
-    ${showLegalDisclaimer ? `
-    <tr>
-        <td colspan="${showAvatar && avatarUrl ? 3 : 2}" style="padding-top: 6px; font-size: 9px; color: #9ca3af; line-height: 1.3;">
-            Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire. Si vous avez reçu ce message par erreur, merci de le supprimer immédiatement.
+        <td style="border-top: 1px solid rgba(255, 255, 255, 0.12); padding-top: 8px;">
+            ${showTagline ? `
+            <div style="font-size: 9px; font-weight: 800; color: #d1d5db; text-transform: uppercase; letter-spacing: 0.4px;">
+                DROPSIDERS - LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS &amp; CULTURE CLUBBING
+            </div>` : ''}
+            ${showLegalDisclaimer ? `
+            <div style="font-size: 8px; color: #6b7280; margin-top: 4px; line-height: 1.35;">
+                Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire. Si vous avez reçu ce message par erreur, merci de le supprimer immédiatement.
+            </div>` : ''}
         </td>
     </tr>` : ''}
 </table>`.trim();
@@ -334,17 +355,20 @@ export function AdminSignatures() {
 
     // Clean text signature (Ultra compatible for iPhone)
     const cleanTextSignature = useMemo(() => {
-        return `⚡ DROPSIDERS
-━━━━━━━━━━━━━━━━━━━━
-${(config.name || 'DROPSIDERS').toUpperCase()}
-${config.role || 'Média Électronique'}
+        const cleanSite = (config.website || 'https://dropsiders.fr').replace(/^https?:\/\//, '');
+        return `${(config.name || 'ALEXANDRE').toUpperCase()}
+${(config.role || 'FONDATEUR & RÉDACTEUR').toUpperCase()}
+🛡️ MÉDIAS & PRESSE ACCRÉDITÉE
 
-✉️ ${config.email}
-${config.phone ? `📞 ${config.phone}\n` : ''}🌐 dropsiders.fr
-📸 @dropsiders.fr (Instagram)
-🎵 @dropsiders.fr (TikTok)
-━━━━━━━━━━━━━━━━━━━━
-Le 1er média musiques électroniques`;
+✉ ${config.email || 'alex@dropsiders.fr'}
+${config.phone ? `📞 ${config.phone}\n` : ''}🌐 ${cleanSite}
+
+Instagram → https://instagram.com/dropsiders.fr
+TikTok → https://www.tiktok.com/@dropsiders.fr
+Spotify → https://open.spotify.com/user/dropsiders
+
+DROPSIDERS - LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS & CULTURE CLUBBING
+Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire. Si vous avez reçu ce message par erreur, merci de le supprimer immédiatement.`;
     }, [config]);
 
     // 1. SELECT & COPY ON IPHONE (Selects the DOM elements so native iOS copy menu appears)
@@ -617,8 +641,8 @@ ${rawHtml}
                             {/* Template selector */}
                             <div className="grid grid-cols-3 gap-2">
                                 {[
+                                    { id: 'card', label: 'Carte Média Pro', desc: 'Avatar, Badge & Stamp' },
                                     { id: 'neon', label: 'Néon Dropsiders', desc: 'Officiel & Élégant' },
-                                    { id: 'card', label: 'Carte Média', desc: 'Avec Avatar & Badge' },
                                     { id: 'minimal', label: 'Minimaliste', desc: 'Sobre & Compact' }
                                 ].map(t => (
                                     <button

@@ -2075,40 +2075,69 @@ Alex (Dropsiders)`;
                                                         {replyBody || '[Votre message apparaîtra ici]'}
                                                     </div>
                                                     {/* Signature preview - rendered exactly as the email will look */}
-                                                    <div className="mt-6 overflow-x-auto max-w-full custom-scrollbar" style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
-                                                        <table cellPadding="0" cellSpacing="0" style={{ width: '100%', minWidth: '320px', borderCollapse: 'collapse' }}>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td style={{ verticalAlign: 'middle', textAlign: 'center', paddingRight: '12px', width: '65px' }}>
-                                                                        <img src="https://dropsiders.fr/Logo.png" alt="Dropsiders" width="55" style={{ display: 'block' }} />
-                                                                    </td>
-                                                                    <td style={{ width: '3px', background: '#ff0033', borderRadius: '2px' }}>&nbsp;</td>
-                                                                    <td style={{ verticalAlign: 'top', paddingLeft: '14px' }}>
-                                                                        <div style={{ fontSize: '12px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>
-                                                                            {signatureName || 'ALEX'}
-                                                                        </div>
-                                                                        <div style={{ fontSize: '9px', fontWeight: 800, color: '#ff0033', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>
-                                                                            {(signatureName && signatureName.toLowerCase() === 'alex') ? 'FONDATEUR & RÉDACTEUR' : 'RÉDACTEUR MÉDIA'}
-                                                                        </div>
-                                                                        <div style={{ marginBottom: '6px' }}>
-                                                                            <span style={{ background: '#111', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', fontSize: '8px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>
-                                                                                🎙️ Médias &amp; Presse Accréditée
-                                                                            </span>
-                                                                        </div>
-                                                                        <div style={{ fontSize: '10px', color: '#aaa', lineHeight: '1.6' }}>
-                                                                            <span style={{ color: '#ff0033', fontWeight: 700 }}>✉</span>&nbsp;{senderEmail}&nbsp;&nbsp;
-                                                                            <span style={{ color: '#ff0033', fontWeight: 700 }}>📞</span>&nbsp;+33 7 62 05 45 89&nbsp;&nbsp;
-                                                                            <span style={{ color: '#ff0033', fontWeight: 700 }}>🌐</span>&nbsp;dropsiders.fr
-                                                                        </div>
-                                                                        <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed rgba(255,255,255,0.1)', fontSize: '9px', color: '#ff0033', fontWeight: 700 }}>
-                                                                            Instagram → TikTok → Spotify → DROPSIDERS • LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS & CULTURE CLUBBING
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.07)', fontSize: '8px', color: '#555', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-                                                            Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire.
+                                                    <div className="mt-6 overflow-x-auto max-w-full custom-scrollbar">
+                                                        <div style={{ backgroundColor: '#0d0e12', border: '1px solid #23262f', borderRadius: '12px', padding: '14px 18px', maxWidth: '600px', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+                                                            <table cellPadding="0" cellSpacing="0" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td style={{ verticalAlign: 'top', width: '56px', paddingRight: '14px' }}>
+                                                                            <img
+                                                                                src="https://www.dropsiders.fr/uploads/migrated/dropsiders/wcyxatveeurgu5s1fi3s.jpg"
+                                                                                alt={signatureName || 'Alexandre'}
+                                                                                style={{ width: '52px', height: '52px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #ff3b14', display: 'block' }}
+                                                                            />
+                                                                        </td>
+                                                                        <td style={{ verticalAlign: 'top' }}>
+                                                                            <div style={{ fontSize: '14px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.6px', lineHeight: 1.2 }}>
+                                                                                {(signatureName && signatureName.toLowerCase() === 'alex') ? 'ALEXANDRE' : (signatureName ? signatureName.toUpperCase() : 'ALEXANDRE')}
+                                                                            </div>
+                                                                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#ff3b14', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: '2px' }}>
+                                                                                {(signatureName && signatureName.toLowerCase() === 'alex') ? 'FONDATEUR & RÉDACTEUR' : 'RÉDACTEUR MÉDIA'}
+                                                                            </div>
+                                                                            <div style={{ marginTop: '5px' }}>
+                                                                                <span style={{ display: 'inline-block', backgroundColor: '#080d16', border: '1px solid rgba(59, 130, 246, 0.4)', color: '#ffffff', fontSize: '8.5px', fontWeight: 800, padding: '2px 8px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                                                                                    🛡️ MÉDIAS &amp; PRESSE ACCRÉDITÉE
+                                                                                </span>
+                                                                            </div>
+                                                                            <div style={{ marginTop: '6px', fontSize: '11px', lineHeight: '1.5' }}>
+                                                                                <div>
+                                                                                    <span style={{ color: '#ffffff', marginRight: '6px' }}>✉</span>
+                                                                                    <a href={`mailto:${senderEmail}`} style={{ color: '#00f0ff', textDecoration: 'none', fontWeight: 600 }}>{senderEmail}</a>
+                                                                                </div>
+                                                                                <div style={{ marginTop: '2px' }}>
+                                                                                    <span style={{ color: '#ff3b14', marginRight: '6px' }}>📞</span>
+                                                                                    <span style={{ color: '#ffffff', fontWeight: 600 }}>+33 7 62 05 45 89</span>
+                                                                                </div>
+                                                                                <div style={{ marginTop: '2px' }}>
+                                                                                    <span style={{ color: '#00f0ff', marginRight: '6px' }}>🌐</span>
+                                                                                    <a href="https://dropsiders.fr" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', fontWeight: 700 }}>dropsiders.fr</a>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div style={{ marginTop: '8px', fontSize: '11px', fontWeight: 700 }}>
+                                                                                <a href="https://instagram.com/dropsiders.fr" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', marginRight: '12px', display: 'inline-block' }}>Instagram →</a>
+                                                                                <a href="https://www.tiktok.com/@dropsiders.fr" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', marginRight: '12px', display: 'inline-block' }}>TikTok →</a>
+                                                                                <a href="https://open.spotify.com/user/dropsiders" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', display: 'inline-block' }}>Spotify →</a>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td style={{ verticalAlign: 'top', textAlign: 'right', paddingLeft: '12px', width: '105px' }}>
+                                                                            <a href="https://dropsiders.fr" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>
+                                                                                <img src="https://dropsiders.fr/logo_presentation.png" alt="DROPSIDERS.FR" style={{ width: '95px', height: 'auto', display: 'block' }} />
+                                                                                <div style={{ fontSize: '8px', fontWeight: 800, color: '#ffffff', textAlign: 'center', letterSpacing: '0.5px', marginTop: '3px' }}>WWW.DROPSIDERS.FR</div>
+                                                                            </a>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td colSpan={3} style={{ borderTop: '1px solid rgba(255, 255, 255, 0.12)', paddingTop: '8px', marginTop: '8px' }}>
+                                                                            <div style={{ fontSize: '9px', fontWeight: 800, color: '#d1d5db', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                                                                                DROPSIDERS - LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS &amp; CULTURE CLUBBING
+                                                                            </div>
+                                                                            <div style={{ fontSize: '8px', color: '#6b7280', marginTop: '4px', lineHeight: '1.35' }}>
+                                                                                Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire. Si vous avez reçu ce message par erreur, merci de le supprimer immédiatement.
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
                                                         </div>
                                                     </div>
                                                 </div>
