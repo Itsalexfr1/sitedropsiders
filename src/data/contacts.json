@@ -990,5 +990,18 @@
     "date": "2026-09-15T18:46:41.264Z",
     "read": false,
     "replied": false
+  },
+  {
+    "id": "1789498010585",
+    "name": "Mail Delivery System",
+    "email": "MAILER-DAEMON@mail48.lwspanel.com",
+    "subject": "Undelivered Mail Returned to Sender",
+    "message": "This is the mail system at host mail48.lwspanel.com.\n\nI'm sorry to have to inform you that your message could not\nbe delivered to one or more recipients. It's attached below.\n\nFor further assistance, please send mail to postmaster.\n\nIf you do so, please include this problem report. You can\ndelete your own text from the attached returned message.\n\n                   The mail system\n\n<marklafrancis79@gmail.com>: 550 5.7.26 Your email has been blocked because the\n    sender is unauthenticated. 5.7.26 Gmail requires all senders to\n    authenticate with either SPF or DKIM. 5.7.26  5.7.26  Authentication\n    results: 5.7.26  DKIM = did not pass 5.7.26  SPF [dropsiders.fr] with ip:\n    [193.203.239.24] = did not pass 5.7.26  5.7.26  For instructions on setting\n    up authentication, go to 5.7.26\n    https://support.google.com/mail/answer/81126#authentication\n    ffacd0b85a97d-4870bf7222dsi648606f8f.440 - gsmtp\n\n",
+    "html": null,
+    "recipient": "alex@dropsiders.fr",
+    "attachments": [],
+    "date": "2026-09-15T18:46:50.585Z",
+    "read": false,
+    "replied": false
   }
 ]
