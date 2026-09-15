@@ -539,6 +539,18 @@ export function DropsidersTVPage() {
             setIsMuted(false);
         }
         prevMuteStateRef.current = null;
+
+        // Force playback to resume after modal close (fixes dashboard navigation bug)
+        setTimeout(() => {
+            if (playerRef.current && typeof playerRef.current.getPlayerState === 'function') {
+                const state = playerRef.current.getPlayerState();
+                // If not playing (state !== 1), force play
+                if (state !== 1) {
+                    playerRef.current.playVideo();
+                    setIsPlaying(true);
+                }
+            }
+        }, 300);
     };
 
     // Close admin modal on Escape key
@@ -1172,40 +1184,20 @@ export function DropsidersTVPage() {
                             className={`absolute ${liveSettings?.enabled ? 'top-14' : 'top-0'} left-0 w-full z-40 p-4 md:p-6 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent pointer-events-auto`}
                         >
                             <div className="flex items-center gap-3 flex-wrap">
-                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
-                                    <Tv className="w-4 h-4 text-neon-red animate-pulse" />
-                                    <span className="text-white font-display font-black text-sm uppercase tracking-tight">
-                                        DROPSIDERS <span className="text-neon-red">TV</span>
+                                <div className="flex flex-col px-3.5 py-1.5 rounded-2xl bg-black/70 backdrop-blur-md border border-white/10 shadow-xl">
+                                    <div className="flex items-center gap-2">
+                                        <Tv className="w-3.5 h-3.5 text-neon-red animate-pulse" />
+                                        <span className="text-white font-display font-black text-sm uppercase tracking-tight leading-none">
+                                            DROPSIDERS <span className="text-neon-red">TV</span>
+                                        </span>
+                                    </div>
+                                    <span
+                                        className="text-[10px] font-black uppercase tracking-wider mt-1 leading-none"
+                                        style={{ color: activeScheduleBlock?.color || '#00f0ff' }}
+                                    >
+                                        {isPlayingPromo ? 'Promo Dropsiders' : activeScheduleBlock?.title}
                                     </span>
                                 </div>
-                                {isPlayingPromo && currentPromoIndex !== null && (
-                                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest text-neon-purple bg-neon-purple/10 border border-neon-purple/30">
-                                        <Film className="w-3 h-3 animate-pulse" />
-                                        PROMO {currentPromoIndex + 1}/{promos.length}
-                                    </div>
-                                )}
-
-                                {/* Time Block Badge */}
-                                {!isPlayingPromo && (
-                                    <div
-                                        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border backdrop-blur-md transition-all"
-                                        style={{ color: activeScheduleBlock.color, borderColor: `${activeScheduleBlock.color}50`, background: `${activeScheduleBlock.color}18` }}
-                                    >
-                                        <span>{activeScheduleBlock.emoji}</span>
-                                        <span>{activeScheduleBlock.name} : {activeScheduleBlock.title}</span>
-                                        {activeScheduleBlock.randomize && (
-                                            <span className="opacity-70 text-[8px]" title="Rotation aléatoire activée">🔀</span>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* EPG Ticker: Dans Xmin → Prochain set */}
-                                {!isPlayingPromo && epgTimeRemaining !== null && nextMainVideo && (
-                                    <div className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-[9px] font-bold uppercase tracking-wide text-white/45 max-w-xs overflow-hidden">
-                                        <Clock className="w-2.5 h-2.5 shrink-0" style={{ color: activeScheduleBlock.color }} />
-                                        <span className="truncate">Dans {formatMins(epgTimeRemaining)} → {nextMainVideo.title}</span>
-                                    </div>
-                                )}
 
                                 {/* Programmation Button: only displayed for admins, hidden for regular visitors */}
                                 {isAdmin && (
@@ -1221,16 +1213,6 @@ export function DropsidersTVPage() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                {/* EPG Guide Button */}
-                                <button
-                                    onClick={() => setShowEPG(prev => !prev)}
-                                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[11px] font-black uppercase tracking-wider backdrop-blur-md transition-all active:scale-95 cursor-pointer pointer-events-auto"
-                                    title="Guide des programmes (G)"
-                                    style={{ borderColor: showEPG ? `${activeScheduleBlock.color}80` : undefined, background: showEPG ? `${activeScheduleBlock.color}25` : undefined }}
-                                >
-                                    <CalendarDays className="w-3.5 h-3.5" style={{ color: activeScheduleBlock.color }} />
-                                    <span className="hidden sm:inline">Guide</span>
-                                </button>
 
                                 {/* Admin TV Settings Button */}
                                 {isAdmin && (

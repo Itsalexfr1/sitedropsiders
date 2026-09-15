@@ -330,6 +330,10 @@ export function AdminTVModal({
     // Banned chat users local state
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
 
+    // Inline title editing state
+    const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
+    const [editingVideoTitle, setEditingVideoTitle] = useState('');
+
     useEffect(() => {
         if (!isOpen) return;
         const fetchSettings = async () => {
@@ -447,6 +451,37 @@ export function AdminTVModal({
             nextVids[index] = tmp;
             return { ...b, videos: nextVids };
         }));
+    };
+
+    // Rename video inside a block
+    const handleRenameVideoInBlock = (blockId: string, videoIdx: number, newTitle: string) => {
+        if (!newTitle.trim()) return;
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== blockId) return b;
+            const nextVids = [...(b.videos || [])];
+            if (nextVids[videoIdx]) {
+                nextVids[videoIdx] = { ...nextVids[videoIdx], title: newTitle.trim() };
+            }
+            return { ...b, videos: nextVids };
+        }));
+        setEditingVideoId(null);
+        setEditingVideoTitle('');
+    };
+
+    // Rename main video
+    const handleRenameMainVideo = (videoId: string, newTitle: string) => {
+        if (!newTitle.trim()) return;
+        setPlaylist(prev => prev.map(v => v.id === videoId ? { ...v, title: newTitle.trim() } : v));
+        setEditingVideoId(null);
+        setEditingVideoTitle('');
+    };
+
+    // Rename promo video
+    const handleRenamePromo = (promoId: string, newTitle: string) => {
+        if (!newTitle.trim()) return;
+        setPromos(prev => prev.map(p => p.id === promoId ? { ...p, title: newTitle.trim() } : p));
+        setEditingVideoId(null);
+        setEditingVideoTitle('');
     };
 
     const handleToggleBlockRandom = (blockId: string) => {
@@ -1148,10 +1183,32 @@ export function AdminTVModal({
                                                                             )}
                                                                         </div>
 
-                                                                        <div className="min-w-0">
-                                                                            <h5 className="text-xs font-bold text-white truncate" title={vid.title}>
-                                                                                {vid.title}
-                                                                            </h5>
+                                                                        <div className="min-w-0 flex-1">
+                                                                            {editingVideoId === `block_${currentBlock.id}_${idx}` ? (
+                                                                                <form
+                                                                                    className="flex items-center gap-1"
+                                                                                    onSubmit={(e) => { e.preventDefault(); handleRenameVideoInBlock(currentBlock.id, idx, editingVideoTitle); }}
+                                                                                >
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={editingVideoTitle}
+                                                                                        onChange={(e) => setEditingVideoTitle(e.target.value)}
+                                                                                        className="flex-1 px-2 py-0.5 rounded bg-white/10 border border-white/20 text-white text-xs focus:outline-none focus:border-white/40"
+                                                                                        autoFocus
+                                                                                        onKeyDown={(e) => { if (e.key === 'Escape') { setEditingVideoId(null); setEditingVideoTitle(''); } }}
+                                                                                    />
+                                                                                    <button type="submit" className="p-0.5 rounded bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all">
+                                                                                        <CheckCircle2 className="w-3 h-3" />
+                                                                                    </button>
+                                                                                    <button type="button" onClick={() => { setEditingVideoId(null); setEditingVideoTitle(''); }} className="p-0.5 rounded bg-white/5 text-white/40 hover:text-white transition-all">
+                                                                                        <X className="w-3 h-3" />
+                                                                                    </button>
+                                                                                </form>
+                                                                            ) : (
+                                                                                <h5 className="text-xs font-bold text-white truncate" title={vid.title}>
+                                                                                    {vid.title}
+                                                                                </h5>
+                                                                            )}
                                                                             <div className="flex items-center gap-2 text-[9px] text-white/40">
                                                                                 <span className="font-mono">ID: {vid.youtubeId}</span>
                                                                                 <a
@@ -1170,6 +1227,14 @@ export function AdminTVModal({
 
                                                                     {/* Actions */}
                                                                     <div className="flex items-center gap-0.5 shrink-0">
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => { setEditingVideoId(`block_${currentBlock.id}_${idx}`); setEditingVideoTitle(vid.title); }}
+                                                                            className="p-1 rounded bg-white/5 hover:bg-white/10 text-white/50 hover:text-neon-cyan disabled:opacity-20 transition-all"
+                                                                            title="Modifier le titre"
+                                                                        >
+                                                                            <Pencil className="w-3 h-3" />
+                                                                        </button>
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => handleMoveVideoInBlock(currentBlock.id, idx, -1)}
@@ -1203,6 +1268,44 @@ export function AdminTVModal({
                                                     </div>
                                                 )}
                                             </div>
+
+                                            {/* Promos section inside block */}
+                                            {promos.length > 0 && (
+                                                <div className="p-2 rounded-lg bg-neon-purple/[0.03] border border-neon-purple/15 space-y-1 shrink-0">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-[8px] font-black uppercase tracking-widest text-neon-purple/70 flex items-center gap-1">
+                                                            <Film className="w-3 h-3" />
+                                                            Promos intercalées ({promos.length})
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setActiveTab('promo')}
+                                                            className="text-[8px] text-neon-purple hover:underline font-bold uppercase tracking-wider transition-all"
+                                                        >
+                                                            Gérer →
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {promos.map((p, pIdx) => (
+                                                            <div
+                                                                key={p.id}
+                                                                className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-neon-purple/10 border border-neon-purple/20"
+                                                            >
+                                                                <div className="w-8 h-5 rounded overflow-hidden shrink-0 border border-neon-purple/20">
+                                                                    <img
+                                                                        src={`https://img.youtube.com/vi/${p.youtubeId}/mqdefault.jpg`}
+                                                                        alt={p.title}
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                </div>
+                                                                <span className="text-[9px] font-bold text-neon-purple/80 truncate max-w-[120px]">
+                                                                    P{pIdx + 1}: {p.title}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })()}
@@ -1334,9 +1437,31 @@ export function AdminTVModal({
                                                                         {formatDuration(durationsMap[video.youtubeId])}
                                                                     </span>
                                                                 )}
-                                                                <h4 className="text-white font-bold text-xs truncate">
-                                                                    {video.title}
-                                                                </h4>
+                                                                {editingVideoId === `main_${video.id}` ? (
+                                                                    <form
+                                                                        className="flex items-center gap-1 flex-1 min-w-0"
+                                                                        onSubmit={(e) => { e.preventDefault(); handleRenameMainVideo(video.id, editingVideoTitle); }}
+                                                                    >
+                                                                        <input
+                                                                            type="text"
+                                                                            value={editingVideoTitle}
+                                                                            onChange={(e) => setEditingVideoTitle(e.target.value)}
+                                                                            className="flex-1 px-2 py-0.5 rounded bg-white/10 border border-white/20 text-white text-xs focus:outline-none focus:border-white/40"
+                                                                            autoFocus
+                                                                            onKeyDown={(e) => { if (e.key === 'Escape') { setEditingVideoId(null); setEditingVideoTitle(''); } }}
+                                                                        />
+                                                                        <button type="submit" className="p-0.5 rounded bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all">
+                                                                            <CheckCircle2 className="w-3 h-3" />
+                                                                        </button>
+                                                                        <button type="button" onClick={() => { setEditingVideoId(null); setEditingVideoTitle(''); }} className="p-0.5 rounded bg-white/5 text-white/40 hover:text-white transition-all">
+                                                                            <X className="w-3 h-3" />
+                                                                        </button>
+                                                                    </form>
+                                                                ) : (
+                                                                    <h4 className="text-white font-bold text-xs truncate">
+                                                                        {video.title}
+                                                                    </h4>
+                                                                )}
                                                             </div>
                                                             <div className="text-[9px] text-white/40 font-mono mt-0.5">
                                                                 ID: {video.youtubeId}
@@ -1344,6 +1469,14 @@ export function AdminTVModal({
                                                         </div>
 
                                                         <div className="flex items-center gap-1 shrink-0">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => { setEditingVideoId(`main_${video.id}`); setEditingVideoTitle(video.title); }}
+                                                                className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-white/50 hover:text-neon-cyan transition-all"
+                                                                title="Modifier le titre"
+                                                            >
+                                                                <Pencil className="w-3 h-3" />
+                                                            </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleMoveUpMain(idx)}
@@ -1507,15 +1640,45 @@ export function AdminTVModal({
                                                 </div>
 
                                                 <div className="flex-1 min-w-0">
-                                                    <h4 className="text-white font-bold text-xs truncate">
-                                                        {p.title}
-                                                    </h4>
+                                                    {editingVideoId === `promo_${p.id}` ? (
+                                                        <form
+                                                            className="flex items-center gap-1"
+                                                            onSubmit={(e) => { e.preventDefault(); handleRenamePromo(p.id, editingVideoTitle); }}
+                                                        >
+                                                            <input
+                                                                type="text"
+                                                                value={editingVideoTitle}
+                                                                onChange={(e) => setEditingVideoTitle(e.target.value)}
+                                                                className="flex-1 px-2 py-0.5 rounded bg-white/10 border border-white/20 text-white text-xs focus:outline-none focus:border-white/40"
+                                                                autoFocus
+                                                                onKeyDown={(e) => { if (e.key === 'Escape') { setEditingVideoId(null); setEditingVideoTitle(''); } }}
+                                                            />
+                                                            <button type="submit" className="p-0.5 rounded bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-all">
+                                                                <CheckCircle2 className="w-3 h-3" />
+                                                            </button>
+                                                            <button type="button" onClick={() => { setEditingVideoId(null); setEditingVideoTitle(''); }} className="p-0.5 rounded bg-white/5 text-white/40 hover:text-white transition-all">
+                                                                <X className="w-3 h-3" />
+                                                            </button>
+                                                        </form>
+                                                    ) : (
+                                                        <h4 className="text-white font-bold text-xs truncate">
+                                                            {p.title}
+                                                        </h4>
+                                                    )}
                                                     <div className="text-[9px] text-white/40 font-mono mt-0.5">
                                                         ID: {p.youtubeId} · Jouée après le set {idx + 1}
                                                     </div>
                                                 </div>
 
                                                 <div className="flex items-center gap-1 shrink-0">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setEditingVideoId(`promo_${p.id}`); setEditingVideoTitle(p.title); }}
+                                                        className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-white/50 hover:text-neon-cyan transition-all"
+                                                        title="Modifier le titre"
+                                                    >
+                                                        <Pencil className="w-3 h-3" />
+                                                    </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleMoveUpPromo(idx)}
