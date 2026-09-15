@@ -783,7 +783,7 @@ export function AdminTVModal({
         <AnimatePresence>
             {isOpen && (
                 <div
-                    className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/80 backdrop-blur-md overflow-hidden"
+                    className="fixed inset-0 z-[120] flex items-center justify-center p-1 sm:p-2 md:p-2.5 bg-black/85 backdrop-blur-md overflow-hidden"
                     onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
                 >
                     {/* Live TV Background (blurred, muted, ambient backdrop when opened from Admin) */}
@@ -809,35 +809,33 @@ export function AdminTVModal({
                         initial={{ opacity: 0, scale: 0.96, y: 15 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.96, y: 15 }}
-                        className="bg-[#0c0c0c]/95 backdrop-blur-2xl border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-4 sm:p-6 md:p-8 w-[96vw] max-w-[1520px] h-[92vh] max-h-[95vh] shadow-2xl relative overflow-hidden flex flex-col z-10"
+                        className="bg-[#0c0c0c]/95 backdrop-blur-2xl border border-white/10 rounded-2xl md:rounded-[1.75rem] p-3 sm:p-4 md:p-5 w-[99vw] max-w-[1720px] h-[97vh] max-h-[98vh] shadow-2xl relative overflow-hidden flex flex-col z-10"
                     >
                         {/* Red Accent top line */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan" />
 
                         {/* Modal Header */}
-                        <div className="flex justify-between items-start mb-4 shrink-0">
-                            <div>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red">
-                                        <Tv className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter">
-                                            DROPSIDERS <span className="text-neon-red">TV</span> & <span className="text-neon-purple">LIVE</span>
-                                        </h2>
-                                        <p className="text-gray-400 font-bold uppercase tracking-widest text-[9px] md:text-[10px]">
-                                            Programmation continue TV · Live Takeover · Timetable & Modération
-                                        </p>
-                                    </div>
+                        <div className="flex justify-between items-center mb-2.5 shrink-0">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red shrink-0">
+                                    <Tv className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg md:text-xl font-display font-black text-white uppercase italic tracking-tighter leading-tight">
+                                        DROPSIDERS <span className="text-neon-red">TV</span> & <span className="text-neon-purple">LIVE</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-bold uppercase tracking-widest text-[8px] md:text-[9px]">
+                                        Programmation continue TV · Live Takeover · Timetable & Modération
+                                    </p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
                                 {!isOnTvPage && (
                                     <a
                                         href="/tv"
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all flex items-center gap-1.5"
+                                        className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white/70 hover:text-white transition-all flex items-center gap-1.5"
                                     >
                                         <ExternalLink className="w-3 h-3" />
                                         Voir la TV
@@ -847,68 +845,68 @@ export function AdminTVModal({
                                     href="/live"
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="px-3 py-2 rounded-xl bg-neon-purple/10 hover:bg-neon-purple/20 border border-neon-purple/30 text-[10px] font-black uppercase tracking-widest text-neon-purple transition-all flex items-center gap-1.5"
+                                    className="px-2.5 py-1.5 rounded-lg bg-neon-purple/10 hover:bg-neon-purple/20 border border-neon-purple/30 text-[9px] font-black uppercase tracking-widest text-neon-purple transition-all flex items-center gap-1.5"
                                 >
                                     <Radio className="w-3 h-3" />
                                     Voir le Live
                                 </a>
                                 <button
                                     onClick={onClose}
-                                    className="p-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all"
                                 >
-                                    <X className="w-5 h-5" />
+                                    <X className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
 
                         {/* Top Main Navigation Tabs */}
-                        <div className="flex items-center gap-2 mb-4 p-1 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0 overflow-x-auto">
+                        <div className="flex items-center gap-1.5 mb-2.5 p-1 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 overflow-x-auto">
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('blocks')}
-                                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
+                                className={`flex-1 py-1.5 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                                     activeTab === 'blocks'
-                                        ? 'bg-gradient-to-r from-amber-500 to-neon-red text-white shadow-lg shadow-neon-red/20'
+                                        ? 'bg-gradient-to-r from-amber-500 to-neon-red text-white shadow-md shadow-neon-red/20'
                                         : 'text-white/60 hover:text-white hover:bg-white/5'
                                 }`}
                             >
-                                <Clock className="w-4 h-4" />
+                                <Clock className="w-3.5 h-3.5" />
                                 Grille 5 Blocs TV ({blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)})
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('promo')}
-                                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
+                                className={`flex-1 py-1.5 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                                     activeTab === 'promo'
-                                        ? 'bg-neon-purple text-white shadow-lg shadow-neon-purple/20'
+                                        ? 'bg-neon-purple text-white shadow-md shadow-neon-purple/20'
                                         : 'text-white/60 hover:text-white hover:bg-white/5'
                                 }`}
                             >
-                                <Film className="w-4 h-4" />
+                                <Film className="w-3.5 h-3.5" />
                                 Vidéos Promo ({promos.length})
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('main')}
-                                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
+                                className={`flex-1 py-1.5 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                                     activeTab === 'main'
-                                        ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20'
+                                        ? 'bg-neon-red text-white shadow-md shadow-neon-red/20'
                                         : 'text-white/60 hover:text-white hover:bg-white/5'
                                 }`}
                             >
-                                <Tv className="w-4 h-4" />
+                                <Tv className="w-3.5 h-3.5" />
                                 Tous les Sets ({playlist.length})
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('live')}
-                                className={`flex-1 py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
+                                className={`flex-1 py-1.5 px-2.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                                     activeTab === 'live'
-                                        ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg shadow-red-600/30'
+                                        ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-md shadow-red-600/30'
                                         : 'text-white/60 hover:text-white hover:bg-white/5'
                                 }`}
                             >
-                                <Radio className="w-4 h-4 text-white" />
+                                <Radio className="w-3.5 h-3.5 text-white" />
                                 Live Takeover {takeoverState?.status === 'live' ? '🔴' : takeoverState?.status === 'edit' ? '🟠' : ''}
                             </button>
                         </div>
@@ -923,34 +921,34 @@ export function AdminTVModal({
                             const cycleTotal = mainTotal + (playlist.length > 0 && promos.length > 0 ? promoTotal * Math.ceil(playlist.length / Math.max(promos.length, 1)) : 0);
                             const allUnknown = mainKnown === 0 && promoKnown === 0;
                             return (
-                                <div className="mb-4 p-3 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0">
-                                    <div className="text-[9px] font-black uppercase tracking-widest text-white/40 mb-2 flex items-center gap-1.5">
+                                <div className="mb-2.5 p-2 rounded-xl bg-white/[0.03] border border-white/10 shrink-0">
+                                    <div className="text-[8px] font-black uppercase tracking-widest text-white/40 mb-1 flex items-center gap-1.5">
                                         <Clock className="w-3 h-3" />
                                         Durées de la programmation
                                         {allUnknown && <span className="text-white/30 normal-case font-normal tracking-normal ml-1">(jouer la TV pour détecter les durées)</span>}
                                     </div>
                                     <div className="grid grid-cols-3 gap-2">
-                                        <div className="p-2.5 rounded-xl bg-neon-red/5 border border-neon-red/20 text-center">
-                                            <div className="text-sm font-black text-neon-red">
+                                        <div className="py-1 px-2 rounded-lg bg-neon-red/5 border border-neon-red/20 text-center flex items-center justify-center gap-2">
+                                            <div className="text-xs font-black text-neon-red">
                                                 {mainTotal > 0 ? formatDuration(mainTotal) : '–'}
                                             </div>
-                                            <div className="text-[9px] text-white/40 uppercase tracking-widest mt-0.5">
+                                            <div className="text-[8px] text-white/40 uppercase tracking-widest">
                                                 Sets ({mainKnown}/{playlist.length})
                                             </div>
                                         </div>
-                                        <div className="p-2.5 rounded-xl bg-neon-purple/5 border border-neon-purple/20 text-center">
-                                            <div className="text-sm font-black text-neon-purple">
+                                        <div className="py-1 px-2 rounded-lg bg-neon-purple/5 border border-neon-purple/20 text-center flex items-center justify-center gap-2">
+                                            <div className="text-xs font-black text-neon-purple">
                                                 {promoTotal > 0 ? formatDuration(promoTotal) : '–'}
                                             </div>
-                                            <div className="text-[9px] text-white/40 uppercase tracking-widest mt-0.5">
+                                            <div className="text-[8px] text-white/40 uppercase tracking-widest">
                                                 Promos ({promoKnown}/{promos.length})
                                             </div>
                                         </div>
-                                        <div className="p-2.5 rounded-xl bg-neon-cyan/5 border border-neon-cyan/20 text-center">
-                                            <div className="text-sm font-black text-neon-cyan">
+                                        <div className="py-1 px-2 rounded-lg bg-neon-cyan/5 border border-neon-cyan/20 text-center flex items-center justify-center gap-2">
+                                            <div className="text-xs font-black text-neon-cyan">
                                                 {cycleTotal > 0 ? formatDuration(cycleTotal) : '–'}
                                             </div>
-                                            <div className="text-[9px] text-white/40 uppercase tracking-widest mt-0.5">
+                                            <div className="text-[8px] text-white/40 uppercase tracking-widest">
                                                 Cycle complet
                                             </div>
                                         </div>
@@ -963,29 +961,27 @@ export function AdminTVModal({
                         {/* TAB: 5 BLOCS HORAIRES (GRILLE TV) */}
                         {/* ========================================================= */}
                         {activeTab === 'blocks' && (
-                            <div className="flex-1 overflow-y-auto pr-1 space-y-4">
+                            <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 flex flex-col min-h-0">
                                 {/* Info banner */}
-                                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-neon-red/10 to-neon-purple/10 border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-lg">🕒</span>
-                                            <h3 className="text-sm font-black uppercase text-white tracking-wider">
+                                <div className="p-2 px-3 rounded-xl bg-gradient-to-r from-amber-500/10 via-neon-red/10 to-neon-purple/10 border border-white/10 flex items-center justify-between gap-2 shrink-0">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <span className="text-sm">🕒</span>
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <h3 className="text-xs font-black uppercase text-white tracking-wider whitespace-nowrap">
                                                 Grille TV : 5 Blocs Horaires (24h/24)
                                             </h3>
+                                            <span className="hidden md:inline text-[10px] text-white/50 truncate">
+                                                — Les vidéos tournent de manière aléatoire ou ordonnée, synchronisées en continu.
+                                            </span>
                                         </div>
-                                        <p className="text-xs text-white/60 mt-0.5">
-                                            Ajoutez vos liens YouTube dans chaque bloc. Les vidéos tournent de manière aléatoire et sont synchronisées pour tous les spectateurs.
-                                        </p>
                                     </div>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/5 border border-white/10 text-white/70">
-                                            {blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)} vidéos réparties
-                                        </span>
-                                    </div>
+                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/5 border border-white/10 text-white/70 shrink-0">
+                                        {blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)} vidéos réparties
+                                    </span>
                                 </div>
 
                                 {/* 5 Blocks Selector Buttons */}
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 shrink-0">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 md:gap-2 shrink-0">
                                     {blocks.map(b => {
                                         const isSelected = b.id === selectedBlockId;
                                         const isLiveNow = getActiveTVBlock(blocks).id === b.id;
@@ -994,45 +990,47 @@ export function AdminTVModal({
                                                 key={b.id}
                                                 type="button"
                                                 onClick={() => setSelectedBlockId(b.id)}
-                                                className={`relative p-3 rounded-2xl border text-left transition-all flex flex-col justify-between gap-2 overflow-hidden ${
+                                                className={`relative p-2 sm:p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-1 overflow-hidden ${
                                                     isSelected
-                                                        ? 'bg-white/[0.08] shadow-lg scale-[1.02]'
-                                                        : 'bg-white/[0.02] hover:bg-white/[0.05] border-white/10 opacity-75 hover:opacity-100'
+                                                        ? 'bg-white/[0.08] shadow-md scale-[1.01]'
+                                                        : 'bg-white/[0.02] hover:bg-white/[0.05] border-white/10 opacity-80 hover:opacity-100'
                                                 }`}
                                                 style={{
-                                                    borderColor: isSelected ? b.color : 'rgba(255,255,255,0.1)',
-                                                    boxShadow: isSelected ? `0 0 20px ${b.color}25` : undefined
+                                                    borderColor: isSelected ? b.color : 'rgba(255,255,255,0.08)',
+                                                    boxShadow: isSelected ? `0 0 16px ${b.color}20` : undefined
                                                 }}
                                             >
                                                 {/* Top accent line */}
                                                 <div 
-                                                    className="absolute top-0 left-0 right-0 h-1 transition-opacity"
+                                                    className="absolute top-0 left-0 right-0 h-0.5 transition-opacity"
                                                     style={{ background: b.color, opacity: isSelected ? 1 : 0.3 }}
                                                 />
 
-                                                <div className="flex items-center justify-between gap-1 mt-0.5">
-                                                    <span className="text-xl">{b.emoji}</span>
+                                                <div className="flex items-center justify-between gap-1">
+                                                    <div className="flex items-center gap-1.5 min-w-0">
+                                                        <span className="text-sm">{b.emoji}</span>
+                                                        <span className="text-[9px] font-black text-white/50 uppercase tracking-widest truncate">
+                                                            {b.name}
+                                                        </span>
+                                                    </div>
                                                     {isLiveNow && (
-                                                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/20 text-neon-red text-[8px] font-black uppercase tracking-wider border border-red-500/30 animate-pulse">
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-neon-red" />
+                                                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/20 text-neon-red text-[7px] font-black uppercase tracking-wider border border-red-500/30 animate-pulse shrink-0">
+                                                            <span className="w-1 h-1 rounded-full bg-neon-red" />
                                                             EN DIRECT
                                                         </span>
                                                     )}
                                                 </div>
 
-                                                <div>
-                                                    <div className="text-[10px] font-black text-white/50 uppercase tracking-widest truncate">
-                                                        {b.name}
-                                                    </div>
-                                                    <div className="text-xs font-black text-white truncate" style={{ color: isSelected ? b.color : undefined }}>
+                                                <div className="min-w-0">
+                                                    <div className="text-[11px] font-black text-white truncate" style={{ color: isSelected ? b.color : undefined }}>
                                                         {b.title}
                                                     </div>
-                                                    <div className="text-[10px] font-bold text-white/40 mt-0.5">
+                                                    <div className="text-[9px] font-bold text-white/40">
                                                         {b.timeSlot}
                                                     </div>
                                                 </div>
 
-                                                <div className="flex items-center justify-between text-[9px] font-black uppercase text-white/40 pt-1 border-t border-white/5">
+                                                <div className="flex items-center justify-between text-[8px] font-black uppercase text-white/40 pt-1 border-t border-white/5">
                                                     <span>{b.videos?.length || 0} lien{(b.videos?.length || 0) > 1 ? 's' : ''}</span>
                                                     <span>{b.randomize ? '🔀 Aléatoire' : '➡️ Ordre'}</span>
                                                 </div>
@@ -1049,41 +1047,41 @@ export function AdminTVModal({
 
                                     return (
                                         <div 
-                                            className="p-5 rounded-3xl border bg-black/40 backdrop-blur-md space-y-5"
-                                            style={{ borderColor: `${currentBlock.color}40` }}
+                                            className="p-3 sm:p-3.5 rounded-2xl border bg-black/40 backdrop-blur-md space-y-2.5 flex-1 flex flex-col min-h-0"
+                                            style={{ borderColor: `${currentBlock.color}35` }}
                                         >
                                             {/* Header of selected block */}
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
-                                                <div className="flex items-center gap-3">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-white/10 shrink-0">
+                                                <div className="flex items-center gap-2.5">
                                                     <div 
-                                                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border shrink-0"
+                                                        className="w-8 h-8 rounded-xl flex items-center justify-center text-base border shrink-0"
                                                         style={{ background: `${currentBlock.color}15`, borderColor: `${currentBlock.color}30` }}
                                                     >
                                                         {currentBlock.emoji}
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2 flex-wrap">
-                                                            <h4 className="text-lg font-display font-black text-white uppercase italic tracking-tight">
+                                                            <h4 className="text-sm font-display font-black text-white uppercase italic tracking-tight">
                                                                 {currentBlock.name} : <span style={{ color: currentBlock.color }}>{currentBlock.title}</span>
                                                             </h4>
                                                             {isLiveNow && (
-                                                                <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-red-500/20 text-neon-red border border-red-500/40 animate-pulse">
+                                                                <span className="px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase bg-red-500/20 text-neon-red border border-red-500/40 animate-pulse">
                                                                     À l'antenne actuellement
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <p className="text-xs text-white/50 font-medium">
+                                                        <p className="text-[10px] text-white/50 font-medium">
                                                             Créneau de diffusion : <strong className="text-white">{currentBlock.timeSlot}</strong> ({currentBlock.startHour}h00 à {currentBlock.endHour === 24 ? '00h00' : `${currentBlock.endHour}h00`})
                                                         </p>
                                                     </div>
                                                 </div>
 
                                                 {/* Random rotation toggle */}
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 shrink-0">
                                                     <button
                                                         type="button"
                                                         onClick={() => handleToggleBlockRandom(currentBlock.id)}
-                                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
+                                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 border ${
                                                             currentBlock.randomize
                                                                 ? 'bg-neon-purple/20 border-neon-purple/40 text-neon-purple'
                                                                 : 'bg-white/5 border-white/10 text-white/60 hover:text-white'
@@ -1096,24 +1094,24 @@ export function AdminTVModal({
                                             </div>
 
                                             {/* Add video form for this block */}
-                                            <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
-                                                <div className="text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-1.5">
-                                                    <Plus className="w-3.5 h-3.5" style={{ color: currentBlock.color }} />
+                                            <div className="p-2 sm:p-2.5 rounded-xl bg-white/[0.03] border border-white/10 space-y-1.5 shrink-0">
+                                                <div className="text-[9px] font-black uppercase tracking-widest text-white/60 flex items-center gap-1.5">
+                                                    <Plus className="w-3 h-3" style={{ color: currentBlock.color }} />
                                                     Ajouter un lien YouTube à ce bloc ({currentBlock.title})
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+                                                <div className="grid grid-cols-1 md:grid-cols-12 gap-1.5">
                                                     <div className="md:col-span-6 relative">
                                                         <input
                                                             type="text"
                                                             value={blockVideoUrl}
                                                             onChange={(e) => handleBlockUrlChange(e.target.value)}
                                                             placeholder="Lien YouTube ou ID (ex: https://youtube.com/watch?v=...)"
-                                                            className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
+                                                            className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
                                                         />
                                                         {isFetchingBlockTitle && (
-                                                            <div className="absolute right-3 top-2.5 text-xs text-white/40 flex items-center gap-1">
-                                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                            <div className="absolute right-3 top-2 text-xs text-white/40 flex items-center gap-1">
+                                                                <Loader2 className="w-3 h-3 animate-spin" />
                                                             </div>
                                                         )}
                                                     </div>
@@ -1124,7 +1122,7 @@ export function AdminTVModal({
                                                             value={blockVideoTitle}
                                                             onChange={(e) => setBlockVideoTitle(e.target.value)}
                                                             placeholder="Titre de la vidéo (auto-détecté ou personnalisé)"
-                                                            className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
+                                                            className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
 
@@ -1133,10 +1131,10 @@ export function AdminTVModal({
                                                             type="button"
                                                             onClick={handleAddVideoToBlock}
                                                             disabled={!blockVideoUrl.trim()}
-                                                            className="w-full h-full py-2.5 px-3 rounded-xl text-white text-xs font-black uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 shadow-lg active:scale-95"
+                                                            className="w-full h-full py-1.5 px-3 rounded-lg text-white text-xs font-black uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 shadow-md active:scale-95"
                                                             style={{ background: currentBlock.color }}
                                                         >
-                                                            <Plus className="w-4 h-4" />
+                                                            <Plus className="w-3.5 h-3.5" />
                                                             Ajouter
                                                         </button>
                                                     </div>
@@ -1144,32 +1142,32 @@ export function AdminTVModal({
                                             </div>
 
                                             {/* Video list inside this block */}
-                                            <div className="space-y-2">
-                                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-white/40">
+                                            <div className="space-y-1.5 flex-1 min-h-0 flex flex-col">
+                                                <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-white/40 shrink-0">
                                                     <span>Vidéos dans ce bloc ({currentBlock.videos?.length || 0})</span>
                                                     <span>Tourne aléatoirement chaque jour si l'option est activée</span>
                                                 </div>
 
                                                 {(!currentBlock.videos || currentBlock.videos.length === 0) ? (
-                                                    <div className="p-8 text-center rounded-2xl bg-white/[0.02] border border-white/5">
-                                                        <p className="text-sm font-bold text-white/40">Aucune vidéo dans ce bloc pour l'instant.</p>
-                                                        <p className="text-xs text-white/20 mt-1">Collez un lien YouTube ci-dessus pour alimenter ce créneau horaire.</p>
+                                                    <div className="p-6 text-center rounded-xl bg-white/[0.02] border border-white/5">
+                                                        <p className="text-xs font-bold text-white/40">Aucune vidéo dans ce bloc pour l'instant.</p>
+                                                        <p className="text-[10px] text-white/20 mt-0.5">Collez un lien YouTube ci-dessus pour alimenter ce créneau horaire.</p>
                                                     </div>
                                                 ) : (
-                                                    <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                                                    <div className="space-y-1.5 flex-1 max-h-[360px] md:max-h-[460px] overflow-y-auto pr-1 custom-scrollbar">
                                                         {currentBlock.videos.map((vid, idx) => {
                                                             const dur = durationsMap[vid.youtubeId] || vid.duration || 0;
                                                             return (
                                                                 <div
                                                                     key={vid.id || idx}
-                                                                    className="p-3 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 flex items-center justify-between gap-3 transition-colors group"
+                                                                    className="p-1.5 px-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 flex items-center justify-between gap-2.5 transition-colors group"
                                                                 >
                                                                     {/* Thumbnail + Index */}
-                                                                    <div className="flex items-center gap-3 min-w-0">
-                                                                        <span className="text-xs font-black text-white/30 w-5 text-center shrink-0">
+                                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                                        <span className="text-[11px] font-black text-white/30 w-4 text-center shrink-0">
                                                                             {idx + 1}
                                                                         </span>
-                                                                        <div className="relative w-20 h-12 rounded-xl overflow-hidden bg-black/50 shrink-0 border border-white/10">
+                                                                        <div className="relative w-16 h-10 rounded-lg overflow-hidden bg-black/50 shrink-0 border border-white/10">
                                                                             <img
                                                                                 src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`}
                                                                                 alt={vid.title}
@@ -1179,7 +1177,7 @@ export function AdminTVModal({
                                                                                 }}
                                                                             />
                                                                             {dur > 0 && (
-                                                                                <span className="absolute bottom-1 right-1 px-1 rounded bg-black/80 text-[8px] font-black text-white">
+                                                                                <span className="absolute bottom-0.5 right-0.5 px-1 rounded bg-black/80 text-[7px] font-black text-white">
                                                                                     {formatDuration(dur)}
                                                                                 </span>
                                                                             )}
@@ -1189,7 +1187,7 @@ export function AdminTVModal({
                                                                             <h5 className="text-xs font-bold text-white truncate" title={vid.title}>
                                                                                 {vid.title}
                                                                             </h5>
-                                                                            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-white/40">
+                                                                            <div className="flex items-center gap-2 mt-0.5 text-[9px] text-white/40">
                                                                                 <span className="font-mono">ID: {vid.youtubeId}</span>
                                                                                 <a
                                                                                     href={`https://www.youtube.com/watch?v=${vid.youtubeId}`}
@@ -1211,27 +1209,27 @@ export function AdminTVModal({
                                                                             type="button"
                                                                             onClick={() => handleMoveVideoInBlock(currentBlock.id, idx, -1)}
                                                                             disabled={idx === 0}
-                                                                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
+                                                                            className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
                                                                             title="Monter"
                                                                         >
-                                                                            <ChevronUp className="w-3.5 h-3.5" />
+                                                                            <ChevronUp className="w-3 h-3" />
                                                                         </button>
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => handleMoveVideoInBlock(currentBlock.id, idx, 1)}
                                                                             disabled={idx === currentBlock.videos.length - 1}
-                                                                            className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
+                                                                            className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-white/50 hover:text-white disabled:opacity-20 transition-all"
                                                                             title="Descendre"
                                                                         >
-                                                                            <ChevronDown className="w-3.5 h-3.5" />
+                                                                            <ChevronDown className="w-3 h-3" />
                                                                         </button>
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => handleRemoveVideoFromBlock(currentBlock.id, idx)}
-                                                                            className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all ml-1"
+                                                                            className="p-1 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all ml-0.5"
                                                                             title="Supprimer ce lien"
                                                                         >
-                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                            <Trash2 className="w-3 h-3" />
                                                                         </button>
                                                                     </div>
                                                                 </div>
@@ -1252,74 +1250,74 @@ export function AdminTVModal({
                         {activeTab === 'main' && (
                             <>
                                 {/* Alternation Diagram */}
-                                <div className="mb-4 p-2.5 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 flex items-center justify-between gap-2 overflow-x-auto text-[10px] font-bold">
-                                    <span className="text-white/40 uppercase tracking-widest text-[9px] shrink-0">
+                                <div className="mb-2.5 p-2 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 flex items-center justify-between gap-2 overflow-x-auto text-[9px] font-bold">
+                                    <span className="text-white/40 uppercase tracking-widest text-[8px] shrink-0">
                                         Règle de diffusion continue :
                                     </span>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <span className="px-2 py-0.5 rounded bg-neon-red/20 text-neon-red border border-neon-red/30">
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                        <span className="px-1.5 py-0.5 rounded bg-neon-red/20 text-neon-red border border-neon-red/30">
                                             Vidéo 1
                                         </span>
-                                        <ChevronRight className="w-3 h-3 text-white/20" />
-                                        <span className="px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple border border-neon-purple/30">
+                                        <ChevronRight className="w-2.5 h-2.5 text-white/20" />
+                                        <span className="px-1.5 py-0.5 rounded bg-neon-purple/20 text-neon-purple border border-neon-purple/30">
                                             Promo 1
                                         </span>
-                                        <ChevronRight className="w-3 h-3 text-white/20" />
-                                        <span className="px-2 py-0.5 rounded bg-neon-red/20 text-neon-red border border-neon-red/30">
+                                        <ChevronRight className="w-2.5 h-2.5 text-white/20" />
+                                        <span className="px-1.5 py-0.5 rounded bg-neon-red/20 text-neon-red border border-neon-red/30">
                                             Vidéo 2
                                         </span>
-                                        <ChevronRight className="w-3 h-3 text-white/20" />
-                                        <span className="px-2 py-0.5 rounded bg-neon-purple/20 text-neon-purple border border-neon-purple/30">
+                                        <ChevronRight className="w-2.5 h-2.5 text-white/20" />
+                                        <span className="px-1.5 py-0.5 rounded bg-neon-purple/20 text-neon-purple border border-neon-purple/30">
                                             Promo 2
                                         </span>
-                                        <ChevronRight className="w-3 h-3 text-white/20" />
-                                        <span className="text-white/40 italic text-[9px]">etc...</span>
+                                        <ChevronRight className="w-2.5 h-2.5 text-white/20" />
+                                        <span className="text-white/40 italic text-[8px]">etc...</span>
                                     </div>
                                 </div>
 
                                 {/* Form: Add Main Video */}
-                                <form onSubmit={handleAddMainVideo} className="mb-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0 space-y-3">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-white/50 flex items-center gap-1.5">
-                                        <Plus className="w-3.5 h-3.5 text-neon-red" />
+                                <form onSubmit={handleAddMainVideo} className="mb-2.5 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 space-y-2">
+                                    <div className="text-[9px] font-black uppercase tracking-widest text-white/50 flex items-center gap-1.5">
+                                        <Plus className="w-3 h-3 text-neon-red" />
                                         Ajouter un set principal à la programmation
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-1.5">
                                         <div className="md:col-span-6 relative">
                                             <input
                                                 type="text"
                                                 placeholder="Lien ou ID YouTube (ex: https://youtube.com/watch?v=...)"
                                                 value={newMainUrl}
                                                 onChange={(e) => handleMainUrlChange(e.target.value)}
-                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red font-mono"
+                                                className="w-full bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red font-mono"
                                             />
                                             {isFetchingMainTitle && (
-                                                <div className="absolute right-3 top-2.5 text-neon-cyan">
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                <div className="absolute right-3 top-2 text-neon-cyan">
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="md:col-span-6 flex gap-2">
+                                        <div className="md:col-span-6 flex gap-1.5">
                                             <input
                                                 type="text"
                                                 placeholder="Titre du set (auto-détecté ou personnalisé)"
                                                 value={newMainTitle}
                                                 onChange={(e) => setNewMainTitle(e.target.value)}
-                                                className="flex-1 bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
+                                                className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={handleManualFetchMainTitle}
                                                 title="Recharger le titre YouTube"
-                                                className="px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/60 hover:text-white transition-all text-xs"
+                                                className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white transition-all text-xs"
                                             >
-                                                <Sparkles className="w-3.5 h-3.5 text-neon-cyan" />
+                                                <Sparkles className="w-3 h-3 text-neon-cyan" />
                                             </button>
                                             <button
                                                 type="submit"
-                                                className="px-4 py-2 bg-neon-red hover:bg-neon-red/90 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shrink-0 active:scale-95 flex items-center gap-1.5"
+                                                className="px-3.5 py-1.5 bg-neon-red hover:bg-neon-red/90 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-all shrink-0 active:scale-95 flex items-center gap-1.5"
                                             >
-                                                <Plus className="w-4 h-4" />
+                                                <Plus className="w-3.5 h-3.5" />
                                                 Ajouter
                                             </button>
                                         </div>
@@ -1327,7 +1325,7 @@ export function AdminTVModal({
                                 </form>
 
                                 {/* List of Main Videos */}
-                                <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar min-h-0">
+                                <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar min-h-0">
                                     {loading ? (
                                         <div className="py-12 flex flex-col items-center justify-center text-white/40 gap-2">
                                             <Loader2 className="w-6 h-6 animate-spin text-neon-red" />
@@ -1342,14 +1340,14 @@ export function AdminTVModal({
                                             const nextPromo = promos.length > 0 ? promos[idx % promos.length] : null;
                                             const nextPromoIdx = promos.length > 0 ? (idx % promos.length) : null;
                                             return (
-                                                <div key={video.id || idx} className="space-y-1.5">
+                                                <div key={video.id || idx} className="space-y-1">
                                                     {/* Main Video Item */}
-                                                    <div className="group p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/15 transition-all flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-xl bg-neon-red/10 border border-neon-red/30 flex items-center justify-center text-xs font-black font-mono text-neon-red shrink-0">
+                                                    <div className="group p-1.5 px-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/15 transition-all flex items-center gap-2.5">
+                                                        <div className="w-6 h-6 rounded-lg bg-neon-red/10 border border-neon-red/30 flex items-center justify-center text-[10px] font-black font-mono text-neon-red shrink-0">
                                                             #{idx + 1}
                                                         </div>
 
-                                                        <div className="w-20 h-12 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
+                                                        <div className="w-16 h-10 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
                                                             <img
                                                                 src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
                                                                 alt={video.title}
@@ -1362,7 +1360,7 @@ export function AdminTVModal({
 
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2">
-                                                                <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-neon-red/15 text-neon-red border border-neon-red/30">
+                                                                <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-neon-red/15 text-neon-red border border-neon-red/30">
                                                                     Set Principal
                                                                 </span>
                                                                 {durationsMap[video.youtubeId] > 0 && (
@@ -1375,7 +1373,7 @@ export function AdminTVModal({
                                                                     {video.title}
                                                                 </h4>
                                                             </div>
-                                                            <div className="text-[10px] text-white/40 font-mono mt-0.5">
+                                                            <div className="text-[9px] text-white/40 font-mono mt-0.5">
                                                                 ID: {video.youtubeId}
                                                             </div>
                                                         </div>
@@ -1385,39 +1383,39 @@ export function AdminTVModal({
                                                                 type="button"
                                                                 onClick={() => handleMoveUpMain(idx)}
                                                                 disabled={idx === 0}
-                                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
+                                                                className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
                                                                 title="Monter"
                                                             >
-                                                                <ChevronUp className="w-3.5 h-3.5" />
+                                                                <ChevronUp className="w-3 h-3" />
                                                             </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleMoveDownMain(idx)}
                                                                 disabled={idx === playlist.length - 1}
-                                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
+                                                                className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
                                                                 title="Descendre"
                                                             >
-                                                                <ChevronDown className="w-3.5 h-3.5" />
+                                                                <ChevronDown className="w-3 h-3" />
                                                             </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleDeleteMain(video.id)}
                                                                 disabled={playlist.length <= 1}
-                                                                className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 ml-1 disabled:opacity-20"
+                                                                className="p-1 rounded-md bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 ml-0.5 disabled:opacity-20"
                                                                 title="Supprimer"
                                                             >
-                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                                <Trash2 className="w-3 h-3" />
                                                             </button>
                                                         </div>
                                                     </div>
 
                                                     {/* Interleaved Promo video right after this video */}
                                                     {nextPromo && (
-                                                        <div className="ml-5 md:ml-8 p-2.5 rounded-xl bg-neon-purple/[0.04] border border-neon-purple/20 flex items-center gap-3 relative before:content-[''] before:absolute before:-left-3 before:top-1/2 before:w-2.5 before:h-0.5 before:bg-neon-purple/40">
-                                                            <div className="w-6 h-6 rounded-lg bg-neon-purple/20 border border-neon-purple/30 flex items-center justify-center text-[10px] font-black font-mono text-neon-purple shrink-0">
+                                                        <div className="ml-5 md:ml-8 p-1.5 px-2.5 rounded-xl bg-neon-purple/[0.04] border border-neon-purple/20 flex items-center gap-2.5 relative before:content-[''] before:absolute before:-left-3 before:top-1/2 before:w-2.5 before:h-0.5 before:bg-neon-purple/40">
+                                                            <div className="w-5 h-5 rounded-md bg-neon-purple/20 border border-neon-purple/30 flex items-center justify-center text-[9px] font-black font-mono text-neon-purple shrink-0">
                                                                 P{nextPromoIdx! + 1}
                                                             </div>
-                                                            <div className="w-14 h-9 rounded bg-black overflow-hidden relative shrink-0 border border-neon-purple/30">
+                                                            <div className="w-12 h-7 rounded bg-black overflow-hidden relative shrink-0 border border-neon-purple/30">
                                                                 <img
                                                                     src={`https://img.youtube.com/vi/${nextPromo.youtubeId}/mqdefault.jpg`}
                                                                     alt={nextPromo.title}
@@ -1443,7 +1441,7 @@ export function AdminTVModal({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setActiveTab('promo')}
-                                                                className="text-[9px] text-neon-purple hover:underline px-2 py-1 rounded bg-neon-purple/10 hover:bg-neon-purple/20 font-bold uppercase tracking-wider shrink-0 transition-all"
+                                                                className="text-[9px] text-neon-purple hover:underline px-2 py-0.5 rounded bg-neon-purple/10 hover:bg-neon-purple/20 font-bold uppercase tracking-wider shrink-0 transition-all"
                                                             >
                                                                 Gérer promos →
                                                             </button>
@@ -1462,66 +1460,65 @@ export function AdminTVModal({
                         {/* ========================================================= */}
                         {activeTab === 'promo' && (
                             <>
-                                <div className="mb-4 p-3 rounded-2xl bg-neon-purple/5 border border-neon-purple/20 text-xs text-white/80 space-y-1">
-                                    <div className="font-black uppercase tracking-wider text-neon-purple flex items-center gap-1.5">
-                                        <Film className="w-4 h-4" />
-                                        Intercalage automatique des promos
-                                    </div>
-                                    <p className="text-[11px] text-white/60">
+                                <div className="mb-2.5 p-2 px-3 rounded-xl bg-white/[0.03] border border-white/10 shrink-0">
+                                    <h3 className="text-xs font-black uppercase text-neon-purple tracking-wider mb-0.5">
+                                        Vidéos Promo intercalées
+                                    </h3>
+                                    <p className="text-[10px] text-white/60">
                                         Chaque promo est diffusée automatiquement à la fin d'une vidéo principale :
                                         <strong className="text-white"> Vidéo 1 → Promo 1 → Vidéo 2 → Promo 2 → Vidéo 3 → Promo 3 (ou 1)</strong>.
                                     </p>
                                 </div>
 
-                                <form onSubmit={handleAddPromoVideo} className="mb-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 shrink-0 space-y-3">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-neon-purple flex items-center gap-1.5">
-                                        <Plus className="w-3.5 h-3.5" />
+                                <form onSubmit={handleAddPromoVideo} className="mb-2.5 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 space-y-2">
+                                    <div className="text-[9px] font-black uppercase tracking-widest text-neon-purple flex items-center gap-1.5">
+                                        <Plus className="w-3 h-3" />
                                         Ajouter une vidéo promo / teaser
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-1.5">
                                         <div className="md:col-span-6 relative">
                                             <input
                                                 type="text"
                                                 placeholder="Lien ou ID YouTube de la promo"
                                                 value={newPromoUrl}
                                                 onChange={(e) => handlePromoUrlChange(e.target.value)}
-                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple font-mono"
+                                                className="w-full bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple font-mono"
                                             />
                                             {isFetchingPromoTitle && (
-                                                <div className="absolute right-3 top-2.5 text-neon-cyan">
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                <div className="absolute right-3 top-2 text-neon-cyan">
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="md:col-span-6 flex gap-2">
+                                        <div className="md:col-span-6 flex gap-1.5">
                                             <input
                                                 type="text"
                                                 placeholder="Titre de la promo"
                                                 value={newPromoTitle}
                                                 onChange={(e) => setNewPromoTitle(e.target.value)}
-                                                className="flex-1 bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple"
+                                                className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={handleManualFetchPromoTitle}
                                                 title="Recharger le titre"
-                                                className="px-2.5 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/60 hover:text-white transition-all text-xs"
+                                                className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white transition-all text-xs"
                                             >
-                                                <Sparkles className="w-3.5 h-3.5 text-neon-cyan" />
+                                                <Sparkles className="w-3 h-3 text-neon-cyan" />
                                             </button>
                                             <button
                                                 type="submit"
-                                                className="px-4 py-2 bg-neon-purple hover:bg-neon-purple/90 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shrink-0 active:scale-95 flex items-center gap-1.5"
+                                                className="px-3.5 py-1.5 bg-neon-purple hover:bg-neon-purple/90 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-all shrink-0 active:scale-95 flex items-center gap-1.5"
                                             >
-                                                <Plus className="w-4 h-4" />
+                                                <Plus className="w-3.5 h-3.5" />
                                                 Ajouter
                                             </button>
                                         </div>
                                     </div>
                                 </form>
 
-                                <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar min-h-0">
+                                <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar min-h-0">
                                     {promos.length === 0 ? (
                                         <div className="py-12 text-center text-white/40 text-xs uppercase tracking-widest font-bold">
                                             Aucune vidéo promo configurée. Les sets principaux s'enchaîneront directement sans promo.
@@ -1530,13 +1527,13 @@ export function AdminTVModal({
                                         promos.map((p, idx) => (
                                             <div
                                                 key={p.id || idx}
-                                                className="group p-3 rounded-2xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-neon-purple/30 transition-all flex items-center gap-3"
+                                                className="group p-1.5 px-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-neon-purple/30 transition-all flex items-center gap-2.5"
                                             >
-                                                <div className="w-7 h-7 rounded-xl bg-neon-purple/10 border border-neon-purple/30 flex items-center justify-center text-xs font-black font-mono text-neon-purple shrink-0">
+                                                <div className="w-6 h-6 rounded-lg bg-neon-purple/10 border border-neon-purple/30 flex items-center justify-center text-[10px] font-black font-mono text-neon-purple shrink-0">
                                                     P{idx + 1}
                                                 </div>
 
-                                                <div className="w-20 h-12 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
+                                                <div className="w-16 h-10 rounded-lg bg-black overflow-hidden relative shrink-0 border border-white/10">
                                                     <img
                                                         src={`https://img.youtube.com/vi/${p.youtubeId}/mqdefault.jpg`}
                                                         alt={p.title}
@@ -1548,7 +1545,7 @@ export function AdminTVModal({
                                                     <h4 className="text-white font-bold text-xs truncate">
                                                         {p.title}
                                                     </h4>
-                                                    <div className="text-[10px] text-white/40 font-mono mt-0.5">
+                                                    <div className="text-[9px] text-white/40 font-mono mt-0.5">
                                                         ID: {p.youtubeId} · Jouée après le set {idx + 1}
                                                     </div>
                                                 </div>
@@ -1558,27 +1555,27 @@ export function AdminTVModal({
                                                         type="button"
                                                         onClick={() => handleMoveUpPromo(idx)}
                                                         disabled={idx === 0}
-                                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
+                                                        className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
                                                         title="Monter"
                                                     >
-                                                        <ChevronUp className="w-3.5 h-3.5" />
+                                                        <ChevronUp className="w-3 h-3" />
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleMoveDownPromo(idx)}
                                                         disabled={idx === promos.length - 1}
-                                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
+                                                        className="p-1 rounded-md bg-white/5 hover:bg-white/10 text-white/60 hover:text-white disabled:opacity-20"
                                                         title="Descendre"
                                                     >
-                                                        <ChevronDown className="w-3.5 h-3.5" />
+                                                        <ChevronDown className="w-3 h-3" />
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDeletePromo(p.id)}
-                                                        className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 ml-1"
+                                                        className="p-1 rounded-md bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 ml-0.5"
                                                         title="Supprimer la promo"
                                                     >
-                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        <Trash2 className="w-3 h-3" />
                                                     </button>
                                                 </div>
                                             </div>
@@ -2555,7 +2552,7 @@ export function AdminTVModal({
 
                         {/* Modal Footer Controls for TV Tab */}
                         {activeTab !== 'live' && (
-                            <div className="mt-4 pt-3 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                            <div className="mt-2.5 pt-2 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
                                 <button
                                     type="button"
                                     onClick={handleReset}
@@ -2565,16 +2562,16 @@ export function AdminTVModal({
                                     Restaurer la liste par défaut
                                 </button>
 
-                                <div className="flex items-center gap-3 w-full sm:w-auto">
+                                <div className="flex items-center gap-2.5 w-full sm:w-auto">
                                     {saveSuccess && (
-                                        <div className="flex items-center gap-1.5 text-xs text-neon-green font-bold animate-fade-in">
-                                            <CheckCircle2 className="w-4 h-4" />
+                                        <div className="flex items-center gap-1 text-xs text-neon-green font-bold animate-fade-in">
+                                            <CheckCircle2 className="w-3.5 h-3.5" />
                                             {saveMessage || 'Enregistré !'}
                                         </div>
                                     )}
                                     {error && (
-                                        <div className="flex items-center gap-1.5 text-xs text-red-400 font-bold max-w-xs truncate" title={error}>
-                                            <AlertCircle className="w-4 h-4 shrink-0" />
+                                        <div className="flex items-center gap-1 text-xs text-red-400 font-bold max-w-xs truncate" title={error}>
+                                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                                             {error}
                                         </div>
                                     )}
@@ -2583,16 +2580,16 @@ export function AdminTVModal({
                                         type="button"
                                         onClick={handleSave}
                                         disabled={saving}
-                                        className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-neon-red to-neon-purple text-white text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-neon-red/20 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                                        className="w-full sm:w-auto px-5 py-2 rounded-xl bg-gradient-to-r from-neon-red to-neon-purple text-white text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-neon-red/20 active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50"
                                     >
                                         {saving ? (
                                             <>
-                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                                 Enregistrement...
                                             </>
                                         ) : (
                                             <>
-                                                <Save className="w-4 h-4" />
+                                                <Save className="w-3.5 h-3.5" />
                                                 Enregistrer la programmation
                                             </>
                                         )}
