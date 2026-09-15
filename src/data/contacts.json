@@ -977,5 +977,18 @@
     "date": "2026-09-15T17:35:33.699Z",
     "read": false,
     "replied": false
+  },
+  {
+    "id": "1789498001264",
+    "name": "henri1louis@icloud.com",
+    "email": "henri1louis@icloud.com",
+    "subject": "Auto reply: Daily suggestions - browse",
+    "message": "pas de date de fin!\n\n\n\n",
+    "html": null,
+    "recipient": "alex@dropsiders.fr",
+    "attachments": [],
+    "date": "2026-09-15T18:46:41.264Z",
+    "read": false,
+    "replied": false
   }
 ]
