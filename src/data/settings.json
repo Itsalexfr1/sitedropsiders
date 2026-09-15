@@ -257,7 +257,29 @@
       "color": "#06b6d4",
       "emoji": "🎪",
       "randomize": true,
-      "videos": []
+      "videos": [
+        {
+          "id": "bv_1789458972930",
+          "title": "Mathame Live at EDC Las Vegas 2026",
+          "description": "Diffusé sur DropsidersTV · Relive Festivals",
+          "youtubeId": "i7PGl_PyHvI",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789458989234",
+          "title": "Kölsch | Tomorrowland Brasil 2025",
+          "description": "Diffusé sur DropsidersTV · Relive Festivals",
+          "youtubeId": "mSVIWbJdewM",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789459006578",
+          "title": "Swedish House Mafia Live at Ultra Music Festival (Miami 2026)",
+          "description": "Diffusé sur DropsidersTV · Relive Festivals",
+          "youtubeId": "byHTUyYS7bA",
+          "duration": 3600
+        }
+      ]
     },
     {
       "id": "bloc_3",
