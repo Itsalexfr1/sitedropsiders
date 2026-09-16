@@ -799,11 +799,13 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
     };
 
     const getInterviewTemplate = (lang: 'FR' | 'EN', dj: string, type: string, date: string, festival: string, name: string) => {
+        const isVideo = type === 'Vidéo';
         if (lang === 'FR') {
             const artistName = dj || "[Nom de l’Artiste]";
             const festivalName = festival || "l'EDC Las Vegas";
             const location = festivalName.toLowerCase().includes('edc') ? "Las Vegas" : "le lieu du festival";
             const dateInfo = date ? `(autour du ${date})` : '';
+            const formatText = isVideo ? "Interview Vidéo (format réseaux sociaux)" : "Interview Écrite";
 
             return `Hello,
 
@@ -815,15 +817,13 @@ L'idée est de proposer à notre communauté une interview dynamique axée sur s
 
 Infos pratiques :
 
-Format : Interview ${type.toLowerCase()} (vidéo format réseaux sociaux ou écrit).
+Format : ${formatText}.
 Lieu : En backstage ou zone presse de ${festivalName}.
 Timing : 10-15 minutes maximum.
 
 Dropsiders a pour but de mettre en avant la scène électronique mondiale auprès du public francophone, et la présence de ${artistName} sur nos supports serait un vrai plus pour notre couverture du festival.
 
 Seriez-vous disponible pour caler un court créneau durant le week-end ${dateInfo} ?
-
-<a href="https://dropsiders.fr/uploads/pdfs/5efcee3d6da91551-Interview_Cards_Dropsiders_VER.pdf" style="color:#ff1241; font-weight:bold; text-decoration:underline;">Cliquez ici pour voir l'exemple des questions (PDF)</a>
 
 Dans l'attente de votre réponse,
 
@@ -835,6 +835,7 @@ Alex (Dropsiders)`;
             const festivalNameEN = festival || "EDC Las Vegas";
             const locationEN = festivalNameEN.toLowerCase().includes('edc') ? "Las Vegas" : "the festival location";
             const dateInfoEN = date ? `(around ${date})` : '';
+            const formatTextEN = isVideo ? "Video interview (social media format)" : "Written interview";
 
             return `Hello,
 
@@ -846,15 +847,13 @@ The idea is to offer our community a dynamic interview focused on his/her latest
 
 Practical info:
 
-Format: ${type} interview (social media video format or written).
+Format: ${formatTextEN}.
 Location: In backstage or press area of ${festivalNameEN}.
 Timing: 10-15 minutes maximum.
 
 Dropsiders aims to highlight the global electronic scene to the French-speaking audience, and having ${artistNameEN} on our platforms would be a real asset for our festival coverage.
 
 Would you be available to schedule a short slot during the weekend ${dateInfoEN} ?
-
-<a href="https://dropsiders.fr/uploads/pdfs/1a7e292d6bf86432-Interview_Cards_Dropsiders_VER.pdf" style="color:#ff1241; font-weight:bold; text-decoration:underline;">Click here to see the example questions (PDF)</a>
 
 Looking forward to your response,
 
@@ -1762,7 +1761,7 @@ Alex (Dropsiders)`;
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
                                             <span className="text-[10px] font-black uppercase text-gray-400 sm:w-24 shrink-0">Expéditeur :</span>
                                             <div className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-neon-cyan font-bold w-full sm:flex-1 flex items-center justify-between">
-                                                <span>info@dropsiders.fr</span>
+                                                <span>contact@dropsiders.fr</span>
                                                 <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">Boîte Officielle</span>
                                             </div>
                                         </div>
