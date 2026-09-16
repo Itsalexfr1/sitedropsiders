@@ -6306,6 +6306,10 @@ ${urls.map(u => `  <url>
                 const recipients = to.split(',').map((email: string) => ({ email: email.trim(), name: name || email.trim() })).filter((r: any) => r.email);
                 if (recipients.length === 0) return new Response(JSON.stringify({ error: 'No valid recipients' }), { status: 400, headers });
 
+                const bccRecipients = recipients.some((r: any) => r.email && r.email.toLowerCase() === 'alex@dropsiders.fr')
+                    ? []
+                    : [{ email: 'alex@dropsiders.fr', name: 'Alex Dropsiders' }];
+
                 let brevoAttachments: any[] = [];
                 if (Array.isArray(attachments)) {
                     attachments.slice(0, 10).forEach((f: any) => {
@@ -6315,9 +6319,10 @@ ${urls.map(u => `  <url>
                     });
                 }
 
-                const payload = {
+                const payload: any = {
                     sender: { name: 'Dropsiders', email: 'contact@dropsiders.fr' },
                     to: recipients,
+                    ...(bccRecipients.length > 0 ? { bcc: bccRecipients } : {}),
                     subject: subject,
                     htmlContent: `
                         <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#000000; padding:30px 5px; text-align:center;">
