@@ -1465,11 +1465,103 @@
       ]
     },
     {
+      "id": "bloc_1789598131556",
+      "name": "Bloc 5 · Zone Rouge",
+      "title": "Zone Rouge",
+      "timeSlot": "00h - 03h",
+      "startHour": 0,
+      "endHour": 3,
+      "color": "#ff1241",
+      "emoji": "🔥",
+      "randomize": true,
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "videos": [
+        {
+          "id": "bv_1789598181083",
+          "title": "Return of Headhunterz 2017 | Headhunterz 2-Hour Set",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "mmBeR56zgGI",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598202955",
+          "title": "Wildstylez | Defqon.1 2025",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "h_0bARrg2sg",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598236428",
+          "title": "Qlimax 2016 | Angerfist",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "bEGSijQFIDg",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598244203",
+          "title": "Deepack, Luna & Zany | Qlimax 2024",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "go9jzCz8Lxc",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598253963",
+          "title": "Qlimax 2016 | Project One",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "R5sQx_UwYnk",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598265763",
+          "title": "Brennan Heart presents Blademasterz I Qlimax 2023 | Enter the Void",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "EBO4id1eSSs",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598294628",
+          "title": "Q-BASE 2018 | Noisecontrollers",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "5HFR3lnfHeM",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598305615",
+          "title": "Q-BASE 2016 | Korsakoff",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "K5iiEybdq6o",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598315787",
+          "title": "Q-BASE 2016 | Frequencerz",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "NfdBtcAHEF0",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598335475",
+          "title": "Q-BASE 2016 | Atmozfears",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "7zsd_KbkoQo",
+          "duration": 3600
+        }
+      ]
+    },
+    {
       "id": "bloc_5",
-      "name": "Bloc 5 · La Nuit",
+      "name": "Bloc 6 · La Nuit",
       "title": "La Nuit Dropsiders",
-      "timeSlot": "02h - 06h",
-      "startHour": 2,
+      "timeSlot": "03h - 06h",
+      "startHour": 3,
       "endHour": 6,
       "color": "#ec4899",
       "emoji": "🌙",
@@ -1760,98 +1852,6 @@
           "title": "DØMINA LIVE @ ESCAPE HALLOWEEN ( HARD TECHNO )",
           "description": "Diffusé sur DropsidersTV · La Nuit Dropsiders",
           "youtubeId": "D1O9K7EmINQ",
-          "duration": 3600
-        }
-      ]
-    },
-    {
-      "id": "bloc_1789598131556",
-      "name": "Bloc 6 · Zone Rouge",
-      "title": "Zone Rouge",
-      "timeSlot": "00h - 02h",
-      "startHour": 0,
-      "endHour": 2,
-      "color": "#ff1241",
-      "emoji": "🔥",
-      "randomize": true,
-      "days": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        0
-      ],
-      "videos": [
-        {
-          "id": "bv_1789598181083",
-          "title": "Return of Headhunterz 2017 | Headhunterz 2-Hour Set",
-          "description": "Diffusé sur DropsidersTV · Zone Rouge",
-          "youtubeId": "mmBeR56zgGI",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789598202955",
-          "title": "Wildstylez | Defqon.1 2025",
-          "description": "Diffusé sur DropsidersTV · Zone Rouge",
-          "youtubeId": "h_0bARrg2sg",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789598236428",
-          "title": "Qlimax 2016 | Angerfist",
-          "description": "Diffusé sur DropsidersTV · Zone Rouge",
-          "youtubeId": "bEGSijQFIDg",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789598244203",
-          "title": "Deepack, Luna & Zany | Qlimax 2024",
-          "description": "Diffusé sur DropsidersTV · Zone Rouge",
-          "youtubeId": "go9jzCz8Lxc",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789598253963",
-          "title": "Qlimax 2016 | Project One",
-          "description": "Diffusé sur DropsidersTV · Zone Rouge",
-          "youtubeId": "R5sQx_UwYnk",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789598265763",
-          "title": "Brennan Heart presents Blademasterz I Qlimax 2023 | Enter the Void",
-          "description": "Diffusé sur DropsidersTV · Zone Rouge",
-          "youtubeId": "EBO4id1eSSs",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789598294628",
-          "title": "Q-BASE 2018 | Noisecontrollers",
-          "description": "Diffusé sur DropsidersTV · Zone Rouge",
-          "youtubeId": "5HFR3lnfHeM",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789598305615",
-          "title": "Q-BASE 2016 | Korsakoff",
-          "description": "Diffusé sur DropsidersTV · Zone Rouge",
-          "youtubeId": "K5iiEybdq6o",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789598315787",
-          "title": "Q-BASE 2016 | Frequencerz",
-          "description": "Diffusé sur DropsidersTV · Zone Rouge",
-          "youtubeId": "NfdBtcAHEF0",
-          "duration": 3600
-        },
-        {
-          "id": "bv_1789598335475",
-          "title": "Q-BASE 2016 | Atmozfears",
-          "description": "Diffusé sur DropsidersTV · Zone Rouge",
-          "youtubeId": "7zsd_KbkoQo",
           "duration": 3600
         }
       ]
