@@ -511,6 +511,14 @@ export function DropsidersTVPage() {
     const [showSchedule, setShowSchedule] = useState(false);
     const prevMuteStateRef = useRef<boolean | null>(hasAdminParam ? false : null);
 
+    const isAdminTVModalOpenRef = useRef(isAdminTVModalOpen);
+    isAdminTVModalOpenRef.current = isAdminTVModalOpen;
+    const isMutedRef = useRef(isMuted);
+    isMutedRef.current = isMuted;
+    const volumeRef = useRef(volume);
+    volumeRef.current = volume;
+    const currentLoadedVideoIdRef = useRef<string | null>(null);
+
     const [isYtApiReady, setIsYtApiReady] = useState(() => {
         return !!(typeof window !== 'undefined' && window.YT && window.YT.Player);
     });
@@ -526,6 +534,7 @@ export function DropsidersTVPage() {
         }
         if (adminFromUrl) {
             setIsAdminTVModalOpen(true);
+            isAdminTVModalOpenRef.current = true;
             if (prevMuteStateRef.current === null) {
                 prevMuteStateRef.current = isMuted;
             }
@@ -533,16 +542,19 @@ export function DropsidersTVPage() {
                 try { playerRef.current.mute(); } catch {}
             }
             setIsMuted(true);
+            isMutedRef.current = true;
         }
     }, [searchParams]);
 
     // Whenever the admin edit modal is opened, strictly mute the video
     useEffect(() => {
         if (isAdminTVModalOpen) {
+            isAdminTVModalOpenRef.current = true;
             if (prevMuteStateRef.current === null) {
                 prevMuteStateRef.current = isMuted;
             }
             setIsMuted(true);
+            isMutedRef.current = true;
             if (playerRef.current && typeof playerRef.current.mute === 'function') {
                 try { playerRef.current.mute(); } catch {}
             }
@@ -551,15 +563,18 @@ export function DropsidersTVPage() {
 
     const openAdminModal = () => {
         prevMuteStateRef.current = isMuted;
+        isAdminTVModalOpenRef.current = true;
         if (playerRef.current && typeof playerRef.current.mute === 'function') {
             try { playerRef.current.mute(); } catch {}
         }
         setIsMuted(true);
+        isMutedRef.current = true;
         setIsAdminTVModalOpen(true);
     };
 
     const closeAdminModal = () => {
         setIsAdminTVModalOpen(false);
+        isAdminTVModalOpenRef.current = false;
 
         // Remove ?admin=true from URL cleanly without harsh re-mounts
         try {
@@ -572,35 +587,51 @@ export function DropsidersTVPage() {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        // Restore sound if it was unmuted before opening the modal
-        if (prevMuteStateRef.current === false) {
-            setIsMuted(false);
-            if (playerRef.current && typeof playerRef.current.unMute === 'function') {
-                try {
-                    playerRef.current.unMute();
-                    playerRef.current.setVolume(volume > 0 ? volume : 80);
-                } catch {}
-            }
+        // Unconditionally unmute video when closing the admin modal so the user has sound directly
+        setIsMuted(false);
+        isMutedRef.current = false;
+        try {
+            localStorage.setItem('dropsiders_tv_muted', 'false');
+        } catch {}
+
+        const targetVol = volumeRef.current > 0 ? volumeRef.current : 80;
+
+        if (playerRef.current && typeof playerRef.current.unMute === 'function') {
             try {
-                localStorage.setItem('dropsiders_tv_muted', 'false');
+                playerRef.current.unMute();
+                playerRef.current.setVolume(targetVol);
+                const state = playerRef.current.getPlayerState();
+                if (state !== 1) { // 1 = PLAYING
+                    playerRef.current.playVideo();
+                }
+                setIsPlaying(true);
             } catch {}
         }
         prevMuteStateRef.current = null;
 
-        // Force playback to start / resume after modal close
+        // Ensure playback continues and volume/unmute is applied smoothly without resetting video position
         setTimeout(() => {
-            if (playerRef.current && typeof playerRef.current.getPlayerState === 'function') {
+            if (playerRef.current && typeof playerRef.current.unMute === 'function') {
                 try {
+                    playerRef.current.unMute();
+                    playerRef.current.setVolume(targetVol);
                     const state = playerRef.current.getPlayerState();
-                    if (state !== 1) { // 1 = PLAYING
+                    if (state !== 1) {
                         playerRef.current.playVideo();
                     }
                     setIsPlaying(true);
                 } catch {}
-            } else if (typeof initPlayerRef.current === 'function') {
-                initPlayerRef.current();
             }
         }, 150);
+
+        setTimeout(() => {
+            if (playerRef.current && typeof playerRef.current.unMute === 'function') {
+                try {
+                    playerRef.current.unMute();
+                    playerRef.current.setVolume(targetVol);
+                } catch {}
+            }
+        }, 400);
     };
 
     // Close admin modal on Escape key
@@ -932,23 +963,44 @@ export function DropsidersTVPage() {
         if (!targetDiv) return false;
 
         const startSec = pendingSeekRef.current ?? 0;
-        pendingSeekRef.current = null;
 
         // If player already exists and its iframe is currently attached in the DOM
         if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
             try {
                 const iframe = typeof playerRef.current.getIframe === 'function' ? playerRef.current.getIframe() : null;
                 if (iframe && document.body.contains(iframe)) {
+                    // IF THE SAME VIDEO IS ALREADY LOADED, NEVER RELOAD OR RESTART TO 0!
+                    if (currentLoadedVideoIdRef.current === currentVideoId) {
+                        if (isAdminTVModalOpenRef.current || isMutedRef.current) {
+                            try { playerRef.current.mute(); } catch {}
+                        } else {
+                            try {
+                                playerRef.current.unMute();
+                                playerRef.current.setVolume(volumeRef.current > 0 ? volumeRef.current : 80);
+                            } catch {}
+                        }
+                        try {
+                            const st = playerRef.current.getPlayerState();
+                            if (st !== 1) {
+                                playerRef.current.playVideo();
+                            }
+                        } catch {}
+                        return true;
+                    }
+
+                    // A different video is requested
+                    currentLoadedVideoIdRef.current = currentVideoId;
+                    pendingSeekRef.current = null;
                     playerRef.current.loadVideoById({
                         videoId: currentVideoId,
                         startSeconds: startSec
                     });
                     disableCaptions(playerRef.current);
-                    if (isAdminTVModalOpen || isMuted) {
+                    if (isAdminTVModalOpenRef.current || isMutedRef.current) {
                         playerRef.current.mute();
                     } else {
                         playerRef.current.unMute();
-                        playerRef.current.setVolume(volume);
+                        playerRef.current.setVolume(volumeRef.current > 0 ? volumeRef.current : 80);
                     }
                     playerRef.current.playVideo();
                     setIsPlaying(true);
@@ -959,7 +1011,9 @@ export function DropsidersTVPage() {
             }
         }
 
+        pendingSeekRef.current = null;
         try {
+            currentLoadedVideoIdRef.current = currentVideoId;
             playerRef.current = new window.YT.Player('tv-yt-player', {
                 width: '100%',
                 height: '100%',
@@ -983,6 +1037,7 @@ export function DropsidersTVPage() {
                 },
                 events: {
                     onReady: (event: any) => {
+                        currentLoadedVideoIdRef.current = currentVideoId;
                         disableCaptions(event.target);
                         try {
                             event.target.mute();
@@ -995,14 +1050,14 @@ export function DropsidersTVPage() {
                         }
 
                         // Strictly MUTE if admin edit modal is currently open!
-                        if (isAdminTVModalOpen) {
+                        if (isAdminTVModalOpenRef.current) {
                             try {
                                 event.target.mute();
                             } catch {}
-                        } else if (!isMuted) {
+                        } else if (!isMutedRef.current) {
                             try {
                                 event.target.unMute();
-                                event.target.setVolume(volume);
+                                event.target.setVolume(volumeRef.current > 0 ? volumeRef.current : 80);
                             } catch {}
                         }
 
@@ -1029,7 +1084,7 @@ export function DropsidersTVPage() {
                         } else if (event.data === 1) {
                             setIsPlaying(true);
                             // Keep muted if admin modal is open
-                            if (isAdminTVModalOpen) {
+                            if (isAdminTVModalOpenRef.current) {
                                 try {
                                     event.target.mute();
                                 } catch {}
@@ -1054,7 +1109,7 @@ export function DropsidersTVPage() {
             console.error("Erreur init YT player:", err);
             return false;
         }
-    }, [currentVideoId, isAdminTVModalOpen, isMuted, volume, handleVideoEnded, goNextMain, recordDuration]);
+    }, [currentVideoId, handleVideoEnded, goNextMain, recordDuration]);
 
     useEffect(() => {
         initPlayerRef.current = initPlayer;
@@ -1075,7 +1130,7 @@ export function DropsidersTVPage() {
         return () => {
             if (checkInterval) clearInterval(checkInterval);
         };
-    }, [currentVideoId, isYtApiReady, initPlayer]);
+    }, [currentVideoId, isYtApiReady]);
 
     const togglePlay = () => {
         if (playerRef.current && typeof playerRef.current.getPlayerState === 'function') {
