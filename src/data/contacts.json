@@ -1247,8 +1247,9 @@
     "recipient": "contact@dropsiders.fr",
     "attachments": [],
     "date": "2026-09-16T04:18:15.092Z",
-    "read": true,
-    "replied": false
+    "read": false,
+    "replied": false,
+    "archived": true
   },
   {
     "id": "1789533060583",
@@ -1312,7 +1313,7 @@
     "recipient": "alex@dropsiders.fr",
     "attachments": [],
     "date": "2026-09-16T09:33:58.120Z",
-    "read": true,
+    "read": false,
     "replied": false
   }
 ]
