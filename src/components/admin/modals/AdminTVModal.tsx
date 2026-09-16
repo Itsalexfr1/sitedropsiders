@@ -435,6 +435,23 @@ export function AdminTVModal({
             return;
         }
         const block = blocks.find(b => b.id === selectedBlockId);
+        if (!block) return;
+
+        // Anti-doublon créneau courant
+        const existingInCurrent = block.videos?.find(v => v.youtubeId === ytid);
+        if (existingInCurrent) {
+            alert(`⚠️ Sécurité anti-doublon :\n\nCette vidéo YouTube est déjà programmée dans cette émission ("${block.title}") :\n"${existingInCurrent.title}".\n\nL'ajout d'un doublon dans le même créneau est bloqué.`);
+            return;
+        }
+
+        // Information si déjà dans un autre créneau
+        const otherBlock = blocks.find(b => b.id !== selectedBlockId && b.videos?.some(v => v.youtubeId === ytid));
+        if (otherBlock) {
+            const existingInOther = otherBlock.videos?.find(v => v.youtubeId === ytid);
+            const confirmAdd = window.confirm(`ℹ️ Information doublon :\n\nCette vidéo est déjà programmée dans le créneau "${otherBlock.title}" :\n"${existingInOther?.title || ytid}".\n\nSouhaitez-vous tout de même l'ajouter à cette autre émission ?`);
+            if (!confirmAdd) return;
+        }
+
         const newVid: TVVideo = {
             id: `bv_${Date.now()}`,
             title: blockVideoTitle.trim() || `Vidéo ${ytid}`,
@@ -451,6 +468,28 @@ export function AdminTVModal({
         }));
         setBlockVideoUrl('');
         setBlockVideoTitle('');
+    };
+
+    // Nettoyage rapide des doublons dans une émission
+    const handleCleanBlockDuplicates = (blockId: string) => {
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== blockId) return b;
+            const seen = new Set<string>();
+            const cleaned: TVVideo[] = [];
+            let count = 0;
+            for (const v of b.videos || []) {
+                if (v.youtubeId && seen.has(v.youtubeId)) {
+                    count++;
+                } else {
+                    if (v.youtubeId) seen.add(v.youtubeId);
+                    cleaned.push(v);
+                }
+            }
+            if (count > 0) {
+                alert(`Nettoyage terminé : ${count} doublon(s) supprimé(s) dans l'émission "${b.title}".`);
+            }
+            return { ...b, videos: cleaned };
+        }));
     };
 
     const handleRemoveVideoFromBlock = (blockId: string, index: number) => {
@@ -643,6 +682,14 @@ export function AdminTVModal({
             return;
         }
 
+        // Anti-doublon playlist principale
+        const existingMain = playlist.find(v => v.youtubeId === ytid);
+        if (existingMain) {
+            const idx = playlist.findIndex(v => v.youtubeId === ytid) + 1;
+            alert(`⚠️ Sécurité anti-doublon :\n\nCe set YouTube est déjà présent dans la programmation principale à la position #${idx} :\n"${existingMain.title}".\n\nL'ajout d'un doublon est bloqué.`);
+            return;
+        }
+
         const newVid: TVVideo = {
             id: `tv_${Date.now()}`,
             title: newMainTitle.trim() || `Vidéo ${playlist.length + 1}`,
@@ -656,12 +703,39 @@ export function AdminTVModal({
         setNewMainDesc('');
     };
 
+    // Nettoyage rapide des doublons de la programmation principale
+    const handleCleanPlaylistDuplicates = () => {
+        const seen = new Set<string>();
+        let count = 0;
+        const cleaned: TVVideo[] = [];
+        for (const v of playlist) {
+            if (v.youtubeId && seen.has(v.youtubeId)) {
+                count++;
+            } else {
+                if (v.youtubeId) seen.add(v.youtubeId);
+                cleaned.push(v);
+            }
+        }
+        setPlaylist(cleaned);
+        if (count > 0) {
+            alert(`Nettoyage terminé : ${count} doublon(s) supprimé(s) de la programmation principale.`);
+        }
+    };
+
     // Add promo video
     const handleAddPromoVideo = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         const ytid = extractYouTubeId(newPromoUrl);
         if (!ytid) {
             alert('Lien YouTube promo invalide.');
+            return;
+        }
+
+        // Anti-doublon vidéos promo
+        const existingPromo = promos.find(p => p.youtubeId === ytid);
+        if (existingPromo) {
+            const idx = promos.findIndex(p => p.youtubeId === ytid) + 1;
+            alert(`⚠️ Sécurité anti-doublon :\n\nCette vidéo promo est déjà enregistrée à la position #${idx} :\n"${existingPromo.title}".\n\nL'ajout d'un doublon est bloqué.`);
             return;
         }
 
@@ -674,6 +748,25 @@ export function AdminTVModal({
         setPromos(prev => [...prev, newP]);
         setNewPromoUrl('');
         setNewPromoTitle('');
+    };
+
+    // Nettoyage rapide des doublons promo
+    const handleCleanPromoDuplicates = () => {
+        const seen = new Set<string>();
+        let count = 0;
+        const cleaned: PromoVideo[] = [];
+        for (const p of promos) {
+            if (p.youtubeId && seen.has(p.youtubeId)) {
+                count++;
+            } else {
+                if (p.youtubeId) seen.add(p.youtubeId);
+                cleaned.push(p);
+            }
+        }
+        setPromos(cleaned);
+        if (count > 0) {
+            alert(`Nettoyage terminé : ${count} doublon(s) promo supprimé(s).`);
+        }
     };
 
     // Main reorder & delete
@@ -752,7 +845,7 @@ export function AdminTVModal({
         let currentPlaylist = [...playlist];
         if (newMainUrl.trim()) {
             const ytid = extractYouTubeId(newMainUrl);
-            if (ytid) {
+            if (ytid && !currentPlaylist.some(v => v.youtubeId === ytid)) {
                 currentPlaylist.push({
                     id: `tv_${Date.now()}`,
                     title: newMainTitle.trim() || `Vidéo ${currentPlaylist.length + 1}`,
@@ -769,7 +862,7 @@ export function AdminTVModal({
         let currentPromos = [...promos];
         if (newPromoUrl.trim()) {
             const ytid = extractYouTubeId(newPromoUrl);
-            if (ytid) {
+            if (ytid && !currentPromos.some(p => p.youtubeId === ytid)) {
                 currentPromos.push({
                     id: `promo_${Date.now()}`,
                     title: newPromoTitle.trim() || `Promo ${currentPromos.length + 1}`,
@@ -786,21 +879,68 @@ export function AdminTVModal({
             const ytid = extractYouTubeId(blockVideoUrl);
             if (ytid) {
                 const block = currentBlocks.find(b => b.id === selectedBlockId);
-                const newVid: TVVideo = {
-                    id: `bv_${Date.now()}`,
-                    title: blockVideoTitle.trim() || `Vidéo ${ytid}`,
-                    description: `Diffusé sur DropsidersTV · ${block?.title || ''}`,
-                    youtubeId: ytid,
-                    duration: 3600
-                };
-                currentBlocks = currentBlocks.map(b => {
-                    if (b.id !== selectedBlockId) return b;
-                    return { ...b, videos: [...(b.videos || []), newVid] };
-                });
-                setBlocks(currentBlocks);
-                setBlockVideoUrl('');
-                setBlockVideoTitle('');
+                if (block && !block.videos?.some(v => v.youtubeId === ytid)) {
+                    const newVid: TVVideo = {
+                        id: `bv_${Date.now()}`,
+                        title: blockVideoTitle.trim() || `Vidéo ${ytid}`,
+                        description: `Diffusé sur DropsidersTV · ${block?.title || ''}`,
+                        youtubeId: ytid,
+                        duration: 3600
+                    };
+                    currentBlocks = currentBlocks.map(b => {
+                        if (b.id !== selectedBlockId) return b;
+                        return { ...b, videos: [...(b.videos || []), newVid] };
+                    });
+                    setBlocks(currentBlocks);
+                    setBlockVideoUrl('');
+                    setBlockVideoTitle('');
+                }
             }
+        }
+
+        // Nettoyage automatique de sécurité anti-doublon avant sauvegarde
+        let totalDuplicatesCleaned = 0;
+
+        const seenPlaylist = new Set<string>();
+        currentPlaylist = currentPlaylist.filter(v => {
+            if (!v.youtubeId) return true;
+            if (seenPlaylist.has(v.youtubeId)) {
+                totalDuplicatesCleaned++;
+                return false;
+            }
+            seenPlaylist.add(v.youtubeId);
+            return true;
+        });
+
+        const seenPromos = new Set<string>();
+        currentPromos = currentPromos.filter(p => {
+            if (!p.youtubeId) return true;
+            if (seenPromos.has(p.youtubeId)) {
+                totalDuplicatesCleaned++;
+                return false;
+            }
+            seenPromos.add(p.youtubeId);
+            return true;
+        });
+
+        currentBlocks = currentBlocks.map(b => {
+            const seenBlock = new Set<string>();
+            const cleanVideos = (b.videos || []).filter(v => {
+                if (!v.youtubeId) return true;
+                if (seenBlock.has(v.youtubeId)) {
+                    totalDuplicatesCleaned++;
+                    return false;
+                }
+                seenBlock.add(v.youtubeId);
+                return true;
+            });
+            return { ...b, videos: cleanVideos };
+        });
+
+        if (totalDuplicatesCleaned > 0) {
+            setPlaylist(currentPlaylist);
+            setPromos(currentPromos);
+            setBlocks(currentBlocks);
         }
 
         setSaving(true);
@@ -858,9 +998,10 @@ export function AdminTVModal({
                 body: JSON.stringify(newSettings)
             });
 
+            const cleanNote = totalDuplicatesCleaned > 0 ? ` (${totalDuplicatesCleaned} doublon(s) nettoyé(s))` : '';
             if (res.ok) {
                 setSaveSuccess(true);
-                setSaveMessage('Grille horaire (5 blocs) et programmation enregistrées avec succès !');
+                setSaveMessage(`Grille horaire (5 blocs) et programmation enregistrées avec succès !${cleanNote}`);
                 setTimeout(() => {
                     setSaveSuccess(false);
                     setSaveMessage(null);
@@ -868,12 +1009,13 @@ export function AdminTVModal({
             } else {
                 const errData = await res.json().catch(() => ({}));
                 const msg = errData?.error || `Erreur ${res.status}`;
-                setError(`Enregistré localement, mais échec serveur : ${msg}`);
+                setError(`Enregistré localement, mais échec serveur : ${msg}${cleanNote}`);
             }
         } catch (e: any) {
             console.error("Erreur sauvegarde TV:", e);
+            const cleanNote = totalDuplicatesCleaned > 0 ? ` (${totalDuplicatesCleaned} doublon(s) nettoyé(s))` : '';
             setSaveSuccess(true);
-            setSaveMessage('Enregistré localement (serveur distant indisponible)');
+            setSaveMessage(`Enregistré localement (serveur distant indisponible)${cleanNote}`);
             setTimeout(() => {
                 setSaveSuccess(false);
                 setSaveMessage(null);
@@ -1669,49 +1811,118 @@ export function AdminTVModal({
                                                 </div>
                                             </div>
 
-                                            {/* Add video form for this block */}
-                                            <div className="p-1.5 sm:p-2 rounded-lg bg-white/[0.02] border border-white/5 flex items-center gap-2 shrink-0">
-                                                <div className="flex-1 relative">
-                                                    <input
-                                                        type="text"
-                                                        value={blockVideoUrl}
-                                                        onChange={(e) => handleBlockUrlChange(e.target.value)}
-                                                        placeholder="Lien ou ID YouTube (ex: https://youtube.com/watch?v=...)"
-                                                        className="w-full px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30 font-mono"
-                                                    />
-                                                    {isFetchingBlockTitle && (
-                                                        <div className="absolute right-2.5 top-1.5 text-xs text-white/40">
-                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                            {/* Add video form for this block with Anti-Duplicate Security */}
+                                            {(() => {
+                                                const blockYtId = extractYouTubeId(blockVideoUrl);
+                                                const blockDuplicateInCurrent = blockYtId ? currentBlock.videos?.find(v => v.youtubeId === blockYtId) : null;
+                                                const blockDuplicateInOther = blockYtId && !blockDuplicateInCurrent ? blocks.find(b => b.id !== currentBlock.id && b.videos?.some(v => v.youtubeId === blockYtId)) : null;
+
+                                                const blockYtCounts = (currentBlock.videos || []).reduce((acc, v) => {
+                                                    if (v.youtubeId) acc[v.youtubeId] = (acc[v.youtubeId] || 0) + 1;
+                                                    return acc;
+                                                }, {} as Record<string, number>);
+                                                const blockDuplicateCount = Object.values(blockYtCounts).filter(c => c > 1).length;
+
+                                                return (
+                                                    <div className="p-2 rounded-lg bg-white/[0.02] border border-white/5 space-y-1.5 shrink-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex-1 relative">
+                                                                <input
+                                                                    type="text"
+                                                                    value={blockVideoUrl}
+                                                                    onChange={(e) => handleBlockUrlChange(e.target.value)}
+                                                                    placeholder="Lien ou ID YouTube (ex: https://youtube.com/watch?v=...)"
+                                                                    className={`w-full px-2.5 py-1.5 rounded-md bg-white/5 border text-white placeholder-gray-500 text-xs focus:outline-none font-mono transition-colors ${
+                                                                        blockDuplicateInCurrent
+                                                                            ? 'border-red-500/70 bg-red-500/10 focus:border-red-500'
+                                                                            : 'border-white/10 focus:border-white/30'
+                                                                    }`}
+                                                                />
+                                                                {isFetchingBlockTitle && (
+                                                                    <div className="absolute right-2.5 top-2 text-xs text-white/40">
+                                                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            <input
+                                                                type="text"
+                                                                value={blockVideoTitle}
+                                                                onChange={(e) => setBlockVideoTitle(e.target.value)}
+                                                                placeholder="Titre de la vidéo (auto-détecté ou personnalisé)"
+                                                                className="w-72 md:w-96 px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
+                                                            />
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleAddVideoToBlock}
+                                                                disabled={!blockVideoUrl.trim() || !!blockDuplicateInCurrent}
+                                                                className="h-8 px-3 rounded-md text-white text-xs font-black uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 shadow-sm shrink-0 active:scale-95"
+                                                                style={{ background: blockDuplicateInCurrent ? '#ef4444' : currentBlock.color }}
+                                                                title={blockDuplicateInCurrent ? "Cette vidéo est déjà dans ce créneau (doublon bloqué)" : "Ajouter à l'émission"}
+                                                            >
+                                                                {blockDuplicateInCurrent ? (
+                                                                    <>
+                                                                        <ShieldAlert className="w-3.5 h-3.5" />
+                                                                        Doublon
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <Plus className="w-3.5 h-3.5" />
+                                                                        Ajouter
+                                                                    </>
+                                                                )}
+                                                            </button>
                                                         </div>
-                                                    )}
-                                                </div>
 
-                                                <input
-                                                    type="text"
-                                                    value={blockVideoTitle}
-                                                    onChange={(e) => setBlockVideoTitle(e.target.value)}
-                                                    placeholder="Titre de la vidéo (auto-détecté ou personnalisé)"
-                                                    className="w-72 md:w-96 px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white placeholder-gray-500 text-xs focus:outline-none focus:border-white/30"
-                                                />
-
-                                                <button
-                                                    type="button"
-                                                    onClick={handleAddVideoToBlock}
-                                                    disabled={!blockVideoUrl.trim()}
-                                                    className="h-7 px-3 rounded-md text-white text-xs font-black uppercase tracking-wider transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 shadow-sm shrink-0 active:scale-95"
-                                                    style={{ background: currentBlock.color }}
-                                                >
-                                                    <Plus className="w-3.5 h-3.5" />
-                                                    Ajouter
-                                                </button>
-                                            </div>
+                                                        {/* Anti-duplicate feedback banner */}
+                                                        {blockDuplicateInCurrent && (
+                                                            <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-red-500/15 border border-red-500/30 text-red-300 text-[11px] animate-in fade-in">
+                                                                <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-red-400" />
+                                                                <span className="font-bold">Sécurité anti-doublon :</span>
+                                                                <span className="truncate">Déjà dans cette émission ("{blockDuplicateInCurrent.title}"). Ajout bloqué.</span>
+                                                            </div>
+                                                        )}
+                                                        {blockDuplicateInOther && (
+                                                            <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] animate-in fade-in">
+                                                                <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+                                                                <span className="font-bold">Information :</span>
+                                                                <span className="truncate">Déjà programmée dans le bloc "{blockDuplicateInOther.title}". Une confirmation sera demandée.</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
 
                                             {/* Video list inside this block */}
                                             <div className="space-y-1 flex-1 min-h-0 flex flex-col">
-                                                <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-white/40 shrink-0">
-                                                    <span>Vidéos dans ce bloc ({currentBlock.videos?.length || 0})</span>
-                                                    <span>Tourne aléatoirement chaque jour si l'option est activée</span>
-                                                </div>
+                                                {(() => {
+                                                    const blockYtCounts = (currentBlock.videos || []).reduce((acc, v) => {
+                                                        if (v.youtubeId) acc[v.youtubeId] = (acc[v.youtubeId] || 0) + 1;
+                                                        return acc;
+                                                    }, {} as Record<string, number>);
+                                                    const blockDuplicateCount = Object.values(blockYtCounts).filter(c => c > 1).length;
+
+                                                    return (
+                                                        <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-white/40 shrink-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <span>Vidéos dans ce bloc ({currentBlock.videos?.length || 0})</span>
+                                                                {blockDuplicateCount > 0 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleCleanBlockDuplicates(currentBlock.id)}
+                                                                        className="px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-[8px] font-black uppercase flex items-center gap-1 transition-all"
+                                                                        title="Supprimer les vidéos en doublon de ce créneau"
+                                                                    >
+                                                                        <ShieldAlert className="w-2.5 h-2.5 text-amber-400" />
+                                                                        Nettoyer {blockDuplicateCount} doublon(s)
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            <span>Tourne aléatoirement chaque jour si l'option est activée</span>
+                                                        </div>
+                                                    );
+                                                })()}
 
                                                 {(!currentBlock.videos || currentBlock.videos.length === 0) ? (
                                                     <div className="p-4 text-center rounded-lg bg-white/[0.02] border border-white/5">
@@ -1776,6 +1987,12 @@ export function AdminTVModal({
                                                                             )}
                                                                             <div className="flex items-center gap-2 text-[9px] text-white/40">
                                                                                 <span className="font-mono">ID: {vid.youtubeId}</span>
+                                                                                {(currentBlock.videos || []).filter(v => v.youtubeId === vid.youtubeId).length > 1 && (
+                                                                                    <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0">
+                                                                                        <ShieldAlert className="w-2.5 h-2.5 text-amber-400" />
+                                                                                        Doublon
+                                                                                    </span>
+                                                                                )}
                                                                                 <a
                                                                                     href={`https://www.youtube.com/watch?v=${vid.youtubeId}`}
                                                                                     target="_blank"
@@ -1908,54 +2125,115 @@ export function AdminTVModal({
                                     </div>
                                 </div>
 
-                                {/* Form: Add Main Video */}
-                                <form onSubmit={handleAddMainVideo} className="mb-2.5 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 space-y-2">
-                                    <div className="text-[9px] font-black uppercase tracking-widest text-white/50 flex items-center gap-1.5">
-                                        <Plus className="w-3 h-3 text-neon-red" />
-                                        Ajouter un set principal à la programmation
-                                    </div>
+                                {/* Form: Add Main Video with Anti-Duplicate Security */}
+                                {(() => {
+                                    const mainYtId = extractYouTubeId(newMainUrl);
+                                    const mainDuplicate = mainYtId ? playlist.find(v => v.youtubeId === mainYtId) : null;
+                                    const mainDuplicateIdx = mainYtId ? playlist.findIndex(v => v.youtubeId === mainYtId) : -1;
 
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-1.5">
-                                        <div className="md:col-span-6 relative">
-                                            <input
-                                                type="text"
-                                                placeholder="Lien ou ID YouTube (ex: https://youtube.com/watch?v=...)"
-                                                value={newMainUrl}
-                                                onChange={(e) => handleMainUrlChange(e.target.value)}
-                                                className="w-full bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red font-mono"
-                                            />
-                                            {isFetchingMainTitle && (
-                                                <div className="absolute right-3 top-2 text-neon-cyan">
-                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    return (
+                                        <form onSubmit={handleAddMainVideo} className="mb-2.5 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 space-y-2">
+                                            <div className="text-[9px] font-black uppercase tracking-widest text-white/50 flex items-center gap-1.5">
+                                                <Plus className="w-3 h-3 text-neon-red" />
+                                                Ajouter un set principal à la programmation
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-12 gap-1.5">
+                                                <div className="md:col-span-6 relative">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Lien ou ID YouTube (ex: https://youtube.com/watch?v=...)"
+                                                        value={newMainUrl}
+                                                        onChange={(e) => handleMainUrlChange(e.target.value)}
+                                                        className={`w-full bg-black/60 border rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none font-mono transition-colors ${
+                                                            mainDuplicate 
+                                                                ? 'border-red-500/70 bg-red-500/10 focus:border-red-500' 
+                                                                : 'border-white/10 focus:border-neon-red'
+                                                        }`}
+                                                    />
+                                                    {isFetchingMainTitle && (
+                                                        <div className="absolute right-3 top-2 text-neon-cyan">
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="md:col-span-6 flex gap-1.5">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Titre du set (auto-détecté ou personnalisé)"
+                                                        value={newMainTitle}
+                                                        onChange={(e) => setNewMainTitle(e.target.value)}
+                                                        className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleManualFetchMainTitle}
+                                                        title="Recharger le titre YouTube"
+                                                        className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white transition-all text-xs"
+                                                    >
+                                                        <Sparkles className="w-3 h-3 text-neon-cyan" />
+                                                    </button>
+                                                    <button
+                                                        type="submit"
+                                                        disabled={!newMainUrl.trim() || !!mainDuplicate}
+                                                        className="px-3.5 py-1.5 bg-neon-red hover:bg-neon-red/90 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-xs font-black uppercase tracking-wider transition-all shrink-0 active:scale-95 flex items-center gap-1.5"
+                                                        style={{ background: mainDuplicate ? '#ef4444' : undefined }}
+                                                        title={mainDuplicate ? "Ce set est déjà dans la playlist (doublon bloqué)" : "Ajouter à la playlist"}
+                                                    >
+                                                        {mainDuplicate ? (
+                                                            <>
+                                                                <ShieldAlert className="w-3.5 h-3.5" />
+                                                                Doublon
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Plus className="w-3.5 h-3.5" />
+                                                                Ajouter
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Anti-duplicate feedback banner */}
+                                            {mainDuplicate && (
+                                                <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-red-500/15 border border-red-500/30 text-red-300 text-[11px] animate-in fade-in">
+                                                    <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-red-400" />
+                                                    <span className="font-bold">Sécurité anti-doublon active :</span>
+                                                    <span className="truncate">Déjà dans la playlist principale en position #{mainDuplicateIdx + 1} ("{mainDuplicate.title}"). Ajout bloqué.</span>
                                                 </div>
                                             )}
-                                        </div>
-                                        <div className="md:col-span-6 flex gap-1.5">
-                                            <input
-                                                type="text"
-                                                placeholder="Titre du set (auto-détecté ou personnalisé)"
-                                                value={newMainTitle}
-                                                onChange={(e) => setNewMainTitle(e.target.value)}
-                                                className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-red"
-                                            />
+                                        </form>
+                                    );
+                                })()}
+
+                                {/* Duplicate Warning & Quick Cleanup Banner for Main Playlist */}
+                                {(() => {
+                                    const playlistYtCounts = playlist.reduce((acc, v) => {
+                                        if (v.youtubeId) acc[v.youtubeId] = (acc[v.youtubeId] || 0) + 1;
+                                        return acc;
+                                    }, {} as Record<string, number>);
+                                    const duplicateCount = Object.values(playlistYtCounts).filter(c => c > 1).length;
+
+                                    if (duplicateCount === 0) return null;
+                                    return (
+                                        <div className="mb-2 p-2.5 px-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-300 shrink-0">
+                                            <div className="flex items-center gap-2">
+                                                <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+                                                <span>Des doublons ont été détectés dans la playlist principale ({duplicateCount} vidéo(s) dupliquée(s)).</span>
+                                            </div>
                                             <button
                                                 type="button"
-                                                onClick={handleManualFetchMainTitle}
-                                                title="Recharger le titre YouTube"
-                                                className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white transition-all text-xs"
+                                                onClick={handleCleanPlaylistDuplicates}
+                                                className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-[10px] font-black uppercase flex items-center gap-1 transition-all"
+                                                title="Purger les doublons en ne conservant que la 1ère occurrence"
                                             >
-                                                <Sparkles className="w-3 h-3 text-neon-cyan" />
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                className="px-3.5 py-1.5 bg-neon-red hover:bg-neon-red/90 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-all shrink-0 active:scale-95 flex items-center gap-1.5"
-                                            >
-                                                <Plus className="w-3.5 h-3.5" />
-                                                Ajouter
+                                                <ShieldAlert className="w-3 h-3 text-amber-400" />
+                                                Nettoyer les doublons
                                             </button>
                                         </div>
-                                    </div>
-                                </form>
+                                    );
+                                })()}
 
                                 {/* List of Main Videos */}
                                 <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar min-h-0">
@@ -2028,8 +2306,14 @@ export function AdminTVModal({
                                                                     </h4>
                                                                 )}
                                                             </div>
-                                                            <div className="text-[9px] text-white/40 font-mono mt-0.5">
-                                                                ID: {video.youtubeId}
+                                                            <div className="text-[9px] text-white/40 font-mono mt-0.5 flex items-center gap-2">
+                                                                <span>ID: {video.youtubeId}</span>
+                                                                {playlist.filter(v => v.youtubeId === video.youtubeId).length > 1 && (
+                                                                    <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black uppercase tracking-wider flex items-center gap-1">
+                                                                        <ShieldAlert className="w-2.5 h-2.5 text-amber-400" />
+                                                                        Doublon
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
 
@@ -2133,53 +2417,115 @@ export function AdminTVModal({
                                     </p>
                                 </div>
 
-                                <form onSubmit={handleAddPromoVideo} className="mb-2.5 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 space-y-2">
-                                    <div className="text-[9px] font-black uppercase tracking-widest text-neon-purple flex items-center gap-1.5">
-                                        <Plus className="w-3 h-3" />
-                                        Ajouter une vidéo promo / teaser
-                                    </div>
+                                {/* Form: Add Promo Video with Anti-Duplicate Security */}
+                                {(() => {
+                                    const promoYtId = extractYouTubeId(newPromoUrl);
+                                    const promoDuplicate = promoYtId ? promos.find(p => p.youtubeId === promoYtId) : null;
+                                    const promoDuplicateIdx = promoYtId ? promos.findIndex(p => p.youtubeId === promoYtId) : -1;
 
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-1.5">
-                                        <div className="md:col-span-6 relative">
-                                            <input
-                                                type="text"
-                                                placeholder="Lien ou ID YouTube de la promo"
-                                                value={newPromoUrl}
-                                                onChange={(e) => handlePromoUrlChange(e.target.value)}
-                                                className="w-full bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple font-mono"
-                                            />
-                                            {isFetchingPromoTitle && (
-                                                <div className="absolute right-3 top-2 text-neon-cyan">
-                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    return (
+                                        <form onSubmit={handleAddPromoVideo} className="mb-2.5 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 space-y-2">
+                                            <div className="text-[9px] font-black uppercase tracking-widest text-neon-purple flex items-center gap-1.5">
+                                                <Plus className="w-3 h-3" />
+                                                Ajouter une vidéo promo / teaser
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-12 gap-1.5">
+                                                <div className="md:col-span-6 relative">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Lien ou ID YouTube de la promo"
+                                                        value={newPromoUrl}
+                                                        onChange={(e) => handlePromoUrlChange(e.target.value)}
+                                                        className={`w-full bg-black/60 border rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none font-mono transition-colors ${
+                                                            promoDuplicate
+                                                                ? 'border-red-500/70 bg-red-500/10 focus:border-red-500'
+                                                                : 'border-white/10 focus:border-neon-purple'
+                                                        }`}
+                                                    />
+                                                    {isFetchingPromoTitle && (
+                                                        <div className="absolute right-3 top-2 text-neon-cyan">
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="md:col-span-6 flex gap-1.5">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Titre de la promo"
+                                                        value={newPromoTitle}
+                                                        onChange={(e) => setNewPromoTitle(e.target.value)}
+                                                        className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleManualFetchPromoTitle}
+                                                        title="Recharger le titre"
+                                                        className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white transition-all text-xs"
+                                                    >
+                                                        <Sparkles className="w-3 h-3 text-neon-cyan" />
+                                                    </button>
+                                                    <button
+                                                        type="submit"
+                                                        disabled={!newPromoUrl.trim() || !!promoDuplicate}
+                                                        className="px-3.5 py-1.5 bg-neon-purple hover:bg-neon-purple/90 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-xs font-black uppercase tracking-wider transition-all shrink-0 active:scale-95 flex items-center gap-1.5"
+                                                        style={{ background: promoDuplicate ? '#ef4444' : undefined }}
+                                                        title={promoDuplicate ? "Cette promo est déjà dans la liste (doublon bloqué)" : "Ajouter la promo"}
+                                                    >
+                                                        {promoDuplicate ? (
+                                                            <>
+                                                                <ShieldAlert className="w-3.5 h-3.5" />
+                                                                Doublon
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Plus className="w-3.5 h-3.5" />
+                                                                Ajouter
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Anti-duplicate feedback banner */}
+                                            {promoDuplicate && (
+                                                <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-red-500/15 border border-red-500/30 text-red-300 text-[11px] animate-in fade-in">
+                                                    <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-red-400" />
+                                                    <span className="font-bold">Sécurité anti-doublon active :</span>
+                                                    <span className="truncate">Cette promo est déjà enregistrée en position #{promoDuplicateIdx + 1} ("{promoDuplicate.title}"). Ajout bloqué.</span>
                                                 </div>
                                             )}
-                                        </div>
-                                        <div className="md:col-span-6 flex gap-1.5">
-                                            <input
-                                                type="text"
-                                                placeholder="Titre de la promo"
-                                                value={newPromoTitle}
-                                                onChange={(e) => setNewPromoTitle(e.target.value)}
-                                                className="flex-1 bg-black/60 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-purple"
-                                            />
+                                        </form>
+                                    );
+                                })()}
+
+                                {/* Duplicate Warning & Quick Cleanup Banner for Promos */}
+                                {(() => {
+                                    const promoYtCounts = promos.reduce((acc, p) => {
+                                        if (p.youtubeId) acc[p.youtubeId] = (acc[p.youtubeId] || 0) + 1;
+                                        return acc;
+                                    }, {} as Record<string, number>);
+                                    const duplicateCount = Object.values(promoYtCounts).filter(c => c > 1).length;
+
+                                    if (duplicateCount === 0) return null;
+                                    return (
+                                        <div className="mb-2 p-2.5 px-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs text-amber-300 shrink-0">
+                                            <div className="flex items-center gap-2">
+                                                <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+                                                <span>Des doublons ont été détectés dans les vidéos promo ({duplicateCount} vidéo(s) dupliquée(s)).</span>
+                                            </div>
                                             <button
                                                 type="button"
-                                                onClick={handleManualFetchPromoTitle}
-                                                title="Recharger le titre"
-                                                className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white transition-all text-xs"
+                                                onClick={handleCleanPromoDuplicates}
+                                                className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-[10px] font-black uppercase flex items-center gap-1 transition-all"
+                                                title="Purger les doublons promo en conservant la 1ère occurrence"
                                             >
-                                                <Sparkles className="w-3 h-3 text-neon-cyan" />
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                className="px-3.5 py-1.5 bg-neon-purple hover:bg-neon-purple/90 text-white rounded-lg text-xs font-black uppercase tracking-wider transition-all shrink-0 active:scale-95 flex items-center gap-1.5"
-                                            >
-                                                <Plus className="w-3.5 h-3.5" />
-                                                Ajouter
+                                                <ShieldAlert className="w-3 h-3 text-amber-400" />
+                                                Nettoyer les doublons
                                             </button>
                                         </div>
-                                    </div>
-                                </form>
+                                    );
+                                })()}
 
                                 <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar min-h-0">
                                     {promos.length === 0 ? (
@@ -2230,8 +2576,14 @@ export function AdminTVModal({
                                                             {p.title}
                                                         </h4>
                                                     )}
-                                                    <div className="text-[9px] text-white/40 font-mono mt-0.5">
-                                                        ID: {p.youtubeId} · Jouée après le set {idx + 1}
+                                                    <div className="text-[9px] text-white/40 font-mono mt-0.5 flex items-center gap-2">
+                                                        <span>ID: {p.youtubeId} · Jouée après le set {idx + 1}</span>
+                                                        {promos.filter(x => x.youtubeId === p.youtubeId).length > 1 && (
+                                                            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black uppercase tracking-wider flex items-center gap-1">
+                                                                <ShieldAlert className="w-2.5 h-2.5 text-amber-400" />
+                                                                Doublon
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
 

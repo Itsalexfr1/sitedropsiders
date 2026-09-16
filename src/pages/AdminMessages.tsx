@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, Calendar, MessageSquare, CheckCircle, CheckCircle2, Check, AlertCircle, ShieldAlert, Inbox, Plus, Archive, FileText, Video, Paperclip, ExternalLink, File as FileIcon, Eye, Ban, ShieldCheck } from 'lucide-react';
@@ -244,6 +244,22 @@ export function AdminMessages() {
     const [interviewGender, setInterviewGender] = useState<'Homme' | 'Femme' | 'Groupe'>('Homme');
     const [interviewDate, setInterviewDate] = useState('');
     const [interviewFestival, setInterviewFestival] = useState('');
+
+    const interviewDateInputRef = useRef<HTMLInputElement>(null);
+    const festivalDateInputRef = useRef<HTMLInputElement>(null);
+
+    const openDatePicker = (inputRef: React.RefObject<HTMLInputElement | null>) => {
+        if (!inputRef.current) return;
+        try {
+            if ('showPicker' in HTMLInputElement.prototype) {
+                inputRef.current.showPicker();
+            } else {
+                inputRef.current.focus();
+            }
+        } catch {
+            inputRef.current.focus();
+        }
+    };
 
     const showNotif = (type: 'success' | 'error', msg: string) => {
         setNotification({ type, msg });
@@ -1968,12 +1984,50 @@ Alex (Dropsiders)`;
                                                             />
                                                         </div>
                                                         <div className="space-y-1">
-                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Dates</label>
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1">
+                                                                    <Clock className={`w-3 h-3 ${isPhotoAccreditationMode ? 'text-neon-blue' : 'text-neon-purple'}`} /> Dates
+                                                                </label>
+                                                                <div className="relative inline-flex items-center">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => openDatePicker(festivalDateInputRef)}
+                                                                        className={`cursor-pointer flex items-center gap-1 text-[9px] font-black uppercase tracking-wider transition-colors bg-white/5 hover:bg-white/10 border border-white/10 px-2 py-0.5 rounded-lg active:scale-95 ${isPhotoAccreditationMode ? 'text-neon-blue hover:text-white' : 'text-neon-purple hover:text-white'}`}
+                                                                    >
+                                                                        <Calendar className="w-3 h-3" />
+                                                                        <span>Calendrier</span>
+                                                                    </button>
+                                                                    <input
+                                                                        ref={festivalDateInputRef}
+                                                                        type="date"
+                                                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
+                                                                        title="Choisir une date"
+                                                                        onClick={(e) => {
+                                                                            try {
+                                                                                (e.currentTarget as HTMLInputElement).showPicker?.();
+                                                                            } catch {}
+                                                                        }}
+                                                                        onChange={(e) => {
+                                                                            if (!e.target.value) return;
+                                                                            const [y, m, d] = e.target.value.split('-').map(Number);
+                                                                            const pickedDate = new Date(y, m - 1, d);
+                                                                            const formatted = pickedDate.toLocaleDateString(accreditationLang === 'FR' ? 'fr-FR' : 'en-US', {
+                                                                                day: 'numeric',
+                                                                                month: 'long',
+                                                                                year: 'numeric'
+                                                                            });
+                                                                            setFestivalDates(prev => prev ? `${prev} - ${formatted}` : formatted);
+                                                                            e.target.value = '';
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            </div>
                                                             <input
                                                                 type="text"
                                                                 value={festivalDates}
                                                                 onChange={(e) => setFestivalDates(e.target.value)}
                                                                 className={`w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none ${isPhotoAccreditationMode ? 'focus:border-neon-blue' : 'focus:border-neon-purple'}`}
+                                                                placeholder={accreditationLang === 'FR' ? "Ex: 17 - 19 Juillet 2026" : "Ex: July 17 - 19, 2026"}
                                                             />
                                                         </div>
                                                     </div>
@@ -2069,12 +2123,25 @@ Alex (Dropsiders)`;
                                                                 <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1">
                                                                     <Clock className="w-3 h-3 text-neon-red" /> Date / Créneau
                                                                 </label>
-                                                                <label className="cursor-pointer flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-neon-red hover:text-white transition-colors bg-white/5 hover:bg-white/10 border border-white/10 px-2 py-0.5 rounded-lg">
-                                                                    <Calendar className="w-3 h-3" />
-                                                                    <span>Calendrier</span>
+                                                                <div className="relative inline-flex items-center">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => openDatePicker(interviewDateInputRef)}
+                                                                        className="cursor-pointer flex items-center gap-1 text-[9px] font-black uppercase tracking-wider text-neon-red hover:text-white transition-colors bg-white/5 hover:bg-white/10 border border-white/10 px-2 py-0.5 rounded-lg active:scale-95"
+                                                                    >
+                                                                        <Calendar className="w-3 h-3" />
+                                                                        <span>Calendrier</span>
+                                                                    </button>
                                                                     <input
+                                                                        ref={interviewDateInputRef}
                                                                         type="date"
-                                                                        className="sr-only"
+                                                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10 [color-scheme:dark]"
+                                                                        title="Choisir une date"
+                                                                        onClick={(e) => {
+                                                                            try {
+                                                                                (e.currentTarget as HTMLInputElement).showPicker?.();
+                                                                            } catch {}
+                                                                        }}
                                                                         onChange={(e) => {
                                                                             if (!e.target.value) return;
                                                                             const [y, m, d] = e.target.value.split('-').map(Number);
@@ -2085,10 +2152,13 @@ Alex (Dropsiders)`;
                                                                                 month: 'long'
                                                                             });
                                                                             const capitalized = formatted.charAt(0).toUpperCase() + formatted.slice(1);
-                                                                            setInterviewDate(capitalized);
+                                                                            const timeMatch = interviewDate.match(/(-.*|\d{1,2}h.*)/);
+                                                                            const timePart = timeMatch ? ` ${timeMatch[0].trim()}` : '';
+                                                                            setInterviewDate(`${capitalized}${timePart}`);
+                                                                            e.target.value = '';
                                                                         }}
                                                                     />
-                                                                </label>
+                                                                </div>
                                                             </div>
 
                                                             {/* Sélecteur de jour rapide */}
