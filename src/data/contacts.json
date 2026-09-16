@@ -1235,7 +1235,7 @@
     "recipient": "contact@dropsiders.fr",
     "attachments": [],
     "date": "2026-09-16T04:18:15.092Z",
-    "read": false,
+    "read": true,
     "replied": false
   },
   {
@@ -1261,7 +1261,7 @@
     "recipient": "Alex@dropsiders.fr",
     "attachments": [],
     "date": "2026-09-16T06:15:37.084Z",
-    "read": true,
+    "read": false,
     "replied": false
   },
   {
@@ -1287,7 +1287,7 @@
     "recipient": "alex@dropsiders.fr",
     "attachments": [],
     "date": "2026-09-16T08:46:51.295Z",
-    "read": false,
+    "read": true,
     "replied": false
   }
 ]
