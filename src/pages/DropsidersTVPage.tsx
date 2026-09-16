@@ -509,7 +509,12 @@ export function DropsidersTVPage() {
     const [isAdmin, setIsAdmin] = useState(() => checkAdminAuth() || hasAdminParam);
     const [isAdminTVModalOpen, setIsAdminTVModalOpen] = useState(() => hasAdminParam);
     const [showSchedule, setShowSchedule] = useState(false);
-    const prevMuteStateRef = useRef<boolean | null>(null);
+    const prevMuteStateRef = useRef<boolean | null>(hasAdminParam ? false : null);
+
+    const [isYtApiReady, setIsYtApiReady] = useState(() => {
+        return !!(typeof window !== 'undefined' && window.YT && window.YT.Player);
+    });
+    const initPlayerRef = useRef<() => boolean>(() => false);
 
     const allSegments = useMemo(() => buildBlockSegments(activeBlockVideos, promos, durationsMap), [activeBlockVideos, promos, durationsMap]);
 
@@ -521,18 +526,33 @@ export function DropsidersTVPage() {
         }
         if (adminFromUrl) {
             setIsAdminTVModalOpen(true);
-            prevMuteStateRef.current = isMuted;
+            if (prevMuteStateRef.current === null) {
+                prevMuteStateRef.current = isMuted;
+            }
             if (playerRef.current && typeof playerRef.current.mute === 'function') {
-                playerRef.current.mute();
+                try { playerRef.current.mute(); } catch {}
             }
             setIsMuted(true);
         }
     }, [searchParams]);
 
+    // Whenever the admin edit modal is opened, strictly mute the video
+    useEffect(() => {
+        if (isAdminTVModalOpen) {
+            if (prevMuteStateRef.current === null) {
+                prevMuteStateRef.current = isMuted;
+            }
+            setIsMuted(true);
+            if (playerRef.current && typeof playerRef.current.mute === 'function') {
+                try { playerRef.current.mute(); } catch {}
+            }
+        }
+    }, [isAdminTVModalOpen]);
+
     const openAdminModal = () => {
         prevMuteStateRef.current = isMuted;
         if (playerRef.current && typeof playerRef.current.mute === 'function') {
-            playerRef.current.mute();
+            try { playerRef.current.mute(); } catch {}
         }
         setIsMuted(true);
         setIsAdminTVModalOpen(true);
@@ -540,35 +560,47 @@ export function DropsidersTVPage() {
 
     const closeAdminModal = () => {
         setIsAdminTVModalOpen(false);
+
+        // Remove ?admin=true from URL cleanly without harsh re-mounts
         try {
-            if (searchParams.has('admin')) {
-                const next = new URLSearchParams(searchParams);
-                next.delete('admin');
-                setSearchParams(next, { replace: true });
+            const url = new URL(window.location.href);
+            if (url.searchParams.has('admin')) {
+                url.searchParams.delete('admin');
+                window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
             }
         } catch {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
+
+        // Restore sound if it was unmuted before opening the modal
         if (prevMuteStateRef.current === false) {
-            if (playerRef.current && typeof playerRef.current.unMute === 'function') {
-                playerRef.current.unMute();
-                playerRef.current.setVolume(volume);
-            }
             setIsMuted(false);
+            if (playerRef.current && typeof playerRef.current.unMute === 'function') {
+                try {
+                    playerRef.current.unMute();
+                    playerRef.current.setVolume(volume > 0 ? volume : 80);
+                } catch {}
+            }
+            try {
+                localStorage.setItem('dropsiders_tv_muted', 'false');
+            } catch {}
         }
         prevMuteStateRef.current = null;
 
-        // Force playback to resume after modal close (fixes dashboard navigation bug)
+        // Force playback to start / resume after modal close
         setTimeout(() => {
             if (playerRef.current && typeof playerRef.current.getPlayerState === 'function') {
-                const state = playerRef.current.getPlayerState();
-                // If not playing (state !== 1), force play
-                if (state !== 1) {
-                    playerRef.current.playVideo();
+                try {
+                    const state = playerRef.current.getPlayerState();
+                    if (state !== 1) { // 1 = PLAYING
+                        playerRef.current.playVideo();
+                    }
                     setIsPlaying(true);
-                }
+                } catch {}
+            } else if (typeof initPlayerRef.current === 'function') {
+                initPlayerRef.current();
             }
-        }, 300);
+        }, 150);
     };
 
     // Close admin modal on Escape key
@@ -849,12 +881,23 @@ export function DropsidersTVPage() {
 
     const handleMouseMove = () => resetControlsTimer();
 
-    // YouTube Iframe API Loader
+    // YouTube Iframe API Loader with reactive state
     useEffect(() => {
         if (window.YT && window.YT.Player) {
             ytReadyRef.current = true;
+            setIsYtApiReady(true);
             return;
         }
+
+        const prevReady = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => {
+            if (typeof prevReady === 'function') {
+                try { prevReady(); } catch {}
+            }
+            ytReadyRef.current = true;
+            setIsYtApiReady(true);
+        };
+
         if (!document.getElementById('yt-iframe-api')) {
             const tag = document.createElement('script');
             tag.id = 'yt-iframe-api';
@@ -862,34 +905,46 @@ export function DropsidersTVPage() {
             const firstScriptTag = document.getElementsByTagName('script')[0];
             firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
         }
-        window.onYouTubeIframeAPIReady = () => {
-            ytReadyRef.current = true;
-        };
+
+        const pollTimer = setInterval(() => {
+            if (window.YT && window.YT.Player) {
+                ytReadyRef.current = true;
+                setIsYtApiReady(true);
+                clearInterval(pollTimer);
+            }
+        }, 200);
+
+        return () => clearInterval(pollTimer);
     }, []);
 
     // Initialize or load YouTube Player
-    useEffect(() => {
-        if (!currentVideoId) return;
+    const initPlayer = useCallback(() => {
+        if (!window.YT || !window.YT.Player) return false;
 
-        let checkInterval: NodeJS.Timeout | null = null;
+        let targetDiv = document.getElementById('tv-yt-player');
+        if (!targetDiv) {
+            const slot = document.getElementById('tv-yt-player-slot');
+            if (slot) {
+                slot.innerHTML = '<div id="tv-yt-player" class="w-full h-full"></div>';
+                targetDiv = document.getElementById('tv-yt-player');
+            }
+        }
+        if (!targetDiv) return false;
 
-        const initPlayer = () => {
-            if (!window.YT || !window.YT.Player) return false;
+        const startSec = pendingSeekRef.current ?? 0;
+        pendingSeekRef.current = null;
 
-            const targetDiv = document.getElementById('tv-yt-player');
-            if (!targetDiv) return false;
-
-            const startSec = pendingSeekRef.current ?? 0;
-            pendingSeekRef.current = null;
-
-            if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
-                try {
+        // If player already exists and its iframe is currently attached in the DOM
+        if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
+            try {
+                const iframe = typeof playerRef.current.getIframe === 'function' ? playerRef.current.getIframe() : null;
+                if (iframe && document.body.contains(iframe)) {
                     playerRef.current.loadVideoById({
                         videoId: currentVideoId,
                         startSeconds: startSec
                     });
                     disableCaptions(playerRef.current);
-                    if (isMuted) {
+                    if (isAdminTVModalOpen || isMuted) {
                         playerRef.current.mute();
                     } else {
                         playerRef.current.unMute();
@@ -898,109 +953,129 @@ export function DropsidersTVPage() {
                     playerRef.current.playVideo();
                     setIsPlaying(true);
                     return true;
-                } catch {
-                    // fall through to recreate player
                 }
+            } catch {
+                playerRef.current = null;
             }
+        }
 
-            try {
-                playerRef.current = new window.YT.Player('tv-yt-player', {
-                    width: '100%',
-                    height: '100%',
-                    videoId: currentVideoId,
-                    playerVars: {
-                        autoplay: 1,
-                        controls: 0,
-                        disablekb: 1,
-                        fs: 0,
-                        modestbranding: 1,
-                        rel: 0,
-                        iv_load_policy: 3,
-                        cc_load_policy: 0,
-                        cc_lang_pref: 'none',
-                        hl: 'fr',
-                        playsinline: 1,
-                        enablejsapi: 1,
-                        start: startSec,
-                        mute: 1,
-                        origin: typeof window !== 'undefined' ? window.location.origin : undefined
-                    },
-                    events: {
-                        onReady: (event: any) => {
-                            disableCaptions(event.target);
+        try {
+            playerRef.current = new window.YT.Player('tv-yt-player', {
+                width: '100%',
+                height: '100%',
+                videoId: currentVideoId,
+                playerVars: {
+                    autoplay: 1,
+                    controls: 0,
+                    disablekb: 1,
+                    fs: 0,
+                    modestbranding: 1,
+                    rel: 0,
+                    iv_load_policy: 3,
+                    cc_load_policy: 0,
+                    cc_lang_pref: 'none',
+                    hl: 'fr',
+                    playsinline: 1,
+                    enablejsapi: 1,
+                    start: startSec,
+                    mute: 1, // Start muted for 100% reliable autoplay across all browsers
+                    origin: typeof window !== 'undefined' ? window.location.origin : undefined
+                },
+                events: {
+                    onReady: (event: any) => {
+                        disableCaptions(event.target);
+                        try {
+                            event.target.mute();
+                        } catch {}
+
+                        if (startSec > 0) {
+                            try {
+                                event.target.seekTo(startSec, true);
+                            } catch {}
+                        }
+
+                        // Strictly MUTE if admin edit modal is currently open!
+                        if (isAdminTVModalOpen) {
                             try {
                                 event.target.mute();
                             } catch {}
-
-                            if (startSec > 0) {
-                                try {
-                                    event.target.seekTo(startSec, true);
-                                } catch {}
-                            }
-                            if (!isMuted) {
-                                try {
-                                    event.target.unMute();
-                                    event.target.setVolume(volume);
-                                } catch {}
-                            }
+                        } else if (!isMuted) {
                             try {
-                                event.target.playVideo();
+                                event.target.unMute();
+                                event.target.setVolume(volume);
                             } catch {}
-                            setIsPlaying(true);
+                        }
 
-                            // Capture actual video duration for TV schedule precision
+                        try {
+                            event.target.playVideo();
+                        } catch {}
+                        setIsPlaying(true);
+
+                        // Capture actual video duration for TV schedule precision
+                        try {
+                            const dur = event.target.getDuration();
+                            if (dur && dur > 5) {
+                                recordDuration(currentVideoId, Math.round(dur));
+                            }
+                        } catch {}
+                    },
+                    onApiChange: (event: any) => {
+                        disableCaptions(event.target);
+                    },
+                    onStateChange: (event: any) => {
+                        disableCaptions(event.target);
+                        if (event.data === 0) {
+                            handleVideoEnded();
+                        } else if (event.data === 1) {
+                            setIsPlaying(true);
+                            // Keep muted if admin modal is open
+                            if (isAdminTVModalOpen) {
+                                try {
+                                    event.target.mute();
+                                } catch {}
+                            }
                             try {
                                 const dur = event.target.getDuration();
                                 if (dur && dur > 5) {
                                     recordDuration(currentVideoId, Math.round(dur));
                                 }
                             } catch {}
-                        },
-                        onApiChange: (event: any) => {
-                            disableCaptions(event.target);
-                        },
-                        onStateChange: (event: any) => {
-                            disableCaptions(event.target);
-                            // YT.PlayerState.ENDED === 0
-                            if (event.data === 0) {
-                                handleVideoEnded();
-                            } else if (event.data === 1) {
-                                setIsPlaying(true);
-                                try {
-                                    const dur = event.target.getDuration();
-                                    if (dur && dur > 5) {
-                                        recordDuration(currentVideoId, Math.round(dur));
-                                    }
-                                } catch {}
-                            } else if (event.data === 2) {
-                                setIsPlaying(false);
-                            }
-                        },
-                        onError: () => {
-                            setTimeout(() => goNextMain(), 2000);
+                        } else if (event.data === 2) {
+                            setIsPlaying(false);
                         }
+                    },
+                    onError: () => {
+                        setTimeout(() => goNextMain(), 2000);
                     }
-                });
-                return true;
-            } catch (err) {
-                console.error("Erreur init YT player:", err);
-                return false;
-            }
-        };
+                }
+            });
+            return true;
+        } catch (err) {
+            console.error("Erreur init YT player:", err);
+            return false;
+        }
+    }, [currentVideoId, isAdminTVModalOpen, isMuted, volume, handleVideoEnded, goNextMain, recordDuration]);
 
+    useEffect(() => {
+        initPlayerRef.current = initPlayer;
+    }, [initPlayer]);
+
+    useEffect(() => {
+        if (!currentVideoId || !isYtApiReady) return;
+
+        let checkInterval: NodeJS.Timeout | null = null;
         if (!initPlayer()) {
             checkInterval = setInterval(() => {
                 if (initPlayer() && checkInterval) {
                     clearInterval(checkInterval);
                 }
-            }, 300);
+            }, 250);
         }
 
         return () => {
             if (checkInterval) clearInterval(checkInterval);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentVideoId]);
+    }, [currentVideoId, isYtApiReady, initPlayer]);
 
     const togglePlay = () => {
         if (playerRef.current && typeof playerRef.current.getPlayerState === 'function') {
@@ -1298,9 +1373,8 @@ export function DropsidersTVPage() {
 
                 {/* Video Player Area */}
                 <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-black">
-                    {/* YouTube API target div with slightly reduced zoom to keep bottom controls fully visible */}
+                    {/* Outer wrapper with zoom & blur effects managed by React */}
                     <div
-                        id="tv-yt-player"
                         className="w-full h-full pointer-events-none"
                         style={{
                             transform: isAdminTVModalOpen
@@ -1310,7 +1384,12 @@ export function DropsidersTVPage() {
                             filter: isAdminTVModalOpen ? 'blur(20px) brightness(0.35)' : 'none',
                             transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease'
                         }}
-                    />
+                    >
+                        {/* Dedicated slot for YouTube iframe - React won't re-create or diff changing styles on this element */}
+                        <div id="tv-yt-player-slot" className="w-full h-full">
+                            <div id="tv-yt-player" className="w-full h-full" />
+                        </div>
+                    </div>
 
                     {/* Transparent Click Shield: on tap or click, ensures playback starts & un-mutes, double click toggles fullscreen */}
                     <div
