@@ -5900,7 +5900,7 @@ ${urls.map(u => `  <url>
                 const newMsg = {
                     id: Date.now().toString(),
                     name, email, subject, message,
-                    recipient: 'contact@dropsiders.fr',
+                    recipient: 'info@dropsiders.fr',
                     attachments: processedAttachments,
                     date: new Date().toISOString(),
                     read: false,
@@ -9676,7 +9676,15 @@ const contentType = response.headers.get("content-type");
     },
 
     async email(message, env, ctx) {
-        console.log(`[EMAIL WORKER] Incoming email to ${message.to} from ${message.from}`);
+        const toAddress = (message.to || 'info@dropsiders.fr').toLowerCase().trim();
+        console.log(`[EMAIL WORKER] Incoming email to ${toAddress} from ${message.from}`);
+
+        // Option A: alex@ and contact@ are managed directly on LWS mailboxes. Completely ignore them!
+        if (toAddress === 'alex@dropsiders.fr' || toAddress === 'contact@dropsiders.fr') {
+            console.log(`[EMAIL WORKER] Ignoring ${toAddress} (handled via external LWS mail)`);
+            return;
+        }
+
         try {
             const parser = new PostalMime();
             const rawEmail = await new Response(message.raw).arrayBuffer();
@@ -9684,7 +9692,6 @@ const contentType = response.headers.get("content-type");
 
             const fromAddress = parsed.from?.address || message.from || 'inconnu@inconnu.com';
             const fromName = parsed.from?.name || fromAddress;
-            const toAddress = message.to || 'info@dropsiders.fr';
             const subject = parsed.subject || '(Sans objet)';
             const textContent = parsed.text || (parsed.html ? parsed.html.replace(/<[^>]*>/g, ' ') : '(Message vide)');
 

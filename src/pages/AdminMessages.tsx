@@ -202,7 +202,7 @@ export function AdminMessages() {
     // New States for Custom Emails
     const [isNewMail, setIsNewMail] = useState(false);
     const [destinationEmails, setDestinationEmails] = useState(['']);
-    const [senderEmail, setSenderEmail] = useState('contact@dropsiders.fr');
+    const [senderEmail, setSenderEmail] = useState('info@dropsiders.fr');
     const [mailSubject, setMailSubject] = useState('');
     const [signatureName, setSignatureName] = useState('');
 
@@ -217,10 +217,9 @@ export function AdminMessages() {
     }, [editors, adminUser]);
 
     const userProEmail = useMemo(() => {
-        if (isAlex) return 'alex@dropsiders.fr';
-        if (!currentEditor) return 'contact@dropsiders.fr';
+        if (!currentEditor) return 'info@dropsiders.fr';
         return `${currentEditor.username.toLowerCase()}@dropsiders.fr`;
-    }, [currentEditor, isAlex]);
+    }, [currentEditor]);
 
     useEffect(() => {
         setSenderEmail(userProEmail);
@@ -626,13 +625,13 @@ export function AdminMessages() {
                 })
             });
 
-            // Send copy to contact@dropsiders.fr if the sender is not contact@dropsiders.fr
-            if (res.ok && senderEmail !== 'contact@dropsiders.fr') {
+            // Send copy to info@dropsiders.fr if the sender is not info@dropsiders.fr
+            if (res.ok && senderEmail !== 'info@dropsiders.fr') {
                 apiFetch('/api/contacts/reply', {
                     method: 'POST',
                     headers: getAuthHeaders(),
                     body: JSON.stringify({
-                        to: 'contact@dropsiders.fr',
+                        to: 'info@dropsiders.fr',
                         from: senderEmail,
                         name: `[COPIE] ${isNewMail ? 'Partenaire' : selected?.name}`,
                         subject: `[COPIE] ${isNewMail ? mailSubject : `Re: ${selected?.subject}`}`,
@@ -935,7 +934,7 @@ Alex (Dropsiders)`;
         if (!isAlex) return inbox;
         if (selectedEditorFilter === 'all') return inbox;
         if (selectedEditorFilter === 'general') {
-            return inbox.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'alex@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
+            return inbox.filter(m => !m.recipient || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
         // Dynamic: match by username or email
         const filterLower = selectedEditorFilter.toLowerCase();
@@ -951,7 +950,7 @@ Alex (Dropsiders)`;
         if (!isAlex) return archived;
         if (selectedEditorFilter === 'all') return archived;
         if (selectedEditorFilter === 'general') {
-            return archived.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'alex@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
+            return archived.filter(m => !m.recipient || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
         const filterLower = selectedEditorFilter.toLowerCase();
         return archived.filter(m => {
@@ -1114,7 +1113,7 @@ Alex (Dropsiders)`;
                                 const msgCount = filter.id === 'all'
                                     ? messages.filter(m => !m.archived).length
                                     : filter.id === 'general'
-                                        ? messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'alex@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length
+                                        ? messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length
                                         : messages.filter(m => {
                                             if (m.archived) return false;
                                             const recip = (m.recipient || '').toLowerCase();
@@ -1329,7 +1328,7 @@ Alex (Dropsiders)`;
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-1 mt-0.5">
                                                         <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>{msg.subject}</span>
-                                                        {msg.recipient && msg.recipient.toLowerCase() !== 'contact@dropsiders.fr' && (
+                                                        {msg.recipient && msg.recipient.toLowerCase() !== 'info@dropsiders.fr' && (
                                                             <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,255,255,0.08)', border: '1px solid rgba(0,255,255,0.15)', color: '#00FFFF' }}>→ {msg.recipient.split('@')[0]}</span>
                                                         )}
                                                         {isEmailBlocked(msg.email) && (
@@ -1430,7 +1429,7 @@ Alex (Dropsiders)`;
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-1 mt-0.5">
                                                     <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>{msg.subject}</span>
-                                                    {msg.recipient && msg.recipient.toLowerCase() !== 'contact@dropsiders.fr' && (
+                                                    {msg.recipient && msg.recipient.toLowerCase() !== 'info@dropsiders.fr' && (
                                                         <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded" style={{ background: 'rgba(0,255,255,0.08)', border: '1px solid rgba(0,255,255,0.15)', color: '#00FFFF' }}>→ {msg.recipient.split('@')[0]}</span>
                                                     )}
                                                     {isEmailBlocked(msg.email) && (
@@ -1800,10 +1799,8 @@ Alex (Dropsiders)`;
                                                 onChange={(e) => setSenderEmail(e.target.value)}
                                                 className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 w-full sm:flex-1 font-bold cursor-pointer transition-colors hover:border-white/20"
                                             >
-                                                <option value="contact@dropsiders.fr">contact@dropsiders.fr (Principal)</option>
-                                                <option value="alex@dropsiders.fr">alex@dropsiders.fr (Alex)</option>
-                                                <option value="info@dropsiders.fr">info@dropsiders.fr (Informations)</option>
-                                                {userProEmail && userProEmail !== 'contact@dropsiders.fr' && userProEmail !== 'alex@dropsiders.fr' && userProEmail !== 'info@dropsiders.fr' && (
+                                                <option value="info@dropsiders.fr">info@dropsiders.fr (Principal)</option>
+                                                {userProEmail && userProEmail !== 'info@dropsiders.fr' && (
                                                     <option value={userProEmail}>{userProEmail}</option>
                                                 )}
                                             </select>
