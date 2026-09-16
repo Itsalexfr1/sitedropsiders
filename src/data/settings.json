@@ -1,7 +1,9 @@
 {
   "master_session_id": "initial-session-id",
   "shop_enabled": true,
-  "blocked_senders": [],
+  "blocked_senders": [
+    "k65192373@gmail.com"
+  ],
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
