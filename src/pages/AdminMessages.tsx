@@ -342,7 +342,7 @@ export function AdminMessages() {
         showNotif('success', `L'expéditeur ${cleanEmail} a été bloqué.`);
 
         try {
-            const res = await fetch('/api/contacts/block', {
+            const res = await apiFetch('/api/contacts/block', {
                 method: 'POST',
                 headers: {
                     ...getAuthHeaders(),
@@ -373,7 +373,7 @@ export function AdminMessages() {
         showNotif('success', `L'expéditeur ${cleanEmail} a été débloqué.`);
 
         try {
-            const res = await fetch('/api/contacts/block', {
+            const res = await apiFetch('/api/contacts/block', {
                 method: 'POST',
                 headers: {
                     ...getAuthHeaders(),
@@ -517,7 +517,7 @@ export function AdminMessages() {
         setSelected(null);
         showNotif('success', 'Message archivé.');
         try {
-            await fetch('/api/contacts/archive', {
+            await apiFetch('/api/contacts/archive', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ id: msg.id, archived: true })
@@ -533,7 +533,7 @@ export function AdminMessages() {
         setSelectedArchived(null);
         showNotif('success', 'Message restauré dans la boîte de réception.');
         try {
-            await fetch('/api/contacts/archive', {
+            await apiFetch('/api/contacts/archive', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ id: msg.id, archived: false })
@@ -606,7 +606,7 @@ export function AdminMessages() {
 
         setReplyStatus('sending');
         try {
-            const res = await fetch('/api/contacts/reply', {
+            const res = await apiFetch('/api/contacts/reply', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
@@ -628,7 +628,7 @@ export function AdminMessages() {
 
             // Send copy to contact@dropsiders.fr if the sender is not contact@dropsiders.fr
             if (res.ok && senderEmail !== 'contact@dropsiders.fr') {
-                fetch('/api/contacts/reply', {
+                apiFetch('/api/contacts/reply', {
                     method: 'POST',
                     headers: getAuthHeaders(),
                     body: JSON.stringify({
