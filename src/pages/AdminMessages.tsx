@@ -217,7 +217,7 @@ export function AdminMessages() {
     }, [editors, adminUser]);
 
     const userProEmail = useMemo(() => {
-        if (isAlex) return 'contact@dropsiders.fr';
+        if (isAlex) return 'alex@dropsiders.fr';
         if (!currentEditor) return 'contact@dropsiders.fr';
         return `${currentEditor.username.toLowerCase()}@dropsiders.fr`;
     }, [currentEditor, isAlex]);
@@ -396,82 +396,94 @@ export function AdminMessages() {
     const openMessage = async (msg: ContactMessage) => {
         setSelected(msg);
         if (!msg.read) {
-            await fetch('/api/contacts/read', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ id: msg.id })
-            });
-            setMessages(prev => prev.map(m => m.id === msg.id ? { ...m, read: true } : m));
+            // Optimistic update
+            setMessages(prev => prev.map(m => String(m.id) === String(msg.id) ? { ...m, read: true } : m));
+            try {
+                await apiFetch('/api/contacts/read', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ id: String(msg.id) })
+                });
+            } catch (e) {
+                console.error('Error marking as read:', e);
+            }
         }
     };
 
     const handleDelete = async (id: string) => {
+        const strId = String(id);
         if (mailboxTab === 'inbox' || mailboxTab === 'archived') {
             // Optimistic update
-            setMessages(prev => prev.filter(m => m.id !== id));
-            if (selected?.id === id) setSelected(null);
-            if (selectedArchived?.id === id) setSelectedArchived(null);
+            setMessages(prev => prev.filter(m => String(m.id) !== strId));
+            if (selected && String(selected.id) === strId) setSelected(null);
+            if (selectedArchived && String(selectedArchived.id) === strId) setSelectedArchived(null);
             setDeleteConfirm(null);
             showNotif('success', 'Message supprimé définitivement.');
 
             try {
-                const res = await fetch('/api/contacts/delete', {
+                const res = await apiFetch('/api/contacts/delete', {
                     method: 'POST',
                     headers: getAuthHeaders(),
-                    body: JSON.stringify({ id })
+                    body: JSON.stringify({ id: strId, ids: [strId] })
                 });
                 if (!res.ok) {
-                    console.error('Failed to delete contact on server');
+                    const data = await res.json().catch(() => ({}));
+                    console.error('Failed to delete contact on server', data);
+                    showNotif('error', data.error || 'Erreur lors de la suppression sur le serveur');
                     fetchMessages();
                 }
             } catch (err) {
                 console.error(err);
+                showNotif('error', 'Erreur réseau lors de la suppression');
                 fetchMessages();
             }
         } else if (mailboxTab === 'sent') {
-            const next = sentMessages.filter(m => m.id !== id);
+            const next = sentMessages.filter(m => String(m.id) !== strId);
             setSentMessages(next);
             localStorage.setItem('dropsiders_sent_messages', JSON.stringify(next));
-            if (selectedSent?.id === id) setSelectedSent(null);
+            if (selectedSent && String(selectedSent.id) === strId) setSelectedSent(null);
             setDeleteConfirm(null);
             showNotif('success', 'Message envoyé supprimé.');
         }
     };
 
     const handleBulkDelete = async () => {
-        const ids = Array.from(bulkSelected);
+        const ids = Array.from(bulkSelected).map(String);
         if (ids.length === 0) return;
 
         if (mailboxTab === 'inbox' || mailboxTab === 'archived') {
             const idSet = new Set(ids);
-            setMessages(prev => prev.filter(m => !idSet.has(m.id)));
-            if (selected && idSet.has(selected.id)) setSelected(null);
-            if (selectedArchived && idSet.has(selectedArchived.id)) setSelectedArchived(null);
+            setMessages(prev => prev.filter(m => !idSet.has(String(m.id))));
+            if (selected && idSet.has(String(selected.id))) setSelected(null);
+            if (selectedArchived && idSet.has(String(selectedArchived.id))) setSelectedArchived(null);
             setBulkSelected(new Set());
             setBulkSelectMode(false);
             setBulkDeleteConfirm(false);
             showNotif('success', `${ids.length} message${ids.length > 1 ? 's' : ''} supprimé${ids.length > 1 ? 's' : ''} définitivement.`);
 
             try {
-                const res = await fetch('/api/contacts/delete', {
+                const res = await apiFetch('/api/contacts/delete', {
                     method: 'POST',
                     headers: getAuthHeaders(),
                     body: JSON.stringify({ ids })
                 });
                 if (!res.ok) {
-                    console.error('Failed to bulk delete contacts on server');
+                    const data = await res.json().catch(() => ({}));
+                    console.error('Failed to bulk delete contacts on server', data);
+                    showNotif('error', data.error || 'Erreur serveur lors de la suppression groupée');
                     fetchMessages();
                 }
             } catch (err) {
                 console.error(err);
+                showNotif('error', 'Erreur réseau lors de la suppression groupée');
                 fetchMessages();
             }
         } else if (mailboxTab === 'sent') {
             const idSet = new Set(ids);
-            const next = sentMessages.filter(m => !idSet.has(m.id));
+            const next = sentMessages.filter(m => !idSet.has(String(m.id)));
             setSentMessages(next);
             localStorage.setItem('dropsiders_sent_messages', JSON.stringify(next));
-            if (selectedSent && idSet.has(selectedSent.id)) setSelectedSent(null);
+            if (selectedSent && idSet.has(String(selectedSent.id))) setSelectedSent(null);
             setBulkSelected(new Set());
             setBulkSelectMode(false);
             setBulkDeleteConfirm(false);
@@ -923,7 +935,7 @@ Alex (Dropsiders)`;
         if (!isAlex) return inbox;
         if (selectedEditorFilter === 'all') return inbox;
         if (selectedEditorFilter === 'general') {
-            return inbox.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
+            return inbox.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'alex@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
         // Dynamic: match by username or email
         const filterLower = selectedEditorFilter.toLowerCase();
@@ -939,7 +951,7 @@ Alex (Dropsiders)`;
         if (!isAlex) return archived;
         if (selectedEditorFilter === 'all') return archived;
         if (selectedEditorFilter === 'general') {
-            return archived.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
+            return archived.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'alex@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
         const filterLower = selectedEditorFilter.toLowerCase();
         return archived.filter(m => {
@@ -1093,6 +1105,7 @@ Alex (Dropsiders)`;
                             {[
                                 { id: 'all', label: 'Tous', emoji: '📥' },
                                 { id: 'general', label: 'Général', emoji: '📬' },
+                                { id: 'alex', label: 'Alex', emoji: '👑' },
                                 ...editors
                                     .filter(e => e.username && e.username.toLowerCase() !== 'alex')
                                     .map(e => ({ id: e.username.toLowerCase(), label: e.username, emoji: e.username.charAt(0).toUpperCase() }))
@@ -1101,7 +1114,7 @@ Alex (Dropsiders)`;
                                 const msgCount = filter.id === 'all'
                                     ? messages.filter(m => !m.archived).length
                                     : filter.id === 'general'
-                                        ? messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length
+                                        ? messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'alex@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length
                                         : messages.filter(m => {
                                             if (m.archived) return false;
                                             const recip = (m.recipient || '').toLowerCase();
@@ -1299,7 +1312,20 @@ Alex (Dropsiders)`;
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between gap-1 mb-0.5">
                                                         <span className="text-xs font-semibold truncate" style={{ color: 'rgba(255,255,255,0.55)' }}>{msg.name}</span>
-                                                        <span className="text-[9px] flex-shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }}>{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                        <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                                                            <span className="text-[9px]" style={{ color: 'rgba(255,255,255,0.25)' }}>{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setDeleteConfirm(msg.id);
+                                                                }}
+                                                                title="Supprimer ce message"
+                                                                className="p-1 rounded-md text-gray-500 hover:text-neon-red hover:bg-neon-red/10 transition-colors"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-1 mt-0.5">
                                                         <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>{msg.subject}</span>
@@ -1385,7 +1411,22 @@ Alex (Dropsiders)`;
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between gap-1 mb-0.5">
                                                     <span className={`text-sm truncate ${msg.read ? 'font-medium' : 'font-black'}`} style={{ color: msg.read ? 'rgba(255,255,255,0.55)' : 'white' }}>{msg.name}</span>
-                                                    <span className="text-[9px] flex-shrink-0 ml-2" style={{ color: 'rgba(255,255,255,0.3)' }}>{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                    <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                                                        <span className="text-[9px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                        {!bulkSelectMode && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setDeleteConfirm(msg.id);
+                                                                }}
+                                                                title="Supprimer ce message"
+                                                                className="p-1 rounded-md text-gray-500 hover:text-neon-red hover:bg-neon-red/10 transition-colors"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-1 mt-0.5">
                                                     <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>{msg.subject}</span>
@@ -1760,8 +1801,9 @@ Alex (Dropsiders)`;
                                                 className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 w-full sm:flex-1 font-bold cursor-pointer transition-colors hover:border-white/20"
                                             >
                                                 <option value="contact@dropsiders.fr">contact@dropsiders.fr (Principal)</option>
+                                                <option value="alex@dropsiders.fr">alex@dropsiders.fr (Alex)</option>
                                                 <option value="info@dropsiders.fr">info@dropsiders.fr (Informations)</option>
-                                                {userProEmail !== 'contact@dropsiders.fr' && userProEmail !== 'info@dropsiders.fr' && (
+                                                {userProEmail && userProEmail !== 'contact@dropsiders.fr' && userProEmail !== 'alex@dropsiders.fr' && userProEmail !== 'info@dropsiders.fr' && (
                                                     <option value={userProEmail}>{userProEmail}</option>
                                                 )}
                                             </select>

@@ -261,8 +261,14 @@ async function fetchGitHubFile(filePath, config) {
     if (fileData.content) {
         content = utf8Decode(fileData.content);
     } else if (fileData.download_url) {
-        const rawRes = await fetch(fileData.download_url, {
-            headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker' }
+        const sep = fileData.download_url.includes('?') ? '&' : '?';
+        const rawRes = await fetch(`${fileData.download_url}${sep}t=${Date.now()}`, {
+            headers: { 
+                'Authorization': `Bearer ${TOKEN}`, 
+                'User-Agent': 'Cloudflare-Worker',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+            }
         });
         if (rawRes.ok) content = await rawRes.text();
         else return null;
@@ -6005,9 +6011,8 @@ ${urls.map(u => `  <url>
         if (path === '/api/contacts/read' && request.method === 'POST') {
             try {
                 const { id } = await request.json();
+                const strId = String(id).trim();
                 const CONTACTS_PATH = 'src/data/contacts.json';
-                const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
-                const contacts = Array.isArray(file.content) ? file.content : [];
 
                 const isMasterPass = requestPassword && requestPassword === adminPassword;
                 const isSuperEmail = requestUsername && (
@@ -6018,20 +6023,44 @@ ${urls.map(u => `  <url>
                 );
                 const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all') || userPermissions.includes('messages') || userPermissions.includes('messages_contact');
 
-                const msg = contacts.find(c => c.id === id);
-                if (!msg) return new Response(JSON.stringify({ error: 'Message not found' }), { status: 404, headers });
+                let retry = 0;
+                while (retry < 3) {
+                    const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
+                    const contacts = Array.isArray(file.content) ? file.content : [];
 
-                if (!isAlex) {
-                    const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
-                    const editors = editorsFile?.content || [];
-                    const editor = editors.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
-                    if (!editor || !msg.recipient || msg.recipient.toLowerCase() !== `${editor.username.toLowerCase()}@dropsiders.fr`) {
-                        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
+                    const msg = contacts.find(c => c && String(c.id).trim() === strId);
+                    if (!msg) {
+                        // Message was deleted or not found: do not rewrite!
+                        return new Response(JSON.stringify({ success: true, message: 'Message introuvable ou déjà supprimé' }), { status: 200, headers });
                     }
+                    if (msg.read) {
+                        // Already read: avoid redundant GitHub commits
+                        return new Response(JSON.stringify({ success: true, message: 'Déjà lu' }), { status: 200, headers });
+                    }
+
+                    if (!isAlex) {
+                        const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                        const editors = editorsFile?.content || [];
+                        const editor = editors.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
+                        if (!editor || !msg.recipient || msg.recipient.toLowerCase() !== `${editor.username.toLowerCase()}@dropsiders.fr`) {
+                            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
+                        }
+                    }
+
+                    const updated = contacts.map(c => c && String(c.id).trim() === strId ? { ...c, read: true } : c);
+                    const saveRes = await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${strId} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+                    if (saveRes && saveRes.ok) {
+                        githubCache.delete(`${gitConfig.OWNER}/${gitConfig.REPO}/${CONTACTS_PATH}`);
+                        return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                    }
+                    if (saveRes && saveRes.status === 409) {
+                        retry++;
+                        await new Promise(r => setTimeout(r, 400 * retry));
+                        continue;
+                    }
+                    break;
                 }
 
-                const updated = contacts.map(c => c.id === id ? { ...c, read: true } : c);
-                await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${id} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
@@ -6042,21 +6071,42 @@ ${urls.map(u => `  <url>
             try {
                 const body = await request.json().catch(() => ({}));
                 const targetIds: string[] = Array.isArray(body.ids)
-                    ? body.ids.map((x: any) => String(x))
-                    : (body.id ? [String(body.id)] : []);
+                    ? body.ids.map((x: any) => String(x).trim())
+                    : (body.id ? [String(body.id).trim()] : []);
                 const isArchived = body.archived !== false;
 
                 if (targetIds.length === 0) {
                     return new Response(JSON.stringify({ error: 'Missing id or ids' }), { status: 400, headers });
                 }
 
+                const targetSet = new Set(targetIds);
                 const CONTACTS_PATH = 'src/data/contacts.json';
-                const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
-                const contacts = Array.isArray(file.content) ? file.content : [];
+                let retry = 0;
+                let saveRes: any = null;
 
-                const updated = contacts.map(c => targetIds.includes(String(c.id)) ? { ...c, archived: isArchived } : c);
-                await saveGitHubFile(CONTACTS_PATH, updated, `${isArchived ? 'Archive' : 'Unarchive'} ${targetIds.length} contact(s) [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
-                return new Response(JSON.stringify({ success: true, count: targetIds.length }), { status: 200, headers });
+                while (retry < 3) {
+                    const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
+                    const contacts = Array.isArray(file.content) ? file.content : [];
+
+                    const updated = contacts.map(c => c && targetSet.has(String(c.id).trim()) ? { ...c, archived: isArchived } : c);
+                    saveRes = await saveGitHubFile(CONTACTS_PATH, updated, `${isArchived ? 'Archive' : 'Unarchive'} ${targetSet.size} contact(s) [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+                    if (saveRes && saveRes.ok) {
+                        githubCache.delete(`${gitConfig.OWNER}/${gitConfig.REPO}/${CONTACTS_PATH}`);
+                        return new Response(JSON.stringify({ success: true, count: targetSet.size }), { status: 200, headers });
+                    }
+                    if (saveRes && saveRes.status === 409) {
+                        retry++;
+                        await new Promise(r => setTimeout(r, 400 * retry));
+                        continue;
+                    }
+                    break;
+                }
+
+                if (!saveRes || !saveRes.ok) {
+                    return new Response(JSON.stringify({ error: saveRes?.error || 'Erreur archivage sur GitHub' }), { status: 500, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true, count: targetSet.size }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
             }
@@ -6066,16 +6116,15 @@ ${urls.map(u => `  <url>
             try {
                 const body = await request.json().catch(() => ({}));
                 const targetIds: string[] = Array.isArray(body.ids)
-                    ? body.ids.map((x: any) => String(x))
-                    : (body.id ? [String(body.id)] : []);
+                    ? body.ids.map((x: any) => String(x).trim())
+                    : (body.id ? [String(body.id).trim()] : []);
 
                 if (targetIds.length === 0) {
                     return new Response(JSON.stringify({ error: 'Missing id or ids' }), { status: 400, headers });
                 }
 
+                const targetSet = new Set(targetIds);
                 const CONTACTS_PATH = 'src/data/contacts.json';
-                const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
-                const contacts = Array.isArray(file.content) ? file.content : [];
 
                 const isMasterPass = requestPassword && requestPassword === adminPassword;
                 const isSuperEmail = requestUsername && (
@@ -6086,20 +6135,53 @@ ${urls.map(u => `  <url>
                 );
                 const isAlex = isMasterPass || isSuperEmail || (requestUsername || '').toLowerCase() === 'alex' || userPermissions.includes('all') || userPermissions.includes('messages') || userPermissions.includes('messages_contact');
 
-                if (!isAlex) {
-                    const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
-                    const editors = editorsFile?.content || [];
-                    const editor = editors.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
-                    const userEmail = editor ? `${editor.username.toLowerCase()}@dropsiders.fr` : null;
-                    const forbidden = contacts.find(c => targetIds.includes(String(c.id)) && (!c.recipient || c.recipient.toLowerCase() !== userEmail));
-                    if (forbidden) {
-                        return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
+                let retry = 0;
+                let saveRes: any = null;
+                let deletedCount = 0;
+
+                while (retry < 4) {
+                    const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
+                    const contacts = Array.isArray(file.content) ? file.content : [];
+
+                    if (!isAlex) {
+                        const editorsFile = await fetchGitHubFile('src/data/editors.json', gitConfig);
+                        const editors = editorsFile?.content || [];
+                        const editor = editors.find(e => e.username === requestUsername || e.email?.toLowerCase() === requestUsername.toLowerCase());
+                        const userEmail = editor ? `${editor.username.toLowerCase()}@dropsiders.fr` : null;
+                        const forbidden = contacts.find(c => targetSet.has(String(c.id).trim()) && (!c.recipient || c.recipient.toLowerCase() !== userEmail));
+                        if (forbidden) {
+                            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers });
+                        }
                     }
+
+                    const updated = contacts.filter(c => c && !targetSet.has(String(c.id).trim()));
+                    deletedCount = contacts.length - updated.length;
+
+                    // If already deleted in GitHub, return success immediately
+                    if (deletedCount === 0 && contacts.length > 0) {
+                        return new Response(JSON.stringify({ success: true, count: 0, message: 'Déjà supprimé' }), { status: 200, headers });
+                    }
+
+                    saveRes = await saveGitHubFile(CONTACTS_PATH, updated, `Delete ${targetSet.size} contact(s): ${Array.from(targetSet).slice(0, 5).join(', ')} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+                    if (saveRes && saveRes.ok) {
+                        githubCache.delete(`${gitConfig.OWNER}/${gitConfig.REPO}/${CONTACTS_PATH}`);
+                        return new Response(JSON.stringify({ success: true, count: deletedCount }), { status: 200, headers });
+                    }
+
+                    if (saveRes && saveRes.status === 409) {
+                        retry++;
+                        await new Promise(r => setTimeout(r, 400 * retry));
+                        continue;
+                    }
+                    break;
                 }
 
-                const updated = contacts.filter(c => !targetIds.includes(String(c.id)));
-                await saveGitHubFile(CONTACTS_PATH, updated, `Delete ${targetIds.length} contact(s): ${targetIds.slice(0, 5).join(', ')} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
-                return new Response(JSON.stringify({ success: true, count: targetIds.length }), { status: 200, headers });
+                if (!saveRes || !saveRes.ok) {
+                    console.error('[contacts/delete] Error saving to GitHub:', saveRes);
+                    return new Response(JSON.stringify({ error: saveRes?.error || 'Erreur lors de la suppression sur GitHub' }), { status: 500, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true, count: deletedCount }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e?.message || 'Erreur serveur' }), { status: 500, headers });
             }
@@ -9603,26 +9685,39 @@ const contentType = response.headers.get("content-type");
             const gitConfig = { OWNER, REPO, TOKEN };
             const CONTACTS_PATH = 'src/data/contacts.json';
 
-            const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
-            const contacts = Array.isArray(file.content) ? file.content : [];
+            let emailSaveRetry = 0;
+            while (emailSaveRetry < 4) {
+                const file = await fetchGitHubFile(CONTACTS_PATH, { ...gitConfig, bypassCache: true }) || { content: [], sha: null };
+                const contacts = Array.isArray(file.content) ? file.content : [];
 
-            const newMsg = {
-                id: Date.now().toString(),
-                name: fromName,
-                email: fromAddress,
-                subject: subject,
-                message: textContent,
-                html: parsed.html || null,
-                recipient: toAddress,
-                attachments: processedAttachments,
-                date: new Date().toISOString(),
-                read: false,
-                replied: false
-            };
+                const newMsg = {
+                    id: Date.now().toString(),
+                    name: fromName,
+                    email: fromAddress,
+                    subject: subject,
+                    message: textContent,
+                    html: parsed.html || null,
+                    recipient: toAddress,
+                    attachments: processedAttachments,
+                    date: new Date().toISOString(),
+                    read: false,
+                    replied: false
+                };
 
-            contacts.push(newMsg);
-            await saveGitHubFile(CONTACTS_PATH, contacts, `[EMAIL] Reçu sur ${toAddress} de ${fromAddress} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
-            console.log(`[EMAIL WORKER] Successfully saved email ${newMsg.id} to contacts.json`);
+                contacts.push(newMsg);
+                const saveRes = await saveGitHubFile(CONTACTS_PATH, contacts, `[EMAIL] Reçu sur ${toAddress} de ${fromAddress} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+                if (saveRes && saveRes.ok) {
+                    githubCache.delete(`${gitConfig.OWNER}/${gitConfig.REPO}/${CONTACTS_PATH}`);
+                    console.log(`[EMAIL WORKER] Successfully saved email ${newMsg.id} to contacts.json`);
+                    break;
+                }
+                if (saveRes && saveRes.status === 409) {
+                    emailSaveRetry++;
+                    await new Promise(r => setTimeout(r, 400 * emailSaveRetry));
+                    continue;
+                }
+                break;
+            }
 
             // 2. Notify alexflex30@gmail.com via Brevo
             const BREVO_KEY = env.BREVO_API_KEY;

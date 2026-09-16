@@ -8,6 +8,7 @@ import { StarField } from '../components/ui/StarField';
 
 interface Editor {
     email: string;
+    dropsiders_email?: string;
     username: string;
     name: string;
     pseudo?: string;
@@ -112,12 +113,23 @@ export function AdminEditors() {
     const initialEmail = searchParams.get('email') || '';
 
     const [addMethod, setAddMethod] = useState<'social' | 'email'>('social');
-    const [newEditor, setNewEditor] = useState<{ email: string; pseudo: string; permissions: string[]; role?: string }>({
+    const [newEditor, setNewEditor] = useState<{ email: string; dropsiders_email?: string; pseudo: string; permissions: string[]; role?: string }>({
         email: initialEmail || '',
+        dropsiders_email: '',
         pseudo: '',
         permissions: [],
         role: ''
     });
+
+    const autoDropsidersEmail = (pseudo: string) => {
+        if (!pseudo) return '';
+        return pseudo
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]/g, '')
+            + '@dropsiders.fr';
+    };
 
     // Update email if initialEmail changes
     useEffect(() => {
@@ -219,6 +231,7 @@ export function AdminEditors() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
                     email: newEditor.email,
+                    dropsiders_email: newEditor.dropsiders_email || autoDropsidersEmail(newEditor.pseudo),
                     pseudo: newEditor.pseudo,
                     role: newEditor.role,
                     permissions: newEditor.permissions,
@@ -283,6 +296,7 @@ export function AdminEditors() {
         setAddMethod('social');
         setNewEditor({
             email: editor.email,
+            dropsiders_email: editor.dropsiders_email || '',
             pseudo: editor.pseudo || editor.username || '',
             permissions: editor.permissions || [],
             role: (editor as any).role || ''
@@ -294,7 +308,7 @@ export function AdminEditors() {
     const handleOpenAddModal = () => {
         setIsEditing(false);
         setAddMethod('social');
-        setNewEditor({ email: '', pseudo: '', permissions: [], role: '' });
+        setNewEditor({ email: '', dropsiders_email: '', pseudo: '', permissions: [], role: '' });
         setFoundUser(null);
         setShowAddModal(true);
     };
@@ -445,6 +459,15 @@ export function AdminEditors() {
                                                         <Mail className="w-3 h-3" />
                                                         {editor.email}
                                                     </div>
+                                                    {(editor as any).dropsiders_email && (
+                                                        <>
+                                                            <div className="w-1 h-1 bg-white/10 rounded-full" />
+                                                            <div className="flex items-center gap-2" style={{ color: editorColor }}>
+                                                                <Mail className="w-3 h-3" />
+                                                                {(editor as any).dropsiders_email}
+                                                            </div>
+                                                        </>
+                                                    )}
                                                     {(editor.pseudo || editor.username) && (
                                                         <>
                                                             <div className="w-1 h-1 bg-white/10 rounded-full" />
@@ -701,7 +724,14 @@ export function AdminEditors() {
                                             <input
                                                 type="text"
                                                 value={newEditor.pseudo}
-                                                onChange={e => setNewEditor({ ...newEditor, pseudo: e.target.value })}
+                                                onChange={e => {
+                                                    const pseudo = e.target.value;
+                                                    setNewEditor(prev => ({
+                                                        ...prev,
+                                                        pseudo,
+                                                        dropsiders_email: prev.dropsiders_email ? prev.dropsiders_email : autoDropsidersEmail(pseudo)
+                                                    }));
+                                                }}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-white text-sm font-bold focus:outline-none focus:border-neon-red transition-all"
                                                 placeholder="Ex: Jean D."
                                                 required
@@ -719,6 +749,26 @@ export function AdminEditors() {
                                                 placeholder="Ex: Rédacteur Musique"
                                             />
                                         </div>
+                                    </div>
+
+                                    {/* Dropsiders Email */}
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 block">
+                                            Adresse Mail Dropsiders
+                                        </label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neon-red/60" />
+                                            <input
+                                                type="email"
+                                                value={newEditor.dropsiders_email || ''}
+                                                onChange={e => setNewEditor({ ...newEditor, dropsiders_email: e.target.value.toLowerCase() })}
+                                                className="w-full bg-neon-red/5 border border-neon-red/20 rounded-2xl pl-12 pr-4 py-4 text-neon-red text-sm font-bold focus:outline-none focus:border-neon-red transition-all placeholder:text-neon-red/30"
+                                                placeholder="prenom@dropsiders.fr"
+                                            />
+                                        </div>
+                                        <p className="mt-2 text-[9px] text-neon-red/60 uppercase tracking-widest font-bold">
+                                            Auto-générée depuis le pseudo — modifiable si besoin.
+                                        </p>
                                     </div>
 
 

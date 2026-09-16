@@ -1,6 +1,7 @@
 [
   {
     "email": "guillaume.chery.naumont@gmail.com",
+    "dropsiders_email": "guillaume@dropsiders.fr",
     "username": "GUILLAUME (GUYHOME)",
     "pseudo": "GUILLAUME (GUYHOME)",
     "role": "VIDÉASTE",
@@ -17,6 +18,7 @@
   },
   {
     "email": "alexflex30@gmail.com",
+    "dropsiders_email": "alex@dropsiders.fr",
     "username": "Alex",
     "pseudo": "Alex",
     "permissions": [
@@ -40,6 +42,7 @@
   },
   {
     "email": "baechlejulien@gmail.com",
+    "dropsiders_email": "julien@dropsiders.fr",
     "username": "Julien",
     "pseudo": "Julien",
     "permissions": [
@@ -55,6 +58,7 @@
   },
   {
     "email": "tanguypollet98@gmail.com",
+    "dropsiders_email": "tanguy@dropsiders.fr",
     "username": "Tanguy",
     "pseudo": "Tanguy",
     "role": "Editeur",
@@ -72,32 +76,36 @@
   },
   {
     "email": "tiffany.tournier@hotmail.com",
+    "dropsiders_email": "tiffany@dropsiders.fr",
     "username": "Tiffany",
     "pseudo": "Tiffany",
-    "role": "",
+    "role": "Rédactrice",
     "permissions": [
       "news_focus",
       "musique_releases",
       "interviews_video",
       "recaps_festivals",
       "agenda_events",
-      "social_studio"
+      "social_studio",
+      "messages_contact"
     ],
     "created": "2026-06-24T19:31:36.327Z",
     "verified": true
   },
   {
     "email": "maori.dechaine@gmail.com",
+    "dropsiders_email": "maori@dropsiders.fr",
     "username": "Maori",
     "pseudo": "Maori",
-    "role": "",
+    "role": "Rédacteur",
     "permissions": [
       "news_focus",
       "musique_releases",
       "recaps_festivals",
       "interviews_video",
       "community_mod",
-      "social_studio"
+      "social_studio",
+      "messages_contact"
     ],
     "created": "2026-07-20T18:40:54.345Z",
     "verified": true
