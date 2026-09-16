@@ -202,7 +202,7 @@ export function AdminMessages() {
     // New States for Custom Emails
     const [isNewMail, setIsNewMail] = useState(false);
     const [destinationEmails, setDestinationEmails] = useState(['']);
-    const [senderEmail, setSenderEmail] = useState('info@dropsiders.fr');
+    const [senderEmail, setSenderEmail] = useState('contact@dropsiders.fr');
     const [mailSubject, setMailSubject] = useState('');
     const [signatureName, setSignatureName] = useState('');
 
@@ -912,7 +912,7 @@ Alex (Dropsiders)`;
         if (!isAlex) return inbox;
         if (selectedEditorFilter === 'all') return inbox;
         if (selectedEditorFilter === 'general') {
-            return inbox.filter(m => !m.recipient || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
+            return inbox.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
         // Dynamic: match by username or email
         const filterLower = selectedEditorFilter.toLowerCase();
@@ -928,7 +928,7 @@ Alex (Dropsiders)`;
         if (!isAlex) return archived;
         if (selectedEditorFilter === 'all') return archived;
         if (selectedEditorFilter === 'general') {
-            return archived.filter(m => !m.recipient || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
+            return archived.filter(m => !m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general');
         }
         const filterLower = selectedEditorFilter.toLowerCase();
         return archived.filter(m => {
@@ -999,7 +999,7 @@ Alex (Dropsiders)`;
                             onClick={() => {
                                 setIsNewMail(true);
                                 setDestinationEmails(['']);
-                                setSenderEmail('info@dropsiders.fr');
+                                setSenderEmail('contact@dropsiders.fr');
                                 setSignatureName(currentEditor ? currentEditor.username : 'Alex');
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                 setIsAccreditationMode(false);
@@ -1061,7 +1061,7 @@ Alex (Dropsiders)`;
                             { id: 'inbox', label: 'Reçus', icon: <Inbox className="w-3 h-3 shrink-0" />, count: filteredMessages.length, color: '#ff1241', active: mailboxTab === 'inbox', onClick: () => { setMailboxTab('inbox'); setSelectedSent(null); setSelectedArchived(null); } },
                             { id: 'sent', label: 'Envoyés', icon: <Send className="w-3 h-3 shrink-0" />, count: sentMessages.length, color: '#00FFFF', active: mailboxTab === 'sent', onClick: () => { setMailboxTab('sent'); setSelected(null); setSelectedArchived(null); } },
                             { id: 'archived', label: 'Archivés', icon: <Archive className="w-3 h-3 shrink-0" />, count: archivedMessages.length, color: '#BF00FF', active: mailboxTab === 'archived', onClick: () => { setMailboxTab('archived'); setSelected(null); setSelectedSent(null); } },
-                            { id: 'blocked', label: 'Bloqués', icon: <Ban className="w-3 h-3 shrink-0" />, count: blockedSenders.length, color: '#ff0033', active: mailboxTab === 'blocked', onClick: () => { setMailboxTab('blocked'); setSelected(null); setSelectedSent(null); setSelectedArchived(null); } }
+                            { id: 'blocked', label: 'Bloqués', icon: <Ban className="w-3 h-3 shrink-0" />, count: blockedSenders.length, color: '#ef4444', active: mailboxTab === 'blocked', onClick: () => { setMailboxTab('blocked'); setSelected(null); setSelectedSent(null); setSelectedArchived(null); } }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -1081,18 +1081,12 @@ Alex (Dropsiders)`;
                         <div className="flex items-center gap-1.5 p-2 overflow-x-auto no-scrollbar shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                             {[
                                 { id: 'all', label: 'Tous', emoji: '📥' },
-                                { id: 'general', label: 'info@dropsiders.fr', emoji: '📬' }
+                                { id: 'general', label: 'contact@dropsiders.fr', emoji: '📬' }
                             ].map(filter => {
                                 const isActive = selectedEditorFilter === filter.id;
                                 const msgCount = filter.id === 'all'
                                     ? messages.filter(m => !m.archived).length
-                                    : filter.id === 'general'
-                                        ? messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length
-                                        : messages.filter(m => {
-                                            if (m.archived) return false;
-                                            const recip = (m.recipient || '').toLowerCase();
-                                            return recip === `${filter.id}@dropsiders.fr` || recip === filter.id;
-                                          }).length;
+                                    : messages.filter(m => !m.archived && (!m.recipient || m.recipient.toLowerCase() === 'contact@dropsiders.fr' || m.recipient.toLowerCase() === 'info@dropsiders.fr' || m.recipient.toLowerCase() === 'general')).length;
 
                                 const color = filter.id === 'general' ? '#ff1241' : getEditorColor(filter.id);
                                 const isLightColor = ['#00ffff', '#39ff14', '#fff01f'].includes(color.toLowerCase());

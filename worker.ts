@@ -5796,12 +5796,12 @@ ${urls.map(u => `  <url>
                 const results = [];
                 for (const chunk of chunks) {
                     const payload = {
-                        sender: { name: "Team Dropsiders", email: "info@dropsiders.fr" },
-                        to: [{ email: "info@dropsiders.fr", name: "Dropsiders Admin" }],
+                        sender: { name: "Dropsiders", email: "contact@dropsiders.fr" },
+                        to: [{ email: "contact@dropsiders.fr", name: "Dropsiders Admin" }],
                         bcc: chunk.map(email => ({ email })),
                         subject: subject,
                         htmlContent: htmlContent,
-                        replyTo: { email: "info@dropsiders.fr", name: "Dropsiders" }
+                        replyTo: { email: "contact@dropsiders.fr", name: "Dropsiders" }
                     };
 
                     const response = await fetch(brevoUrl, {
@@ -5836,7 +5836,7 @@ ${urls.map(u => `  <url>
                         date: new Date().toISOString(),
                         recipientsCount: recipients.length,
                         htmlContent: htmlContent, // Added to keep a record of content
-                        fromAccount: "info@dropsiders.fr"
+                        fromAccount: "contact@dropsiders.fr"
                     };
                     const updated = [...(Array.isArray(file.content) ? file.content : []), newLog];
                     await saveGitHubFile(logPath, updated, `Newsletter sent: ${subject} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
@@ -5900,7 +5900,7 @@ ${urls.map(u => `  <url>
                 const newMsg = {
                     id: Date.now().toString(),
                     name, email, subject, message,
-                    recipient: 'info@dropsiders.fr',
+                    recipient: 'contact@dropsiders.fr',
                     attachments: processedAttachments,
                     date: new Date().toISOString(),
                     read: false,
@@ -5965,7 +5965,7 @@ ${urls.map(u => `  <url>
                                 method: 'POST',
                                 headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
                                 body: JSON.stringify({
-                                    sender: { name: 'Team Dropsiders', email: 'info@dropsiders.fr' },
+                                    sender: { name: 'Dropsiders', email: 'contact@dropsiders.fr' },
                                     to: [{ email: email, name: name }],
                                     subject: `Confirmation de réception : ${subject}`,
                                     htmlContent: `
@@ -6013,7 +6013,7 @@ ${urls.map(u => `  <url>
                                             </div>
                                         </div>
                                     `,
-                                    replyTo: { email: 'info@dropsiders.fr', name: 'Team Dropsiders' }
+                                    replyTo: { email: 'contact@dropsiders.fr', name: 'Dropsiders' }
                                 })
                             });
                         } catch (e) {
@@ -6300,8 +6300,8 @@ ${urls.map(u => `  <url>
                     }).replace(/\n/g, '<br>');
                 };
 
-                // Strictly info@dropsiders.fr verified sender
-                const senderEmail = 'info@dropsiders.fr';
+                // Official verified sender & recipient: contact@dropsiders.fr
+                const senderEmail = 'contact@dropsiders.fr';
 
                 const recipients = to.split(',').map((email: string) => ({ email: email.trim(), name: name || email.trim() })).filter((r: any) => r.email);
                 if (recipients.length === 0) return new Response(JSON.stringify({ error: 'No valid recipients' }), { status: 400, headers });
@@ -6316,7 +6316,7 @@ ${urls.map(u => `  <url>
                 }
 
                 const payload = {
-                    sender: { name: 'Team Dropsiders', email: 'info@dropsiders.fr' },
+                    sender: { name: 'Dropsiders', email: 'contact@dropsiders.fr' },
                     to: recipients,
                     subject: subject,
                     htmlContent: `
@@ -6358,7 +6358,7 @@ ${urls.map(u => `  <url>
                                                                         <td style="padding-top:3px; font-size:8.5px; line-height:1.35;">
                                                                             <div>
                                                                                 <span style="color:#ffffff; margin-right:4px;">✉</span>
-                                                                                <a href="mailto:info@dropsiders.fr" style="color:#00f0ff; text-decoration:none; font-weight:600;">info@dropsiders.fr</a>
+                                                                                <a href="mailto:contact@dropsiders.fr" style="color:#00f0ff; text-decoration:none; font-weight:600;">contact@dropsiders.fr</a>
                                                                             </div>
                                                                             <div style="margin-top:1px;">
                                                                                 <span style="color:#ff3b14; margin-right:4px;">📞</span>
@@ -6411,8 +6411,8 @@ ${urls.map(u => `  <url>
                         </div>
                     `,
                     replyTo: {
-                        email: 'info@dropsiders.fr',
-                        name: 'Team Dropsiders'
+                        email: 'contact@dropsiders.fr',
+                        name: 'Dropsiders'
                     },
                     ...(brevoAttachments.length > 0 ? { attachment: brevoAttachments } : {})
                 };
