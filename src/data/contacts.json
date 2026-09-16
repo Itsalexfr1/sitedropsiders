@@ -1209,7 +1209,7 @@
     "recipient": "contact@dropsiders.fr",
     "attachments": [],
     "date": "2026-09-15T22:26:49.543Z",
-    "read": false,
+    "read": true,
     "replied": false
   },
   {
@@ -1222,7 +1222,7 @@
     "recipient": "Alex@dropsiders.fr",
     "attachments": [],
     "date": "2026-09-16T02:23:06.560Z",
-    "read": true,
+    "read": false,
     "replied": false
   },
   {
