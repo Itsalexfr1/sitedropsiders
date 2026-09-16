@@ -2115,62 +2115,62 @@ Alex (Dropsiders)`;
                                                     </div>
                                                     {/* Signature preview - rendered exactly as the email will look */}
                                                     <div className="mt-6 overflow-x-auto max-w-full custom-scrollbar">
-                                                        <div style={{ backgroundColor: '#0d0e12', border: '1px solid #23262f', borderRadius: '10px', padding: '9px 12px', maxWidth: '380px', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
+                                                        <div style={{ backgroundColor: '#0d0e12', border: '1px solid #23262f', borderRadius: '8px', padding: '6px 8px', maxWidth: '300px', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }}>
                                                             <table cellPadding="0" cellSpacing="0" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                                                 <tbody>
                                                                     <tr>
-                                                                        <td style={{ verticalAlign: 'top', width: '42px', paddingRight: '10px' }}>
+                                                                        <td style={{ verticalAlign: 'top', width: '32px', paddingRight: '6px' }}>
                                                                             <img
                                                                                 src="https://www.dropsiders.fr/uploads/migrated/dropsiders/wcyxatveeurgu5s1fi3s.jpg"
                                                                                 alt={signatureName || 'Alexandre'}
-                                                                                style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #ff3b14', display: 'block' }}
+                                                                                style={{ width: '26px', height: '26px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #ff3b14', display: 'block' }}
                                                                             />
                                                                         </td>
                                                                         <td style={{ verticalAlign: 'top' }}>
-                                                                            <div style={{ fontSize: '12px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: 1.2 }}>
+                                                                            <div style={{ fontSize: '11px', fontWeight: 900, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: 1.15 }}>
                                                                                 {(signatureName && signatureName.toLowerCase() === 'alex') ? 'ALEXANDRE' : (signatureName ? signatureName.toUpperCase() : 'ALEXANDRE')}
                                                                             </div>
-                                                                            <div style={{ fontSize: '9.5px', fontWeight: 800, color: '#ff3b14', textTransform: 'uppercase', letterSpacing: '0.3px', marginTop: '1px' }}>
+                                                                            <div style={{ fontSize: '8.5px', fontWeight: 800, color: '#ff3b14', textTransform: 'uppercase', letterSpacing: '0.2px', marginTop: '1px' }}>
                                                                                 {(signatureName && signatureName.toLowerCase() === 'alex') ? 'FONDATEUR & RÉDACTEUR' : 'RÉDACTEUR MÉDIA'}
                                                                             </div>
-                                                                            <div style={{ marginTop: '3px' }}>
-                                                                                <span style={{ display: 'inline-block', backgroundColor: '#080d16', border: '1px solid rgba(59, 130, 246, 0.4)', color: '#ffffff', fontSize: '7px', fontWeight: 800, padding: '1.5px 6px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                                                                            <div style={{ marginTop: '2px' }}>
+                                                                                <span style={{ display: 'inline-block', backgroundColor: '#080d16', border: '1px solid rgba(59, 130, 246, 0.4)', color: '#ffffff', fontSize: '6px', fontWeight: 800, padding: '1px 4px', borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.2px' }}>
                                                                                     🛡️ MÉDIAS &amp; PRESSE ACCRÉDITÉE
                                                                                 </span>
                                                                             </div>
-                                                                            <div style={{ marginTop: '4px', fontSize: '10px', lineHeight: '1.4' }}>
+                                                                            <div style={{ marginTop: '3px', fontSize: '8.5px', lineHeight: '1.35' }}>
                                                                                 <div>
-                                                                                    <span style={{ color: '#ffffff', marginRight: '5px' }}>✉</span>
+                                                                                    <span style={{ color: '#ffffff', marginRight: '4px' }}>✉</span>
                                                                                     <a href={`mailto:${senderEmail}`} style={{ color: '#00f0ff', textDecoration: 'none', fontWeight: 600 }}>{senderEmail}</a>
                                                                                 </div>
                                                                                 <div style={{ marginTop: '1px' }}>
-                                                                                    <span style={{ color: '#ff3b14', marginRight: '5px' }}>📞</span>
+                                                                                    <span style={{ color: '#ff3b14', marginRight: '4px' }}>📞</span>
                                                                                     <span style={{ color: '#ffffff', fontWeight: 600 }}>+33 7 62 05 45 89</span>
                                                                                 </div>
                                                                                 <div style={{ marginTop: '1px' }}>
-                                                                                    <span style={{ color: '#00f0ff', marginRight: '5px' }}>🌐</span>
+                                                                                    <span style={{ color: '#00f0ff', marginRight: '4px' }}>🌐</span>
                                                                                     <a href="https://dropsiders.fr" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', fontWeight: 700 }}>dropsiders.fr</a>
                                                                                 </div>
                                                                             </div>
-                                                                            <div style={{ marginTop: '5px', fontSize: '9.5px', fontWeight: 700 }}>
-                                                                                <a href="https://instagram.com/dropsiders.fr" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', marginRight: '8px', display: 'inline-block' }}>Instagram →</a>
-                                                                                <a href="https://www.tiktok.com/@dropsiders.fr" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', marginRight: '8px', display: 'inline-block' }}>TikTok →</a>
+                                                                            <div style={{ marginTop: '4px', fontSize: '8px', fontWeight: 700 }}>
+                                                                                <a href="https://instagram.com/dropsiders.fr" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', marginRight: '6px', display: 'inline-block' }}>Instagram →</a>
+                                                                                <a href="https://www.tiktok.com/@dropsiders.fr" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', marginRight: '6px', display: 'inline-block' }}>TikTok →</a>
                                                                                 <a href="https://open.spotify.com/user/dropsiders" target="_blank" rel="noreferrer" style={{ color: '#ff3b14', textDecoration: 'none', display: 'inline-block' }}>Spotify →</a>
                                                                             </div>
                                                                         </td>
-                                                                        <td style={{ verticalAlign: 'top', textAlign: 'right', paddingLeft: '8px', width: '72px' }}>
+                                                                        <td style={{ verticalAlign: 'top', textAlign: 'right', paddingLeft: '5px', width: '48px' }}>
                                                                             <a href="https://dropsiders.fr" target="_blank" rel="noreferrer" style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>
-                                                                                <img src="https://dropsiders.fr/logo_presentation.png" alt="DROPSIDERS.FR" style={{ width: '65px', height: 'auto', display: 'block' }} />
-                                                                                <div style={{ fontSize: '6.5px', fontWeight: 800, color: '#ffffff', textAlign: 'center', letterSpacing: '0.4px', marginTop: '2px' }}>WWW.DROPSIDERS.FR</div>
+                                                                                <img src="https://dropsiders.fr/logo_presentation.png" alt="DROPSIDERS.FR" style={{ width: '40px', height: 'auto', display: 'block' }} />
+                                                                                <div style={{ fontSize: '5px', fontWeight: 800, color: '#ffffff', textAlign: 'center', letterSpacing: '0.3px', marginTop: '1px' }}>WWW.DROPSIDERS.FR</div>
                                                                             </a>
                                                                         </td>
                                                                     </tr>
                                                                     <tr>
-                                                                        <td colSpan={3} style={{ borderTop: '1px solid rgba(255, 255, 255, 0.12)', paddingTop: '5px', marginTop: '5px' }}>
-                                                                            <div style={{ fontSize: '7.5px', fontWeight: 800, color: '#d1d5db', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                                                                        <td colSpan={3} style={{ borderTop: '1px solid rgba(255, 255, 255, 0.12)', paddingTop: '4px', marginTop: '4px' }}>
+                                                                            <div style={{ fontSize: '6.5px', fontWeight: 800, color: '#d1d5db', textTransform: 'uppercase', letterSpacing: '0.2px' }}>
                                                                                 DROPSIDERS - LE MÉDIA 100% MUSIQUES ÉLECTRONIQUES, FESTIVALS &amp; CULTURE CLUBBING
                                                                             </div>
-                                                                            <div style={{ fontSize: '6.8px', color: '#6b7280', marginTop: '2px', lineHeight: '1.25' }}>
+                                                                            <div style={{ fontSize: '6px', color: '#6b7280', marginTop: '1px', lineHeight: '1.2' }}>
                                                                                 Ce message et les pièces jointes sont confidentiels et destinés exclusivement au destinataire. Si vous avez reçu ce message par erreur, merci de le supprimer immédiatement.
                                                                             </div>
                                                                         </td>
