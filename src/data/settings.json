@@ -1772,7 +1772,7 @@
       "startHour": 0,
       "endHour": 2,
       "color": "#06b6d4",
-      "emoji": "📺",
+      "emoji": "🔥",
       "randomize": true,
       "days": [
         1,
@@ -1810,6 +1810,48 @@
           "title": "Deepack, Luna & Zany | Qlimax 2024",
           "description": "Diffusé sur DropsidersTV · Zone Rouge",
           "youtubeId": "go9jzCz8Lxc",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598253963",
+          "title": "Qlimax 2016 | Project One",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "R5sQx_UwYnk",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598265763",
+          "title": "Brennan Heart presents Blademasterz I Qlimax 2023 | Enter the Void",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "EBO4id1eSSs",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598294628",
+          "title": "Q-BASE 2018 | Noisecontrollers",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "5HFR3lnfHeM",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598305615",
+          "title": "Q-BASE 2016 | Korsakoff",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "K5iiEybdq6o",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598315787",
+          "title": "Q-BASE 2016 | Frequencerz",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "NfdBtcAHEF0",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598335475",
+          "title": "Q-BASE 2016 | Atmozfears",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "7zsd_KbkoQo",
           "duration": 3600
         }
       ]
