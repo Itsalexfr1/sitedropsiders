@@ -376,11 +376,43 @@ export function isBlockActiveOnDay(b: TVScheduleBlock, dayOfWeek: number): boole
 }
 
 /**
- * Returns all blocks scheduled for a specific day of the week (0..6).
+ * Trie automatiquement les émissions / blocs dans l'ordre chronologique de diffusion.
+ * Le cycle de programmation TV débute à 06h00 (matin) et s'achève avec le bloc de nuit (00h-06h).
+ */
+export function sortBlocksByBroadcastOrder(blocks: TVScheduleBlock[], autoRenumber: boolean = false): TVScheduleBlock[] {
+    if (!Array.isArray(blocks) || blocks.length <= 1) return blocks || [];
+
+    const sorted = [...blocks].sort((a, b) => {
+        // Décalage pour démarrer à 6h (06h = 0, 10h = 4, 18h = 12, 00h/minuit = 18, 04h = 22)
+        const offsetA = ((a.startHour ?? 0) - 6 + 24) % 24;
+        const offsetB = ((b.startHour ?? 0) - 6 + 24) % 24;
+        if (offsetA !== offsetB) return offsetA - offsetB;
+        return (a.endHour ?? 24) - (b.endHour ?? 24);
+    });
+
+    if (!autoRenumber) return sorted;
+
+    // Renumérotation automatique optionnelle "Bloc 1", "Bloc 2"...
+    return sorted.map((b, idx) => {
+        const num = idx + 1;
+        let nextName = b.name;
+        if (b.name && /Bloc\s+\d+/i.test(b.name)) {
+            nextName = b.name.replace(/Bloc\s+\d+/i, `Bloc ${num}`);
+        }
+        return {
+            ...b,
+            name: nextName
+        };
+    });
+}
+
+/**
+ * Returns all blocks scheduled for a specific day of the week (0..6), sorted in broadcast chronological order.
  */
 export function getBlocksForDay(blocks: TVScheduleBlock[], dayOfWeek: number): TVScheduleBlock[] {
     const list = Array.isArray(blocks) && blocks.length > 0 ? blocks : DEFAULT_TV_BLOCKS;
-    return list.filter(b => isBlockActiveOnDay(b, dayOfWeek));
+    const filtered = list.filter(b => isBlockActiveOnDay(b, dayOfWeek));
+    return sortBlocksByBroadcastOrder(filtered);
 }
 
 /**

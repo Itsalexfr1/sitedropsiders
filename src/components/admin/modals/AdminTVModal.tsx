@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -7,7 +7,7 @@ import {
     Sparkles, Radio, Zap, Eye, Calendar, Home, Video, Shield, ShieldAlert, 
     Pin, PinOff, MessageSquare, Clock, Lock, User, Upload, 
     Image as ImageIcon, Pencil, LayoutDashboard, Globe, Activity,
-    Layers, Palette, Sliders
+    Layers, Palette, Sliders, Search, Check, ListPlus, ArrowUpDown
 } from 'lucide-react';
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
 import { uploadFile } from '../../../utils/uploadService';
@@ -23,7 +23,8 @@ import {
     WEEKDAYS,
     WEEKEND_DAYS,
     formatBlockDays,
-    isBlockActiveOnDay
+    isBlockActiveOnDay,
+    sortBlocksByBroadcastOrder
 } from '../../../utils/tvSchedule';
 
 export type { TVVideo, PromoVideo, TVScheduleBlock };
@@ -49,6 +50,14 @@ function formatDuration(totalSeconds: number): string {
     if (h > 0) return `${h}h ${m}min`;
     if (m > 0) return `${m}min ${s}s`;
     return `${s}s`;
+}
+
+interface LibraryVideoItem {
+    youtubeId: string;
+    title: string;
+    description?: string;
+    duration?: number;
+    sources: string[];
 }
 
 const DEFAULT_MAIN_PLAYLIST: TVVideo[] = [
@@ -300,15 +309,18 @@ export function AdminTVModal({
     const [liveSaved, setLiveSaved] = useState(false);
 
     // 5 Time Blocks Schedule
+    // 5 Time Blocks Schedule (trié automatiquement selon l'ordre chronologique de passage 06h -> 06h)
     const [blocks, setBlocks] = useState<TVScheduleBlock[]>(() => {
         try {
             const saved = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return sortBlocksByBroadcastOrder(parsed, true);
+                }
             }
         } catch {}
-        return DEFAULT_TV_BLOCKS;
+        return sortBlocksByBroadcastOrder(DEFAULT_TV_BLOCKS, true);
     });
     const [selectedBlockId, setSelectedBlockId] = useState<string>('bloc_1');
     const [showAllBlocksOverview, setShowAllBlocksOverview] = useState(false);
@@ -356,6 +368,236 @@ export function AdminTVModal({
     const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
     const [editingVideoTitle, setEditingVideoTitle] = useState('');
 
+    // Modal Bibliothèque : Clips & Lives déjà programmés
+    const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+    const [libraryTarget, setLibraryTarget] = useState<'block' | 'main'>('block');
+    const [librarySearch, setLibrarySearch] = useState('');
+    const [libraryFilter, setLibraryFilter] = useState<string>('all');
+    const [selectedLibraryIds, setSelectedLibraryIds] = useState<string[]>([]);
+
+    // Catalogue complet et dédoublonné de tous les clips & lives déjà programmés
+    const availableLibraryVideos = useMemo<LibraryVideoItem[]>(() => {
+        const map = new Map<string, LibraryVideoItem>();
+
+        // 1. Émissions actuelles
+        (blocks || []).forEach(b => {
+            const blockLabel = b.title || b.name || 'Émission';
+            (b.videos || []).forEach(v => {
+                if (!v.youtubeId) return;
+                const existing = map.get(v.youtubeId);
+                if (existing) {
+                    if (!existing.sources.includes(blockLabel)) {
+                        existing.sources.push(blockLabel);
+                    }
+                } else {
+                    map.set(v.youtubeId, {
+                        youtubeId: v.youtubeId,
+                        title: v.title || `Vidéo ${v.youtubeId}`,
+                        description: v.description,
+                        duration: v.duration,
+                        sources: [blockLabel]
+                    });
+                }
+            });
+        });
+
+        // 2. Programmation principale actuelle
+        (playlist || []).forEach(v => {
+            if (!v.youtubeId) return;
+            const existing = map.get(v.youtubeId);
+            if (existing) {
+                if (!existing.sources.includes('Programmation principale')) {
+                    existing.sources.push('Programmation principale');
+                }
+            } else {
+                map.set(v.youtubeId, {
+                    youtubeId: v.youtubeId,
+                    title: v.title || `Vidéo ${v.youtubeId}`,
+                    description: v.description,
+                    duration: v.duration,
+                    sources: ['Programmation principale']
+                });
+            }
+        });
+
+        // 3. Catalogue par défaut des blocs (Sets & Clips cultes)
+        DEFAULT_TV_BLOCKS.forEach(b => {
+            const blockLabel = b.title || b.name || 'Catalogue';
+            (b.videos || []).forEach(v => {
+                if (!v.youtubeId) return;
+                const existing = map.get(v.youtubeId);
+                if (existing) {
+                    if (!existing.sources.includes(blockLabel)) {
+                        existing.sources.push(blockLabel);
+                    }
+                } else {
+                    map.set(v.youtubeId, {
+                        youtubeId: v.youtubeId,
+                        title: v.title || `Vidéo ${v.youtubeId}`,
+                        description: v.description,
+                        duration: v.duration,
+                        sources: [blockLabel]
+                    });
+                }
+            });
+        });
+
+        // 4. Catalogue par défaut de la playlist principale
+        DEFAULT_MAIN_PLAYLIST.forEach(v => {
+            if (!v.youtubeId) return;
+            const existing = map.get(v.youtubeId);
+            if (existing) {
+                if (!existing.sources.includes('Programmation principale')) {
+                    existing.sources.push('Programmation principale');
+                }
+            } else {
+                map.set(v.youtubeId, {
+                    youtubeId: v.youtubeId,
+                    title: v.title || `Vidéo ${v.youtubeId}`,
+                    description: v.description,
+                    duration: v.duration,
+                    sources: ['Programmation principale']
+                });
+            }
+        });
+
+        return Array.from(map.values());
+    }, [blocks, playlist]);
+
+    // Liste des sources distinctes pour le filtrage par onglets
+    const librarySources = useMemo(() => {
+        const set = new Set<string>();
+        availableLibraryVideos.forEach(v => v.sources.forEach(s => set.add(s)));
+        return Array.from(set);
+    }, [availableLibraryVideos]);
+
+    // Filtrage recherche & source
+    const filteredLibraryVideos = useMemo(() => {
+        let list = availableLibraryVideos;
+        if (libraryFilter !== 'all') {
+            list = list.filter(v => v.sources.includes(libraryFilter));
+        }
+        if (librarySearch.trim()) {
+            const q = librarySearch.toLowerCase().trim();
+            list = list.filter(v => 
+                v.title.toLowerCase().includes(q) ||
+                (v.description && v.description.toLowerCase().includes(q)) ||
+                v.youtubeId.toLowerCase().includes(q) ||
+                v.sources.some(s => s.toLowerCase().includes(q))
+            );
+        }
+        return list;
+    }, [availableLibraryVideos, libraryFilter, librarySearch]);
+
+    // Vérifie si une vidéo est déjà programmée dans la cible active (émission ou playlist principale)
+    const isVideoInTarget = (ytid: string): boolean => {
+        if (libraryTarget === 'block') {
+            const targetBlock = blocks.find(b => b.id === selectedBlockId);
+            return !!targetBlock?.videos?.some(v => v.youtubeId === ytid);
+        } else {
+            return playlist.some(v => v.youtubeId === ytid);
+        }
+    };
+
+    // Ouverture de la bibliothèque avec initialisation de la cible
+    const handleOpenLibrary = (target: 'block' | 'main') => {
+        setLibraryTarget(target);
+        setSelectedLibraryIds([]);
+        setLibrarySearch('');
+        setLibraryFilter('all');
+        setIsLibraryOpen(true);
+    };
+
+    // Basculer la sélection pour l'ajout multiple
+    const handleToggleSelectLibraryItem = (ytid: string) => {
+        if (isVideoInTarget(ytid)) return; // Empêcher sélection d'un doublon
+        setSelectedLibraryIds(prev => 
+            prev.includes(ytid) ? prev.filter(id => id !== ytid) : [...prev, ytid]
+        );
+    };
+
+    // Sélectionner tout / désélectionner tout parmi les résultats filtrés non doublons
+    const handleToggleSelectAllLibrary = () => {
+        const addableIds = filteredLibraryVideos
+            .filter(v => !isVideoInTarget(v.youtubeId))
+            .map(v => v.youtubeId);
+
+        const allSelected = addableIds.length > 0 && addableIds.every(id => selectedLibraryIds.includes(id));
+        if (allSelected) {
+            setSelectedLibraryIds([]);
+        } else {
+            setSelectedLibraryIds(addableIds);
+        }
+    };
+
+    // Ajout direct 1-clic d'une vidéo depuis la bibliothèque
+    const handleAddSingleFromLibrary = (item: LibraryVideoItem) => {
+        if (isVideoInTarget(item.youtubeId)) return;
+
+        if (libraryTarget === 'block') {
+            const targetBlock = blocks.find(b => b.id === selectedBlockId);
+            const newVid: TVVideo = {
+                id: `bv_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                title: item.title,
+                description: item.description || `Diffusé sur DropsidersTV · ${targetBlock?.title || ''}`,
+                youtubeId: item.youtubeId,
+                duration: item.duration || 3600
+            };
+            setBlocks(prev => prev.map(b => {
+                if (b.id !== selectedBlockId) return b;
+                return { ...b, videos: [...(b.videos || []), newVid] };
+            }));
+        } else {
+            const newVid: TVVideo = {
+                id: `tv_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+                title: item.title,
+                description: item.description || 'Diffusé sur DropsidersTV',
+                youtubeId: item.youtubeId
+            };
+            setPlaylist(prev => [...prev, newVid]);
+        }
+    };
+
+    // Ajout groupé des vidéos sélectionnées depuis la bibliothèque
+    const handleAddBatchFromLibrary = () => {
+        if (selectedLibraryIds.length === 0) return;
+
+        const itemsToAdd = availableLibraryVideos.filter(
+            v => selectedLibraryIds.includes(v.youtubeId) && !isVideoInTarget(v.youtubeId)
+        );
+
+        if (itemsToAdd.length === 0) {
+            alert('Toutes les vidéos sélectionnées sont déjà programmées dans cette destination.');
+            return;
+        }
+
+        if (libraryTarget === 'block') {
+            const targetBlock = blocks.find(b => b.id === selectedBlockId);
+            const newVids: TVVideo[] = itemsToAdd.map((item, idx) => ({
+                id: `bv_${Date.now()}_${idx}_${Math.random().toString(36).substr(2, 4)}`,
+                title: item.title,
+                description: item.description || `Diffusé sur DropsidersTV · ${targetBlock?.title || ''}`,
+                youtubeId: item.youtubeId,
+                duration: item.duration || 3600
+            }));
+            setBlocks(prev => prev.map(b => {
+                if (b.id !== selectedBlockId) return b;
+                return { ...b, videos: [...(b.videos || []), ...newVids] };
+            }));
+        } else {
+            const newVids: TVVideo[] = itemsToAdd.map((item, idx) => ({
+                id: `tv_${Date.now()}_${idx}_${Math.random().toString(36).substr(2, 4)}`,
+                title: item.title,
+                description: item.description || 'Diffusé sur DropsidersTV',
+                youtubeId: item.youtubeId
+            }));
+            setPlaylist(prev => [...prev, ...newVids]);
+        }
+
+        setSelectedLibraryIds([]);
+        setIsLibraryOpen(false);
+    };
+
     useEffect(() => {
         if (!isOpen) return;
         const fetchSettings = async () => {
@@ -366,11 +608,11 @@ export function AdminTVModal({
                 if (res.ok) {
                     const data = await res.json();
                     if (Array.isArray(data?.tv_blocks) && data.tv_blocks.length > 0) {
-                        setBlocks(data.tv_blocks);
+                        setBlocks(sortBlocksByBroadcastOrder(data.tv_blocks, true));
                     } else {
                         try {
                             const localBlocks = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
-                            if (localBlocks) setBlocks(JSON.parse(localBlocks));
+                            if (localBlocks) setBlocks(sortBlocksByBroadcastOrder(JSON.parse(localBlocks), true));
                         } catch {}
                     }
                     if (Array.isArray(data?.tv_playlist) && data.tv_playlist.length > 0) {
@@ -386,7 +628,7 @@ export function AdminTVModal({
                 console.error("Erreur chargement TV settings:", e);
                 try {
                     const localBlocks = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
-                    if (localBlocks) setBlocks(JSON.parse(localBlocks));
+                    if (localBlocks) setBlocks(sortBlocksByBroadcastOrder(JSON.parse(localBlocks), true));
                     const localPlay = localStorage.getItem('dropsiders_tv_playlist_v2');
                     if (localPlay) setPlaylist(JSON.parse(localPlay));
                     const localProm = localStorage.getItem('dropsiders_tv_promos_v2');
@@ -552,27 +794,34 @@ export function AdminTVModal({
         }));
     };
 
-    // Update show name, hours, time slot, emoji, color
+    // Update show name, hours, time slot, emoji, color (tri automatique de l'ordre de passage)
     const handleUpdateBlockMeta = (blockId: string, updates: Partial<TVScheduleBlock>) => {
-        setBlocks(prev => prev.map(b => {
-            if (b.id !== blockId) return b;
-            const updated = { ...b, ...updates };
-            // Auto update timeSlot if startHour or endHour changed and timeSlot wasn't explicitly supplied
-            if (('startHour' in updates || 'endHour' in updates) && !updates.timeSlot) {
-                const s = updated.startHour ?? 0;
-                const e = updated.endHour ?? 24;
-                updated.timeSlot = formatTimeSlot(s, e);
+        setBlocks(prev => {
+            const updatedList = prev.map(b => {
+                if (b.id !== blockId) return b;
+                const updated = { ...b, ...updates };
+                // Auto update timeSlot if startHour or endHour changed and timeSlot wasn't explicitly supplied
+                if (('startHour' in updates || 'endHour' in updates) && !updates.timeSlot) {
+                    const s = updated.startHour ?? 0;
+                    const e = updated.endHour ?? 24;
+                    updated.timeSlot = formatTimeSlot(s, e);
+                }
+                // Keep block name label synced if title is edited
+                if (updates.title && !updates.name) {
+                    const prefix = b.name.includes('·') ? b.name.split('·')[0].trim() : `Bloc`;
+                    updated.name = `${prefix} · ${updates.title}`;
+                }
+                return updated;
+            });
+            // Si les heures de passage ont été modifiées, trier automatiquement dans l'ordre chronologique
+            if ('startHour' in updates || 'endHour' in updates) {
+                return sortBlocksByBroadcastOrder(updatedList, true);
             }
-            // Keep block name label synced if title is edited
-            if (updates.title && !updates.name) {
-                const prefix = b.name.includes('·') ? b.name.split('·')[0].trim() : `Bloc`;
-                updated.name = `${prefix} · ${updates.title}`;
-            }
-            return updated;
-        }));
+            return updatedList;
+        });
     };
 
-    // Add a new emission block
+    // Add a new emission block (inséré et ordonné automatiquement)
     const handleAddBlock = () => {
         const newId = `bloc_${Date.now()}`;
         const nextNum = blocks.length + 1;
@@ -589,7 +838,7 @@ export function AdminTVModal({
             days: [...ALL_DAYS],
             videos: []
         };
-        setBlocks(prev => [...prev, newBlock]);
+        setBlocks(prev => sortBlocksByBroadcastOrder([...prev, newBlock], true));
         setSelectedBlockId(newId);
     };
 
@@ -629,12 +878,17 @@ export function AdminTVModal({
             return;
         }
         setBlocks(prev => {
-            const next = prev.filter(b => b.id !== blockId);
+            const next = sortBlocksByBroadcastOrder(prev.filter(b => b.id !== blockId), true);
             if (selectedBlockId === blockId && next.length > 0) {
                 setSelectedBlockId(next[0].id);
             }
             return next;
         });
+    };
+
+    // Tri manuel ou ré-alignement de l'ordre de passage
+    const handleSortBlocksOrder = () => {
+        setBlocks(prev => sortBlocksByBroadcastOrder(prev, true));
     };
 
     const handleManualFetchMainTitle = async () => {
@@ -937,10 +1191,13 @@ export function AdminTVModal({
             return { ...b, videos: cleanVideos };
         });
 
+        // Garantir le tri chronologique de diffusion (06h -> 06h) et renumérotation des blocs
+        currentBlocks = sortBlocksByBroadcastOrder(currentBlocks, true);
+        setBlocks(currentBlocks);
+
         if (totalDuplicatesCleaned > 0) {
             setPlaylist(currentPlaylist);
             setPromos(currentPromos);
-            setBlocks(currentBlocks);
         }
 
         setSaving(true);
@@ -1269,6 +1526,15 @@ export function AdminTVModal({
                                         </div>
 
                                         <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={handleSortBlocksOrder}
+                                                className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                                                title="Trier automatiquement les émissions selon l'ordre chronologique de passage TV (06h00 -> 06h00)"
+                                            >
+                                                <ArrowUpDown className="w-3 h-3 text-neon-cyan" />
+                                                Ordre de passage auto
+                                            </button>
                                             <button
                                                 type="button"
                                                 onClick={handleAddBlock}
@@ -1873,6 +2139,17 @@ export function AdminTVModal({
                                                                     </>
                                                                 )}
                                                             </button>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleOpenLibrary('block')}
+                                                                className="h-8 px-2.5 rounded-md bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shrink-0 active:scale-95"
+                                                                title="Choisir parmi les clips ou lives déjà programmés pour les réutiliser"
+                                                            >
+                                                                <ListPlus className="w-3.5 h-3.5 text-neon-cyan" />
+                                                                <span className="hidden sm:inline">Bibliothèque ({availableLibraryVideos.length})</span>
+                                                                <span className="sm:hidden">Bibliothèque</span>
+                                                            </button>
                                                         </div>
 
                                                         {/* Anti-duplicate feedback banner */}
@@ -2133,9 +2410,20 @@ export function AdminTVModal({
 
                                     return (
                                         <form onSubmit={handleAddMainVideo} className="mb-2.5 p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/10 shrink-0 space-y-2">
-                                            <div className="text-[9px] font-black uppercase tracking-widest text-white/50 flex items-center gap-1.5">
-                                                <Plus className="w-3 h-3 text-neon-red" />
-                                                Ajouter un set principal à la programmation
+                                            <div className="flex items-center justify-between flex-wrap gap-2">
+                                                <div className="text-[9px] font-black uppercase tracking-widest text-white/50 flex items-center gap-1.5">
+                                                    <Plus className="w-3 h-3 text-neon-red" />
+                                                    Ajouter un set principal à la programmation
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleOpenLibrary('main')}
+                                                    className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/15 text-white text-[10px] font-bold transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+                                                    title="Choisir parmi les clips ou sets déjà programmés dans la TV pour les réutiliser"
+                                                >
+                                                    <ListPlus className="w-3.5 h-3.5 text-neon-cyan" />
+                                                    Choisir set existant ({availableLibraryVideos.length})
+                                                </button>
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-12 gap-1.5">
@@ -3642,6 +3930,251 @@ export function AdminTVModal({
                                 </div>
                             </div>
                         )}
+                    </motion.div>
+                </div>
+            )}
+
+            {/* Modal Bibliothèque de clips & lives déjà programmés */}
+            {isLibraryOpen && (
+                <div className="fixed inset-0 z-[140] flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md overflow-hidden animate-in fade-in">
+                    <motion.div
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.95, opacity: 0 }}
+                        className="bg-[#0f1117] border border-white/15 w-full max-w-4xl h-[88vh] max-h-[820px] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+                    >
+                        {/* Header */}
+                        <div className="p-3 sm:p-4 border-b border-white/10 flex items-center justify-between bg-black/40 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-neon-cyan/15 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan">
+                                    <ListPlus className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm sm:text-base font-black text-white uppercase tracking-wider flex items-center gap-2">
+                                        Bibliothèque TV · Clips & Lives
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/70 font-mono">
+                                            {availableLibraryVideos.length} disponibles
+                                        </span>
+                                    </h3>
+                                    <p className="text-[11px] text-white/50">
+                                        {libraryTarget === 'block' ? (
+                                            (() => {
+                                                const targetBlock = blocks.find(b => b.id === selectedBlockId);
+                                                return (
+                                                    <>
+                                                        Destination : Émission <span className="text-neon-cyan font-bold">"{targetBlock?.title || 'Créneau'}"</span> ({targetBlock?.timeSlot || ''})
+                                                    </>
+                                                );
+                                            })()
+                                        ) : (
+                                            <>
+                                                Destination : <span className="text-neon-red font-bold">Programmation principale (Playlist TV)</span>
+                                            </>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsLibraryOpen(false)}
+                                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Search & Source Filter Bar */}
+                        <div className="p-3 bg-white/[0.02] border-b border-white/10 space-y-2.5 shrink-0">
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1 relative">
+                                    <Search className="w-4 h-4 absolute left-3 top-2.5 text-white/40" />
+                                    <input
+                                        type="text"
+                                        placeholder="Rechercher par titre, artiste, ID YouTube ou émission..."
+                                        value={librarySearch}
+                                        onChange={(e) => setLibrarySearch(e.target.value)}
+                                        className="w-full bg-black/60 border border-white/10 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-neon-cyan font-medium"
+                                    />
+                                    {librarySearch && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setLibrarySearch('')}
+                                            className="absolute right-2.5 top-2 text-white/40 hover:text-white text-xs"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={handleToggleSelectAllLibrary}
+                                    className="px-3 py-2 rounded-xl text-xs font-bold bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white transition-all shrink-0"
+                                >
+                                    Tout (dé)sélectionner
+                                </button>
+                            </div>
+
+                            {/* Horizontal scroll of category filter tabs */}
+                            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin text-xs">
+                                <button
+                                    type="button"
+                                    onClick={() => setLibraryFilter('all')}
+                                    className={`px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap transition-all ${
+                                        libraryFilter === 'all'
+                                            ? 'bg-neon-cyan text-black shadow-sm shadow-neon-cyan/30'
+                                            : 'bg-white/5 hover:bg-white/10 text-white/60 hover:text-white'
+                                    }`}
+                                >
+                                    Tous ({availableLibraryVideos.length})
+                                </button>
+                                {librarySources.map(source => {
+                                    const count = availableLibraryVideos.filter(v => v.sources.includes(source)).length;
+                                    const isSelected = libraryFilter === source;
+                                    return (
+                                        <button
+                                            key={source}
+                                            type="button"
+                                            onClick={() => setLibraryFilter(source)}
+                                            className={`px-2.5 py-1 rounded-lg font-bold text-[11px] whitespace-nowrap transition-all ${
+                                                isSelected
+                                                    ? 'bg-neon-cyan text-black shadow-sm shadow-neon-cyan/30'
+                                                    : 'bg-white/5 hover:bg-white/10 text-white/60 hover:text-white'
+                                            }`}
+                                        >
+                                            {source} ({count})
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* List of Videos */}
+                        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2">
+                            {filteredLibraryVideos.length === 0 ? (
+                                <div className="py-16 text-center text-white/40 space-y-2">
+                                    <Film className="w-10 h-10 mx-auto text-white/20" />
+                                    <p className="text-sm font-semibold">Aucune vidéo trouvée</p>
+                                    <p className="text-xs text-white/30">Modifiez votre recherche ou vos filtres.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
+                                    {filteredLibraryVideos.map((item) => {
+                                        const isAlreadyInTarget = isVideoInTarget(item.youtubeId);
+                                        const isSelected = selectedLibraryIds.includes(item.youtubeId);
+
+                                        return (
+                                            <div
+                                                key={item.youtubeId}
+                                                className={`p-2 sm:p-2.5 rounded-xl border transition-all flex items-center gap-3 select-none ${
+                                                    isAlreadyInTarget
+                                                        ? 'bg-white/[0.02] border-white/5 opacity-55 cursor-not-allowed'
+                                                        : isSelected
+                                                            ? 'bg-neon-cyan/10 border-neon-cyan/50 shadow-sm shadow-neon-cyan/10'
+                                                            : 'bg-white/[0.04] hover:bg-white/[0.07] border-white/10'
+                                                }`}
+                                            >
+                                                {/* Checkbox */}
+                                                <div
+                                                    onClick={() => !isAlreadyInTarget && handleToggleSelectLibraryItem(item.youtubeId)}
+                                                    className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 border transition-all ${
+                                                        isAlreadyInTarget
+                                                            ? 'bg-white/5 border-white/10 cursor-not-allowed text-white/20'
+                                                            : isSelected
+                                                                ? 'bg-neon-cyan border-neon-cyan text-black cursor-pointer'
+                                                                : 'border-white/20 hover:border-white/50 cursor-pointer'
+                                                    }`}
+                                                >
+                                                    {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                                </div>
+
+                                                {/* Thumbnail preview */}
+                                                <div className="w-16 h-10 rounded-lg overflow-hidden bg-black shrink-0 relative border border-white/10">
+                                                    <img
+                                                        src={`https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg`}
+                                                        alt={item.title}
+                                                        className="w-full h-full object-cover"
+                                                        loading="lazy"
+                                                    />
+                                                </div>
+
+                                                {/* Title & Metadata */}
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="text-xs font-bold text-white truncate" title={item.title}>
+                                                        {item.title}
+                                                    </h4>
+                                                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                                        <span className="text-[10px] font-mono text-white/40">
+                                                            {item.youtubeId}
+                                                        </span>
+                                                        {item.sources.map((s, idx) => (
+                                                            <span
+                                                                key={idx}
+                                                                className="text-[9px] px-1.5 py-0.2 rounded bg-white/5 border border-white/10 text-white/60 truncate max-w-[130px]"
+                                                            >
+                                                                {s}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Quick Action Button */}
+                                                <div className="shrink-0">
+                                                    {isAlreadyInTarget ? (
+                                                        <span className="text-[10px] font-bold text-white/40 px-2 py-1 rounded bg-white/5 border border-white/5 whitespace-nowrap flex items-center gap-1">
+                                                            <Check className="w-3 h-3 text-emerald-400" />
+                                                            Déjà présent
+                                                        </span>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleAddSingleFromLibrary(item)}
+                                                            className="px-2.5 py-1 rounded-lg bg-neon-cyan/15 hover:bg-neon-cyan/25 border border-neon-cyan/40 text-neon-cyan hover:text-white text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1 active:scale-95 shadow-sm"
+                                                            title="Ajouter immédiatement cette vidéo"
+                                                        >
+                                                            <Plus className="w-3 h-3" />
+                                                            Ajouter
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer with batch add */}
+                        <div className="p-3 sm:p-4 bg-black/60 border-t border-white/10 flex items-center justify-between gap-3 shrink-0">
+                            <div className="text-xs text-white/60">
+                                {selectedLibraryIds.length > 0 ? (
+                                    <span className="text-neon-cyan font-bold">
+                                        {selectedLibraryIds.length} vidéo(s) sélectionnée(s)
+                                    </span>
+                                ) : (
+                                    <span>Sélectionnez plusieurs vidéos pour les ajouter en groupe</span>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsLibraryOpen(false)}
+                                    className="px-4 py-2 rounded-xl text-xs font-bold text-white/60 hover:text-white hover:bg-white/5 transition-all"
+                                >
+                                    Fermer
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleAddBatchFromLibrary}
+                                    disabled={selectedLibraryIds.length === 0}
+                                    className="px-4 py-2 rounded-xl bg-neon-cyan hover:bg-neon-cyan/90 disabled:opacity-30 disabled:cursor-not-allowed text-black text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-neon-cyan/20 active:scale-95 flex items-center gap-1.5"
+                                >
+                                    <Plus className="w-4 h-4 stroke-[3]" />
+                                    Ajouter la sélection ({selectedLibraryIds.length})
+                                </button>
+                            </div>
+                        </div>
                     </motion.div>
                 </div>
             )}
