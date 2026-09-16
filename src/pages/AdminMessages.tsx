@@ -216,14 +216,6 @@ export function AdminMessages() {
         );
     }, [editors, adminUser]);
 
-    const userProEmail = useMemo(() => {
-        if (!currentEditor) return 'info@dropsiders.fr';
-        return `${currentEditor.username.toLowerCase()}@dropsiders.fr`;
-    }, [currentEditor]);
-
-    useEffect(() => {
-        setSenderEmail(userProEmail);
-    }, [userProEmail]);
 
     useEffect(() => {
         if (currentEditor) {
@@ -625,20 +617,6 @@ export function AdminMessages() {
                 })
             });
 
-            // Send copy to info@dropsiders.fr if the sender is not info@dropsiders.fr
-            if (res.ok && senderEmail !== 'info@dropsiders.fr') {
-                apiFetch('/api/contacts/reply', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({
-                        to: 'info@dropsiders.fr',
-                        from: senderEmail,
-                        name: `[COPIE] ${isNewMail ? 'Partenaire' : selected?.name}`,
-                        subject: `[COPIE] ${isNewMail ? mailSubject : `Re: ${selected?.subject}`}`,
-                        message: `--- COPIE DU MESSAGE ENVOYÉ À: ${to} ---\n\n${replyBody}`
-                    })
-                }).catch(err => console.error("Copy to admin failed", err));
-            }
 
             if (res.ok) {
                 setReplyStatus('success');
@@ -1021,7 +999,7 @@ Alex (Dropsiders)`;
                             onClick={() => {
                                 setIsNewMail(true);
                                 setDestinationEmails(['']);
-                                setSenderEmail(userProEmail);
+                                setSenderEmail('info@dropsiders.fr');
                                 setSignatureName(currentEditor ? currentEditor.username : 'Alex');
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                 setIsAccreditationMode(false);
@@ -1103,11 +1081,7 @@ Alex (Dropsiders)`;
                         <div className="flex items-center gap-1.5 p-2 overflow-x-auto no-scrollbar shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                             {[
                                 { id: 'all', label: 'Tous', emoji: '📥' },
-                                { id: 'general', label: 'Général', emoji: '📬' },
-                                { id: 'alex', label: 'Alex', emoji: '👑' },
-                                ...editors
-                                    .filter(e => e.username && e.username.toLowerCase() !== 'alex')
-                                    .map(e => ({ id: e.username.toLowerCase(), label: e.username, emoji: e.username.charAt(0).toUpperCase() }))
+                                { id: 'general', label: 'info@dropsiders.fr', emoji: '📬' }
                             ].map(filter => {
                                 const isActive = selectedEditorFilter === filter.id;
                                 const msgCount = filter.id === 'all'
@@ -1508,14 +1482,13 @@ Alex (Dropsiders)`;
                                         <button
                                             onClick={() => {
                                                 setIsNewMail(false);
+                                                setSenderEmail('info@dropsiders.fr');
                                                 const activeMsg = selected || selectedArchived;
                                                 if (activeMsg && activeMsg.recipient) {
-                                                    setSenderEmail(activeMsg.recipient.toLowerCase());
                                                     const prefix = activeMsg.recipient.split('@')[0];
                                                     const matched = editors.find(e => e.username && e.username.toLowerCase() === prefix.toLowerCase());
                                                     setSignatureName(matched ? matched.username : (prefix.charAt(0).toUpperCase() + prefix.slice(1)));
                                                 } else {
-                                                    setSenderEmail(userProEmail);
                                                     setSignatureName(currentEditor ? currentEditor.username : 'Alex');
                                                 }
                                                 const sig = `\n\n\n`;
@@ -1794,16 +1767,10 @@ Alex (Dropsiders)`;
                                         )}
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
                                             <span className="text-[10px] font-black uppercase text-gray-400 sm:w-24 shrink-0">Expéditeur :</span>
-                                            <select
-                                                value={senderEmail}
-                                                onChange={(e) => setSenderEmail(e.target.value)}
-                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 w-full sm:flex-1 font-bold cursor-pointer transition-colors hover:border-white/20"
-                                            >
-                                                <option value="info@dropsiders.fr">info@dropsiders.fr (Principal)</option>
-                                                {userProEmail && userProEmail !== 'info@dropsiders.fr' && (
-                                                    <option value={userProEmail}>{userProEmail}</option>
-                                                )}
-                                            </select>
+                                            <div className="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-neon-cyan font-bold w-full sm:flex-1 flex items-center justify-between">
+                                                <span>info@dropsiders.fr</span>
+                                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">Boîte Officielle</span>
+                                            </div>
                                         </div>
                                         {isNewMail && (
                                             <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
