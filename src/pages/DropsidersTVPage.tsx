@@ -12,7 +12,11 @@ import {
     getActiveTVBlock, 
     getSeededShuffle, 
     buildBlockSegments, 
-    calculateBlockLivePosition 
+    calculateBlockLivePosition,
+    getElapsedSecondsInBlock,
+    DAYS_OF_WEEK,
+    getBlocksForDay,
+    formatBlockDays
 } from '../utils/tvSchedule';
 
 const checkAdminAuth = () => {
@@ -425,10 +429,24 @@ export function DropsidersTVPage() {
 
     // Compute active block & its shuffled videos for today
     const [currentHourState, setCurrentHourState] = useState(() => new Date().getHours());
+    const [currentDayState, setCurrentDayState] = useState(() => new Date().getDay());
+    const [epgSelectedDay, setEpgSelectedDay] = useState<number>(() => new Date().getDay());
+
+    // Auto-update hour and day on 30s heartbeat to guarantee seamless show transitions
+    useEffect(() => {
+        const timer = setInterval(() => {
+            const now = new Date();
+            const h = now.getHours();
+            const d = now.getDay();
+            setCurrentHourState(prevH => (prevH !== h ? h : prevH));
+            setCurrentDayState(prevD => (prevD !== d ? d : prevD));
+        }, 30000);
+        return () => clearInterval(timer);
+    }, []);
 
     const activeScheduleBlock = useMemo(() => {
-        return getActiveTVBlock(tvBlocks, currentHourState);
-    }, [tvBlocks, currentHourState]);
+        return getActiveTVBlock(tvBlocks, currentHourState, currentDayState);
+    }, [tvBlocks, currentHourState, currentDayState]);
 
     const activeBlockVideos = useMemo(() => {
         const raw = activeScheduleBlock.videos && activeScheduleBlock.videos.length > 0 
@@ -445,7 +463,7 @@ export function DropsidersTVPage() {
             const savedBlocks = localStorage.getItem(STORAGE_TV_BLOCKS_KEY);
             const blks = savedBlocks ? JSON.parse(savedBlocks) : DEFAULT_TV_BLOCKS;
             const now = new Date();
-            const curBlk = getActiveTVBlock(blks, now.getHours());
+            const curBlk = getActiveTVBlock(blks, now.getHours(), now.getDay());
             const savedPl = localStorage.getItem(STORAGE_PLAYLIST_KEY);
             const pl = savedPl ? JSON.parse(savedPl) : DEFAULT_MAIN_PLAYLIST;
             const rawVids = curBlk.videos && curBlk.videos.length > 0 ? curBlk.videos : pl;
@@ -458,7 +476,7 @@ export function DropsidersTVPage() {
             const dur = savedDur ? { ...DEFAULT_DURATIONS, ...JSON.parse(savedDur) } : DEFAULT_DURATIONS;
 
             const segs = buildBlockSegments(vids, pr, dur);
-            const elapsed = Math.max(0, (now.getHours() - curBlk.startHour) * 3600 + now.getMinutes() * 60 + now.getSeconds());
+            const elapsed = getElapsedSecondsInBlock(curBlk, now);
             return calculateBlockLivePosition(segs, elapsed);
         } catch {
             return { index: 0, isPromo: false, startSeconds: 0 };
@@ -1576,11 +1594,11 @@ export function DropsidersTVPage() {
                                 />
 
                                 {/* Header */}
-                                <div className="flex items-center justify-between mb-5 shrink-0">
+                                <div className="flex items-center justify-between mb-3 shrink-0">
                                     <div>
                                         <h3 className="text-white font-display font-black text-lg uppercase italic tracking-tight">Guide des Programmes</h3>
                                         <p className="text-white/35 text-[10px] uppercase tracking-widest mt-0.5">
-                                            DropsidersTV · {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                            DropsidersTV · {DAYS_OF_WEEK.find(d => d.value === epgSelectedDay)?.label || 'Semaine'} {epgSelectedDay === currentDayState ? '(Aujourd\'hui)' : ''}
                                         </p>
                                     </div>
                                     <button
@@ -1591,92 +1609,186 @@ export function DropsidersTVPage() {
                                     </button>
                                 </div>
 
-                                {/* Blocks timeline strip */}
-                                <div className="flex gap-2 mb-5 overflow-x-auto pb-1 shrink-0">
-                                    {tvBlocks.map(block => {
-                                        const isActive = block.id === activeScheduleBlock.id;
+                                {/* Day selection tabs */}
+                                <div className="flex items-center gap-1.5 mb-3 overflow-x-auto pb-1 shrink-0 custom-scrollbar">
+                                    {DAYS_OF_WEEK.map(d => {
+                                        const isSelected = epgSelectedDay === d.value;
+                                        const isToday = currentDayState === d.value;
+                                        const dayBlockCount = getBlocksForDay(tvBlocks, d.value).length;
                                         return (
-                                            <div
-                                                key={block.id}
-                                                className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl border shrink-0 transition-all"
-                                                style={{
-                                                    background: isActive ? `${block.color}20` : 'rgba(255,255,255,0.04)',
-                                                    borderColor: isActive ? `${block.color}60` : 'rgba(255,255,255,0.08)',
-                                                }}
+                                            <button
+                                                key={d.value}
+                                                type="button"
+                                                onClick={() => setEpgSelectedDay(d.value)}
+                                                className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 border ${
+                                                    isSelected
+                                                        ? 'bg-white text-black border-white shadow-md font-black'
+                                                        : 'bg-white/5 hover:bg-white/10 text-white/70 border-white/10'
+                                                }`}
                                             >
-                                                <span className="text-base">{block.emoji}</span>
-                                                <span
-                                                    className="text-[7px] font-black uppercase tracking-widest whitespace-nowrap"
-                                                    style={{ color: isActive ? block.color : 'rgba(255,255,255,0.30)' }}
-                                                >
-                                                    {block.timeSlot}
-                                                </span>
-                                                <span className="text-[9px] font-bold text-white/70 max-w-[90px] truncate text-center">
-                                                    {block.title}
-                                                </span>
-                                                {isActive && (
-                                                    <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: block.color }} />
+                                                <span>{d.short}</span>
+                                                {isToday && (
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-red-500' : 'bg-neon-cyan animate-pulse'}`} title="Aujourd'hui" />
                                                 )}
-                                            </div>
+                                                <span className={`text-[9px] font-mono ${isSelected ? 'text-black/60 font-black' : 'text-white/40'}`}>
+                                                    ({dayBlockCount})
+                                                </span>
+                                            </button>
                                         );
                                     })}
                                 </div>
 
-                                {/* Current block banner */}
-                                <div
-                                    className="mb-4 px-4 py-3 rounded-2xl border shrink-0"
-                                    style={{ background: `${activeScheduleBlock.color}12`, borderColor: `${activeScheduleBlock.color}40` }}
-                                >
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-xs">{activeScheduleBlock.emoji}</span>
-                                        <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: activeScheduleBlock.color }}>
-                                            {activeScheduleBlock.name} · {activeScheduleBlock.title} ({activeScheduleBlock.timeSlot})
-                                        </span>
-                                        <span className="ml-auto flex items-center gap-1.5">
-                                            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: activeScheduleBlock.color }} />
-                                            <span className="text-[8px] font-bold text-white/35 uppercase">En cours</span>
-                                        </span>
-                                    </div>
-                                    <p className="text-white font-bold text-sm truncate">{isPlayingPromo ? 'Clip promo' : currentDisplayTitle}</p>
-                                    {epgTimeRemaining !== null && !isPlayingPromo && (
-                                        <p className="text-white/35 text-[10px] mt-0.5">Se termine dans {formatMins(epgTimeRemaining)}</p>
-                                    )}
-                                </div>
+                                {(() => {
+                                    const epgDayBlocks = getBlocksForDay(tvBlocks, epgSelectedDay);
+                                    const isSelectedDayToday = epgSelectedDay === currentDayState;
 
-                                {/* Upcoming sets list */}
-                                <div className="overflow-y-auto flex-1 space-y-1.5 pr-0.5">
-                                    <p className="text-white/25 text-[9px] font-black uppercase tracking-widest mb-3">À venir</p>
-                                    {upcomingMainSets.length === 0 && (
-                                        <p className="text-white/25 text-xs text-center py-6">Calcul en cours…</p>
-                                    )}
-                                    {upcomingMainSets.map(({ video, startAt }, i) => (
-                                        <div
-                                            key={`epg-${i}-${video.id}`}
-                                            className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-colors group"
-                                        >
-                                            <div className="flex flex-col items-center w-10 shrink-0">
-                                                <span className="text-[9px] font-black text-white/30 font-mono">{toHHMM(startAt)}</span>
-                                                {i === 0 && (
-                                                    <ChevronRight className="w-3 h-3 mt-0.5" style={{ color: activeScheduleBlock.color }} />
+                                    return (
+                                        <>
+                                            {/* Blocks timeline strip for the selected day */}
+                                            <div className="flex gap-2 mb-4 overflow-x-auto pb-1 shrink-0 custom-scrollbar">
+                                                {epgDayBlocks.length === 0 && (
+                                                    <div className="py-2 text-white/40 text-xs italic">
+                                                        Aucune émission programmée ce jour.
+                                                    </div>
                                                 )}
+                                                {epgDayBlocks.map(block => {
+                                                    const isActive = isSelectedDayToday && block.id === activeScheduleBlock.id;
+                                                    return (
+                                                        <div
+                                                            key={block.id}
+                                                            className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl border shrink-0 transition-all"
+                                                            style={{
+                                                                background: isActive ? `${block.color}20` : 'rgba(255,255,255,0.04)',
+                                                                borderColor: isActive ? `${block.color}60` : 'rgba(255,255,255,0.08)',
+                                                            }}
+                                                        >
+                                                            <span className="text-base">{block.emoji}</span>
+                                                            <span
+                                                                className="text-[7px] font-black uppercase tracking-widest whitespace-nowrap font-mono"
+                                                                style={{ color: isActive ? block.color : 'rgba(255,255,255,0.40)' }}
+                                                            >
+                                                                {block.timeSlot}
+                                                            </span>
+                                                            <span className="text-[9px] font-bold text-white/70 max-w-[90px] truncate text-center">
+                                                                {block.title}
+                                                            </span>
+                                                            {isActive && (
+                                                                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: block.color }} />
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
-                                            <div className="w-12 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
-                                                <img
-                                                    src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
-                                                    alt={video.title}
-                                                    className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
-                                                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                                                />
-                                            </div>
-                                            <span className="text-white/65 text-xs font-semibold truncate group-hover:text-white transition-colors flex-1 min-w-0">
-                                                {video.title}
-                                            </span>
-                                            {video.duration && (
-                                                <span className="text-white/20 text-[9px] font-mono shrink-0">{formatMins(video.duration)}</span>
+
+                                            {/* If today: show live block banner and upcoming sets */}
+                                            {isSelectedDayToday ? (
+                                                <>
+                                                    {/* Current block banner */}
+                                                    <div
+                                                        className="mb-3 px-4 py-3 rounded-2xl border shrink-0"
+                                                        style={{ background: `${activeScheduleBlock.color}12`, borderColor: `${activeScheduleBlock.color}40` }}
+                                                    >
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="text-xs">{activeScheduleBlock.emoji}</span>
+                                                            <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: activeScheduleBlock.color }}>
+                                                                {activeScheduleBlock.name} · {activeScheduleBlock.title} ({activeScheduleBlock.timeSlot})
+                                                            </span>
+                                                            <span className="ml-auto flex items-center gap-1.5">
+                                                                <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: activeScheduleBlock.color }} />
+                                                                <span className="text-[8px] font-bold text-white/35 uppercase">En cours</span>
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-white font-bold text-sm truncate">{isPlayingPromo ? 'Clip promo' : currentDisplayTitle}</p>
+                                                        {epgTimeRemaining !== null && !isPlayingPromo && (
+                                                            <p className="text-white/35 text-[10px] mt-0.5">Se termine dans {formatMins(epgTimeRemaining)}</p>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Upcoming sets list */}
+                                                    <div className="overflow-y-auto flex-1 space-y-1.5 pr-0.5 custom-scrollbar">
+                                                        <p className="text-white/25 text-[9px] font-black uppercase tracking-widest mb-2">À venir aujourd'hui</p>
+                                                        {upcomingMainSets.length === 0 && (
+                                                            <p className="text-white/25 text-xs text-center py-6">Calcul en cours…</p>
+                                                        )}
+                                                        {upcomingMainSets.map(({ video, startAt }, i) => (
+                                                            <div
+                                                                key={`epg-${i}-${video.id}`}
+                                                                className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-colors group"
+                                                            >
+                                                                <div className="flex flex-col items-center w-10 shrink-0">
+                                                                    <span className="text-[9px] font-black text-white/30 font-mono">{toHHMM(startAt)}</span>
+                                                                    {i === 0 && (
+                                                                        <ChevronRight className="w-3 h-3 mt-0.5" style={{ color: activeScheduleBlock.color }} />
+                                                                    )}
+                                                                </div>
+                                                                <div className="w-12 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                                                                    <img
+                                                                        src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
+                                                                        alt={video.title}
+                                                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                                                                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                                                                    />
+                                                                </div>
+                                                                <span className="text-white/65 text-xs font-semibold truncate group-hover:text-white transition-colors flex-1 min-w-0">
+                                                                    {video.title}
+                                                                </span>
+                                                                {video.duration && (
+                                                                    <span className="text-white/20 text-[9px] font-mono shrink-0">{formatMins(video.duration)}</span>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                /* Other day: Show programming schedule overview */
+                                                <div className="overflow-y-auto flex-1 space-y-2 pr-0.5 custom-scrollbar">
+                                                    <div className="flex items-center justify-between text-white/30 text-[9px] font-black uppercase tracking-widest pb-1 border-b border-white/5">
+                                                        <span>Grille du {DAYS_OF_WEEK.find(d => d.value === epgSelectedDay)?.label}</span>
+                                                        <span>{epgDayBlocks.length} émission(s)</span>
+                                                    </div>
+
+                                                    {epgDayBlocks.length === 0 ? (
+                                                        <div className="py-8 text-center text-white/40 text-xs">
+                                                            Aucune émission configurée pour ce jour.
+                                                        </div>
+                                                    ) : (
+                                                        epgDayBlocks.map((blk) => (
+                                                            <div
+                                                                key={blk.id}
+                                                                className="p-3 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-3 hover:bg-white/[0.06] transition-all"
+                                                                style={{ borderLeftColor: blk.color, borderLeftWidth: 4 }}
+                                                            >
+                                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                                    <span className="text-xl shrink-0">{blk.emoji}</span>
+                                                                    <div className="min-w-0">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <h4 className="text-white font-bold text-xs truncate">{blk.title}</h4>
+                                                                            <span className="px-1.5 py-0.2 rounded text-[8px] font-mono font-bold bg-white/10 text-white/80">
+                                                                                {blk.timeSlot}
+                                                                            </span>
+                                                                        </div>
+                                                                        <p className="text-[10px] text-white/40 truncate mt-0.5">
+                                                                            {blk.name} · {blk.videos?.length || 0} vidéo(s) dans la rotation
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="text-right shrink-0">
+                                                                    <span className="text-[9px] font-mono text-white/50 block">
+                                                                        {blk.randomize === false ? 'Ordre fixe' : 'Aléatoire'}
+                                                                    </span>
+                                                                    <span className="text-[8px] font-bold text-white/30 uppercase">
+                                                                        {formatBlockDays(blk.days)}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    )}
+                                                </div>
                                             )}
-                                        </div>
-                                    ))}
-                                </div>
+                                        </>
+                                    );
+                                })()}
 
                                 {/* Footer shortcut hint */}
                                 <div className="mt-4 pt-3 border-t border-white/[0.06] text-center shrink-0">

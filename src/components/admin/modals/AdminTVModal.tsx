@@ -6,7 +6,8 @@ import {
     RotateCcw, CheckCircle2, Loader2, AlertCircle, Film, ChevronRight, 
     Sparkles, Radio, Zap, Eye, Calendar, Home, Video, Shield, ShieldAlert, 
     Pin, PinOff, MessageSquare, Clock, Lock, User, Upload, 
-    Image as ImageIcon, Pencil, LayoutDashboard, Globe, Activity 
+    Image as ImageIcon, Pencil, LayoutDashboard, Globe, Activity,
+    Layers, Palette, Sliders
 } from 'lucide-react';
 import { apiFetch, getAuthHeaders } from '../../../utils/auth';
 import { uploadFile } from '../../../utils/uploadService';
@@ -15,10 +16,29 @@ import type { TVScheduleBlock } from '../../../utils/tvSchedule';
 import { 
     DEFAULT_TV_BLOCKS, 
     STORAGE_TV_BLOCKS_KEY, 
-    getActiveTVBlock 
+    getActiveTVBlock,
+    formatTimeSlot,
+    DAYS_OF_WEEK,
+    ALL_DAYS,
+    WEEKDAYS,
+    WEEKEND_DAYS,
+    formatBlockDays,
+    isBlockActiveOnDay
 } from '../../../utils/tvSchedule';
 
 export type { TVVideo, PromoVideo, TVScheduleBlock };
+
+const PRESET_EMOJIS = ['🌅', '🎪', '☀️', '⭐', '🌙', '🎧', '🔥', '⚡', '🚀', '🎵', '🕺', '📻', '💎', '🎉'];
+const PRESET_COLORS = [
+    { name: 'Ambre', hex: '#f59e0b' },
+    { name: 'Cyan', hex: '#06b6d4' },
+    { name: 'Émeraude', hex: '#10b981' },
+    { name: 'Rouge Neon', hex: '#ff1241' },
+    { name: 'Violet', hex: '#8b5cf6' },
+    { name: 'Rose', hex: '#ec4899' },
+    { name: 'Bleu', hex: '#3b82f6' },
+    { name: 'Orange', hex: '#f97316' },
+];
 
 // Format seconds to human-readable duration: 2h 34min 12s
 function formatDuration(totalSeconds: number): string {
@@ -291,6 +311,8 @@ export function AdminTVModal({
         return DEFAULT_TV_BLOCKS;
     });
     const [selectedBlockId, setSelectedBlockId] = useState<string>('bloc_1');
+    const [showAllBlocksOverview, setShowAllBlocksOverview] = useState(false);
+    const [filterDay, setFilterDay] = useState<'all' | number>('all');
 
     // Add video to block form
     const [blockVideoUrl, setBlockVideoUrl] = useState('');
@@ -489,6 +511,91 @@ export function AdminTVModal({
             if (b.id !== blockId) return b;
             return { ...b, randomize: !b.randomize };
         }));
+    };
+
+    // Update show name, hours, time slot, emoji, color
+    const handleUpdateBlockMeta = (blockId: string, updates: Partial<TVScheduleBlock>) => {
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== blockId) return b;
+            const updated = { ...b, ...updates };
+            // Auto update timeSlot if startHour or endHour changed and timeSlot wasn't explicitly supplied
+            if (('startHour' in updates || 'endHour' in updates) && !updates.timeSlot) {
+                const s = updated.startHour ?? 0;
+                const e = updated.endHour ?? 24;
+                updated.timeSlot = formatTimeSlot(s, e);
+            }
+            // Keep block name label synced if title is edited
+            if (updates.title && !updates.name) {
+                const prefix = b.name.includes('·') ? b.name.split('·')[0].trim() : `Bloc`;
+                updated.name = `${prefix} · ${updates.title}`;
+            }
+            return updated;
+        }));
+    };
+
+    // Add a new emission block
+    const handleAddBlock = () => {
+        const newId = `bloc_${Date.now()}`;
+        const nextNum = blocks.length + 1;
+        const newBlock: TVScheduleBlock = {
+            id: newId,
+            name: `Bloc ${nextNum} · Nouvelle émission`,
+            title: `Émission ${nextNum}`,
+            timeSlot: '12h - 14h',
+            startHour: 12,
+            endHour: 14,
+            color: '#06b6d4',
+            emoji: '📺',
+            randomize: true,
+            days: [...ALL_DAYS],
+            videos: []
+        };
+        setBlocks(prev => [...prev, newBlock]);
+        setSelectedBlockId(newId);
+    };
+
+    // Toggle a day for a specific block
+    const handleToggleBlockDay = (blockId: string, day: number) => {
+        setBlocks(prev => prev.map(b => {
+            if (b.id !== blockId) return b;
+            const currentDays = b.days && Array.isArray(b.days) && b.days.length > 0 
+                ? [...b.days] 
+                : [...ALL_DAYS];
+            const nextDays = currentDays.includes(day)
+                ? currentDays.filter(d => d !== day)
+                : [...currentDays, day];
+            // Don't allow 0 days selected - fallback to all days
+            const finalDays = nextDays.length === 0 ? [...ALL_DAYS] : nextDays;
+            return { ...b, days: finalDays };
+        }));
+    };
+
+    // Set days preset (all / weekdays / weekend)
+    const handleSetBlockDaysPreset = (blockId: string, preset: 'all' | 'weekdays' | 'weekend') => {
+        let days: number[];
+        if (preset === 'all') days = [...ALL_DAYS];
+        else if (preset === 'weekdays') days = [...WEEKDAYS];
+        else days = [...WEEKEND_DAYS];
+        handleUpdateBlockMeta(blockId, { days });
+    };
+
+    // Delete an emission block
+    const handleDeleteBlock = (blockId: string) => {
+        if (blocks.length <= 1) {
+            alert('Il doit rester au moins une émission dans la grille.');
+            return;
+        }
+        const blockToDelete = blocks.find(b => b.id === blockId);
+        if (!confirm(`Supprimer l'émission "${blockToDelete?.title || blockId}" et toutes ses vidéos associées ?`)) {
+            return;
+        }
+        setBlocks(prev => {
+            const next = prev.filter(b => b.id !== blockId);
+            if (selectedBlockId === blockId && next.length > 0) {
+                setSelectedBlockId(next[0].id);
+            }
+            return next;
+        });
     };
 
     const handleManualFetchMainTitle = async () => {
@@ -906,7 +1013,7 @@ export function AdminTVModal({
                                 }`}
                             >
                                 <Clock className="w-3.5 h-3.5" />
-                                Grille 5 Blocs TV ({blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)})
+                                Grille TV ({blocks.length} Émissions · {blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)} vidéos)
                             </button>
                             <button
                                 type="button"
@@ -997,15 +1104,255 @@ export function AdminTVModal({
                         {/* ========================================================= */}
                         {activeTab === 'blocks' && (
                             <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 flex flex-col min-h-0">
-                                {/* 5 Blocks Selector Header & Compact Tabs */}
+                                {/* Blocks Selector Header & Action Buttons */}
                                 <div className="space-y-1.5 shrink-0">
-                                    <div className="flex items-center justify-between px-1">
-                                        <span className="text-[10px] font-black uppercase tracking-wider text-white/50">
-                                            Grille TV · 5 Blocs 24h
-                                        </span>
-                                        <span className="text-[10px] font-mono text-white/40">
-                                            {blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)} vidéos réparties
-                                        </span>
+                                    <div className="flex items-center justify-between px-1 flex-wrap gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-white/50">
+                                                Grille TV · Émissions & Créneaux ({blocks.length})
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowAllBlocksOverview(prev => !prev)}
+                                                className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all flex items-center gap-1 border ${
+                                                    showAllBlocksOverview
+                                                        ? 'bg-neon-cyan/20 border-neon-cyan/40 text-neon-cyan shadow-sm shadow-neon-cyan/20'
+                                                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/60 hover:text-white'
+                                                }`}
+                                                title="Afficher le tableau récapitulatif de toutes les émissions"
+                                            >
+                                                <Layers className="w-3 h-3" />
+                                                {showAllBlocksOverview ? 'Masquer le tableau' : 'Vue tableau (Toutes les émissions)'}
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={handleAddBlock}
+                                                className="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                                                title="Ajouter une nouvelle émission à la grille"
+                                            >
+                                                <Plus className="w-3.5 h-3.5 text-neon-cyan" />
+                                                + Nouvelle émission
+                                            </button>
+                                            <span className="text-[10px] font-mono text-white/40 hidden sm:inline">
+                                                {blocks.reduce((acc, b) => acc + (b.videos?.length || 0), 0)} vidéos réparties
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Table Overview of ALL Emissions (when showAllBlocksOverview is true) */}
+                                    {showAllBlocksOverview && (
+                                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 space-y-2">
+                                            <div className="flex items-center justify-between pb-1.5 border-b border-white/10">
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-neon-cyan flex items-center gap-1.5">
+                                                    <Layers className="w-3 h-3" />
+                                                    Tableau Récapitulatif · Modification directe des noms et horaires
+                                                </span>
+                                                <span className="text-[9px] text-white/40">
+                                                    Modifiez directement le nom et les heures de chaque émission ci-dessous
+                                                </span>
+                                            </div>
+
+                                            <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+                                                {blocks.map((b) => {
+                                                    const isSelected = b.id === selectedBlockId;
+                                                    const isLive = getActiveTVBlock(blocks).id === b.id;
+                                                    return (
+                                                        <div
+                                                            key={b.id}
+                                                            className={`p-2 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-2.5 transition-all ${
+                                                                isSelected 
+                                                                    ? 'bg-white/[0.07] border-white/30 shadow-md' 
+                                                                    : 'bg-black/40 border-white/5 hover:border-white/15'
+                                                            }`}
+                                                            style={{ borderLeftColor: b.color, borderLeftWidth: 4 }}
+                                                        >
+                                                            {/* Emoji + Title */}
+                                                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                                <input
+                                                                    type="text"
+                                                                    value={b.emoji}
+                                                                    onChange={(e) => handleUpdateBlockMeta(b.id, { emoji: e.target.value })}
+                                                                    maxLength={4}
+                                                                    className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-center text-base focus:border-white/30 outline-none shrink-0"
+                                                                    title="Emoji de l'émission"
+                                                                />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={b.title}
+                                                                        onChange={(e) => handleUpdateBlockMeta(b.id, { title: e.target.value })}
+                                                                        placeholder="Nom de l'émission"
+                                                                        className="w-full px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-bold focus:outline-none focus:border-white/30"
+                                                                    />
+                                                                </div>
+                                                                {isLive && (
+                                                                    <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-red-500/20 text-neon-red border border-red-500/40 animate-pulse shrink-0">
+                                                                        En direct
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                             {/* Days pills in overview table row */}
+                                                            <div className="flex items-center gap-0.5 shrink-0 bg-black/40 px-1.5 py-1 rounded-lg border border-white/5" title="Jours de diffusion de cette émission">
+                                                                {DAYS_OF_WEEK.map(day => {
+                                                                    const isActive = isBlockActiveOnDay(b, day.value);
+                                                                    return (
+                                                                        <button
+                                                                            key={day.value}
+                                                                            type="button"
+                                                                            onClick={() => handleToggleBlockDay(b.id, day.value)}
+                                                                            className={`w-5 h-5 rounded text-[8px] font-black uppercase flex items-center justify-center transition-all ${
+                                                                                isActive
+                                                                                    ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/40 shadow-sm font-black'
+                                                                                    : 'bg-transparent text-white/20 hover:text-white/50 hover:bg-white/5'
+                                                                            }`}
+                                                                            title={`${day.label} : ${isActive ? 'Diffusé (cliquer pour désactiver)' : 'Non diffusé (cliquer pour activer)'}`}
+                                                                        >
+                                                                            {day.short[0]}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+
+                                                            {/* Hours: Début & Fin */}
+                                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-[9px] font-bold text-white/40 uppercase">De</span>
+                                                                    <select
+                                                                        value={b.startHour ?? 0}
+                                                                        onChange={(e) => handleUpdateBlockMeta(b.id, { startHour: parseInt(e.target.value, 10) })}
+                                                                        className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono font-bold focus:outline-none focus:border-white/30"
+                                                                    >
+                                                                        {Array.from({ length: 24 }).map((_, i) => (
+                                                                            <option key={i} value={i} className="bg-[#121212] text-white">
+                                                                                {String(i).padStart(2, '0')}h
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-[9px] font-bold text-white/40 uppercase">À</span>
+                                                                    <select
+                                                                        value={b.endHour ?? 24}
+                                                                        onChange={(e) => handleUpdateBlockMeta(b.id, { endHour: parseInt(e.target.value, 10) })}
+                                                                        className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-mono font-bold focus:outline-none focus:border-white/30"
+                                                                    >
+                                                                        {Array.from({ length: 24 }).map((_, i) => {
+                                                                            const h = i + 1;
+                                                                            return (
+                                                                                <option key={h} value={h} className="bg-[#121212] text-white">
+                                                                                    {h === 24 ? '00h (24h)' : `${String(h).padStart(2, '0')}h`}
+                                                                                </option>
+                                                                            );
+                                                                        })}
+                                                                    </select>
+                                                                </div>
+
+                                                                {/* Custom timeSlot text */}
+                                                                <input
+                                                                    type="text"
+                                                                    value={b.timeSlot}
+                                                                    onChange={(e) => handleUpdateBlockMeta(b.id, { timeSlot: e.target.value })}
+                                                                    className="w-24 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-white text-[11px] font-mono text-center focus:outline-none focus:border-white/30"
+                                                                    title="Libellé du créneau horaire"
+                                                                />
+
+                                                                {/* Color picker */}
+                                                                <input
+                                                                    type="color"
+                                                                    value={b.color || '#f59e0b'}
+                                                                    onChange={(e) => handleUpdateBlockMeta(b.id, { color: e.target.value })}
+                                                                    className="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer p-0 shrink-0"
+                                                                    title="Couleur de l'émission"
+                                                                />
+
+                                                                {/* Video count badge */}
+                                                                <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-white/60">
+                                                                    {b.videos?.length || 0} vids
+                                                                </span>
+
+                                                                {/* Select Button */}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setSelectedBlockId(b.id)}
+                                                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-all ${
+                                                                        isSelected 
+                                                                            ? 'bg-white text-black font-black' 
+                                                                            : 'bg-white/10 hover:bg-white/20 text-white'
+                                                                    }`}
+                                                                >
+                                                                    {isSelected ? 'Sélectionnée' : 'Sélectionner'}
+                                                                </button>
+
+                                                                {blocks.length > 1 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleDeleteBlock(b.id)}
+                                                                        className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-all"
+                                                                        title="Supprimer cette émission"
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Day Filter Bar */}
+                                    <div className="flex items-center justify-between gap-2 overflow-x-auto pb-0.5 custom-scrollbar text-xs shrink-0">
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <span className="text-[9px] font-black uppercase tracking-wider text-white/40 mr-1 flex items-center gap-1">
+                                                <Calendar className="w-3 h-3 text-neon-cyan" />
+                                                Filtrer par jour :
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFilterDay('all')}
+                                                className={`px-2 py-0.5 rounded-lg text-[9px] font-bold transition-all ${
+                                                    filterDay === 'all'
+                                                        ? 'bg-white text-black font-black shadow-sm'
+                                                        : 'bg-white/5 hover:bg-white/10 text-white/70 border border-white/10'
+                                                }`}
+                                            >
+                                                Tous (7j/7) <span className="opacity-60 text-[8px]">({blocks.length})</span>
+                                            </button>
+                                            {DAYS_OF_WEEK.map(d => {
+                                                const isToday = new Date().getDay() === d.value;
+                                                const activeCount = blocks.filter(b => isBlockActiveOnDay(b, d.value)).length;
+                                                const isSelectedFilter = filterDay === d.value;
+                                                return (
+                                                    <button
+                                                        key={d.value}
+                                                        type="button"
+                                                        onClick={() => setFilterDay(d.value)}
+                                                        className={`px-2 py-0.5 rounded-lg text-[9px] font-bold transition-all flex items-center gap-1 border ${
+                                                            isSelectedFilter
+                                                                ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-sm font-black'
+                                                                : 'bg-white/5 hover:bg-white/10 border-white/10 text-white/70'
+                                                        }`}
+                                                    >
+                                                        <span>{d.short}</span>
+                                                        <span className="text-[8px] opacity-60 font-mono">({activeCount})</span>
+                                                        {isToday && (
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse" title="Aujourd'hui" />
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {filterDay !== 'all' && (
+                                            <span className="text-[9px] text-neon-cyan/80 font-mono hidden sm:inline shrink-0">
+                                                {blocks.filter(b => isBlockActiveOnDay(b, filterDay)).length} émission(s) active(s) le {DAYS_OF_WEEK.find(d => d.value === filterDay)?.label}
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* 5 Blocks Selector Buttons */}
@@ -1013,6 +1360,7 @@ export function AdminTVModal({
                                         {blocks.map(b => {
                                             const isSelected = b.id === selectedBlockId;
                                             const isLiveNow = getActiveTVBlock(blocks).id === b.id;
+                                            const matchesFilter = filterDay === 'all' || isBlockActiveOnDay(b, filterDay);
                                             return (
                                                 <button
                                                     key={b.id}
@@ -1021,8 +1369,8 @@ export function AdminTVModal({
                                                     className={`group px-2.5 py-1.5 rounded-xl border text-left transition-all flex items-center justify-between gap-2 overflow-hidden ${
                                                         isSelected
                                                             ? 'bg-white/[0.08] shadow-sm'
-                                                            : 'bg-white/[0.02] hover:bg-white/[0.05] border-white/10 opacity-70 hover:opacity-100'
-                                                    }`}
+                                                            : 'bg-white/[0.02] hover:bg-white/[0.05] border-white/10'
+                                                    } ${matchesFilter ? 'opacity-100' : 'opacity-35 hover:opacity-75'}`}
                                                     style={{
                                                         borderColor: isSelected ? b.color : undefined,
                                                         boxShadow: isSelected ? `0 0 12px ${b.color}20` : undefined,
@@ -1042,8 +1390,13 @@ export function AdminTVModal({
                                                                     <span className="w-1.5 h-1.5 rounded-full bg-neon-red animate-ping shrink-0" title="En direct" />
                                                                 )}
                                                             </div>
-                                                            <div className="text-[9px] text-white/40 font-mono">
-                                                                {b.timeSlot}
+                                                            <div className="flex items-center gap-1 mt-0.5">
+                                                                <span className="text-[9px] text-white/40 font-mono">
+                                                                    {b.timeSlot}
+                                                                </span>
+                                                                <span className="text-[7px] px-1 py-0.2 rounded bg-white/5 border border-white/5 text-white/60 font-mono truncate max-w-[65px]" title={formatBlockDays(b.days)}>
+                                                                    {formatBlockDays(b.days)}
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1072,36 +1425,248 @@ export function AdminTVModal({
                                             className="p-2.5 sm:p-3 rounded-xl border bg-black/40 backdrop-blur-md space-y-2 flex-1 flex flex-col min-h-0"
                                             style={{ borderColor: `${currentBlock.color}35` }}
                                         >
-                                            {/* Header of selected block */}
-                                            <div className="flex items-center justify-between gap-3 pb-1.5 border-b border-white/10 shrink-0">
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    <span className="text-base shrink-0">{currentBlock.emoji}</span>
-                                                    <span className="text-xs font-black uppercase tracking-wider" style={{ color: currentBlock.color }}>
-                                                        {currentBlock.title}
-                                                    </span>
-                                                    <span className="text-[10px] text-white/40 font-mono">
-                                                        ({currentBlock.timeSlot})
-                                                    </span>
-                                                    {isLiveNow && (
-                                                        <span className="px-1.5 py-0.2 rounded text-[7px] font-black uppercase bg-red-500/20 text-neon-red border border-red-500/40 animate-pulse">
-                                                            En direct
+                                            {/* Configuration & Paramètres de l'émission sélectionnée */}
+                                            <div className="p-2.5 sm:p-3 rounded-xl bg-white/[0.03] border border-white/10 space-y-2 shrink-0">
+                                                <div className="flex items-center justify-between gap-3 pb-2 border-b border-white/5">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: currentBlock.color }} />
+                                                        <span className="text-[10px] font-black uppercase tracking-wider text-white/70">
+                                                            Paramètres de l'émission : <span style={{ color: currentBlock.color }}>{currentBlock.title}</span>
                                                         </span>
-                                                    )}
+                                                        <span className="text-[10px] text-white/40 font-mono">
+                                                            ({currentBlock.timeSlot})
+                                                        </span>
+                                                        {isLiveNow && (
+                                                            <span className="px-1.5 py-0.5 rounded text-[7px] font-black uppercase bg-red-500/20 text-neon-red border border-red-500/40 animate-pulse">
+                                                                En direct
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-1.5">
+                                                        {/* Random rotation toggle */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleToggleBlockRandom(currentBlock.id)}
+                                                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all flex items-center gap-1.5 border ${
+                                                                currentBlock.randomize
+                                                                    ? 'bg-neon-purple/20 border-neon-purple/40 text-neon-purple'
+                                                                    : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
+                                                            }`}
+                                                            title="Ordre aléatoire quotidien"
+                                                        >
+                                                            <span>🔀</span>
+                                                            <span>Aléatoire : <strong className="uppercase">{currentBlock.randomize ? 'Oui' : 'Non'}</strong></span>
+                                                        </button>
+
+                                                        {blocks.length > 1 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleDeleteBlock(currentBlock.id)}
+                                                                className="p-1 px-2 rounded-md bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 hover:text-red-300 text-[10px] font-bold transition-all flex items-center gap-1"
+                                                                title="Supprimer cette émission"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                                <span className="hidden md:inline">Supprimer l'émission</span>
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
 
-                                                {/* Random rotation toggle */}
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleToggleBlockRandom(currentBlock.id)}
-                                                    className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all flex items-center gap-1.5 border ${
-                                                        currentBlock.randomize
-                                                            ? 'bg-neon-purple/20 border-neon-purple/40 text-neon-purple'
-                                                            : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
-                                                    }`}
-                                                >
-                                                    <span>🔀</span>
-                                                    <span>Rotation aléatoire : <strong className="uppercase">{currentBlock.randomize ? 'Oui' : 'Non'}</strong></span>
-                                                </button>
+                                                {/* Form inputs: Nom, Heure Début, Heure Fin, Créneau, Emoji, Couleur */}
+                                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                                                    {/* Emoji picker */}
+                                                    <div className="sm:col-span-1">
+                                                        <label className="block text-[8px] font-black uppercase tracking-wider text-white/40 mb-0.5">
+                                                            Emoji
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={currentBlock.emoji || '📺'}
+                                                            onChange={(e) => handleUpdateBlockMeta(currentBlock.id, { emoji: e.target.value })}
+                                                            maxLength={4}
+                                                            className="w-full text-center py-1 rounded-md bg-white/5 border border-white/10 text-base focus:border-white/30 outline-none"
+                                                            title="Emoji de l'émission"
+                                                        />
+                                                    </div>
+
+                                                    {/* Show Name input */}
+                                                    <div className="sm:col-span-4">
+                                                        <label className="block text-[8px] font-black uppercase tracking-wider text-white/40 mb-0.5">
+                                                            Nom de l'émission
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={currentBlock.title}
+                                                            onChange={(e) => handleUpdateBlockMeta(currentBlock.id, { title: e.target.value })}
+                                                            placeholder="Ex: Morning Clips, Prime Time..."
+                                                            className="w-full px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-white text-xs font-bold focus:outline-none focus:border-white/30"
+                                                        />
+                                                    </div>
+
+                                                    {/* Start hour select */}
+                                                    <div className="sm:col-span-2">
+                                                        <label className="block text-[8px] font-black uppercase tracking-wider text-white/40 mb-0.5">
+                                                            Heure Début
+                                                        </label>
+                                                        <select
+                                                            value={currentBlock.startHour ?? 0}
+                                                            onChange={(e) => handleUpdateBlockMeta(currentBlock.id, { startHour: parseInt(e.target.value, 10) })}
+                                                            className="w-full px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white text-xs font-mono font-bold focus:outline-none focus:border-white/30"
+                                                        >
+                                                            {Array.from({ length: 24 }).map((_, i) => (
+                                                                <option key={i} value={i} className="bg-[#121212] text-white">
+                                                                    {String(i).padStart(2, '0')}h00 {i === 0 ? '(Minuit)' : ''}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+
+                                                    {/* End hour select */}
+                                                    <div className="sm:col-span-2">
+                                                        <label className="block text-[8px] font-black uppercase tracking-wider text-white/40 mb-0.5">
+                                                            Heure Fin
+                                                        </label>
+                                                        <select
+                                                            value={currentBlock.endHour ?? 24}
+                                                            onChange={(e) => handleUpdateBlockMeta(currentBlock.id, { endHour: parseInt(e.target.value, 10) })}
+                                                            className="w-full px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white text-xs font-mono font-bold focus:outline-none focus:border-white/30"
+                                                        >
+                                                            {Array.from({ length: 24 }).map((_, i) => {
+                                                                const h = i + 1;
+                                                                return (
+                                                                    <option key={h} value={h} className="bg-[#121212] text-white">
+                                                                        {h === 24 ? '00h00 (24h/Minuit)' : `${String(h).padStart(2, '0')}h00`}
+                                                                    </option>
+                                                                );
+                                                            })}
+                                                        </select>
+                                                    </div>
+
+                                                    {/* Custom timeSlot input */}
+                                                    <div className="sm:col-span-2">
+                                                        <label className="block text-[8px] font-black uppercase tracking-wider text-white/40 mb-0.5">
+                                                            Créneau affiché
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={currentBlock.timeSlot || ''}
+                                                            onChange={(e) => handleUpdateBlockMeta(currentBlock.id, { timeSlot: e.target.value })}
+                                                            placeholder="Ex: 06h - 10h"
+                                                            className="w-full px-2 py-1 rounded-md bg-white/5 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-white/30"
+                                                            title="Libellé affiché sur la TV et le guide EPG"
+                                                        />
+                                                    </div>
+
+                                                    {/* Color picker */}
+                                                    <div className="sm:col-span-1 flex flex-col items-center">
+                                                        <label className="block text-[8px] font-black uppercase tracking-wider text-white/40 mb-0.5 text-center">
+                                                            Couleur
+                                                        </label>
+                                                        <input
+                                                            type="color"
+                                                            value={currentBlock.color || '#f59e0b'}
+                                                            onChange={(e) => handleUpdateBlockMeta(currentBlock.id, { color: e.target.value })}
+                                                            className="w-8 h-7 rounded-md bg-transparent border-0 cursor-pointer p-0"
+                                                            title="Couleur d'accent de l'émission"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Quick Presets row: Emojis & Colors */}
+                                                <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/5 flex-wrap">
+                                                    <div className="flex items-center gap-1 overflow-x-auto py-0.5">
+                                                        <span className="text-[8px] font-black uppercase tracking-wider text-white/30 mr-1">Icônes rapides :</span>
+                                                        {PRESET_EMOJIS.map(em => (
+                                                            <button
+                                                                key={em}
+                                                                type="button"
+                                                                onClick={() => handleUpdateBlockMeta(currentBlock.id, { emoji: em })}
+                                                                className={`w-6 h-6 rounded flex items-center justify-center text-xs transition-transform hover:scale-125 ${
+                                                                    currentBlock.emoji === em ? 'bg-white/20 ring-1 ring-white/50' : 'bg-white/5 hover:bg-white/10'
+                                                                }`}
+                                                            >
+                                                                {em}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-1 py-0.5">
+                                                        <span className="text-[8px] font-black uppercase tracking-wider text-white/30 mr-1">Couleurs :</span>
+                                                        {PRESET_COLORS.map(c => (
+                                                            <button
+                                                                key={c.hex}
+                                                                type="button"
+                                                                onClick={() => handleUpdateBlockMeta(currentBlock.id, { color: c.hex })}
+                                                                className={`w-4 h-4 rounded-full transition-transform hover:scale-125 ${
+                                                                    currentBlock.color === c.hex ? 'ring-2 ring-white scale-110' : 'opacity-70 hover:opacity-100'
+                                                                }`}
+                                                                style={{ backgroundColor: c.hex }}
+                                                                title={c.name}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Jours de diffusion de l'émission sélectionnée */}
+                                                <div className="pt-2 pb-0.5 border-t border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="text-[9px] font-black uppercase tracking-wider text-neon-cyan flex items-center gap-1 shrink-0">
+                                                            <Calendar className="w-3 h-3" />
+                                                            Jours de diffusion :
+                                                        </span>
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleSetBlockDaysPreset(currentBlock.id, 'all')}
+                                                                className="px-2 py-0.5 rounded text-[8px] font-bold uppercase bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 transition-all hover:border-white/30"
+                                                                title="Diffuser tous les jours (Lundi au Dimanche)"
+                                                            >
+                                                                7j/7 (Tous)
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleSetBlockDaysPreset(currentBlock.id, 'weekdays')}
+                                                                className="px-2 py-0.5 rounded text-[8px] font-bold uppercase bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 transition-all hover:border-white/30"
+                                                                title="Diffuser uniquement en semaine (Lundi au Vendredi)"
+                                                            >
+                                                                Semaine (Lun-Ven)
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleSetBlockDaysPreset(currentBlock.id, 'weekend')}
+                                                                className="px-2 py-0.5 rounded text-[8px] font-bold uppercase bg-white/5 hover:bg-white/10 text-white/80 border border-white/10 transition-all hover:border-white/30"
+                                                                title="Diffuser uniquement le week-end (Samedi et Dimanche)"
+                                                            >
+                                                                Week-end (Sam-Dim)
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-1 flex-wrap">
+                                                        {DAYS_OF_WEEK.map(day => {
+                                                            const isActive = isBlockActiveOnDay(currentBlock, day.value);
+                                                            return (
+                                                                <button
+                                                                    key={day.value}
+                                                                    type="button"
+                                                                    onClick={() => handleToggleBlockDay(currentBlock.id, day.value)}
+                                                                    className={`px-2 py-0.5 rounded-md text-[9px] font-bold transition-all border ${
+                                                                        isActive
+                                                                            ? 'bg-white text-black border-white shadow-sm font-black'
+                                                                            : 'bg-white/5 border-white/10 text-white/40 hover:text-white/70 hover:bg-white/10'
+                                                                    }`}
+                                                                    title={`${day.label} : ${isActive ? 'Actif (cliquer pour désactiver)' : 'Inactif (cliquer pour activer)'}`}
+                                                                >
+                                                                    {day.short}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                        <span className="text-[9px] font-mono text-neon-cyan/90 ml-1.5 font-bold">
+                                                            ({formatBlockDays(currentBlock.days)})
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             {/* Add video form for this block */}

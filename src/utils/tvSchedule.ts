@@ -23,8 +23,23 @@ export interface TVScheduleBlock {
     color: string;
     emoji: string;
     randomize: boolean;
+    days?: number[]; // [1..6, 0] where 1=Lundi, ..., 6=Samedi, 0=Dimanche. Empty/undefined = tous les jours (7/7)
     videos: TVVideo[];
 }
+
+export const DAYS_OF_WEEK = [
+    { id: 1, value: 1, label: 'Lundi', short: 'Lun', initial: 'L' },
+    { id: 2, value: 2, label: 'Mardi', short: 'Mar', initial: 'M' },
+    { id: 3, value: 3, label: 'Mercredi', short: 'Mer', initial: 'M' },
+    { id: 4, value: 4, label: 'Jeudi', short: 'Jeu', initial: 'J' },
+    { id: 5, value: 5, label: 'Vendredi', short: 'Ven', initial: 'V' },
+    { id: 6, value: 6, label: 'Samedi', short: 'Sam', initial: 'S' },
+    { id: 0, value: 0, label: 'Dimanche', short: 'Dim', initial: 'D' },
+] as const;
+
+export const ALL_DAYS: number[] = [1, 2, 3, 4, 5, 6, 0];
+export const WEEKDAYS: number[] = [1, 2, 3, 4, 5];
+export const WEEKEND_DAYS: number[] = [6, 0];
 
 export interface TVScheduleSegment {
     type: 'main' | 'promo';
@@ -313,13 +328,97 @@ export function getSeededShuffle<T>(items: T[], seedStr: string): T[] {
 }
 
 /**
- * Returns the currently active block based on the current hour (0..23)
+ * Checks if a given hour (0..23) falls inside a block's time range,
+ * correctly handling midnight wrap-around (e.g. 22h to 04h or 18h to 24h/00h).
  */
-export function getActiveTVBlock(blocks: TVScheduleBlock[], currentHour?: number): TVScheduleBlock {
+export function isHourInBlock(b: TVScheduleBlock, h: number): boolean {
+    const start = b.startHour ?? 0;
+    const rawEnd = b.endHour ?? 24;
+    const end = rawEnd === 0 ? 24 : rawEnd;
+
+    if (start < end) {
+        return h >= start && h < end;
+    } else if (start > end) {
+        return h >= start || h < end;
+    } else {
+        return true;
+    }
+}
+
+/**
+ * Computes elapsed seconds since the block started, taking into account wrap-around across midnight.
+ */
+export function getElapsedSecondsInBlock(b: TVScheduleBlock, now: Date = new Date()): number {
+    let hoursDiff = now.getHours() - (b.startHour ?? 0);
+    if (hoursDiff < 0) hoursDiff += 24;
+    return Math.max(0, hoursDiff * 3600 + now.getMinutes() * 60 + now.getSeconds());
+}
+
+/**
+ * Generates a clean human-readable timeSlot string: e.g. "06h - 10h", "18h - 00h"
+ */
+export function formatTimeSlot(startHour: number, endHour: number): string {
+    const s = `${String(startHour).padStart(2, '0')}h`;
+    const endNorm = endHour === 24 || endHour === 0 ? '00' : String(endHour).padStart(2, '0');
+    const e = `${endNorm}h`;
+    return `${s} - ${e}`;
+}
+
+/**
+ * Checks if a block is scheduled to air on a given day of the week (0..6 where 0=Sunday, 1=Monday).
+ * If `days` is empty, undefined or has 7 days, it airs every day.
+ */
+export function isBlockActiveOnDay(b: TVScheduleBlock, dayOfWeek: number): boolean {
+    if (!b.days || !Array.isArray(b.days) || b.days.length === 0 || b.days.length === 7) {
+        return true;
+    }
+    return b.days.includes(dayOfWeek);
+}
+
+/**
+ * Returns all blocks scheduled for a specific day of the week (0..6).
+ */
+export function getBlocksForDay(blocks: TVScheduleBlock[], dayOfWeek: number): TVScheduleBlock[] {
     const list = Array.isArray(blocks) && blocks.length > 0 ? blocks : DEFAULT_TV_BLOCKS;
-    const h = currentHour !== undefined ? currentHour : new Date().getHours();
-    const found = list.find(b => h >= b.startHour && h < b.endHour);
-    return found || list[0] || DEFAULT_TV_BLOCKS[0];
+    return list.filter(b => isBlockActiveOnDay(b, dayOfWeek));
+}
+
+/**
+ * Formats a block's active days into a clean readable label (e.g. "7j/7", "Lun - Ven", "Sam - Dim", etc.).
+ */
+export function formatBlockDays(days?: number[]): string {
+    if (!days || !Array.isArray(days) || days.length === 0 || days.length === 7) {
+        return '7j/7 (Tous les jours)';
+    }
+    const sorted = [...days].sort((a, b) => (a === 0 ? 7 : a) - (b === 0 ? 7 : b));
+    const isWeekdays = sorted.length === 5 && sorted.every(d => [1, 2, 3, 4, 5].includes(d));
+    if (isWeekdays) return 'Lun - Ven (Semaine)';
+    const isWeekend = sorted.length === 2 && sorted.includes(6) && sorted.includes(0);
+    if (isWeekend) return 'Sam - Dim (Week-end)';
+    const dayNames: Record<number, string> = { 1: 'Lun', 2: 'Mar', 3: 'Mer', 4: 'Jeu', 5: 'Ven', 6: 'Sam', 0: 'Dim' };
+    return sorted.map(d => dayNames[d] || String(d)).join(', ');
+}
+
+/**
+ * Returns the currently active block based on the current hour (0..23) and day of week (0..6).
+ * Priority is given to blocks specifically programmed for the current day.
+ */
+export function getActiveTVBlock(blocks: TVScheduleBlock[], currentHour?: number, currentDay?: number): TVScheduleBlock {
+    const list = Array.isArray(blocks) && blocks.length > 0 ? blocks : DEFAULT_TV_BLOCKS;
+    const now = new Date();
+    const h = currentHour !== undefined ? currentHour : now.getHours();
+    const d = currentDay !== undefined ? currentDay : now.getDay();
+
+    // 1. Look for a block programmed specifically for today matching this hour
+    const todayBlocks = list.filter(b => isBlockActiveOnDay(b, d));
+    const todayMatch = todayBlocks.find(b => isHourInBlock(b, h));
+    if (todayMatch) return todayMatch;
+
+    // 2. Fallback to any block matching this hour (e.g. standard schedule)
+    const anyHourMatch = list.find(b => isHourInBlock(b, h));
+    if (anyHourMatch) return anyHourMatch;
+
+    return todayBlocks[0] || list[0] || DEFAULT_TV_BLOCKS[0];
 }
 
 /**
