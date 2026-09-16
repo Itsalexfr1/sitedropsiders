@@ -44,7 +44,7 @@
     "bio": "Afrojack, de son vrai nom Nick van de Wall, est un DJ et producteur néerlandais légendaire de la scène EDM et Electro House. Révélé par son tube mondial 'Take Over Control', il collabore régulièrement avec les plus grandes stars de la pop internationale. Fondateur du label Wall Recordings, il reste une figure centrale des mainstages de festivals comme Tomorrowland et Ultra Music Festival.",
     "country": "Intl",
     "image": "https://cdn-images.dzcdn.net/images/artist/73ac0571eb4a75e4158b146b44b02f7b/1000x1000-000000-80-0-0.jpg",
-    "rating": "0",
+    "rating": "1",
     "spotify": "https://open.spotify.com/search/Afrojack",
     "instagram": "https://instagram.com/afrojack",
     "facebook": "https://facebook.com/afrojack",
@@ -55,7 +55,8 @@
       "Take Over Control (feat. Eva Simons) [Radio Edit]",
       "Give Me Everything (feat. Ne-Yo, Afrojack & Nayer)",
       "Ten Feet Tall (feat. Wrabel)"
-    ]
+    ],
+    "votes": 1
   },
   {
     "id": "11",
