@@ -1468,8 +1468,8 @@
       "id": "bloc_5",
       "name": "Bloc 5 · La Nuit",
       "title": "La Nuit Dropsiders",
-      "timeSlot": "00h - 06h",
-      "startHour": 0,
+      "timeSlot": "02h - 06h",
+      "startHour": 2,
       "endHour": 6,
       "color": "#8b5cf6",
       "emoji": "🌙",
@@ -1760,6 +1760,56 @@
           "title": "DØMINA LIVE @ ESCAPE HALLOWEEN ( HARD TECHNO )",
           "description": "Diffusé sur DropsidersTV · La Nuit Dropsiders",
           "youtubeId": "D1O9K7EmINQ",
+          "duration": 3600
+        }
+      ]
+    },
+    {
+      "id": "bloc_1789598131556",
+      "name": "Bloc 6 · Zone Rouge",
+      "title": "Zone Rouge",
+      "timeSlot": "00h - 02h",
+      "startHour": 0,
+      "endHour": 2,
+      "color": "#06b6d4",
+      "emoji": "📺",
+      "randomize": true,
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0
+      ],
+      "videos": [
+        {
+          "id": "bv_1789598181083",
+          "title": "Return of Headhunterz 2017 | Headhunterz 2-Hour Set",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "mmBeR56zgGI",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598202955",
+          "title": "Wildstylez | Defqon.1 2025",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "h_0bARrg2sg",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598236428",
+          "title": "Qlimax 2016 | Angerfist",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "bEGSijQFIDg",
+          "duration": 3600
+        },
+        {
+          "id": "bv_1789598244203",
+          "title": "Deepack, Luna & Zany | Qlimax 2024",
+          "description": "Diffusé sur DropsidersTV · Zone Rouge",
+          "youtubeId": "go9jzCz8Lxc",
           "duration": 3600
         }
       ]
