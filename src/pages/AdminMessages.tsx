@@ -241,6 +241,7 @@ export function AdminMessages() {
     const [isInterviewMode, setIsInterviewMode] = useState(false);
     const [djName, setDjName] = useState('');
     const [interviewType, setInterviewType] = useState<'Vidéo' | 'Écrite'>('Vidéo');
+    const [interviewGender, setInterviewGender] = useState<'Homme' | 'Femme' | 'Groupe'>('Homme');
     const [interviewDate, setInterviewDate] = useState('');
     const [interviewFestival, setInterviewFestival] = useState('');
 
@@ -798,7 +799,15 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
-    const getInterviewTemplate = (lang: 'FR' | 'EN', dj: string, type: string, date: string, festival: string, name: string) => {
+    const getInterviewTemplate = (
+        lang: 'FR' | 'EN', 
+        dj: string, 
+        type: string, 
+        date: string, 
+        festival: string, 
+        name: string,
+        gender: 'Homme' | 'Femme' | 'Groupe' = 'Homme'
+    ) => {
         const isVideo = type === 'Vidéo';
         if (lang === 'FR') {
             const artistName = dj || "[Nom de l’Artiste]";
@@ -819,14 +828,18 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 }
             }
             const formatText = isVideo ? "Interview Vidéo (format réseaux sociaux)" : "Interview Écrite";
+            const pronounWith = gender === 'Femme' ? 'avec elle' : gender === 'Groupe' ? 'avec eux' : 'avec lui';
+            const introFocus = gender === 'Groupe'
+                ? 'axée sur leur actualité, leur vision du mix et leur expérience'
+                : 'axée sur son actualité, sa vision du mix et son expérience';
 
             return `Hello,
 
 Je m'appelle Alex, je suis journaliste pour Dropsiders, média français spécialisé dans la musique électronique et la culture DJ.
 
-Nous suivons de très près l'actualité de ${artistName} et, comme je serai présent à ${location} avec une accréditation presse officielle pour ${festivalName}, je souhaiterais organiser une rencontre privilégiée avec lui/elle.
+Nous suivons de très près l'actualité de ${artistName} et, comme je serai présent à ${location} avec une accréditation presse officielle pour ${festivalName}, je souhaiterais organiser une rencontre privilégiée ${pronounWith}.
 
-L'idée est de proposer à notre communauté une interview dynamique axée sur son actualité, sa vision du mix et son expérience sur une scène aussi légendaire que celle de ${festivalName}.
+L'idée est de proposer à notre communauté une interview dynamique ${introFocus} sur une scène aussi légendaire que celle de ${festivalName}.
 
 Infos pratiques :
 
@@ -862,14 +875,16 @@ Alex (Dropsiders)`;
                 }
             }
             const formatTextEN = isVideo ? "Video interview (social media format)" : "Written interview";
+            const pronounWithEN = gender === 'Femme' ? 'with her' : gender === 'Groupe' ? 'with them' : 'with him';
+            const possessiveEN = gender === 'Femme' ? 'her' : gender === 'Groupe' ? 'their' : 'his';
 
             return `Hello,
 
 My name is Alex, I am a journalist for Dropsiders, a French media specialized in electronic music and DJ culture.
 
-We are closely following ${artistNameEN}'s news and, as I will be present at ${locationEN} with an official press accreditation for ${festivalNameEN}, I would like to organize a privileged meeting with him/her.
+We are closely following ${artistNameEN}'s news and, as I will be present at ${locationEN} with an official press accreditation for ${festivalNameEN}, I would like to organize a privileged meeting ${pronounWithEN}.
 
-The idea is to offer our community a dynamic interview focused on his/her latest news, vision of mixing, and experience on a stage as legendary as ${festivalNameEN}.
+The idea is to offer our community a dynamic interview focused on ${possessiveEN} latest news, vision of mixing, and experience on a stage as legendary as ${festivalNameEN}.
 
 Practical info:
 
@@ -912,7 +927,7 @@ Alex (Dropsiders)`;
                 setMailSubject(`PHOTO ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
             }
         } else if (isInterviewMode) {
-            setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, interviewDate, interviewFestival, currentName));
+            setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, interviewDate, interviewFestival, currentName, interviewGender));
             const djPart = djName ? ` – ${djName}` : '';
             const festPart = interviewFestival ? ` – ${interviewFestival}` : ' – EDC Las Vegas';
             
@@ -930,7 +945,7 @@ Alex (Dropsiders)`;
                 setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
             }
         }
-    }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, interviewDate, interviewFestival, accreditationLang, isNewMail, signatureName]);
+    }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, interviewGender, interviewDate, interviewFestival, accreditationLang, isNewMail, signatureName]);
 
     const filteredMessages = useMemo(() => {
         const inbox = messages.filter(m => !m.archived);
@@ -1996,7 +2011,7 @@ Alex (Dropsiders)`;
                                                 </>
                                             ) : (
                                                 <div className="space-y-4">
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                                         <div className="space-y-1">
                                                             <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Artiste / DJ</label>
                                                             <input
@@ -2004,7 +2019,23 @@ Alex (Dropsiders)`;
                                                                 value={djName}
                                                                 onChange={(e) => setDjName(e.target.value)}
                                                                 className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-red"
+                                                                placeholder="David Guetta..."
                                                             />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Pronom / Artiste</label>
+                                                            <div className="flex bg-black/40 rounded-xl p-1 border border-white/5">
+                                                                {(['Homme', 'Femme', 'Groupe'] as const).map((g) => (
+                                                                    <button
+                                                                        key={g}
+                                                                        type="button"
+                                                                        onClick={() => setInterviewGender(g)}
+                                                                        className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${interviewGender === g ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
+                                                                    >
+                                                                        {g === 'Groupe' ? 'Duo/Gr.' : g}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                         <div className="space-y-1">
                                                             <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Format</label>
@@ -2012,6 +2043,7 @@ Alex (Dropsiders)`;
                                                                 {['Vidéo', 'Écrite'].map((t) => (
                                                                     <button
                                                                         key={t}
+                                                                        type="button"
                                                                         onClick={() => setInterviewType(t as any)}
                                                                         className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${interviewType === t ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
                                                                     >
