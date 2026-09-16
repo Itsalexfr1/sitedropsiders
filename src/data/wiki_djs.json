@@ -12285,5 +12285,16 @@
       "Jamaican (Bam Bam)",
       "Good News"
     ]
+  },
+  {
+    "name": "RUFU",
+    "country": "Unknown",
+    "bio": "Un utilisateur a proposé l'ajout de rufu. En attente de validation.",
+    "image": "",
+    "instagram": "",
+    "id": "965",
+    "rating": "0.0",
+    "votes": 1,
+    "status": "waiting"
   }
 ]
